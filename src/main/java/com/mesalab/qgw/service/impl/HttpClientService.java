@@ -1,0 +1,68 @@
+package com.mesalab.qgw.service.impl;
+
+import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.io.IOException;
+import java.util.Map;
+
+@Slf4j
+@Service
+public class HttpClientService {
+
+    @Resource(name="httpClientManagerFactory")
+    private CloseableHttpClient httpClient;
+
+
+    public  Map<String, String> httpGet(String url) {
+
+        Map<String, String> resultMap = Maps.newHashMap();
+        // 创建GET请求对象
+
+        CloseableHttpResponse response = null;
+        try {
+            HttpGet httpGet = new HttpGet(url);
+            // 执行请求
+            response = httpClient.execute(httpGet);
+            // 获取响应实体
+            HttpEntity entity = response.getEntity();
+            // 获取响应信息
+            resultMap.put("status", String.valueOf(response.getStatusLine().getStatusCode()));
+            resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
+        } catch (ClientProtocolException e) {
+            log.error("协议错误: {}", e.getMessage());
+            e.printStackTrace();
+        } catch (ParseException e) {
+            log.error("解析错误: {}", e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            log.error("IO错误: {}", e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (null != response) {
+                try {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("释放链接错误: {}", e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+        return resultMap;
+    }
+
+
+
+
+
+}
