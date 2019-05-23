@@ -7,6 +7,8 @@ import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
@@ -60,6 +62,51 @@ public class HttpClientService {
         }
         return resultMap;
     }
+
+
+    public  Map<String, String> httpPost(String url, String jsonString) {
+
+        Map<String, String> resultMap = Maps.newHashMap();
+        // 创建GET请求对象
+        CloseableHttpResponse response = null;
+        try {
+            HttpPost httpPost = new HttpPost(url);
+            httpPost.setHeader("Content-Type", "application/json");
+            httpPost.setEntity(new ByteArrayEntity(jsonString.getBytes("utf-8")));
+            response = httpClient.execute(httpPost);
+            // 获取响应实体
+            HttpEntity entity = response.getEntity();
+            // 获取响应信息
+            resultMap.put("status", String.valueOf(response.getStatusLine().getStatusCode()));
+            resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
+        } catch (ClientProtocolException e) {
+            log.error("协议错误: {}", e.getMessage());
+            e.printStackTrace();
+        } catch (ParseException e) {
+            log.error("解析错误: {}", e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            log.error("IO错误: {}", e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (null != response) {
+                try {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("释放链接错误: {}", e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+        return resultMap;
+    }
+
+
+
+
+
+
 
 
 

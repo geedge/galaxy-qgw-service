@@ -68,4 +68,6 @@ pagehelper:
 # 5). auto-runtime-dialect
 # 默认值为 false。设置为 true 时，允许在运行时根据多数据源自动识别对应方言的分页 （不支持自动选择sqlserver2012，只能使用sqlserver）。
   auto-runtime-dialect: true
+
+
 ###############################################################################

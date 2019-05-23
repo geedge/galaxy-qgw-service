@@ -45,9 +45,7 @@ public class APIServiceImpl implements IAPIService {
     @Override
     public BaseResult executeQuery(QueryParam param) {
 
-        validateQueryParam(param);
-
-        param.setTableName(getTableName(param.getQuery()));
+        validateAndGetTableName(param);
 
         Dialect dialect = null;
 
@@ -58,14 +56,10 @@ public class APIServiceImpl implements IAPIService {
                 .contains(param.getTableName().toLowerCase())) {
             dialect = SQLHelper.getDBDialect(DBTypeEnum.DRUID.getValue());
         } else  {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "该表未在平台注册，请联系数据平台服务商负责人", null);
+            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "该表未在平台注册，请联系数据平台负责人", null);
         }
 
-        SQLQuerySource sqlQuerySource = sqlParserByAst(param.getQuery(), dialect.getDbType());
-
-        if (StringUtil.isBlank(sqlQuerySource.getLimit())) {//default 200
-            param.setQuery(dialect.getLimitString(param.getQuery(), 0,schemaProperties.getDefaultMaxRows()));
-        }
+        param.setQuery(parserSQLByAst(param.getQuery(), dialect));
 
         BaseResult baseResult = dialect.executeHttpQuery(param);
 
@@ -84,7 +78,7 @@ public class APIServiceImpl implements IAPIService {
      * format：输出格式，默认为JSON
      * option：查询选项，默认为real-time
      */
-    private void  validateQueryParam(QueryParam param) {
+    private void  validateAndGetTableName(QueryParam param) {
 
        if (StringUtil.isBlank(param.getQuery())) {
            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：query SQL 错误", null);
@@ -110,6 +104,8 @@ public class APIServiceImpl implements IAPIService {
             param.setFormat(QueryFormatEnum.JSON.getValue());
         }
 
+        param.setTableName(getTableName(param.getQuery()));
+
     }
 
 
@@ -118,8 +114,6 @@ public class APIServiceImpl implements IAPIService {
      * @param sql
      */
     private String  getTableName(String sql) {
-
-        SQLQuerySource sqlQuerySource = new SQLQuerySource();
         String tableName = "";
         try {
             List<SQLStatement> statementList = SQLUtils.parseStatements(sql, JdbcConstants.CLICKHOUSE);
@@ -146,11 +140,11 @@ public class APIServiceImpl implements IAPIService {
      * @param sql
      * @return
      */
-    private SQLQuerySource sqlParserByAst(String sql, String dbType) {
+    private String parserSQLByAst(String sql, Dialect dialect) {
 
         SQLQuerySource sqlQuerySource = new SQLQuerySource();
         try {
-            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, dbType);
+            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, dialect.getDbType());
             if (statementList.size() > 0) {
                 SQLStatement statement = statementList.get(0);
                 if (statement instanceof  SQLSelectStatement) {
@@ -200,31 +194,41 @@ public class APIServiceImpl implements IAPIService {
 
                         // 获取分页
                         SQLLimit limit = sqlSelectQueryBlock.getLimit();
+
                         if (limit != null) {
-                            sqlQuerySource.setLimit(limit.getOffset() + "," + limit.getRowCount());
+                            if (StringUtil.isNotEmpty(limit.getOffset())) {
+                                sqlQuerySource.setLimit(StringUtil.setDefaultIfEmpty(limit.getOffset() , 0)+ "," + limit.getRowCount());
+                            } else {
+                                sqlQuerySource.setLimit(String.valueOf(limit.getRowCount()));
+                            }
                         }
 
 
                         // union的查询语句
                     } else if (sqlSelectQuery instanceof SQLUnionQuery) {
                         SQLUnionQuery sqlUnionQuery = (SQLUnionQuery) sqlSelectQuery;
-                        sqlQuerySource.setTableName(getMultiSqlTableName(sqlUnionQuery.getLeft()));
+                        sqlQuerySource.setTableName(getMultiSqlTableName(sqlUnionQuery.getRight()));
                         sqlQuerySource.setLimit("NO LIMIT");
                     }
                 } else {
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：暂不支持SELECT之外操作");
                 }
 
+               sql = SQLHelper.generatePageSql(sql, dialect, sqlQuerySource);
+
+
+
+
 
             }
         } catch (Exception e) {
-            log.error("sqlparser error: ", e);
+            log.error("sqlParser error: ", e);
             throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
 
         }
 
 
-        return sqlQuerySource;
+        return sql;
     }
 
 

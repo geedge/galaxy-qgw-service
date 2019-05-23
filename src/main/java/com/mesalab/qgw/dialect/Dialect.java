@@ -24,6 +24,8 @@ public interface Dialect {
      */
     String getLimitString(String sql, int offset, int limit);
 
+    String getLimitString(String sql, SQLQuerySource sqlQuerySource);
+
 
     BaseResult executeHttpQuery(QueryParam param);
 

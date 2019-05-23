@@ -20,11 +20,12 @@ public class GlobalExceptionHandler {
 
 
 
+
     @ExceptionHandler({RuntimeException.class})
     public BaseResult handleBusinessException(BusinessException e, HttpServletRequest request, HttpServletResponse response) {
        response.setStatus(e.getErrorCode());
-
-        return BaseResultGenerator.failure(e.getErrorCode(), e.getMessage()+ ";" + (e.getCause() != null ? e.getCause().getMessage() : ""));//自己需要实现的异常处理
+       return BaseResultGenerator.failure(e.getErrorCode(), e.getMessage()+ ";" + (e.getCause() != null ? e.getCause().getMessage() : ""));//自己需要实现的异常处理
     }
+
 
  }

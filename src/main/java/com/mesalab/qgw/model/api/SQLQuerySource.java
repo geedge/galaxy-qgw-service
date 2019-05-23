@@ -10,4 +10,5 @@ public class SQLQuerySource {
     private String groupByClause;
     private String orderBy;
     private String limit;
+
 }

@@ -9,4 +9,5 @@ public enum QueryOptionEnum {
     private String value;
     QueryOptionEnum(String value) {this.value = value;}
 
+
 }

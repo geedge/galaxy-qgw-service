@@ -1,10 +1,21 @@
 package com.mesalab;
 
+import com.mesalab.qgw.model.api.UrlInterceptor;
+import org.apache.catalina.connector.Connector;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.util.UrlPathHelper;
 import tk.mybatis.spring.annotation.MapperScan;
 
 /**
@@ -22,9 +33,36 @@ import tk.mybatis.spring.annotation.MapperScan;
 @SpringBootApplication
 @MapperScan(basePackages = {"com.mesalab.qgw.dao"})
 @EnableCaching
-public class GalaxyQGWApplication {
+public class GalaxyQGWApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {
         SpringApplication.run(GalaxyQGWApplication.class, args);
     }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // addPathPatterns - 用于添加拦截规则
+        // excludePathPatterns - 用户排除拦截
+        registry.addInterceptor(new UrlInterceptor())
+                .addPathPatterns("/**");
+
+                //.excludePathPatterns("/index.html", "/", "/user/login");
+    }
+
+    @Bean
+    public ServletWebServerFactory webServerFactory() {
+        TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
+        factory.addConnectorCustomizers(new TomcatConnectorCustomizer() {
+
+            @Override
+            public void customize(Connector connector) {
+                connector.setProperty("relaxedPathChars", "\"<>[\\]^`{|}");
+            }
+
+        });
+        return factory;
+    }
+
+
+
 }

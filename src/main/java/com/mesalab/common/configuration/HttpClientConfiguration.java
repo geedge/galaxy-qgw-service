@@ -43,11 +43,11 @@ public class HttpClientConfiguration {
                 .setSocketTimeout(httpClientProperties.getSocketTimeout())
                 .build();
 
-        HttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig)
+       /* HttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig)
                 .setUserAgent(httpClientProperties.getUserAgent()).setMaxConnPerRoute(httpClientProperties.getMaxPerRoute())
                 .setMaxConnTotal(httpClientProperties.getMaxConnection())
                 .setConnectionReuseStrategy(new NoConnectionReuseStrategy())
-                .build();
+                .build();*/
         return requestConfig;
 
     }
