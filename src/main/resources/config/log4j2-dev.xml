@@ -11,15 +11,15 @@
     <!-- 参数配置 -->
     <Properties>
         <!-- 配置日志文件输出目录 -->
-        <Property name="LOG_HOME">/logs/qgw</Property>
+        <Property name="LOG_HOME">./logs</Property>
         <!-- 日志输出文件名 -->
-        <property name="FILE_NAME">log</property>
+        <property name="FILE_NAME">galaxy-qgw-service</property>
         <!-- 日志格式化 -->
         <property name="console_pattern_layout">
-            %highlight{%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level][%logger{36}]-(%t)} %m%n
+            [%d{yyyy-MM-dd HH:mm:ss}] [%p] [Thread:%t] %l %x - %m%n
         </property>
         <property name="pattern_layout">
-            %d{yyyy-MM-dd HH:mm:ss.SSS} [%5level][%logger{36}]-(%t) %m%n
+            [%d{yyyy-MM-dd HH:mm:ss}] [%p] [Thread:%t] %l %x - %m%n
         </property>
     </Properties>
 

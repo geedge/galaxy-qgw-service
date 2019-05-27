@@ -27,9 +27,11 @@ public class APIController {
     @GetMapping(value = "/")
     public BaseResult queryByGet( QueryParam param) {
         log.info("GET接收查询参数SQL:{}, option:{}, format:{}", param.getQuery(), param.getOption(), param.getFormat());
+
         if (StringUtil.isBlank(param.getQuery())) {
             return BaseResultGenerator.success4Message("ok");
         }
+        log.info("SQL 查询KEY {}", StringUtil.md5(param.getQuery()) );
         return apiService.executeQuery(param);
 
     }

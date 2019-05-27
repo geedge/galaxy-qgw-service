@@ -16,16 +16,14 @@ import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 public class ClickHouseDialect implements  Dialect{
-
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
-
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-
     private String dbType;
 
     public ClickHouseDialect(String dbType) {
@@ -70,18 +68,20 @@ public class ClickHouseDialect implements  Dialect{
                 .append(clickHouseHttpSource.getDbname()).append("&")
                 .append("max_execution_time=").append(clickHouseHttpSource.getMaxExecutionTime()).append("&")
                 .append("enable_http_compression=").append(clickHouseHttpSource.getEnableHttpCompression()).append("&")
+                .append("query_id=").append(com.mesalab.common.utils.StringUtil.getQueryId(param.getQuery())).append("&")
                 .append("query=").append(param.getQuery())
                 .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
         log.info(queryparamBuilder.toString());
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
-        String queryparam =  URLEncodedUtils.format(values,"UTF-8");
 
-       Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() + queryparam);
+       Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() +  URLEncodedUtils.format(values,"UTF-8"));
+
        if (StringUtil.isEmpty(resultMap)) {
            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系平台方！");
        } else {
            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-               Map<String, Object> maps =(Map<String, Object>) JsonMapper.fromJsonString(resultMap.get("result"), Map.class);
+               Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(resultMap.get("result"),  Map.class);
+
                Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
                Map<String, Object> statistics = Maps.newHashMap();
                statistics.put("elapsed", statisticMap.get("elapsed"));

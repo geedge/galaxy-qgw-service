@@ -1,6 +1,6 @@
 package com.mesalab.common.redis;
 
-import com.mesalab.SpringBootSeedApplicationTests;
+import com.mesalab.GalaxyQGWApplicationTests;
 import junit.framework.TestCase;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -18,7 +18,7 @@ import java.util.Map;
  * @date 2018/5/20
  */
 @Slf4j
-public class RedisClientTemplateTest extends SpringBootSeedApplicationTests {
+public class RedisClientTemplateTest extends GalaxyQGWApplicationTests {
 
     /**
      * 注入的jedis模板操作对象
@@ -32,7 +32,7 @@ public class RedisClientTemplateTest extends SpringBootSeedApplicationTests {
         log.info("============= redis set success =============");
     }
 
-   // @Test
+    //@Test
     public void set1() {
         Map<String, String> map = new HashMap<>();
         map.put("map.key1", "KEY1");

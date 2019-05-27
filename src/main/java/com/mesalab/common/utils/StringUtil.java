@@ -1,5 +1,6 @@
 package com.mesalab.common.utils;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.regex.Matcher;
@@ -183,5 +184,18 @@ public class StringUtil {
             return defaultValue;
         }
     }
+
+    /**
+     * 通过SQL生成查询唯一kEY
+     * @param sql
+     * @return
+     */
+    public  static String getQueryId(String sql) {
+        return DigestUtils.md5Hex(sql);
+    }
+
+
+
+
 
 }

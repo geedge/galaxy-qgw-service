@@ -1,6 +1,6 @@
 package com.mesalab.common.utils;
 
-import com.mesalab.SpringBootSeedApplicationTests;
+import com.mesalab.GalaxyQGWApplicationTests;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -11,7 +11,7 @@ import org.junit.Test;
  * @date 2018/5/27
  */
 @Slf4j
-public class RandomUtilTest extends SpringBootSeedApplicationTests {
+public class RandomUtilTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void getSalt() {
