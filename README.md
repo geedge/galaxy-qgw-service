@@ -16,7 +16,7 @@
     
     4. 构建镜像 docker build -t ceiec/galaxy-qgw-service:1.0 .
     
-    5. 部署容器 docker run -d  --name galaxy-qgw-service -v /home/ceiec/dockers/logs:/home/ceiec/galaxy-qgw-service/logs -p 9091:9000 ceiec/galaxy-qgw-service:1.0
+    5. 部署容器 docker run -d  --name galaxy-qgw-service -v /home/ceiec/galaxy-qgw-service/logs:/home/ceiec/galaxy-qgw-service/logs -p 9091:9000 ceiec/galaxy-qgw-service:1.0
     
     6. 启停 docker start|stop galaxy-qgw-service
     
@@ -28,7 +28,7 @@
     
     2. 修改镜像tag docker tag 79470009165e ceiec/galaxy-qgw-service:1.0
     
-    3. 部署容器 docker run -d  --name galaxy-qgw-service -v /home/ceiec/dockers/logs:/home/ceiec/galaxy-qgw-service/logs -p 9091:9000 ceiec/galaxy-qgw-service:1.0
+    3. 部署容器 docker run -d  --name galaxy-qgw-service -v /home/ceiec/galaxy-qgw-service/logs:/home/ceiec/galaxy-qgw-service/logs -p 9091:9000 ceiec/galaxy-qgw-service:1.0
     
     4. 启停 docker start|stop galaxy-qgw-service
     
