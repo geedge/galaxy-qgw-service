@@ -4,9 +4,10 @@
 
 **基于Docker**
 
-*  离线初始化部署
 
-    需要安装docker环境，依赖JDK1.8
+*  离线初始化部署
+    
+     需要安装docker环境，依赖JDK1.8
 
     1. 拷贝配置文件夹config/ 5个yml文件到docker 宿主机器目录 /root/docker/galaxy-qgw-deploy
     
@@ -23,7 +24,7 @@
     7. 查看日志：tail -f /home/ceiec/galaxy-qgw-service/logs/galaxy-qgw-service.log
 
 *  已有镜像部署
-
+    
     1. 加载备份镜像文件 docker load  < ./docker_image_galaxy-qgw-service_1.0.tar
     
     2. 修改镜像tag docker tag 79470009165e ceiec/galaxy-qgw-service:1.0
@@ -32,4 +33,9 @@
     
     4. 启停 docker start|stop galaxy-qgw-service
     
-    5. 查看日志：tail -f /home/ceiec/galaxy-qgw-service/logs/galaxy-qgw-service.log
+    5. 查看日志tail -f /home/ceiec/galaxy-qgw-service/logs/galaxy-qgw-service.log
+    6. 备份镜像文件 docker save 79470009165e  > /home/ceiec/docker_image_galaxy-qgw-service_1.0.tar 
+    
+    
+    
+    
