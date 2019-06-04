@@ -114,7 +114,7 @@
                     如果指定了，那么会在指定的这个Appender和Root的Appender中都会输出，
                     此时我们可以设置Logger的additivity="false"只在自定义的Appender中进行输出。
         -->
-        <Root level="INFO">
+        <Root level="ERROR">
             <AppenderRef ref="AsyncAll"/>
         </Root>
     </Loggers>

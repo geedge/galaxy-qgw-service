@@ -12,4 +12,5 @@ public class SchemaProperties {
     private String druid;
     private  int  defaultMaxRows;
 
+
 }

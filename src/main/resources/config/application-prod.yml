@@ -34,7 +34,7 @@ spring:
 ###############################################################################
 ## 日志配置路径
 logging:
-  config: classpath:./config/log4j2-dev.xml
+  config: classpath:./config/log4j2-prod.xml
 ###############################################################################
 ## swagger配置
 swagger:

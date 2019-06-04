@@ -104,6 +104,12 @@ public class HttpClientConfiguration {
                 }
                 // time out 超时重试
                 if (exception instanceof InterruptedIOException) {
+                    try {
+                        log.warn(" SocketTimeout Connection Retry {}" , executionCount);
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     return true;
                 }
                 // Unknown host
@@ -126,6 +132,8 @@ public class HttpClientConfiguration {
                 return false;
             }
         };
+
+
     }
 
 

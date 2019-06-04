@@ -12,19 +12,16 @@ import com.alibaba.druid.sql.ast.statement.*;
 import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
 import com.alibaba.druid.util.JdbcConstants;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.SchemaProperties;
-import com.mesalab.common.enums.BaseResultEnum;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
+import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.qgw.dialect.Dialect;
-import com.mesalab.qgw.model.api.QueryParam;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.IAPIService;
 import com.zdjizhi.utils.StringUtil;
@@ -32,36 +29,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Service
+@Service("apiService")
 public class APIServiceImpl implements IAPIService {
     @Autowired
     private SchemaProperties schemaProperties;
 
     @Override
-    public BaseResult executeQuery(QueryParam param) {
+    public BaseResult executeQuery(ApiParam param) {
 
         validateAndGetTableName(param);
 
-        Dialect dialect = null;
-
-        if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getClickhouse())
-                .contains(param.getTableName().toLowerCase())) {
-            dialect = SQLHelper.getDBDialect(DBTypeEnum.CLICKHOUSE.getValue());
-        }  else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getDruid())
-                .contains(param.getTableName().toLowerCase())) {
-            dialect = SQLHelper.getDBDialect(DBTypeEnum.DRUID.getValue());
-        } else  {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "该表未在平台注册，请联系数据平台负责人", null);
-        }
-
-        param.setQuery(parserSQLByAst(param.getQuery(), dialect));
-
-        BaseResult baseResult = dialect.executeHttpQuery(param);
+        BaseResult baseResult = parserAndGetDialect(param).sqlDialectTransform().executeHttpQuery();
 
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus() ,baseResult.getMessage(), null);
@@ -71,6 +55,40 @@ public class APIServiceImpl implements IAPIService {
         return baseResult;
     }
 
+
+
+    private Dialect parserAndGetDialect(ApiParam param) {
+
+        Dialect dialect = null;
+
+        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
+            param.setDbType(DBTypeEnum.HBASE.getValue());
+        } else {
+            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getClickhouse())
+                    .contains(param.getTableName().toLowerCase())) {
+                param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
+            }  else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getDruid())
+                    .contains(param.getTableName().toLowerCase())) {
+                param.setDbType(DBTypeEnum.DRUID.getValue());
+            } else  {
+                throw new BusinessException(BaseResultEnum.FAIL.getCode() , "该表未在平台注册，请联系数据平台负责人", null);
+            }
+        }
+        try {
+            param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
+            param.setSqlQuerySource(parserSQLByAst(param.getQuery(), param.getDialectDBType()));
+            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
+            Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
+            dialect = (Dialect) constructor.newInstance(param);
+        } catch (Exception e) {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "平台方言转换异常", e);
+        }
+
+        return dialect;
+    }
+
+
+
     /**
      * 对请求参数进行验证
      * @param param
@@ -78,7 +96,7 @@ public class APIServiceImpl implements IAPIService {
      * format：输出格式，默认为JSON
      * option：查询选项，默认为real-time
      */
-    private void  validateAndGetTableName(QueryParam param) {
+    private void  validateAndGetTableName(ApiParam param) {
 
        if (StringUtil.isBlank(param.getQuery())) {
            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：query SQL 错误", null);
@@ -115,7 +133,7 @@ public class APIServiceImpl implements IAPIService {
      */
     private String  getTableName(String sql) {
         String tableName = "";
-        try {
+       try {
             List<SQLStatement> statementList = SQLUtils.parseStatements(sql, JdbcConstants.CLICKHOUSE);
             SchemaStatVisitor statVisitor = SQLUtils.createSchemaStatVisitor(JdbcConstants.CLICKHOUSE);
             SQLStatement statement = statementList.get(0);
@@ -135,16 +153,18 @@ public class APIServiceImpl implements IAPIService {
     }
 
 
+
+
     /**
      *  对SQL语句进行预先解析,为语法树结构
      * @param sql
      * @return
      */
-    private String parserSQLByAst(String sql, Dialect dialect) {
+    private SQLQuerySource parserSQLByAst(String sql, String dialectDbType) {
 
         SQLQuerySource sqlQuerySource = new SQLQuerySource();
         try {
-            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, dialect.getDbType());
+            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, dialectDbType);
             if (statementList.size() > 0) {
                 SQLStatement statement = statementList.get(0);
                 if (statement instanceof  SQLSelectStatement) {
@@ -184,8 +204,10 @@ public class APIServiceImpl implements IAPIService {
                             // 如果是子查询
                         } else if (where instanceof SQLInSubQueryExpr) {
                             SQLInSubQueryExpr sqlInSubQueryExpr = (SQLInSubQueryExpr) where;
-                            // 处理---------------------
+
                         }
+
+
                         // 获取分组
                         SQLSelectGroupByClause groupBy = sqlSelectQueryBlock.getGroupBy();
 
@@ -211,12 +233,8 @@ public class APIServiceImpl implements IAPIService {
                         sqlQuerySource.setLimit("NO LIMIT");
                     }
                 } else {
-                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：暂不支持SELECT之外操作");
+                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
                 }
-
-               sql = SQLHelper.generatePageSql(sql, dialect, sqlQuerySource);
-
-
 
 
 
@@ -228,7 +246,7 @@ public class APIServiceImpl implements IAPIService {
         }
 
 
-        return sql;
+        return sqlQuerySource;
     }
 
 

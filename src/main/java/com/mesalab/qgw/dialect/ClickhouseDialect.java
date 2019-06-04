@@ -6,8 +6,8 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.QueryParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
@@ -16,18 +16,20 @@ import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
-public class ClickHouseDialect implements  Dialect{
+public class ClickhouseDialect implements  Dialect {
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private String dbType;
+    private ApiParam param;
 
-    public ClickHouseDialect(String dbType) {
-        this.dbType = dbType;
+
+    public ClickhouseDialect(ApiParam param) {
+        this.param = param;
     }
 
     @Override
@@ -47,8 +49,8 @@ public class ClickHouseDialect implements  Dialect{
         return stringBuilder.toString();
     }
 
-    @Override
-    public String getLimitString(String sql, SQLQuerySource sqlQuerySource) {
+
+    private String generatePageSql(String sql, SQLQuerySource sqlQuerySource) {
         if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
             return getLimitString(sql, 0, 200);
         } else {
@@ -56,8 +58,26 @@ public class ClickHouseDialect implements  Dialect{
         }
     }
 
+    private String generateGlobalIn(String sql) {
+        Pattern p = Pattern.compile("in\\s*\\(", Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(sql);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            m.appendReplacement(sb, "global in (");
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
     @Override
-    public BaseResult executeHttpQuery(QueryParam param) {
+    public Dialect sqlDialectTransform() {
+        param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+        param.setQuery(generateGlobalIn(param.getQuery()));
+        return this;
+    }
+
+    @Override
+    public BaseResult executeHttpQuery() {
         BaseResult baseResult = null;
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
@@ -68,20 +88,18 @@ public class ClickHouseDialect implements  Dialect{
                 .append(clickHouseHttpSource.getDbname()).append("&")
                 .append("max_execution_time=").append(clickHouseHttpSource.getMaxExecutionTime()).append("&")
                 .append("enable_http_compression=").append(clickHouseHttpSource.getEnableHttpCompression()).append("&")
-                .append("query_id=").append(com.mesalab.common.utils.StringUtil.getQueryId(param.getQuery())).append("&")
+               /* .append("query_id=").append(com.mesalab.common.utils.StringUtil.getQueryId(param.getQuery())).append("&")*/
                 .append("query=").append(param.getQuery())
                 .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
-        log.info(queryparamBuilder.toString());
+        log.info("final query sql: " +urlBuilder.toString() + queryparamBuilder.toString());
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
-
-       Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() +  URLEncodedUtils.format(values,"UTF-8"));
+        Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() +  URLEncodedUtils.format(values,"UTF-8"));
 
        if (StringUtil.isEmpty(resultMap)) {
            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系平台方！");
        } else {
            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
                Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(resultMap.get("result"),  Map.class);
-
                Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
                Map<String, Object> statistics = Maps.newHashMap();
                statistics.put("elapsed", statisticMap.get("elapsed"));
@@ -104,8 +122,4 @@ public class ClickHouseDialect implements  Dialect{
 
     }
 
-    @Override
-    public String getDbType() {
-        return dbType;
-    }
 }

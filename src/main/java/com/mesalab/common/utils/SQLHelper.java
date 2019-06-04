@@ -2,11 +2,8 @@ package com.mesalab.common.utils;
 
 import com.alibaba.druid.util.JdbcConstants;
 import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.qgw.dialect.ClickHouseDialect;
 import com.mesalab.qgw.dialect.Dialect;
-import com.mesalab.qgw.dialect.DruidDialect;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.zdjizhi.utils.StringUtil;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,38 +49,21 @@ public class SQLHelper {
     }
 
 
-
-    public static Dialect getDBDialect(String dbType) {
-        Dialect dialect = null;
+    public static String getDialectDBType(String dbType) {
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-            dialect = new ClickHouseDialect(JdbcConstants.CLICKHOUSE);
+            return JdbcConstants.CLICKHOUSE;
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-            dialect = new DruidDialect(JdbcConstants.HIVE);
-        }
-
-        if (dialect == null) {
-            throw new RuntimeException("get dbType dialect error.");
-        }
-
-        return dialect;
-
-    }
-
-
-    /**
-     * 生成分页SQL
-     * @param sql
-     * @param dialect
-     * @return
-     */
-    public static String generatePageSql(String sql, Dialect dialect, SQLQuerySource sqlQuerySource) {
-
-        if (dialect.supportsLimit()) {
-            return  dialect.getLimitString(sql, sqlQuerySource);
+           return JdbcConstants.HIVE;
+        } else if (DBTypeEnum.HBASE.getValue().equals(dbType)) {
+           return JdbcConstants.HBASE;
         } else {
-            return sql;
+            return null;
         }
+
     }
+
+
+
 
 
 }

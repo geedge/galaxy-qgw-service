@@ -1,7 +1,7 @@
 package com.mesalab.qgw.dialect;
 
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.qgw.model.api.QueryParam;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 
 public interface Dialect {
@@ -24,12 +24,11 @@ public interface Dialect {
      */
     String getLimitString(String sql, int offset, int limit);
 
-    String getLimitString(String sql, SQLQuerySource sqlQuerySource);
 
+    Dialect sqlDialectTransform();
 
-    BaseResult executeHttpQuery(QueryParam param);
+    BaseResult executeHttpQuery();
 
-    String getDbType();
 
 
 

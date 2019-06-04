@@ -54,15 +54,22 @@ clickhouse:
 druid:
   url: 192.168.10.206:8082/druid/v2/sql
   dbname: druid
-  sqlTimeZone: Asia/Shanghai #
-
+  sqlTimeZone: Asia/Shanghai
+  ###############################################################################
+  ## Query GateWay - Hbase 配置
+hbase:
+  url: 192.168.10.202:4444
+  dbname: tsg
+  tableName: report_result
+  columnFamily: response
+  columnName: result
 ###############################################################################
 ## Query GateWay - httpclient配置
 httpclient:
   connectTimeout: 1000
   SocketTimeout: 600000
-  maxConnection: 50
-  maxPerRoute: 10
+  maxConnection: 500
+  maxPerRoute: 500
 ###############################################################################
 ## Query GateWay - schema 注册
 schema:

@@ -1,6 +1,5 @@
 package com.mesalab.qgw.dialect;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -8,8 +7,8 @@ import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
-import com.mesalab.qgw.model.api.QueryParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
@@ -26,12 +25,13 @@ public class DruidDialect implements  Dialect {
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
 
-    private String dbType;
+
+    private ApiParam param;
 
     private int pageOffset;
 
-    public DruidDialect(String dbType) {
-        this.dbType = dbType;
+    public DruidDialect(ApiParam param) {
+        this.param = param;
     }
 
     @Override
@@ -47,8 +47,8 @@ public class DruidDialect implements  Dialect {
         return stringBuilder.toString();
     }
 
-    @Override
-    public String getLimitString(String sql, SQLQuerySource sqlQuerySource) {
+
+    private String generatePageSql(String sql, SQLQuerySource sqlQuerySource) {
         if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
             return getLimitString(sql, 0, 200);
         } else {
@@ -66,23 +66,30 @@ public class DruidDialect implements  Dialect {
     }
 
     @Override
-    public BaseResult executeHttpQuery(QueryParam param) {
+    public Dialect sqlDialectTransform() {
+        param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+
+        return this;
+    }
+
+    @Override
+    public BaseResult executeHttpQuery() {
         BaseResult baseResult = null;
 
         StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
-        DruidDialect.QueryObject queryObject = new DruidDialect.QueryObject();
+        DruidDialect.DruidQueryParam druidQueryParam = new DruidDialect.DruidQueryParam();
 
-        queryObject.setQuery(param.getQuery());
-        queryObject.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
-        queryObject.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
+        druidQueryParam.setQuery(param.getQuery());
+        druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
+        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
 
         if (param.getFormat().equals(QueryFormatEnum.JSON.getValue())) {
-            queryObject.setResultFormat("object");
+            druidQueryParam.setResultFormat("object");
         } else if (param.getFormat().equals(QueryFormatEnum.CSV.getValue())) {
-            queryObject.setResultFormat("csv");
+            druidQueryParam.setResultFormat("csv");
         }
         long beginTime = System.currentTimeMillis();
-        Map<String, String> resultMap = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(queryObject));
+        Map<String, String> resultMap = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
         double executeTime = (System.currentTimeMillis()-beginTime) / 1000.0;
 
         if (StringUtil.isEmpty(resultMap)) {
@@ -121,15 +128,11 @@ public class DruidDialect implements  Dialect {
 
 
     @Data
-    class QueryObject {
+    class DruidQueryParam {
         private String query;
         private Map<String, String> context = Maps.newHashMap();
         private String resultFormat;
 
     }
 
-    @Override
-    public String getDbType() {
-        return dbType;
-    }
 }

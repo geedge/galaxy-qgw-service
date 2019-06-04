@@ -15,7 +15,7 @@ server:
   port: 9000
 spring:
   profiles:
-    active: dev
+    active: prod
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
@@ -23,7 +23,7 @@ spring:
 ## 项目参数，从maven中读取
 project:
   name: galaxy-qgw-service
-  description: 统一数据查询网关入口API
+  description: 统一数据查询网关
   version: 0.0.1
   groupId: com.mesalab
   artifactId: galaxy-qgw-service
