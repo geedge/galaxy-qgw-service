@@ -55,7 +55,7 @@ clickhouse:
 druid:
   url: 192.168.10.206:8082/druid/v2/sql
   dbname: druid
-  sqlTimeZone: America/Los_Angeles
+  sqlTimeZone: Asia/Shanghai
 
 ###############################################################################
 ## Query GateWay - httpclient配置

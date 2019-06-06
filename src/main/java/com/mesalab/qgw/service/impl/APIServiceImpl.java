@@ -134,8 +134,8 @@ public class APIServiceImpl implements IAPIService {
     private String  getTableName(String sql) {
         String tableName = "";
        try {
-            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, JdbcConstants.CLICKHOUSE);
-            SchemaStatVisitor statVisitor = SQLUtils.createSchemaStatVisitor(JdbcConstants.CLICKHOUSE);
+            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, JdbcConstants.MYSQL);
+            SchemaStatVisitor statVisitor = SQLUtils.createSchemaStatVisitor(JdbcConstants.MYSQL);
             SQLStatement statement = statementList.get(0);
             statement.accept(statVisitor);
             Map<TableStat.Name, TableStat> tables = statVisitor.getTables();

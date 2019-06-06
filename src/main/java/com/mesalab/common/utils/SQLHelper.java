@@ -51,7 +51,7 @@ public class SQLHelper {
 
     public static String getDialectDBType(String dbType) {
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-            return JdbcConstants.CLICKHOUSE;
+            return JdbcConstants.MYSQL;
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
            return JdbcConstants.HIVE;
         } else if (DBTypeEnum.HBASE.getValue().equals(dbType)) {
