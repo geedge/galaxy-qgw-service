@@ -10,11 +10,14 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +61,12 @@ public class ClickhouseDialect implements  Dialect {
         }
     }
 
+    private String generateSqlEncode(String sql) {
+
+        return Encodes.urlEncode(sql);
+
+    }
+
     private String generateGlobalIn(String sql) {
         Pattern p = Pattern.compile("in\\s*\\(", Pattern.CASE_INSENSITIVE);
         Matcher m = p.matcher(sql);
@@ -73,6 +82,8 @@ public class ClickhouseDialect implements  Dialect {
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateGlobalIn(param.getQuery()));
+        param.setQuery(generateSqlEncode(param.getQuery()));
+
         return this;
     }
 
@@ -81,6 +92,9 @@ public class ClickhouseDialect implements  Dialect {
         BaseResult baseResult = null;
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
+
+
+
         StringBuilder queryparamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getUsername()).append("&")
                 .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
@@ -92,6 +106,7 @@ public class ClickhouseDialect implements  Dialect {
                 .append("query=").append(param.getQuery())
                 .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
         log.info("final query sql: " +urlBuilder.toString() + queryparamBuilder.toString());
+
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
         Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() +  URLEncodedUtils.format(values,"UTF-8"));
 
