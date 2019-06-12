@@ -185,14 +185,6 @@ public class StringUtil {
         }
     }
 
-    /**
-     * 通过SQL生成查询唯一kEY
-     * @param sql
-     * @return
-     */
-    public  static String getQueryId(String sql) {
-        return DigestUtils.md5Hex(sql);
-    }
 
 
 

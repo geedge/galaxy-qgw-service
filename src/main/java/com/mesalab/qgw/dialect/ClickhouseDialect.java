@@ -16,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -93,8 +91,6 @@ public class ClickhouseDialect implements  Dialect {
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
 
-
-
         StringBuilder queryparamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getUsername()).append("&")
                 .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
@@ -105,10 +101,15 @@ public class ClickhouseDialect implements  Dialect {
                /* .append("query_id=").append(com.mesalab.common.utils.StringUtil.getQueryId(param.getQuery())).append("&")*/
                 .append("query=").append(param.getQuery())
                 .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
-        log.info("final query sql: " +urlBuilder.toString() + queryparamBuilder.toString());
+
+        log.info("原始日志检索语句: {}" , urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
 
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
-        Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() +  URLEncodedUtils.format(values,"UTF-8"));
+
+
+        Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
+
+
 
        if (StringUtil.isEmpty(resultMap)) {
            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系平台方！");

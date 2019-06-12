@@ -16,6 +16,9 @@ server:
 spring:
   profiles:
     active: dev
+  devtools:
+    restart:
+      enabled: true
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource

@@ -11,6 +11,7 @@ import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpStatus;
 import java.util.Map;
 @Slf4j
@@ -52,10 +53,10 @@ public class HbaseDialect implements  Dialect{
                 .append(hBaseHttpSource.getUrl()).append("/");
         StringBuilder queryparamBuilder = new StringBuilder(hBaseHttpSource.getDbName())
                 .append(":").append(hBaseHttpSource.getTableName()).append("/")
-                .append(com.mesalab.common.utils.StringUtil.getQueryId(param.getQuery())).append("/")
+                .append(getQueryId(param.getReportId(), param.getQuery())).append("/")
                 .append(hBaseHttpSource.getColumnFamily()).append(":").append(hBaseHttpSource.getColumnName());
 
-        log.info(queryparamBuilder.toString());
+        log.info("报表结果检索语句：" + queryparamBuilder.toString());
 
         Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString() );
 
@@ -83,5 +84,19 @@ public class HbaseDialect implements  Dialect{
 
         return  baseResult;
     }
+
+
+    /**
+     * 通过SQL生成查询唯一kEY
+     * @param sql
+     * @param  reportId
+     * @return
+     */
+    private  static String getQueryId(String reportId, String sql) {
+        return DigestUtils.md5Hex(reportId + sql.trim());
+    }
+
+
+
 
 }
