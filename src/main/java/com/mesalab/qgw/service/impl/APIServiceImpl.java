@@ -62,7 +62,9 @@ public class APIServiceImpl implements IAPIService {
         Dialect dialect = null;
 
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
+
             param.setDbType(DBTypeEnum.HBASE.getValue());
+
         } else {
             if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getClickhouse())
                     .contains(param.getTableName().toLowerCase())) {
@@ -76,10 +78,15 @@ public class APIServiceImpl implements IAPIService {
         }
         try {
             param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
+
             param.setSqlQuerySource(parserSQLByAst(param.getQuery(), param.getDialectDBType()));
+
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
+
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
+
             dialect = (Dialect) constructor.newInstance(param);
+
         } catch (Exception e) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode() , "平台方言转换异常", e);
         }
@@ -108,6 +115,13 @@ public class APIServiceImpl implements IAPIService {
                     !param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
                 throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：option 参数错误", null);
             }
+
+            if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
+                if (StringUtil.isBlank(param.getReportId())) {
+                    throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：option=long-term,需指定reportId", null);
+                }
+            }
+
        } else {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
        }
@@ -134,8 +148,9 @@ public class APIServiceImpl implements IAPIService {
     private String  getTableName(String sql) {
         String tableName = "";
        try {
-            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, JdbcConstants.CLICKHOUSE);
-            SchemaStatVisitor statVisitor = SQLUtils.createSchemaStatVisitor(JdbcConstants.CLICKHOUSE);
+
+            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, JdbcConstants.MYSQL);
+            SchemaStatVisitor statVisitor = SQLUtils.createSchemaStatVisitor(JdbcConstants.MYSQL);
             SQLStatement statement = statementList.get(0);
             statement.accept(statVisitor);
             Map<TableStat.Name, TableStat> tables = statVisitor.getTables();
