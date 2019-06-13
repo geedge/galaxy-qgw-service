@@ -19,6 +19,7 @@ public enum BaseResultEnum {
     SUCCESS(200, "成功"),
     FAIL(400, "失败"),
     NOT_FOUND(404, "不存在"),
+    REQ_FORBIDDEN(403, "重复请求"),
     SERVER_ERROR(500, "服务异常");
 
     private int code;

@@ -7,6 +7,7 @@ import com.mesalab.qgw.model.api.AuditServiceLog;
 import com.zdjizhi.utils.CommonUtil;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shiro.SecurityUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
