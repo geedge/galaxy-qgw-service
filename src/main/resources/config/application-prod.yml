@@ -56,7 +56,15 @@ druid:
   url: 192.168.10.206:8082/druid/v2/sql
   dbname: druid
   sqlTimeZone: Asia/Shanghai
-
+  #Asia/Almaty
+###############################################################################
+## Query GateWay - Hbase 配置
+hbase:
+  url: 192.168.10.202:4444
+  dbname: tsg
+  tableName: report_result
+  columnFamily: response
+  columnName: result
 ###############################################################################
 ## Query GateWay - httpclient配置
 httpclient:

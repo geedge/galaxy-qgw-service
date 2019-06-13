@@ -55,6 +55,7 @@ druid:
   url: 192.168.10.206:8082/druid/v2/sql
   dbname: druid
   sqlTimeZone: Asia/Shanghai
+  ##Asia/Almaty
   ###############################################################################
   ## Query GateWay - Hbase 配置
 hbase:
