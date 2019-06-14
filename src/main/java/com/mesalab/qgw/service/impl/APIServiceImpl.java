@@ -61,10 +61,9 @@ public class APIServiceImpl implements IAPIService {
 
         Dialect dialect = null;
 
-        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
-
+        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {//离线查询无需解析sql
             param.setDbType(DBTypeEnum.HBASE.getValue());
-
+            param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
         } else {
             if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getClickhouse())
                     .contains(param.getTableName().toLowerCase())) {
@@ -75,20 +74,18 @@ public class APIServiceImpl implements IAPIService {
             } else  {
                 throw new BusinessException(BaseResultEnum.FAIL.getCode() , "该表未在平台注册，请联系数据平台负责人", null);
             }
-        }
-        try {
-            param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
 
+            param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
             param.setSqlQuerySource(parserSQLByAst(param.getQuery(), param.getDialectDBType()));
 
+        }
+        try {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
-
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
-
             dialect = (Dialect) constructor.newInstance(param);
 
         } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "平台方言转换异常", e);
+            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "方言转换实例异常！", e);
         }
 
         return dialect;

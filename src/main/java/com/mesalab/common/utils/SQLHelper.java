@@ -55,7 +55,7 @@ public class SQLHelper {
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
            return JdbcConstants.HIVE;
         } else if (DBTypeEnum.HBASE.getValue().equals(dbType)) {
-           return JdbcConstants.HBASE;
+           return JdbcConstants.MYSQL;
         } else {
             return null;
         }
