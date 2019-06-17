@@ -34,10 +34,12 @@
 
 ## **安装部署**
 
+**Release 下载** [galaxy-qgw-service_releases](https://git.mesalab.cn/galaxy/galaxy-qgw-service/wikis/Galaxy-Releases)
+
 **基于Docker**
 
 
-*  离线初始化部署
+*  初始化部署
   
      需要安装docker环境，依赖JDK1.8
 
@@ -47,14 +49,12 @@
     
     3. 拷贝 galaxy-qgw-service-x.jar 到宿主目录 /root/docker/galaxy-qgw-deploy
     
-    4. 构建镜像 docker build -t ceiec/galaxy-qgw-service:1.0 .
+    4. 执行./build-deploy.sh 完成部署
     
-    5. 部署容器 docker run -d  --name galaxy-qgw-service -v /home/ceiec/galaxy-qgw-service/logs:/home/ceiec/galaxy-qgw-service/logs -p 9091:9000 --restart=always ceiec/galaxy-qgw-service:1.0
-    
-    6. 启停 docker start|stop galaxy-qgw-service
+    6. 启停/home/ceiec/galaxy-qgw-service/bin start.sh|stop.sh
     
     7. 查看日志：tail -f /home/ceiec/galaxy-qgw-service/logs/galaxy-qgw-service.log
-
+    
 *  已有镜像部署
   
     1. 加载备份镜像文件 docker load  < ./docker_image_galaxy-qgw-service_1.0.tar
