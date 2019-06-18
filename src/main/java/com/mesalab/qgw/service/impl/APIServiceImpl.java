@@ -102,6 +102,7 @@ public class APIServiceImpl implements IAPIService {
      */
     private void  validateAndGetTableName(ApiParam param) {
 
+
        if (StringUtil.isBlank(param.getQuery())) {
            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：query SQL 错误", null);
        }

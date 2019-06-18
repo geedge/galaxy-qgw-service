@@ -51,9 +51,18 @@
     
     4. 执行./build-deploy.sh 完成部署
     
-    6. 启停/home/ceiec/galaxy-qgw-service/bin start.sh|stop.sh
+    5. 启停/home/ceiec/galaxy-qgw-service/bin start.sh|stop.sh
     
-    7. 查看日志：tail -f /home/ceiec/galaxy-qgw-service/logs/galaxy-qgw-service.log
+    6. 查看日志：tail -f /home/ceiec/galaxy-qgw-service/logs/galaxy-qgw-service.log
+    
+    7. 修改配置文件 
+    
+       ```
+       docker exec -u 0 -it galaxy-qgw-service /bin/bash
+       #配置文件config 目录下
+       ```
+    
+    8. 重启 stop.sh & start.sh 
     
 *  已有镜像部署
   

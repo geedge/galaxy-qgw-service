@@ -58,7 +58,7 @@ public class RepeatedSubmitInterceptor extends HandlerInterceptorAdapter {
                         CACHE.stats().requestCount(), CACHE.stats().hitCount(), CACHE.stats().hitRate(), CACHE.stats().missCount());
 
             } else {
-                throw  new BusinessException(BaseResultEnum.REQ_FORBIDDEN.getCode(),  "系统检测重复提交，请稍后重试 ！", null);
+                throw  new BusinessException(BaseResultEnum.REQ_FORBIDDEN.getCode(),  "系统检测存在非法查询请求，请稍后重试 ！", null);
             }
         }
         return true;

@@ -59,7 +59,7 @@ druid:
   ###############################################################################
   ## Query GateWay - Hbase 配置
 hbase:
-  url: 192.168.10.202:4444
+  url: 192.168.10.224:4444
   dbname: tsg
   tableName: report_result
   columnFamily: response

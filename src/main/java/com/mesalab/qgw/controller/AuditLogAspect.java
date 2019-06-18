@@ -82,7 +82,7 @@ public class AuditLogAspect {
         Long exeTime = System.currentTimeMillis() - startTime.get();
         logAfter.setExeTime(exeTime);
 
-        logger.info("Audit Log [completed]：" + JsonMapper.toJsonString(logAfter));
+        logger.debug("Audit Log [completed]：" + JsonMapper.toJsonString(logAfter));
 
     }
 

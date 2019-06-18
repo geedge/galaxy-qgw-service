@@ -13,9 +13,13 @@ import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpStatus;
+
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 @Slf4j
-public class HbaseDialect implements  Dialect{
+public class HbaseDialect implements Dialect{
     private HBaseHttpSource hBaseHttpSource = (HBaseHttpSource) SpringContextUtil.getBean("hBaseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
@@ -56,16 +60,22 @@ public class HbaseDialect implements  Dialect{
                 .append(getQueryId(param.getReportId(), param.getQuery())).append("/")
                 .append(hBaseHttpSource.getColumnFamily()).append(":").append(hBaseHttpSource.getColumnName());
 
-        log.info("报表结果检索语句：" + queryparamBuilder.toString());
+        log.info("报表结果检索语句：" + urlBuilder.toString() + queryparamBuilder.toString());
 
-        Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString() );
+        Map<String, String> headers = Maps.newHashMap();
+        headers.put("Accept", "application/json");
+
+        Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
 
         if (StringUtil.isEmpty(resultMap)) {
             baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系平台方！");
         } else {
             if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-                Map<String, Object> maps =(Map<String, Object>) JsonMapper.fromJsonString(resultMap.get("result"),  Map.class);
-                Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
+
+                String result = decryptHbaseResult(resultMap.get("result"));
+                Map<String, Object> maps =(Map<String, Object>) JsonMapper.fromJsonString(result,  Map.class);
+                Map<String, Object> statisticMap = (Map<String, Object>) maps.get("statistics");
+
                 Map<String, Object> statistics = Maps.newHashMap();
                 statistics.put("elapsed", statisticMap.get("elapsed"));
                 statistics.put("rows_read", statisticMap.get("rows_read"));
@@ -83,6 +93,40 @@ public class HbaseDialect implements  Dialect{
 
 
         return  baseResult;
+    }
+
+
+    /**
+     * 解析json并将结果进行base64解密
+     * @param hbaseResult
+     * @return
+     */
+    private String  decryptHbaseResult(String hbaseResult) {
+
+        String result = "";
+
+        try {
+            Map<String, Object> maps =(Map<String, Object>) JsonMapper.fromJsonString(hbaseResult,  Map.class);
+
+            List<Object> rowList = (ArrayList)maps.get("Row");
+
+            if (StringUtil.isNotEmpty(rowList)) {
+                Map<String ,Object> keyMap = (Map<String ,Object>)rowList.get(0);
+                String encryptResult = ((Map<String ,Object>)((ArrayList)keyMap.get("Cell")).get(0)).get("$").toString();
+                result = new String(Base64.getDecoder().decode(encryptResult), "utf-8");
+
+            }
+
+
+        } catch (Exception e) {
+
+            log.error("Parser HBase Result error: {}", e.getMessage());
+
+        }
+
+
+        return result;
+
     }
 
 

@@ -33,6 +33,52 @@ public class HttpClientService {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet(url);
+
+            // 执行请求
+            response = httpClient.execute(httpGet);
+            // 获取响应实体
+            HttpEntity entity = response.getEntity();
+            // 获取响应信息
+            resultMap.put("status", String.valueOf(response.getStatusLine().getStatusCode()));
+            resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
+        } catch (ClientProtocolException e) {
+            log.error("协议错误: {}", e.getMessage());
+            e.printStackTrace();
+        } catch (ParseException e) {
+            log.error("解析错误: {}", e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            log.error("IO错误: {}", e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (null != response) {
+                try {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("释放链接错误: {}", e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+        return resultMap;
+    }
+
+
+
+    public  Map<String, String> httpGet(String url, Map<String, String> headers) {
+
+        Map<String, String> resultMap = Maps.newHashMap();
+        // 创建GET请求对象
+
+        CloseableHttpResponse response = null;
+        try {
+            HttpGet httpGet = new HttpGet(url);
+
+            for (String key : headers.keySet()) {
+                httpGet.setHeader(key, headers.get(key));
+            }
+
             // 执行请求
             response = httpClient.execute(httpGet);
             // 获取响应实体
