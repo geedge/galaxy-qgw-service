@@ -41,7 +41,7 @@ public class DruidTest extends GalaxyQGWApplicationTests {
     public void testTrafficMetrics() {
         String sql = "select  sum(c2s_byte_num+s2c_byte_num)*8/300 as num, 'traffic_in' as type from bandwidth_log where  __time >= TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT10M',-1) and __time < TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT5M',-1)  and direction=1 union all select  sum(c2s_byte_num+s2c_byte_num)*8/300 as num, 'traffic_out' as type from bandwidth_log where  __time >= TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT10M',-1) and __time < TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT5M',-1) and direction=0 union all select COALESCE(sum(close_conn_num),0)/300 as num,'close_conn_num' as type  from traffic_metrics_log where   __time >= TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT10M',-1) and __time < TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT5M',-1) union all select  COALESCE(sum(live_conn_num),0) /300 as num,'live_conn_num' as type from traffic_metrics_log  where   __time >= TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT10M',-1) and __time < TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT5M',-1) union all select    COALESCE(sum(new_conn_num),0) /300 as num,'new_conn_num' as type from traffic_metrics_log  where   __time >= TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT10M',-1) and __time < TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT5M',-1) union all select    COALESCE(sum(hits),0) /300 as num,'drop_num' as type from policy_hits_log where  __time=TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT5M',-1) and action=16 " +
                 "union all select    COALESCE(sum(hits),0) /300 as num,'manipulate_num' as type from policy_hits_log where  __time=TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT5M',-1) and action=48 " +
-                "union all select    COALESCE(sum(hits),0) /300 as num,'bypass_num' as type from policy_hits_log where  __time=TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT5M',-1) and action=128 ";
+                "union all select    COALESCE(sum(hits),0) /300 as num,'bypass_num' as type from session_intercept_hits_log where  __time=TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT5M',-1) and action=128 ";
         url = url + "/?query=" + sql ;
 
         Map map = restTemplate.getForObject(url, Map.class);
@@ -52,7 +52,7 @@ public class DruidTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void testTopPolicyHits() {
-        String sql = "select policy_id,sum(hits) as hits,sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num+s2c_byte_num) as bytes,sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from policy_hits_log where __time >= TIMESTAMP '2019-05-29 03:00:00' and  __time < TIMESTAMP '2019-05-30 04:00:00'   group by policy_id order by hits desc limit 100";
+        String sql = "select policy_id,action,sum(hits) as hits,sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num+s2c_byte_num) as bytes,sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from session_intercept_hits_log  where __time=TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT10M',-1)   group by policy_id,action order by hits desc limit 100";
         url = url + "/?query=" + sql ;
 
         Map map = restTemplate.getForObject(url, Map.class);

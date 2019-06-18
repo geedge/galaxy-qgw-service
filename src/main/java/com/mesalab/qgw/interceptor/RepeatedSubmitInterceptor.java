@@ -54,7 +54,7 @@ public class RepeatedSubmitInterceptor extends HandlerInterceptorAdapter {
 
                 CACHE.put(k.toString(), 1);
 
-                log.info("Repeat Submit Stat,QEQ_count:{},HIT_count{},HIT_rate:{}, MISS_count:{}",
+                log.info("Repeat Submit Stat,QEQ_count:{},HIT_count:{},HIT_rate:{}, MISS_count:{}",
                         CACHE.stats().requestCount(), CACHE.stats().hitCount(), CACHE.stats().hitRate(), CACHE.stats().missCount());
 
             } else {
