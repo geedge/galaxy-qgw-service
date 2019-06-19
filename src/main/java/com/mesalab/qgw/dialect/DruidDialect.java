@@ -83,17 +83,20 @@ public class DruidDialect implements  Dialect {
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
 
+        log.info("预定义统计查询：{}", urlBuilder.toString() + param.getQuery());
+
         if (param.getFormat().equals(QueryFormatEnum.JSON.getValue())) {
             druidQueryParam.setResultFormat("object");
         } else if (param.getFormat().equals(QueryFormatEnum.CSV.getValue())) {
             druidQueryParam.setResultFormat("csv");
         }
+
         long beginTime = System.currentTimeMillis();
         Map<String, String> resultMap = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
         double executeTime = (System.currentTimeMillis()-beginTime) / 1000.0;
 
         if (StringUtil.isEmpty(resultMap)) {
-            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系平台方！");
+            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
         } else {
             if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
                 List<Object> allResults = (List<Object>) JsonMapper.fromJsonString(resultMap.get("result"), Object.class);
