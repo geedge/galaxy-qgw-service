@@ -26,6 +26,14 @@ import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.IAPIService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.parser.Node;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.*;
+import net.sf.jsqlparser.util.AddAliasesVisitor;
+import net.sf.jsqlparser.util.TablesNamesFinder;
+import net.sf.jsqlparser.util.deparser.SelectDeParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,7 +84,8 @@ public class APIServiceImpl implements IAPIService {
             }
 
             param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
-            param.setSqlQuerySource(parserSQLByAst(param.getQuery(), param.getDialectDBType()));
+
+            param.setSqlQuerySource(parserSQLByAst(param.getQuery()));
 
         }
         try {
@@ -139,11 +148,43 @@ public class APIServiceImpl implements IAPIService {
     }
 
 
+    private String  getTableName(String sql) {
+
+        String tableName = "";
+        try {
+            Statement statement = CCJSqlParserUtil.parse(sql);
+            if (statement instanceof Select) {
+                Select selectStatement = (Select) statement;
+                TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
+                List<String> tableList =  tablesNamesFinder.getTableList(selectStatement);
+                if (StringUtil.isNotEmpty(tableList)) {
+                    tableName = tableList.get(0);
+                } else {
+                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
+                }
+
+
+            } else {
+                log.warn("Not support DML Parser");
+                throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,不支持SELECT 之外操作" );
+            }
+
+        } catch (Exception e) {
+
+            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e.getCause());
+        }
+
+        return  tableName;
+    }
+
+
+
     /**
      * Visitor 模式解析SQL
      * @param sql
      */
-    private String  getTableName(String sql) {
+    @Deprecated
+    private String getTableNameFromDruid(String sql) {
         String tableName = "";
        try {
 
@@ -166,6 +207,97 @@ public class APIServiceImpl implements IAPIService {
     }
 
 
+    /**
+     *
+     * 解析SQL
+     * @param sql
+     * @return
+     */
+    private SQLQuerySource parserSQLByAst(String sql) {
+
+
+        SQLQuerySource sqlQuerySource = new SQLQuerySource();
+        try {
+
+            Statement statement = CCJSqlParserUtil.parse(sql);
+            if (statement instanceof Select) {
+                Select selectStatement = (Select) statement;
+                TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
+                List<String> tableList =  tablesNamesFinder.getTableList(selectStatement);
+
+                if (StringUtil.isNotEmpty(tableList)) {
+                    sqlQuerySource.setTableName(Arrays.toString(tableList.toArray()));
+                } else {
+                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
+                }
+
+                SelectBody body = selectStatement.getSelectBody();
+
+
+                if (body instanceof  PlainSelect)  { //单条查询
+
+                    PlainSelect select = (PlainSelect) body;
+
+                    Expression where = select.getWhere();
+
+                    if (where != null){
+                        sqlQuerySource.setExpr(where.toString());
+                    }
+
+                    //List<Expression> groupList = select.getGroupByColumnReferences();
+
+
+
+                    // List<OrderByElement> orderByList = select.getOrderByElements();
+
+                    //sqlQuerySource.setSelectItems(select.getSelectItems().toString());
+
+                    FromItem subItem = select.getFromItem();
+
+                    if (subItem instanceof  SubSelect) {
+                        log.info("SQL 包含子查询 ");
+                    }
+
+
+                    Limit limit = select.getLimit();
+
+
+                    if (limit != null) {
+
+                        if (StringUtil.isNotEmpty(limit.getOffset())) {
+                            sqlQuerySource.setLimit(StringUtil.setDefaultIfEmpty(limit.getOffset() , 0)+ "," + limit.getRowCount());
+                        } else {
+                            sqlQuerySource.setLimit(String.valueOf(limit.getRowCount()));
+                        }
+                    }
+
+
+
+                } else if (body instanceof SetOperationList) { // 连接查询
+
+                    sqlQuerySource.setLimit("NO LIMIT");
+
+                } else { //其它暂不支持
+                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
+                }
+
+
+
+            } else {
+                log.warn("Not support DML Parser");
+                throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,不支持SELECT 之外操作" );
+            }
+
+
+
+        } catch (Exception e) {
+            log.error("sqlParser error: ", e);
+            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
+
+        }
+
+        return sqlQuerySource;
+    }
 
 
     /**
@@ -173,6 +305,7 @@ public class APIServiceImpl implements IAPIService {
      * @param sql
      * @return
      */
+    @Deprecated
     private SQLQuerySource parserSQLByAst(String sql, String dialectDbType) {
 
         SQLQuerySource sqlQuerySource = new SQLQuerySource();

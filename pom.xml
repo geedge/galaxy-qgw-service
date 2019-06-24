@@ -278,6 +278,12 @@
             <version>${httpclient.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>1.4</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.zdjizhi</groupId>

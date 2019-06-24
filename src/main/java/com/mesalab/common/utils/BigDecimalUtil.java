@@ -8,7 +8,8 @@ import java.math.BigDecimal;
  * @author dazzlzy
  * @date 2018/3/15
  */
-public class BigDecimalUtil {
+public class
+BigDecimalUtil {
 
     /**
      * 默认除法运算精度
