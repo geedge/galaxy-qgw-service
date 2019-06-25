@@ -10,6 +10,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -96,9 +97,9 @@ public class ClickhouseDialect implements  Dialect {
                 .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
                 .append("database=")
                 .append(clickHouseHttpSource.getDbname()).append("&")
-                .append("max_execution_time=").append(clickHouseHttpSource.getMaxExecutionTime()).append("&")
+              /*  .append("max_execution_time=").append(600).append("&")*/
                 .append("enable_http_compression=").append(clickHouseHttpSource.getEnableHttpCompression()).append("&")
-               /* .append("query_id=").append(com.mesalab.common.utils.StringUtil.getQueryId(param.getQuery())).append("&")*/
+                /*.append("query_id=").append(DateUtils.getCurrentDate("yyyymmddhhmmss")).append("&")*/
                 .append("query=").append(param.getQuery())
                 .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
 

@@ -27,7 +27,6 @@ public class ClickHouseConfiguration {
         httpSource.setUrl(StringUtil.substringAfter(clickhouseProperties.getUrl(), "//"));
         httpSource.setDbname(clickhouseProperties.getDbname());
         httpSource.setUsername(clickhouseProperties.getUsername());
-        httpSource.setSocketTimeout(clickhouseProperties.getSocketTimeout());
         httpSource.setPassword(clickhouseProperties.getPassword());
 
 

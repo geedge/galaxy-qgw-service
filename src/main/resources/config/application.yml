@@ -12,10 +12,10 @@
 ###############################################################################
 ## 服务配置
 server:
-  port: 9000
+  port: 9999
 spring:
   profiles:
-    active: dev
+    active: test
   devtools:
     restart:
       enabled: true

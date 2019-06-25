@@ -18,7 +18,6 @@ public class ClickHouseHttpSource implements Serializable {
 
     private int enableHttpCompression = 1;
 
-    private int  maxExecutionTime = 600; //查询clickhouse超时时间，单位s
 
 
 

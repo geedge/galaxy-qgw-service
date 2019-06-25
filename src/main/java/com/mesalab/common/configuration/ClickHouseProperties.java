@@ -18,7 +18,6 @@ public class ClickHouseProperties {
 
     private String publicKey;
 
-    private Long socketTimeout;
 
 
 

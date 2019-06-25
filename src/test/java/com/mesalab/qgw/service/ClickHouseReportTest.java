@@ -22,7 +22,7 @@ public class ClickHouseReportTest extends GalaxyQGWApplicationTests {
 
     private String executeTime = "toDateTime('2019-06-01 18:37:45')";
 
-    private String url = "http://127.0.0.1:9000/?test=1";
+    private String url = "http://127.0.0.1:9999/?test=1";
 
 
 

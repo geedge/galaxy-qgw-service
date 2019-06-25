@@ -47,8 +47,6 @@ clickhouse:
   dbname: tsg_galaxy
   username: default
   password: 111111
-  ##publicKey: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIX9tYVil5tsw5+ETvWqbhGy9qk4GcxMokCxjJdvHHrEHKxV4slR1NrP4xgcInU3kvKWuQ+3E3Jfh8JxoYfZ3q8CAwEAAQ==
-  socketTimeout: 600000
   ###############################################################################
   ## Query GateWay - druid 配置
 druid:
@@ -59,7 +57,7 @@ druid:
 ###############################################################################
 ## Query GateWay - Hbase 配置
 hbase:
-  url: 192.168.10.202:4444
+  url: 192.168.10.224:4444
   dbname: tsg
   tableName: report_result
   columnFamily: response

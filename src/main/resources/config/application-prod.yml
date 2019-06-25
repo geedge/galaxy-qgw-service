@@ -42,25 +42,23 @@ swagger:
 ###############################################################################
 ## Query GateWay - clickhouse 配置
 clickhouse:
-  url: jdbc:clickhouse://192.168.10.193:8123
+  url: jdbc:clickhouse://10.4.35.4:8123
   driverClassName: ru.yandex.clickhouse.ClickHouseDriver
   dbname: tsg_galaxy
-  username: default
-  password: 111111
+  username: tsgreport
+  password: ceiec2019
   publicKey: XX
-  socketTimeout: 600000
-
 ###############################################################################
 ## Query GateWay - druid 配置
 druid:
-  url: 192.168.10.206:8082/druid/v2/sql
+  url: 10.4.35.6:8082/druid/v2/sql
   dbname: druid
-  sqlTimeZone: Asia/Shanghai
-  #Asia/Almaty
+  sqlTimeZone: Asia/Almaty
+##Asia/Almaty
 ###############################################################################
 ## Query GateWay - Hbase 配置
 hbase:
-  url: 192.168.10.224:4444
+  url: 10.4.35.1:4444
   dbname: tsg
   tableName: report_result
   columnFamily: response
@@ -70,8 +68,8 @@ hbase:
 httpclient:
   connectTimeout: 1000
   SocketTimeout: 600000
-  maxConnection: 50
-  maxPerRoute: 10
+  maxConnection: 10000
+  maxPerRoute: 10000
 ###############################################################################
 ## Query GateWay - schema 注册
 schema:

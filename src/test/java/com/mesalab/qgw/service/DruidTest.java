@@ -18,7 +18,7 @@ import java.util.Map;
 public class DruidTest extends GalaxyQGWApplicationTests {
     @Autowired
     public TestRestTemplate restTemplate;
-    private String url = "http://127.0.0.1:9000";
+    private String url = "http://127.0.0.1:9999";
 
 
     @Before
