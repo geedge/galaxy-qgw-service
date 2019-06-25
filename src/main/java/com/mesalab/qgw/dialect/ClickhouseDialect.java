@@ -97,8 +97,8 @@ public class ClickhouseDialect implements  Dialect {
                 .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
                 .append("database=")
                 .append(clickHouseHttpSource.getDbname()).append("&")
-              /*  .append("max_execution_time=").append(600).append("&")*/
-                .append("enable_http_compression=").append(clickHouseHttpSource.getEnableHttpCompression()).append("&")
+                /*.append("max_execution_time=").append(600).append("&")*/
+                /*.append("enable_http_compression=").append(clickHouseHttpSource.getEnableHttpCompression()).append("&")*/
                 /*.append("query_id=").append(DateUtils.getCurrentDate("yyyymmddhhmmss")).append("&")*/
                 .append("query=").append(param.getQuery())
                 .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
