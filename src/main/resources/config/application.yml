@@ -15,7 +15,7 @@ server:
   port: 9999
 spring:
   profiles:
-    active: test
+    active: dev
   devtools:
     restart:
       enabled: true

@@ -37,7 +37,7 @@ public class ClickHouseReportTest extends GalaxyQGWApplicationTests {
     public void testCustomizableReport() {
         String sql = "select toDateTime(intDiv(toUInt32(toDateTime(toDateTime(recv_time))), 300)*300) as _time ,  domain as `Domain`,COUNT(DISTINCT(client_ip)) as `nums` from session_record_log where recv_time >= toStartOfDay($exe_time)-86400 and recv_time <= toStartOfDay($exe_time)and notEmpty(domain) and  domain in ( select  domain from session_record_log where recv_time >= toStartOfDay($exe_time)-86400 and recv_time <= toStartOfDay($exe_time) and notEmpty(domain) group by  domain order by sum(s2c_byte_num+c2s_byte_num) DESC  limit 10 )  group by toDateTime(intDiv(toUInt32(toDateTime(toDateTime(recv_time))), 300)*300), domain order by toDateTime(intDiv(toUInt32(toDateTime(toDateTime(recv_time))), 300)*300) DESC  limit 500";
         sql = sql.replaceAll("\\$exe_time", executeTime);
-        url = url + "option=long-term&reportId=121&&query=" + sql ;
+        url = url + "&option=long-term&reportId=121&query=" + sql ;
 
         Map map = restTemplate.getForObject(url, Map.class);
 
@@ -195,6 +195,23 @@ public class ClickHouseReportTest extends GalaxyQGWApplicationTests {
         log.info(JsonMapper.toJsonString(map));
         Assert.assertEquals((int)map.get("status"), 200);
     }
+
+
+    @Test
+    public void testFQDNByBandwidth() {
+        String sql = "SELECT host AS fqdn,SUM(coalesce(c2s_byte_num, 0)) as sent_bytes,SUM(coalesce(s2c_byte_num, 0)) as received_bytes,SUM(coalesce(c2s_byte_num, 0) + coalesce(s2c_byte_num, 0)) as bytes FROM session_record_log WHERE  host like '%qq%' and notEmpty(host) GROUP BY host ORDER BY bytes DESC";
+
+        url = url + "&query=" + sql ;
+
+        Map map = restTemplate.getForObject(url, Map.class);
+
+        log.info(JsonMapper.toJsonString(map));
+        Assert.assertEquals((int)map.get("status"), 200);
+    }
+
+
+
+
 
 
 

@@ -60,12 +60,14 @@ public class HbaseDialect implements Dialect{
                 .append(getQueryId(param.getReportId(), param.getQuery())).append("/")
                 .append(hBaseHttpSource.getColumnFamily()).append(":").append(hBaseHttpSource.getColumnName());
 
-        log.info("报表结果检索语句：" + urlBuilder.toString() + queryparamBuilder.toString());
+        log.info("Report Query：{}, sql:{}" ,urlBuilder.toString() + queryparamBuilder.toString(), param.getQuery());
 
         Map<String, String> headers = Maps.newHashMap();
-        headers.put("Accept", "application/json");
 
+        headers.put("Accept", "application/json");
+        long beginTime = System.currentTimeMillis();
         Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
+        double executeTime = (System.currentTimeMillis()-beginTime) / 1000.0;
 
         if (StringUtil.isEmpty(resultMap)) {
             baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系平台方！");
@@ -77,11 +79,16 @@ public class HbaseDialect implements Dialect{
                 Map<String, Object> statisticMap = (Map<String, Object>) maps.get("statistics");
 
                 Map<String, Object> statistics = Maps.newHashMap();
-                statistics.put("elapsed", statisticMap.get("elapsed"));
+                statistics.put("elapsed", "stat:" + statisticMap.get("elapsed") + ",result: "+ executeTime);
+
                 statistics.put("rows_read", statisticMap.get("rows_read"));
+
                 int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
+
                 statistics.put("result_size", resultSize);
+
                 baseResult = BaseResultGenerator.success("ok", maps.get("data"), statistics);
+
             } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
                 baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, resultMap.get("result").toString());
             } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {

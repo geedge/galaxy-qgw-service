@@ -29,9 +29,11 @@ public class BaseResult<T> implements Serializable {
 
     private String message;
 
+    private Map<String, Object> statistics;
+
     private T data;
 
-    private Map<String, Object> statistics;
+
 
 
 

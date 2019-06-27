@@ -31,7 +31,7 @@ public class APIController {
     @RepeatedSubmitCheck
     public BaseResult queryByGet( ApiParam param) {
 
-        log.debug("GET接收查询参数 option:{}, format:{}, SQL:{}",  param.getOption(), param.getFormat(), param.getQuery());
+        log.debug("GET Quest Params  option:{}, format:{}, SQL:{}",  param.getOption(), param.getFormat(), param.getQuery());
 
         if (StringUtil.isBlank(param.getQuery())) {
 

@@ -83,7 +83,7 @@ public class DruidDialect implements  Dialect {
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
 
-        log.info("预定义统计查询：{}", urlBuilder.toString() + param.getQuery());
+        log.info("TSDB Query ：{}, SQL: {}", urlBuilder.toString() + param.getQuery());
 
         if (param.getFormat().equals(QueryFormatEnum.JSON.getValue())) {
             druidQueryParam.setResultFormat("object");
@@ -111,6 +111,7 @@ public class DruidDialect implements  Dialect {
                 Map<String, Object> statistics = Maps.newHashMap();
                 statistics.put("elapsed", executeTime);
                 statistics.put("rows_read", allResults.size());
+
                 int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
                 statistics.put("result_size", resultSize);
 

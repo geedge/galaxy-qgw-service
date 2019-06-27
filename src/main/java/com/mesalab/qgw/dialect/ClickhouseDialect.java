@@ -103,7 +103,7 @@ public class ClickhouseDialect implements  Dialect {
                 .append("query=").append(param.getQuery())
                 .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
 
-        log.info("原始日志检索语句: {}" , urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
+        log.info("Query Session and Events Query : {}" , urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
 
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
 

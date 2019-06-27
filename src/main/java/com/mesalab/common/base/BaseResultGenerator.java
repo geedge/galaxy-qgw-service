@@ -24,7 +24,7 @@ public class BaseResultGenerator {
      * @return 返回结果
      */
     public static <T> BaseResult<T> generate(final int code, final String message, T data, final Map<String,Object> statistics) {
-        return new BaseResult<>(code, false, message, data, statistics);
+        return new BaseResult<>(code, false, message, statistics, data);
     }
 
     /**
@@ -45,7 +45,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> success(final String message, final T data) {
-        return new BaseResult<>(BaseResultEnum.SUCCESS.getCode(), true, message, data, null);
+        return new BaseResult<>(BaseResultEnum.SUCCESS.getCode(), true, message, null, data);
     }
 
     /**
@@ -58,7 +58,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> success(final String message, final T data, final Map<String,Object> statistics) {
-        return new BaseResult<>(BaseResultEnum.SUCCESS.getCode(), true, message, data, statistics);
+        return new BaseResult<>(BaseResultEnum.SUCCESS.getCode(), true, message, statistics, data);
     }
 
     /**
@@ -69,7 +69,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> success(final T data) {
-        return new BaseResult<>(BaseResultEnum.SUCCESS.getCode(), true, BaseResultEnum.SUCCESS.getMessage(), data, null);
+        return new BaseResult<>(BaseResultEnum.SUCCESS.getCode(), true, BaseResultEnum.SUCCESS.getMessage(), null, data);
     }
 
     /**
@@ -110,7 +110,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> failure(final int code, final String message, T data) {
-        return new BaseResult<>(code, false, message, data, null);
+        return new BaseResult<>(code, false, message, null, data);
     }
 
     /**

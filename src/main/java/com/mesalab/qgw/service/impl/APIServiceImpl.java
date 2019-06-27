@@ -255,7 +255,7 @@ public class APIServiceImpl implements IAPIService {
                     FromItem subItem = select.getFromItem();
 
                     if (subItem instanceof  SubSelect) {
-                        log.info("SQL 包含子查询 ");
+                        log.info("SQL 包含子查询,暂不做解析处理  ");
                     }
 
 
