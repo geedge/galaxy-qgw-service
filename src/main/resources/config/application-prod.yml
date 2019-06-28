@@ -66,10 +66,10 @@ hbase:
 ###############################################################################
 ## Query GateWay - httpclient配置
 httpclient:
-  connectTimeout: 1000
+  connectTimeout: 5000
   SocketTimeout: 600000
-  maxConnection: 10000
-  maxPerRoute: 10000
+  maxConnection: 20000
+  maxPerRoute: 20000
 ###############################################################################
 ## Query GateWay - schema 注册
 schema:

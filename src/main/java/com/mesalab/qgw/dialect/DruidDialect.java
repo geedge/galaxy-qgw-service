@@ -83,7 +83,7 @@ public class DruidDialect implements  Dialect {
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
 
-        log.info("TSDB Query ：{}, SQL: {}", urlBuilder.toString() + param.getQuery());
+        log.info("TSDB Query ：{}, SQL: {}", urlBuilder.toString() , param.getQuery());
 
         if (param.getFormat().equals(QueryFormatEnum.JSON.getValue())) {
             druidQueryParam.setResultFormat("object");

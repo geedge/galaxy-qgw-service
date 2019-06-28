@@ -60,7 +60,7 @@ public class HbaseDialect implements Dialect{
                 .append(getQueryId(param.getReportId(), param.getQuery())).append("/")
                 .append(hBaseHttpSource.getColumnFamily()).append(":").append(hBaseHttpSource.getColumnName());
 
-        log.info("Report Query：{}, sql:{}" ,urlBuilder.toString() + queryparamBuilder.toString(), param.getQuery());
+        log.info("Report Query：{}, Report Id: {}, sql:{}" ,urlBuilder.toString() + queryparamBuilder.toString(),param.getReportId(), param.getQuery());
 
         Map<String, String> headers = Maps.newHashMap();
 
