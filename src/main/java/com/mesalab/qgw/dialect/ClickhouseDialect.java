@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
@@ -17,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import tk.mybatis.mapper.mapperhelper.SqlHelper;
+
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +55,12 @@ public class ClickhouseDialect implements  Dialect {
     }
 
 
+    /**
+     * 默认分页处理
+     * @param sql
+     * @param sqlQuerySource
+     * @return
+     */
     private String generatePageSql(String sql, SQLQuerySource sqlQuerySource) {
         if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
             return getLimitString(sql, 0, 200);
@@ -60,12 +69,22 @@ public class ClickhouseDialect implements  Dialect {
         }
     }
 
+    /**
+     * http GET  sql 里特殊符号需要做encode编码
+     * @param sql
+     * @return
+     */
     private String generateSqlEncode(String sql) {
 
         return Encodes.urlEncode(sql);
 
     }
 
+    /**
+     * IN 转换为 集群 Global IN 模式
+     * @param sql
+     * @return
+     */
     private String generateGlobalIn(String sql) {
         Pattern p = Pattern.compile("in\\s*\\(", Pattern.CASE_INSENSITIVE);
         Matcher m = p.matcher(sql);
@@ -73,15 +92,47 @@ public class ClickhouseDialect implements  Dialect {
         while (m.find()) {
             m.appendReplacement(sb, "global in (");
         }
+
         m.appendTail(sb);
         return sb.toString();
+    }
+
+    /**
+     * count(distinct())转为uniqCombined函数
+     * @param sql
+     * @return
+     */
+    private String generateuniqCombined(String sql) {
+
+        Pattern p = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
+
+        Matcher m = p.matcher(sql);
+
+        StringBuffer sb = new StringBuffer();
+
+        while (m.find()) {
+
+            if (m.groupCount() == 1) {
+                String replaceValue = m.group(1);
+                m.appendReplacement(sb, "uniqCombined(" + replaceValue);
+
+            }
+        }
+
+        m.appendTail(sb);
+
+        return sb.toString();
+
+
     }
 
     @Override
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateGlobalIn(param.getQuery()));
+        param.setQuery(generateuniqCombined(param.getQuery()));
         param.setQuery(generateSqlEncode(param.getQuery()));
+
 
         return this;
     }

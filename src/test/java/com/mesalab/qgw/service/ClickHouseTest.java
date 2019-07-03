@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service;
 
+import com.google.common.base.CharMatcher;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.utils.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Slf4j
 @EnableAutoConfiguration
 public class ClickHouseTest extends GalaxyQGWApplicationTests {
@@ -67,6 +71,50 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
         Assert.assertEquals((int)map.get("status"), 200);
 
     }
+
+    @Test
+    public void testTopDomainsByBandwidthPacketsAndUniqueIp() {
+        String sql = "SELECT host, SUM(coalesce(c2s_byte_num, 0)) as sent_bytes, SUM(coalesce(s2c_byte_num, 0)) as received_bytes, SUM(coalesce(c2s_byte_num, 0) + coalesce(s2c_byte_num, 0)) as bytes, SUM(coalesce(c2s_pkt_num, 0)) as sent_packets, SUM(coalesce(s2c_pkt_num, 0)) as received_packets, SUM(coalesce(c2s_pkt_num, 0) + coalesce(s2c_pkt_num, 0)) as packets,count(distinct(client_ip)) as nums  FROM session_record_log where  $filter and notEmpty(host) GROUP BY host ORDER BY bytes DESC limit 100";
+        sql = sql.replaceAll("\\$filter", "recv_time>=toStartOfDay(now())-604800");
+        url = url + "/?query=" + sql ;
+
+        Map map = restTemplate.getForObject(url, Map.class);
+
+        log.info(JsonMapper.toJsonString(map) +  map.get("status"));
+
+        Assert.assertEquals((int)map.get("status"), 200);
+
+    }
+
+
+    @Test
+    public void testTopUrlsByHitshPacketsAndUniqueIp() {
+        String sql = " select $time_granularity as stat_time,host, count(distinct(client_ip) ) as nums  from session_record_log where $filter and host in (select host from session_record_log where $filter and notEmpty(host) group by host order by count(*)  desc limit 10 ) group by stat_time, hist order by stat_time asc";
+        sql = sql.replaceAll("\\$filter", "recv_time>=toStartOfDay(now())-604800");
+        sql = sql.replaceAll("\\$time_granularity", " toDateTime(intDiv(toUInt32(toDateTime(toDateTime(recv_time))), 300)*300)");
+        url = url + "/?query=" + sql ;
+
+        Map map = restTemplate.getForObject(url, Map.class);
+
+        log.info(JsonMapper.toJsonString(map) +  map.get("status"));
+
+        Assert.assertEquals((int)map.get("status"), 200);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
