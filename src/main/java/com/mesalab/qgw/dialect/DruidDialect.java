@@ -1,5 +1,6 @@
 package com.mesalab.qgw.dialect;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -14,9 +15,12 @@ import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.statement.select.Join;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 @Slf4j
@@ -99,23 +103,48 @@ public class DruidDialect implements  Dialect {
             baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
         } else {
             if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-                List<Object> allResults = (List<Object>) JsonMapper.fromJsonString(resultMap.get("result"), Object.class);
-                if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
-                    if (pageOffset >= allResults.size()) {
-                        allResults = new ArrayList<>();
-                    } else {
-                        allResults = allResults.subList(pageOffset, allResults.size());
+
+                if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+                    String result = resultMap.get("result");
+
+                    String[] results = result.split("\n");
+
+                    if (pageOffset > 0 && StringUtil.isNotEmpty(results)) {
+                        if (pageOffset >= results.length) {
+                            result = "";
+                        } else {
+                           String[] subResult = ArrayUtils.subarray(results, pageOffset, results.length);
+                            result = Joiner.on("\n").join(subResult).toString();
+
+
+                        }
                     }
+
+
+                    baseResult = BaseResultGenerator.success("ok", result , null);
+
+
+                } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+                    List<Object> allResults = (List<Object>) JsonMapper.fromJsonString(resultMap.get("result"), Object.class);
+                    if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
+                        if (pageOffset >= allResults.size()) {
+                            allResults = new ArrayList<>();
+                        } else {
+                            allResults = allResults.subList(pageOffset, allResults.size());
+                        }
+                    }
+
+                    Map<String, Object> statistics = Maps.newHashMap();
+                    statistics.put("elapsed", executeTime);
+                    statistics.put("rows_read", allResults.size());
+
+                    int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
+                    statistics.put("result_size", resultSize);
+
+                    baseResult = BaseResultGenerator.success("ok", allResults , statistics);
                 }
 
-                Map<String, Object> statistics = Maps.newHashMap();
-                statistics.put("elapsed", executeTime);
-                statistics.put("rows_read", allResults.size());
 
-                int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
-                statistics.put("result_size", resultSize);
-
-                baseResult = BaseResultGenerator.success("ok", allResults , statistics);
 
             } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
                 baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,  JsonMapper.fromJsonString(resultMap.get("result"), Object.class).toString());

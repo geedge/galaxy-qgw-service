@@ -4,21 +4,20 @@ package com.mesalab.qgw.dialect;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import tk.mybatis.mapper.mapperhelper.SqlHelper;
 
 import java.nio.charset.Charset;
 import java.util.List;
@@ -102,7 +101,7 @@ public class ClickhouseDialect implements  Dialect {
      * @param sql
      * @return
      */
-    private String generateuniqCombined(String sql) {
+    private String generateUniqCombined(String sql) {
 
         Pattern p = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
 
@@ -126,11 +125,40 @@ public class ClickhouseDialect implements  Dialect {
 
     }
 
+    /**
+     * count(distinct())转为uniq函数
+     * @param sql
+     * @return
+     */
+    private String generateUniq(String sql) {
+
+        Pattern p = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
+
+        Matcher m = p.matcher(sql);
+
+        StringBuffer sb = new StringBuffer();
+
+        while (m.find()) {
+
+            if (m.groupCount() == 1) {
+                String replaceValue = m.group(1);
+                m.appendReplacement(sb, "uniq(" + replaceValue);
+
+            }
+        }
+
+        m.appendTail(sb);
+
+        return sb.toString();
+
+
+    }
+
     @Override
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateGlobalIn(param.getQuery()));
-        param.setQuery(generateuniqCombined(param.getQuery()));
+        param.setQuery(generateUniq(param.getQuery()));
         param.setQuery(generateSqlEncode(param.getQuery()));
 
 
@@ -167,14 +195,23 @@ public class ClickhouseDialect implements  Dialect {
            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
        } else {
            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-               Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(resultMap.get("result"),  Map.class);
-               Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
-               Map<String, Object> statistics = Maps.newHashMap();
-               statistics.put("elapsed", statisticMap.get("elapsed"));
-               statistics.put("rows_read", statisticMap.get("rows_read"));
-               int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
-               statistics.put("result_size", resultSize);
-               baseResult = BaseResultGenerator.success("ok", maps.get("data"), statistics);
+
+               if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+                   baseResult = BaseResultGenerator.success("ok", resultMap.get("result"), null);
+               } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+                   Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(resultMap.get("result"),  Map.class);
+                   Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
+                   Map<String, Object> statistics = Maps.newHashMap();
+                   statistics.put("elapsed", statisticMap.get("elapsed"));
+                   statistics.put("rows_read", statisticMap.get("rows_read"));
+                   int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
+                   statistics.put("result_size", resultSize);
+                   baseResult = BaseResultGenerator.success("ok", maps.get("data"), statistics);
+               }
+
+
+
+
 
            }else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, resultMap.get("result"));

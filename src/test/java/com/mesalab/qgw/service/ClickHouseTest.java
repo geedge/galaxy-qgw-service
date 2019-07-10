@@ -89,7 +89,7 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void testTopUrlsByHitshPacketsAndUniqueIp() {
-        String sql = " select $time_granularity as stat_time,host, count(distinct(client_ip) ) as nums  from session_record_log where $filter and host in (select host from session_record_log where $filter and notEmpty(host) group by host order by count(*)  desc limit 10 ) group by stat_time, hist order by stat_time asc";
+        String sql = " select $time_granularity as stat_time,host, count(distinct(client_ip) ) as nums  from session_record_log where $filter and host in (select host from session_record_log where $filter and notEmpty(host) group by host order by count(*)  desc limit 10 ) group by stat_time, host order by stat_time asc";
         sql = sql.replaceAll("\\$filter", "recv_time>=toStartOfDay(now())-604800");
         sql = sql.replaceAll("\\$time_granularity", " toDateTime(intDiv(toUInt32(toDateTime(toDateTime(recv_time))), 300)*300)");
         url = url + "/?query=" + sql ;

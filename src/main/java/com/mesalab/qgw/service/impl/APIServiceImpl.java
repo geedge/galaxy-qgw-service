@@ -136,9 +136,11 @@ public class APIServiceImpl implements IAPIService {
 
         if (StringUtil.isNotBlank(param.getFormat())) {
 
-            if (!param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+            if (!param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())
+                && !param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
                 throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：format 参数错误", null);
             }
+
         } else {
             param.setFormat(QueryFormatEnum.JSON.getValue());
         }
