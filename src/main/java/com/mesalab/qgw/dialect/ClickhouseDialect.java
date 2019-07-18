@@ -15,6 +15,7 @@ import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -27,6 +28,12 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class ClickhouseDialect implements  Dialect {
+    Pattern pDateFunStrToDate = Pattern.compile("STR_TO_DATE\\s*\\[(.*?)\\]|DATE_FORMAT\\s*\\[(.*?)\\]", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunDateAdd = Pattern.compile("DATE_ADD\\[(.*?)\\s*,\\s*INTERVAL(.*?)\\]", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunDateSub = Pattern.compile("DATE_SUB\\[(.*?)\\s*,\\s*INTERVAL(.*?)\\]", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunDate = Pattern.compile("DATE\\s*\\[(.*?)\\]", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunUnixTimeStamp = Pattern.compile("UNIX_TIMESTAMP|FROM_UNIXTIME", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunFromUnixTime = Pattern.compile("FROM_UNIXTIME\\s*\\[(.*?\\].*?,.*?)\\]", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
@@ -154,11 +161,175 @@ public class ClickhouseDialect implements  Dialect {
 
     }
 
+    private String generateDateFun(String sql, SQLQuerySource sqlQuerySource) {
+        StringBuffer sqlResult = new StringBuffer("(" + sql + ")");
+        int start = -1;
+        int end = -1;
+        for (; ; ) {
+            if (sqlResult.indexOf("(") == -1) {
+                String result = sqlResult.toString();
+                result = result.replace("[","(");
+                result = result.replace("]",")");
+                result = result.substring(1,result.length()-1);
+                StringBuffer sb = new StringBuffer();
+                //UNIX_TIMESTAMP的替换
+                Matcher mUnixTimeStamp = pDateFunUnixTimeStamp.matcher(result);
+                while (mUnixTimeStamp.find()) {
+                    mUnixTimeStamp.appendReplacement(sb, "toDateTime");
+                }
+                mUnixTimeStamp.appendTail(sb);
+                result = sb.toString();
+                return result;
+            }
+            start = sqlResult.lastIndexOf("(");
+            end = sqlResult.indexOf(")", start);
+            StringBuffer sb = new StringBuffer();
+            StringBuffer sqlBuffer = new StringBuffer(sqlResult.substring(start+1,end));
+
+            //STR_TO_DATE、DATE_FORMAT替换
+            Matcher mStrToDate = pDateFunStrToDate.matcher(sqlBuffer);
+            while (mStrToDate.find()) {
+                if (mStrToDate.groupCount() == 2) {
+                    String value =  mStrToDate.group(1)!=null?mStrToDate.group(1):mStrToDate.group(2);
+                    String innerValue = convertValueStrToDate(value);
+                    mStrToDate.appendReplacement(sb, innerValue);
+                }
+            }
+            mStrToDate.appendTail(sb);
+
+            //DATE_ADD替换
+            sqlResult = sqlResult.replace(start+1,end,sb.toString());
+            start = sqlResult.lastIndexOf("(");
+            end = sqlResult.indexOf(")", start);
+            sb = new StringBuffer();
+            sqlBuffer = new StringBuffer(sqlResult.substring(start+1,end));
+            Matcher mDateAdd = pDateFunDateAdd.matcher(sqlBuffer);
+            while (mDateAdd.find()) {
+                if (mDateAdd.groupCount() == 2) {
+                    String innerValue = convertValueDateAdd(mDateAdd.group(1),mDateAdd.group(2),true);
+                    mDateAdd.appendReplacement(sb, innerValue);
+                }
+            }
+            mDateAdd.appendTail(sb);
+
+            //DATE_SUB替换
+            sqlResult = sqlResult.replace(start+1,end,sb.toString());
+            start = sqlResult.lastIndexOf("(");
+            end = sqlResult.indexOf(")", start);
+            sb = new StringBuffer();
+            sqlBuffer = new StringBuffer(sqlResult.substring(start+1,end));
+            Matcher m_DATE_SUB = pDateFunDateSub.matcher(sqlBuffer);
+            while (m_DATE_SUB.find()) {
+                if (m_DATE_SUB.groupCount() == 2) {
+                    String innerValue = convertValueDateAdd(m_DATE_SUB.group(1),m_DATE_SUB.group(2),false);
+                    m_DATE_SUB.appendReplacement(sb, innerValue);
+                }
+            }
+            m_DATE_SUB.appendTail(sb);
+
+            //DATE替换
+            sqlResult = sqlResult.replace(start+1,end,sb.toString());
+            start = sqlResult.lastIndexOf("(");
+            end = sqlResult.indexOf(")", start);
+            sb = new StringBuffer();
+            sqlBuffer = new StringBuffer(sqlResult.substring(start+1,end));
+            Matcher m_DATE = pDateFunDate.matcher(sqlBuffer);
+            while (m_DATE.find()) {
+                if (m_DATE.groupCount() == 1) {
+                    String innerValue = "toStartOfDay[toDateTime["+ m_DATE.group(1).trim()+"]]";
+                    m_DATE.appendReplacement(sb, innerValue);
+                }
+            }
+            m_DATE.appendTail(sb);
+
+            // FROM_UNIXTIME(unix_timestamp,format)的替换
+            sqlResult = sqlResult.replace(start+1,end,sb.toString());
+            start = sqlResult.lastIndexOf("(");
+            end = sqlResult.indexOf(")", start);
+            sqlBuffer = new StringBuffer(sqlResult.substring(start+1,end));
+            Matcher mFromUnixTime = pDateFunFromUnixTime.matcher(sqlBuffer);
+            sb = new StringBuffer();
+            while (mFromUnixTime.find()) {
+                if(mFromUnixTime.groupCount()==1){
+                    String[] split = StringUtil.split(mFromUnixTime.group(1), ",");
+                    String innerValue = "toDateTime[" + split[0] + "]";
+                    if (split.length == 2) {
+                        String format = split[1].trim().replaceAll("\\'|\\\"","");
+                        switch (format) {
+                            case "%Y-%m-%d %H:%i:%s": innerValue = "toDateTime[" + split[0] + "]"; break;
+                            case "%Y-%m-%d 00:00:00": innerValue = "toDateTime[toStartOfDay[toDateTime[" + split[0] + "]]]"; break;
+                            case "%Y-%m-01 00:00:00": innerValue = "toDateTime[toStartOfMonth[toDateTime[" + split[0] + "]]]"; break;
+                            case "%Y-01-01 00:00:00": innerValue = "toDateTime[toStartOfYear[toDateTime[" + split[0] + "]]]"; break;
+                            case "%Y-%m-%d": innerValue = "toDate(" + split[0] + ")"; break;
+                            default:innerValue = "toDateTime[" + split[0] + "]"; break;
+                        }
+                    }
+                    mFromUnixTime.appendReplacement(sb, innerValue);
+                }
+            }
+            mFromUnixTime.appendTail(sb);
+
+            sqlResult = sqlResult.replace(start,end+1,"["+sb+"]");
+        }
+    }
+
+    private String convertValueDateAdd(String date,String expr,boolean shift) {
+        expr = expr.trim().toUpperCase();
+        Pattern pDateAdd = Pattern.compile("(.*?)([A-Z]{3,7}$)", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pDateAdd.matcher(expr);
+        if(matcher.find()){
+            if(matcher.groupCount()==2){
+                expr = matcher.group(1).trim();
+                Pattern p_num = Pattern.compile("^-?\\s*\\d+$", Pattern.CASE_INSENSITIVE);
+                Matcher m_num = p_num.matcher(expr);
+                if(m_num.matches()){
+                    int exprNum = Integer.parseInt(expr);
+                    if (exprNum > 0) {
+                        expr = "+" + expr;
+                    }
+                    if (!shift) {
+                        expr = String.valueOf(-exprNum);
+                    }
+                }
+                switch (matcher.group(2)){
+                    case "SECOND": date = "toDateTime[" + date + "]" + expr; break;
+                    case "MINUTE": date = "toDateTime[" + date + "]" + expr + "*60"; break;
+                    case "HOUR": date = "toDateTime[" + date + "]" + expr + "*3600"; break;
+                    case "DAY": date = "toDateTime[" + date + "]" + expr+ "*86400"; break;//24*3600
+                    case "WEEK": date = "toDateTime[" + date + "]" + expr + "*604800"; break;//7*24*3600
+                    case "MONTH": date = "toDateTime[" + date + "]" + expr + "*2678400"; break;//31*24*3600
+                    case "QUARTER": date = "toDateTime[" + date + "]" + expr + "*8035200"; break;//3*31*24*3600
+                    case "YEAR": date = "toDateTime[" + date + "]" + expr + "*31536000"; break;//365*24*3600
+                    default:date = date + expr; break;
+                }
+            }
+        }
+        return date;
+    }
+
+    private String convertValueStrToDate(String innerValue) {
+        String[] split = StringUtil.split(innerValue, ",");
+        if (split.length == 2) {
+            String format = split[1].trim().replaceAll("\\'|\\\"","");
+            switch (format) {
+                case "%Y-%m-%d %H:%i:%s": innerValue = "toDateTime[" + split[0] + "]"; break;
+                case "%Y-%m-%d 00:00:00": innerValue = "toStartOfDay[toDateTime[" + split[0] + "]]"; break;
+                case "%Y-%m-01 00:00:00": innerValue = "toDateTime[toStartOfMonth[toDateTime[" + split[0] + "]]]"; break;
+                case "%Y-01-01 00:00:00": innerValue = "toDateTime[toStartOfYear[toDateTime[" + split[0] + "]]]"; break;
+                case "%Y-%m-%d": innerValue = "toDate(" + split[0] + ")"; break;
+                default:innerValue = innerValue;
+            }
+        }
+        return innerValue;
+    }
+
+
     @Override
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateGlobalIn(param.getQuery()));
         param.setQuery(generateUniq(param.getQuery()));
+        param.setQuery(generateDateFun(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateSqlEncode(param.getQuery()));
 
 
