@@ -50,14 +50,14 @@ clickhouse:
   ###############################################################################
   ## Query GateWay - druid 配置
 druid:
-  url: 192.168.10.206:8082/druid/v2/sql
+  url: 192.168.40.206:8082/druid/v2/sql
   dbname: druid
   sqlTimeZone: Asia/Shanghai
   ##Asia/Almaty
   ###############################################################################
   ## Query GateWay - Hbase 配置
 hbase:
-  url: 192.168.40.224:4444
+  url: 192.168.40.120:4444
   dbname: tsg
   tableName: report_result
   columnFamily: response

@@ -13,6 +13,7 @@ import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
 import com.alibaba.druid.util.JdbcConstants;
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.mesalab.common.base.BaseResult;
@@ -228,7 +229,8 @@ public class APIServiceImpl implements IAPIService {
                 List<String> tableList =  tablesNamesFinder.getTableList(selectStatement);
 
                 if (StringUtil.isNotEmpty(tableList)) {
-                    sqlQuerySource.setTableName(Arrays.toString(tableList.toArray()));
+
+                    sqlQuerySource.setTableName(tableList.get(0));
                 } else {
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
                 }
@@ -240,19 +242,40 @@ public class APIServiceImpl implements IAPIService {
 
                     PlainSelect select = (PlainSelect) body;
 
+
+
                     Expression where = select.getWhere();
 
                     if (where != null){
                         sqlQuerySource.setExpr(where.toString());
                     }
 
-                    //List<Expression> groupList = select.getGroupByColumnReferences();
+                    List<SelectItem> selectItemsList = select.getSelectItems();
+
+                    if (StringUtil.isNotEmpty(selectItemsList)) {
+                        String selectItemsString =  Joiner.on(",").join(selectItemsList);
+                        sqlQuerySource.setSelectItems(selectItemsString);
+
+                    }
+
+                    List<Expression> groupList = select.getGroupByColumnReferences();
 
 
+                    if (StringUtil.isNotEmpty(groupList)) {
+                        String groupByString =  Joiner.on(",").join(groupList);
+                        sqlQuerySource.setGroupByClause(groupByString);
 
-                    // List<OrderByElement> orderByList = select.getOrderByElements();
+                    }
 
-                    //sqlQuerySource.setSelectItems(select.getSelectItems().toString());
+
+                    List<OrderByElement> orderByList = select.getOrderByElements();
+                    if (StringUtil.isNotEmpty(orderByList)) {
+                        String orderByString =  Joiner.on(",").join(orderByList);
+                        sqlQuerySource.setOrderBy(orderByString);
+
+                    }
+
+
 
                     FromItem subItem = select.getFromItem();
 
@@ -274,11 +297,8 @@ public class APIServiceImpl implements IAPIService {
                     }
 
 
-
                 } else if (body instanceof SetOperationList) { // 连接查询
-
                     sqlQuerySource.setLimit("NO LIMIT");
-
                 } else { //其它暂不支持
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
                 }

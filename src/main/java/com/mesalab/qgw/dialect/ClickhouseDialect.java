@@ -151,14 +151,61 @@ public class ClickhouseDialect implements  Dialect {
 
         return sb.toString();
 
+    }
+
+
+    private String generateSubQueryByRecvTime(String sql) {
+
+        StringBuffer subQuery = new StringBuffer();
+
+        Pattern p = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
+
+        if (StringUtil.isNotBlank(param.getSqlQuerySource().getGroupByClause())
+                ||p.matcher(sql).find()) {
+            return sql;
+        }
+
+        if (StringUtil.isNotBlank(param.getSqlQuerySource().getExpr())) {
+            subQuery.append("select recv_time from ").append(param.getSqlQuerySource().getTableName())
+                    .append(" where ").append(param.getSqlQuerySource().getExpr());
+
+            if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
+
+                subQuery.append(" order by ").append(param.getSqlQuerySource().getOrderBy());
+
+            }
+
+            if (StringUtil.isNotBlank(param.getSqlQuerySource().getLimit())) {
+                subQuery.append(" limit ").append(param.getSqlQuerySource().getLimit());
+
+            }
+
+        }
+
+        p = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
+
+        Matcher m = p.matcher(sql);
+
+        StringBuffer sb = new StringBuffer();
+
+        while (m.find()) {
+            m.appendReplacement(sb, "where  recv_time in ( " + subQuery + ") and  ");
+        }
+
+        m.appendTail(sb);
+
+        return sb.toString();
 
     }
+
+
 
     @Override
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateGlobalIn(param.getQuery()));
         param.setQuery(generateUniq(param.getQuery()));
+        param.setQuery(generateSubQueryByRecvTime(param.getQuery()));
         param.setQuery(generateSqlEncode(param.getQuery()));
 
 
