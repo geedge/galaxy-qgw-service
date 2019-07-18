@@ -34,6 +34,9 @@ public class ClickhouseDialect implements  Dialect {
     Pattern pDateFunDate = Pattern.compile("DATE\\s*\\[(.*?)\\]", Pattern.CASE_INSENSITIVE);
     Pattern pDateFunUnixTimeStamp = Pattern.compile("UNIX_TIMESTAMP|FROM_UNIXTIME", Pattern.CASE_INSENSITIVE);
     Pattern pDateFunFromUnixTime = Pattern.compile("FROM_UNIXTIME\\s*\\[(.*?\\].*?,.*?)\\]", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunWeek = Pattern.compile("STR_TO_DATE\\s*\\(\\s*DATE_FORMAT\\s*\\((.*?),(.*?)\\)\\s*,(.*?)\\s*\\)", Pattern.CASE_INSENSITIVE);
+    Pattern pDateAdd = Pattern.compile("(.*?)([A-Z]{3,7}$)", Pattern.CASE_INSENSITIVE);
+    Pattern p_num = Pattern.compile("^-?\\s*\\d+$", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
@@ -161,32 +164,28 @@ public class ClickhouseDialect implements  Dialect {
 
     }
 
-    private String generateDateFun(String sql, SQLQuerySource sqlQuerySource) {
+    /**
+     * mysql时间范围函数转换
+     * @param sql
+     * @return
+     */
+    private String generateDateFun(String sql) {
+        sql = dateFunWholeReplace(sql);
         StringBuffer sqlResult = new StringBuffer("(" + sql + ")");
         int start = -1;
         int end = -1;
         for (; ; ) {
             if (sqlResult.indexOf("(") == -1) {
                 String result = sqlResult.toString();
-                result = result.replace("[","(");
-                result = result.replace("]",")");
-                result = result.substring(1,result.length()-1);
-                StringBuffer sb = new StringBuffer();
-                //UNIX_TIMESTAMP的替换
-                Matcher mUnixTimeStamp = pDateFunUnixTimeStamp.matcher(result);
-                while (mUnixTimeStamp.find()) {
-                    mUnixTimeStamp.appendReplacement(sb, "toDateTime");
-                }
-                mUnixTimeStamp.appendTail(sb);
-                result = sb.toString();
+                result = replaceOnly(result);
                 return result;
             }
+
+            //STR_TO_DATE、DATE_FORMAT替换
             start = sqlResult.lastIndexOf("(");
             end = sqlResult.indexOf(")", start);
             StringBuffer sb = new StringBuffer();
             StringBuffer sqlBuffer = new StringBuffer(sqlResult.substring(start+1,end));
-
-            //STR_TO_DATE、DATE_FORMAT替换
             Matcher mStrToDate = pDateFunStrToDate.matcher(sqlBuffer);
             while (mStrToDate.find()) {
                 if (mStrToDate.groupCount() == 2) {
@@ -251,19 +250,7 @@ public class ClickhouseDialect implements  Dialect {
             sb = new StringBuffer();
             while (mFromUnixTime.find()) {
                 if(mFromUnixTime.groupCount()==1){
-                    String[] split = StringUtil.split(mFromUnixTime.group(1), ",");
-                    String innerValue = "toDateTime[" + split[0] + "]";
-                    if (split.length == 2) {
-                        String format = split[1].trim().replaceAll("\\'|\\\"","");
-                        switch (format) {
-                            case "%Y-%m-%d %H:%i:%s": innerValue = "toDateTime[" + split[0] + "]"; break;
-                            case "%Y-%m-%d 00:00:00": innerValue = "toDateTime[toStartOfDay[toDateTime[" + split[0] + "]]]"; break;
-                            case "%Y-%m-01 00:00:00": innerValue = "toDateTime[toStartOfMonth[toDateTime[" + split[0] + "]]]"; break;
-                            case "%Y-01-01 00:00:00": innerValue = "toDateTime[toStartOfYear[toDateTime[" + split[0] + "]]]"; break;
-                            case "%Y-%m-%d": innerValue = "toDate(" + split[0] + ")"; break;
-                            default:innerValue = "toDateTime[" + split[0] + "]"; break;
-                        }
-                    }
+                    String innerValue = convertValueStrToDate(mFromUnixTime.group(1));
                     mFromUnixTime.appendReplacement(sb, innerValue);
                 }
             }
@@ -273,63 +260,13 @@ public class ClickhouseDialect implements  Dialect {
         }
     }
 
-    private String convertValueDateAdd(String date,String expr,boolean shift) {
-        expr = expr.trim().toUpperCase();
-        Pattern pDateAdd = Pattern.compile("(.*?)([A-Z]{3,7}$)", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pDateAdd.matcher(expr);
-        if(matcher.find()){
-            if(matcher.groupCount()==2){
-                expr = matcher.group(1).trim();
-                Pattern p_num = Pattern.compile("^-?\\s*\\d+$", Pattern.CASE_INSENSITIVE);
-                Matcher m_num = p_num.matcher(expr);
-                if(m_num.matches()){
-                    int exprNum = Integer.parseInt(expr);
-                    if (exprNum > 0) {
-                        expr = "+" + expr;
-                    }
-                    if (!shift) {
-                        expr = String.valueOf(-exprNum);
-                    }
-                }
-                switch (matcher.group(2)){
-                    case "SECOND": date = "toDateTime[" + date + "]" + expr; break;
-                    case "MINUTE": date = "toDateTime[" + date + "]" + expr + "*60"; break;
-                    case "HOUR": date = "toDateTime[" + date + "]" + expr + "*3600"; break;
-                    case "DAY": date = "toDateTime[" + date + "]" + expr+ "*86400"; break;//24*3600
-                    case "WEEK": date = "toDateTime[" + date + "]" + expr + "*604800"; break;//7*24*3600
-                    case "MONTH": date = "toDateTime[" + date + "]" + expr + "*2678400"; break;//31*24*3600
-                    case "QUARTER": date = "toDateTime[" + date + "]" + expr + "*8035200"; break;//3*31*24*3600
-                    case "YEAR": date = "toDateTime[" + date + "]" + expr + "*31536000"; break;//365*24*3600
-                    default:date = date + expr; break;
-                }
-            }
-        }
-        return date;
-    }
-
-    private String convertValueStrToDate(String innerValue) {
-        String[] split = StringUtil.split(innerValue, ",");
-        if (split.length == 2) {
-            String format = split[1].trim().replaceAll("\\'|\\\"","");
-            switch (format) {
-                case "%Y-%m-%d %H:%i:%s": innerValue = "toDateTime[" + split[0] + "]"; break;
-                case "%Y-%m-%d 00:00:00": innerValue = "toStartOfDay[toDateTime[" + split[0] + "]]"; break;
-                case "%Y-%m-01 00:00:00": innerValue = "toDateTime[toStartOfMonth[toDateTime[" + split[0] + "]]]"; break;
-                case "%Y-01-01 00:00:00": innerValue = "toDateTime[toStartOfYear[toDateTime[" + split[0] + "]]]"; break;
-                case "%Y-%m-%d": innerValue = "toDate(" + split[0] + ")"; break;
-                default:innerValue = innerValue;
-            }
-        }
-        return innerValue;
-    }
-
 
     @Override
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateGlobalIn(param.getQuery()));
         param.setQuery(generateUniq(param.getQuery()));
-        param.setQuery(generateDateFun(param.getQuery(), param.getSqlQuerySource()));
+        param.setQuery(generateDateFun(param.getQuery()));
         param.setQuery(generateSqlEncode(param.getQuery()));
 
 
@@ -396,6 +333,112 @@ public class ClickhouseDialect implements  Dialect {
 
        return  baseResult;
 
+    }
+
+    /**
+     * 单纯替换字符
+     * @param sql
+     * @return
+     */
+    public String replaceOnly(String sql){
+        sql = sql.replace("[","(");
+        sql = sql.replace("]",")");
+        sql = sql.substring(1,sql.length()-1);
+
+        StringBuffer sb = new StringBuffer();
+        //UNIX_TIMESTAMP、FROM_UNIOXTIME(date)替换
+        Matcher mUnixTimeStamp = pDateFunUnixTimeStamp.matcher(sql);
+        while (mUnixTimeStamp.find()) {
+            mUnixTimeStamp.appendReplacement(sb, "toDateTime");
+        }
+        mUnixTimeStamp.appendTail(sb);
+        return sb.toString();
+    }
+
+    /**
+     * FORMAT
+     * @param innerValue
+     * @return
+     */
+    private String convertValueStrToDate(String innerValue) {
+        String[] split = StringUtil.split(innerValue, ",");
+        if (split.length == 2) {
+            String format = split[1].trim().replaceAll("\\'|\\\"","");
+            switch (format) {
+                case "%Y-%m-%d %H:%i:%s": innerValue = "toDateTime[" + split[0] + "]"; break;
+                case "%Y-%m-%d 00:00:00": innerValue = "toStartOfDay[toDateTime[" + split[0] + "]]"; break;
+                case "%Y-%m-01 00:00:00": innerValue = "toDateTime[toStartOfMonth[toDateTime[" + split[0] + "]]]"; break;
+                case "%Y-01-01 00:00:00": innerValue = "toDateTime[toStartOfYear[toDateTime[" + split[0] + "]]]"; break;
+                case "%Y-%m-%d": innerValue = "toDateTime(" + split[0] + ")"; break;
+                default:innerValue = innerValue;
+            }
+        }
+        return innerValue;
+    }
+
+    /**
+     *  INVERTAL
+     * @param date
+     * @param expr
+     * @param shift 判断 DATE_ADD:true    DATE_SUB:false
+     * @return
+     */
+    private String convertValueDateAdd(String date,String expr,boolean shift) {
+        expr = expr.trim().toUpperCase();
+        Matcher matcher = pDateAdd.matcher(expr);
+        if(matcher.find()){
+            if(matcher.groupCount()==2){
+                expr = matcher.group(1).trim();
+                Matcher m_num = p_num.matcher(expr);
+                if(m_num.matches()){
+                    expr = expr.replaceAll("\\s*","");
+                    int exprNum = Integer.parseInt(expr);
+                    if (exprNum > 0) {
+                        expr = "+" + expr;
+                    }
+                    if (!shift) {
+                        expr = String.valueOf(-exprNum);
+                    }
+                }
+                switch (matcher.group(2)){
+                    case "SECOND": date = "toDateTime[" + date + "]" + expr; break;
+                    case "MINUTE": date = "toDateTime[" + date + "]" + expr + "*60"; break;
+                    case "HOUR": date = "toDateTime[" + date + "]" + expr + "*3600"; break;
+                    case "DAY": date = "toDateTime[" + date + "]" + expr+ "*86400"; break;//24*3600
+                    case "WEEK": date = "toDateTime[" + date + "]" + expr + "*604800"; break;//7*24*3600
+                    case "MONTH": date = "toDateTime[" + date + "]" + expr + "*2678400"; break;//31*24*3600
+                    case "QUARTER": date = "toDateTime[" + date + "]" + expr + "*8035200"; break;//3*31*24*3600
+                    case "YEAR": date = "toDateTime[" + date + "]" + expr + "*31536000"; break;//365*24*3600
+                    default:date = date + expr; break;
+                }
+            }
+        }
+        return date;
+    }
+
+    /**
+     * 整体替换：不拆分SQL条件下替换相匹配函数
+     * @param sql
+     * @return
+     */
+    private String dateFunWholeReplace(String sql) {
+        String regexp = "\\'|\\\"|\\s*";
+
+        //This Week
+        Matcher matcher = pDateFunWeek.matcher(sql);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()){
+            String innerValue = "";
+            if(matcher.groupCount()==3){
+                switch (matcher.group(2).replaceAll(regexp,"")){
+                    case "%X%VSunday": innerValue = "toDateTime[toMonday["+matcher.group(1)+"]]-86400";break;
+                    default : innerValue=sql; break;
+                }
+            }
+            matcher.appendReplacement(sb,innerValue );
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 
 }

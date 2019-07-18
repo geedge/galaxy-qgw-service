@@ -162,14 +162,12 @@ public class MysqlCKDateTest extends GalaxyQGWApplicationTests {
         log.info(JsonMapper.toJsonString(map));
         Assert.assertEquals((int)map.get("status"), 200);
     }
-  /**
-     *  预制User 报告2
-     */
+
     @Test
     public void test(){
-        String sql = "SELECT subscribe_id as user,SUM(coalesce(c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(c2s_byte_num, 0)+coalesce(s2c_byte_num, 0)) AS bytes FROM session_record_log WHERE recv_time>= UNIX_TIMESTAMP(DATE_FORMAT('2019-06-01 18:37:45', '%Y-%m-%d 00:00:00'))-604800 and recv_time< UNIX_TIMESTAMP(DATE_FORMAT('2019-06-01 18:37:45', '%Y-%m-%d 00:00:00')) and notEmpty(user) GROUP BY user ORDER BY bytes  DESC LIMIT 100";
-        String sqlBegin = "SELECT * FROM session_record_log WHERE recv_time>= str_to_date(DATE_FORMAT(now(),'%X%V Sunday'), '%X%V %W') and recv_time< DATE_FORMAT('2019-06-06 19:11:12', '%Y-%m-01 00:00:00')";
-        url = url + "/?query=" + sqlBegin ;
+        String sql = "SELECT subscribe_id as user,SUM(coalesce(c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(c2s_byte_num, 0)+coalesce(s2c_byte_num, 0)) AS bytes FROM session_record_log WHERE recv_time>= toDateTime(toMonday(toDateTime('2019-06-01 18:37:45')))-86400 and recv_time< toDateTime(toMonday(toDateTime('2019-06-01 18:37:45')))+518400 and notEmpty(user) GROUP BY user ORDER BY bytes  DESC LIMIT 100";
+        String sqlBegin = "SELECT subscribe_id as user,SUM(coalesce(c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(c2s_byte_num, 0)+coalesce(s2c_byte_num, 0)) AS bytes FROM session_record_log WHERE recv_time>= str_to_date(DATE_FORMAT('2019-06-01 18:37:45','%X%V Sunday'), '%X%V %W') and recv_time<  str_to_date(DATE_FORMAT(DATE_ADD('2019-06-01 18:37:45', INTERVAL 1 WEEK),'%X%V Sunday'), '%X%V %W') GROUP BY user ORDER BY bytes  DESC LIMIT 100";
+        url = url + "/?query=" + sql ;
         Map map = restTemplate.getForObject(url, Map.class);
         log.info(JsonMapper.toJsonString(map));
         Assert.assertEquals((int)map.get("status"), 200);
