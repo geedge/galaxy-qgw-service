@@ -29,14 +29,14 @@ import java.util.regex.Pattern;
 @Slf4j
 public class ClickhouseDialect implements  Dialect {
     Pattern pDateFunStrToDate = Pattern.compile("STR_TO_DATE\\s*\\[(.*?)\\]|DATE_FORMAT\\s*\\[(.*?)\\]", Pattern.CASE_INSENSITIVE);
-    Pattern pDateFunDateAdd = Pattern.compile("DATE_ADD\\[(.*?)\\s*,\\s*INTERVAL(.*?)\\]", Pattern.CASE_INSENSITIVE);
-    Pattern pDateFunDateSub = Pattern.compile("DATE_SUB\\[(.*?)\\s*,\\s*INTERVAL(.*?)\\]", Pattern.CASE_INSENSITIVE);
-    Pattern pDateFunDate = Pattern.compile("DATE\\s*\\[(.*?)\\]", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunDateAdd = Pattern.compile("DATE_ADD\\[(.*?)\\s*,\\s*INTERVAL(.*?)\\]|ADDDATE\\[(.*?)\\s*,\\s*INTERVAL(.*?)\\]", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunDateSub = Pattern.compile("DATE_SUB\\[(.*?)\\s*,\\s*INTERVAL(.*?)\\]|SUBDATE\\[(.*?)\\s*,\\s*INTERVAL(.*?)\\]", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunDate = Pattern.compile("\\WDATE\\s*\\[(.*?)\\]", Pattern.CASE_INSENSITIVE);
     Pattern pDateFunUnixTimeStamp = Pattern.compile("UNIX_TIMESTAMP|FROM_UNIXTIME", Pattern.CASE_INSENSITIVE);
     Pattern pDateFunFromUnixTime = Pattern.compile("FROM_UNIXTIME\\s*\\[(.*?\\].*?,.*?)\\]", Pattern.CASE_INSENSITIVE);
-    Pattern pDateFunWeek = Pattern.compile("STR_TO_DATE\\s*\\(\\s*DATE_FORMAT\\s*\\((.*?),(.*?)\\)\\s*,(.*?)\\s*\\)", Pattern.CASE_INSENSITIVE);
+    Pattern pDateFunWeek = Pattern.compile("STR_TO_DATE\\s*\\(\\s*DATE_FORMAT\\s*\\((.*?),\\s*('%.*?)\\)\\s*,(.*?)\\s*\\)", Pattern.CASE_INSENSITIVE);
     Pattern pDateAdd = Pattern.compile("(.*?)([A-Z]{3,7}$)", Pattern.CASE_INSENSITIVE);
-    Pattern p_num = Pattern.compile("^-?\\s*\\d+$", Pattern.CASE_INSENSITIVE);
+    Pattern pNum = Pattern.compile("^-?\\s*\\d+$", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
@@ -196,7 +196,7 @@ public class ClickhouseDialect implements  Dialect {
             }
             mStrToDate.appendTail(sb);
 
-            //DATE_ADD替换
+            //DATE_ADD、ADDDATE替换
             sqlResult = sqlResult.replace(start+1,end,sb.toString());
             start = sqlResult.lastIndexOf("(");
             end = sqlResult.indexOf(")", start);
@@ -204,27 +204,31 @@ public class ClickhouseDialect implements  Dialect {
             sqlBuffer = new StringBuffer(sqlResult.substring(start+1,end));
             Matcher mDateAdd = pDateFunDateAdd.matcher(sqlBuffer);
             while (mDateAdd.find()) {
-                if (mDateAdd.groupCount() == 2) {
-                    String innerValue = convertValueDateAdd(mDateAdd.group(1),mDateAdd.group(2),true);
+                if (mDateAdd.groupCount() == 4) {
+                    String date = mDateAdd.group(1)!=null?mDateAdd.group(1):mDateAdd.group(3);
+                    String expr = mDateAdd.group(2)!=null?mDateAdd.group(2):mDateAdd.group(4);
+                    String innerValue = convertValueDateAdd(date,expr,true);
                     mDateAdd.appendReplacement(sb, innerValue);
                 }
             }
             mDateAdd.appendTail(sb);
 
-            //DATE_SUB替换
+            //DATE_SUB、SUBDATE替换
             sqlResult = sqlResult.replace(start+1,end,sb.toString());
             start = sqlResult.lastIndexOf("(");
             end = sqlResult.indexOf(")", start);
             sb = new StringBuffer();
             sqlBuffer = new StringBuffer(sqlResult.substring(start+1,end));
-            Matcher m_DATE_SUB = pDateFunDateSub.matcher(sqlBuffer);
-            while (m_DATE_SUB.find()) {
-                if (m_DATE_SUB.groupCount() == 2) {
-                    String innerValue = convertValueDateAdd(m_DATE_SUB.group(1),m_DATE_SUB.group(2),false);
-                    m_DATE_SUB.appendReplacement(sb, innerValue);
+            Matcher mDateSub = pDateFunDateSub.matcher(sqlBuffer);
+            while (mDateSub.find()) {
+                if (mDateSub.groupCount() == 4) {
+                    String date = mDateSub.group(1)!=null?mDateSub.group(1):mDateSub.group(3);
+                    String expr = mDateSub.group(2)!=null?mDateSub.group(2):mDateSub.group(4);
+                    String innerValue = convertValueDateAdd(date,expr,false);
+                    mDateSub.appendReplacement(sb, innerValue);
                 }
             }
-            m_DATE_SUB.appendTail(sb);
+            mDateSub.appendTail(sb);
 
             //DATE替换
             sqlResult = sqlResult.replace(start+1,end,sb.toString());
@@ -232,14 +236,14 @@ public class ClickhouseDialect implements  Dialect {
             end = sqlResult.indexOf(")", start);
             sb = new StringBuffer();
             sqlBuffer = new StringBuffer(sqlResult.substring(start+1,end));
-            Matcher m_DATE = pDateFunDate.matcher(sqlBuffer);
-            while (m_DATE.find()) {
-                if (m_DATE.groupCount() == 1) {
-                    String innerValue = "toStartOfDay[toDateTime["+ m_DATE.group(1).trim()+"]]";
-                    m_DATE.appendReplacement(sb, innerValue);
+            Matcher mDate = pDateFunDate.matcher(sqlBuffer);
+            while (mDate.find()) {
+                if (mDate.groupCount() == 1) {
+                    String innerValue = "toStartOfDay[toDateTime["+ mDate.group(1).trim()+"]]";
+                    mDate.appendReplacement(sb, innerValue);
                 }
             }
-            m_DATE.appendTail(sb);
+            mDate.appendTail(sb);
 
             // FROM_UNIXTIME(unix_timestamp,format)的替换
             sqlResult = sqlResult.replace(start+1,end,sb.toString());
@@ -389,8 +393,8 @@ public class ClickhouseDialect implements  Dialect {
         if(matcher.find()){
             if(matcher.groupCount()==2){
                 expr = matcher.group(1).trim();
-                Matcher m_num = p_num.matcher(expr);
-                if(m_num.matches()){
+                Matcher mNum = pNum.matcher(expr);
+                if(mNum.matches()){
                     expr = expr.replaceAll("\\s*","");
                     int exprNum = Integer.parseInt(expr);
                     if (exprNum > 0) {
@@ -431,7 +435,7 @@ public class ClickhouseDialect implements  Dialect {
             String innerValue = "";
             if(matcher.groupCount()==3){
                 switch (matcher.group(2).replaceAll(regexp,"")){
-                    case "%X%VSunday": innerValue = "toDateTime[toMonday["+matcher.group(1)+"]]-86400";break;
+                    case "%X%VSunday": innerValue = "toDateTime[toMonday[toDateTime["+matcher.group(1)+"]]]-86400";break;
                     default : innerValue=sql; break;
                 }
             }
