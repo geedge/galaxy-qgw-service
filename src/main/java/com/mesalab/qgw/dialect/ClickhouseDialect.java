@@ -153,34 +153,58 @@ public class ClickhouseDialect implements  Dialect {
 
     }
 
-
+    /**
+     * 生成基于recv_time 事件索引子查询，目的提高日志查询检索性能
+     * 限制：
+     * 1. 仅适用一级普通查询，带where （无group by 统计）的查询
+     * 2. 不对count 统计进行生成
+     * @param sql
+     * @return
+     */
     private String generateSubQueryByRecvTime(String sql) {
 
-        StringBuffer subQuery = new StringBuffer();
 
-        Pattern p = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
-
-        if (StringUtil.isNotBlank(param.getSqlQuerySource().getGroupByClause())
-                ||p.matcher(sql).find()) {
+        if (StringUtil.isBlank(param.getSqlQuerySource().getExpr())) {
             return sql;
         }
 
-        if (StringUtil.isNotBlank(param.getSqlQuerySource().getExpr())) {
-            subQuery.append("select recv_time from ").append(param.getSqlQuerySource().getTableName())
-                    .append(" where ").append(param.getSqlQuerySource().getExpr());
+        if (StringUtil.isNotBlank(param.getSqlQuerySource().getGroupByClause())) {
+            return sql;
+        }
 
-            if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
+        Pattern p = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
 
-                subQuery.append(" order by ").append(param.getSqlQuerySource().getOrderBy());
+        if (p.matcher(sql).find()) {
 
-            }
+            return sql;
+        }
 
-            if (StringUtil.isNotBlank(param.getSqlQuerySource().getLimit())) {
-                subQuery.append(" limit ").append(param.getSqlQuerySource().getLimit());
 
-            }
+
+
+        StringBuffer subQuery = new StringBuffer();
+
+        subQuery.append("select recv_time from ").append(param.getSqlQuerySource().getTableName())
+                .append(" where ").append(param.getSqlQuerySource().getExpr());
+
+        if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
+
+            subQuery.append(" order by ").append(param.getSqlQuerySource().getOrderBy());
 
         }
+
+        if (StringUtil.isNotBlank(param.getSqlQuerySource().getLimit())) {
+            String[] limits =  param.getSqlQuerySource().getLimit().split(",");
+            if (limits.length == 2) {
+                int rows = Integer.valueOf(limits[0].trim()) + Integer.valueOf(limits[1].trim());
+                subQuery.append(" limit ").append(rows);
+            } else {
+                subQuery.append(" limit ").append(param.getSqlQuerySource().getLimit());
+            }
+
+
+        }
+
 
         p = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
 
