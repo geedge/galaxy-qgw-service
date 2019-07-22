@@ -1,7 +1,6 @@
 package com.mesalab;
 
-import com.mesalab.qgw.interceptor.RepeatedSubmitInterceptor;
-import com.mesalab.qgw.model.api.RepeatedSubmitCheck;
+import com.mesalab.qgw.interceptor.QuerySubmitInterceptor;
 import org.apache.catalina.connector.Connector;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -39,8 +38,8 @@ public class GalaxyQGWApplication implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // addPathPatterns - 用于添加拦截规则
         // excludePathPatterns - 用户排除拦截
-       registry.addInterceptor(new RepeatedSubmitInterceptor())
-                .addPathPatterns("/**");
+       registry.addInterceptor(new QuerySubmitInterceptor()).addPathPatterns("/**");
+
                 //.excludePathPatterns("/index.html", "/", "/user/login");
     }
 

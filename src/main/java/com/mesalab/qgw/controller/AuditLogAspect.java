@@ -1,12 +1,18 @@
 package com.mesalab.qgw.controller;
 
+import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.utils.CacheUtils;
 import com.mesalab.common.utils.IPUtil;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.AuditServiceLog;
 import com.zdjizhi.utils.CommonUtil;
 import com.zdjizhi.utils.StringUtil;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
@@ -19,6 +25,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 
 
@@ -45,6 +52,7 @@ public class AuditLogAspect {
         String method = request.getMethod();
         String remoteAddr = request.getRemoteAddr();
         String clientIp = IPUtil.parseIP(request);
+
         if("0.0.0.0".equals(clientIp) || "0:0:0:0:0:0:0:1".equals(clientIp) || "localhost".equals(clientIp) || "127.0.0.1".equals(clientIp)){
             clientIp = "127.0.0.1";
         }
@@ -62,22 +70,35 @@ public class AuditLogAspect {
         auditServiceLog.setClassMethod(class_method);
         auditServiceLog.setParam(param);
         auditServiceLog.setAnnotation(annotation.value());
+        auditServiceLog.setQueryKey(DigestUtils.md5Hex(StringUtil.isNotBlank(request.getQueryString()) ? request.getQueryString() : ""));
 
         log.set(auditServiceLog);
     }
 
     @AfterThrowing(value = "annotationPointCut()", throwing = "exception")
     public void doAfterThrowingAdvice(JoinPoint joinPoint,Throwable exception){
-
         logger.error("Audit log [error]:" + joinPoint.getSignature().getName() + exception);
 
     }
 
 
+    @After(value = "annotationPointCut()")
+    public void after(JoinPoint joinPoint) {
+        ApiParam param = (ApiParam) joinPoint.getArgs()[0];
+        auditServiceLog.setDbType(param.getDbType());
 
-    @AfterReturning(returning = "ret", pointcut = "annotationPointCut()")
-    public void doAfterReturning(Object ret) throws Throwable {
-        String result = ret.toString();
+    }
+
+
+
+
+    @AfterReturning(returning = "result", pointcut = "annotationPointCut()")
+    public void doAfterReturning(Object result) throws Throwable {
+
+        if (StringUtil.isNotEmpty(result) ) {
+            CacheUtils.put(auditServiceLog.getQueryKey(), result);
+        }
+
         AuditServiceLog logAfter =  log.get();
         Long exeTime = System.currentTimeMillis() - startTime.get();
         logAfter.setExeTime(exeTime);

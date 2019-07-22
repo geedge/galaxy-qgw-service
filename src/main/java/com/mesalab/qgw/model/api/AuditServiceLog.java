@@ -22,6 +22,10 @@ public class AuditServiceLog {
 
     private String classMethod;
 
+    private String queryKey;
+
+    private String dbType;
+
 
 
 

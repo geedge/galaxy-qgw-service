@@ -52,7 +52,7 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
 
 
     @Test
-    public void testSQLFromSessionRecordLogsQuqeryQueryHour() {
+    public void testSQLFromSessionRecordLogsQueryHour() {
         String sql = "SELECT policy_id as compileId, recv_time as recvTime, trans_proto as transProto, server_ip as serverIp, client_ip as clientIp, server_port as serverPort, client_port as clientPort, pinningst, intercept_state as interceptState, ssl_server_side_latency as sslServerSideLatency, ssl_client_side_latency as sslClientSideLatency, ssl_server_side_version as sslServerSideVersion, ssl_client_side_version as sslClientSideVersion, ssl_cert_verify as sslCertVerify, stream_trace_id as streamTraceId, sni, addr_type as addrType, entrance_id as entranceId, device_id as deviceId, link_id as linkId, isp, encap_type as encapType, direction, stream_dir as streamDir, cap_ip as capIp, addr_list as addrList, server_location as serverLocation, client_location as clientLocation, client_asn as clientAsn, server_asn as serverAsn, subscribe_id as subscribeId, con_duration_ms as conDurationMs, category, protocol_id as protocolId, c2s_pkt_num as c2sPktNum, s2c_pkt_num as s2cPktNum, c2s_byte_num as c2sByteNum, s2c_byte_num as s2cByteNum, nas_ip as nasIp, framed_ip as framedIp, account from session_record_log where   recv_time between  1563435187 and 1563438787 order by     recv_time desc  limit  0,20";
         url = url + "/?query=" + sql ;
 
@@ -119,7 +119,7 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
     @Test
     public void testTopDomainsByBandwidthPacketsAndUniqueIp() {
         String sql = "SELECT host, SUM(coalesce(c2s_byte_num, 0)) as sent_bytes, SUM(coalesce(s2c_byte_num, 0)) as received_bytes, SUM(coalesce(c2s_byte_num, 0) + coalesce(s2c_byte_num, 0)) as bytes, SUM(coalesce(c2s_pkt_num, 0)) as sent_packets, SUM(coalesce(s2c_pkt_num, 0)) as received_packets, SUM(coalesce(c2s_pkt_num, 0) + coalesce(s2c_pkt_num, 0)) as packets,count(distinct(client_ip)) as nums  FROM session_record_log where  $filter and notEmpty(host) GROUP BY host ORDER BY bytes DESC limit 100";
-        sql = sql.replaceAll("\\$filter", "recv_time>=toStartOfDay(now())-604800");
+        sql = sql.replaceAll("\\$filter", "recv_time>=toStartOfDay(now())-86400");
         url = url + "/?query=" + sql ;
 
         Map map = restTemplate.getForObject(url, Map.class);
