@@ -1,13 +1,62 @@
 ###############################################################################
-## dev 开发环境
+## Development Environment
 ###############################################################################
-## 数据库设置
+## Log configuration Path
+logging:
+  config: /home/ceiec/galaxy-qgw-service/config/log4j2-dev.xml
+###############################################################################
+## swagger API configuration
+swagger:
+  enable: true
+###############################################################################
+## ClickhHouse configuration
+clickhouse:
+  url: jdbc:clickhouse://192.168.40.193:8123
+  driverClassName: ru.yandex.clickhouse.ClickHouseDriver
+  dbname: tsg_galaxy
+  username: default
+  password: 111111
+  ###############################################################################
+  ## Druid configuration
+druid:
+  url: 192.168.40.206:8082/druid/v2/sql
+  dbname: druid
+  sqlTimeZone: Asia/Shanghai
+  ##Asia/Almaty
+  ###############################################################################
+  ## Hbase configuration
+hbase:
+  url: 192.168.40.120:4444
+  dbname: tsg
+  tableName: report_result
+  columnFamily: response
+  columnName: result
+###############################################################################
+## Httpclient configuration
+httpclient:
+  connectTimeout: 1000
+  SocketTimeout: 600000
+  maxConnection: 500
+  maxPerRoute: 500
+###############################################################################
+## Schema register
+schema:
+  clickhouse: session_record_log,policy_event_log,radius_log
+  druid: bandwidth_log,traffic_metrics_log,policy_hits_log,session_intercept_hits_log,top_internal_host_log,top_external_host_log,top_website_domain_log,top_urls_log,top_user_log
+###############################################################################
+## Junit Test Configuration
+test:
+  url: 127.0.0.1:9999
+  timeRange: last month
+  executeTime: 2019-07-22 00:00:00
+###############################################################################
+## Mysql Database configuration (Reserved，for Authentication)
 spring:
   datasource:
-    url: jdbc:mysql://192.168.40.204:3306/galaxy-qgw?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://127.0.0.1:3306/boot?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
-    password: LboKQsiVhYy4STewG7XlU3yL4K0O+UUhjxbIaBCfCe+RUn7igjZ7HTdJkFZAj1DZiOCbLxSz8g8pDou5pkZcGg==
-    publicKey: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIX9tYVil5tsw5+ETvWqbhGy9qk4GcxMokCxjJdvHHrEHKxV4slR1NrP4xgcInU3kvKWuQ+3E3Jfh8JxoYfZ3q8CAwEAAQ==
+    password: KCE17cHefBHz8Uf/KI7t67KNd+H6JdC+wflLMYgD7meejUTTIOJWYCtGFxvEA42IMPFd+zKKgZ4FvVJZJVE8lw==
+    publicKey: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIv8AxODdgy3Fz4KY3BzdHOfLexBXoNQxik4W6LE4oOXAfWsmOkuvRDHzvbIXd3HIbFK1kyKGnu/QSzqouGmGgMCAwEAAQ==
     initialSize: 1
     minIdle: 1
     maxActive: 20
@@ -18,8 +67,8 @@ spring:
     maxPoolPreparedStatementPerConnectionSize: 20
     validationQuery: SELECT 1
     filters: stat,log4j,wall,config
-###############################################################################
-## redis配置
+  ###############################################################################
+  ## Redis configuration(Reserved, for Caching)
   redis:
     host: 127.0.0.1
     port: 6379
@@ -31,47 +80,4 @@ spring:
         max-idle: 5
         min-idle: 0
         max-wait: 10000ms
-###############################################################################
-## 日志配置路径
-logging:
-  config: /home/ceiec/galaxy-qgw-service/config/log4j2-dev.xml
-###############################################################################
-## swagger配置
-swagger:
-  enable: true
-###############################################################################
-## Query GateWay - clickhouse 配置
-clickhouse:
-  url: jdbc:clickhouse://192.168.40.193:8123
-  driverClassName: ru.yandex.clickhouse.ClickHouseDriver
-  dbname: tsg_galaxy
-  username: default
-  password: 111111
   ###############################################################################
-  ## Query GateWay - druid 配置
-druid:
-  url: 192.168.40.206:8082/druid/v2/sql
-  dbname: druid
-  sqlTimeZone: Asia/Shanghai
-  ##Asia/Almaty
-  ###############################################################################
-  ## Query GateWay - Hbase 配置
-hbase:
-  url: 192.168.40.120:4444
-  dbname: tsg
-  tableName: report_result
-  columnFamily: response
-  columnName: result
-###############################################################################
-## Query GateWay - httpclient配置
-httpclient:
-  connectTimeout: 1000
-  SocketTimeout: 600000
-  maxConnection: 500
-  maxPerRoute: 500
-###############################################################################
-## Query GateWay - schema 注册
-schema:
-  clickhouse: session_record_log,policy_event_log,radius_log
-  druid: bandwidth_log,traffic_metrics_log,policy_hits_log,session_intercept_hits_log,top_internal_host_log,top_external_host_log,top_website_domain_log,top_urls_log,top_user_log
-###############################################################################

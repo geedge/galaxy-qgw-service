@@ -155,19 +155,6 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     @After
     public void testAfter() {
         log.info("=================================================CLICKHOUSE TEST  END=================================================");

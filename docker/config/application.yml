@@ -15,7 +15,7 @@ server:
   port: 9999
 spring:
   profiles:
-    active: test
+    active: dev
   devtools:
     restart:
       enabled: true
@@ -27,7 +27,7 @@ spring:
 project:
   name: galaxy-qgw-service
   description: 统一数据查询网关
-  version: 0.0.1
+  version: 1.0
   groupId: com.mesalab
   artifactId: galaxy-qgw-service
   basedir:
