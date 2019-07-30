@@ -384,7 +384,7 @@ public class ClickhouseDialect implements  Dialect,SQLDateFunction {
                 } else if (mYear.group(4) != null) {
                     replaceValue = "toDateTime#[toMonday#[toDateTime#[" + mYear.group(4).trim() + "]]]-86400";
                 } else if (mYear.group(5) != null) {
-                    replaceValue = "toDayOfMonth#[toDateTime#[" + mYear.group(5).trim() + "]]";
+                    replaceValue = "toStartOfDay#[toDateTime#[" + mYear.group(5).trim() + "]]";
                 } else if (mYear.group(6) != null) {
                     replaceValue = "toHour#[toDateTime#[toDateTime#[" + mYear.group(6).trim() + "]]]";
                 }
