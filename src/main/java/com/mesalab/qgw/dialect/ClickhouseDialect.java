@@ -7,6 +7,7 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.SQLDateFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -27,7 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-public class ClickhouseDialect implements  Dialect,SQLDateFunction {
+public class ClickhouseDialect implements  Dialect {
     Pattern pGlobalIn = Pattern.compile("in\\s*\\(", Pattern.CASE_INSENSITIVE);
     Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
@@ -165,6 +166,17 @@ public class ClickhouseDialect implements  Dialect,SQLDateFunction {
         return this;
     }
 
+    private String generateDateFunction(String sql) {
+        sql = SQLDateFunctionUtil.parseConcatQuarter(sql,1);
+        sql = SQLDateFunctionUtil.parseDateFormat(sql,1);
+        sql = SQLDateFunctionUtil.parseDateRelative(sql,1);
+        sql = SQLDateFunctionUtil.parseUnixTime(sql, 1);
+        sql = SQLDateFunctionUtil.parseDate(sql, 1);
+        sql = SQLDateFunctionUtil.specialDisposeEnd(sql, 1);
+        sql = SQLDateFunctionUtil.replaceMark(sql);
+        return sql;
+    }
+
     @Override
     public BaseResult executeHttpQuery() {
         BaseResult baseResult = null;
@@ -227,182 +239,4 @@ public class ClickhouseDialect implements  Dialect,SQLDateFunction {
 
     }
 
-    @Override
-    public String convertValueExprFormat(String innerValue) {
-        String[] split = StringUtil.split(innerValue, ",\\s*'");
-        if (split.length == 2) {
-            String format = split[1].replaceAll("\\'|\\\"", "").trim();
-            switch (format) {
-                case "%Y-%m-%d %H:%i:%s": innerValue = "toDateTime#[" + split[0] + "]"; break;
-                case "%Y-%m-%d %H:%i:00": innerValue = "toStartOfMinute#[toDateTime#[" + split[0] + "]]"; break;
-                case "%Y-%m-%d %H:00:00": innerValue = "toStartOfHour#[toDateTime#[" + split[0] + "]]"; break;
-                case "%Y-%m-%d 00:00:00": innerValue = "toStartOfDay#[toDateTime#[" + split[0] + "]]"; break;
-                case "%Y-%m-01 00:00:00": innerValue = "toDateTime#[toStartOfMonth#[toDateTime#[" + split[0] + "]]]"; break;
-                case "%Y-01-01 00:00:00": innerValue = "toDateTime#[toStartOfYear#[toDateTime#[" + split[0] + "]]]"; break;
-                case "%Y-%m-%d": innerValue = "toStartOfMonth#[toDateTime#[" + split[0] + "]]"; break;
-                case "%Y-%m-01": innerValue = "toStartOfMonth#[toDateTime#[" + split[0] + "]]"; break;
-                case "%Y-01-01": innerValue = "toStartOfYear#[toDateTime#[" + split[0] + "]]"; break;
-                default:innerValue = innerValue;
-            }
-        }
-        return innerValue;
-    }
-
-    @Override
-    public String convertValueDateAdd(String date, String expr, boolean shift) {
-        expr = expr.trim().toUpperCase();
-        Matcher matcher = SQLHelper.pDateUnit.matcher(expr);
-        if (matcher.find()) {
-            if (matcher.groupCount() == 2) {
-                expr = matcher.group(1).trim();
-                Matcher mNum = SQLHelper.pNum.matcher(expr);
-                if (mNum.matches()) {
-                    expr = expr.replaceAll("\\s*", "");
-                    int exprNum = Integer.parseInt(expr);
-                    if (exprNum > 0) {
-                        expr = "+" + expr;
-                    }
-                    if (!shift) {
-                        expr = String.valueOf(-exprNum);
-                    }
-                }
-                switch (matcher.group(2)){
-                    case "SECOND": date = "toDateTime#[" + date + "]" + expr; break;
-                    case "MINUTE": date = "toDateTime#[" + date + "]" + expr + "*60"; break;
-                    case "HOUR": date = "toDateTime#[" + date + "]" + expr + "*3600"; break;
-                    case "DAY": date = "toDateTime#[" + date + "]" + expr+ "*86400"; break;//24*3600
-                    case "WEEK": date = "toDateTime#[" + date + "]" + expr + "*604800"; break;//7*24*3600
-                    case "MONTH": date = "toDateTime#[" + date + "]" + expr + "*2678400"; break;//31*24*3600
-                    case "QUARTER": date = "toDateTime#[" + date + "]" + expr + "*8035200"; break;//3*31*24*3600
-                    case "YEAR": date = "toDateTime#[" + date + "]" + expr + "*31536000"; break;//365*24*3600
-                    default:date = date + expr; break;
-                }
-            }
-        }
-        return date;
-    }
-
-    @Override
-    public String convertValueAddDate(String expr, String date, boolean shift) {
-        date = date.replaceAll("\\s*", "");
-        int num = Integer.parseInt(date);
-        if (shift) {
-            if (num < 0) {
-                expr = "toDateTime#[" + expr + "]" + num * 86400;
-            } else {
-                expr = "toDateTime#[" + expr + "]+" + num * 86400;
-            }
-        } else {
-            if (num < 0) {
-                expr = "toDateTime#[" + expr + "]+" + -num * 86400;
-            } else {
-                expr = "toDateTime#[" + expr + "]" + -num * 86400;
-            }
-        }
-        return expr;
-    }
-
-    @Override
-    public String specialDisposeEnd(String sql) {
-        return sql;
-    }
-
-    @Override
-    public StringBuffer replaceGranularityTime(StringBuffer sb) {
-        Matcher mGranularity = SQLHelper.pDateGranularity.matcher(sb.toString());
-        sb = new StringBuffer();
-        while (mGranularity.find()) {
-            String replaceValue = "";
-            if (mGranularity.groupCount() == 4) {
-                String expr = mGranularity.group(1) != null ? mGranularity.group(1).toUpperCase() : mGranularity.group(3).toUpperCase();
-                String param = mGranularity.group(2) != null ? mGranularity.group(2) : mGranularity.group(4);
-                if (expr.contains("SECOND")) {
-                    replaceValue = "toDateTime#[intDiv#[toUInt32#[toDateTime#[toDateTime#[" + param + "]]], 30]*30]";
-                } else if (expr.contains("FLOOR")) {
-                    replaceValue = "toDateTime#[intDiv#[toUInt32#[toDateTime#[toDateTime#[" + param + "]]], 300]*300]";
-                } else if (expr.contains("MINUTE")) {
-                    replaceValue = "toStartOfMinute#[toDateTime#[" + param + "]]";
-                } else if (expr.contains("HOUR")) {
-                    replaceValue = "toStartOfHour#[toDateTime#[toDateTime#[" + param + "]]]";
-                } else {
-                    replaceValue = mGranularity.group(0);
-                }
-            }
-            mGranularity.appendReplacement(sb, replaceValue);
-        }
-        mGranularity.appendTail(sb);
-        return sb;
-    }
-
-    @Override
-    public StringBuffer replaceGranularityWeek(StringBuffer sb) {
-        String regexp = "\\'|\\\"|\\s*";
-        Matcher mThisWeek = SQLHelper.pWeek.matcher(sb);
-        sb = new StringBuffer();
-        while (mThisWeek.find()) {
-            String replaceValue = "";
-            if (mThisWeek.groupCount() == 3) {
-                switch (mThisWeek.group(2).replaceAll(regexp, "")) {
-                    case "%X%VSunday": replaceValue = "toDateTime#[toMonday#[toDateTime#["+mThisWeek.group(1)+"]]]-86400";break;
-                    default : replaceValue=mThisWeek.group(0); break;
-                }
-            }
-            mThisWeek.appendReplacement(sb, replaceValue);
-        }
-        mThisWeek.appendTail(sb);
-        return sb;
-    }
-
-    @Override
-    public StringBuffer replaceGranularityQuarter(StringBuffer sb) {
-        Matcher mQuarter = SQLHelper.pConcatQuarter.matcher(sb.toString());
-        sb = new StringBuffer();
-        while (mQuarter.find()) {
-            String replaceValue = "";
-            if (mQuarter.groupCount() == 1) {
-                replaceValue = "toStartOfQuarter#[toDateTime#[toDateTime#[" + mQuarter.group(1) + "]]]";
-            }
-            mQuarter.appendReplacement(sb, replaceValue);
-        }
-        mQuarter.appendTail(sb);
-        return sb;
-    }
-
-    @Override
-    public StringBuffer replaceAboutGetOnlyNum(StringBuffer sqlBuffer) {
-        StringBuffer sb = new StringBuffer();
-        String replaceValue = "";
-        Matcher mYear = SQLHelper.pYear.matcher(sqlBuffer);
-        while (mYear.find()) {
-            if (mYear.groupCount() == 6) {
-                if (mYear.group(1) != null) {
-                    replaceValue = "toYear#[toDateTime#[toDateTime#[" + mYear.group(1).trim() + "]]]";
-                } else if (mYear.group(2) != null) {
-                    replaceValue = "toQuarter#[toDateTime#[toDateTime#[" + mYear.group(2).trim() + "]]]";
-                } else if (mYear.group(3) != null) {
-                    replaceValue = "toMonth#[toDateTime#[toDateTime#[" + mYear.group(3).trim() + "]]]";
-                } else if (mYear.group(4) != null) {
-                    replaceValue = "toDateTime#[toMonday#[toDateTime#[" + mYear.group(4).trim() + "]]]-86400";
-                } else if (mYear.group(5) != null) {
-                    replaceValue = "toStartOfDay#[toDateTime#[" + mYear.group(5).trim() + "]]";
-                } else if (mYear.group(6) != null) {
-                    replaceValue = "toHour#[toDateTime#[toDateTime#[" + mYear.group(6).trim() + "]]]";
-                }
-                mYear.appendReplacement(sb, replaceValue);
-            }
-        }
-        mYear.appendTail(sb);
-        return sb;
-    }
-
-    @Override
-    public StringBuffer replaceAboutUnixTime(StringBuffer sqlBuffer) {
-        Matcher mUnixTimeStamp = SQLHelper.pUnixTime.matcher(sqlBuffer);
-        sqlBuffer = new StringBuffer();
-        while (mUnixTimeStamp.find()) {
-            mUnixTimeStamp.appendReplacement(sqlBuffer, "toDateTime#[");
-        }
-        mUnixTimeStamp.appendTail(sqlBuffer);
-        return sqlBuffer;
-    }
 }

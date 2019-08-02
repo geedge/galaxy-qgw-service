@@ -3,6 +3,7 @@ package com.mesalab.common.utils;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
+import javax.management.RuntimeErrorException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -187,7 +188,93 @@ public class StringUtil {
 
 
 
+    /**
+     * 获取第一个括号对应右括号的索引以及包含括号的个数,向后匹配
+     * @param str
+     * @param bracketL 支持：( OR [ OR {
+     * @param bool 是否将传入的字符串全部匹配完成,若不需要则在匹配到第一个括号匹配完成时结束
+     * @return int[0]:匹配括号的个数,int[1]:第一个括号对应右括号的索引;若无匹配括号返回{0,-1};若有其中一个不成对则返回{-1,index}
+     */
+    public static int[] getBracketsMatch(String str, String bracketL, boolean bool) {
+        int[] result = {0, -1};
+        if (str == null) {
+            return result;
+        }
+        String bracketR = ")";
+        if (bracketL == null) {
+            bracketL = "(";
+        } else if (bracketL.equals("[")) {
+            bracketR = "]";
+        } else if (bracketL.equals("{")) {
+            bracketR = "}";
+        }
+        StringBuffer sb = new StringBuffer(str);
+        int countL = 0, countR = 0;
+        for (int a = 0; a < sb.length(); a++) {
+            if (sb.indexOf(bracketR) == a) {
+                ++countR;
+                sb.replace(a, a + 1, "$");
+            } else if (sb.indexOf(bracketL) == a) {
+                ++countL;
+                sb.replace(a, a + 1, "$");
+            }
+            if (countR > countL) {
+                throw new RuntimeException("解析字符串括号匹配时有误!" + str);
+            }
+            if (countL != 0 && (countL == countR) && !bool) {
+                result[0] = countL;
+                result[1] = a;
+                return result;
+            }
+        }
+        if (countR != countL) {
+            result[0] = -1;
+        }
+        return result;
+    }
 
-
-
+    /**
+     * 获取最后一个括号对应左括号的索引以及包含括号的个数,向前匹配
+     * @param str
+     * @param bracketR 支持：) OR ] OR }
+     * @param bool 是否将传入的字符串全部匹配完成,若不需要则在匹配到第一个括号匹配完成时结束
+     * @return int[0]:匹配括号的个数,int[1]:第一个括号对应左括号的索引;若无匹配括号返回{0,-1};若有其中一个不成对则返回{-1,index}
+     */
+    public static int[] getBracketsMatchReverse(String str, String bracketR, boolean bool) {
+        int[] result = {0, -1};
+        if (str == null) {
+            return result;
+        }
+        StringBuffer sb = new StringBuffer(str);
+        String bracketL = "(";
+        if (bracketR == null) {
+            bracketR = ")";
+        } else if (bracketR.equals("]")) {
+            bracketL = "[";
+        } else if (bracketR.equals("}")) {
+            bracketL = "{";
+        }
+        int countL = 0, countR = 0;
+        for (int a = sb.length() - 1; a >= 0; a--) {
+            if (sb.indexOf(bracketR) == a) {
+                ++countR;
+                sb.replace(a, a + 1, "$");
+            } else if (sb.indexOf(bracketL) == a) {
+                ++countL;
+                sb.replace(a, a + 1, "$");
+            }
+            if (countL > countR) {
+                throw new RuntimeException("解析字符串括号匹配时有误!");
+            }
+            if (countR != 0 && (countL == countR) && !bool) {
+                result[0] = countL;
+                result[1] = a;
+                return result;
+            }
+        }
+        if (countR != countL) {
+            result[0] = -1;
+        }
+        return result;
+    }
 }
