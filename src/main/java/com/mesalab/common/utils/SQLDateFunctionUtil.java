@@ -130,11 +130,15 @@ public class SQLDateFunctionUtil {
             if (matcher.find()) {
                 String numStr = matcher.group(1).replaceAll("\\s*", "");
                 int num = Integer.parseInt(numStr);
-                if(num > 0){
-                    numStr = "+" + numStr;
-                }
                 if (!sign) {
                     numStr = String.valueOf(-num);
+                    if (num <= 0) {
+                        numStr = "+" + numStr;
+                    }
+                } else {
+                    if (num >= 0) {
+                        numStr = "+" + numStr;
+                    }
                 }
                 if(type == 1){
                     switch (matcher.group(2)){
@@ -166,11 +170,15 @@ public class SQLDateFunctionUtil {
         } else {
             int num = Integer.parseInt(date);
             String numStr = date;
-            if(num > 0){
-                numStr = "+" + numStr;
-            }
             if (!sign) {
                 numStr = String.valueOf(-num);
+                if (num <= 0) {
+                    numStr = "+" + numStr;
+                }
+            } else {
+                if (num >= 0) {
+                    numStr = "+" + numStr;
+                }
             }
             if(type == 1){
                 value = "toDateTime#[" + expr + "]" + numStr + "* 86400";
