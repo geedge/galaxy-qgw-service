@@ -90,8 +90,6 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
 
 
 
-
-
     @Test
     public void testSQLFromPolicyEventLogs() {
         String sql = "select recv_time,policy_id,subscribe_id, trans_proto, client_ip, server_ip, server_port,host,url,con_duration_ms,entrance_id,action,c2s_pkt_num, s2c_pkt_num, c2s_byte_num, s2c_byte_num FROM policy_event_log where recv_time>= toDateTime('2019-02-24 05:55:00') and recv_time< toDateTime('2019-02-24 06:00:00') and entrance_id=1 and client_ip like '83.200%' and server_ip='178.89.12.222' order by recv_time desc limit 0,20";
@@ -134,7 +132,7 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
     @Test
     public void testTopUrlsByHitshPacketsAndUniqueIp() {
         String sql = " select $time_granularity as stat_time,host, count(distinct(client_ip) ) as nums  from session_record_log where $filter and host in (select host from session_record_log where $filter and notEmpty(host) group by host order by count(*)  desc limit 10 ) group by stat_time, host order by stat_time asc";
-        sql = sql.replaceAll("\\$filter", "recv_time>=toStartOfDay(now())-604800");
+        sql = sql.replaceAll("\\$filter", "recv_time>=toStartOfDay(now())-86400");
         sql = sql.replaceAll("\\$time_granularity", " toDateTime(intDiv(toUInt32(toDateTime(toDateTime(recv_time))), 300)*300)");
         url = url + "/?query=" + sql ;
 

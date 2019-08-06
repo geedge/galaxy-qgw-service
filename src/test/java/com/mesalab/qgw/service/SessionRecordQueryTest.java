@@ -283,6 +283,26 @@ public class SessionRecordQueryTest extends GalaxyQGWApplicationTests {
     }
 
 
+    @Test
+    public void testGroupByPolicyId() {
+        String sql = "select policy_id,toDateTime(min(recv_time)) as first_used, toDateTime(max(recv_time)) as last_used, count(*) as hits" +
+                " from session_record_log where $time_range  group by policy_id  order by hits desc  limit  20";
+        sql = sql.replaceAll("\\$time_range", getTimeExpr());
+        String url = properties.getUrl() + "/?query=" + sql ;
+
+        Map map = null;
+        try {
+            map = restTemplate.getForObject("http://" + url, Map.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        log.info(JsonMapper.toJsonString(map));
+
+        Assert.assertEquals((int)map.get("status"), 200);
+    }
+
+
     @After
     public void testAfter() {
         log.info("=================================================CLICKHOUSE TEST  END=================================================");
