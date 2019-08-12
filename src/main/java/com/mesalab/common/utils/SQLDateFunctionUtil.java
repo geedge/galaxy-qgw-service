@@ -192,12 +192,20 @@ public class SQLDateFunctionUtil {
      */
     public static String parseDateCalculateNum(String sql, int type){
         int count = 0;
+        String sqlTmp = "";
         while (true) {
             Matcher matcher = pDateCalculateNum.matcher(sql);
             if (!matcher.find() || count++ >= 15) {
+                sql = sql.replace("##","(");
                 return sql;
             }
             String sqlParse = sql.substring(matcher.start());
+            if(sqlTmp.equals(sqlParse)){
+                sqlParse = "##" + sqlParse.substring(1);
+                sql = sql.substring(0, matcher.start()) + sqlParse;
+                continue;
+            }
+            sqlTmp = sqlParse;
             int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
@@ -221,7 +229,7 @@ public class SQLDateFunctionUtil {
      * @return
      */
     private static String parseDateCalculateNumHaveMark(String sqlParse, int num, int num2, int type) {
-        Pattern pDateCalculateNumParse = Pattern.compile("(DATE)\\s*\\((.*?(.*?\\).*?){" + num2 + "})\\)\\s*(([+|-]).*?(.*?\\).*?){" + (num - num2 - 1) + "})\\)", Pattern.CASE_INSENSITIVE);
+        Pattern pDateCalculateNumParse = Pattern.compile("(DATE)\\s*\\((.*?(.*?\\).*?){" + num2 + "})\\)\\s*(([+-]).*?(.*?\\).*?){" + (num - num2 - 1) + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mDateCalculateNumParse = pDateCalculateNumParse.matcher(sqlParse);
         if (mDateCalculateNumParse.find()) {
