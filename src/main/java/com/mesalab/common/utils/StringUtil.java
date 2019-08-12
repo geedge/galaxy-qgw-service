@@ -219,11 +219,13 @@ public class StringUtil {
                 sb.replace(a, a + 1, "$");
             }
             if (countR > countL) {
-                throw new RuntimeException("解析字符串括号匹配时有误!" + str);
+                result[0] = -1;
+                result[1] = -1;
+                return result;
             }
+            result[0] = countL;
+            result[1] = a;
             if (countL != 0 && (countL == countR) && !bool) {
-                result[0] = countL;
-                result[1] = a;
                 return result;
             }
         }
@@ -264,11 +266,13 @@ public class StringUtil {
                 sb.replace(a, a + 1, "$");
             }
             if (countL > countR) {
-                throw new RuntimeException("解析字符串括号匹配时有误!");
+                result[0] = -1;
+                result[1] = -1;
+                return result;
             }
+            result[0] = countL;
+            result[1] = a;
             if (countR != 0 && (countL == countR) && !bool) {
-                result[0] = countL;
-                result[1] = a;
                 return result;
             }
         }
