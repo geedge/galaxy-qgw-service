@@ -241,9 +241,9 @@ public class SQLDateFunctionUtil {
                 String replaceValue = "";
                 if(type == 1){
                     if (split.length == 1) {
-                        replaceValue = "toStartOfday#[toDateTime#[" + group2 + "]]" + group4 + "*86400 )";
+                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "]]" + group4 + "*86400 )";
                     } else if (split.length == 2) {
-                        replaceValue = "toStartOfday#[toDateTime#[" + group2 + "]]" + (split[0] + split[1]) + "*86400 )";
+                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "]]" + (split[0] + split[1]) + "*86400 )";
                     }
                 }else if(type == 2){
                     if (split.length == 1) {
@@ -661,8 +661,7 @@ public class SQLDateFunctionUtil {
         String innerValue = null;
         if (matcherParse.find()) {
             if (type == 1) {
-                Matcher mNow = pNow.matcher(matcherParse.group(2));
-                if (mNow.find() || matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                if ("".equals(matcherParse.group(2).trim())) {
                     innerValue = "toUnixTimestamp#[now#[]]";
                 } else {
                     innerValue = "toUnixTimestamp#[ " + matcherParse.group(2) + "]";
