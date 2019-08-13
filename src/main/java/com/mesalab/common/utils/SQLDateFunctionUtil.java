@@ -503,17 +503,17 @@ public class SQLDateFunctionUtil {
             String param2 = params.get(1).replaceAll("\\'|\\\"", "").trim();
             if (type == 1) {
                 switch (param2) {
-                    case "%Y-%m-%d %H:%i:%s": replaceValue = "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-%d %H:%M:%S' ]]"; break;
-                    case "%Y-%m-%d %H:%i:00": replaceValue = "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-%d %H:%M:00' ]]"; break;
-                    case "%Y-%m-%d %H:00:00": replaceValue = "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-%d %H:00:00' ]]"; break;
-                    case "%Y-%m-%d 00:00:00": replaceValue = "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-%d 00:00:00' ]]"; break;
-                    case "%Y-%m-01 00:00:00": replaceValue = "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-01 00:00:00' ]]"; break;
-                    case "%Y-01-01 00:00:00": replaceValue = "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-01-01 00:00:00' ]]"; break;
-                    case "%Y-%m-%d": replaceValue = "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-%d]]"; break;
-                    case "%Y-%m-01": replaceValue = "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-01]]"; break;
-                    case "%Y-01-01": replaceValue = "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-01-01]]"; break;
+                    case "%Y-%m-%d %H:%i:%s": replaceValue = "toDateTime#[" + param1 + "]"; break;
+                    case "%Y-%m-%d %H:%i:00": replaceValue = "toStartOfMinute#[toDateTime#[" + param1 + "]]"; break;
+                    case "%Y-%m-%d %H:00:00": replaceValue = "toStartOfHour#[toDateTime#[" + param1 + "]]"; break;
+                    case "%Y-%m-%d 00:00:00": replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "]]"; break;
+                    case "%Y-%m-01 00:00:00": replaceValue = "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "]]]"; break;
+                    case "%Y-01-01 00:00:00": replaceValue = "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "]]]"; break;
+                    case "%Y-%m-%d": replaceValue = "toStartOfMonth#[toDateTime#[" + param1 + "]]"; break;
+                    case "%Y-%m-01": replaceValue = "toStartOfMonth#[toDateTime#[" + param1 + "]]"; break;
+                    case "%Y-01-01": replaceValue = "toStartOfYear#[toDateTime#[" + param1 + "]]"; break;
                     case "": replaceValue = "toDateTime#[" + param1 + "]"; break;
-                    default: replaceValue =  "toDateTime#[formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-%d %H:%M:%S' ]]";
+                    default: replaceValue = "toDateTime#[" + param1 + "]";
                 }
             } else if (type == 2) {
                 switch (param2) {
