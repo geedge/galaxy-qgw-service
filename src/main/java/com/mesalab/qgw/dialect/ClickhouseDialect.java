@@ -5,7 +5,6 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;

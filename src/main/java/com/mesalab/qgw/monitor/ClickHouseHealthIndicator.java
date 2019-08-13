@@ -1,0 +1,59 @@
+package com.mesalab.qgw.monitor;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import org.apache.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.AbstractHealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
+
+@Component
+public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
+
+
+    public RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private ClickHouseHttpSource clickHouseHttpSource;
+
+    @Override
+    protected void doHealthCheck(Health.Builder builder) {
+
+        StringBuilder urlBuilder = new StringBuilder("http://")
+                .append(clickHouseHttpSource.getUrl()).append("/?");
+        StringBuilder queryParamBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
+                .append("database=")
+                .append(clickHouseHttpSource.getDbname()).append("&")
+                .append("query=").append("select version()")
+                .append(" FORMAT JSON ;");
+        String url = urlBuilder.toString() + queryParamBuilder.toString();
+
+        try {
+            ResponseEntity responseEntity  = restTemplate.getForEntity(url, Map.class);
+
+            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
+                builder.up()
+                        .withDetail("app", "ClickHouse")
+                        .withDetail("message", "ok");
+            } else {
+                builder.down()
+                        .withDetail("app", "ClickHouse")
+                        .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
+
+
+            }
+        } catch (Exception e) {
+            builder.down()
+                    .withDetail("app", "ClickHouse")
+                    .withDetail("message", e.getMessage());
+
+        }
+
+    }
+
+
+}
