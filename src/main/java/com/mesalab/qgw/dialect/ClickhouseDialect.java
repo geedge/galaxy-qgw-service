@@ -168,6 +168,7 @@ public class ClickhouseDialect implements  Dialect {
 
     private String generateDateFunction(String sql) {
         sql = SQLDateFunctionUtil.parseMarkDate(sql,1);
+        sql = SQLDateFunctionUtil.parseDateCalculateNum(sql,1);
         sql = SQLDateFunctionUtil.parseLastDayFunc(sql,1);
         sql = SQLDateFunctionUtil.parseDateFormat(sql,1);
         sql = SQLDateFunctionUtil.parseDateRelative(sql,1);

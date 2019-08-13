@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class SQLDateFunctionUtil {
     public static Pattern pDateFormat = Pattern.compile("(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pDateRelative = Pattern.compile("(ADDDATE|DATE_ADD|DATE_SUB|SUBDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
-    public static Pattern pIntervalNumUnit = Pattern.compile("INTERVAL(.*?)(YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|SECOND)$", Pattern.CASE_INSENSITIVE);
+    public static Pattern pIntervalNumUnit = Pattern.compile("INTERVAL(.*?)(YEAR|QUARTER|MONTH|WEEK|DAY|HOUR|MINUTE|SECOND)$", Pattern.CASE_INSENSITIVE);
     public static Pattern pUnixTime = Pattern.compile("UNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pDate = Pattern.compile("(DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pDateCalculateNum = Pattern.compile("\\(\\s*(DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -239,10 +239,18 @@ public class SQLDateFunctionUtil {
             if (StringUtil.getBracketsMatch(group0.substring(0, group0.length() - 1), "(", true)[0] == num) {
                 String[] split = group4.split(",");
                 String replaceValue = "";
-                if (split.length == 1) {
-                    replaceValue = "TIME_SHIFT#[FLOOR#[ TIMESTAMP " + group2 + " to day],'P1D'," + group4 + "])";
-                } else if (split.length == 2) {
-                    replaceValue = "TIME_SHIFT#[FLOOR#[ TIMESTAMP " + group2 + "to day],'P1D'," + split[0] + "]," + split[1] + ")";
+                if(type == 1){
+                    if (split.length == 1) {
+                        replaceValue = "toStartOfday#[toDateTime#[" + group2 + "]]" + group4 + "*86400 )";
+                    } else if (split.length == 2) {
+                        replaceValue = "toStartOfday#[toDateTime#[" + group2 + "]]" + (split[0] + split[1]) + "*86400 )";
+                    }
+                }else if(type == 2){
+                    if (split.length == 1) {
+                        replaceValue = "TIME_SHIFT#[FLOOR#[ TIMESTAMP " + group2 + " to day],'P1D'," + group4 + "])";
+                    } else if (split.length == 2) {
+                        replaceValue = "TIME_SHIFT#[FLOOR#[ TIMESTAMP " + group2 + "to day],'P1D'," + split[0] + "]," + split[1] + ")";
+                    }
                 }
                 mDateCalculateNumParse.appendReplacement(sb, replaceValue);
             }
@@ -509,7 +517,7 @@ public class SQLDateFunctionUtil {
                     case "%Y-%m-%d 00:00:00": replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "]]"; break;
                     case "%Y-%m-01 00:00:00": replaceValue = "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "]]]"; break;
                     case "%Y-01-01 00:00:00": replaceValue = "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "]]]"; break;
-                    case "%Y-%m-%d": replaceValue = "toStartOfMonth#[toDateTime#[" + param1 + "]]"; break;
+                    case "%Y-%m-%d": replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "]]"; break;
                     case "%Y-%m-01": replaceValue = "toStartOfMonth#[toDateTime#[" + param1 + "]]"; break;
                     case "%Y-01-01": replaceValue = "toStartOfYear#[toDateTime#[" + param1 + "]]"; break;
                     case "": replaceValue = "toDateTime#[" + param1 + "]"; break;
@@ -687,7 +695,7 @@ public class SQLDateFunctionUtil {
         String innerValue = null;
         if (matcherParse.find()) {
             if (type == 1) {
-                innerValue = "toDate#[toDateTime#[" + matcherParse.group(2) + "]]";
+                innerValue = "toStartOfDay#[toDateTime#[" + matcherParse.group(2) + "]]";
             } else if (type == 2) {
                 innerValue = "TIME_FLOOR#[ TIMESTAMP " + matcherParse.group(2) + ",'P1D']";
             }
