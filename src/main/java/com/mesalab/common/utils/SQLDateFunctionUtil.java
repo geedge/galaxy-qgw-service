@@ -21,7 +21,7 @@ public class SQLDateFunctionUtil {
     public static Pattern pLastDateFunc = Pattern.compile("(LAST_DAY)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pCKTimeStamp = Pattern.compile("\\s+TIMESTAMP\\s+([^'])", Pattern.CASE_INSENSITIVE);
     public static Pattern pNow = Pattern.compile("NOW\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
-    public static Pattern pStrDateTime = Pattern.compile("([<|>|=])\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
+    public static Pattern pStrDateTime = Pattern.compile("(<|>|=|between|and)\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
 
     /**
      * 匹配：FROM_UNIXTIME(、DATE_FORMAT(、STR_TO_DATE(
@@ -439,7 +439,7 @@ public class SQLDateFunctionUtil {
                     param2 = "-  #[" + param2 + "]";
                 }
                 if(type == 1){
-                    switch (matcher.group(2)){
+                    switch (matcher.group(2).toUpperCase()){
                         case "SECOND": replaceValue = "toDateTime#[" + param1 + "]" + param2; break;
                         case "MINUTE": replaceValue = "toDateTime#[" + param1 + "]" + param2 + "*60"; break;
                         case "HOUR": replaceValue = "toDateTime#[" + param1 + "]" + param2 + "*3600"; break;
@@ -451,7 +451,7 @@ public class SQLDateFunctionUtil {
                         default:replaceValue = param1 + param2; break;
                     }
                 }else if(type ==2){
-                    switch (matcher.group(2)) {
+                    switch (matcher.group(2).toUpperCase()) {
                         case "SECOND": replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'PT1S',"+ param2 +"]"; break;
                         case "MINUTE": replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'PT1M',"+ param2 +"]"; break;
                         case "HOUR": replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'PT1H',"+ param2 +"]"; break;
@@ -554,7 +554,18 @@ public class SQLDateFunctionUtil {
             mStrDateTime.appendTail(sb);
             sql = sb.toString();
         } else if (type == 2) {
+
+            Matcher mStrDateTime = pStrDateTime.matcher(sql);
+            while (mStrDateTime.find()) {
+                String innerValue = mStrDateTime.group(1) + " TIMESTAMP " + mStrDateTime.group(2);
+                mStrDateTime.appendReplacement(sb, innerValue);
+            }
+            mStrDateTime.appendTail(sb);
+            sql = sb.toString();
+
+
             Matcher matcher = pCKTimeStamp.matcher(sql);
+            sb = new StringBuffer();
             while (matcher.find()) {
                 if (matcher.groupCount() == 1) {
                     matcher.appendReplacement(sb, " " + matcher.group(1));
