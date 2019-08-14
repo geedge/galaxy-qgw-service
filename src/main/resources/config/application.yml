@@ -100,5 +100,4 @@ management:
         include: '*'
         exclude: env,auditevents,beans,conditions
       base-path: /monitor
-  server:
-    port: 9996
+
