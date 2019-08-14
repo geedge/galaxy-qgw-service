@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
  */
 public class SQLDateFunctionUtil {
     public static Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pDateRelative = Pattern.compile("\\W(ADDDATE|DATE_ADD|DATE_SUB|SUBDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pIntervalNumUnit = Pattern.compile("INTERVAL(.*?)(YEAR|QUARTER|MONTH|WEEK|DAY|HOUR|MINUTE|SECOND)$", Pattern.CASE_INSENSITIVE);
     public static Pattern pUnixTime = Pattern.compile("\\WUNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -24,7 +25,7 @@ public class SQLDateFunctionUtil {
     public static Pattern pStrDateTime = Pattern.compile("(<|>|=|between|and)\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
 
     /**
-     * 匹配：FROM_UNIXTIME(、DATE_FORMAT(、STR_TO_DATE(
+     * 匹配范围：FROM_UNIXTIME(、DATE_FORMAT(、STR_TO_DATE(
      * @param sql 需要解析的sql
      * @param type 1:ClickHouse;    2:Druid
      * @return
@@ -42,7 +43,31 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = dateFormatHavaMark(sqlParse, bracketsMatch[0], type);
+            String str = dateFormatHavaMark(sqlParse, bracketsMatch[0],false, type);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    /**
+     * 匹配格式化 FROM_UNIXTIME(、DATE_FORMAT(、STR_TO_DATE(
+     * @param sql
+     * @param type
+     * @return
+     */
+    public static String parseGroupByFormat(String sql, int type) {
+        int count = 0;
+        while (true) {
+            Matcher matcher = pGroupByFormat.matcher(sql);
+            if (!matcher.find() || count++ >= 15) {
+                return sql;
+            }
+            int start = matcher.start();
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = dateFormatHavaMark(sqlParse, bracketsMatch[0], true, type);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -497,27 +522,46 @@ public class SQLDateFunctionUtil {
     }
 
     /**
-     * 实现替换：FROM_UNIXTIME(unix_timestamp)
+     * 实现替换：FROM_UNIXTIME(unix_timestamp)、FROM_UNIXTIME(date,format)、DATE_FORMAT(date,format)、STR_TO_DATE(date,format)
      * @param func
      * @param param
      * @param type 1:ClickHouse;    2:Druid
      * @return
      */
-    private static String dateFormatRealize(String func,String param, int type) {
+    private static String dateFormatRealize(String func, String param, boolean bool, int type) {
         List<String> params = diviParam(param, ",");
         String param1 = params.get(0);
         String replaceValue = null;
         if ("FROM_UNIXTIME".equals(func.toUpperCase()) && params.size() == 1) {
             if (type == 1) {
                 replaceValue = "toDateTime#[" + param + "]";
-            } else if (type == 2) {
+            } else if (type == 2 && !bool) {
                 replaceValue = "MILLIS_TO_TIMESTAMP#[ 1000 * [" + param + "]]";
+            }else if (type == 2 && bool) {
+                replaceValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[ 1000 * [" + param + "]],'YYYY-MM-dd HH:mm:ss']";
             }
         } else if (func.contains("FROM_UNIXTIME") && type == 2 && "%Y-%m-%d %H:%i:%s".equals(params.get(1).replaceAll("\\'|\\\"", "").trim())) {
-            replaceValue = "MILLIS_TO_TIMESTAMP#[ 1000*[" + param1 + "]]";
+            if (!bool) {
+                replaceValue = "MILLIS_TO_TIMESTAMP#[ 1000*[" + param1 + "]]";
+            } else if (bool) {
+                replaceValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[ 1000 * [" + param + "]],'YYYY-MM-dd HH:mm:ss']";
+            }
         } else {
             String param2 = params.get(1).replaceAll("\\'|\\\"", "").trim();
-            if (type == 1) {
+            if (type == 1 && bool) {
+                switch (param2) {
+                    case "%Y-%m-%d %H:%i:%s": replaceValue = "toDateTime#[" + param1 + "]"; break;
+                    case "%Y-%m-%d %H:%i:00": replaceValue = "toStartOfMinute#[toDateTime#[" + param1 + "]]"; break;
+                    case "%Y-%m-%d %H:00:00": replaceValue = "toStartOfHour#[toDateTime#[" + param1 + "]]"; break;
+                    case "%Y-%m-%d 00:00:00": replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "]]"; break;
+                    case "%Y-%m-01 00:00:00": replaceValue = "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "]]]"; break;
+                    case "%Y-01-01 00:00:00": replaceValue = "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "]]]"; break;
+                    case "%Y-%m-%d": replaceValue = "formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-%d]"; break;
+                    case "%Y-%m-01": replaceValue = "formatDateTime#[toDateTime#["+ param1 +"], '%Y-%m-01]"; break;
+                    case "%Y-01-01": replaceValue = "formatDateTime#[toDateTime#["+ param1 +"], '%Y-01-01]"; break;
+                    default: replaceValue = "toDateTime#[" + param1 + "]";
+                }
+            }else if (type == 1 && !bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s": replaceValue = "toDateTime#[" + param1 + "]"; break;
                     case "%Y-%m-%d %H:%i:00": replaceValue = "toStartOfMinute#[toDateTime#[" + param1 + "]]"; break;
@@ -528,10 +572,9 @@ public class SQLDateFunctionUtil {
                     case "%Y-%m-%d": replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "]]"; break;
                     case "%Y-%m-01": replaceValue = "toStartOfMonth#[toDateTime#[" + param1 + "]]"; break;
                     case "%Y-01-01": replaceValue = "toStartOfYear#[toDateTime#[" + param1 + "]]"; break;
-                    case "": replaceValue = "toDateTime#[" + param1 + "]"; break;
                     default: replaceValue = "toDateTime#[" + param1 + "]";
                 }
-            } else if (type == 2) {
+            } else if (type == 2 && bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s": replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-MM-dd HH:mm:ss']"; break;
                     case "%Y-%m-%d %H:%i:00": replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-MM-dd HH:mm:00']"; break;
@@ -542,8 +585,20 @@ public class SQLDateFunctionUtil {
                     case "%Y-%m-%d": replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-MM-dd']"; break;
                     case "%Y-%m-01": replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-MM-01']"; break;
                     case "%Y-01-01": replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-01-01']"; break;
-                    case "": replaceValue = " TIMESTAMP " + param1; break;
                     default: replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-MM-dd HH:mm:ss']";
+                }
+            } else if (type == 2 && !bool) {
+                switch (param2) {
+                    case "%Y-%m-%d %H:%i:%s": replaceValue = " TIMESTAMP " + param1; break;
+                    case "%Y-%m-%d %H:%i:00": replaceValue = "FLOOR#[ TIMESTAMP " + param1 + " to minute]"; break;
+                    case "%Y-%m-%d %H:00:00": replaceValue = "FLOOR#[ TIMESTAMP " + param1 + " to hour]"; break;
+                    case "%Y-%m-%d 00:00:00": replaceValue = "FLOOR#[ TIMESTAMP " + param1 + " to day]"; break;
+                    case "%Y-%m-01 00:00:00": replaceValue = "FLOOR#[ TIMESTAMP " + param1 + " to month]"; break;
+                    case "%Y-01-01 00:00:00": replaceValue = "FLOOR#[ TIMESTAMP " + param1 + " to year]"; break;
+                    case "%Y-%m-%d": replaceValue = "TIME_FLOOR#[ TIMESTAMP " + param1 + ",'P1D']"; break;
+                    case "%Y-%m-01": replaceValue = "TIME_FLOOR#[ TIMESTAMP " + param1 + ",'P1M']"; break;
+                    case "%Y-01-01": replaceValue = "TIME_FLOOR#[ TIMESTAMP " + param1 + ",'P1Y']"; break;
+                    default : replaceValue = " TIMESTAMP " + param1; break;
                 }
             }
         }
@@ -616,10 +671,11 @@ public class SQLDateFunctionUtil {
      * 替换：FROM_UNIXTIME(unix_timestamp)、FROM_UNIXTIME(date,format)、DATE_FORMAT(date,format)、STR_TO_DATE(date,format)
      * @param sqlParse
      * @param num 包含括号的个数
+     * @param bool 应用的分组中为true 条件范围中则为false
      * @param type 1:ClickHouse;    2:Druid
      * @return
      */
-    public static String dateFormatHavaMark(String sqlParse, int num, int type) {
+    public static String dateFormatHavaMark(String sqlParse, int num, boolean bool, int type) {
         Pattern pDateFormatMark = Pattern.compile("(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher mDateFormatMark = pDateFormatMark.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -627,7 +683,7 @@ public class SQLDateFunctionUtil {
             String group2 = mDateFormatMark.group(2);
             String replaceValue = group2;
             if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
-                replaceValue = dateFormatRealize(mDateFormatMark.group(1),group2, type);
+                replaceValue = dateFormatRealize(mDateFormatMark.group(1),group2, bool , type);
             }
             mDateFormatMark.appendReplacement(sb, replaceValue);
         }
