@@ -10,15 +10,15 @@ import java.util.regex.Pattern;
  * @data 2019/8/1 10:13
  */
 public class SQLDateFunctionUtil {
-    public static Pattern pDateFormat = Pattern.compile("(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
-    public static Pattern pDateRelative = Pattern.compile("(ADDDATE|DATE_ADD|DATE_SUB|SUBDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pDateRelative = Pattern.compile("\\W(ADDDATE|DATE_ADD|DATE_SUB|SUBDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pIntervalNumUnit = Pattern.compile("INTERVAL(.*?)(YEAR|QUARTER|MONTH|WEEK|DAY|HOUR|MINUTE|SECOND)$", Pattern.CASE_INSENSITIVE);
-    public static Pattern pUnixTime = Pattern.compile("UNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
-    public static Pattern pDate = Pattern.compile("(DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pUnixTime = Pattern.compile("\\WUNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pDate = Pattern.compile("\\W(DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pDateCalculateNum = Pattern.compile("\\(\\s*(DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
-    public static Pattern pUnitFuncGetNum = Pattern.compile("(YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|SECOND|DAYOFYEAR|DAYOFMONTH|DAYOFWEEK)\\s*\\(", Pattern.CASE_INSENSITIVE);
-    public static Pattern pMarkDate = Pattern.compile("(MAKEDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
-    public static Pattern pLastDateFunc = Pattern.compile("(LAST_DAY)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pUnitFuncGetNum = Pattern.compile("\\W(YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|SECOND|DAYOFYEAR|DAYOFMONTH|DAYOFWEEK)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pMarkDate = Pattern.compile("\\W(MAKEDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pLastDateFunc = Pattern.compile("\\W(LAST_DAY)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pCKTimeStamp = Pattern.compile("\\s+TIMESTAMP\\s+([^'])", Pattern.CASE_INSENSITIVE);
     public static Pattern pNow = Pattern.compile("NOW\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
     public static Pattern pStrDateTime = Pattern.compile("(<|>|=|between|and)\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
@@ -36,18 +36,19 @@ public class SQLDateFunctionUtil {
             if (!matcher.find() || count++ >= 15) {
                 return sql;
             }
-            String sqlParse = sql.substring(matcher.start());
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
             int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
             String str = dateFormatHavaMark(sqlParse, bracketsMatch[0], type);
-            sql = sql.substring(0, matcher.start()) + str;
+            sql = sql.substring(0, start) + str;
         }
     }
 
     /**
-     * 替换SUBDATE(expr,days)、SUBDATE(expr,days)、SUBDATE(date,INTERVAL expr type)、ADDDATE(date,INTERVAL expr type)、DATE_SUB(date,INTERVAL expr type)、DATE_ADD(date,INTERVAL expr type)
+     * 匹配 SUBDATE(、SUBDATE(、SUBDATE(、ADDDATE(、DATE_SUB(、DATE_ADD(
      * @param sql
      * @param type 1:ClickHouse;    2:Druid
      * @return
@@ -59,13 +60,14 @@ public class SQLDateFunctionUtil {
             if (!matcher.find() || count++ >= 15) {
                 return sql;
             }
-            String sqlParse = sql.substring(matcher.start());
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
             int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, null, false);
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
             String str = dateRelativeHaveMark(sqlParse, bracketsMatch[0], type);
-            sql = sql.substring(0, matcher.start()) + str;
+            sql = sql.substring(0, start) + str;
         }
     }
 
@@ -82,13 +84,14 @@ public class SQLDateFunctionUtil {
             if (!matcher.find() || count++ == 15) {
                 return sql;
             }
-            String sqlParse = sql.substring(matcher.start());
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
             int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, null, false);
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
             String str = parseUnixTimeHavaMark(sqlParse, bracketsMatch[0], type);
-            sql = sql.substring(0, matcher.start()) + str;
+            sql = sql.substring(0, start) + str;
         }
     }
 
@@ -105,13 +108,14 @@ public class SQLDateFunctionUtil {
             if (!matcher.find() || count++ >= 15) {
                 return sql;
             }
-            String sqlParse = sql.substring(matcher.start());
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
             int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
             String str = parseDateHavaMark(sqlParse, bracketsMatch[0], type);
-            sql = sql.substring(0, matcher.start()) + str;
+            sql = sql.substring(0, start) + str;
         }
     }
 
@@ -128,13 +132,14 @@ public class SQLDateFunctionUtil {
             if(!matcher.find() || count++ >= 15){
                 return sql;
             }
-            String sqlParse = sql.substring(matcher.start());
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
             int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
             String str = parseUnitFuncGetNumHaveMark(sqlParse, bracketsMatch[0], type);
-            sql = sql.substring(0, matcher.start()) + str;
+            sql = sql.substring(0, start) + str;
         }
     }
 
@@ -151,13 +156,14 @@ public class SQLDateFunctionUtil {
             if (!matcher.find() || count++ >= 15) {
                 return sql;
             }
-            String sqlParse = sql.substring(matcher.start());
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
             int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
             String str = parseMarkDateHaveMark(sqlParse, bracketsMatch[0], type);
-            sql = sql.substring(0, matcher.start()) + str;
+            sql = sql.substring(0, start) + str;
         }
     }
 
@@ -174,18 +180,19 @@ public class SQLDateFunctionUtil {
             if (!matcher.find() || count++ >= 15) {
                 return sql;
             }
-            String sqlParse = sql.substring(matcher.start());
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
             int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
             String str = parseLastDayFuncHaveMark(sqlParse, bracketsMatch[0], type);
-            sql = sql.substring(0, matcher.start()) + str;
+            sql = sql.substring(0, start) + str;
         }
     }
 
     /**
-     * 涉及DATE()-、DATE()+
+     * 匹配 涉及DATE()-、DATE()+
      * @param sql
      * @param type
      * @return
@@ -221,7 +228,7 @@ public class SQLDateFunctionUtil {
     }
 
     /**
-     * 涉及DATE()-、DATE()+
+     * 替换 涉及DATE()-、DATE()+
      * @param sqlParse
      * @param num
      * @param num2
@@ -328,7 +335,8 @@ public class SQLDateFunctionUtil {
         String replaceValue = null;
         List<String> params = diviParam(expr, ",");
         if ("MAKEDATE".equals(func.toUpperCase()) && params.size() == 2) {
-            Matcher matcher = pUnitFuncGetNum.matcher(expr);
+            Pattern pYearFunNum = Pattern.compile("(YEAR)\\s*\\(", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pYearFunNum.matcher(expr);
             if (matcher.find() && "YEAR".equals(matcher.group(1).toUpperCase())) {
                 String temp = expr.substring(matcher.start());
                 int[] bracketsMatch = StringUtil.getBracketsMatch(temp, "(", false);
@@ -563,7 +571,16 @@ public class SQLDateFunctionUtil {
             sql = sb.toString();
         } else if (type == 2) {
 
+            Matcher mNowFun = pNow.matcher(sql);
+            while (mNowFun.find()) {
+                String innerValue = "CURRENT_TIMESTAMP";
+                mNowFun.appendReplacement(sb, innerValue);
+            }
+            mNowFun.appendTail(sb);
+            sql = sb.toString();
+
             Matcher mStrDateTime = pStrDateTime.matcher(sql);
+            sb = new StringBuffer();
             while (mStrDateTime.find()) {
                 String innerValue = mStrDateTime.group(1) + " TIMESTAMP " + mStrDateTime.group(2);
                 mStrDateTime.appendReplacement(sb, innerValue);
@@ -661,14 +678,13 @@ public class SQLDateFunctionUtil {
         String innerValue = null;
         if (matcherParse.find()) {
             if (type == 1) {
-                if ("".equals(matcherParse.group(2).trim())) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "toUnixTimestamp#[now#[]]";
                 } else {
                     innerValue = "toUnixTimestamp#[ " + matcherParse.group(2) + "]";
                 }
             } else if (type == 2) {
-                Matcher mNow = pNow.matcher(matcherParse.group(2));
-                if (mNow.find() || matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "0.001 * TIMESTAMP_TO_MILLIS[CURRENT_TIMESTAMP]";
                 } else {
                     innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[ TIMESTAMP " + matcherParse.group(2) + "]";
