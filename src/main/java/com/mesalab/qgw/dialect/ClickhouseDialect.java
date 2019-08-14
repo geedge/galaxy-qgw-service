@@ -6,6 +6,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.SQLDateFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
@@ -25,7 +26,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-public class ClickhouseDialect implements  Dialect {
+public class ClickhouseDialect implements Dialect {
+    Pattern pGlobalIn = Pattern.compile("in\\s*\\(", Pattern.CASE_INSENSITIVE);
+    Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
+    Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
@@ -84,8 +88,7 @@ public class ClickhouseDialect implements  Dialect {
      * @return
      */
     private String generateGlobalIn(String sql) {
-        Pattern p = Pattern.compile("in\\s*\\(", Pattern.CASE_INSENSITIVE);
-        Matcher m = p.matcher(sql);
+        Matcher m = pGlobalIn.matcher(sql);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
             m.appendReplacement(sb, "global in (");
@@ -102,9 +105,7 @@ public class ClickhouseDialect implements  Dialect {
      */
     private String generateUniqCombined(String sql) {
 
-        Pattern p = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
-
-        Matcher m = p.matcher(sql);
+        Matcher m = pUniqCombined.matcher(sql);
 
         StringBuffer sb = new StringBuffer();
 
@@ -131,9 +132,7 @@ public class ClickhouseDialect implements  Dialect {
      */
     private String generateUniq(String sql) {
 
-        Pattern p = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
-
-        Matcher m = p.matcher(sql);
+        Matcher m = pUniq.matcher(sql);
 
         StringBuffer sb = new StringBuffer();
 
@@ -149,6 +148,7 @@ public class ClickhouseDialect implements  Dialect {
         m.appendTail(sb);
 
         return sb.toString();
+
 
     }
 
@@ -227,11 +227,26 @@ public class ClickhouseDialect implements  Dialect {
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateUniq(param.getQuery()));
+        param.setQuery(generateDateFunction(param.getQuery()));
         param.setQuery(generateSubQueryByRecvTime(param.getQuery()));
         param.setQuery(generateSqlEncode(param.getQuery()));
 
 
         return this;
+    }
+
+    private String generateDateFunction(String sql) {
+        sql = SQLDateFunctionUtil.parseMarkDate(sql,1);
+        sql = SQLDateFunctionUtil.parseDateCalculateNum(sql,1);
+        sql = SQLDateFunctionUtil.parseLastDayFunc(sql,1);
+        sql = SQLDateFunctionUtil.parseDateFormat(sql,1);
+        sql = SQLDateFunctionUtil.parseDateRelative(sql,1);
+        sql = SQLDateFunctionUtil.parseUnixTime(sql, 1);
+        sql = SQLDateFunctionUtil.parseDate(sql, 1);
+        sql = SQLDateFunctionUtil.parseUnitFuncGetNum(sql, 1);
+        sql = SQLDateFunctionUtil.specialDisposeEnd(sql, 1);
+        sql = SQLDateFunctionUtil.replaceMark(sql);
+        return sql;
     }
 
     @Override
@@ -245,9 +260,6 @@ public class ClickhouseDialect implements  Dialect {
                 .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
                 .append("database=")
                 .append(clickHouseHttpSource.getDbname()).append("&")
-                /*.append("max_execution_time=").append(600).append("&")*/
-                /*.append("enable_http_compression=").append(clickHouseHttpSource.getEnableHttpCompression()).append("&")*/
-                /*.append("query_id=").append(DateUtils.getCurrentDate("yyyymmddhhmmss")).append("&")*/
                 .append("query=").append(param.getQuery())
                 .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
 
@@ -255,10 +267,7 @@ public class ClickhouseDialect implements  Dialect {
 
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
 
-
         Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
-
-
 
        if (StringUtil.isEmpty(resultMap)) {
            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");

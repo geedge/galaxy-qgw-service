@@ -6,6 +6,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.SQLDateFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -72,8 +73,22 @@ public class DruidDialect implements  Dialect {
     @Override
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
-
+        param.setQuery(generateDateFunction(param.getQuery()));
         return this;
+    }
+
+    private String generateDateFunction(String sql) {
+        sql = SQLDateFunctionUtil.parseMarkDate(sql,2);
+        sql = SQLDateFunctionUtil.parseDateCalculateNum(sql,2);
+        sql = SQLDateFunctionUtil.parseLastDayFunc(sql,2);
+        sql = SQLDateFunctionUtil.parseDateFormat(sql,2);
+        sql = SQLDateFunctionUtil.parseDateRelative(sql,2);
+        sql = SQLDateFunctionUtil.parseUnixTime(sql, 2);
+        sql = SQLDateFunctionUtil.parseDate(sql, 2);
+        sql = SQLDateFunctionUtil.parseUnitFuncGetNum(sql, 2);
+        sql = SQLDateFunctionUtil.specialDisposeEnd(sql, 2);
+        sql = SQLDateFunctionUtil.replaceMark(sql);
+        return sql;
     }
 
     @Override

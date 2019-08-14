@@ -10,6 +10,9 @@ import java.util.regex.Pattern;
 
 public class SQLHelper {
 
+    public static Pattern pOrder = Pattern.compile("order\\s*by[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
+    public static Pattern pLimit = Pattern.compile("limit\\s*[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
+
     /**
      * 去除qlString的select子句。
      *
@@ -27,8 +30,7 @@ public class SQLHelper {
      * @return
      */
     public static String removeOrders(String qlString) {
-        Pattern p = Pattern.compile("order\\s*by[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
-        Matcher m = p.matcher(qlString);
+        Matcher m = pOrder.matcher(qlString);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
             m.appendReplacement(sb, "");
@@ -38,8 +40,7 @@ public class SQLHelper {
     }
 
     public static String removeLimit(String qlString) {
-        Pattern p = Pattern.compile("limit\\s*[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
-        Matcher m = p.matcher(qlString);
+        Matcher m = pLimit.matcher(qlString);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
             m.appendReplacement(sb, "");
