@@ -15,19 +15,24 @@ server:
   port: 9999
 spring:
   profiles:
-    active: dev
+    active: test
   devtools:
     restart:
       enabled: true
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
+  security:
+    user:
+      name: galaxy
+      password: 111111
+      roles: MONITOR_ADMIN
 ###############################################################################
 ## 项目参数，从maven中读取
 project:
   name: galaxy-qgw-service
   description: 统一数据查询网关
-  version: 1.0
+  version: 1.1
   groupId: com.mesalab
   artifactId: galaxy-qgw-service
   basedir:
@@ -74,3 +79,24 @@ pagehelper:
 
 
 ###############################################################################
+info:
+  app:
+    name: GALAXY-QGW-SERVICE
+    verson: 1.1
+management:
+  endpoint:
+    health:
+      show-details: always
+    shutdown:
+      enabled: true
+  health:
+    redis:
+      enabled: false
+    db:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+        exclude: env,auditevents,beans,conditions
+      base-path: /monitor

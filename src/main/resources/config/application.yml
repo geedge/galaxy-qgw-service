@@ -32,7 +32,7 @@ spring:
 project:
   name: galaxy-qgw-service
   description: 统一数据查询网关
-  version: 1.0
+  version: 1.1
   groupId: com.mesalab
   artifactId: galaxy-qgw-service
   basedir:
@@ -82,7 +82,7 @@ pagehelper:
 info:
   app:
     name: GALAXY-QGW-SERVICE
-    verson: 1.0
+    verson: 1.1
 management:
   endpoint:
     health:
