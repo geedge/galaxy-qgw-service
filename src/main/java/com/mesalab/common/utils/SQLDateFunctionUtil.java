@@ -34,7 +34,7 @@ public class SQLDateFunctionUtil {
         int count = 0;
         while (true) {
             Matcher matcher = pDateFormat.matcher(sql);
-            if (!matcher.find() || count++ >= 15) {
+            if (!matcher.find() || count++ >= 40) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -58,7 +58,7 @@ public class SQLDateFunctionUtil {
         int count = 0;
         while (true) {
             Matcher matcher = pGroupByFormat.matcher(sql);
-            if (!matcher.find() || count++ >= 15) {
+            if (!matcher.find() || count++ >= 30) {
                 return sql;
             }
             int start = matcher.start();
@@ -82,7 +82,7 @@ public class SQLDateFunctionUtil {
         int count = 0;
         while (true) {
             Matcher matcher = pDateRelative.matcher(sql);
-            if (!matcher.find() || count++ >= 15) {
+            if (!matcher.find() || count++ >= 30) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -106,7 +106,7 @@ public class SQLDateFunctionUtil {
         int count = 0;
         while (true) {
             Matcher matcher = pUnixTime.matcher(sql);
-            if (!matcher.find() || count++ == 15) {
+            if (!matcher.find() || count++ == 30) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -130,7 +130,7 @@ public class SQLDateFunctionUtil {
         int count = 0;
         while (true) {
             Matcher matcher = pDate.matcher(sql);
-            if (!matcher.find() || count++ >= 15) {
+            if (!matcher.find() || count++ >= 30) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -154,7 +154,7 @@ public class SQLDateFunctionUtil {
         int count = 0;
         while (true){
             Matcher matcher = pUnitFuncGetNum.matcher(sql);
-            if(!matcher.find() || count++ >= 15){
+            if(!matcher.find() || count++ >= 30){
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -178,7 +178,7 @@ public class SQLDateFunctionUtil {
         int count = 0;
         while (true) {
             Matcher matcher = pMarkDate.matcher(sql);
-            if (!matcher.find() || count++ >= 15) {
+            if (!matcher.find() || count++ >= 30) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -202,7 +202,7 @@ public class SQLDateFunctionUtil {
         int count = 0;
         while (true) {
             Matcher matcher = pLastDateFunc.matcher(sql);
-            if (!matcher.find() || count++ >= 15) {
+            if (!matcher.find() || count++ >= 30) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -227,7 +227,7 @@ public class SQLDateFunctionUtil {
         String sqlTmp = "";
         while (true) {
             Matcher matcher = pDateCalculateNum.matcher(sql);
-            if (!matcher.find() || count++ >= 15) {
+            if (!matcher.find() || count++ >= 30) {
                 sql = sql.replace("##","(");
                 return sql;
             }
