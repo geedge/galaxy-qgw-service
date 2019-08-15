@@ -81,6 +81,7 @@ public class DruidDialect implements  Dialect {
         sql = SQLDateFunctionUtil.parseMarkDate(sql,2);
         sql = SQLDateFunctionUtil.parseDateCalculateNum(sql,2);
         sql = SQLDateFunctionUtil.parseLastDayFunc(sql,2);
+        sql = SQLDateFunctionUtil.parseGroupByFormat(sql,2);
         sql = SQLDateFunctionUtil.parseDateFormat(sql,2);
         sql = SQLDateFunctionUtil.parseDateRelative(sql,2);
         sql = SQLDateFunctionUtil.parseUnixTime(sql, 2);
