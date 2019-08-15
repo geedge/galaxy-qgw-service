@@ -198,7 +198,7 @@ public class MysqlDruidDateTest extends GalaxyQGWApplicationTests {
      */
     @Test
     public void activeDestinationIPOf5min(){
-        String sql = "select destination ,sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets from top_external_host_log where group by destination order by sessions desc limit 100";
+        String sql = "select destination ,sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets from top_external_host_log where $filter group by destination order by sessions desc limit 100";
 
         sql = sql.replaceAll("\\$filter", " __time=ADDDATE(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(now())/300)*300),interval -10 minute)");
         //sql = sql.replaceAll("\\$filter", " __time=TIME_SHIFT(TIME_FLOOR(CURRENT_TIMESTAMP,'PT5M'),'PT10M',-1)");
