@@ -227,8 +227,8 @@ public class ClickhouseDialect implements Dialect {
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateUniq(param.getQuery()));
-        param.setQuery(generateDateFunction(param.getQuery()));
         param.setQuery(generateSubQueryByRecvTime(param.getQuery()));
+        param.setQuery(generateDateFunction(param.getQuery()));
         param.setQuery(generateSqlEncode(param.getQuery()));
 
 
