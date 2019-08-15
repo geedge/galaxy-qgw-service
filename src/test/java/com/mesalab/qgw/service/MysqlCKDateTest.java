@@ -70,7 +70,7 @@ public class MysqlCKDateTest extends GalaxyQGWApplicationTests {
     @Test
     public void radiusLogRetrieval(){
         String sql = "select recv_time,account,nas_ip,framed_ip,packet_type, trans_proto, client_ip, server_ip, server_port FROM radius_log WHERE recv_time>= toDateTime('2019-05-31 00:00:00') and recv_time< toDateTime('2019-06-01 00:00:00') and nas_ip='178.89.12.222' order by recv_time desc limit 0,20";
-        String sqlBegin = "select recv_time,account,nas_ip,framed_ip,packet_type, trans_proto, client_ip, server_ip, server_port FROM radius_log WHERE recv_time>= UNIX_TIMESTAMP(STR_TO_DATE('2019-05-31 00:00:00')) and recv_time< UNIX_TIMESTAMP(STR_TO_DATE('2019-06-01 00:00:00')) and nas_ip='178.89.12.222' order by recv_time desc limit 0,20";
+        String sqlBegin = "select recv_time,account,nas_ip,framed_ip,packet_type, trans_proto, client_ip, server_ip, server_port FROM radius_log WHERE recv_time>= UNIX_TIMESTAMP('2019-05-31 00:00:00') and recv_time< UNIX_TIMESTAMP(STR_TO_DATE('2019-06-01 00:00:00','%Y-%m-%d %H:%i:%s')) and nas_ip='178.89.12.222' order by recv_time desc limit 0,20";
         url = url + "/?query=" + sqlBegin ;
         Map map = restTemplate.getForObject(url, Map.class);
         log.info(JsonMapper.toJsonString(map));
@@ -132,7 +132,7 @@ public class MysqlCKDateTest extends GalaxyQGWApplicationTests {
     @Test
     public void httpUrls(){
         String sql = "SELECT url AS url,count(*) AS sessions FROM policy_event_log WHERE recv_time >= toStartOfDay(toDateTime('2019-06-01 18:37:45'))-86400 AND recv_time < toStartOfDay(toDateTime('2019-06-01 18:37:45')) and notEmpty(url) GROUP BY url ORDER BY sessions DESC LIMIT 100";
-        String sqlBegin = "SELECT url AS url,count(*) AS sessions FROM policy_event_log WHERE recv_time >= DATE_FORMAT(UNIX_TIMESTAMP(DATE_FORMAT('2019-06-01 18:37:45', '%Y-%m-%d 00:00:00')))-86400 AND recv_time < FROM_UNIXTIME(DATE_FORMAT('2019-06-01 18:37:45', '%Y-%m-%d 00:00:00')) and notEmpty(url) GROUP BY url ORDER BY sessions DESC LIMIT 100";
+        String sqlBegin = "SELECT url AS url,count(*) AS sessions FROM policy_event_log WHERE recv_time >= FROM_UNIXTIME(UNIX_TIMESTAMP(DATE_FORMAT('2019-06-01 18:37:45', '%Y-%m-%d 00:00:00')))-86400 AND recv_time < FROM_UNIXTIME(DATE_FORMAT('2019-06-01 18:37:45', '%Y-%m-%d 00:00:00')) and notEmpty(url) GROUP BY url ORDER BY sessions DESC LIMIT 100";
         url = url + "/?query=" + sqlBegin ;
         Map map = restTemplate.getForObject(url, Map.class);
         log.info(JsonMapper.toJsonString(map));
@@ -163,11 +163,25 @@ public class MysqlCKDateTest extends GalaxyQGWApplicationTests {
         Assert.assertEquals((int)map.get("status"), 200);
     }
 
+    /**
+     * 测试粒度30s
+     */
     @Test
-    public void test(){
-        String sql = "SELECT subscribe_id as user,SUM(coalesce(c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(c2s_byte_num, 0)+coalesce(s2c_byte_num, 0)) AS bytes FROM session_record_log WHERE recv_time>= toDateTime(toMonday(toDateTime('2019-06-01 18:37:45')))-86400 and recv_time< toDateTime(toMonday(toDateTime('2019-06-01 18:37:45')))+518400 and notEmpty(user) GROUP BY user ORDER BY bytes  DESC LIMIT 100";
-        String sqlBegin = "SELECT subscribe_id as user,SUM(coalesce(c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(c2s_byte_num, 0)+coalesce(s2c_byte_num, 0)) AS bytes FROM session_record_log WHERE recv_time>= str_to_date(DATE_FORMAT('2019-06-01 18:37:45','%X%V Sunday'), '%X%V %W') and recv_time<  str_to_date(DATE_FORMAT(DATE_ADD('2019-06-01 18:37:45', INTERVAL 1 WEEK),'%X%V Sunday'), '%X%V %W') GROUP BY user ORDER BY bytes  DESC LIMIT 100";
-        url = url + "/?query=" + sql ;
+    public void testDateGranularity30S(){
+        String sqlBegin = "select FROM_UNIXTIME(FLOOR(recv_time/30)*30) as time30,sum(c2s_pkt_num) FROM session_record_log where recv_time>= UNIX_TIMESTAMP(DATE_FORMAT(ADDDATE(DATE('2019-07-20 10:08:00'),INTERVAL -1 DAY),'%Y-%m-%d %H:%i:%s')) and recv_time< UNIX_TIMESTAMP(DATE('2019-07-20 10:08:00')) and entrance_id=1 and client_ip like '221.181%' and server_ip='60.247.81.34'  group by time30  order by time30 ASC limit 0,20";
+        url = url + "/?query=" + sqlBegin ;
+        Map map = restTemplate.getForObject(url, Map.class);
+        log.info(JsonMapper.toJsonString(map));
+        Assert.assertEquals((int)map.get("status"), 200);
+    }
+
+    /**
+     * 测试粒度30s
+     */
+    @Test
+    public void testDateGraularity5min(){
+        String sqlBegin = "select FROM_UNIXTIME(FLOOR(recv_time/300)*300) as time300,sum(c2s_pkt_num) FROM session_record_log where recv_time>= UNIX_TIMESTAMP(DATE_FORMAT(ADDDATE(DATE('2019-07-20 10:08:00'),INTERVAL -1 DAY),'%Y-%m-%d %H:%i:%s')) and recv_time< UNIX_TIMESTAMP(DATE('2019-07-20 10:08:00')) and entrance_id=1 and client_ip like '221.181%' and server_ip='60.247.81.34'  group by time300  order by time300 ASC limit 0,20";
+        url = url + "/?query=" + sqlBegin ;
         Map map = restTemplate.getForObject(url, Map.class);
         log.info(JsonMapper.toJsonString(map));
         Assert.assertEquals((int)map.get("status"), 200);
