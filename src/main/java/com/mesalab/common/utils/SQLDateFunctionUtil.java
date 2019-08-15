@@ -261,10 +261,10 @@ public class SQLDateFunctionUtil {
      * @return
      */
     private static String parseDateCalculateNumHaveMark(String sqlParse, int num, int num2, int type) {
-        Pattern pDateCalculateNumParse = Pattern.compile("(DATE)\\s*\\((.*?(.*?\\).*?){" + num2 + "})\\)\\s*(([+-]).*?(.*?\\).*?){" + (num - num2 - 1) + "})\\)", Pattern.CASE_INSENSITIVE);
+        Pattern pDateCalculateNumParse = Pattern.compile("(DATE)\\s*\\((.*?(.*?\\).*?){" + num2 + "})\\)(.*?(.*?\\).*?){" + (num - num2 - 1) + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mDateCalculateNumParse = pDateCalculateNumParse.matcher(sqlParse);
-        if (mDateCalculateNumParse.find()) {
+        if (mDateCalculateNumParse.find() && (mDateCalculateNumParse.group(4).trim().startsWith("+") || mDateCalculateNumParse.group(4).trim().startsWith("-"))) {
             String group0 = mDateCalculateNumParse.group(0);
             String group2 = mDateCalculateNumParse.group(2);
             String group4 = mDateCalculateNumParse.group(4);
@@ -273,9 +273,9 @@ public class SQLDateFunctionUtil {
                 String replaceValue = "";
                 if(type == 1){
                     if (split.length == 1) {
-                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "]]" + group4 + "*86400 )";
+                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "]]+[" + group4 + "]*86400 )";
                     } else if (split.length == 2) {
-                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "]]" + (split[0] + split[1]) + "*86400 )";
+                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "]]+[" + split[0] + "]*86400 ," + split[1] + ")";
                     }
                 }else if(type == 2){
                     if (split.length == 1) {
