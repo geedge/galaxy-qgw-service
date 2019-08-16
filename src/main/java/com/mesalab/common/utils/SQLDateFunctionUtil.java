@@ -1,5 +1,6 @@
 package com.mesalab.common.utils;
 
+import com.mesalab.common.enums.DBTypeEnum;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -24,13 +25,37 @@ public class SQLDateFunctionUtil {
     public static Pattern pNow = Pattern.compile("NOW\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
     public static Pattern pStrDateTime = Pattern.compile("(<|>|=|between|and)\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
 
+
+    /**
+     * 解析mysql函数替换为对应数据库类型函数
+     * @param sql   要解析的sql
+     * @param dbType 数据库类型
+     * @return
+     */
+    public static String generateDateFunction(String sql, String dbType) {
+        sql = SQLDateFunctionUtil.parseMarkDate(sql, dbType);
+        sql = SQLDateFunctionUtil.parseDateCalculateNum(sql, dbType);
+        sql = SQLDateFunctionUtil.parseLastDayFunc(sql, dbType);
+        sql = SQLDateFunctionUtil.parseGroupByFormat(sql, dbType);
+        sql = SQLDateFunctionUtil.parseDateFormat(sql, dbType);
+        sql = SQLDateFunctionUtil.parseDateRelative(sql, dbType);
+        sql = SQLDateFunctionUtil.parseUnixTime(sql, dbType);
+        sql = SQLDateFunctionUtil.parseDate(sql, dbType);
+        sql = SQLDateFunctionUtil.parseUnitFuncGetNum(sql, dbType);
+        sql = SQLDateFunctionUtil.specialDisposeEnd(sql, dbType);
+        sql = SQLDateFunctionUtil.replaceMark(sql);
+        return sql;
+    }
+
+
+
     /**
      * 匹配范围：FROM_UNIXTIME(、DATE_FORMAT(、STR_TO_DATE(
      * @param sql 需要解析的sql
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseDateFormat(String sql, int type) {
+    public static String parseDateFormat(String sql, String dbType) {
         int count = 0;
         while (true) {
             Matcher matcher = pDateFormat.matcher(sql);
@@ -43,7 +68,7 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = dateFormatHavaMark(sqlParse, bracketsMatch[0],false, type);
+            String str = dateFormatHavaMark(sqlParse, bracketsMatch[0],false, dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -51,10 +76,10 @@ public class SQLDateFunctionUtil {
     /**
      * 匹配格式化 FROM_UNIXTIME(、DATE_FORMAT(、STR_TO_DATE(
      * @param sql
-     * @param type
+     * @param dbType
      * @return
      */
-    public static String parseGroupByFormat(String sql, int type) {
+    public static String parseGroupByFormat(String sql, String dbType) {
         int count = 0;
         while (true) {
             Matcher matcher = pGroupByFormat.matcher(sql);
@@ -67,7 +92,7 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = dateFormatHavaMark(sqlParse, bracketsMatch[0], true, type);
+            String str = dateFormatHavaMark(sqlParse, bracketsMatch[0], true, dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -75,10 +100,10 @@ public class SQLDateFunctionUtil {
     /**
      * 匹配 SUBDATE(、SUBDATE(、SUBDATE(、ADDDATE(、DATE_SUB(、DATE_ADD(
      * @param sql
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseDateRelative(String sql, int type) {
+    public static String parseDateRelative(String sql, String dbType) {
         int count = 0;
         while (true) {
             Matcher matcher = pDateRelative.matcher(sql);
@@ -91,7 +116,7 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = dateRelativeHaveMark(sqlParse, bracketsMatch[0], type);
+            String str = dateRelativeHaveMark(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -99,10 +124,10 @@ public class SQLDateFunctionUtil {
     /**
      * 匹配 UNIX_TIMESTAMP(
      * @param sql
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseUnixTime(String sql, int type) {
+    public static String parseUnixTime(String sql, String dbType) {
         int count = 0;
         while (true) {
             Matcher matcher = pUnixTime.matcher(sql);
@@ -115,7 +140,7 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseUnixTimeHavaMark(sqlParse, bracketsMatch[0], type);
+            String str = parseUnixTimeHavaMark(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -123,10 +148,10 @@ public class SQLDateFunctionUtil {
     /**
      * 匹配 DATE(
      * @param sql
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseDate(String sql, int type) {
+    public static String parseDate(String sql, String dbType) {
         int count = 0;
         while (true) {
             Matcher matcher = pDate.matcher(sql);
@@ -139,7 +164,7 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseDateHavaMark(sqlParse, bracketsMatch[0], type);
+            String str = parseDateHavaMark(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -147,10 +172,10 @@ public class SQLDateFunctionUtil {
     /**
      * 匹配 YEAR(、QUARTER(、MONTH(、DAY(、HOUR(、MINUTE(、SECOND、DAYOFYEAR(、DAYOFMONTH(、DAYOFWEEK(
      * @param sql
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseUnitFuncGetNum(String sql, int type){
+    public static String parseUnitFuncGetNum(String sql, String dbType){
         int count = 0;
         while (true){
             Matcher matcher = pUnitFuncGetNum.matcher(sql);
@@ -163,7 +188,7 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseUnitFuncGetNumHaveMark(sqlParse, bracketsMatch[0], type);
+            String str = parseUnitFuncGetNumHaveMark(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -171,10 +196,10 @@ public class SQLDateFunctionUtil {
     /**
      * 匹配 pMarkDate(
      * @param sql
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseMarkDate(String sql, int type) {
+    public static String parseMarkDate(String sql, String dbType) {
         int count = 0;
         while (true) {
             Matcher matcher = pMarkDate.matcher(sql);
@@ -187,7 +212,7 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseMarkDateHaveMark(sqlParse, bracketsMatch[0], type);
+            String str = parseMarkDateHaveMark(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -195,10 +220,10 @@ public class SQLDateFunctionUtil {
     /**
      * 匹配 LAST_DAY(
      * @param sql
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseLastDayFunc(String sql, int type){
+    public static String parseLastDayFunc(String sql, String dbType){
         int count = 0;
         while (true) {
             Matcher matcher = pLastDateFunc.matcher(sql);
@@ -211,7 +236,7 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseLastDayFuncHaveMark(sqlParse, bracketsMatch[0], type);
+            String str = parseLastDayFuncHaveMark(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -219,10 +244,10 @@ public class SQLDateFunctionUtil {
     /**
      * 匹配 涉及DATE()-、DATE()+
      * @param sql
-     * @param type
+     * @param dbType
      * @return
      */
-    public static String parseDateCalculateNum(String sql, int type){
+    public static String parseDateCalculateNum(String sql, String dbType){
         int count = 0;
         String sqlTmp = "";
         while (true) {
@@ -247,7 +272,7 @@ public class SQLDateFunctionUtil {
             if (bracketsMatch2[0] >= 1) {
                 --bracketsMatch2[0];
             }
-            String str = parseDateCalculateNumHaveMark(sqlParse, bracketsMatch[0],bracketsMatch2[0], type);
+            String str = parseDateCalculateNumHaveMark(sqlParse, bracketsMatch[0],bracketsMatch2[0], dbType);
             sql = sql.substring(0, matcher.start()) + str;
         }
     }
@@ -255,12 +280,12 @@ public class SQLDateFunctionUtil {
     /**
      * 替换 涉及DATE()-、DATE()+
      * @param sqlParse
-     * @param num
-     * @param num2
-     * @param type
+     * @param num 括号总个数
+     * @param num2 date函数内括号数
+     * @param dbType
      * @return
      */
-    private static String parseDateCalculateNumHaveMark(String sqlParse, int num, int num2, int type) {
+    private static String parseDateCalculateNumHaveMark(String sqlParse, int num, int num2, String dbType) {
         Pattern pDateCalculateNumParse = Pattern.compile("(DATE)\\s*\\((.*?(.*?\\).*?){" + num2 + "})\\)(.*?(.*?\\).*?){" + (num - num2 - 1) + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mDateCalculateNumParse = pDateCalculateNumParse.matcher(sqlParse);
@@ -271,13 +296,13 @@ public class SQLDateFunctionUtil {
             if (StringUtil.getBracketsMatch(group0.substring(0, group0.length() - 1), "(", true)[0] == num) {
                 String[] split = group4.split(",");
                 String replaceValue = "";
-                if(type == 1){
+                if(DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)){
                     if (split.length == 1) {
                         replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "]]+[" + group4 + "]*86400 )";
                     } else if (split.length == 2) {
                         replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "]]+[" + split[0] + "]*86400 ," + split[1] + ")";
                     }
-                }else if(type == 2){
+                }else if(DBTypeEnum.DRUID.getValue().equals(dbType)){
                     if (split.length == 1) {
                         replaceValue = "TIME_SHIFT#[FLOOR#[ TIMESTAMP " + group2 + " to day],'P1D'," + group4 + "])";
                     } else if (split.length == 2) {
@@ -296,15 +321,15 @@ public class SQLDateFunctionUtil {
      * 替换 LAST_DAY(date)
      * @param sqlParse
      * @param num 包含括号个数
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseLastDayFuncHaveMark(String sqlParse, int num, int type) {
+    public static String parseLastDayFuncHaveMark(String sqlParse, int num, String dbType) {
         Pattern pLastDayParse = Pattern.compile("(LAST_DAY)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mLastDayParse = pLastDayParse.matcher(sqlParse);
         if (mLastDayParse.find()) {
-            String replaceValue = lastDayRealize(mLastDayParse.group(1), mLastDayParse.group(2), type);
+            String replaceValue = lastDayRealize(mLastDayParse.group(1), mLastDayParse.group(2), dbType);
             mLastDayParse.appendReplacement(sb, replaceValue);
         }
         mLastDayParse.appendTail(sb);
@@ -315,15 +340,15 @@ public class SQLDateFunctionUtil {
      * 实现替换：LAST_DAY(date)
      * @param unit
      * @param param
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    private static String lastDayRealize(String unit, String param, int type) {
+    private static String lastDayRealize(String unit, String param, String dbType) {
         String replaceValue = null;
         if("LAST_DAY".equals(unit.toUpperCase())){
-            if(type ==  1){
+            if(DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)){
                 replaceValue = "addDays#[addMonths#[toStartOfMonth#[toDateTime#[" + param + "]],1],-1]";
-            }else if(type == 2){
+            }else if(DBTypeEnum.DRUID.getValue().equals(dbType)){
                 replaceValue = "TIME_SHIFT#[FLOOR#[TIME_SHIFT#[ TIMESTAMP " + param + ", 'P1M', 1] to month], 'P1D', -1]";
             }
         }
@@ -334,15 +359,15 @@ public class SQLDateFunctionUtil {
      * 替换：MAKEDATE(year,dayofyear)
       * @param sqlParse
      * @param num 函数参数包含括号的个数
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseMarkDateHaveMark(String sqlParse, int num, int type) {
+    public static String parseMarkDateHaveMark(String sqlParse, int num, String dbType) {
         Pattern pMarkDateParse = Pattern.compile("(MAKEDATE)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mMarkDateParse = pMarkDateParse.matcher(sqlParse);
         if (mMarkDateParse.find()) {
-            String replaceValue = markDateRealize(mMarkDateParse.group(1), mMarkDateParse.group(2), type);
+            String replaceValue = markDateRealize(mMarkDateParse.group(1), mMarkDateParse.group(2), dbType);
             mMarkDateParse.appendReplacement(sb, replaceValue);
         }
         mMarkDateParse.appendTail(sb);
@@ -353,10 +378,10 @@ public class SQLDateFunctionUtil {
      * 实现替换：MAKEDATE(year,dayofyear)
      * @param func
      * @param expr
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    private static String markDateRealize(String func, String expr, int type) {
+    private static String markDateRealize(String func, String expr, String dbType) {
         String replaceValue = null;
         List<String> params = diviParam(expr, ",");
         if ("MAKEDATE".equals(func.toUpperCase()) && params.size() == 2) {
@@ -373,7 +398,7 @@ public class SQLDateFunctionUtil {
                 if (mYear.find()) {
                     String group1 = mYear.group(1);
                     String group5 = mYear.group(5);
-                    if (type == 1) {
+                    if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
                         if (group1 != null && !"".equals(group1.trim()) && group5 != null && !"".equals(group5.trim())) {
                             replaceValue = "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "]]," + group1 + " " + group5 + "]," + params.get(1) + " -1 ]]";
                         } else if (group5 != null && !"".equals(group5.trim())) {
@@ -383,7 +408,7 @@ public class SQLDateFunctionUtil {
                         } else {
                             replaceValue = "toDateTime#[addDays#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "]]," + params.get(1) + " -1 ]]";
                         }
-                    } else if (type == 2) {
+                    } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
                         if (group1 != null && !"".equals(group1.trim()) && group5 != null && !"".equals(group5.trim())) {
                             replaceValue = "TIME_SHIFT#[TIME_SHIFT#[FLOOR#[ TIMESTAMP " + mYear.group(3) + " to year],'P1Y'," + group1 + " " + group5 + " ],'P1D'," + params.get(1) + " -1 ]";
                         } else if (group5 != null && !"".equals(group5.trim())) {
@@ -404,15 +429,15 @@ public class SQLDateFunctionUtil {
      * 替换 YEAR(expr)、QUARTER(expr)、MONTH(expr)、DAY(expr)、HOUR(expr)、MINUTE(expr)、SECONDexpr)、DAYOFYEAR(expr)、DAYOFMONTH(expr)、DAYOFWEEK(expr)
      * @param sqlParse
      * @param num
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    private static String parseUnitFuncGetNumHaveMark(String sqlParse, int num, int type) {
+    private static String parseUnitFuncGetNumHaveMark(String sqlParse, int num, String dbType) {
         Pattern pUnitFuncParse = Pattern.compile("(YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|SECOND|DAYOFYEAR|DAYOFMONTH|DAYOFWEEK)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mUnitFuncParse = pUnitFuncParse.matcher(sqlParse);
         if (mUnitFuncParse.find()) {
-            String replaceValue = unitFuncGetNumRealize(mUnitFuncParse.group(1), mUnitFuncParse.group(2), type);
+            String replaceValue = unitFuncGetNumRealize(mUnitFuncParse.group(1), mUnitFuncParse.group(2), dbType);
             mUnitFuncParse.appendReplacement(sb, replaceValue);
         }
         mUnitFuncParse.appendTail(sb);
@@ -423,13 +448,13 @@ public class SQLDateFunctionUtil {
      * 实现替换：YEAR(expr)、QUARTER(expr)、MONTH(expr)、DAY(expr)、HOUR(expr)、MINUTE(expr)、SECONDexpr)、DAYOFYEAR(expr)、DAYOFMONTH(expr)、DAYOFWEEK(expr)
      * @param unit
      * @param expr
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    private static String unitFuncGetNumRealize(String unit,String expr, int type) {
+    private static String unitFuncGetNumRealize(String unit,String expr, String dbType) {
         String replaceValue = null;
         unit = unit.toUpperCase();
-        if(type == 1){
+        if(DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)){
             switch (unit){
                 case "YEAR": replaceValue = "toYear#[toDateTime#[" + expr + "]]"; break;
                 case "QUARTER": replaceValue = "toQuarter#[toDateTime#[" + expr + "]]"; break;
@@ -443,7 +468,7 @@ public class SQLDateFunctionUtil {
                 case "DAYOFWEEK": replaceValue = "toDayOfWeek#[addDays#[toDateTime#["+ expr + "],1]]";break;
                 default: replaceValue = unit+"#[" + expr + "]";
             }
-        }else if(type == 2){
+        }else if(DBTypeEnum.DRUID.getValue().equals(dbType)){
             switch (unit){
                 case "YEAR": replaceValue = "TIME_EXTRACT#[TIME_SHIFT#[ TIMESTAMP " + expr + ",'PT1M',0], 'YEAR' ]"; break;
                 case "QUARTER": replaceValue = "TIME_EXTRACT#[TIME_SHIFT#[ TIMESTAMP " + expr + ",'PT1M',0], 'QUARTER' ]"; break;
@@ -465,10 +490,10 @@ public class SQLDateFunctionUtil {
      * 实现相对时间相关替换：
      * @param params
      * @param sign ADD相关为true,SUB相关为false;
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    private static String dateRelative(List<String> params, Boolean sign, int type) {
+    private static String dateRelative(List<String> params, Boolean sign, String dbType) {
         String replaceValue = "";
         if (params.size() == 2 && params.get(1).toUpperCase().contains("INTERVAL")) {
             String param1 = params.get(0);
@@ -479,7 +504,7 @@ public class SQLDateFunctionUtil {
                 if(!sign){
                     param2 = "-  #[" + param2 + "]";
                 }
-                if(type == 1){
+                if(DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)){
                     switch (matcher.group(2).toUpperCase()){
                         case "SECOND": replaceValue = "toDateTime#[" + param1 + "]" + param2; break;
                         case "MINUTE": replaceValue = "toDateTime#[" + param1 + "]" + param2 + "*60"; break;
@@ -491,7 +516,7 @@ public class SQLDateFunctionUtil {
                         case "YEAR": replaceValue = "addYears#[toDateTime#[" + param1 + "]," + param2 + "]"; break;
                         default:replaceValue = param1 + param2; break;
                     }
-                }else if(type ==2){
+                }else if(DBTypeEnum.DRUID.getValue().equals(dbType)){
                     switch (matcher.group(2).toUpperCase()) {
                         case "SECOND": replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'PT1S',"+ param2 +"]"; break;
                         case "MINUTE": replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'PT1M',"+ param2 +"]"; break;
@@ -512,9 +537,9 @@ public class SQLDateFunctionUtil {
             if(!sign){
                 param2 = "-  #[" + param2 + "]";
             }
-            if(type == 1){
+            if(DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)){
                 replaceValue = "addDays#[toDateTime#[" + param1 + "]," + param2 + "]";
-            }else if(type ==2){
+            }else if(DBTypeEnum.DRUID.getValue().equals(dbType)){
                 replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'P1D'," + param2 + "]";
             }
         }
@@ -525,22 +550,22 @@ public class SQLDateFunctionUtil {
      * 实现替换：FROM_UNIXTIME(unix_timestamp)、FROM_UNIXTIME(date,format)、DATE_FORMAT(date,format)、STR_TO_DATE(date,format)
      * @param func
      * @param param
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    private static String dateFormatRealize(String func, String param, boolean bool, int type) {
+    private static String dateFormatRealize(String func, String param, boolean bool, String dbType) {
         List<String> params = diviParam(param, ",");
         String param1 = params.get(0);
         String replaceValue = null;
         if ("FROM_UNIXTIME".equals(func.toUpperCase()) && params.size() == 1) {
-            if (type == 1) {
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
                 replaceValue = "toDateTime#[" + param + "]";
-            } else if (type == 2 && !bool) {
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType) && !bool) {
                 replaceValue = "MILLIS_TO_TIMESTAMP#[ 1000 * [" + param + "]]";
-            }else if (type == 2 && bool) {
+            }else if (DBTypeEnum.DRUID.getValue().equals(dbType) && bool) {
                 replaceValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[ 1000 * [" + param + "]],'YYYY-MM-dd HH:mm:ss']";
             }
-        } else if (func.contains("FROM_UNIXTIME") && type == 2 && "%Y-%m-%d %H:%i:%s".equals(params.get(1).replaceAll("\\'|\\\"", "").trim())) {
+        } else if (func.contains("FROM_UNIXTIME") && DBTypeEnum.DRUID.getValue().equals(dbType) && "%Y-%m-%d %H:%i:%s".equals(params.get(1).replaceAll("\\'|\\\"", "").trim())) {
             if (!bool) {
                 replaceValue = "MILLIS_TO_TIMESTAMP#[ 1000*[" + param1 + "]]";
             } else if (bool) {
@@ -548,7 +573,7 @@ public class SQLDateFunctionUtil {
             }
         } else {
             String param2 = params.get(1).replaceAll("\\'|\\\"", "").trim();
-            if (type == 1 && bool) {
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType) && bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s": replaceValue = "toDateTime#[" + param1 + "]"; break;
                     case "%Y-%m-%d %H:%i:00": replaceValue = "toStartOfMinute#[toDateTime#[" + param1 + "]]"; break;
@@ -561,7 +586,7 @@ public class SQLDateFunctionUtil {
                     case "%Y-01-01": replaceValue = "formatDateTime#[toDateTime#["+ param1 +"], '%Y-01-01]"; break;
                     default: replaceValue = "toDateTime#[" + param1 + "]";
                 }
-            }else if (type == 1 && !bool) {
+            }else if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType) && !bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s": replaceValue = "toDateTime#[" + param1 + "]"; break;
                     case "%Y-%m-%d %H:%i:00": replaceValue = "toStartOfMinute#[toDateTime#[" + param1 + "]]"; break;
@@ -574,7 +599,7 @@ public class SQLDateFunctionUtil {
                     case "%Y-01-01": replaceValue = "toStartOfYear#[toDateTime#[" + param1 + "]]"; break;
                     default: replaceValue = "toDateTime#[" + param1 + "]";
                 }
-            } else if (type == 2 && bool) {
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType) && bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s": replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-MM-dd HH:mm:ss']"; break;
                     case "%Y-%m-%d %H:%i:00": replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-MM-dd HH:mm:00']"; break;
@@ -587,7 +612,7 @@ public class SQLDateFunctionUtil {
                     case "%Y-01-01": replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-01-01']"; break;
                     default: replaceValue = "TIME_FORMAT#[ TIMESTAMP "+ param1 +",'YYYY-MM-dd HH:mm:ss']";
                 }
-            } else if (type == 2 && !bool) {
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType) && !bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s": replaceValue = " TIMESTAMP " + param1; break;
                     case "%Y-%m-%d %H:%i:00": replaceValue = "FLOOR#[ TIMESTAMP " + param1 + " to minute]"; break;
@@ -608,15 +633,15 @@ public class SQLDateFunctionUtil {
     /**
      * 解析之后的sql处理
      * @param sql
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String specialDisposeEnd(String sql, int type) {
+    public static String specialDisposeEnd(String sql, String dbType) {
         if (sql == null) {
             return sql;
         }
         StringBuffer sb = new StringBuffer();
-        if (type == 1) {
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
             Matcher mStrDateTime = pStrDateTime.matcher(sql);
             while (mStrDateTime.find()) {
                 String innerValue = mStrDateTime.group(1) + " toDateTime#[" + mStrDateTime.group(2) + "]";
@@ -624,7 +649,7 @@ public class SQLDateFunctionUtil {
             }
             mStrDateTime.appendTail(sb);
             sql = sb.toString();
-        } else if (type == 2) {
+        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
 
             Matcher mNowFun = pNow.matcher(sql);
             while (mNowFun.find()) {
@@ -672,10 +697,10 @@ public class SQLDateFunctionUtil {
      * @param sqlParse
      * @param num 包含括号的个数
      * @param bool 应用的分组中为true 条件范围中则为false
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String dateFormatHavaMark(String sqlParse, int num, boolean bool, int type) {
+    public static String dateFormatHavaMark(String sqlParse, int num, boolean bool, String dbType) {
         Pattern pDateFormatMark = Pattern.compile("(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher mDateFormatMark = pDateFormatMark.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -683,7 +708,7 @@ public class SQLDateFunctionUtil {
             String group2 = mDateFormatMark.group(2);
             String replaceValue = group2;
             if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
-                replaceValue = dateFormatRealize(mDateFormatMark.group(1),group2, bool , type);
+                replaceValue = dateFormatRealize(mDateFormatMark.group(1),group2, bool , dbType);
             }
             mDateFormatMark.appendReplacement(sb, replaceValue);
         }
@@ -692,13 +717,13 @@ public class SQLDateFunctionUtil {
     }
 
     /**
-     * 替换SUBDATE(expr,days)、SUBDATE(expr,days)、SUBDATE(date,INTERVAL expr type)、ADDDATE(date,INTERVAL expr type)、DATE_SUB(date,INTERVAL expr type)、DATE_ADD(date,INTERVAL expr type)
+     * 替换SUBDATE(expr,days)、SUBDATE(expr,days)、SUBDATE(date,INTERVAL expr dbType)、ADDDATE(date,INTERVAL expr dbType)、DATE_SUB(date,INTERVAL expr dbType)、DATE_ADD(date,INTERVAL expr dbType)
      * @param sqlParse
      * @param num 包含的括号个数
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String dateRelativeHaveMark(String sqlParse,int num,int type){
+    public static String dateRelativeHaveMark(String sqlParse,int num,String dbType){
         Pattern pDateRelativeParse = Pattern.compile("(ADDDATE|DATE_ADD|SUBDATE|DATE_SUB)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pDateRelativeParse.matcher(sqlParse);
         String innerValue = "";
@@ -712,7 +737,7 @@ public class SQLDateFunctionUtil {
             }
             if (StringUtil.getBracketsMatch(matcherParse.group(2), null,false)[0] >= 0) {
                 List<String> params = diviParam(matcherParse.group(2), ",");
-                innerValue = dateRelative(params, sign, type);
+                innerValue = dateRelative(params, sign, dbType);
             }
             matcherParse.appendReplacement(sb, innerValue);
         }
@@ -724,22 +749,22 @@ public class SQLDateFunctionUtil {
      * 实现替换：UNIX_TIMESTAMP()、UNIX_TIMESTAMP(expr)
      * @param sqlParse
      * @param num 包含的括号个数
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseUnixTimeHavaMark(String sqlParse, int num, int type) {
+    public static String parseUnixTimeHavaMark(String sqlParse, int num, String dbType) {
         Pattern pUnixTimeParse = Pattern.compile("(UNIX_TIMESTAMP)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pUnixTimeParse.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
         String innerValue = null;
         if (matcherParse.find()) {
-            if (type == 1) {
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "toUnixTimestamp#[now#[]]";
                 } else {
                     innerValue = "toUnixTimestamp#[ " + matcherParse.group(2) + "]";
                 }
-            } else if (type == 2) {
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "0.001 * TIMESTAMP_TO_MILLIS[CURRENT_TIMESTAMP]";
                 } else {
@@ -756,18 +781,18 @@ public class SQLDateFunctionUtil {
      * 实现替换：DATE(expr)
      * @param sqlParse
      * @param num 包含的括号个数
-     * @param type 1:ClickHouse;    2:Druid
+     * @param dbType
      * @return
      */
-    public static String parseDateHavaMark(String sqlParse, int num, int type) {
+    public static String parseDateHavaMark(String sqlParse, int num, String dbType) {
         Pattern pDateParse = Pattern.compile("(DATE)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pDateParse.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
         String innerValue = null;
         if (matcherParse.find()) {
-            if (type == 1) {
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
                 innerValue = "toStartOfDay#[toDateTime#[" + matcherParse.group(2) + "]]";
-            } else if (type == 2) {
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
                 innerValue = "TIME_FLOOR#[ TIMESTAMP " + matcherParse.group(2) + ",'P1D']";
             }
             matcherParse.appendReplacement(sb, innerValue);

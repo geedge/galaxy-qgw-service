@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLDateFunctionUtil;
@@ -73,23 +74,8 @@ public class DruidDialect implements  Dialect {
     @Override
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
-        param.setQuery(generateDateFunction(param.getQuery()));
+        param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.DRUID.getValue()));
         return this;
-    }
-
-    private String generateDateFunction(String sql) {
-        sql = SQLDateFunctionUtil.parseMarkDate(sql,2);
-        sql = SQLDateFunctionUtil.parseDateCalculateNum(sql,2);
-        sql = SQLDateFunctionUtil.parseLastDayFunc(sql,2);
-        sql = SQLDateFunctionUtil.parseGroupByFormat(sql,2);
-        sql = SQLDateFunctionUtil.parseDateFormat(sql,2);
-        sql = SQLDateFunctionUtil.parseDateRelative(sql,2);
-        sql = SQLDateFunctionUtil.parseUnixTime(sql, 2);
-        sql = SQLDateFunctionUtil.parseDate(sql, 2);
-        sql = SQLDateFunctionUtil.parseUnitFuncGetNum(sql, 2);
-        sql = SQLDateFunctionUtil.specialDisposeEnd(sql, 2);
-        sql = SQLDateFunctionUtil.replaceMark(sql);
-        return sql;
     }
 
     @Override

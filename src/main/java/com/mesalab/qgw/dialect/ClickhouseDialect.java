@@ -4,6 +4,7 @@ package com.mesalab.qgw.dialect;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLDateFunctionUtil;
@@ -228,26 +229,11 @@ public class ClickhouseDialect implements Dialect {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateUniq(param.getQuery()));
         param.setQuery(generateSubQueryByRecvTime(param.getQuery()));
-        param.setQuery(generateDateFunction(param.getQuery()));
+        param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(),DBTypeEnum.CLICKHOUSE.getValue()));
         param.setQuery(generateSqlEncode(param.getQuery()));
 
 
         return this;
-    }
-
-    private String generateDateFunction(String sql) {
-        sql = SQLDateFunctionUtil.parseMarkDate(sql,1);
-        sql = SQLDateFunctionUtil.parseDateCalculateNum(sql,1);
-        sql = SQLDateFunctionUtil.parseLastDayFunc(sql,1);
-        sql = SQLDateFunctionUtil.parseGroupByFormat(sql,1);
-        sql = SQLDateFunctionUtil.parseDateFormat(sql,1);
-        sql = SQLDateFunctionUtil.parseDateRelative(sql,1);
-        sql = SQLDateFunctionUtil.parseUnixTime(sql, 1);
-        sql = SQLDateFunctionUtil.parseDate(sql, 1);
-        sql = SQLDateFunctionUtil.parseUnitFuncGetNum(sql, 1);
-        sql = SQLDateFunctionUtil.specialDisposeEnd(sql, 1);
-        sql = SQLDateFunctionUtil.replaceMark(sql);
-        return sql;
     }
 
     @Override
