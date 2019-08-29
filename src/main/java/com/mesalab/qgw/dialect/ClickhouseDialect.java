@@ -31,6 +31,12 @@ public class ClickhouseDialect implements Dialect {
     Pattern pGlobalIn = Pattern.compile("in\\s*\\(", Pattern.CASE_INSENSITIVE);
     Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
+    Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
+    Pattern pCount = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
+    /**
+     * 子查询匹配的字段(别名)  例如:(recv_time|domain|client_ip)
+     */
+    Pattern pKeyPartition = Pattern.compile("(recv_time)");
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
@@ -161,7 +167,7 @@ public class ClickhouseDialect implements Dialect {
      * @param sql
      * @return
      */
-    private String generateSubQueryByRecvTime(String sql) {
+    private String generateSubQueryByPartition(String sql) {
 
 
         if (StringUtil.isBlank(param.getSqlQuerySource().getExpr())) {
@@ -171,55 +177,46 @@ public class ClickhouseDialect implements Dialect {
         if (StringUtil.isNotBlank(param.getSqlQuerySource().getGroupByClause())) {
             return sql;
         }
-
-        Pattern p = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
-
-        if (p.matcher(sql).find()) {
-
+        Matcher mKey = pKeyPartition.matcher(param.getSqlQuerySource().getExpr());
+        if (!mKey.find() || pCount.matcher(sql).find()) {
             return sql;
         }
-
-
-
-
-        StringBuffer subQuery = new StringBuffer();
-
-        subQuery.append("select recv_time from ").append(param.getSqlQuerySource().getTableName())
-                .append(" where ").append(param.getSqlQuerySource().getExpr());
-
-        if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
-
-            subQuery.append(" order by ").append(param.getSqlQuerySource().getOrderBy());
-
-        }
-
-        if (StringUtil.isNotBlank(param.getSqlQuerySource().getLimit())) {
-            String[] limits =  param.getSqlQuerySource().getLimit().split(",");
-            if (limits.length == 2) {
-                int rows = Integer.valueOf(limits[0].trim()) + Integer.valueOf(limits[1].trim());
-                subQuery.append(" limit ").append(rows);
+        while (mKey.find()) {
+            String mKeyStr = mKey.group(1);
+            StringBuffer subQuery = new StringBuffer();
+            Pattern pAsRecvTime = Pattern.compile("(.*,|^)(.*?)\\s+as\\s+"+mKeyStr+"\\s*($|,)", Pattern.CASE_INSENSITIVE);
+            Matcher mAsKey = pAsRecvTime.matcher(param.getSqlQuerySource().getSelectItems());
+            if (mAsKey.find()) {
+                subQuery.append("select " + mAsKey.group(2) + " from ").append(param.getSqlQuerySource().getTableName())
+                        .append(" where ").append(param.getSqlQuerySource().getExpr());
             } else {
-                subQuery.append(" limit ").append(param.getSqlQuerySource().getLimit());
+                subQuery.append("select " + mKeyStr + " from ").append(param.getSqlQuerySource().getTableName())
+                        .append(" where ").append(param.getSqlQuerySource().getExpr());
             }
 
+            if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
+                subQuery.append(" order by ").append(param.getSqlQuerySource().getOrderBy());
+            }
 
+            if (StringUtil.isNotBlank(param.getSqlQuerySource().getLimit())) {
+                String[] limits = param.getSqlQuerySource().getLimit().split(",");
+                if (limits.length == 2) {
+                    int rows = Integer.valueOf(limits[0].trim()) + Integer.valueOf(limits[1].trim());
+                    subQuery.append(" limit ").append(rows);
+                } else {
+                    subQuery.append(" limit ").append(param.getSqlQuerySource().getLimit());
+                }
+            }
+
+            Matcher m = pWhere.matcher(sql);
+            StringBuffer sb = new StringBuffer();
+            if (m.find()) {
+                m.appendReplacement(sb, "where " + mKeyStr + " in ( " + subQuery + ") and  ");
+            }
+            m.appendTail(sb);
+            sql = sb.toString();
         }
-
-
-        p = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
-
-        Matcher m = p.matcher(sql);
-
-        StringBuffer sb = new StringBuffer();
-
-        while (m.find()) {
-            m.appendReplacement(sb, "where  recv_time in ( " + subQuery + ") and  ");
-        }
-
-        m.appendTail(sb);
-
-        return sb.toString();
-
+        return sql;
     }
 
 
@@ -228,7 +225,7 @@ public class ClickhouseDialect implements Dialect {
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         param.setQuery(generateUniq(param.getQuery()));
-        param.setQuery(generateSubQueryByRecvTime(param.getQuery()));
+        param.setQuery(generateSubQueryByPartition(param.getQuery()));
         param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(),DBTypeEnum.CLICKHOUSE.getValue()));
         param.setQuery(generateSqlEncode(param.getQuery()));
 
