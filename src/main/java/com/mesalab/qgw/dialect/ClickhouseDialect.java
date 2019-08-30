@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class ClickhouseDialect implements Dialect {
-    Pattern pGlobalIn = Pattern.compile("in\\s*\\(", Pattern.CASE_INSENSITIVE);
+    Pattern pGlobalIn = Pattern.compile("\\s+in\\s*\\(", Pattern.CASE_INSENSITIVE);
     Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
@@ -36,7 +36,7 @@ public class ClickhouseDialect implements Dialect {
     /**
      * 子查询匹配的字段(别名)  例如:(recv_time|domain|client_ip)
      */
-    Pattern pKeyPartition = Pattern.compile("(recv_time)");
+    Pattern pKeyPartition = Pattern.compile("(recv_time)\\s*(<|>|=)",Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
@@ -98,7 +98,7 @@ public class ClickhouseDialect implements Dialect {
         Matcher m = pGlobalIn.matcher(sql);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
-            m.appendReplacement(sb, "global in (");
+            m.appendReplacement(sb, " global in (");
         }
 
         m.appendTail(sb);
@@ -181,10 +181,15 @@ public class ClickhouseDialect implements Dialect {
         if (!mKey.find() || pCount.matcher(sql).find()) {
             return sql;
         }
+        String mKeyStrTemp = null;
         while (mKey.find()) {
             String mKeyStr = mKey.group(1);
+            if (mKeyStr.equals(mKeyStrTemp)) {
+                continue;
+            }
+            mKeyStrTemp = mKeyStr;
             StringBuffer subQuery = new StringBuffer();
-            Pattern pAsRecvTime = Pattern.compile("(.*,|^)(.*?)\\s+as\\s+"+mKeyStr+"\\s*($|,)", Pattern.CASE_INSENSITIVE);
+            Pattern pAsRecvTime = Pattern.compile("(.*,|^)(.*?\\s+(as|As|AS|aS)\\s+"+mKeyStr+")\\s*($|,)");
             Matcher mAsKey = pAsRecvTime.matcher(param.getSqlQuerySource().getSelectItems());
             if (mAsKey.find()) {
                 subQuery.append("select " + mAsKey.group(2) + " from ").append(param.getSqlQuerySource().getTableName())
