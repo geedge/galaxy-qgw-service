@@ -33,10 +33,7 @@ public class ClickhouseDialect implements Dialect {
     Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     Pattern pCount = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
-    /**
-     * 子查询匹配的字段(别名)  例如:(recv_time|domain|client_ip)
-     */
-    Pattern pKeyPartition = Pattern.compile("(recv_time)\\s*(<|>|=)",Pattern.CASE_INSENSITIVE);
+    Pattern pPartitionKey = Pattern.compile("(\\w|\\))\\s+(recv_time)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
@@ -177,51 +174,56 @@ public class ClickhouseDialect implements Dialect {
         if (StringUtil.isNotBlank(param.getSqlQuerySource().getGroupByClause())) {
             return sql;
         }
-        Matcher mKey = pKeyPartition.matcher(param.getSqlQuerySource().getExpr());
-        if (!mKey.find() || pCount.matcher(sql).find()) {
+
+        if (pCount.matcher(sql).find()) {
             return sql;
         }
-        String mKeyStrTemp = null;
-        while (mKey.find()) {
-            String mKeyStr = mKey.group(1);
-            if (mKeyStr.equals(mKeyStrTemp)) {
-                continue;
-            }
-            mKeyStrTemp = mKeyStr;
-            StringBuffer subQuery = new StringBuffer();
-            Pattern pAsRecvTime = Pattern.compile("(.*,|^)(.*?\\s+(as|As|AS|aS)\\s+"+mKeyStr+")\\s*($|,)");
-            Matcher mAsKey = pAsRecvTime.matcher(param.getSqlQuerySource().getSelectItems());
-            if (mAsKey.find()) {
-                subQuery.append("select " + mAsKey.group(2) + " from ").append(param.getSqlQuerySource().getTableName())
-                        .append(" where ").append(param.getSqlQuerySource().getExpr());
-            } else {
-                subQuery.append("select " + mKeyStr + " from ").append(param.getSqlQuerySource().getTableName())
-                        .append(" where ").append(param.getSqlQuerySource().getExpr());
-            }
 
-            if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
-                subQuery.append(" order by ").append(param.getSqlQuerySource().getOrderBy());
-            }
-
-            if (StringUtil.isNotBlank(param.getSqlQuerySource().getLimit())) {
-                String[] limits = param.getSqlQuerySource().getLimit().split(",");
-                if (limits.length == 2) {
-                    int rows = Integer.valueOf(limits[0].trim()) + Integer.valueOf(limits[1].trim());
-                    subQuery.append(" limit ").append(rows);
-                } else {
-                    subQuery.append(" limit ").append(param.getSqlQuerySource().getLimit());
-                }
-            }
-
-            Matcher m = pWhere.matcher(sql);
-            StringBuffer sb = new StringBuffer();
-            if (m.find()) {
-                m.appendReplacement(sb, "where " + mKeyStr + " in ( " + subQuery + ") and  ");
-            }
-            m.appendTail(sb);
-            sql = sb.toString();
+        Matcher mPartitionKey = pPartitionKey.matcher(param.getSqlQuerySource().getSelectItems());
+        if (mPartitionKey.find()) {
+            return sql;
         }
-        return sql;
+
+
+
+
+        StringBuffer subQuery = new StringBuffer();
+
+        subQuery.append("select recv_time from ").append(param.getSqlQuerySource().getTableName())
+                .append(" where ").append(param.getSqlQuerySource().getExpr());
+
+        if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
+
+            subQuery.append(" order by ").append(param.getSqlQuerySource().getOrderBy());
+
+        }
+
+        if (StringUtil.isNotBlank(param.getSqlQuerySource().getLimit())) {
+            String[] limits =  param.getSqlQuerySource().getLimit().split(",");
+            if (limits.length == 2) {
+                int rows = Integer.valueOf(limits[0].trim()) + Integer.valueOf(limits[1].trim());
+                subQuery.append(" limit ").append(rows);
+            } else {
+                subQuery.append(" limit ").append(param.getSqlQuerySource().getLimit());
+            }
+
+
+        }
+
+
+
+        Matcher m = pWhere.matcher(sql);
+
+        StringBuffer sb = new StringBuffer();
+
+        while (m.find()) {
+            m.appendReplacement(sb, "where  recv_time in ( " + subQuery + ") and  ");
+        }
+
+        m.appendTail(sb);
+
+        return sb.toString();
+
     }
 
 
