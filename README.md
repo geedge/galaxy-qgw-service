@@ -38,45 +38,78 @@
 
 **基于Docker**
 
+- 初始化部署
 
-*  初始化部署
-  
-     需要安装docker环境，依赖JDK1.8
 
-    1. 拷贝配置文件夹config/ 5个yml文件到docker 宿主机器目录 /root/docker/galaxy-qgw-deploy
-    
-    2. 拷贝项目Dockerfile 到宿主机器目录 /root/docker/galaxy-qgw-deploy
-    
-    3. 拷贝 galaxy-qgw-service-x.jar 到宿主目录 /root/docker/galaxy-qgw-deploy
-    
-    4. 执行./build-deploy.sh 完成部署
-    
-    5. 启停/home/ceiec/galaxy-qgw-service/bin start.sh|stop.sh
-    
-    6. 查看日志：tail -f /home/ceiec/galaxy-qgw-service/logs/galaxy-qgw-service.log
-    
-    7. 修改配置文件 
-    
-       ```
-       docker exec -u 0 -it galaxy-qgw-service /bin/bash
-       #配置文件config 目录下
-       ```
-    
-    8. 重启 stop.sh & start.sh 
-    
-*  已有镜像部署
-  
-    1. 加载备份镜像文件 docker load  < ./docker_image_galaxy-qgw-service_1.0.tar
-    
-    2. 修改镜像tag docker tag 79470009165e ceiec/galaxy-qgw-service:1.0
-    
-    3. 部署容器 docker run -d  --name galaxy-qgw-service -v /home/ceiec/galaxy-qgw-service/logs:/home/ceiec/galaxy-qgw-service/logs -p 9091:9000 --restart=always ceiec/galaxy-qgw-service:1.0
-    
-    4. 启停 docker start|stop galaxy-qgw-service
-    
-    5. 查看日志tail -f /home/ceiec/galaxy-qgw-service/logs/galaxy-qgw-service.log
-    6. 备份镜像文件 docker save 79470009165e  > /home/ceiec/docker_image_galaxy-qgw-service_1.0.tar 
-    
-    
-    
-    
+需要安装docker环境，依赖JDK1.8
+
+1. 拷贝配置文件夹config/ 5个yml文件到docker 宿主机器目录 ./qgw-deploy
+
+2. 拷贝项目Dockerfile 到宿主机器目录 ./qgw-deploy
+
+3. 拷贝 galaxy-qgw-service-x.jar 到宿主目录 ./qgw-deploy
+
+4. 执行./build-deploy.sh 完成部署
+
+5. 启停/home/tsg/galaxy/galaxy-qgw-service/bin start.sh|stop.sh
+
+6. 查看日志：tail -f /home/tsg/galaxy/galaxy-qgw-service/logs/galaxy-qgw-service.log
+
+7. 修改配置文件 
+
+   ```
+   docker exec -u 0 -it galaxy-qgw-service /bin/bash
+   #配置文件config 目录下
+   ```
+
+8. 重启 stop.sh & start.sh 
+
+- 已有镜像部署
+
+
+1. 加载备份镜像文件 docker load  < ./docker_image_galaxy-qgw-service_[version].tar
+
+2. 修改镜像tag docker tag 79470009165e ceiec/galaxy-qgw-service:[version]
+
+3. 部署容器 docker run -d  --name galaxy-qgw-service -v /home/tsg/galaxy/galaxy-qgw-service/logs:/home/tsg/galaxy/galaxy-qgw-service/logs -p 9999:9999 --restart=always galaxy/galaxy-qgw-service:[version]
+
+4. 启停 docker start|stop galaxy-qgw-service
+
+5. 查看日志tail -f /home/tsg/galaxy/galaxy-qgw-service/logs/galaxy-qgw-service.log
+6. 备份镜像文件 docker save 79470009165e  > /home/tsg/galaxy/docker_image_galaxy-qgw-service_[version].tar 
+
+- 部署前提
+
+  1. 修改 Dockerfile
+
+     时区默认Asia/Shanghai，例如修改+6区如下：
+
+     ```
+     ENV TZ=Asia/Almaty
+     ```
+
+  2. 配置文件修改
+
+     修改applicationion-prod.yml
+
+     ```
+     clickhouse:
+       url: jdbc:clickhouse://10.4.35.22:8123 //修改ck地址
+       driverClassName: ru.yandex.clickhouse.ClickHouseDriver
+       dbname: tsg_galaxy
+       username: tsgreport
+       password: XX //密钥
+       publicKey: XX
+       
+       druid:
+       url: 10.4.35.16:8082/druid/v2/sql //修改druid地址
+       dbname: druid
+       sqlTimeZone: Asia/Almaty //修改时区
+     
+     hbase:
+       url: 10.4.35.1:4444 //修改hbase地址
+       dbname: tsg 
+       tableName: report_result
+       columnFamily: response
+       columnName: result
+     ```
