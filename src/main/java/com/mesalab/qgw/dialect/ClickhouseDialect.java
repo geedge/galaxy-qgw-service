@@ -33,7 +33,7 @@ public class ClickhouseDialect implements Dialect {
     Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     Pattern pCount = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
-    Pattern pPartitionKey = Pattern.compile("(\\w|\\))\\s+(recv_time)", Pattern.CASE_INSENSITIVE);
+    Pattern pPartitionKey = Pattern.compile("(\\w|\\))\\s+(common_recv_time|recv_time)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
@@ -157,7 +157,7 @@ public class ClickhouseDialect implements Dialect {
     }
 
     /**
-     * 生成基于recv_time 事件索引子查询，目的提高日志查询检索性能
+     * 生成基于common_recv_time、recv_time 事件索引子查询，目的提高日志查询检索性能
      * 限制：
      * 1. 仅适用一级普通查询，带where （无group by 统计）的查询
      * 2. 不对count 统计进行生成
@@ -189,7 +189,13 @@ public class ClickhouseDialect implements Dialect {
 
         StringBuffer subQuery = new StringBuffer();
 
-        subQuery.append("select recv_time from ").append(param.getSqlQuerySource().getTableName())
+        String expr = param.getSqlQuerySource().getExpr();
+        String subTimeKey = "common_recv_time";
+        if(!expr.contains(subTimeKey)){
+            subTimeKey = "recv_time";
+        }
+
+        subQuery.append("select " + subTimeKey +" from ").append(param.getSqlQuerySource().getTableName())
                 .append(" where ").append(param.getSqlQuerySource().getExpr());
 
         if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
@@ -217,7 +223,7 @@ public class ClickhouseDialect implements Dialect {
         StringBuffer sb = new StringBuffer();
 
         while (m.find()) {
-            m.appendReplacement(sb, "where  recv_time in ( " + subQuery + ") and  ");
+            m.appendReplacement(sb, "where  " + subTimeKey + " in ( " + subQuery + ") and  ");
         }
 
         m.appendTail(sb);
