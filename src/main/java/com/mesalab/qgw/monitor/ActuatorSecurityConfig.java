@@ -21,7 +21,7 @@ public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                 .permitAll()
-                .antMatchers("/")
+                .antMatchers("/", "/metadata/**")
                 .permitAll()
                 .antMatchers("/**")
                 .authenticated()

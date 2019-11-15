@@ -1,0 +1,481 @@
+{
+   "namespace": "com.zdjizhi",
+   "type": "record",
+   "name": "connection_record_log",
+   "fields": [
+      {
+       "name": "common_log_id",
+       "type": "long",
+       "doc": "{\"allow_query\":\"true\"}"
+      },
+      {
+       "name": "common_service",
+       "type": "int"
+      },
+      {
+        "name": "common_recv_time",
+        "type": "int",
+        "doc": "{\"allow_query\":\"true\"}"
+      },
+      {
+        "name": "common_direction",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"outbound\"},{\"code\":\"1\",\"value\":\"inbound\"}]}"
+      },
+      {
+        "name": "common_l4_protocol",
+        "type": "string"
+      },
+      {
+        "name": "common_address_type",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"4\",\"value\":\"ipv4\"},{\"code\":\"6\",\"value\":\"ipv6\"}]}"
+      },
+      {
+        "name": "common_schema_type",
+        "type": "string"
+      },
+      {
+        "name": "common_policy_id",
+        "type": "int",
+        "doc": "{\"allow_query\":\"true\"}"
+      },
+      {
+        "name": "common_user_tags",
+        "type": "string"
+      },
+      {
+        "name": "common_action",
+        "type": "int",
+        "doc": "{\"allow_query\":\"true\",\"data\":[{\"code\":\"0\",\"value\":\"None\"},{\"code\":\"1\",\"value\":\"Monitor\"},{\"code\":\"2\",\"value\":\"Intercept\"},{\"code\":\"16\",\"value\":\"Deny\"},{\"code\":\"48\",\"value\":\"Manipulation\"},{\"code\":\"128\",\"value\":\"Allow\"}]}"
+      },
+      {
+        "name": "common_user_region",
+        "type": "string"
+      },
+      {
+        "name": "common_client_ip",
+        "type": "string",
+        "doc": "{\"allow_query\":\"true\"}"
+      },
+      {
+        "name": "common_client_port",
+        "type": "int",
+        "doc": "{\"allow_query\":\"true\"}"
+      },
+      {
+        "name": "common_entrance_id",
+        "type": "int",
+        "doc": "{\"allow_query\":\"true\"}"
+      },
+      {
+        "name": "common_device_id",
+        "type": "string"
+      },
+      {
+        "name": "common_link_id",
+        "type": "int"
+      },
+      {
+        "name": "common_isp",
+        "type": "string"
+      },
+      {
+        "name": "common_encapsulation",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"Cisco HDLC\"}]}"
+      },
+      {
+        "name": "common_sled_ip",
+        "type": "string",
+        "doc": "{\"allow_query\":\"true\"}"
+      },
+      {
+        "name": "common_client_location",
+        "type": "string"
+      },
+      {
+        "name": "common_client_asn",
+        "type": "string"
+      },
+      {
+        "name": "common_subscriber_id",
+        "type": "string",
+        "doc": "{\"allow_query\":\"true\"}"
+      },
+      {
+        "name": "common_server_ip",
+        "type": "string"
+      },
+      {
+        "name": "common_server_ipcommon_server_port",
+        "type": "int"
+      },
+      {
+        "name": "common_server_location",
+        "type": "string"
+      },
+      {
+        "name": "common_server_asn",
+        "type": "string"
+      },
+      {
+        "name": "common_app_label",
+        "type": "string"
+      },
+      {
+        "name": "common_app_id",
+        "type": "int"
+      },
+      {
+        "name": "common_protocol_id",
+        "type": "int"
+      },
+      {
+        "name": "common_c2s_pkt_num",
+        "type": "int"
+      },
+      {
+        "name": "common_s2c_pkt_num",
+        "type": "int"
+      },
+      {
+        "name": "common_c2s_byte_num",
+        "type": "int"
+      },
+      {
+        "name": "common_s2c_byte_num",
+        "type": "int"
+      },
+      {
+        "name": "common_start_time",
+        "type": "int"
+      },
+      {
+        "name": "common_end_time",
+        "type": "int"
+      },
+      {
+        "name": "common_con_duration_ms",
+        "type": "int"
+      },
+      {
+        "name": "common_stream_dir",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"c2s\"},{\"code\":\"2\",\"value\":\"s2c\"},{\"code\":\"3\",\"value\":\"double\"}]}"
+      },
+      {
+        "name": "common_address_list",
+        "type": "string"
+      },
+      {
+        "name": "common_has_dup_traffic",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"No\"},{\"code\":\"1\",\"value\":\"Yes\"}]}"
+      },
+      {
+        "name": "common_stream_error",
+        "type": "string"
+      },
+      {
+        "name": "common_stream_trace_id",
+        "type": "long"
+      },
+      {
+        "name": "http_url",
+        "type": "string"
+      },
+      {
+        "name": "http_host",
+        "type": "string"
+      },
+      {
+        "name": "http_domain",
+        "type": "string"
+      },
+      {
+        "name": "http_request_line",
+        "type": "string"
+      },
+      {
+        "name": "http_response_line",
+        "type": "string"
+      },
+      {
+        "name": "http_request_header",
+        "type": "string"
+      },
+      {
+        "name": "http_response_header",
+        "type": "string"
+      },
+      {
+        "name": "http_request_body",
+        "type": "string"
+      },
+      {
+        "name": "http_response_body",
+        "type": "string"
+      },
+      {
+        "name": "http_request_body_key",
+        "type": "string"
+      },
+      {
+        "name": "http_response_body_key",
+        "type": "string"
+      },
+      {
+        "name": "http_proxy_flag",
+        "type": "int"
+      },
+      {
+        "name": "http_sequence",
+        "type": "int"
+      },
+      {
+        "name": "http_snapshot",
+        "type": "string"
+      },
+      {
+        "name": "http_cookie",
+        "type": "string"
+      },
+      {
+        "name": "http_referer",
+        "type": "string"
+      },
+      {
+        "name": "http_user_agent",
+        "type": "string"
+      },
+      {
+        "name": "http_content_length",
+        "type": "string"
+      },
+      {
+        "name": "http_content_type",
+        "type": "string"
+      },
+      {
+        "name": "http_set_cookie",
+        "type": "string"
+      },
+      {
+        "name": "http_version",
+        "type": "string"
+      },
+      {
+        "name": "mail_protocol_type",
+        "type": "string"
+      },
+      {
+        "name": "mail_sender",
+        "type": "string"
+      },
+      {
+        "name": "mail_receiver",
+        "type": "string"
+      },
+      {
+        "name": "mail_subject",
+        "type": "string"
+      },
+      {
+        "name": "mail_content",
+        "type": "string"
+      },
+      {
+        "name": "mail_attachment_name",
+        "type": "string"
+      },
+      {
+        "name": "mail_attachment_content",
+        "type": "string"
+      },
+      {
+        "name": "mail_eml_file",
+        "type": "string"
+      },
+      {
+        "name": "mail_snapshot",
+        "type": "string"
+      },
+      {
+        "name": "dns_message_id",
+        "type": "int"
+      },
+      {
+        "name": "dns_qr",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"QUERY\"},{\"code\":\"1\",\"value\":\"REESPONSE\"}]}"
+      },
+      {
+        "name": "dns_opcode",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"QUERY\"},{\"code\":\"1\",\"value\":\"IQUERY\"},{\"code\":\"2\",\"value\":\"STATUS\"},{\"code\":\"5\",\"value\":\"UPDATE\"}]}"
+      },
+      {
+        "name": "dns_aa",
+        "type": "int"
+      },
+      {
+        "name": "dns_tc",
+        "type": "int"
+      },
+      {
+        "name": "dns_rd",
+        "type": "int"
+      },
+      {
+        "name": "dns_ra",
+        "type": "int"
+      },
+      {
+        "name": "dns_rcode",
+        "type": "int"
+      },
+      {
+        "name": "dns_qdcount",
+        "type": "int"
+      },
+      {
+        "name": "dns_ancount",
+        "type": "int"
+      },
+      {
+        "name": "dns_nscount",
+        "type": "int"
+      },
+      {
+        "name": "dns_arcount",
+        "type": "int"
+      },
+      {
+        "name": "dns_qname",
+        "type": "string"
+      },
+      {
+        "name": "dns_qtype",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"A\"},{\"code\":\"2\",\"value\":\"NS\"},{\"code\":\"5\",\"value\":\"CNAME\"},{\"code\":\"6\",\"value\":\"SOA\"},{\"code\":\"11\",\"value\":\"WKS\"},{\"code\":\"12\",\"value\":\"PTR\"},{\"code\":\"13\",\"value\":\"HINFO\"},{\"code\":\"11\",\"value\":\"WKS\"},{\"code\":\"15\",\"value\":\"MX\"},{\"code\":\"28\",\"value\":\"AAAA\"}]}"
+      },
+      {
+        "name": "dns_qclass",
+        "type": "int"
+      },
+      {
+        "name": "dns_cname",
+        "type": "string"
+      },
+      {
+        "name": "dns_sub",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"DNS\"},{\"code\":\"2\",\"value\":\"DNSSEC\"}]}"
+      },
+      {
+        "name": "dns_rr",
+        "type": "string"
+      },
+      {
+        "name": "ssl_version",
+        "type": "string"
+      },
+      {
+        "name": "ssl_sni",
+        "type": "string",
+        "doc": "{\"allow_query\":\"true\"}"
+      },
+      {
+        "name": "ssl_san",
+        "type": "string"
+      },
+      {
+        "name": "ssl_cn",
+        "type": "string"
+      },
+      {
+        "name": "ssl_pinningst",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Not Pinning\"},{\"code\":\"1\",\"value\":\"Pinning\"},{\"code\":\"2\",\"value\":\"Maybe Pinning\"}]}"
+      },
+      {
+        "name": "ssl_intercept_state",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Passthrough\"},{\"code\":\"1\",\"value\":\"Intercept\"},{\"code\":\"2\",\"value\":\"Shutdown\"}]}"
+      },
+      {
+        "name": "ssl_server_side_latency",
+        "type": "int"
+      },
+      {
+        "name": "ssl_client_side_latency",
+        "type": "int"
+      },
+      {
+        "name": "ssl_server_side_version",
+        "type": "string"
+      },
+      {
+        "name": "ssl_client_side_version",
+        "type": "string"
+      },
+      {
+        "name": "ssl_cert_verify",
+        "type": "int",
+        "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"No\"},{\"code\":\"1\",\"value\":\"Yes\"}]}"
+      },
+      {
+        "name": "ssl_error",
+        "type": "string"
+      },
+      {
+        "name": "ssl_con_latency_ms",
+        "type": "int"
+      },
+      {
+        "name": "ftp_url",
+        "type": "string"
+      },
+      {
+        "name": "ftp_content",
+        "type": "string"
+      },
+      {
+        "name": "bgp_type",
+        "type": "int"
+      },
+      {
+        "name": "bgp_as_num",
+        "type": "string"
+      },
+      {
+        "name": "bgp_route",
+        "type": "string"
+      },
+      {
+        "name": "voip_calling_account",
+        "type": "string"
+      },
+      {
+        "name": "voip_called_account",
+        "type": "string"
+      },
+      {
+        "name": "voip_calling_number",
+        "type": "string"
+      },
+      {
+        "name": "voip_called_number",
+        "type": "string"
+      },
+      {
+        "name": "streaming_media_url",
+        "type": "string"
+      },
+      {
+        "name": "streaming_media_protocol",
+        "type": "string"
+      }
+    ]
+}

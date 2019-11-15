@@ -11,10 +11,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @Slf4j
 @Api(value = "/", tags = "银河数据平台-统一接入网关")
@@ -58,6 +57,11 @@ public class APIController {
 
     }
 
-
-
+    @ApiOperation(value = "HTTP SCHEMA 查询", httpMethod = "GET", notes = "元数据管理，用于描述数据的数据。包含数据库表结构，支持那些数据表，业务规则定义等。")
+    @GetMapping("/metadata/schema/v1/fileds/{tableName}")
+    @CachedSubmitCheck
+    public BaseResult getSchema(@PathVariable String tableName){
+        log.debug("接收SCHEMA获取 表名为:{}", tableName);
+        return apiService.querySchema(tableName);
+    }
 }

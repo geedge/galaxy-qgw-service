@@ -12,11 +12,13 @@ import com.alibaba.druid.sql.ast.statement.*;
 import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
 import com.alibaba.druid.util.JdbcConstants;
+import com.alibaba.fastjson.*;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
@@ -25,23 +27,22 @@ import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.IAPIService;
+import com.zdjizhi.*;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.parser.Node;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
-import net.sf.jsqlparser.util.AddAliasesVisitor;
 import net.sf.jsqlparser.util.TablesNamesFinder;
-import net.sf.jsqlparser.util.deparser.SelectDeParser;
+import org.apache.avro.JsonProperties;
+import org.apache.avro.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service("apiService")
@@ -64,7 +65,54 @@ public class APIServiceImpl implements IAPIService {
         return baseResult;
     }
 
+    @Override
+    public BaseResult querySchema(String table){
 
+        Map<String, JsonProperties> allSchema = getSchemaInfo();
+        Map resultMap = JSONObject.parseObject(String.valueOf(allSchema.get(table)), Map.class);
+        if(resultMap == null){
+            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "该表未在平台注册，请联系数据平台负责人", null);
+        }
+        JSONArray fields = (JSONArray) resultMap.get("fields");
+        Iterator<Object> iterator = fields.iterator();
+        Map mapDoc =null;
+        while (iterator.hasNext()){
+            Map next = (Map)iterator.next();
+            try{
+                mapDoc = JSONObject.parseObject(String.valueOf(next.get("doc")), Map.class);
+            }catch (JSONException ex){
+                log.debug("该字段的 doc 为非JSON字符串，不需类型转换");
+            }
+            if(mapDoc != null){
+                next.put("doc", mapDoc);
+            }
+        }
+        BaseResult<Map> baseResult = BaseResultGenerator.success("ok", resultMap);
+        if (!baseResult.isSuccess()) {
+            throw new BusinessException(baseResult.getStatus() ,baseResult.getMessage(), null);
+        }
+        return baseResult;
+
+    }
+
+
+    // 获取所有schema信息
+    public Map<String, JsonProperties> getSchemaInfo(){
+
+        Map<String, JsonProperties> allSchema = new HashMap<>();
+
+        // 面像对象方式：需提前用maven clean install 生成schema类文件
+        Schema schema1 = new connection_record_log().getSchema();
+        Schema schema2 = new proxy_event_log().getSchema();
+        Schema schema3 = new radius_record_log().getSchema();
+        Schema schema4 = new security_event_log().getSchema();
+        allSchema.put(schema1.getName() , schema1);
+        allSchema.put(schema2.getName() , schema2);
+        allSchema.put(schema3.getName() , schema3);
+        allSchema.put(schema4.getName() , schema4);
+
+        return allSchema;
+    }
 
     private Dialect parserAndGetDialect(ApiParam param) {
 
