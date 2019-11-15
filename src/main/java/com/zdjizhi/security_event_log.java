@@ -14,8 +14,8 @@ import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class security_event_log extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 315323809095150671L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"security_event_log\",\"namespace\":\"com.zdjizhi\",\"fields\":[{\"name\":\"common_log_id\",\"type\":\"long\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_service\",\"type\":\"int\"},{\"name\":\"common_recv_time\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_direction\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"outbound\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"inbound\\\"}]}\"},{\"name\":\"common_l4_protocol\",\"type\":\"string\"},{\"name\":\"common_address_type\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"4\\\",\\\"value\\\":\\\"ipv4\\\"},{\\\"code\\\":\\\"6\\\",\\\"value\\\":\\\"ipv6\\\"}]}\"},{\"name\":\"common_schema_type\",\"type\":\"string\"},{\"name\":\"common_policy_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_user_tags\",\"type\":\"string\"},{\"name\":\"common_action\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"None\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Monitor\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Intercept\\\"},{\\\"code\\\":\\\"16\\\",\\\"value\\\":\\\"Deny\\\"},{\\\"code\\\":\\\"48\\\",\\\"value\\\":\\\"Manipulation\\\"},{\\\"code\\\":\\\"128\\\",\\\"value\\\":\\\"Allow\\\"}]}\"},{\"name\":\"common_user_region\",\"type\":\"string\"},{\"name\":\"common_client_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_client_port\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_entrance_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_device_id\",\"type\":\"string\"},{\"name\":\"common_link_id\",\"type\":\"int\"},{\"name\":\"common_isp\",\"type\":\"string\"},{\"name\":\"common_encapsulation\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Ethernet\\\"},{\\\"code\\\":\\\"8\\\",\\\"value\\\":\\\"PPP\\\"},{\\\"code\\\":\\\"12\\\",\\\"value\\\":\\\"Cisco HDLC\\\"}]}\"},{\"name\":\"common_sled_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_client_location\",\"type\":\"string\"},{\"name\":\"common_client_asn\",\"type\":\"string\"},{\"name\":\"common_subscriber_id\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_server_ip\",\"type\":\"string\"},{\"name\":\"common_server_ipcommon_server_port\",\"type\":\"int\"},{\"name\":\"common_server_location\",\"type\":\"string\"},{\"name\":\"common_server_asn\",\"type\":\"string\"},{\"name\":\"common_app_label\",\"type\":\"string\"},{\"name\":\"common_app_id\",\"type\":\"int\"},{\"name\":\"common_protocol_id\",\"type\":\"int\"},{\"name\":\"common_c2s_pkt_num\",\"type\":\"int\"},{\"name\":\"common_s2c_pkt_num\",\"type\":\"int\"},{\"name\":\"common_c2s_byte_num\",\"type\":\"int\"},{\"name\":\"common_s2c_byte_num\",\"type\":\"int\"},{\"name\":\"common_start_time\",\"type\":\"int\"},{\"name\":\"common_end_time\",\"type\":\"int\"},{\"name\":\"common_con_duration_ms\",\"type\":\"int\"},{\"name\":\"common_stream_dir\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"c2s\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"s2c\\\"},{\\\"code\\\":\\\"3\\\",\\\"value\\\":\\\"double\\\"}]}\"},{\"name\":\"common_address_list\",\"type\":\"string\"},{\"name\":\"common_has_dup_traffic\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"No\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Yes\\\"}]}\"},{\"name\":\"common_stream_error\",\"type\":\"string\"},{\"name\":\"common_stream_trace_id\",\"type\":\"string\"},{\"name\":\"http_url\",\"type\":\"string\"},{\"name\":\"http_host\",\"type\":\"string\"},{\"name\":\"http_domain\",\"type\":\"string\"},{\"name\":\"http_request_line\",\"type\":\"string\"},{\"name\":\"http_response_line\",\"type\":\"string\"},{\"name\":\"http_request_header\",\"type\":\"string\"},{\"name\":\"http_response_header\",\"type\":\"string\"},{\"name\":\"http_request_body\",\"type\":\"string\"},{\"name\":\"http_response_body\",\"type\":\"string\"},{\"name\":\"http_request_body_key\",\"type\":\"string\"},{\"name\":\"http_response_body_key\",\"type\":\"string\"},{\"name\":\"http_proxy_flag\",\"type\":\"int\"},{\"name\":\"http_sequence\",\"type\":\"int\"},{\"name\":\"http_snapshot\",\"type\":\"string\"},{\"name\":\"http_cookie\",\"type\":\"string\"},{\"name\":\"http_referer\",\"type\":\"string\"},{\"name\":\"http_user_agent\",\"type\":\"string\"},{\"name\":\"http_content_length\",\"type\":\"string\"},{\"name\":\"http_content_type\",\"type\":\"string\"},{\"name\":\"http_set_cookie\",\"type\":\"string\"},{\"name\":\"http_version\",\"type\":\"string\"},{\"name\":\"mail_protocol_type\",\"type\":\"string\"},{\"name\":\"mail_sender\",\"type\":\"string\"},{\"name\":\"mail_receiver\",\"type\":\"string\"},{\"name\":\"mail_subject\",\"type\":\"string\"},{\"name\":\"mail_content\",\"type\":\"string\"},{\"name\":\"mail_attachment_name\",\"type\":\"string\"},{\"name\":\"mail_attachment_content\",\"type\":\"string\"},{\"name\":\"mail_eml_file\",\"type\":\"string\"},{\"name\":\"mail_snapshot\",\"type\":\"string\"},{\"name\":\"dns_message_id\",\"type\":\"int\"},{\"name\":\"dns_qr\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"QUERY\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"REESPONSE\\\"}]}\"},{\"name\":\"dns_opcode\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"QUERY\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"IQUERY\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"STATUS\\\"},{\\\"code\\\":\\\"5\\\",\\\"value\\\":\\\"UPDATE\\\"}]}\"},{\"name\":\"dns_aa\",\"type\":\"int\"},{\"name\":\"dns_tc\",\"type\":\"int\"},{\"name\":\"dns_rd\",\"type\":\"int\"},{\"name\":\"dns_ra\",\"type\":\"int\"},{\"name\":\"dns_rcode\",\"type\":\"int\"},{\"name\":\"dns_qdcount\",\"type\":\"int\"},{\"name\":\"dns_ancount\",\"type\":\"int\"},{\"name\":\"dns_nscount\",\"type\":\"int\"},{\"name\":\"dns_arcount\",\"type\":\"int\"},{\"name\":\"dns_qname\",\"type\":\"string\"},{\"name\":\"dns_qtype\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"A\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"NS\\\"},{\\\"code\\\":\\\"5\\\",\\\"value\\\":\\\"CNAME\\\"},{\\\"code\\\":\\\"6\\\",\\\"value\\\":\\\"SOA\\\"},{\\\"code\\\":\\\"11\\\",\\\"value\\\":\\\"WKS\\\"},{\\\"code\\\":\\\"12\\\",\\\"value\\\":\\\"PTR\\\"},{\\\"code\\\":\\\"13\\\",\\\"value\\\":\\\"HINFO\\\"},{\\\"code\\\":\\\"11\\\",\\\"value\\\":\\\"WKS\\\"},{\\\"code\\\":\\\"15\\\",\\\"value\\\":\\\"MX\\\"},{\\\"code\\\":\\\"28\\\",\\\"value\\\":\\\"AAAA\\\"}]}\"},{\"name\":\"dns_qclass\",\"type\":\"int\"},{\"name\":\"dns_cname\",\"type\":\"string\"},{\"name\":\"dns_sub\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"DNS\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"DNSSEC\\\"}]}\"},{\"name\":\"dns_rr\",\"type\":\"string\"},{\"name\":\"ssl_version\",\"type\":\"string\"},{\"name\":\"ssl_sni\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"ssl_san\",\"type\":\"string\"},{\"name\":\"ssl_cn\",\"type\":\"string\"},{\"name\":\"ssl_pinningst\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Not Pinning\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Pinning\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Maybe Pinning\\\"}]}\"},{\"name\":\"ssl_intercept_state\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Passthrough\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Intercept\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Shutdown\\\"}]}\"},{\"name\":\"ssl_server_side_latency\",\"type\":\"int\"},{\"name\":\"ssl_client_side_latency\",\"type\":\"int\"},{\"name\":\"ssl_server_side_version\",\"type\":\"string\"},{\"name\":\"ssl_client_side_version\",\"type\":\"string\"},{\"name\":\"ssl_cert_verify\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"No\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Yes\\\"}]}\"},{\"name\":\"ssl_error\",\"type\":\"string\"},{\"name\":\"ssl_con_latency_ms\",\"type\":\"int\"},{\"name\":\"ftp_url\",\"type\":\"string\"},{\"name\":\"ftp_content\",\"type\":\"string\"},{\"name\":\"bgp_type\",\"type\":\"int\"},{\"name\":\"bgp_as_num\",\"type\":\"string\"},{\"name\":\"bgp_route\",\"type\":\"string\"},{\"name\":\"voip_calling_account\",\"type\":\"string\"},{\"name\":\"voip_called_account\",\"type\":\"string\"},{\"name\":\"voip_calling_number\",\"type\":\"string\"},{\"name\":\"voip_called_number\",\"type\":\"string\"},{\"name\":\"streaming_media_url\",\"type\":\"string\"},{\"name\":\"streaming_media_protocol\",\"type\":\"string\"}]}");
+  private static final long serialVersionUID = -6493526271187887533L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"security_event_log\",\"namespace\":\"com.zdjizhi\",\"fields\":[{\"name\":\"common_log_id\",\"type\":\"long\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_service\",\"type\":\"int\"},{\"name\":\"common_recv_time\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_direction\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"outbound\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"inbound\\\"}]}\"},{\"name\":\"common_l4_protocol\",\"type\":\"string\"},{\"name\":\"common_address_type\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"4\\\",\\\"value\\\":\\\"ipv4\\\"},{\\\"code\\\":\\\"6\\\",\\\"value\\\":\\\"ipv6\\\"}]}\"},{\"name\":\"common_schema_type\",\"type\":\"string\"},{\"name\":\"common_policy_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_user_tags\",\"type\":\"string\"},{\"name\":\"common_action\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"None\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Monitor\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Intercept\\\"},{\\\"code\\\":\\\"16\\\",\\\"value\\\":\\\"Deny\\\"},{\\\"code\\\":\\\"48\\\",\\\"value\\\":\\\"Manipulation\\\"},{\\\"code\\\":\\\"128\\\",\\\"value\\\":\\\"Allow\\\"}]}\"},{\"name\":\"common_user_region\",\"type\":\"string\"},{\"name\":\"common_client_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_port\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_entrance_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_device_id\",\"type\":\"string\"},{\"name\":\"common_link_id\",\"type\":\"int\"},{\"name\":\"common_isp\",\"type\":\"string\"},{\"name\":\"common_encapsulation\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Ethernet\\\"},{\\\"code\\\":\\\"8\\\",\\\"value\\\":\\\"PPP\\\"},{\\\"code\\\":\\\"12\\\",\\\"value\\\":\\\"Cisco HDLC\\\"}]}\"},{\"name\":\"common_sled_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_location\",\"type\":\"string\"},{\"name\":\"common_client_asn\",\"type\":\"string\"},{\"name\":\"common_subscriber_id\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_server_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_server_ipcommon_server_port\",\"type\":\"int\"},{\"name\":\"common_server_location\",\"type\":\"string\"},{\"name\":\"common_server_asn\",\"type\":\"string\"},{\"name\":\"common_app_label\",\"type\":\"string\"},{\"name\":\"common_app_id\",\"type\":\"int\"},{\"name\":\"common_protocol_id\",\"type\":\"int\"},{\"name\":\"common_c2s_pkt_num\",\"type\":\"int\"},{\"name\":\"common_s2c_pkt_num\",\"type\":\"int\"},{\"name\":\"common_c2s_byte_num\",\"type\":\"int\"},{\"name\":\"common_s2c_byte_num\",\"type\":\"int\"},{\"name\":\"common_start_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_end_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_con_duration_ms\",\"type\":\"int\"},{\"name\":\"common_stream_dir\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"c2s\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"s2c\\\"},{\\\"code\\\":\\\"3\\\",\\\"value\\\":\\\"double\\\"}]}\"},{\"name\":\"common_address_list\",\"type\":\"string\"},{\"name\":\"common_has_dup_traffic\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"No\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Yes\\\"}]}\"},{\"name\":\"common_stream_error\",\"type\":\"string\"},{\"name\":\"common_stream_trace_id\",\"type\":\"long\"},{\"name\":\"http_url\",\"type\":\"string\"},{\"name\":\"http_host\",\"type\":\"string\"},{\"name\":\"http_domain\",\"type\":\"string\"},{\"name\":\"http_request_line\",\"type\":\"string\"},{\"name\":\"http_response_line\",\"type\":\"string\"},{\"name\":\"http_request_header\",\"type\":\"string\"},{\"name\":\"http_response_header\",\"type\":\"string\"},{\"name\":\"http_request_body\",\"type\":\"string\"},{\"name\":\"http_response_body\",\"type\":\"string\"},{\"name\":\"http_request_body_key\",\"type\":\"string\"},{\"name\":\"http_response_body_key\",\"type\":\"string\"},{\"name\":\"http_proxy_flag\",\"type\":\"int\"},{\"name\":\"http_sequence\",\"type\":\"int\"},{\"name\":\"http_snapshot\",\"type\":\"string\"},{\"name\":\"http_cookie\",\"type\":\"string\"},{\"name\":\"http_referer\",\"type\":\"string\"},{\"name\":\"http_user_agent\",\"type\":\"string\"},{\"name\":\"http_content_length\",\"type\":\"string\"},{\"name\":\"http_content_type\",\"type\":\"string\"},{\"name\":\"http_set_cookie\",\"type\":\"string\"},{\"name\":\"http_version\",\"type\":\"string\"},{\"name\":\"mail_protocol_type\",\"type\":\"string\"},{\"name\":\"mail_sender\",\"type\":\"string\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"email\\\"}}\"},{\"name\":\"mail_receiver\",\"type\":\"string\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"email\\\"}}\"},{\"name\":\"mail_subject\",\"type\":\"string\"},{\"name\":\"mail_content\",\"type\":\"string\"},{\"name\":\"mail_attachment_name\",\"type\":\"string\"},{\"name\":\"mail_attachment_content\",\"type\":\"string\"},{\"name\":\"mail_eml_file\",\"type\":\"string\"},{\"name\":\"mail_snapshot\",\"type\":\"string\"},{\"name\":\"dns_message_id\",\"type\":\"int\"},{\"name\":\"dns_qr\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"QUERY\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"REESPONSE\\\"}]}\"},{\"name\":\"dns_opcode\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"QUERY\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"IQUERY\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"STATUS\\\"},{\\\"code\\\":\\\"5\\\",\\\"value\\\":\\\"UPDATE\\\"}]}\"},{\"name\":\"dns_aa\",\"type\":\"int\"},{\"name\":\"dns_tc\",\"type\":\"int\"},{\"name\":\"dns_rd\",\"type\":\"int\"},{\"name\":\"dns_ra\",\"type\":\"int\"},{\"name\":\"dns_rcode\",\"type\":\"int\"},{\"name\":\"dns_qdcount\",\"type\":\"int\"},{\"name\":\"dns_ancount\",\"type\":\"int\"},{\"name\":\"dns_nscount\",\"type\":\"int\"},{\"name\":\"dns_arcount\",\"type\":\"int\"},{\"name\":\"dns_qname\",\"type\":\"string\"},{\"name\":\"dns_qtype\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"A\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"NS\\\"},{\\\"code\\\":\\\"5\\\",\\\"value\\\":\\\"CNAME\\\"},{\\\"code\\\":\\\"6\\\",\\\"value\\\":\\\"SOA\\\"},{\\\"code\\\":\\\"11\\\",\\\"value\\\":\\\"WKS\\\"},{\\\"code\\\":\\\"12\\\",\\\"value\\\":\\\"PTR\\\"},{\\\"code\\\":\\\"13\\\",\\\"value\\\":\\\"HINFO\\\"},{\\\"code\\\":\\\"11\\\",\\\"value\\\":\\\"WKS\\\"},{\\\"code\\\":\\\"15\\\",\\\"value\\\":\\\"MX\\\"},{\\\"code\\\":\\\"28\\\",\\\"value\\\":\\\"AAAA\\\"}]}\"},{\"name\":\"dns_qclass\",\"type\":\"int\"},{\"name\":\"dns_cname\",\"type\":\"string\"},{\"name\":\"dns_sub\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"DNS\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"DNSSEC\\\"}]}\"},{\"name\":\"dns_rr\",\"type\":\"string\"},{\"name\":\"ssl_version\",\"type\":\"string\"},{\"name\":\"ssl_sni\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"ssl_san\",\"type\":\"string\"},{\"name\":\"ssl_cn\",\"type\":\"string\"},{\"name\":\"ssl_pinningst\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Not Pinning\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Pinning\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Maybe Pinning\\\"}]}\"},{\"name\":\"ssl_intercept_state\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Passthrough\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Intercept\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Shutdown\\\"}]}\"},{\"name\":\"ssl_server_side_latency\",\"type\":\"int\"},{\"name\":\"ssl_client_side_latency\",\"type\":\"int\"},{\"name\":\"ssl_server_side_version\",\"type\":\"string\"},{\"name\":\"ssl_client_side_version\",\"type\":\"string\"},{\"name\":\"ssl_cert_verify\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"No\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Yes\\\"}]}\"},{\"name\":\"ssl_error\",\"type\":\"string\"},{\"name\":\"ssl_con_latency_ms\",\"type\":\"int\"},{\"name\":\"ftp_url\",\"type\":\"string\"},{\"name\":\"ftp_content\",\"type\":\"string\"},{\"name\":\"bgp_type\",\"type\":\"int\"},{\"name\":\"bgp_as_num\",\"type\":\"string\"},{\"name\":\"bgp_route\",\"type\":\"string\"},{\"name\":\"voip_calling_account\",\"type\":\"string\"},{\"name\":\"voip_called_account\",\"type\":\"string\"},{\"name\":\"voip_calling_number\",\"type\":\"string\"},{\"name\":\"voip_called_number\",\"type\":\"string\"},{\"name\":\"streaming_media_url\",\"type\":\"string\"},{\"name\":\"streaming_media_protocol\",\"type\":\"string\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -74,7 +74,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
   /** {"allow_query":"true"} */
   @Deprecated public long common_log_id;
   @Deprecated public int common_service;
-  /** {"allow_query":"true"} */
+  /** {"allow_query":"true","constraints":{"type":"timestamp"}} */
   @Deprecated public int common_recv_time;
   /** {"data":[{"code":"0","value":"outbound"},{"code":"1","value":"inbound"}]} */
   @Deprecated public int common_direction;
@@ -88,7 +88,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
   /** {"allow_query":"true","data":[{"code":"0","value":"None"},{"code":"1","value":"Monitor"},{"code":"2","value":"Intercept"},{"code":"16","value":"Deny"},{"code":"48","value":"Manipulation"},{"code":"128","value":"Allow"}]} */
   @Deprecated public int common_action;
   @Deprecated public java.lang.CharSequence common_user_region;
-  /** {"allow_query":"true"} */
+  /** {"allow_query":"true","constraints":{"type":"ip"}} */
   @Deprecated public java.lang.CharSequence common_client_ip;
   /** {"allow_query":"true"} */
   @Deprecated public int common_client_port;
@@ -99,12 +99,13 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
   @Deprecated public java.lang.CharSequence common_isp;
   /** {"data":[{"code":"0","value":"Ethernet"},{"code":"8","value":"PPP"},{"code":"12","value":"Cisco HDLC"}]} */
   @Deprecated public int common_encapsulation;
-  /** {"allow_query":"true"} */
+  /** {"allow_query":"true","constraints":{"type":"ip"}} */
   @Deprecated public java.lang.CharSequence common_sled_ip;
   @Deprecated public java.lang.CharSequence common_client_location;
   @Deprecated public java.lang.CharSequence common_client_asn;
   /** {"allow_query":"true"} */
   @Deprecated public java.lang.CharSequence common_subscriber_id;
+  /** {"allow_query":"true","constraints":{"type":"ip"}} */
   @Deprecated public java.lang.CharSequence common_server_ip;
   @Deprecated public int common_server_ipcommon_server_port;
   @Deprecated public java.lang.CharSequence common_server_location;
@@ -116,7 +117,9 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
   @Deprecated public int common_s2c_pkt_num;
   @Deprecated public int common_c2s_byte_num;
   @Deprecated public int common_s2c_byte_num;
+  /** {"constraints":{"type":"timestamp"}} */
   @Deprecated public int common_start_time;
+  /** {"constraints":{"type":"timestamp"}} */
   @Deprecated public int common_end_time;
   @Deprecated public int common_con_duration_ms;
   /** {"data":[{"code":"1","value":"c2s"},{"code":"2","value":"s2c"},{"code":"3","value":"double"}]} */
@@ -125,7 +128,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
   /** {"data":[{"code":"0","value":"No"},{"code":"1","value":"Yes"}]} */
   @Deprecated public int common_has_dup_traffic;
   @Deprecated public java.lang.CharSequence common_stream_error;
-  @Deprecated public java.lang.CharSequence common_stream_trace_id;
+  @Deprecated public long common_stream_trace_id;
   @Deprecated public java.lang.CharSequence http_url;
   @Deprecated public java.lang.CharSequence http_host;
   @Deprecated public java.lang.CharSequence http_domain;
@@ -148,7 +151,9 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
   @Deprecated public java.lang.CharSequence http_set_cookie;
   @Deprecated public java.lang.CharSequence http_version;
   @Deprecated public java.lang.CharSequence mail_protocol_type;
+  /** {"constraints":{"type":"email"}} */
   @Deprecated public java.lang.CharSequence mail_sender;
+  /** {"constraints":{"type":"email"}} */
   @Deprecated public java.lang.CharSequence mail_receiver;
   @Deprecated public java.lang.CharSequence mail_subject;
   @Deprecated public java.lang.CharSequence mail_content;
@@ -218,7 +223,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
    * All-args constructor.
    * @param common_log_id {"allow_query":"true"}
    * @param common_service The new value for common_service
-   * @param common_recv_time {"allow_query":"true"}
+   * @param common_recv_time {"allow_query":"true","constraints":{"type":"timestamp"}}
    * @param common_direction {"data":[{"code":"0","value":"outbound"},{"code":"1","value":"inbound"}]}
    * @param common_l4_protocol The new value for common_l4_protocol
    * @param common_address_type {"data":[{"code":"4","value":"ipv4"},{"code":"6","value":"ipv6"}]}
@@ -227,18 +232,18 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
    * @param common_user_tags The new value for common_user_tags
    * @param common_action {"allow_query":"true","data":[{"code":"0","value":"None"},{"code":"1","value":"Monitor"},{"code":"2","value":"Intercept"},{"code":"16","value":"Deny"},{"code":"48","value":"Manipulation"},{"code":"128","value":"Allow"}]}
    * @param common_user_region The new value for common_user_region
-   * @param common_client_ip {"allow_query":"true"}
+   * @param common_client_ip {"allow_query":"true","constraints":{"type":"ip"}}
    * @param common_client_port {"allow_query":"true"}
    * @param common_entrance_id {"allow_query":"true"}
    * @param common_device_id The new value for common_device_id
    * @param common_link_id The new value for common_link_id
    * @param common_isp The new value for common_isp
    * @param common_encapsulation {"data":[{"code":"0","value":"Ethernet"},{"code":"8","value":"PPP"},{"code":"12","value":"Cisco HDLC"}]}
-   * @param common_sled_ip {"allow_query":"true"}
+   * @param common_sled_ip {"allow_query":"true","constraints":{"type":"ip"}}
    * @param common_client_location The new value for common_client_location
    * @param common_client_asn The new value for common_client_asn
    * @param common_subscriber_id {"allow_query":"true"}
-   * @param common_server_ip The new value for common_server_ip
+   * @param common_server_ip {"allow_query":"true","constraints":{"type":"ip"}}
    * @param common_server_ipcommon_server_port The new value for common_server_ipcommon_server_port
    * @param common_server_location The new value for common_server_location
    * @param common_server_asn The new value for common_server_asn
@@ -249,8 +254,8 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
    * @param common_s2c_pkt_num The new value for common_s2c_pkt_num
    * @param common_c2s_byte_num The new value for common_c2s_byte_num
    * @param common_s2c_byte_num The new value for common_s2c_byte_num
-   * @param common_start_time The new value for common_start_time
-   * @param common_end_time The new value for common_end_time
+   * @param common_start_time {"constraints":{"type":"timestamp"}}
+   * @param common_end_time {"constraints":{"type":"timestamp"}}
    * @param common_con_duration_ms The new value for common_con_duration_ms
    * @param common_stream_dir {"data":[{"code":"1","value":"c2s"},{"code":"2","value":"s2c"},{"code":"3","value":"double"}]}
    * @param common_address_list The new value for common_address_list
@@ -279,8 +284,8 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
    * @param http_set_cookie The new value for http_set_cookie
    * @param http_version The new value for http_version
    * @param mail_protocol_type The new value for mail_protocol_type
-   * @param mail_sender The new value for mail_sender
-   * @param mail_receiver The new value for mail_receiver
+   * @param mail_sender {"constraints":{"type":"email"}}
+   * @param mail_receiver {"constraints":{"type":"email"}}
    * @param mail_subject The new value for mail_subject
    * @param mail_content The new value for mail_content
    * @param mail_attachment_name The new value for mail_attachment_name
@@ -330,7 +335,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
    * @param streaming_media_url The new value for streaming_media_url
    * @param streaming_media_protocol The new value for streaming_media_protocol
    */
-  public security_event_log(java.lang.Long common_log_id, java.lang.Integer common_service, java.lang.Integer common_recv_time, java.lang.Integer common_direction, java.lang.CharSequence common_l4_protocol, java.lang.Integer common_address_type, java.lang.CharSequence common_schema_type, java.lang.Integer common_policy_id, java.lang.CharSequence common_user_tags, java.lang.Integer common_action, java.lang.CharSequence common_user_region, java.lang.CharSequence common_client_ip, java.lang.Integer common_client_port, java.lang.Integer common_entrance_id, java.lang.CharSequence common_device_id, java.lang.Integer common_link_id, java.lang.CharSequence common_isp, java.lang.Integer common_encapsulation, java.lang.CharSequence common_sled_ip, java.lang.CharSequence common_client_location, java.lang.CharSequence common_client_asn, java.lang.CharSequence common_subscriber_id, java.lang.CharSequence common_server_ip, java.lang.Integer common_server_ipcommon_server_port, java.lang.CharSequence common_server_location, java.lang.CharSequence common_server_asn, java.lang.CharSequence common_app_label, java.lang.Integer common_app_id, java.lang.Integer common_protocol_id, java.lang.Integer common_c2s_pkt_num, java.lang.Integer common_s2c_pkt_num, java.lang.Integer common_c2s_byte_num, java.lang.Integer common_s2c_byte_num, java.lang.Integer common_start_time, java.lang.Integer common_end_time, java.lang.Integer common_con_duration_ms, java.lang.Integer common_stream_dir, java.lang.CharSequence common_address_list, java.lang.Integer common_has_dup_traffic, java.lang.CharSequence common_stream_error, java.lang.CharSequence common_stream_trace_id, java.lang.CharSequence http_url, java.lang.CharSequence http_host, java.lang.CharSequence http_domain, java.lang.CharSequence http_request_line, java.lang.CharSequence http_response_line, java.lang.CharSequence http_request_header, java.lang.CharSequence http_response_header, java.lang.CharSequence http_request_body, java.lang.CharSequence http_response_body, java.lang.CharSequence http_request_body_key, java.lang.CharSequence http_response_body_key, java.lang.Integer http_proxy_flag, java.lang.Integer http_sequence, java.lang.CharSequence http_snapshot, java.lang.CharSequence http_cookie, java.lang.CharSequence http_referer, java.lang.CharSequence http_user_agent, java.lang.CharSequence http_content_length, java.lang.CharSequence http_content_type, java.lang.CharSequence http_set_cookie, java.lang.CharSequence http_version, java.lang.CharSequence mail_protocol_type, java.lang.CharSequence mail_sender, java.lang.CharSequence mail_receiver, java.lang.CharSequence mail_subject, java.lang.CharSequence mail_content, java.lang.CharSequence mail_attachment_name, java.lang.CharSequence mail_attachment_content, java.lang.CharSequence mail_eml_file, java.lang.CharSequence mail_snapshot, java.lang.Integer dns_message_id, java.lang.Integer dns_qr, java.lang.Integer dns_opcode, java.lang.Integer dns_aa, java.lang.Integer dns_tc, java.lang.Integer dns_rd, java.lang.Integer dns_ra, java.lang.Integer dns_rcode, java.lang.Integer dns_qdcount, java.lang.Integer dns_ancount, java.lang.Integer dns_nscount, java.lang.Integer dns_arcount, java.lang.CharSequence dns_qname, java.lang.Integer dns_qtype, java.lang.Integer dns_qclass, java.lang.CharSequence dns_cname, java.lang.Integer dns_sub, java.lang.CharSequence dns_rr, java.lang.CharSequence ssl_version, java.lang.CharSequence ssl_sni, java.lang.CharSequence ssl_san, java.lang.CharSequence ssl_cn, java.lang.Integer ssl_pinningst, java.lang.Integer ssl_intercept_state, java.lang.Integer ssl_server_side_latency, java.lang.Integer ssl_client_side_latency, java.lang.CharSequence ssl_server_side_version, java.lang.CharSequence ssl_client_side_version, java.lang.Integer ssl_cert_verify, java.lang.CharSequence ssl_error, java.lang.Integer ssl_con_latency_ms, java.lang.CharSequence ftp_url, java.lang.CharSequence ftp_content, java.lang.Integer bgp_type, java.lang.CharSequence bgp_as_num, java.lang.CharSequence bgp_route, java.lang.CharSequence voip_calling_account, java.lang.CharSequence voip_called_account, java.lang.CharSequence voip_calling_number, java.lang.CharSequence voip_called_number, java.lang.CharSequence streaming_media_url, java.lang.CharSequence streaming_media_protocol) {
+  public security_event_log(java.lang.Long common_log_id, java.lang.Integer common_service, java.lang.Integer common_recv_time, java.lang.Integer common_direction, java.lang.CharSequence common_l4_protocol, java.lang.Integer common_address_type, java.lang.CharSequence common_schema_type, java.lang.Integer common_policy_id, java.lang.CharSequence common_user_tags, java.lang.Integer common_action, java.lang.CharSequence common_user_region, java.lang.CharSequence common_client_ip, java.lang.Integer common_client_port, java.lang.Integer common_entrance_id, java.lang.CharSequence common_device_id, java.lang.Integer common_link_id, java.lang.CharSequence common_isp, java.lang.Integer common_encapsulation, java.lang.CharSequence common_sled_ip, java.lang.CharSequence common_client_location, java.lang.CharSequence common_client_asn, java.lang.CharSequence common_subscriber_id, java.lang.CharSequence common_server_ip, java.lang.Integer common_server_ipcommon_server_port, java.lang.CharSequence common_server_location, java.lang.CharSequence common_server_asn, java.lang.CharSequence common_app_label, java.lang.Integer common_app_id, java.lang.Integer common_protocol_id, java.lang.Integer common_c2s_pkt_num, java.lang.Integer common_s2c_pkt_num, java.lang.Integer common_c2s_byte_num, java.lang.Integer common_s2c_byte_num, java.lang.Integer common_start_time, java.lang.Integer common_end_time, java.lang.Integer common_con_duration_ms, java.lang.Integer common_stream_dir, java.lang.CharSequence common_address_list, java.lang.Integer common_has_dup_traffic, java.lang.CharSequence common_stream_error, java.lang.Long common_stream_trace_id, java.lang.CharSequence http_url, java.lang.CharSequence http_host, java.lang.CharSequence http_domain, java.lang.CharSequence http_request_line, java.lang.CharSequence http_response_line, java.lang.CharSequence http_request_header, java.lang.CharSequence http_response_header, java.lang.CharSequence http_request_body, java.lang.CharSequence http_response_body, java.lang.CharSequence http_request_body_key, java.lang.CharSequence http_response_body_key, java.lang.Integer http_proxy_flag, java.lang.Integer http_sequence, java.lang.CharSequence http_snapshot, java.lang.CharSequence http_cookie, java.lang.CharSequence http_referer, java.lang.CharSequence http_user_agent, java.lang.CharSequence http_content_length, java.lang.CharSequence http_content_type, java.lang.CharSequence http_set_cookie, java.lang.CharSequence http_version, java.lang.CharSequence mail_protocol_type, java.lang.CharSequence mail_sender, java.lang.CharSequence mail_receiver, java.lang.CharSequence mail_subject, java.lang.CharSequence mail_content, java.lang.CharSequence mail_attachment_name, java.lang.CharSequence mail_attachment_content, java.lang.CharSequence mail_eml_file, java.lang.CharSequence mail_snapshot, java.lang.Integer dns_message_id, java.lang.Integer dns_qr, java.lang.Integer dns_opcode, java.lang.Integer dns_aa, java.lang.Integer dns_tc, java.lang.Integer dns_rd, java.lang.Integer dns_ra, java.lang.Integer dns_rcode, java.lang.Integer dns_qdcount, java.lang.Integer dns_ancount, java.lang.Integer dns_nscount, java.lang.Integer dns_arcount, java.lang.CharSequence dns_qname, java.lang.Integer dns_qtype, java.lang.Integer dns_qclass, java.lang.CharSequence dns_cname, java.lang.Integer dns_sub, java.lang.CharSequence dns_rr, java.lang.CharSequence ssl_version, java.lang.CharSequence ssl_sni, java.lang.CharSequence ssl_san, java.lang.CharSequence ssl_cn, java.lang.Integer ssl_pinningst, java.lang.Integer ssl_intercept_state, java.lang.Integer ssl_server_side_latency, java.lang.Integer ssl_client_side_latency, java.lang.CharSequence ssl_server_side_version, java.lang.CharSequence ssl_client_side_version, java.lang.Integer ssl_cert_verify, java.lang.CharSequence ssl_error, java.lang.Integer ssl_con_latency_ms, java.lang.CharSequence ftp_url, java.lang.CharSequence ftp_content, java.lang.Integer bgp_type, java.lang.CharSequence bgp_as_num, java.lang.CharSequence bgp_route, java.lang.CharSequence voip_calling_account, java.lang.CharSequence voip_called_account, java.lang.CharSequence voip_calling_number, java.lang.CharSequence voip_called_number, java.lang.CharSequence streaming_media_url, java.lang.CharSequence streaming_media_protocol) {
     this.common_log_id = common_log_id;
     this.common_service = common_service;
     this.common_recv_time = common_recv_time;
@@ -612,7 +617,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
     case 37: common_address_list = (java.lang.CharSequence)value$; break;
     case 38: common_has_dup_traffic = (java.lang.Integer)value$; break;
     case 39: common_stream_error = (java.lang.CharSequence)value$; break;
-    case 40: common_stream_trace_id = (java.lang.CharSequence)value$; break;
+    case 40: common_stream_trace_id = (java.lang.Long)value$; break;
     case 41: http_url = (java.lang.CharSequence)value$; break;
     case 42: http_host = (java.lang.CharSequence)value$; break;
     case 43: http_domain = (java.lang.CharSequence)value$; break;
@@ -726,7 +731,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Gets the value of the 'common_recv_time' field.
-   * @return {"allow_query":"true"}
+   * @return {"allow_query":"true","constraints":{"type":"timestamp"}}
    */
   public int getCommonRecvTime() {
     return common_recv_time;
@@ -735,7 +740,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Sets the value of the 'common_recv_time' field.
-   * {"allow_query":"true"}
+   * {"allow_query":"true","constraints":{"type":"timestamp"}}
    * @param value the value to set.
    */
   public void setCommonRecvTime(int value) {
@@ -884,7 +889,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Gets the value of the 'common_client_ip' field.
-   * @return {"allow_query":"true"}
+   * @return {"allow_query":"true","constraints":{"type":"ip"}}
    */
   public java.lang.CharSequence getCommonClientIp() {
     return common_client_ip;
@@ -893,7 +898,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Sets the value of the 'common_client_ip' field.
-   * {"allow_query":"true"}
+   * {"allow_query":"true","constraints":{"type":"ip"}}
    * @param value the value to set.
    */
   public void setCommonClientIp(java.lang.CharSequence value) {
@@ -1007,7 +1012,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Gets the value of the 'common_sled_ip' field.
-   * @return {"allow_query":"true"}
+   * @return {"allow_query":"true","constraints":{"type":"ip"}}
    */
   public java.lang.CharSequence getCommonSledIp() {
     return common_sled_ip;
@@ -1016,7 +1021,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Sets the value of the 'common_sled_ip' field.
-   * {"allow_query":"true"}
+   * {"allow_query":"true","constraints":{"type":"ip"}}
    * @param value the value to set.
    */
   public void setCommonSledIp(java.lang.CharSequence value) {
@@ -1077,7 +1082,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Gets the value of the 'common_server_ip' field.
-   * @return The value of the 'common_server_ip' field.
+   * @return {"allow_query":"true","constraints":{"type":"ip"}}
    */
   public java.lang.CharSequence getCommonServerIp() {
     return common_server_ip;
@@ -1086,6 +1091,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Sets the value of the 'common_server_ip' field.
+   * {"allow_query":"true","constraints":{"type":"ip"}}
    * @param value the value to set.
    */
   public void setCommonServerIp(java.lang.CharSequence value) {
@@ -1264,7 +1270,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Gets the value of the 'common_start_time' field.
-   * @return The value of the 'common_start_time' field.
+   * @return {"constraints":{"type":"timestamp"}}
    */
   public int getCommonStartTime() {
     return common_start_time;
@@ -1273,6 +1279,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Sets the value of the 'common_start_time' field.
+   * {"constraints":{"type":"timestamp"}}
    * @param value the value to set.
    */
   public void setCommonStartTime(int value) {
@@ -1281,7 +1288,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Gets the value of the 'common_end_time' field.
-   * @return The value of the 'common_end_time' field.
+   * @return {"constraints":{"type":"timestamp"}}
    */
   public int getCommonEndTime() {
     return common_end_time;
@@ -1290,6 +1297,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Sets the value of the 'common_end_time' field.
+   * {"constraints":{"type":"timestamp"}}
    * @param value the value to set.
    */
   public void setCommonEndTime(int value) {
@@ -1387,7 +1395,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
    * Gets the value of the 'common_stream_trace_id' field.
    * @return The value of the 'common_stream_trace_id' field.
    */
-  public java.lang.CharSequence getCommonStreamTraceId() {
+  public long getCommonStreamTraceId() {
     return common_stream_trace_id;
   }
 
@@ -1396,7 +1404,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
    * Sets the value of the 'common_stream_trace_id' field.
    * @param value the value to set.
    */
-  public void setCommonStreamTraceId(java.lang.CharSequence value) {
+  public void setCommonStreamTraceId(long value) {
     this.common_stream_trace_id = value;
   }
 
@@ -1776,7 +1784,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Gets the value of the 'mail_sender' field.
-   * @return The value of the 'mail_sender' field.
+   * @return {"constraints":{"type":"email"}}
    */
   public java.lang.CharSequence getMailSender() {
     return mail_sender;
@@ -1785,6 +1793,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Sets the value of the 'mail_sender' field.
+   * {"constraints":{"type":"email"}}
    * @param value the value to set.
    */
   public void setMailSender(java.lang.CharSequence value) {
@@ -1793,7 +1802,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Gets the value of the 'mail_receiver' field.
-   * @return The value of the 'mail_receiver' field.
+   * @return {"constraints":{"type":"email"}}
    */
   public java.lang.CharSequence getMailReceiver() {
     return mail_receiver;
@@ -1802,6 +1811,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
   /**
    * Sets the value of the 'mail_receiver' field.
+   * {"constraints":{"type":"email"}}
    * @param value the value to set.
    */
   public void setMailReceiver(java.lang.CharSequence value) {
@@ -2675,7 +2685,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
     /** {"allow_query":"true"} */
     private long common_log_id;
     private int common_service;
-    /** {"allow_query":"true"} */
+    /** {"allow_query":"true","constraints":{"type":"timestamp"}} */
     private int common_recv_time;
     /** {"data":[{"code":"0","value":"outbound"},{"code":"1","value":"inbound"}]} */
     private int common_direction;
@@ -2689,7 +2699,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
     /** {"allow_query":"true","data":[{"code":"0","value":"None"},{"code":"1","value":"Monitor"},{"code":"2","value":"Intercept"},{"code":"16","value":"Deny"},{"code":"48","value":"Manipulation"},{"code":"128","value":"Allow"}]} */
     private int common_action;
     private java.lang.CharSequence common_user_region;
-    /** {"allow_query":"true"} */
+    /** {"allow_query":"true","constraints":{"type":"ip"}} */
     private java.lang.CharSequence common_client_ip;
     /** {"allow_query":"true"} */
     private int common_client_port;
@@ -2700,12 +2710,13 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
     private java.lang.CharSequence common_isp;
     /** {"data":[{"code":"0","value":"Ethernet"},{"code":"8","value":"PPP"},{"code":"12","value":"Cisco HDLC"}]} */
     private int common_encapsulation;
-    /** {"allow_query":"true"} */
+    /** {"allow_query":"true","constraints":{"type":"ip"}} */
     private java.lang.CharSequence common_sled_ip;
     private java.lang.CharSequence common_client_location;
     private java.lang.CharSequence common_client_asn;
     /** {"allow_query":"true"} */
     private java.lang.CharSequence common_subscriber_id;
+    /** {"allow_query":"true","constraints":{"type":"ip"}} */
     private java.lang.CharSequence common_server_ip;
     private int common_server_ipcommon_server_port;
     private java.lang.CharSequence common_server_location;
@@ -2717,7 +2728,9 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
     private int common_s2c_pkt_num;
     private int common_c2s_byte_num;
     private int common_s2c_byte_num;
+    /** {"constraints":{"type":"timestamp"}} */
     private int common_start_time;
+    /** {"constraints":{"type":"timestamp"}} */
     private int common_end_time;
     private int common_con_duration_ms;
     /** {"data":[{"code":"1","value":"c2s"},{"code":"2","value":"s2c"},{"code":"3","value":"double"}]} */
@@ -2726,7 +2739,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
     /** {"data":[{"code":"0","value":"No"},{"code":"1","value":"Yes"}]} */
     private int common_has_dup_traffic;
     private java.lang.CharSequence common_stream_error;
-    private java.lang.CharSequence common_stream_trace_id;
+    private long common_stream_trace_id;
     private java.lang.CharSequence http_url;
     private java.lang.CharSequence http_host;
     private java.lang.CharSequence http_domain;
@@ -2749,7 +2762,9 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
     private java.lang.CharSequence http_set_cookie;
     private java.lang.CharSequence http_version;
     private java.lang.CharSequence mail_protocol_type;
+    /** {"constraints":{"type":"email"}} */
     private java.lang.CharSequence mail_sender;
+    /** {"constraints":{"type":"email"}} */
     private java.lang.CharSequence mail_receiver;
     private java.lang.CharSequence mail_subject;
     private java.lang.CharSequence mail_content;
@@ -3817,7 +3832,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Gets the value of the 'common_recv_time' field.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"timestamp"}}
       * @return The value.
       */
     public int getCommonRecvTime() {
@@ -3827,7 +3842,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Sets the value of the 'common_recv_time' field.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"timestamp"}}
       * @param value The value of 'common_recv_time'.
       * @return This builder.
       */
@@ -3840,7 +3855,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Checks whether the 'common_recv_time' field has been set.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"timestamp"}}
       * @return True if the 'common_recv_time' field has been set, false otherwise.
       */
     public boolean hasCommonRecvTime() {
@@ -3850,7 +3865,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Clears the value of the 'common_recv_time' field.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"timestamp"}}
       * @return This builder.
       */
     public com.zdjizhi.security_event_log.Builder clearCommonRecvTime() {
@@ -4192,7 +4207,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Gets the value of the 'common_client_ip' field.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @return The value.
       */
     public java.lang.CharSequence getCommonClientIp() {
@@ -4202,7 +4217,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Sets the value of the 'common_client_ip' field.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @param value The value of 'common_client_ip'.
       * @return This builder.
       */
@@ -4215,7 +4230,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Checks whether the 'common_client_ip' field has been set.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @return True if the 'common_client_ip' field has been set, false otherwise.
       */
     public boolean hasCommonClientIp() {
@@ -4225,7 +4240,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Clears the value of the 'common_client_ip' field.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @return This builder.
       */
     public com.zdjizhi.security_event_log.Builder clearCommonClientIp() {
@@ -4484,7 +4499,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Gets the value of the 'common_sled_ip' field.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @return The value.
       */
     public java.lang.CharSequence getCommonSledIp() {
@@ -4494,7 +4509,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Sets the value of the 'common_sled_ip' field.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @param value The value of 'common_sled_ip'.
       * @return This builder.
       */
@@ -4507,7 +4522,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Checks whether the 'common_sled_ip' field has been set.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @return True if the 'common_sled_ip' field has been set, false otherwise.
       */
     public boolean hasCommonSledIp() {
@@ -4517,7 +4532,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Clears the value of the 'common_sled_ip' field.
-      * {"allow_query":"true"}
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @return This builder.
       */
     public com.zdjizhi.security_event_log.Builder clearCommonSledIp() {
@@ -4652,6 +4667,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Gets the value of the 'common_server_ip' field.
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @return The value.
       */
     public java.lang.CharSequence getCommonServerIp() {
@@ -4661,6 +4677,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Sets the value of the 'common_server_ip' field.
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @param value The value of 'common_server_ip'.
       * @return This builder.
       */
@@ -4673,6 +4690,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Checks whether the 'common_server_ip' field has been set.
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @return True if the 'common_server_ip' field has been set, false otherwise.
       */
     public boolean hasCommonServerIp() {
@@ -4682,6 +4700,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Clears the value of the 'common_server_ip' field.
+      * {"allow_query":"true","constraints":{"type":"ip"}}
       * @return This builder.
       */
     public com.zdjizhi.security_event_log.Builder clearCommonServerIp() {
@@ -5085,6 +5104,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Gets the value of the 'common_start_time' field.
+      * {"constraints":{"type":"timestamp"}}
       * @return The value.
       */
     public int getCommonStartTime() {
@@ -5094,6 +5114,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Sets the value of the 'common_start_time' field.
+      * {"constraints":{"type":"timestamp"}}
       * @param value The value of 'common_start_time'.
       * @return This builder.
       */
@@ -5106,6 +5127,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Checks whether the 'common_start_time' field has been set.
+      * {"constraints":{"type":"timestamp"}}
       * @return True if the 'common_start_time' field has been set, false otherwise.
       */
     public boolean hasCommonStartTime() {
@@ -5115,6 +5137,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Clears the value of the 'common_start_time' field.
+      * {"constraints":{"type":"timestamp"}}
       * @return This builder.
       */
     public com.zdjizhi.security_event_log.Builder clearCommonStartTime() {
@@ -5124,6 +5147,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Gets the value of the 'common_end_time' field.
+      * {"constraints":{"type":"timestamp"}}
       * @return The value.
       */
     public int getCommonEndTime() {
@@ -5133,6 +5157,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Sets the value of the 'common_end_time' field.
+      * {"constraints":{"type":"timestamp"}}
       * @param value The value of 'common_end_time'.
       * @return This builder.
       */
@@ -5145,6 +5170,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Checks whether the 'common_end_time' field has been set.
+      * {"constraints":{"type":"timestamp"}}
       * @return True if the 'common_end_time' field has been set, false otherwise.
       */
     public boolean hasCommonEndTime() {
@@ -5154,6 +5180,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Clears the value of the 'common_end_time' field.
+      * {"constraints":{"type":"timestamp"}}
       * @return This builder.
       */
     public com.zdjizhi.security_event_log.Builder clearCommonEndTime() {
@@ -5370,7 +5397,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
       * Gets the value of the 'common_stream_trace_id' field.
       * @return The value.
       */
-    public java.lang.CharSequence getCommonStreamTraceId() {
+    public long getCommonStreamTraceId() {
       return common_stream_trace_id;
     }
 
@@ -5380,7 +5407,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
       * @param value The value of 'common_stream_trace_id'.
       * @return This builder.
       */
-    public com.zdjizhi.security_event_log.Builder setCommonStreamTraceId(java.lang.CharSequence value) {
+    public com.zdjizhi.security_event_log.Builder setCommonStreamTraceId(long value) {
       validate(fields()[40], value);
       this.common_stream_trace_id = value;
       fieldSetFlags()[40] = true;
@@ -5401,7 +5428,6 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
       * @return This builder.
       */
     public com.zdjizhi.security_event_log.Builder clearCommonStreamTraceId() {
-      common_stream_trace_id = null;
       fieldSetFlags()[40] = false;
       return this;
     }
@@ -6286,6 +6312,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Gets the value of the 'mail_sender' field.
+      * {"constraints":{"type":"email"}}
       * @return The value.
       */
     public java.lang.CharSequence getMailSender() {
@@ -6295,6 +6322,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Sets the value of the 'mail_sender' field.
+      * {"constraints":{"type":"email"}}
       * @param value The value of 'mail_sender'.
       * @return This builder.
       */
@@ -6307,6 +6335,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Checks whether the 'mail_sender' field has been set.
+      * {"constraints":{"type":"email"}}
       * @return True if the 'mail_sender' field has been set, false otherwise.
       */
     public boolean hasMailSender() {
@@ -6316,6 +6345,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Clears the value of the 'mail_sender' field.
+      * {"constraints":{"type":"email"}}
       * @return This builder.
       */
     public com.zdjizhi.security_event_log.Builder clearMailSender() {
@@ -6326,6 +6356,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Gets the value of the 'mail_receiver' field.
+      * {"constraints":{"type":"email"}}
       * @return The value.
       */
     public java.lang.CharSequence getMailReceiver() {
@@ -6335,6 +6366,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Sets the value of the 'mail_receiver' field.
+      * {"constraints":{"type":"email"}}
       * @param value The value of 'mail_receiver'.
       * @return This builder.
       */
@@ -6347,6 +6379,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Checks whether the 'mail_receiver' field has been set.
+      * {"constraints":{"type":"email"}}
       * @return True if the 'mail_receiver' field has been set, false otherwise.
       */
     public boolean hasMailReceiver() {
@@ -6356,6 +6389,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     /**
       * Clears the value of the 'mail_receiver' field.
+      * {"constraints":{"type":"email"}}
       * @return This builder.
       */
     public com.zdjizhi.security_event_log.Builder clearMailReceiver() {
@@ -8339,7 +8373,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
         record.common_address_list = fieldSetFlags()[37] ? this.common_address_list : (java.lang.CharSequence) defaultValue(fields()[37]);
         record.common_has_dup_traffic = fieldSetFlags()[38] ? this.common_has_dup_traffic : (java.lang.Integer) defaultValue(fields()[38]);
         record.common_stream_error = fieldSetFlags()[39] ? this.common_stream_error : (java.lang.CharSequence) defaultValue(fields()[39]);
-        record.common_stream_trace_id = fieldSetFlags()[40] ? this.common_stream_trace_id : (java.lang.CharSequence) defaultValue(fields()[40]);
+        record.common_stream_trace_id = fieldSetFlags()[40] ? this.common_stream_trace_id : (java.lang.Long) defaultValue(fields()[40]);
         record.http_url = fieldSetFlags()[41] ? this.http_url : (java.lang.CharSequence) defaultValue(fields()[41]);
         record.http_host = fieldSetFlags()[42] ? this.http_host : (java.lang.CharSequence) defaultValue(fields()[42]);
         record.http_domain = fieldSetFlags()[43] ? this.http_domain : (java.lang.CharSequence) defaultValue(fields()[43]);
@@ -8524,7 +8558,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
     out.writeString(this.common_stream_error);
 
-    out.writeString(this.common_stream_trace_id);
+    out.writeLong(this.common_stream_trace_id);
 
     out.writeString(this.http_url);
 
@@ -8757,7 +8791,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
 
       this.common_stream_error = in.readString(this.common_stream_error instanceof Utf8 ? (Utf8)this.common_stream_error : null);
 
-      this.common_stream_trace_id = in.readString(this.common_stream_trace_id instanceof Utf8 ? (Utf8)this.common_stream_trace_id : null);
+      this.common_stream_trace_id = in.readLong();
 
       this.http_url = in.readString(this.http_url instanceof Utf8 ? (Utf8)this.http_url : null);
 
@@ -9067,7 +9101,7 @@ public class security_event_log extends org.apache.avro.specific.SpecificRecordB
           break;
 
         case 40:
-          this.common_stream_trace_id = in.readString(this.common_stream_trace_id instanceof Utf8 ? (Utf8)this.common_stream_trace_id : null);
+          this.common_stream_trace_id = in.readLong();
           break;
 
         case 41:
