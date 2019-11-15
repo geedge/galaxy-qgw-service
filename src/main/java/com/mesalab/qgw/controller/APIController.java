@@ -58,7 +58,7 @@ public class APIController {
     }
 
     @ApiOperation(value = "HTTP SCHEMA 查询", httpMethod = "GET", notes = "元数据管理，用于描述数据的数据。包含数据库表结构，支持那些数据表，业务规则定义等。")
-    @GetMapping("/metadata/schema/v1/fileds/{tableName}")
+    @GetMapping("/metadata/schema/v1/fields/{tableName}")
     @CachedSubmitCheck
     public BaseResult getSchema(@PathVariable String tableName){
         log.debug("接收SCHEMA获取 表名为:{}", tableName);

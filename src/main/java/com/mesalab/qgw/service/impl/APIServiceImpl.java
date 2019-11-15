@@ -12,7 +12,6 @@ import com.alibaba.druid.sql.ast.statement.*;
 import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
 import com.alibaba.druid.util.JdbcConstants;
-import com.alibaba.fastjson.*;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -28,6 +27,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.IAPIService;
 import com.zdjizhi.*;
+import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
@@ -69,18 +69,18 @@ public class APIServiceImpl implements IAPIService {
     public BaseResult querySchema(String table){
 
         Map<String, JsonProperties> allSchema = getSchemaInfo();
-        Map resultMap = JSONObject.parseObject(String.valueOf(allSchema.get(table)), Map.class);
+        Map resultMap = (Map)JsonMapper.fromJsonString(String.valueOf(allSchema.get(table)), Map.class);
         if(resultMap == null){
             throw new BusinessException(BaseResultEnum.FAIL.getCode() , "该表未在平台注册，请联系数据平台负责人", null);
         }
-        JSONArray fields = (JSONArray) resultMap.get("fields");
-        Iterator<Object> iterator = fields.iterator();
+        List<Map> fields = (List<Map>) resultMap.get("fields");
+        Iterator<Map> iterator = fields.iterator();
         Map mapDoc =null;
         while (iterator.hasNext()){
-            Map next = (Map)iterator.next();
+            Map next = iterator.next();
             try{
-                mapDoc = JSONObject.parseObject(String.valueOf(next.get("doc")), Map.class);
-            }catch (JSONException ex){
+                mapDoc = (Map) JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
+            }catch (Exception ex){
                 log.debug("该字段的 doc 为非JSON字符串，不需类型转换");
             }
             if(mapDoc != null){
