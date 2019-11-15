@@ -82,7 +82,7 @@ pagehelper:
 info:
   app:
     name: GALAXY-QGW-SERVICE
-    verson: 1.1
+    verson: 3.0.20191115
 management:
   endpoint:
     health:

@@ -3,7 +3,7 @@
 ###############################################################################
 ## Log configuration Path
 logging:
-  config: /home/ceiec/galaxy-qgw-service/config/log4j2-test.xml
+  config: /home/tsg/galaxy/galaxy-qgw-service/config/log4j2-test.xml
 ###############################################################################
 ## swagger API configuration
 swagger:
@@ -48,8 +48,9 @@ schema:
 ## Junit Test Configuration
 test:
   url: 127.0.0.1:9999
-  timeRange: last month
+  timeRange: last 5 minutes
   executeTime: 2019-07-22 00:00:00
+
 ###############################################################################
 ## Mysql Database configuration (Reserved，for Authentication)
 spring:

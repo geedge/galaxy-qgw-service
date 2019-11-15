@@ -3,7 +3,7 @@
 ###############################################################################
 ## Log configuration Path
 logging:
-  config: /home/ceiec/galaxy-qgw-service/config/log4j2-prod.xml
+  config: /home/tsg/galaxy/galaxy-qgw-service/config/log4j2-prod.xml
 ###############################################################################
 ## swagger API configuration
 swagger:
