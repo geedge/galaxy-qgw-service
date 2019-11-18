@@ -13,7 +13,7 @@ public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-                http
+                http.csrf().disable()
                 .authorizeRequests()
                 .requestMatchers(EndpointRequest.to(ShutdownEndpoint.class))
                 .hasRole("MONITOR_ADMIN")
