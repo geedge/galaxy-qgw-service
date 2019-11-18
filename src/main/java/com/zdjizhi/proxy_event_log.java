@@ -14,8 +14,8 @@ import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -4026627524939454061L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"proxy_event_log\",\"namespace\":\"com.zdjizhi\",\"fields\":[{\"name\":\"common_log_id\",\"type\":\"long\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_service\",\"type\":\"int\"},{\"name\":\"common_recv_time\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_direction\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"outbound\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"inbound\\\"}]}\"},{\"name\":\"common_l4_protocol\",\"type\":\"string\"},{\"name\":\"common_address_type\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"4\\\",\\\"value\\\":\\\"ipv4\\\"},{\\\"code\\\":\\\"6\\\",\\\"value\\\":\\\"ipv6\\\"}]}\"},{\"name\":\"common_schema_type\",\"type\":\"string\"},{\"name\":\"common_policy_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_user_tags\",\"type\":\"string\"},{\"name\":\"common_action\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"None\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Monitor\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Intercept\\\"},{\\\"code\\\":\\\"16\\\",\\\"value\\\":\\\"Deny\\\"},{\\\"code\\\":\\\"48\\\",\\\"value\\\":\\\"Manipulation\\\"},{\\\"code\\\":\\\"128\\\",\\\"value\\\":\\\"Allow\\\"}]}\"},{\"name\":\"common_user_region\",\"type\":\"string\"},{\"name\":\"common_client_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_port\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_entrance_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_device_id\",\"type\":\"string\"},{\"name\":\"common_link_id\",\"type\":\"int\"},{\"name\":\"common_isp\",\"type\":\"string\"},{\"name\":\"common_encapsulation\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Ethernet\\\"},{\\\"code\\\":\\\"8\\\",\\\"value\\\":\\\"PPP\\\"},{\\\"code\\\":\\\"12\\\",\\\"value\\\":\\\"Cisco HDLC\\\"}]}\"},{\"name\":\"common_sled_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_location\",\"type\":\"string\"},{\"name\":\"common_client_asn\",\"type\":\"string\"},{\"name\":\"common_subscriber_id\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_server_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_server_ipcommon_server_port\",\"type\":\"int\"},{\"name\":\"common_server_location\",\"type\":\"string\"},{\"name\":\"common_server_asn\",\"type\":\"string\"},{\"name\":\"common_app_label\",\"type\":\"string\"},{\"name\":\"common_app_id\",\"type\":\"int\"},{\"name\":\"common_protocol_id\",\"type\":\"int\"},{\"name\":\"common_c2s_pkt_num\",\"type\":\"int\"},{\"name\":\"common_s2c_pkt_num\",\"type\":\"int\"},{\"name\":\"common_c2s_byte_num\",\"type\":\"int\"},{\"name\":\"common_s2c_byte_num\",\"type\":\"int\"},{\"name\":\"common_start_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_end_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_con_duration_ms\",\"type\":\"int\"},{\"name\":\"common_stream_dir\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"c2s\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"s2c\\\"},{\\\"code\\\":\\\"3\\\",\\\"value\\\":\\\"double\\\"}]}\"},{\"name\":\"common_address_list\",\"type\":\"string\"},{\"name\":\"common_has_dup_traffic\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"No\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Yes\\\"}]}\"},{\"name\":\"common_stream_error\",\"type\":\"string\"},{\"name\":\"common_stream_trace_id\",\"type\":\"long\"},{\"name\":\"http_url\",\"type\":\"string\"},{\"name\":\"http_host\",\"type\":\"string\"},{\"name\":\"http_domain\",\"type\":\"string\"},{\"name\":\"http_request_line\",\"type\":\"string\"},{\"name\":\"http_response_line\",\"type\":\"string\"},{\"name\":\"http_request_header\",\"type\":\"string\"},{\"name\":\"http_response_header\",\"type\":\"string\"},{\"name\":\"http_request_body\",\"type\":\"string\"},{\"name\":\"http_response_body\",\"type\":\"string\"},{\"name\":\"http_request_body_key\",\"type\":\"string\"},{\"name\":\"http_response_body_key\",\"type\":\"string\"},{\"name\":\"http_proxy_flag\",\"type\":\"int\"},{\"name\":\"http_sequence\",\"type\":\"int\"},{\"name\":\"http_snapshot\",\"type\":\"string\"},{\"name\":\"http_cookie\",\"type\":\"string\"},{\"name\":\"http_referer\",\"type\":\"string\"},{\"name\":\"http_user_agent\",\"type\":\"string\"},{\"name\":\"http_content_length\",\"type\":\"string\"},{\"name\":\"http_content_type\",\"type\":\"string\"},{\"name\":\"http_set_cookie\",\"type\":\"string\"},{\"name\":\"http_version\",\"type\":\"string\"}]}");
+  private static final long serialVersionUID = 463195146676285629L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"proxy_event_log\",\"namespace\":\"com.zdjizhi\",\"fields\":[{\"name\":\"common_log_id\",\"type\":\"long\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_service\",\"type\":\"int\"},{\"name\":\"common_recv_time\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_direction\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"outbound\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"inbound\\\"}]}\"},{\"name\":\"common_l4_protocol\",\"type\":\"string\"},{\"name\":\"common_address_type\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"4\\\",\\\"value\\\":\\\"ipv4\\\"},{\\\"code\\\":\\\"6\\\",\\\"value\\\":\\\"ipv6\\\"}]}\"},{\"name\":\"common_schema_type\",\"type\":\"string\"},{\"name\":\"common_policy_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_user_tags\",\"type\":\"string\"},{\"name\":\"common_action\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"None\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Monitor\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Intercept\\\"},{\\\"code\\\":\\\"16\\\",\\\"value\\\":\\\"Deny\\\"},{\\\"code\\\":\\\"48\\\",\\\"value\\\":\\\"Manipulation\\\"},{\\\"code\\\":\\\"128\\\",\\\"value\\\":\\\"Allow\\\"}]}\"},{\"name\":\"common_user_region\",\"type\":\"string\"},{\"name\":\"common_client_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_port\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_entrance_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_device_id\",\"type\":\"string\"},{\"name\":\"common_link_id\",\"type\":\"int\"},{\"name\":\"common_isp\",\"type\":\"string\"},{\"name\":\"common_encapsulation\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Ethernet\\\"},{\\\"code\\\":\\\"8\\\",\\\"value\\\":\\\"PPP\\\"},{\\\"code\\\":\\\"12\\\",\\\"value\\\":\\\"Cisco HDLC\\\"}]}\"},{\"name\":\"common_sled_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_location\",\"type\":\"string\"},{\"name\":\"common_client_asn\",\"type\":\"string\"},{\"name\":\"common_subscriber_id\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_server_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_server_port\",\"type\":\"int\"},{\"name\":\"common_server_location\",\"type\":\"string\"},{\"name\":\"common_server_asn\",\"type\":\"string\"},{\"name\":\"common_app_label\",\"type\":\"string\"},{\"name\":\"common_app_id\",\"type\":\"int\"},{\"name\":\"common_protocol_id\",\"type\":\"int\"},{\"name\":\"common_c2s_pkt_num\",\"type\":\"int\"},{\"name\":\"common_s2c_pkt_num\",\"type\":\"int\"},{\"name\":\"common_c2s_byte_num\",\"type\":\"int\"},{\"name\":\"common_s2c_byte_num\",\"type\":\"int\"},{\"name\":\"common_start_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_end_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_con_duration_ms\",\"type\":\"int\"},{\"name\":\"common_stream_dir\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"c2s\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"s2c\\\"},{\\\"code\\\":\\\"3\\\",\\\"value\\\":\\\"double\\\"}]}\"},{\"name\":\"common_address_list\",\"type\":\"string\"},{\"name\":\"common_has_dup_traffic\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"No\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Yes\\\"}]}\"},{\"name\":\"common_stream_error\",\"type\":\"string\"},{\"name\":\"common_stream_trace_id\",\"type\":\"long\"},{\"name\":\"http_url\",\"type\":\"string\"},{\"name\":\"http_host\",\"type\":\"string\"},{\"name\":\"http_domain\",\"type\":\"string\"},{\"name\":\"http_request_line\",\"type\":\"string\"},{\"name\":\"http_response_line\",\"type\":\"string\"},{\"name\":\"http_request_header\",\"type\":\"string\"},{\"name\":\"http_response_header\",\"type\":\"string\"},{\"name\":\"http_request_body\",\"type\":\"string\"},{\"name\":\"http_response_body\",\"type\":\"string\"},{\"name\":\"http_request_body_key\",\"type\":\"string\"},{\"name\":\"http_response_body_key\",\"type\":\"string\"},{\"name\":\"http_proxy_flag\",\"type\":\"int\"},{\"name\":\"http_sequence\",\"type\":\"int\"},{\"name\":\"http_snapshot\",\"type\":\"string\"},{\"name\":\"http_cookie\",\"type\":\"string\"},{\"name\":\"http_referer\",\"type\":\"string\"},{\"name\":\"http_user_agent\",\"type\":\"string\"},{\"name\":\"http_content_length\",\"type\":\"string\"},{\"name\":\"http_content_type\",\"type\":\"string\"},{\"name\":\"http_set_cookie\",\"type\":\"string\"},{\"name\":\"http_version\",\"type\":\"string\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -107,7 +107,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
   @Deprecated public java.lang.CharSequence common_subscriber_id;
   /** {"allow_query":"true","constraints":{"type":"ip"}} */
   @Deprecated public java.lang.CharSequence common_server_ip;
-  @Deprecated public int common_server_ipcommon_server_port;
+  @Deprecated public int common_server_port;
   @Deprecated public java.lang.CharSequence common_server_location;
   @Deprecated public java.lang.CharSequence common_server_asn;
   @Deprecated public java.lang.CharSequence common_app_label;
@@ -183,7 +183,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
    * @param common_client_asn The new value for common_client_asn
    * @param common_subscriber_id {"allow_query":"true"}
    * @param common_server_ip {"allow_query":"true","constraints":{"type":"ip"}}
-   * @param common_server_ipcommon_server_port The new value for common_server_ipcommon_server_port
+   * @param common_server_port The new value for common_server_port
    * @param common_server_location The new value for common_server_location
    * @param common_server_asn The new value for common_server_asn
    * @param common_app_label The new value for common_app_label
@@ -223,7 +223,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
    * @param http_set_cookie The new value for http_set_cookie
    * @param http_version The new value for http_version
    */
-  public proxy_event_log(java.lang.Long common_log_id, java.lang.Integer common_service, java.lang.Integer common_recv_time, java.lang.Integer common_direction, java.lang.CharSequence common_l4_protocol, java.lang.Integer common_address_type, java.lang.CharSequence common_schema_type, java.lang.Integer common_policy_id, java.lang.CharSequence common_user_tags, java.lang.Integer common_action, java.lang.CharSequence common_user_region, java.lang.CharSequence common_client_ip, java.lang.Integer common_client_port, java.lang.Integer common_entrance_id, java.lang.CharSequence common_device_id, java.lang.Integer common_link_id, java.lang.CharSequence common_isp, java.lang.Integer common_encapsulation, java.lang.CharSequence common_sled_ip, java.lang.CharSequence common_client_location, java.lang.CharSequence common_client_asn, java.lang.CharSequence common_subscriber_id, java.lang.CharSequence common_server_ip, java.lang.Integer common_server_ipcommon_server_port, java.lang.CharSequence common_server_location, java.lang.CharSequence common_server_asn, java.lang.CharSequence common_app_label, java.lang.Integer common_app_id, java.lang.Integer common_protocol_id, java.lang.Integer common_c2s_pkt_num, java.lang.Integer common_s2c_pkt_num, java.lang.Integer common_c2s_byte_num, java.lang.Integer common_s2c_byte_num, java.lang.Integer common_start_time, java.lang.Integer common_end_time, java.lang.Integer common_con_duration_ms, java.lang.Integer common_stream_dir, java.lang.CharSequence common_address_list, java.lang.Integer common_has_dup_traffic, java.lang.CharSequence common_stream_error, java.lang.Long common_stream_trace_id, java.lang.CharSequence http_url, java.lang.CharSequence http_host, java.lang.CharSequence http_domain, java.lang.CharSequence http_request_line, java.lang.CharSequence http_response_line, java.lang.CharSequence http_request_header, java.lang.CharSequence http_response_header, java.lang.CharSequence http_request_body, java.lang.CharSequence http_response_body, java.lang.CharSequence http_request_body_key, java.lang.CharSequence http_response_body_key, java.lang.Integer http_proxy_flag, java.lang.Integer http_sequence, java.lang.CharSequence http_snapshot, java.lang.CharSequence http_cookie, java.lang.CharSequence http_referer, java.lang.CharSequence http_user_agent, java.lang.CharSequence http_content_length, java.lang.CharSequence http_content_type, java.lang.CharSequence http_set_cookie, java.lang.CharSequence http_version) {
+  public proxy_event_log(java.lang.Long common_log_id, java.lang.Integer common_service, java.lang.Integer common_recv_time, java.lang.Integer common_direction, java.lang.CharSequence common_l4_protocol, java.lang.Integer common_address_type, java.lang.CharSequence common_schema_type, java.lang.Integer common_policy_id, java.lang.CharSequence common_user_tags, java.lang.Integer common_action, java.lang.CharSequence common_user_region, java.lang.CharSequence common_client_ip, java.lang.Integer common_client_port, java.lang.Integer common_entrance_id, java.lang.CharSequence common_device_id, java.lang.Integer common_link_id, java.lang.CharSequence common_isp, java.lang.Integer common_encapsulation, java.lang.CharSequence common_sled_ip, java.lang.CharSequence common_client_location, java.lang.CharSequence common_client_asn, java.lang.CharSequence common_subscriber_id, java.lang.CharSequence common_server_ip, java.lang.Integer common_server_port, java.lang.CharSequence common_server_location, java.lang.CharSequence common_server_asn, java.lang.CharSequence common_app_label, java.lang.Integer common_app_id, java.lang.Integer common_protocol_id, java.lang.Integer common_c2s_pkt_num, java.lang.Integer common_s2c_pkt_num, java.lang.Integer common_c2s_byte_num, java.lang.Integer common_s2c_byte_num, java.lang.Integer common_start_time, java.lang.Integer common_end_time, java.lang.Integer common_con_duration_ms, java.lang.Integer common_stream_dir, java.lang.CharSequence common_address_list, java.lang.Integer common_has_dup_traffic, java.lang.CharSequence common_stream_error, java.lang.Long common_stream_trace_id, java.lang.CharSequence http_url, java.lang.CharSequence http_host, java.lang.CharSequence http_domain, java.lang.CharSequence http_request_line, java.lang.CharSequence http_response_line, java.lang.CharSequence http_request_header, java.lang.CharSequence http_response_header, java.lang.CharSequence http_request_body, java.lang.CharSequence http_response_body, java.lang.CharSequence http_request_body_key, java.lang.CharSequence http_response_body_key, java.lang.Integer http_proxy_flag, java.lang.Integer http_sequence, java.lang.CharSequence http_snapshot, java.lang.CharSequence http_cookie, java.lang.CharSequence http_referer, java.lang.CharSequence http_user_agent, java.lang.CharSequence http_content_length, java.lang.CharSequence http_content_type, java.lang.CharSequence http_set_cookie, java.lang.CharSequence http_version) {
     this.common_log_id = common_log_id;
     this.common_service = common_service;
     this.common_recv_time = common_recv_time;
@@ -247,7 +247,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
     this.common_client_asn = common_client_asn;
     this.common_subscriber_id = common_subscriber_id;
     this.common_server_ip = common_server_ip;
-    this.common_server_ipcommon_server_port = common_server_ipcommon_server_port;
+    this.common_server_port = common_server_port;
     this.common_server_location = common_server_location;
     this.common_server_asn = common_server_asn;
     this.common_app_label = common_app_label;
@@ -316,7 +316,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
     case 20: return common_client_asn;
     case 21: return common_subscriber_id;
     case 22: return common_server_ip;
-    case 23: return common_server_ipcommon_server_port;
+    case 23: return common_server_port;
     case 24: return common_server_location;
     case 25: return common_server_asn;
     case 26: return common_app_label;
@@ -386,7 +386,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
     case 20: common_client_asn = (java.lang.CharSequence)value$; break;
     case 21: common_subscriber_id = (java.lang.CharSequence)value$; break;
     case 22: common_server_ip = (java.lang.CharSequence)value$; break;
-    case 23: common_server_ipcommon_server_port = (java.lang.Integer)value$; break;
+    case 23: common_server_port = (java.lang.Integer)value$; break;
     case 24: common_server_location = (java.lang.CharSequence)value$; break;
     case 25: common_server_asn = (java.lang.CharSequence)value$; break;
     case 26: common_app_label = (java.lang.CharSequence)value$; break;
@@ -834,20 +834,20 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
   }
 
   /**
-   * Gets the value of the 'common_server_ipcommon_server_port' field.
-   * @return The value of the 'common_server_ipcommon_server_port' field.
+   * Gets the value of the 'common_server_port' field.
+   * @return The value of the 'common_server_port' field.
    */
-  public int getCommonServerIpcommonServerPort() {
-    return common_server_ipcommon_server_port;
+  public int getCommonServerPort() {
+    return common_server_port;
   }
 
 
   /**
-   * Sets the value of the 'common_server_ipcommon_server_port' field.
+   * Sets the value of the 'common_server_port' field.
    * @param value the value to set.
    */
-  public void setCommonServerIpcommonServerPort(int value) {
-    this.common_server_ipcommon_server_port = value;
+  public void setCommonServerPort(int value) {
+    this.common_server_port = value;
   }
 
   /**
@@ -1576,7 +1576,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
     private java.lang.CharSequence common_subscriber_id;
     /** {"allow_query":"true","constraints":{"type":"ip"}} */
     private java.lang.CharSequence common_server_ip;
-    private int common_server_ipcommon_server_port;
+    private int common_server_port;
     private java.lang.CharSequence common_server_location;
     private java.lang.CharSequence common_server_asn;
     private java.lang.CharSequence common_app_label;
@@ -1723,8 +1723,8 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
         this.common_server_ip = data().deepCopy(fields()[22].schema(), other.common_server_ip);
         fieldSetFlags()[22] = other.fieldSetFlags()[22];
       }
-      if (isValidValue(fields()[23], other.common_server_ipcommon_server_port)) {
-        this.common_server_ipcommon_server_port = data().deepCopy(fields()[23].schema(), other.common_server_ipcommon_server_port);
+      if (isValidValue(fields()[23], other.common_server_port)) {
+        this.common_server_port = data().deepCopy(fields()[23].schema(), other.common_server_port);
         fieldSetFlags()[23] = other.fieldSetFlags()[23];
       }
       if (isValidValue(fields()[24], other.common_server_location)) {
@@ -1979,8 +1979,8 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
         this.common_server_ip = data().deepCopy(fields()[22].schema(), other.common_server_ip);
         fieldSetFlags()[22] = true;
       }
-      if (isValidValue(fields()[23], other.common_server_ipcommon_server_port)) {
-        this.common_server_ipcommon_server_port = data().deepCopy(fields()[23].schema(), other.common_server_ipcommon_server_port);
+      if (isValidValue(fields()[23], other.common_server_port)) {
+        this.common_server_port = data().deepCopy(fields()[23].schema(), other.common_server_port);
         fieldSetFlags()[23] = true;
       }
       if (isValidValue(fields()[24], other.common_server_location)) {
@@ -3099,40 +3099,40 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
     }
 
     /**
-      * Gets the value of the 'common_server_ipcommon_server_port' field.
+      * Gets the value of the 'common_server_port' field.
       * @return The value.
       */
-    public int getCommonServerIpcommonServerPort() {
-      return common_server_ipcommon_server_port;
+    public int getCommonServerPort() {
+      return common_server_port;
     }
 
 
     /**
-      * Sets the value of the 'common_server_ipcommon_server_port' field.
-      * @param value The value of 'common_server_ipcommon_server_port'.
+      * Sets the value of the 'common_server_port' field.
+      * @param value The value of 'common_server_port'.
       * @return This builder.
       */
-    public com.zdjizhi.proxy_event_log.Builder setCommonServerIpcommonServerPort(int value) {
+    public com.zdjizhi.proxy_event_log.Builder setCommonServerPort(int value) {
       validate(fields()[23], value);
-      this.common_server_ipcommon_server_port = value;
+      this.common_server_port = value;
       fieldSetFlags()[23] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'common_server_ipcommon_server_port' field has been set.
-      * @return True if the 'common_server_ipcommon_server_port' field has been set, false otherwise.
+      * Checks whether the 'common_server_port' field has been set.
+      * @return True if the 'common_server_port' field has been set, false otherwise.
       */
-    public boolean hasCommonServerIpcommonServerPort() {
+    public boolean hasCommonServerPort() {
       return fieldSetFlags()[23];
     }
 
 
     /**
-      * Clears the value of the 'common_server_ipcommon_server_port' field.
+      * Clears the value of the 'common_server_port' field.
       * @return This builder.
       */
-    public com.zdjizhi.proxy_event_log.Builder clearCommonServerIpcommonServerPort() {
+    public com.zdjizhi.proxy_event_log.Builder clearCommonServerPort() {
       fieldSetFlags()[23] = false;
       return this;
     }
@@ -4687,7 +4687,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
         record.common_client_asn = fieldSetFlags()[20] ? this.common_client_asn : (java.lang.CharSequence) defaultValue(fields()[20]);
         record.common_subscriber_id = fieldSetFlags()[21] ? this.common_subscriber_id : (java.lang.CharSequence) defaultValue(fields()[21]);
         record.common_server_ip = fieldSetFlags()[22] ? this.common_server_ip : (java.lang.CharSequence) defaultValue(fields()[22]);
-        record.common_server_ipcommon_server_port = fieldSetFlags()[23] ? this.common_server_ipcommon_server_port : (java.lang.Integer) defaultValue(fields()[23]);
+        record.common_server_port = fieldSetFlags()[23] ? this.common_server_port : (java.lang.Integer) defaultValue(fields()[23]);
         record.common_server_location = fieldSetFlags()[24] ? this.common_server_location : (java.lang.CharSequence) defaultValue(fields()[24]);
         record.common_server_asn = fieldSetFlags()[25] ? this.common_server_asn : (java.lang.CharSequence) defaultValue(fields()[25]);
         record.common_app_label = fieldSetFlags()[26] ? this.common_app_label : (java.lang.CharSequence) defaultValue(fields()[26]);
@@ -4804,7 +4804,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
 
     out.writeString(this.common_server_ip);
 
-    out.writeInt(this.common_server_ipcommon_server_port);
+    out.writeInt(this.common_server_port);
 
     out.writeString(this.common_server_location);
 
@@ -4935,7 +4935,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
 
       this.common_server_ip = in.readString(this.common_server_ip instanceof Utf8 ? (Utf8)this.common_server_ip : null);
 
-      this.common_server_ipcommon_server_port = in.readInt();
+      this.common_server_port = in.readInt();
 
       this.common_server_location = in.readString(this.common_server_location instanceof Utf8 ? (Utf8)this.common_server_location : null);
 
@@ -5109,7 +5109,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
           break;
 
         case 23:
-          this.common_server_ipcommon_server_port = in.readInt();
+          this.common_server_port = in.readInt();
           break;
 
         case 24:

@@ -109,7 +109,7 @@
         "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"}}"
       },
       {
-        "name": "common_server_ipcommon_server_port",
+        "name": "common_server_port",
         "type": "int"
       },
       {
