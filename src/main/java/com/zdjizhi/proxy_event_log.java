@@ -15,7 +15,7 @@ import org.apache.avro.message.SchemaStore;
 @org.apache.avro.specific.AvroGenerated
 public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
   private static final long serialVersionUID = 463195146676285629L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"proxy_event_log\",\"namespace\":\"com.zdjizhi\",\"fields\":[{\"name\":\"common_log_id\",\"type\":\"long\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_service\",\"type\":\"int\"},{\"name\":\"common_recv_time\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_direction\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"outbound\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"inbound\\\"}]}\"},{\"name\":\"common_l4_protocol\",\"type\":\"string\"},{\"name\":\"common_address_type\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"4\\\",\\\"value\\\":\\\"ipv4\\\"},{\\\"code\\\":\\\"6\\\",\\\"value\\\":\\\"ipv6\\\"}]}\"},{\"name\":\"common_schema_type\",\"type\":\"string\"},{\"name\":\"common_policy_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_user_tags\",\"type\":\"string\"},{\"name\":\"common_action\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"None\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Monitor\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Intercept\\\"},{\\\"code\\\":\\\"16\\\",\\\"value\\\":\\\"Deny\\\"},{\\\"code\\\":\\\"48\\\",\\\"value\\\":\\\"Manipulation\\\"},{\\\"code\\\":\\\"128\\\",\\\"value\\\":\\\"Allow\\\"}]}\"},{\"name\":\"common_user_region\",\"type\":\"string\"},{\"name\":\"common_client_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_port\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_entrance_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_device_id\",\"type\":\"string\"},{\"name\":\"common_link_id\",\"type\":\"int\"},{\"name\":\"common_isp\",\"type\":\"string\"},{\"name\":\"common_encapsulation\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Ethernet\\\"},{\\\"code\\\":\\\"8\\\",\\\"value\\\":\\\"PPP\\\"},{\\\"code\\\":\\\"12\\\",\\\"value\\\":\\\"Cisco HDLC\\\"}]}\"},{\"name\":\"common_sled_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_location\",\"type\":\"string\"},{\"name\":\"common_client_asn\",\"type\":\"string\"},{\"name\":\"common_subscriber_id\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_server_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_server_port\",\"type\":\"int\"},{\"name\":\"common_server_location\",\"type\":\"string\"},{\"name\":\"common_server_asn\",\"type\":\"string\"},{\"name\":\"common_app_label\",\"type\":\"string\"},{\"name\":\"common_app_id\",\"type\":\"int\"},{\"name\":\"common_protocol_id\",\"type\":\"int\"},{\"name\":\"common_c2s_pkt_num\",\"type\":\"int\"},{\"name\":\"common_s2c_pkt_num\",\"type\":\"int\"},{\"name\":\"common_c2s_byte_num\",\"type\":\"int\"},{\"name\":\"common_s2c_byte_num\",\"type\":\"int\"},{\"name\":\"common_start_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_end_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_con_duration_ms\",\"type\":\"int\"},{\"name\":\"common_stream_dir\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"c2s\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"s2c\\\"},{\\\"code\\\":\\\"3\\\",\\\"value\\\":\\\"double\\\"}]}\"},{\"name\":\"common_address_list\",\"type\":\"string\"},{\"name\":\"common_has_dup_traffic\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"No\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Yes\\\"}]}\"},{\"name\":\"common_stream_error\",\"type\":\"string\"},{\"name\":\"common_stream_trace_id\",\"type\":\"long\"},{\"name\":\"http_url\",\"type\":\"string\"},{\"name\":\"http_host\",\"type\":\"string\"},{\"name\":\"http_domain\",\"type\":\"string\"},{\"name\":\"http_request_line\",\"type\":\"string\"},{\"name\":\"http_response_line\",\"type\":\"string\"},{\"name\":\"http_request_header\",\"type\":\"string\"},{\"name\":\"http_response_header\",\"type\":\"string\"},{\"name\":\"http_request_body\",\"type\":\"string\"},{\"name\":\"http_response_body\",\"type\":\"string\"},{\"name\":\"http_request_body_key\",\"type\":\"string\"},{\"name\":\"http_response_body_key\",\"type\":\"string\"},{\"name\":\"http_proxy_flag\",\"type\":\"int\"},{\"name\":\"http_sequence\",\"type\":\"int\"},{\"name\":\"http_snapshot\",\"type\":\"string\"},{\"name\":\"http_cookie\",\"type\":\"string\"},{\"name\":\"http_referer\",\"type\":\"string\"},{\"name\":\"http_user_agent\",\"type\":\"string\"},{\"name\":\"http_content_length\",\"type\":\"string\"},{\"name\":\"http_content_type\",\"type\":\"string\"},{\"name\":\"http_set_cookie\",\"type\":\"string\"},{\"name\":\"http_version\",\"type\":\"string\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"proxy_event_log\",\"namespace\":\"com.zdjizhi\",\"fields\":[{\"name\":\"common_log_id\",\"type\":\"long\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_service\",\"type\":\"int\"},{\"name\":\"common_recv_time\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_direction\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"outbound\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"inbound\\\"}]}\"},{\"name\":\"common_l4_protocol\",\"type\":\"string\"},{\"name\":\"common_address_type\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"4\\\",\\\"value\\\":\\\"ipv4\\\"},{\\\"code\\\":\\\"6\\\",\\\"value\\\":\\\"ipv6\\\"}]}\"},{\"name\":\"common_schema_type\",\"type\":\"string\"},{\"name\":\"common_policy_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_user_tags\",\"type\":\"string\"},{\"name\":\"common_action\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"None\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Monitor\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"Intercept\\\"},{\\\"code\\\":\\\"16\\\",\\\"value\\\":\\\"Deny\\\"},{\\\"code\\\":\\\"48\\\",\\\"value\\\":\\\"Manipulation\\\"},{\\\"code\\\":\\\"128\\\",\\\"value\\\":\\\"Allow\\\"}]}\"},{\"name\":\"common_user_region\",\"type\":\"string\"},{\"name\":\"common_client_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_port\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_entrance_id\",\"type\":\"int\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_device_id\",\"type\":\"string\"},{\"name\":\"common_link_id\",\"type\":\"int\"},{\"name\":\"common_isp\",\"type\":\"string\"},{\"name\":\"common_encapsulation\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"Ethernet\\\"},{\\\"code\\\":\\\"8\\\",\\\"value\\\":\\\"PPP\\\"},{\\\"code\\\":\\\"12\\\",\\\"value\\\":\\\"Cisco HDLC\\\"}]}\"},{\"name\":\"common_sled_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_client_location\",\"type\":\"string\"},{\"name\":\"common_client_asn\",\"type\":\"string\"},{\"name\":\"common_subscriber_id\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"common_server_ip\",\"type\":\"string\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\",\\\"constraints\\\":{\\\"type\\\":\\\"ip\\\"}}\"},{\"name\":\"common_server_port\",\"type\":\"int\"},{\"name\":\"common_server_location\",\"type\":\"string\"},{\"name\":\"common_server_asn\",\"type\":\"string\"},{\"name\":\"common_app_label\",\"type\":\"string\"},{\"name\":\"common_app_id\",\"type\":\"int\"},{\"name\":\"common_protocol_id\",\"type\":\"int\"},{\"name\":\"common_c2s_pkt_num\",\"type\":\"int\"},{\"name\":\"common_s2c_pkt_num\",\"type\":\"int\"},{\"name\":\"common_c2s_byte_num\",\"type\":\"int\"},{\"name\":\"common_s2c_byte_num\",\"type\":\"int\"},{\"name\":\"common_start_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_end_time\",\"type\":\"int\",\"doc\":\"{\\\"constraints\\\":{\\\"type\\\":\\\"timestamp\\\"}}\"},{\"name\":\"common_con_duration_ms\",\"type\":\"int\"},{\"name\":\"common_stream_dir\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"c2s\\\"},{\\\"code\\\":\\\"2\\\",\\\"value\\\":\\\"s2c\\\"},{\\\"code\\\":\\\"3\\\",\\\"value\\\":\\\"double\\\"}]}\"},{\"name\":\"common_address_list\",\"type\":\"string\"},{\"name\":\"common_has_dup_traffic\",\"type\":\"int\",\"doc\":\"{\\\"data\\\":[{\\\"code\\\":\\\"0\\\",\\\"value\\\":\\\"No\\\"},{\\\"code\\\":\\\"1\\\",\\\"value\\\":\\\"Yes\\\"}]}\"},{\"name\":\"common_stream_error\",\"type\":\"string\"},{\"name\":\"common_stream_trace_id\",\"type\":\"long\",\"doc\":\"{\\\"allow_query\\\":\\\"true\\\"}\"},{\"name\":\"http_url\",\"type\":\"string\"},{\"name\":\"http_host\",\"type\":\"string\"},{\"name\":\"http_domain\",\"type\":\"string\"},{\"name\":\"http_request_line\",\"type\":\"string\"},{\"name\":\"http_response_line\",\"type\":\"string\"},{\"name\":\"http_request_header\",\"type\":\"string\"},{\"name\":\"http_response_header\",\"type\":\"string\"},{\"name\":\"http_request_body\",\"type\":\"string\"},{\"name\":\"http_response_body\",\"type\":\"string\"},{\"name\":\"http_request_body_key\",\"type\":\"string\"},{\"name\":\"http_response_body_key\",\"type\":\"string\"},{\"name\":\"http_proxy_flag\",\"type\":\"int\"},{\"name\":\"http_sequence\",\"type\":\"int\"},{\"name\":\"http_snapshot\",\"type\":\"string\"},{\"name\":\"http_cookie\",\"type\":\"string\"},{\"name\":\"http_referer\",\"type\":\"string\"},{\"name\":\"http_user_agent\",\"type\":\"string\"},{\"name\":\"http_content_length\",\"type\":\"string\"},{\"name\":\"http_content_type\",\"type\":\"string\"},{\"name\":\"http_set_cookie\",\"type\":\"string\"},{\"name\":\"http_version\",\"type\":\"string\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -128,6 +128,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
   /** {"data":[{"code":"0","value":"No"},{"code":"1","value":"Yes"}]} */
   @Deprecated public int common_has_dup_traffic;
   @Deprecated public java.lang.CharSequence common_stream_error;
+  /** {"allow_query":"true"} */
   @Deprecated public long common_stream_trace_id;
   @Deprecated public java.lang.CharSequence http_url;
   @Deprecated public java.lang.CharSequence http_host;
@@ -200,7 +201,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
    * @param common_address_list The new value for common_address_list
    * @param common_has_dup_traffic {"data":[{"code":"0","value":"No"},{"code":"1","value":"Yes"}]}
    * @param common_stream_error The new value for common_stream_error
-   * @param common_stream_trace_id The new value for common_stream_trace_id
+   * @param common_stream_trace_id {"allow_query":"true"}
    * @param http_url The new value for http_url
    * @param http_host The new value for http_host
    * @param http_domain The new value for http_domain
@@ -1128,7 +1129,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
 
   /**
    * Gets the value of the 'common_stream_trace_id' field.
-   * @return The value of the 'common_stream_trace_id' field.
+   * @return {"allow_query":"true"}
    */
   public long getCommonStreamTraceId() {
     return common_stream_trace_id;
@@ -1137,6 +1138,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
 
   /**
    * Sets the value of the 'common_stream_trace_id' field.
+   * {"allow_query":"true"}
    * @param value the value to set.
    */
   public void setCommonStreamTraceId(long value) {
@@ -1597,6 +1599,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
     /** {"data":[{"code":"0","value":"No"},{"code":"1","value":"Yes"}]} */
     private int common_has_dup_traffic;
     private java.lang.CharSequence common_stream_error;
+    /** {"allow_query":"true"} */
     private long common_stream_trace_id;
     private java.lang.CharSequence http_url;
     private java.lang.CharSequence http_host;
@@ -3784,6 +3787,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
 
     /**
       * Gets the value of the 'common_stream_trace_id' field.
+      * {"allow_query":"true"}
       * @return The value.
       */
     public long getCommonStreamTraceId() {
@@ -3793,6 +3797,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
 
     /**
       * Sets the value of the 'common_stream_trace_id' field.
+      * {"allow_query":"true"}
       * @param value The value of 'common_stream_trace_id'.
       * @return This builder.
       */
@@ -3805,6 +3810,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
 
     /**
       * Checks whether the 'common_stream_trace_id' field has been set.
+      * {"allow_query":"true"}
       * @return True if the 'common_stream_trace_id' field has been set, false otherwise.
       */
     public boolean hasCommonStreamTraceId() {
@@ -3814,6 +3820,7 @@ public class proxy_event_log extends org.apache.avro.specific.SpecificRecordBase
 
     /**
       * Clears the value of the 'common_stream_trace_id' field.
+      * {"allow_query":"true"}
       * @return This builder.
       */
     public com.zdjizhi.proxy_event_log.Builder clearCommonStreamTraceId() {

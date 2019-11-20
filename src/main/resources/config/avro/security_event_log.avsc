@@ -182,7 +182,8 @@
       },
       {
         "name": "common_stream_trace_id",
-        "type": "long"
+        "type": "long",
+        "doc": "{\"allow_query\":\"true\"}"
       },
       {
         "name": "http_url",
