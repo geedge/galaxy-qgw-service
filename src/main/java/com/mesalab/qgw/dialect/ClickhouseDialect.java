@@ -186,12 +186,13 @@ public class ClickhouseDialect implements Dialect {
 
 
 
-
         StringBuffer subQuery = new StringBuffer();
 
         String expr = param.getSqlQuerySource().getExpr();
         String subTimeKey = "common_recv_time";
-        if(!expr.contains(subTimeKey)){
+        if(!expr.contains(subTimeKey) && !expr.contains("recv_time")){
+            return sql;
+        }else if(!expr.contains(subTimeKey)){
             subTimeKey = "recv_time";
         }
 
