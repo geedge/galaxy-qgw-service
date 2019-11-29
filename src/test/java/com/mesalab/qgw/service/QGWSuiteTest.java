@@ -4,7 +4,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({MysqlCKDateTest.class, MysqlDruidDateTest.class, ClickHouseTest.class,SessionRecordQueryTest.class,PolicyEventLogQueryTest.class, ClickHouseReportTest.class, DruidTest.class})
+@Suite.SuiteClasses({GetSchemaInfo.class, MysqlCKDateTest.class, MysqlDruidDateTest.class, ClickHouseTest.class, DruidTest.class})
 public class QGWSuiteTest {
 
 
