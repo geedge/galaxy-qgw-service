@@ -6,6 +6,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLDateFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
@@ -237,10 +238,12 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect sqlDialectTransform() {
-        param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
-        param.setQuery(generateUniq(param.getQuery()));
-        param.setQuery(generateSubQueryByPartition(param.getQuery()));
-        param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(),DBTypeEnum.CLICKHOUSE.getValue()));
+        if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.QUERY_SCHEMA.getValue())) {
+            param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+            param.setQuery(generateUniq(param.getQuery()));
+            param.setQuery(generateSubQueryByPartition(param.getQuery()));
+            param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
+        }
         param.setQuery(generateSqlEncode(param.getQuery()));
 
 

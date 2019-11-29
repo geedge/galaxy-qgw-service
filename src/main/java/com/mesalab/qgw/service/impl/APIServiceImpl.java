@@ -18,6 +18,9 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.base.SchemaBase;
+import com.mesalab.common.configuration.ClickHouseProperties;
+import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
@@ -26,7 +29,6 @@ import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.IAPIService;
-import com.zdjizhi.*;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -35,24 +37,40 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
-import org.apache.avro.JsonProperties;
-import org.apache.avro.Schema;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service("apiService")
 public class APIServiceImpl implements IAPIService {
+
+    Pattern pSchemaInfo = Pattern.compile("^(?<startKey>SHOW|DESCRIBE|DESC)\\s+", Pattern.CASE_INSENSITIVE);
+    Pattern pDescTable = Pattern.compile("^(?<startKey>DESCRIBE|DESC)\\s+(?<tableName>.*)\\s*", Pattern.CASE_INSENSITIVE);
+    Pattern pShowTable = Pattern.compile("^(?<startKey>SHOW)\\s+(?<tableName>.*?)\\s+(FROM)\\s+(?<DBName>.*)\\s*", Pattern.CASE_INSENSITIVE);
+    public static List<String> sortStr = Arrays.asList("common_recv_time","common_log_id","common_policy_id","common_subscriber_id","common_client_ip","common_client_port","common_l4_protocol","common_address_type","common_server_ip","common_server_port","common_action","common_direction","common_entrance_id","common_sled_ip","common_client_location","common_client_asn","common_server_location","common_server_asn","common_c2s_pkt_num","common_s2c_pkt_num","common_c2s_byte_num","common_s2c_byte_num");
+
     @Autowired
     private SchemaProperties schemaProperties;
+    @Autowired
+    private ClickHouseProperties clickHouseProperties;
+    @Autowired
+    private DruidIoProperties druidIoProperties;
+
 
     @Override
     public BaseResult executeQuery(ApiParam param) {
-
+        Matcher matcher = pSchemaInfo.matcher(param.getQuery());
+        if(matcher.find()){
+            log.info("查询语句为{},需引流至直接查询方式", param);
+            return executeQueryOfSchema(param, matcher.group("startKey"));
+        }
         validateAndGetTableName(param);
 
         BaseResult baseResult = parserAndGetDialect(param).sqlDialectTransform().executeHttpQuery();
@@ -63,55 +81,6 @@ public class APIServiceImpl implements IAPIService {
 
 
         return baseResult;
-    }
-
-    @Override
-    public BaseResult querySchema(String table){
-
-        Map<String, JsonProperties> allSchema = getSchemaInfo();
-        Map resultMap = (Map)JsonMapper.fromJsonString(String.valueOf(allSchema.get(table)), Map.class);
-        if(resultMap == null){
-            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "该表未在平台注册，请联系数据平台负责人", null);
-        }
-        List<Map> fields = (List<Map>) resultMap.get("fields");
-        Iterator<Map> iterator = fields.iterator();
-        Map mapDoc =null;
-        while (iterator.hasNext()){
-            Map next = iterator.next();
-            try{
-                mapDoc = (Map) JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
-            }catch (Exception ex){
-                log.debug("该字段的 doc 为非JSON字符串，不需类型转换");
-            }
-            if(mapDoc != null){
-                next.put("doc", mapDoc);
-            }
-        }
-        BaseResult<Map> baseResult = BaseResultGenerator.success("ok", resultMap);
-        if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus() ,baseResult.getMessage(), null);
-        }
-        return baseResult;
-
-    }
-
-
-    // 获取所有schema信息
-    public Map<String, JsonProperties> getSchemaInfo(){
-
-        Map<String, JsonProperties> allSchema = new HashMap<>();
-
-        // 面像对象方式：需提前用maven clean install 生成schema类文件
-        Schema schema1 = new connection_record_log().getSchema();
-        Schema schema2 = new proxy_event_log().getSchema();
-        Schema schema3 = new radius_record_log().getSchema();
-        Schema schema4 = new security_event_log().getSchema();
-        allSchema.put(schema1.getName() , schema1);
-        allSchema.put(schema2.getName() , schema2);
-        allSchema.put(schema3.getName() , schema3);
-        allSchema.put(schema4.getName() , schema4);
-
-        return allSchema;
     }
 
     private Dialect parserAndGetDialect(ApiParam param) {
@@ -137,6 +106,13 @@ public class APIServiceImpl implements IAPIService {
             param.setSqlQuerySource(parserSQLByAst(param.getQuery()));
 
         }
+        dialect = getDialect(param);
+
+        return dialect;
+    }
+
+    private Dialect getDialect(ApiParam param) {
+        Dialect dialect;
         try {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
@@ -476,6 +452,178 @@ public class APIServiceImpl implements IAPIService {
     }
 
 
+
+    /**
+     * 表描述信息结果封装
+     *
+     * @param result
+     * @param param
+     * @return
+     */
+    public BaseResult dataEncapsulationOfSchema(BaseResult result, ApiParam param) {
+        SchemaBase schema = new SchemaBase();
+        schema.setName(param.getTableName());
+        List<Map> fields = new ArrayList<>();
+        List<Map> fieldsSort = new ArrayList<>();
+        HashMap<String, Object> map = new HashMap<>();
+        List<Map> list = (List<Map>) result.getData();
+        Iterator iterator = list.iterator();
+        while (iterator.hasNext()) {
+            Map<String, String> next = (Map) iterator.next();
+            map = new HashMap<>();
+            map.put("name", next.get("name"));
+            map.put("type", setSchemaType(next.get("type")));
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(param.getDbType())) {
+                String comment = next.get("comment");
+                Map docColumn = null;
+                try {
+                    docColumn = (Map) JsonMapper.fromJsonString(comment, Map.class);
+                } catch (Exception e) {
+                    log.error("字段comment[doc]字符串信息转JSON异常, 顾不需转换直接赋值", e);
+                }
+                if (docColumn != null) {
+                    map.put("doc", docColumn);
+                } else if (docColumn == null && !StringUtil.isBlank(comment)) {
+                    map.put("doc", comment);
+                }
+            }
+            //判断是否需要排序
+            if(sortStr.indexOf(map.get("name")) >= 0){
+                fieldsSort.add(map);
+            }else {
+                fields.add(map);
+            }
+        }
+        List<Map> fieldsResult = sortColumn(fieldsSort);
+        fieldsResult.addAll(fields);
+        schema.setFields(fieldsResult);
+        result.setData(schema);
+        return result;
+    }
+
+    private List<Map> sortColumn(List<Map> fieldsSort) {
+        Iterator<String> sort = sortStr.iterator();
+        List<Map> fieldsResult = new ArrayList<>();
+        while (sort.hasNext()){
+            String next = sort.next();
+            for(int i = 0; i < fieldsSort.size(); i++){
+                if(next.equals(fieldsSort.get(i).get("name")))
+                    fieldsResult.add(fieldsSort.get(i));
+            }
+        }
+        return fieldsResult;
+    }
+
+
+    public String setSchemaType(String type) {
+        if ("INT64".equals(type.toUpperCase())) {
+            type = "int";
+        } else if ("UINT64".equals(type.toUpperCase()) || "LONG".equals(type.toUpperCase())
+                || "BIGINT".equals(type.toUpperCase())) {
+            type = "long";
+        } else if ("STRING".equals(type.toUpperCase()) || "VARCHAR".equals(type.toUpperCase())) {
+            type = "string";
+        } else if ("TIMESTAMP".equals(type.toUpperCase())) {
+            type = "timestamp";
+        }
+        return type;
+    }
+
+    /**
+     * schema信息查询
+     *
+     * @param param
+     * @param keyWord eg：show、desc、describe
+     * @return
+     */
+    private BaseResult executeQueryOfSchema(ApiParam param, String keyWord) {
+        Matcher mShowTable = pShowTable.matcher(param.getQuery());
+        Boolean showKey = mShowTable.find();
+        if (!keyWord.toUpperCase().contains("DESC") && !showKey) {
+            String str = String.format("查询库中表名需要指定数据库(目前支持 %s、%s), 例如：show tables from databaseName", clickHouseProperties.getDbname(), druidIoProperties.getDbname());
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), str, null);
+        }
+        //查表描述
+        if (!showKey) {
+            descTableInfo(param, param.getQuery());
+        } else {//查库中包含的表
+            param.setSchema(mShowTable.group("DBName"));
+            if (clickHouseProperties.getDbname().equals(param.getSchema())) {
+                param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
+            } else if (druidIoProperties.getDbname().equals(param.getSchema())) {
+                param.setDbType(DBTypeEnum.DRUID.getValue());
+                param.setQuery("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE' ");
+            } else {
+                String str = String.format("无此数据库(目前仅支持: %s、%s).", clickHouseProperties.getDbname(), druidIoProperties.getDbname());
+                throw new BusinessException(BaseResultEnum.FAIL.getCode(), str, null);
+            }
+        }
+        param.setFormat(QueryFormatEnum.JSON.getValue());
+        param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
+        param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
+
+        Dialect dialect = getDialect(param);
+        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery();
+        if (result.getStatus() != HttpStatus.SC_OK) {
+            return result;
+        }
+        if (showKey) {
+            return tablesResultEncapsulation(result, param.getSchema());
+        }
+        return dataEncapsulationOfSchema(result, param);
+    }
+
+    /**
+     * 库中包含表表名查询结果处理
+     *
+     * @param result
+     * @return
+     */
+    private BaseResult tablesResultEncapsulation(BaseResult result, String database) {
+        List tables = (ArrayList) result.getData();
+        List<String> list = new ArrayList<>();
+        Map<String, Object> date = new LinkedHashMap<>();
+        date.put("type", "enum");
+        date.put("name", database);
+        Iterator iterator = tables.iterator();
+        while (iterator.hasNext()){
+            Map<String, String> next = (Map)iterator.next();
+            if(!next.get("name").endsWith("_local")){
+                list.add(next.get("name"));
+            }
+        }
+        date.put("symbols", list);
+        result.setData(date);
+        return result;
+    }
+
+    /**
+     * 单表字段名、类型、描述信息查询
+     *
+     * @param param
+     * @param query
+     */
+    private void descTableInfo(ApiParam param, String query) {
+        Matcher matcher = pDescTable.matcher(query);
+        String tableName = null;
+        if (matcher.find()) {
+            tableName = matcher.group("tableName");
+        }
+        param.setTableName(tableName);
+        //查询该表在那个库里
+        ApiParam temp = new ApiParam();
+        temp.setQuery("show tables from " + clickHouseProperties.getDbname());
+        temp.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
+        BaseResult result = executeQueryOfSchema(temp, "show");
+        Map data = (Map) result.getData();
+        List symbols = (List) data.get("symbols");
+        if (symbols.contains(param.getTableName())) {
+            param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
+        } else {
+            param.setDbType(DBTypeEnum.DRUID.getValue());
+            param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
+        }
+    }
 
 
 

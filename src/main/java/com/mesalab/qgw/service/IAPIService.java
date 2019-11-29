@@ -7,5 +7,4 @@ import java.util.Map;
 
 public interface IAPIService {
     BaseResult executeQuery(ApiParam param);
-    BaseResult querySchema(String table);
 }
