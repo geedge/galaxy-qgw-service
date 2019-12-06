@@ -306,11 +306,10 @@ public class APIServiceImpl implements IAPIService {
 
                     }
 
-                    List<Expression> groupList = select.getGroupByColumnReferences();
-
-
-                    if (StringUtil.isNotEmpty(groupList)) {
-                        String groupByString =  Joiner.on(",").join(groupList);
+                    GroupByElement groupBy;
+                    List<Expression> groupList;
+                    if (StringUtil.isNotEmpty(groupBy = select.getGroupBy()) && StringUtil.isNotEmpty(groupList = groupBy.getGroupByExpressions())) {
+                        String groupByString = Joiner.on(",").join(groupList);
                         sqlQuerySource.setGroupByClause(groupByString);
 
                     }
