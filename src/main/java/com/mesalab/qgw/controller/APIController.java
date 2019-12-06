@@ -2,6 +2,8 @@ package com.mesalab.qgw.controller;
 
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
@@ -58,10 +60,23 @@ public class APIController {
     }
 
     @ApiOperation(value = "HTTP SCHEMA 查询", httpMethod = "GET", notes = "元数据管理，用于描述数据的数据。包含数据库表结构，支持那些数据表，业务规则定义等。")
-    @RequestMapping("/metadata/schema/v1/fields/{tableName}")
+    @RequestMapping("/metadata/schema/v1/{type}/{name}") /*fields\tables*/
     @CachedSubmitCheck
-    public BaseResult getSchema(@PathVariable String tableName){
-        log.debug("接收SCHEMA获取 表名为:{}", tableName);
-        return apiService.querySchema(tableName);
+    public BaseResult getSchema(@PathVariable String type, @PathVariable String name) {
+        log.debug("SCHEMA信息获取,参数为{} {}", type, name);
+        if (StringUtil.isBlank(type) || StringUtil.isBlank(name)) {
+            return BaseResultGenerator.success4Message("ok");
+        }
+        ApiParam param = new ApiParam();
+        if("tables".equals(type)){
+            param.setSchema(name);
+            param.setQuery("show tables from " + name);
+        }else if("fields".equals(type)){
+            param.setTableName(name);
+            param.setQuery("DESCRIBE " + name);
+        }else {
+            throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "Not found, check url please", null);
+        }
+        return apiService.executeQuery(param);
     }
 }
