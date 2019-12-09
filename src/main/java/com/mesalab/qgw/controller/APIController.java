@@ -60,7 +60,7 @@ public class APIController {
     }
 
     @ApiOperation(value = "HTTP SCHEMA 查询", httpMethod = "GET", notes = "元数据管理，用于描述数据的数据。包含数据库表结构，支持那些数据表，业务规则定义等。")
-    @RequestMapping("/metadata/schema/v1/{type}/{name}") /*fields\tables*/
+    @RequestMapping("/metadata/schema/v1/{type}/{name}")
     @CachedSubmitCheck
     public BaseResult getSchema(@PathVariable String type, @PathVariable String name) {
         log.debug("SCHEMA信息获取,参数为{} {}", type, name);
@@ -70,7 +70,7 @@ public class APIController {
         ApiParam param = new ApiParam();
         if("tables".equals(type)){
             param.setSchema(name);
-            param.setQuery("show tables from " + name);
+            param.setQuery("show tables");
         }else if("fields".equals(type)){
             param.setTableName(name);
             param.setQuery("DESCRIBE " + name);

@@ -34,26 +34,21 @@ import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.DescribeStatement;
+import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.io.File;
-import java.io.IOException;
+
 import java.lang.reflect.Constructor;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Service("apiService")
 public class APIServiceImpl implements IAPIService {
 
-    Pattern pSchemaInfo = Pattern.compile("^(?<startKey>SHOW|DESCRIBE|DESC)\\s+", Pattern.CASE_INSENSITIVE);
-    Pattern pDescTable = Pattern.compile("^(?<startKey>DESCRIBE|DESC)\\s+(?<tableName>.*)\\s*", Pattern.CASE_INSENSITIVE);
-    Pattern pShowTable = Pattern.compile("^(?<startKey>SHOW)\\s+(?<tableName>.*?)\\s+(FROM)\\s+(?<DBName>.*)\\s*", Pattern.CASE_INSENSITIVE);
     public static List<String> sortStr = Arrays.asList("common_recv_time","common_log_id","common_policy_id","common_subscriber_id","common_client_ip","common_client_port","common_l4_protocol","common_address_type","common_server_ip","common_server_port","common_action","common_direction","common_entrance_id","common_sled_ip","common_client_location","common_client_asn","common_server_location","common_server_asn","common_c2s_pkt_num","common_s2c_pkt_num","common_c2s_byte_num","common_s2c_byte_num");
 
     @Autowired
@@ -66,11 +61,32 @@ public class APIServiceImpl implements IAPIService {
 
     @Override
     public BaseResult executeQuery(ApiParam param) {
-        Matcher matcher = pSchemaInfo.matcher(param.getQuery());
-        if(matcher.find()){
-            log.info("查询语句为{},需引流至直接查询方式", param);
-            return executeQueryOfSchema(param, matcher.group("startKey"));
+        if (StringUtil.isBlank(param.getQuery())) {
+            return BaseResultGenerator.success4Message("ok");
         }
+        Statement statement;
+        try {
+            statement = CCJSqlParserUtil.parse(param.getQuery());
+        } catch (Exception e) {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e.getCause());
+        }
+
+        BaseResult baseResult;
+        if (statement instanceof Select) {
+            baseResult = executeSelectStatement(param);
+        } else if (statement instanceof DescribeStatement) {
+            DescribeStatement describeStatement = (DescribeStatement) statement;
+            baseResult = executeDescStatement(param, describeStatement);
+        } else if (statement instanceof ShowStatement) {
+            ShowStatement showStatement = (ShowStatement) statement;
+            baseResult = executeShowStatement(param, showStatement);
+        } else {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,目前只支持SELECT、SHOW、DESCRIBE 操作");
+        }
+        return baseResult;
+    }
+
+    private BaseResult executeSelectStatement(ApiParam param) {
         validateAndGetTableName(param);
 
         BaseResult baseResult = parserAndGetDialect(param).sqlDialectTransform().executeHttpQuery();
@@ -453,6 +469,90 @@ public class APIServiceImpl implements IAPIService {
 
 
     /**
+     * 执行describe语句
+     * @param param
+     * @param statement
+     * @return
+     */
+    private BaseResult executeDescStatement(ApiParam param, DescribeStatement statement) {
+        String name = statement.getTable().getName();
+        param.setTableName(name);
+        //查ck
+        ApiParam temp = new ApiParam();
+        temp.setSchema(clickHouseProperties.getDbname());
+        temp.setTableName(name);
+        temp.setQuery("show tables");
+        BaseResult ckResult = executeShowStatement(temp, null);
+        Map data = (Map) ckResult.getData();
+        List symbols = (List) data.get("symbols");
+        if (symbols.contains(param.getTableName())) {
+            //表在ck中
+            param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
+            param.setDialectDBType(DBTypeEnum.CLICKHOUSE.getValue());
+        } else {//走druid去查
+            param.setDbType(DBTypeEnum.DRUID.getValue());
+            param.setDialectDBType(DBTypeEnum.DRUID.getValue());
+            param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + name + "'");
+        }
+        param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
+        param.setFormat(QueryFormatEnum.JSON.getValue());
+        Dialect dialect = getDialect(param);
+        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery();
+        BaseResult baseResult = dataEncapsulationOfSchema(result, param);
+        return baseResult;
+    }
+
+    /**
+     * 执行show语句
+     * @param param
+     * @param showStatement
+     * @return
+     */
+    private BaseResult executeShowStatement(ApiParam param, ShowStatement showStatement) {
+        if(showStatement != null && !"tables".equalsIgnoreCase(showStatement.getName())){
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持Show tables 之外的操作", null);
+        }
+        if (clickHouseProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
+            param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
+            param.setDialectDBType(DBTypeEnum.CLICKHOUSE.getValue());
+        } else if (druidIoProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
+            param.setDbType(DBTypeEnum.DRUID.getValue());
+            param.setDialectDBType(DBTypeEnum.DRUID.getValue());
+            param.setQuery("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE'");
+        } else if (StringUtil.isBlank(param.getSchema())) {
+            //查ck
+            ApiParam temp = new ApiParam();
+            temp.setQuery("show tables");
+            temp.setSchema(clickHouseProperties.getDbname());
+            BaseResult ck = executeShowStatement(temp, null);
+            Map ckDate = (Map)ck.getData();
+            List ckSymbols = (List) ckDate.get("symbols");
+            //查druid
+            temp = new ApiParam();
+            temp.setSchema(druidIoProperties.getDbname());
+            BaseResult druid = executeShowStatement(temp, null);
+            Map druidData = (Map)druid.getData();
+            List druidSymbols = (List)druidData.get("symbols");
+            //合并结果
+            Map<String, Object> date = new LinkedHashMap<>();
+            date.put("type", "enum");
+            date.put("name", ckDate.get("name") + "," + druidData.get("name"));
+            ckSymbols.addAll(druidSymbols);
+            date.put("symbols", ckSymbols);
+            ck.setData(date);
+            return ck;
+        } else {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema name error");
+        }
+        param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
+        param.setFormat(QueryFormatEnum.JSON.getValue());
+        Dialect dialect = getDialect(param);
+        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery();
+        return tablesResultEncapsulation(result, param.getSchema());
+    }
+
+
+    /**
      * 表描述信息结果封装
      *
      * @param result
@@ -513,63 +613,27 @@ public class APIServiceImpl implements IAPIService {
         return fieldsResult;
     }
 
-
+    /**
+     * 类型替换
+     * @param type
+     * @return
+     */
     public String setSchemaType(String type) {
-        if ("INT64".equals(type.toUpperCase())) {
-            type = "int";
-        } else if ("UINT64".equals(type.toUpperCase()) || "LONG".equals(type.toUpperCase())
-                || "BIGINT".equals(type.toUpperCase())) {
+        if (type == null) {
+            return null;
+        }
+        type = type.toUpperCase().replaceAll("NULLABLE\\(", "").replaceAll("\\)", "");
+        if (type.equals("UINT64") || type.equals("LONG")
+                || type.equals("BIGINT")) {
             type = "long";
-        } else if ("STRING".equals(type.toUpperCase()) || "VARCHAR".equals(type.toUpperCase())) {
+        } else if (type.equals("INT64")) {
+            type = "int";
+        } else if (type.equals("STRING") || type.equals("VARCHAR")) {
             type = "string";
-        } else if ("TIMESTAMP".equals(type.toUpperCase())) {
+        } else if (type.equals("TIMESTAMP")) {
             type = "timestamp";
         }
         return type;
-    }
-
-    /**
-     * schema信息查询
-     *
-     * @param param
-     * @param keyWord eg：show、desc、describe
-     * @return
-     */
-    private BaseResult executeQueryOfSchema(ApiParam param, String keyWord) {
-        Matcher mShowTable = pShowTable.matcher(param.getQuery());
-        Boolean showKey = mShowTable.find();
-        if (!keyWord.toUpperCase().contains("DESC") && !showKey) {
-            String str = String.format("查询库中表名需要指定数据库(目前支持 %s、%s), 例如：show tables from databaseName", clickHouseProperties.getDbname(), druidIoProperties.getDbname());
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), str, null);
-        }
-        //查表描述
-        if (!showKey) {
-            descTableInfo(param, param.getQuery());
-        } else {//查库中包含的表
-            param.setSchema(mShowTable.group("DBName"));
-            if (clickHouseProperties.getDbname().equals(param.getSchema())) {
-                param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
-            } else if (druidIoProperties.getDbname().equals(param.getSchema())) {
-                param.setDbType(DBTypeEnum.DRUID.getValue());
-                param.setQuery("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE' ");
-            } else {
-                String str = String.format("无此数据库(目前仅支持: %s、%s).", clickHouseProperties.getDbname(), druidIoProperties.getDbname());
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), str, null);
-            }
-        }
-        param.setFormat(QueryFormatEnum.JSON.getValue());
-        param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
-        param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
-
-        Dialect dialect = getDialect(param);
-        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery();
-        if (result.getStatus() != HttpStatus.SC_OK) {
-            return result;
-        }
-        if (showKey) {
-            return tablesResultEncapsulation(result, param.getSchema());
-        }
-        return dataEncapsulationOfSchema(result, param);
     }
 
     /**
@@ -595,36 +659,5 @@ public class APIServiceImpl implements IAPIService {
         result.setData(date);
         return result;
     }
-
-    /**
-     * 单表字段名、类型、描述信息查询
-     *
-     * @param param
-     * @param query
-     */
-    private void descTableInfo(ApiParam param, String query) {
-        Matcher matcher = pDescTable.matcher(query);
-        String tableName = null;
-        if (matcher.find()) {
-            tableName = matcher.group("tableName");
-        }
-        param.setTableName(tableName);
-        //查询该表在那个库里
-        ApiParam temp = new ApiParam();
-        temp.setQuery("show tables from " + clickHouseProperties.getDbname());
-        temp.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
-        BaseResult result = executeQueryOfSchema(temp, "show");
-        Map data = (Map) result.getData();
-        List symbols = (List) data.get("symbols");
-        if (symbols.contains(param.getTableName())) {
-            param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
-        } else {
-            param.setDbType(DBTypeEnum.DRUID.getValue());
-            param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
-        }
-    }
-
-
-
 
 }

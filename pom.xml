@@ -59,7 +59,6 @@
         <nutz.version>1.r.65</nutz.version>
         <log4j.version>2.10.0</log4j.version>
         <swagger.version>2.8.0</swagger.version>
-        <avro.version>1.9.1</avro.version>
         <httpclient.version>4.5.6</httpclient.version>
         <docker.image.prefix>ceiec</docker.image.prefix>
         <skipTests>true</skipTests>
@@ -313,11 +312,6 @@
             <artifactId>galaxy</artifactId>
             <version>1.0.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-            <version>${avro.version}</version>
-        </dependency>
 
     </dependencies>
 
@@ -362,23 +356,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.avro</groupId>
-                <artifactId>avro-maven-plugin</artifactId>
-                <version>1.9.1</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>schema</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>src/main/resources/config/avro/</sourceDirectory>
-                            <outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
 
 
         </plugins>
