@@ -39,6 +39,7 @@ import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +82,7 @@ public class APIServiceImpl implements IAPIService {
             ShowStatement showStatement = (ShowStatement) statement;
             baseResult = executeShowStatement(param, showStatement);
         } else {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,目前只支持SELECT、SHOW、DESCRIBE 操作");
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,目前只支持SELECT、SHOW、DESCRIBE 操作", null);
         }
         return baseResult;
     }
@@ -498,6 +499,9 @@ public class APIServiceImpl implements IAPIService {
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
         BaseResult result = dialect.sqlDialectTransform().executeHttpQuery();
+        if(result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK){
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "describe table error, please check tableName", null);
+        }
         BaseResult baseResult = dataEncapsulationOfSchema(result, param);
         return baseResult;
     }
@@ -520,35 +524,71 @@ public class APIServiceImpl implements IAPIService {
             param.setDialectDBType(DBTypeEnum.DRUID.getValue());
             param.setQuery("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE'");
         } else if (StringUtil.isBlank(param.getSchema())) {
-            //查ck
-            ApiParam temp = new ApiParam();
-            temp.setQuery("show tables");
-            temp.setSchema(clickHouseProperties.getDbname());
-            BaseResult ck = executeShowStatement(temp, null);
-            Map ckDate = (Map)ck.getData();
-            List ckSymbols = (List) ckDate.get("symbols");
-            //查druid
-            temp = new ApiParam();
-            temp.setSchema(druidIoProperties.getDbname());
-            BaseResult druid = executeShowStatement(temp, null);
-            Map druidData = (Map)druid.getData();
-            List druidSymbols = (List)druidData.get("symbols");
-            //合并结果
-            Map<String, Object> date = new LinkedHashMap<>();
-            date.put("type", "enum");
-            date.put("name", ckDate.get("name") + "," + druidData.get("name"));
-            ckSymbols.addAll(druidSymbols);
-            date.put("symbols", ckSymbols);
-            ck.setData(date);
-            return ck;
+            BaseResult result = getAllTables();
+            return result;
         } else {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema name error");
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema name error", null);
         }
         param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
         BaseResult result = dialect.sqlDialectTransform().executeHttpQuery();
+        if(result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK){
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema check error, please check dbName", null);
+        }
         return tablesResultEncapsulation(result, param.getSchema());
+    }
+
+    private BaseResult getAllTables() {
+        //查ck
+        ApiParam temp = new ApiParam();
+        temp.setQuery("show tables");
+        temp.setSchema(clickHouseProperties.getDbname());
+        BaseResult ck = new BaseResult();
+        try {
+            ck = executeShowStatement(temp, null);
+        }catch (Exception e){
+            log.info("tables: 查询clickhouse异常", e);
+        }
+
+        //查druid
+        BaseResult druid = new BaseResult();
+        temp = new ApiParam();
+        temp.setSchema(druidIoProperties.getDbname());
+        try {
+            druid = executeShowStatement(temp, null);
+        }catch (Exception e){
+            log.info("tables: 查询druid   异常", e);
+        }
+        //合并结果
+        Map<String, Object> date = new LinkedHashMap<>();
+        List symbols = new ArrayList<>();
+        String dbName = "";
+        date.put("type", "enum");
+        if(ck.getStatus() != null && ck.getStatus() == HttpStatus.SC_OK){
+            Map ckDate = (Map)ck.getData();
+            dbName += (String) ckDate.get("name");
+            symbols.addAll((List)ckDate.get("symbols"));
+        }
+        if(druid.getStatus() != null && druid.getStatus() == HttpStatus.SC_OK){
+            Map druidDate = (Map)druid.getData();
+            if(!"".equals(dbName)){
+                dbName += ",";
+            }
+            dbName += (String) druidDate.get("name");
+            symbols.addAll((List)druidDate.get("symbols"));
+        }
+        date.put("name", dbName);
+        date.put("symbols", symbols);
+        if(ck.getStatus() == HttpStatus.SC_OK){
+            ck.setData(date);
+            return ck;
+        }else if(druid.getStatus() == HttpStatus.SC_OK){
+            druid.setData(date);
+            return druid;
+        }else {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "查询所有tables异常", null);
+        }
     }
 
 
