@@ -281,7 +281,7 @@ public class ClickhouseDialect implements Dialect {
                    Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(resultMap.get("result"),  Map.class);
                    Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
                    Map<String, Object> statistics = Maps.newHashMap();
-                   statistics.put("elapsed", statisticMap.get("elapsed"));
+                   statistics.put("elapsed", String.format("%.2f", (double)statisticMap.get("elapsed")));
                    statistics.put("rows_read", statisticMap.get("rows_read"));
                    int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
                    statistics.put("result_size", resultSize);

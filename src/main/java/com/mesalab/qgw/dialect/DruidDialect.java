@@ -137,7 +137,7 @@ public class DruidDialect implements  Dialect {
                     }
 
                     Map<String, Object> statistics = Maps.newHashMap();
-                    statistics.put("elapsed", executeTime);
+                    statistics.put("elapsed", String.format("%.2f", executeTime));
                     statistics.put("rows_read", allResults.size());
 
                     int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
