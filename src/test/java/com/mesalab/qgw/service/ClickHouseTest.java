@@ -85,6 +85,37 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
         Assert.assertEquals((int)map.get("status"), 200);
     }
 
+    /**
+     * Count(1)
+     */
+    @Test
+    public void testCount1() {
+        String sql = "select count(1) from connection_record_log";
+        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
+        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
+        url = url + "/?query=" + sql ;
+
+        Map map = restTemplate.getForObject(url, Map.class);
+        log.info(JsonMapper.toJsonString(map));
+        Assert.assertEquals((int)map.get("status"), 200);
+    }
+
+    /**
+     * Count(*)
+     */
+    @Test
+    public void testCount() {
+        String sql = "select count(*) from connection_record_log";
+        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
+        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
+        url = url + "/?query=" + sql ;
+
+        Map map = restTemplate.getForObject(url, Map.class);
+        log.info(JsonMapper.toJsonString(map));
+        Assert.assertEquals((int)map.get("status"), 200);
+    }
+
+
     @After
     public void testAfter() {
         log.info("=================================================CLICKHOUSE TEST  END=================================================");

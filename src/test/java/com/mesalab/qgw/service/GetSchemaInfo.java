@@ -33,7 +33,7 @@ public class GetSchemaInfo extends GalaxyQGWApplicationTests {
      */
     @Test
     public void showSchema(){
-        String sql = "show tables from tsg_galaxy_v3";
+        String sql = "show tables";
         url = url + "/?query=" + sql ;
         Map map = restTemplate.getForObject(url, Map.class);
         log.info(JsonMapper.toJsonString(map));
@@ -45,7 +45,7 @@ public class GetSchemaInfo extends GalaxyQGWApplicationTests {
      */
     @Test
     public void descTable(){
-        String sql = "desc connection_record_log";
+        String sql = "describe connection_record_log";
         url = url + "/?query=" + sql ;
         Map map = restTemplate.getForObject(url, Map.class);
         log.info(JsonMapper.toJsonString(map));
