@@ -109,13 +109,13 @@ public class APIServiceImpl implements IAPIService {
             param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
         } else {
             if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getClickhouse())
-                    .contains(param.getTableName().replaceAll(clickHouseProperties.getDbname(), "").toLowerCase())) {
+                    .contains(param.getTableName().toLowerCase())) {
                 param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
             }  else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getDruid())
-                    .contains(param.getTableName().replaceAll(druidIoProperties.getDbname(), "").toLowerCase())) {
+                    .contains(param.getTableName().toLowerCase())) {
                 param.setDbType(DBTypeEnum.DRUID.getValue());
             } else  {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode() , "该表未在平台注册，请联系数据平台负责人", null);
+                throw new BusinessException(BaseResultEnum.FAIL.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
             }
 
             param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
@@ -203,6 +203,8 @@ public class APIServiceImpl implements IAPIService {
                 List<String> tableList =  tablesNamesFinder.getTableList(selectStatement);
                 if (StringUtil.isNotEmpty(tableList)) {
                     tableName = tableList.get(0);
+                    int i = tableName.lastIndexOf(".");
+                    tableName = i < 0 ? tableName : tableName.substring(i + 1);
                 } else {
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
                 }
@@ -270,8 +272,10 @@ public class APIServiceImpl implements IAPIService {
                 List<String> tableList =  tablesNamesFinder.getTableList(selectStatement);
 
                 if (StringUtil.isNotEmpty(tableList)) {
-
-                    sqlQuerySource.setTableName(tableList.get(0));
+                    String tableName = tableList.get(0);
+                    int i = tableName.lastIndexOf(".");
+                    tableName = i < 0 ? tableName : tableName.substring(i + 1);
+                    sqlQuerySource.setTableName(tableName);
                 } else {
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
                 }
