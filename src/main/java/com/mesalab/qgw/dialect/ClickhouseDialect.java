@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import net.sf.jsqlparser.expression.operators.relational.ItemsList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -174,7 +176,7 @@ public class ClickhouseDialect implements Dialect {
      * @param sql
      * @return
      */
-    private String generateCount1(String sql) {
+    private String generateCount(String sql) {
         Matcher m = pCount1.matcher(sql);
         StringBuffer sb = new StringBuffer();
 
@@ -253,7 +255,7 @@ public class ClickhouseDialect implements Dialect {
         StringBuffer sb = new StringBuffer();
 
         while (m.find()) {
-            m.appendReplacement(sb, "where  " + subTimeKey + " in ( " + addAlias(String.valueOf(subQuery)) + ") and  ");
+            m.appendReplacement(sb, "where  " + subTimeKey + " in ( " + subQuery + ") and  ");
         }
 
         m.appendTail(sb);
@@ -267,11 +269,11 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public Dialect sqlDialectTransform() {
         if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.QUERY_SCHEMA.getValue())) {
-            param.setQuery(generateCount1(param.getQuery()));
-            param.setQuery(String.valueOf(addAlias(param.getQuery())));
+            param.setQuery(generateCount(param.getQuery()));
             param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
             param.setQuery(generateUniq(param.getQuery()));
             param.setQuery(generateSubQueryByPartition(param.getQuery()));
+            param.setQuery(String.valueOf(addTableInfo(param.getQuery())));
             param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
         }
         param.setQuery(generateSqlEncode(param.getQuery()));
@@ -338,14 +340,14 @@ public class ClickhouseDialect implements Dialect {
 
 
     /**
-     * 库名、表别名的添加
-     * @param sqlBody
+     * 子查询table信息的添加：库名、别名
+     * @param sql
      * @return
      */
-    private SelectBody addAlias(String sqlBody) {
+    private SelectBody addTableInfo(String sql) {
         Statement statement = null;
         try {
-            statement = CCJSqlParserUtil.parse(sqlBody);
+            statement = CCJSqlParserUtil.parse(sql);
         } catch (JSQLParserException e) {
             log.error("sqlParser error: ", e);
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
@@ -355,54 +357,70 @@ public class ClickhouseDialect implements Dialect {
             SelectBody body = selectStatement.getSelectBody();
             if (body instanceof PlainSelect) {
                 PlainSelect plainSelect = (PlainSelect) body;
-
-                Table table = (Table) plainSelect.getFromItem();
-                if(StringUtil.isBlank(table.getSchemaName())){
-                    table.setSchemaName(clickHouseHttpSource.getDbname());
+                FromItem fromItem = plainSelect.getFromItem();
+                //from
+                if(fromItem instanceof Table){
+                    Table table = (Table) plainSelect.getFromItem();
+                    if(StringUtil.isBlank(table.getSchemaName())){
+                        table.setSchemaName(clickHouseHttpSource.getDbname());
+                    }
+                    if (table.getAlias() == null) {
+                        Alias alias = new Alias(table.getName());
+                        plainSelect.getFromItem().setAlias(alias);
+                        plainSelect.setFromItem(plainSelect.getFromItem());
+                    }
                 }
-                if (table.getAlias() == null) {
-                    Alias alias = new Alias(table.getName() + (int) (Math.random() * 1000));
-                    plainSelect.getFromItem().setAlias(alias);
-                    plainSelect.setFromItem(plainSelect.getFromItem());
-                }
-
                 //子查询处理
                 Expression where = plainSelect.getWhere();
-                if(where instanceof InExpression){
-                    InExpression whereIn = (InExpression) where;
-                    ItemsList rightItemsList = whereIn.getRightItemsList();
-                    if(rightItemsList instanceof SubSelect){
-                        SubSelect sub = (SubSelect) rightItemsList;
-                        SelectBody selectBody = addAlias(String.valueOf(((SubSelect) rightItemsList).getSelectBody()));
-                        sub.setSelectBody(selectBody);
-                        whereIn.setRightItemsList(sub);
-                    }
-                }
-                //关联查询
-                if (plainSelect.getJoins() != null) {
-                    for (Join join : plainSelect.getJoins()) {
-                        Table tableJoin = (Table) join.getRightItem();
-                        if(StringUtil.isBlank(tableJoin.getSchemaName())){
-                            tableJoin.setSchemaName(clickHouseHttpSource.getDbname());
-                        }
-                        if (tableJoin.getAlias() == null) {
-                            Alias alias = new Alias(table.getName() + (int) (Math.random() * 1000));
-                            join.getRightItem().setAlias(alias);
-                        }
-                    }
-                }
+                setWhereTableAlias(where);
                 return plainSelect;
             } else if (body instanceof SetOperationList) {//连接查询
                 SetOperationList setOperationList = (SetOperationList) body;
                 List<SelectBody> selectsList = setOperationList.getSelects();
                 for (int i = 0; i < selectsList.size(); i++) {
-                    SelectBody selectBody = addAlias(String.valueOf(selectsList.get(i)));
+                    SelectBody selectBody = addTableInfo(String.valueOf(selectsList.get(i)));
                     setOperationList.getSelects().set(i,selectBody);
                 }
                 return setOperationList;
 
             }
         }
-        return null;
+        throw new BusinessException(BaseResultEnum.FAIL.getCode(), "表名信息添加错误[库名、别名]", null);
+    }
+
+    /**
+     * 子查询别名处理
+     * @param where
+     */
+    public void setWhereTableAlias(Expression where){
+        if(where instanceof InExpression){//where in 查询处理
+            InExpression whereIn = (InExpression) where;
+            ItemsList rightItemsList = whereIn.getRightItemsList();
+            if(rightItemsList instanceof SubSelect){
+                SubSelect sub = (SubSelect) rightItemsList;
+                SelectBody selectBody = addTableInfo(String.valueOf(((SubSelect) rightItemsList).getSelectBody()));
+                sub.setSelectBody(selectBody);
+                whereIn.setRightItemsList(sub);
+            }
+            ItemsList leftItemsList = whereIn.getLeftItemsList();
+            if(leftItemsList instanceof SubSelect){
+                SubSelect sub = (SubSelect) leftItemsList;
+                SelectBody selectBody = addTableInfo(String.valueOf(((SubSelect) rightItemsList).getSelectBody()));
+                sub.setSelectBody(selectBody);
+                whereIn.setRightItemsList(sub);
+            }
+        }else if(where instanceof AndExpression){
+            AndExpression whereAnd = (AndExpression) where;
+            Expression leftExpression = whereAnd.getLeftExpression();
+            setWhereTableAlias(leftExpression);
+            Expression rightExpression = whereAnd.getRightExpression();
+            setWhereTableAlias(rightExpression);
+        }else if(where instanceof OrExpression){
+            OrExpression whereOr = (OrExpression) where;
+            Expression leftExpression = whereOr.getLeftExpression();
+            setWhereTableAlias(leftExpression);
+            Expression rightExpression = whereOr.getRightExpression();
+            setWhereTableAlias(rightExpression);
+        }
     }
 }
