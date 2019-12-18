@@ -59,9 +59,10 @@
         <nutz.version>1.r.65</nutz.version>
         <log4j.version>2.10.0</log4j.version>
         <swagger.version>2.8.0</swagger.version>
+        <avro.version>1.9.1</avro.version>
         <httpclient.version>4.5.6</httpclient.version>
         <docker.image.prefix>ceiec</docker.image.prefix>
-        <skipTests>true</skipTests>
+        <skipTests>false</skipTests>
 
 
     </properties>
@@ -312,6 +313,11 @@
             <artifactId>galaxy</artifactId>
             <version>1.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
 
     </dependencies>
 
@@ -356,7 +362,37 @@
                 </configuration>
             </plugin>
 
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>2.19</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <!--测试用例执行-->
+                    <includes>
+                        <include>**/AvroSchemaFormatTest.java</include>
+                        <include>**/AvroSchemaDynamicTest.java</include>
+                    </includes>
+                    <!--排除测试-->
+                    <excludes>
+                        <exclude>**/RedisClientTemplateTest.java</exclude>
+                        <exclude>**/RandomUtilTest.java</exclude>
+                        <exclude>**/StringUtilTest.java</exclude>
+                        <exclude>**/ClickHouseTest.jaba</exclude>
+                        <exclude>**/GetSchemaInfo.java</exclude>
+                        <exclude>**/MysqlCKDateTest.java</exclude>
+                        <exclude>**/MysqlDruidDateTest.java</exclude>
+                        <exclude>**/QGWSuiteTest.java</exclude>
+                        <exclude>**/DruidTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
 
         </plugins>
     </build>
