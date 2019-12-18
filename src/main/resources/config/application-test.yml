@@ -13,9 +13,9 @@ swagger:
 clickhouse:
   url: jdbc:clickhouse://192.168.40.186:8123
   driverClassName: ru.yandex.clickhouse.ClickHouseDriver
-  dbname: tsg_galaxy
-  username: ck
-  password: 111111
+  dbname: tsg_galaxy_v3
+  username: tsg_query
+  password: ceiec2018
   publicKey: XX
 ###############################################################################
 ## Druid configuration
@@ -47,7 +47,7 @@ schema:
 ###############################################################################
 ## Junit Test Configuration
 test:
-  url: 127.0.0.1:9999
+  url: 192.168.40.186:9999
   timeRange: last 5 minutes
   executeTime: 2019-07-22 00:00:00
 
