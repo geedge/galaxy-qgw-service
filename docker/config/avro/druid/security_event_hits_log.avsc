@@ -1,0 +1,39 @@
+{
+  "namespace": "com.zdjizhi",
+  "type": "record",
+  "name": "security_event_hits_log",
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "action",
+      "type": "long"
+    },
+    {
+      "name": "entrance_id",
+      "type": "long"
+    },
+    {
+      "name": "hits",
+      "type": "long"
+    },
+    {
+      "name": "intercept_state",
+      "type": "long"
+    },
+    {
+      "name": "isp",
+      "type": "string"
+    },
+    {
+      "name": "pinningst",
+      "type": "long"
+    },
+    {
+      "name": "policy_id",
+      "type": "long"
+    }
+  ]
+}

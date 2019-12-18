@@ -1,0 +1,23 @@
+{
+  "namespace": "com.zdjizhi",
+  "type": "record",
+  "name": "sys_storage_log",
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "log_type",
+      "type": "string"
+    },
+    {
+      "name": "max_size",
+      "type": "long"
+    },
+    {
+      "name": "used_size",
+      "type": "long"
+    }
+  ]
+}

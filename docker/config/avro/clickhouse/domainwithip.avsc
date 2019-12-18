@@ -1,0 +1,15 @@
+{
+  "namespace": "com.zdjizhi",
+  "type": "record",
+  "name": "domainwithip",
+  "fields": [
+    {
+      "name": "http_domain",
+      "type": "string"
+    },
+    {
+      "name": "ip",
+      "type": {"type": "array", "items": "string"}
+    }
+  ]
+}

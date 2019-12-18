@@ -1,0 +1,19 @@
+{
+  "namespace": "com.zdjizhi",
+  "type": "record",
+  "name": "top_urls_log",
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "session_num",
+      "type": "long"
+    },
+    {
+      "name": "url",
+      "type": "string"
+    }
+  ]
+}
