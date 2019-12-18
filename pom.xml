@@ -69,7 +69,7 @@
         <!--docker-registry的端口-->
         <docker.registry.port>9080</docker.registry.port>
         <docker.image.prefix>tsg/galaxy</docker.image.prefix>
-        <skipTests>false</skipTests>
+        <skipTests>true</skipTests>
 
 
     </properties>
