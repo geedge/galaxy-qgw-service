@@ -28,14 +28,6 @@ public class GalaxyQGWApplicationTests {
     }
 
     @Test
-    public void testHttpGetMethod() {
-
-        String url = "http://127.0.0.1:9999";
-        Map map = restTemplate.getForObject(url, Map.class);
-        log.info(JsonMapper.toJsonString(map));
-    }
-
-    @Test
     public void contextLoads() {
         System.out.println("test");
     }
