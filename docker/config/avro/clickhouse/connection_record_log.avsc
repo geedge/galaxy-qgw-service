@@ -5,7 +5,7 @@
   "fields": [
     {
       "name": "common_recv_time",
-      "type": "string",
+      "type": "int",
       "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}}"
     },
     {
