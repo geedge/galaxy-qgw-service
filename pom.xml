@@ -351,12 +351,10 @@
                     <serverId>153-docker-repo</serverId>
                     <registryUrl>${docker.registry}:${docker.registry.port}</registryUrl>
                     <!--是否向镜像registry(harbor)中推送镜像,如果为false则需要在mvn命令时添加-DpushImage参数-->
-                    <pushImage>false</pushImage>
+                    <pushImage>true</pushImage>
 
                     <imageName>${docker.registry}:${docker.registry.port}/${docker.image.prefix}/${project.artifactId}</imageName>
                     <forceTags>true</forceTags>
-
-
 
                     <!--远程docker构建，供dockerfile使用-->
                     <dockerHost>http://192.168.40.153:2375</dockerHost>
@@ -377,7 +375,7 @@
 
                         <resource>
                             <targetPath>/config</targetPath>
-                            <directory>${project.build.directory}/classes/config</directory>
+                            <directory>config</directory>
                         </resource>
 
 
