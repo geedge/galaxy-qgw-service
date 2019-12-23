@@ -2,6 +2,7 @@ package com.mesalab.qgw.service;
 
 import com.google.common.base.CharMatcher;
 import com.mesalab.GalaxyQGWApplicationTests;
+import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.utils.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
@@ -21,6 +22,10 @@ import java.util.regex.Pattern;
 public class ClickHouseTest extends GalaxyQGWApplicationTests {
     @Autowired
     public TestRestTemplate restTemplate;
+
+    @Autowired
+    private ClickHouseProperties clickHouseProperties;
+
     private String url = "http://127.0.0.1:9999";
 
     @Before
@@ -106,6 +111,21 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
     @Test
     public void testCount() {
         String sql = "select count(*) from connection_record_log";
+        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
+        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
+        url = url + "/?query=" + sql ;
+
+        Map map = restTemplate.getForObject(url, Map.class);
+        log.info(JsonMapper.toJsonString(map));
+        Assert.assertEquals((int)map.get("status"), 200);
+    }
+
+    /**
+     * dbName.tableName(*)
+     */
+    @Test
+    public void testDBTableName() {
+        String sql = "select * from "+clickHouseProperties.getDbname() +".connection_record_log limit 1";
         sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
         sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
         url = url + "/?query=" + sql ;

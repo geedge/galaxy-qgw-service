@@ -3,14 +3,25 @@ package com.mesalab.qgw.controller;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ProjectProperties;
+import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.qgw.service.impl.HttpClientService;
+import com.mesalab.qgw.service.impl.TestSqlServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.util.*;
 
 /**
  * 测试Controller
@@ -28,6 +39,9 @@ public class TestController {
     private final ProjectProperties projectProperties;
 
     private final Environment environment;
+
+    @Autowired
+    TestSqlServiceImpl testSqlService;
 
     @Autowired
     public TestController(ProjectProperties projectProperties, Environment environment) {
@@ -99,6 +113,30 @@ public class TestController {
     @GetMapping(value = "checkAuthc")
     public BaseResult checkAuthc() {
         return BaseResultGenerator.success();
+    }
+
+
+    /**
+     * 运行测试用例
+     * @return
+     */
+    @ApiOperation(value = "测试用例", notes = "运行测试用例")
+    @GetMapping(value = "runSql")
+    public BaseResult runSql(){
+        BaseResult result = testSqlService.runSql();
+        return BaseResultGenerator.success(result.getMessage(), result.getData());
+    }
+
+    /**
+     * 校验schema
+     *
+     * @return
+     */
+    @ApiOperation(value = "校验schema", notes = "运行校验schema")
+    @GetMapping(value = "runSchema")
+    public BaseResult runSchema() {
+        BaseResult result = testSqlService.runSchema();
+        return result;
     }
 
 }

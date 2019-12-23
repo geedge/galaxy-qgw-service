@@ -1,0 +1,295 @@
+{
+  "namespace": "com.zdjizhi",
+  "type": "record",
+  "name": "proxy_event_log",
+  "fields": [
+    {
+      "name": "common_recv_time",
+      "type": "int",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}}"
+    },
+    {
+      "name": "common_log_id",
+      "type": "long",
+      "doc": "{\"allow_query\":\"true\",\"format\":{\"functions\":\"snowflake_id\"}}"
+    },
+    {
+      "name": "common_policy_id",
+      "type": "int",
+      "doc": "{\"allow_query\":\"true\"}"
+    },
+    {
+      "name": "common_subscriber_id",
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\"}"
+    },
+    {
+      "name": "common_client_ip",
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_detail,geo_asn,radius_match\", \"appendTo\":\"common_client_location,common_client_asn,common_subscriber_id\"}}"
+    },
+    {
+      "name": "common_client_port",
+      "type": "int"
+    },
+    {
+      "name": "common_l4_protocol",
+      "type": "string"
+    },
+    {
+      "name": "common_address_type",
+      "type": "int",
+      "doc": "{\"data\":[{\"code\":\"4\",\"value\":\"ipv4\"},{\"code\":\"6\",\"value\":\"ipv6\"}]}"
+    },
+    {
+      "name": "common_server_ip",
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_country,geo_asn\", \"appendTo\":\"common_server_location,common_server_asn\"}}"
+    },
+    {
+      "name": "common_server_port",
+      "type": "int"
+    },
+    {
+      "name": "common_action",
+      "type": "int",
+      "doc": "{\"allow_query\":\"true\",\"data\":[{\"code\":\"0\",\"value\":\"None\"},{\"code\":\"1\",\"value\":\"Monitor\"},{\"code\":\"2\",\"value\":\"Intercept\"},{\"code\":\"16\",\"value\":\"Deny\"},{\"code\":\"48\",\"value\":\"Manipulation\"},{\"code\":\"128\",\"value\":\"Allow\"}]}"
+    },
+    {
+      "name": "common_direction",
+      "type": "int",
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"outbound\"},{\"code\":\"1\",\"value\":\"inbound\"}]}"
+    },
+    {
+      "name": "common_entrance_id",
+      "type": "int",
+      "doc": "{\"allow_query\":\"true\"}"
+    },
+    {
+      "name": "common_sled_ip",
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"}}"
+    },
+    {
+      "name": "common_client_location",
+      "type": "string"
+    },
+    {
+      "name": "common_client_asn",
+      "type": "string"
+    },
+    {
+      "name": "common_server_location",
+      "type": "string"
+    },
+    {
+      "name": "common_server_asn",
+      "type": "string"
+    },
+    {
+      "name": "common_c2s_pkt_num",
+      "type": "int"
+    },
+    {
+      "name": "common_s2c_pkt_num",
+      "type": "int"
+    },
+    {
+      "name": "common_c2s_byte_num",
+      "type": "int"
+    },
+    {
+      "name": "common_s2c_byte_num",
+      "type": "int"
+    },
+    {
+      "name": "common_service",
+      "type": "int",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_schema_type",
+      "type": "string",
+      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"},{\"code\":\"BGP\",\"value\":\"BGP\"},{\"code\":\"VOIP\",\"value\":\"VOIP\"},{\"code\":\"RADIUS\",\"value\":\"RADIUS\"}],\"allow_query\":\"true\"}"
+    },
+    {
+      "name": "common_user_tags",
+      "type": "string",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_sub_action",
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_user_region",
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_device_id",
+      "type": "string",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_link_id",
+      "type": "int",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_isp",
+      "type": "string",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_encapsulation",
+      "type": "int",
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"Cisco HDLC\"}]}"
+    },
+    {
+      "name": "common_app_label",
+      "type": "string",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_app_id",
+      "type": "int",
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"NOT SPECIFIED\"},{\"code\":\"100001\",\"value\":\"Skype\"},{\"code\":\"100101\",\"value\":\"Instagram\"},{\"code\":\"100201\",\"value\":\"Youtube\"},{\"code\":\"100301\",\"value\":\"Facebook\"},{\"code\":\"100401\",\"value\":\"What‘s App\"},{\"code\":\"100501\",\"value\":\"Periscope\"},{\"code\":\"100601\",\"value\":\"Viber\"},{\"code\":\"100701\",\"value\":\"Twitter\"},{\"code\":\"100801\",\"value\":\"Vkontakte\"},{\"code\":\"100901\",\"value\":\"Telegram\"},{\"code\":\"101001\",\"value\":\"Odnoklassniki\"},{\"code\":\"101101\",\"value\":\"Mail agent\"},{\"code\":\"101201\",\"value\":\"FaceTime\"},{\"code\":\"101301\",\"value\":\"Snapchat\"},{\"code\":\"101401\",\"value\":\"Google\"},{\"code\":\"101501\",\"value\":\"Yandex\"},{\"code\":\"101601\",\"value\":\"Yandex Browser Turbo\"},{\"code\":\"101701\",\"value\":\"Opera\"},{\"code\":\"101702\",\"value\":\"Opera Turbo\"},{\"code\":\"101703\",\"value\":\"Opera mini\"},{\"code\":\"101801\",\"value\":\"AppStore\"},{\"code\":\"101901\",\"value\":\"PlayMarket\"},{\"code\":\"102001\",\"value\":\"Drugvokrug social networking\"},{\"code\":\"102101\",\"value\":\"Badoo social networking\"},{\"code\":\"102201\",\"value\":\"WeChat\"},{\"code\":\"102301\",\"value\":\"Zello\"},{\"code\":\"102401\",\"value\":\"Freegate\"},{\"code\":\"102501\",\"value\":\"Psiphon\"},{\"code\":\"102601\",\"value\":\"TOR\"},{\"code\":\"102602\",\"value\":\"Tor browser\"},{\"code\":\"102603\",\"value\":\"Tor mode\"},{\"code\":\"102701\",\"value\":\"Orbot\"},{\"code\":\"102801\",\"value\":\"Tunnel Bear VPN\"},{\"code\":\"102901\",\"value\":\"HotSpot Shield VPN\"},{\"code\":\"103001\",\"value\":\"VPN Master\"},{\"code\":\"103101\",\"value\":\"Hola VPN\"},{\"code\":\"103201\",\"value\":\"HideMyAss VPN\"},{\"code\":\"103301\",\"value\":\"Zenmate VPN\"},{\"code\":\"103401\",\"value\":\"SignalPrivateMessenger\"},{\"code\":\"200001\",\"value\":\"RFA\"},{\"code\":\"200002\",\"value\":\"VOA\"},{\"code\":\"200003\",\"value\":\"lantern\"},{\"code\":\"200004\",\"value\":\"Line\"},{\"code\":\"200005\",\"value\":\"voxer\"},{\"code\":\"200006\",\"value\":\"ZeroNet\"},{\"code\":\"200007\",\"value\":\"Zalo\"},{\"code\":\"200008\",\"value\":\"free_browser\"},{\"code\":\"200009\",\"value\":\"Diaspora\"},{\"code\":\"200010\",\"value\":\"browsec\"},{\"code\":\"200011\",\"value\":\"Chrome_plugin_chuguo\"},{\"code\":\"200012\",\"value\":\"GoGo_SocksHttp\"},{\"code\":\"200013\",\"value\":\"ultrasurf_chrome\"},{\"code\":\"200014\",\"value\":\"pinterest\"},{\"code\":\"200015\",\"value\":\"Swisscom\"},{\"code\":\"200016\",\"value\":\"Threema\"},{\"code\":\"200017\",\"value\":\"Circuit_iOS\"},{\"code\":\"200018\",\"value\":\"Chrome_plugin_FastsTunnel\"},{\"code\":\"200019\",\"value\":\"OoVoo\"},{\"code\":\"200020\",\"value\":\"Vine\"},{\"code\":\"200021\",\"value\":\"Keek\"},{\"code\":\"200022\",\"value\":\"Hi\"},{\"code\":\"200023\",\"value\":\"HeyTell\"},{\"code\":\"200024\",\"value\":\"HikeMessenger\"},{\"code\":\"200025\",\"value\":\"Nonoh\"},{\"code\":\"200026\",\"value\":\"Path\"},{\"code\":\"200027\",\"value\":\"Kik\"},{\"code\":\"200028\",\"value\":\"BBM\"},{\"code\":\"200029\",\"value\":\"Talkray\"},{\"code\":\"200030\",\"value\":\"HelloTalk\"},{\"code\":\"200031\",\"value\":\"Skout\"},{\"code\":\"200032\",\"value\":\"MeetMe\"},{\"code\":\"200033\",\"value\":\"Nextdoor\"},{\"code\":\"200034\",\"value\":\"Shots\"},{\"code\":\"200035\",\"value\":\"Zoosk\"},{\"code\":\"200036\",\"value\":\"TextPlus\"},{\"code\":\"200037\",\"value\":\"Maaii\"},{\"code\":\"200038\",\"value\":\"Ustream\"},{\"code\":\"200039\",\"value\":\"Yikyak\"},{\"code\":\"200040\",\"value\":\"chatsecure\"},{\"code\":\"200041\",\"value\":\"freecalls\"},{\"code\":\"200042\",\"value\":\"SignalPrivateMessenger\"},{\"code\":\"200043\",\"value\":\"USGOV_CIA\"},{\"code\":\"200044\",\"value\":\"USGOV_FBI\"},{\"code\":\"200045\",\"value\":\"USGOV_DHS\"},{\"code\":\"200046\",\"value\":\"shenxun_Secure_Call_android\"},{\"code\":\"200047\",\"value\":\"shenxun_Secure_Call_web\"},{\"code\":\"200048\",\"value\":\"UProxy\"},{\"code\":\"200049\",\"value\":\"soma\"},{\"code\":\"200050\",\"value\":\"PlayerUnknown's_Battlegrounds\"},{\"code\":\"200051\",\"value\":\"STEAM\"},{\"code\":\"200052\",\"value\":\"dalai_lama\"},{\"code\":\"200053\",\"value\":\"Steam_forum\"},{\"code\":\"200054\",\"value\":\"Microsoft Online Certificate\"},{\"code\":\"200055\",\"value\":\"sogou_spider\"},{\"code\":\"200056\",\"value\":\"baidu_mobie\"},{\"code\":\"200057\",\"value\":\"Apple Push Service\"},{\"code\":\"200058\",\"value\":\"IQIYI\"},{\"code\":\"200059\",\"value\":\"baidu_spider\"},{\"code\":\"200060\",\"value\":\"Weibo\"},{\"code\":\"200061\",\"value\":\"Apple captive service\"},{\"code\":\"200062\",\"value\":\"Microsoft wns\"},{\"code\":\"200063\",\"value\":\"360_safe_pc\"},{\"code\":\"200064\",\"value\":\"Sogou Public Service\"},{\"code\":\"200065\",\"value\":\"Lenovo app_POST service\"},{\"code\":\"200066\",\"value\":\"Apple securityd service\"},{\"code\":\"200067\",\"value\":\"Weather pass\"},{\"code\":\"200068\",\"value\":\"Apple Service Pack\"},{\"code\":\"200069\",\"value\":\"Fast pressure\"},{\"code\":\"200070\",\"value\":\"SemrushBot\"},{\"code\":\"200071\",\"value\":\"Adrefs_spider\"},{\"code\":\"200072\",\"value\":\"AndroidDownloadManager\"},{\"code\":\"200073\",\"value\":\"XenderTop\"},{\"code\":\"200074\",\"value\":\"microsoft_update\"},{\"code\":\"200075\",\"value\":\"Youku\"},{\"code\":\"200076\",\"value\":\"Google_spider\"},{\"code\":\"200077\",\"value\":\"Microsoft User Experience and Telemetry Components\"},{\"code\":\"200078\",\"value\":\"MICROSOFT_DEVICE_METADATA_RETRIEVAL_CLIENT\"},{\"code\":\"200079\",\"value\":\"Microsoft ncsi\"},{\"code\":\"200080\",\"value\":\"Microsoft Privacy Collection Service\"},{\"code\":\"200081\",\"value\":\"uTorrent\"},{\"code\":\"200082\",\"value\":\"Edge\"},{\"code\":\"200083\",\"value\":\"Lenovo Music Store\"},{\"code\":\"200084\",\"value\":\"LieBao\"},{\"code\":\"200085\",\"value\":\"majesti_spider\"},{\"code\":\"200086\",\"value\":\"DotBot\"},{\"code\":\"200087\",\"value\":\"Millet Update\"},{\"code\":\"200088\",\"value\":\"Today’s headlines\"},{\"code\":\"200089\",\"value\":\"Microsoft live\"},{\"code\":\"200090\",\"value\":\"Microsoft OneNote\"},{\"code\":\"200091\",\"value\":\"Bing_spider\"},{\"code\":\"200092\",\"value\":\"Apple location service\"},{\"code\":\"200093\",\"value\":\"Kuaishou\"},{\"code\":\"200094\",\"value\":\"LeTV video\"},{\"code\":\"200095\",\"value\":\"QQ\"},{\"code\":\"200096\",\"value\":\"Wps\"},{\"code\":\"200097\",\"value\":\"kugou music\"},{\"code\":\"200098\",\"value\":\"kuwo music\"},{\"code\":\"200099\",\"value\":\"360_common_service\"},{\"code\":\"200100\",\"value\":\"Camera360\"},{\"code\":\"200101\",\"value\":\"Outlook\"},{\"code\":\"200102\",\"value\":\"zhihu\"},{\"code\":\"200103\",\"value\":\"Tencent video\"},{\"code\":\"200104\",\"value\":\"funshion\"},{\"code\":\"200105\",\"value\":\"QQ shared service\"},{\"code\":\"200106\",\"value\":\"Microsoft wdcp service\"},{\"code\":\"200107\",\"value\":\"Microsoft Media_center_pc\"},{\"code\":\"200108\",\"value\":\"360 phone helper\"},{\"code\":\"200109\",\"value\":\"Kingsoft Public Service\"},{\"code\":\"200110\",\"value\":\"Ios_wifi connection\"},{\"code\":\"200111\",\"value\":\"Teamviewer\"},{\"code\":\"200112\",\"value\":\"Baidu cloud disk\"},{\"code\":\"200113\",\"value\":\"Tencent News\"},{\"code\":\"200114\",\"value\":\"Baidu map\"},{\"code\":\"200115\",\"value\":\"Panda TV\"},{\"code\":\"200116\",\"value\":\"Thunder\"},{\"code\":\"200117\",\"value\":\"NetEase cloud music\"},{\"code\":\"200118\",\"value\":\"QQ music\"},{\"code\":\"200119\",\"value\":\"Itools\"},{\"code\":\"200120\",\"value\":\"Jingdong Finance\"},{\"code\":\"200121\",\"value\":\"PycURL\"},{\"code\":\"200122\",\"value\":\"Yahoo_Spider\"},{\"code\":\"200123\",\"value\":\"Himalayan FM\"},{\"code\":\"200124\",\"value\":\"Youdao_dict\"},{\"code\":\"200125\",\"value\":\"Microsoft_spynet\"},{\"code\":\"200126\",\"value\":\"proximicBot\"},{\"code\":\"200127\",\"value\":\"Foxit_reader\"},{\"code\":\"200128\",\"value\":\"Sohu Video\"},{\"code\":\"200129\",\"value\":\"BlueStacks\"},{\"code\":\"200130\",\"value\":\"Beauty group\"},{\"code\":\"200131\",\"value\":\"Kmplayer\"},{\"code\":\"200132\",\"value\":\"TaoBao\"},{\"code\":\"200133\",\"value\":\"Exabot\"},{\"code\":\"200134\",\"value\":\"Ubuntu_apt_get\"},{\"code\":\"200135\",\"value\":\"Oriental Fortune\"},{\"code\":\"200136\",\"value\":\"JikeSpider\"},{\"code\":\"200137\",\"value\":\"Itunesstored\"},{\"code\":\"200138\",\"value\":\"GAD map\"},{\"code\":\"200139\",\"value\":\"ifeng News\"},{\"code\":\"200140\",\"value\":\"BoardReaderBot\"},{\"code\":\"200141\",\"value\":\"AmazonBot\"},{\"code\":\"200142\",\"value\":\"Alipay\"},{\"code\":\"200143\",\"value\":\"Alipay security controls\"},{\"code\":\"200144\",\"value\":\"360 security guards (antivirus)\"},{\"code\":\"200145\",\"value\":\"360 logon service\"},{\"code\":\"200146\",\"value\":\"BLP_bbot\"},{\"code\":\"200147\",\"value\":\"Keep\"},{\"code\":\"200148\",\"value\":\"WiFi universal key\"},{\"code\":\"200149\",\"value\":\"Baidu Music\"},{\"code\":\"200150\",\"value\":\"Vip.com\"},{\"code\":\"200151\",\"value\":\"JD.COM\"},{\"code\":\"200152\",\"value\":\"sina\"},{\"code\":\"200153\",\"value\":\"youdao Public service\"},{\"code\":\"200154\",\"value\":\"Jinshan public service\"},{\"code\":\"200155\",\"value\":\"Baidu guard\"},{\"code\":\"200156\",\"value\":\"Apple system update service\"},{\"code\":\"200157\",\"value\":\"momo\"},{\"code\":\"200158\",\"value\":\"CNZZ statistics\"},{\"code\":\"200159\",\"value\":\"Microsoft one_drive service\"},{\"code\":\"200160\",\"value\":\"WindowsStore\"},{\"code\":\"200161\",\"value\":\"duba\"},{\"code\":\"200162\",\"value\":\"Baidu HD\"},{\"code\":\"200163\",\"value\":\"qunar\"},{\"code\":\"200164\",\"value\":\"qianxunyingshi\"},{\"code\":\"200165\",\"value\":\"KuaiyanKanShuSpider\"},{\"code\":\"200166\",\"value\":\"Mail.RU_Bot_Robot\"},{\"code\":\"200167\",\"value\":\"MpCommunication\"},{\"code\":\"200168\",\"value\":\"Weather forecast\"},{\"code\":\"200169\",\"value\":\"Ltx71_spider\"},{\"code\":\"200170\",\"value\":\"Ia_archiver\"},{\"code\":\"200171\",\"value\":\"Ali Wangwang\"},{\"code\":\"200172\",\"value\":\"UC home page (information)\"},{\"code\":\"200173\",\"value\":\"Yeti\"},{\"code\":\"200174\",\"value\":\"Rtorrent\"},{\"code\":\"200175\",\"value\":\"QQPim\"},{\"code\":\"200176\",\"value\":\"NetEase News\"},{\"code\":\"200177\",\"value\":\"sina sports\"},{\"code\":\"200178\",\"value\":\"Exchange of foreign exchange\"},{\"code\":\"200179\",\"value\":\"BlueStacks update\"},{\"code\":\"200180\",\"value\":\"youdao\"},{\"code\":\"200181\",\"value\":\"QQ computer housekeeper\"},{\"code\":\"200182\",\"value\":\"UltraEdit\"},{\"code\":\"200183\",\"value\":\"EasouSpider\"},{\"code\":\"200184\",\"value\":\"QQ Zone\"},{\"code\":\"200185\",\"value\":\"Foxmail\"},{\"code\":\"200186\",\"value\":\"Pingdom.com\"},{\"code\":\"200187\",\"value\":\"Sina Finance\"},{\"code\":\"200188\",\"value\":\"QQ one key login\"},{\"code\":\"200189\",\"value\":\"Norton\"},{\"code\":\"200190\",\"value\":\"Baidu waimai\"},{\"code\":\"200191\",\"value\":\"YaCy\"},{\"code\":\"200192\",\"value\":\"Haitong e Haitong\"},{\"code\":\"200193\",\"value\":\"AdsBot-Google\"},{\"code\":\"200194\",\"value\":\"Guangfa Yijin\"},{\"code\":\"200195\",\"value\":\"Ali security program\"},{\"code\":\"200196\",\"value\":\"Cliqzbot\"},{\"code\":\"200197\",\"value\":\"Mobike\"},{\"code\":\"200198\",\"value\":\"Kingsoft PowerWord\"},{\"code\":\"200199\",\"value\":\"meishij\"},{\"code\":\"200200\",\"value\":\"CCB mobile bank\"},{\"code\":\"200201\",\"value\":\"Mega SkyDrive\"},{\"code\":\"200202\",\"value\":\"douyu\"},{\"code\":\"200203\",\"value\":\"Flamingo_SearchEngine\"},{\"code\":\"200204\",\"value\":\"Lenovo shop\"},{\"code\":\"200205\",\"value\":\"Uc news\"},{\"code\":\"200206\",\"value\":\"Volcano small video\"},{\"code\":\"200207\",\"value\":\"Meitu Xiu Xiu\"},{\"code\":\"200208\",\"value\":\"Kaspersky\"},{\"code\":\"200209\",\"value\":\"AcFun\"},{\"code\":\"200210\",\"value\":\"Slackbot\"},{\"code\":\"200211\",\"value\":\"Snowball\"},{\"code\":\"200212\",\"value\":\"SafeDNSBot\"},{\"code\":\"200213\",\"value\":\"Great wisdom\"},{\"code\":\"200214\",\"value\":\"Mailbox of NetEase\"},{\"code\":\"200215\",\"value\":\"peasecod\"},{\"code\":\"200216\",\"value\":\"Gold ten data\"},{\"code\":\"200217\",\"value\":\"Linkdexbot\"},{\"code\":\"200218\",\"value\":\"Sina blog\"},{\"code\":\"200219\",\"value\":\"Ginger\"},{\"code\":\"200220\",\"value\":\"Microsoft activation verification\"},{\"code\":\"200221\",\"value\":\"Facebot\"},{\"code\":\"200222\",\"value\":\"Dangdang\"},{\"code\":\"200223\",\"value\":\"QQ cyclone\"},{\"code\":\"200224\",\"value\":\"Wp_feedbot\"},{\"code\":\"200225\",\"value\":\"ICBC\"},{\"code\":\"200226\",\"value\":\"Public service\"},{\"code\":\"200227\",\"value\":\"Magpie-crawler\"},{\"code\":\"200228\",\"value\":\"xianyu\"},{\"code\":\"200229\",\"value\":\"GetIntentBot\"},{\"code\":\"200230\",\"value\":\"Papers\"},{\"code\":\"200231\",\"value\":\"NewsGator\"},{\"code\":\"200232\",\"value\":\"RankFlexBot\"},{\"code\":\"200233\",\"value\":\"rogerbot\"},{\"code\":\"200234\",\"value\":\"SurdotlyBot\"},{\"code\":\"200235\",\"value\":\"CheckMarkNetworkBot\"},{\"code\":\"200236\",\"value\":\"pyspider\"},{\"code\":\"200237\",\"value\":\"spbot\"},{\"code\":\"200238\",\"value\":\"Huaxia Bank\"},{\"code\":\"200239\",\"value\":\"glory of king\"},{\"code\":\"200240\",\"value\":\"msnbot-Products\"},{\"code\":\"200241\",\"value\":\"archive.org\"},{\"code\":\"200242\",\"value\":\"applebot\"},{\"code\":\"200243\",\"value\":\"alicall\"},{\"code\":\"200244\",\"value\":\"Superfeedrbot\"},{\"code\":\"200245\",\"value\":\"QQ mailbox\"},{\"code\":\"200246\",\"value\":\"coccocbot-webBot\"},{\"code\":\"200247\",\"value\":\"dingtalk\"},{\"code\":\"200248\",\"value\":\"Dragonbot\"},{\"code\":\"200249\",\"value\":\"Mediatoolkitbot\"},{\"code\":\"200250\",\"value\":\"bitcomet\"},{\"code\":\"200251\",\"value\":\"filetopia\"},{\"code\":\"200252\",\"value\":\"flashget\"},{\"code\":\"200253\",\"value\":\"oracle\"},{\"code\":\"200254\",\"value\":\"yyvoice\"},{\"code\":\"200255\",\"value\":\"imesh\"},{\"code\":\"200256\",\"value\":\"citrix\"},{\"code\":\"200257\",\"value\":\"corba\"},{\"code\":\"200258\",\"value\":\"dameware\"},{\"code\":\"200259\",\"value\":\"pcanywhere\"},{\"code\":\"200260\",\"value\":\"qq_rdp\"},{\"code\":\"200261\",\"value\":\"poco\"},{\"code\":\"200262\",\"value\":\"qqdownload\"},{\"code\":\"200263\",\"value\":\"applejuice\"},{\"code\":\"200264\",\"value\":\"stealthnet\"},{\"code\":\"200265\",\"value\":\"winmx\"},{\"code\":\"200266\",\"value\":\"emule\"},{\"code\":\"200267\",\"value\":\"emule_decrypt\"},{\"code\":\"200268\",\"value\":\"qvod\"},{\"code\":\"200269\",\"value\":\"mysql\"},{\"code\":\"200270\",\"value\":\"icecast\"},{\"code\":\"200271\",\"value\":\"mms\"},{\"code\":\"200272\",\"value\":\"pplive\"},{\"code\":\"200273\",\"value\":\"ppstream\"},{\"code\":\"200274\",\"value\":\"sopcast\"},{\"code\":\"200275\",\"value\":\"tvants\"},{\"code\":\"200276\",\"value\":\"sohutv\"},{\"code\":\"200277\",\"value\":\"iku\"},{\"code\":\"200278\",\"value\":\"qqlive\"},{\"code\":\"200279\",\"value\":\"rsync\"},{\"code\":\"200280\",\"value\":\"xunyou_speedup\"},{\"code\":\"200281\",\"value\":\"msn\"},{\"code\":\"200282\",\"value\":\"popo\"},{\"code\":\"200283\",\"value\":\"sinauc\"},{\"code\":\"200284\",\"value\":\"qqbattle\"},{\"code\":\"200285\",\"value\":\"quake\"},{\"code\":\"200286\",\"value\":\"xbox\"},{\"code\":\"200287\",\"value\":\"wow\"},{\"code\":\"200288\",\"value\":\"lol\"},{\"code\":\"200289\",\"value\":\"PostgreSQL\"},{\"code\":\"200290\",\"value\":\"TDS\"},{\"code\":\"200291\",\"value\":\"VMware\"},{\"code\":\"200292\",\"value\":\"Kontiki\"},{\"code\":\"200293\",\"value\":\"OpenFT\"},{\"code\":\"200294\",\"value\":\"Gnutella\"},{\"code\":\"200295\",\"value\":\"eDonkey\"},{\"code\":\"200296\",\"value\":\"AVI\"},{\"code\":\"200297\",\"value\":\"RealMedia\"},{\"code\":\"200298\",\"value\":\"Windowsmedia\"},{\"code\":\"200299\",\"value\":\"MOVE\"},{\"code\":\"200300\",\"value\":\"Feidian\"},{\"code\":\"200301\",\"value\":\"Zattoo\"},{\"code\":\"200302\",\"value\":\"SHOUTCast\"},{\"code\":\"200303\",\"value\":\"TVUplayer\"},{\"code\":\"200304\",\"value\":\"VeohTV\"},{\"code\":\"200305\",\"value\":\"Soulseek\"},{\"code\":\"200306\",\"value\":\"GaduGadu\"},{\"code\":\"200307\",\"value\":\"Oscar\"},{\"code\":\"200308\",\"value\":\"Yahoo\"},{\"code\":\"200309\",\"value\":\"Battlefield\"},{\"code\":\"200310\",\"value\":\"Halflife2\"},{\"code\":\"200311\",\"value\":\"World of Warcraft\"},{\"code\":\"200312\",\"value\":\"USENET\"},{\"code\":\"200313\",\"value\":\"AFP\"},{\"code\":\"200314\",\"value\":\"Truphone\"},{\"code\":\"200315\",\"value\":\"Armagetron\"},{\"code\":\"200316\",\"value\":\"CrossFire\"},{\"code\":\"200317\",\"value\":\"Dofus\"},{\"code\":\"200318\",\"value\":\"Fiesta\"},{\"code\":\"200319\",\"value\":\"Florensia\"},{\"code\":\"200320\",\"value\":\"Guildwars\"},{\"code\":\"200321\",\"value\":\"HTTP Application Activesync\"},{\"code\":\"200322\",\"value\":\"MapleStory\"},{\"code\":\"200323\",\"value\":\"msSQL\"},{\"code\":\"200324\",\"value\":\"WARCRAFT3\"},{\"code\":\"200325\",\"value\":\"World of Kung Fu\"},{\"code\":\"200326\",\"value\":\"MEEBO\"},{\"code\":\"200327\",\"value\":\"DropBox\"},{\"code\":\"200328\",\"value\":\"HTTP Proxy\"},{\"code\":\"200329\",\"value\":\"Netflix\"},{\"code\":\"200330\",\"value\":\"CitrixOnline/GotoMeeting\"},{\"code\":\"200331\",\"value\":\"Webex\"},{\"code\":\"200332\",\"value\":\"Apple iCloud\"},{\"code\":\"200333\",\"value\":\"Apple iTunes\"},{\"code\":\"200334\",\"value\":\"WindowsUpdate\"},{\"code\":\"200335\",\"value\":\"Tuenti\"},{\"code\":\"200336\",\"value\":\"LotusNotes\"},{\"code\":\"200337\",\"value\":\"RemoteScan\"},{\"code\":\"200338\",\"value\":\"Spotify\"},{\"code\":\"200339\",\"value\":\"CiscoVPN\"},{\"code\":\"200340\",\"value\":\"TeamSpeak\"},{\"code\":\"200341\",\"value\":\"UbuntuONE\"},{\"code\":\"200342\",\"value\":\"CNN\"},{\"code\":\"200343\",\"value\":\"Wikipedia\"},{\"code\":\"200344\",\"value\":\"Collectd\"},{\"code\":\"200345\",\"value\":\"Redis\"},{\"code\":\"200346\",\"value\":\"ZeroMQ\"},{\"code\":\"200347\",\"value\":\"Stracraft\"},{\"code\":\"200348\",\"value\":\"Simet\"},{\"code\":\"200349\",\"value\":\"OpenSignal\"},{\"code\":\"200350\",\"value\":\"99Taxi\"},{\"code\":\"200351\",\"value\":\"GloboTV\"},{\"code\":\"200352\",\"value\":\"Deezer\"},{\"code\":\"200353\",\"value\":\"Microsoft cloud services\"},{\"code\":\"200354\",\"value\":\"Twitch\"},{\"code\":\"200355\",\"value\":\"KakaoTalk Voice and Chat\"},{\"code\":\"200357\",\"value\":\"360.cn\"},{\"code\":\"200358\",\"value\":\"360Safeguard_P2P\"},{\"code\":\"200359\",\"value\":\"4D\"},{\"code\":\"200360\",\"value\":\"acercloud\"},{\"code\":\"200361\",\"value\":\"acestream\"},{\"code\":\"200362\",\"value\":\"airdroid\"},{\"code\":\"200363\",\"value\":\"airmedia\"},{\"code\":\"200364\",\"value\":\"akamai\"},{\"code\":\"200365\",\"value\":\"akamai_transfer\"},{\"code\":\"200366\",\"value\":\"amanda\"},{\"code\":\"200367\",\"value\":\"amp\"},{\"code\":\"200368\",\"value\":\"Appear.in\"},{\"code\":\"200369\",\"value\":\"ares\"},{\"code\":\"200370\",\"value\":\"ARKSurvivalEvolved\"},{\"code\":\"200371\",\"value\":\"ARMA3Server\"},{\"code\":\"200372\",\"value\":\"ARMA2Server\"},{\"code\":\"200373\",\"value\":\"AvastSecureDNS\"},{\"code\":\"200374\",\"value\":\"azureus\"},{\"code\":\"200375\",\"value\":\"backweb\"},{\"code\":\"200376\",\"value\":\"BadBaidu\"},{\"code\":\"200377\",\"value\":\"baofeng\"},{\"code\":\"200378\",\"value\":\"bitext\"},{\"code\":\"200379\",\"value\":\"BlackDesertOnline\"},{\"code\":\"200380\",\"value\":\"Blizzard\"},{\"code\":\"200381\",\"value\":\"bmdp\"},{\"code\":\"200382\",\"value\":\"bncs\"},{\"code\":\"200383\",\"value\":\"btdht\"},{\"code\":\"200384\",\"value\":\"btsync\"},{\"code\":\"200385\",\"value\":\"cacaoweb\"},{\"code\":\"200386\",\"value\":\"chatango\"},{\"code\":\"200387\",\"value\":\"chivalry\"},{\"code\":\"200388\",\"value\":\"cirn\"},{\"code\":\"200389\",\"value\":\"cisco_sslvpn\"},{\"code\":\"200390\",\"value\":\"clash_of_clans\"},{\"code\":\"200391\",\"value\":\"Clubbox\"},{\"code\":\"200392\",\"value\":\"cod\"},{\"code\":\"200393\",\"value\":\"cod_waw\"},{\"code\":\"200394\",\"value\":\"combatarms\"},{\"code\":\"200395\",\"value\":\"combatarms_p2p\"},{\"code\":\"200396\",\"value\":\"ConquerOnline\"},{\"code\":\"200397\",\"value\":\"Counterstrike1.6\"},{\"code\":\"200398\",\"value\":\"Checkpoint_RDP\"},{\"code\":\"200399\",\"value\":\"crashplan\"},{\"code\":\"200400\",\"value\":\"crossout\"},{\"code\":\"200401\",\"value\":\"cryptic\"},{\"code\":\"200402\",\"value\":\"cvs\"},{\"code\":\"200403\",\"value\":\"dash\"},{\"code\":\"200404\",\"value\":\"dc\"},{\"code\":\"200405\",\"value\":\"db2\"},{\"code\":\"200406\",\"value\":\"dell_backup\"},{\"code\":\"200407\",\"value\":\"Demonware\"},{\"code\":\"200408\",\"value\":\"destiny\"},{\"code\":\"200409\",\"value\":\"diablo2\"},{\"code\":\"200410\",\"value\":\"isakmp\"},{\"code\":\"200411\",\"value\":\"jedi\"},{\"code\":\"200412\",\"value\":\"jedi_academy\"},{\"code\":\"200413\",\"value\":\"jx3online\"},{\"code\":\"200414\",\"value\":\"kankan\"},{\"code\":\"200415\",\"value\":\"kaseya\"},{\"code\":\"200416\",\"value\":\"kazaa\"},{\"code\":\"200417\",\"value\":\"kuaibo\"},{\"code\":\"200418\",\"value\":\"lifeforge\"},{\"code\":\"200419\",\"value\":\"linkproof\"},{\"code\":\"200420\",\"value\":\"litecoin\"},{\"code\":\"200421\",\"value\":\"maxicloud\"},{\"code\":\"200422\",\"value\":\"merakicloud\"},{\"code\":\"200423\",\"value\":\"minecraft\"},{\"code\":\"200424\",\"value\":\"mongo\"},{\"code\":\"200425\",\"value\":\"msoffice_mac\"},{\"code\":\"200426\",\"value\":\"munin\"},{\"code\":\"200427\",\"value\":\"mzinga\"},{\"code\":\"200428\",\"value\":\"n2ping\"},{\"code\":\"200429\",\"value\":\"ncsoft\"},{\"code\":\"200430\",\"value\":\"netcat_cctv\"},{\"code\":\"200431\",\"value\":\"neverwinter\"},{\"code\":\"200432\",\"value\":\"newerth\"},{\"code\":\"200433\",\"value\":\"nintendo\"},{\"code\":\"200434\",\"value\":\"nntps\"},{\"code\":\"200435\",\"value\":\"noction\"},{\"code\":\"200436\",\"value\":\"noe\"},{\"code\":\"200437\",\"value\":\"norton_backup\"},{\"code\":\"200438\",\"value\":\"omegle\"},{\"code\":\"200439\",\"value\":\"opaserv\"},{\"code\":\"200440\",\"value\":\"orbit\"},{\"code\":\"200441\",\"value\":\"ourworld\"},{\"code\":\"200442\",\"value\":\"overwatch\"},{\"code\":\"200443\",\"value\":\"diablo3\"},{\"code\":\"200444\",\"value\":\"dianping\"},{\"code\":\"200445\",\"value\":\"dianshijia\"},{\"code\":\"200446\",\"value\":\"discord\"},{\"code\":\"200447\",\"value\":\"dogecoin\"},{\"code\":\"200448\",\"value\":\"dota2\"},{\"code\":\"200449\",\"value\":\"douyu_chat\"},{\"code\":\"200450\",\"value\":\"doyo\"},{\"code\":\"200451\",\"value\":\"driveshare\"},{\"code\":\"200452\",\"value\":\"dtls\"},{\"code\":\"200453\",\"value\":\"dueling_network\"},{\"code\":\"200454\",\"value\":\"dvrns\"},{\"code\":\"200455\",\"value\":\"dxp\"},{\"code\":\"200456\",\"value\":\"ea_games\"},{\"code\":\"200457\",\"value\":\"epson\"},{\"code\":\"200458\",\"value\":\"eso\"},{\"code\":\"200459\",\"value\":\"etrust\"},{\"code\":\"200460\",\"value\":\"fasp\"},{\"code\":\"200461\",\"value\":\"finalfantasy_xiv\"},{\"code\":\"200462\",\"value\":\"flash\"},{\"code\":\"200463\",\"value\":\"fliggy\"},{\"code\":\"200464\",\"value\":\"fortinet\"},{\"code\":\"200465\",\"value\":\"foscam\"},{\"code\":\"200466\",\"value\":\"freechal\"},{\"code\":\"200467\",\"value\":\"fring\"},{\"code\":\"200468\",\"value\":\"fuckcoin\"},{\"code\":\"200469\",\"value\":\"gamespy\"},{\"code\":\"200470\",\"value\":\"gangsofspace\"},{\"code\":\"200471\",\"value\":\"garena\"},{\"code\":\"200472\",\"value\":\"gearsofwar\"},{\"code\":\"200473\",\"value\":\"giop\"},{\"code\":\"200474\",\"value\":\"git\"},{\"code\":\"200475\",\"value\":\"glupteba\"},{\"code\":\"200476\",\"value\":\"gnutella2\"},{\"code\":\"200477\",\"value\":\"gokuchat\"},{\"code\":\"200478\",\"value\":\"google_hangouts\"},{\"code\":\"200479\",\"value\":\"gotomeeting\"},{\"code\":\"200480\",\"value\":\"gprs_tunnel\"},{\"code\":\"200481\",\"value\":\"graal_online_era\"},{\"code\":\"200482\",\"value\":\"gsm\"},{\"code\":\"200483\",\"value\":\"h1z1\"},{\"code\":\"200484\",\"value\":\"halo_online\"},{\"code\":\"200485\",\"value\":\"hamachi\"},{\"code\":\"200486\",\"value\":\"harveys\"},{\"code\":\"200487\",\"value\":\"hearthstone\"},{\"code\":\"200488\",\"value\":\"heroes_generals\"},{\"code\":\"200489\",\"value\":\"hots\"},{\"code\":\"200490\",\"value\":\"icp\"},{\"code\":\"200491\",\"value\":\"icq\"},{\"code\":\"200492\",\"value\":\"id\"},{\"code\":\"200493\",\"value\":\"idrive_sync\"},{\"code\":\"200494\",\"value\":\"ipmsg\"},{\"code\":\"200495\",\"value\":\"ipop\"},{\"code\":\"200496\",\"value\":\"ipsharkk\"},{\"code\":\"200497\",\"value\":\"palringo\"},{\"code\":\"200498\",\"value\":\"paltalk\"},{\"code\":\"200499\",\"value\":\"pando\"},{\"code\":\"200500\",\"value\":\"panipani\"},{\"code\":\"200501\",\"value\":\"pdbox\"},{\"code\":\"200502\",\"value\":\"planetside2\"},{\"code\":\"200503\",\"value\":\"portmap_rpc\"},{\"code\":\"200504\",\"value\":\"ps4_remoteplay\"},{\"code\":\"200505\",\"value\":\"psn\"},{\"code\":\"200506\",\"value\":\"psn_store\"},{\"code\":\"200507\",\"value\":\"punkbuster\"},{\"code\":\"200508\",\"value\":\"pyzor\"},{\"code\":\"200509\",\"value\":\"qcloud_ilvb\"},{\"code\":\"200510\",\"value\":\"qqpcmgr\"},{\"code\":\"200511\",\"value\":\"ramsey_dash\"},{\"code\":\"200512\",\"value\":\"razor\"},{\"code\":\"200513\",\"value\":\"rbls\"},{\"code\":\"200514\",\"value\":\"realvnc\"},{\"code\":\"200515\",\"value\":\"relay\"},{\"code\":\"200516\",\"value\":\"revolver_nblbt\"},{\"code\":\"200517\",\"value\":\"rising_storm\"},{\"code\":\"200518\",\"value\":\"roblox\"},{\"code\":\"200519\",\"value\":\"robocraft\"},{\"code\":\"200520\",\"value\":\"rpc_scan\"},{\"code\":\"200521\",\"value\":\"runescape\"},{\"code\":\"200522\",\"value\":\"sanandreas\"},{\"code\":\"200523\",\"value\":\"saprouter\"},{\"code\":\"200524\",\"value\":\"secondlife\"},{\"code\":\"200525\",\"value\":\"serialnumberd\"},{\"code\":\"200526\",\"value\":\"silkroadonline\"},{\"code\":\"200527\",\"value\":\"smite\"},{\"code\":\"200528\",\"value\":\"snapvpn\"},{\"code\":\"200529\",\"value\":\"spamfighter\"},{\"code\":\"200530\",\"value\":\"speedin\"},{\"code\":\"200531\",\"value\":\"speedtest\"},{\"code\":\"200532\",\"value\":\"spotify_broadcast\"},{\"code\":\"200533\",\"value\":\"sqlexp\"},{\"code\":\"200534\",\"value\":\"starcitizen\"},{\"code\":\"200535\",\"value\":\"starcraft\"},{\"code\":\"200536\",\"value\":\"starleaf\"},{\"code\":\"200537\",\"value\":\"steam_friends\"},{\"code\":\"200538\",\"value\":\"storm_worm\"},{\"code\":\"200539\",\"value\":\"stratum\"},{\"code\":\"200540\",\"value\":\"supl\"},{\"code\":\"200541\",\"value\":\"svn\"},{\"code\":\"200542\",\"value\":\"talesrunner\"},{\"code\":\"200543\",\"value\":\"tankix\"},{\"code\":\"200544\",\"value\":\"telecomkey\"},{\"code\":\"200545\",\"value\":\"telnet_exploit\"},{\"code\":\"200546\",\"value\":\"tencent_games\"},{\"code\":\"200547\",\"value\":\"tenfivecoin\"},{\"code\":\"200548\",\"value\":\"tensafe\"},{\"code\":\"200549\",\"value\":\"tera\"},{\"code\":\"200550\",\"value\":\"tetrisonline\"},{\"code\":\"200551\",\"value\":\"thq\"},{\"code\":\"200552\",\"value\":\"tip\"},{\"code\":\"200553\",\"value\":\"torchlight2\"},{\"code\":\"200554\",\"value\":\"traceroute\"},{\"code\":\"200555\",\"value\":\"trackmania\"},{\"code\":\"200556\",\"value\":\"tremulous\"},{\"code\":\"200557\",\"value\":\"trion\"},{\"code\":\"200558\",\"value\":\"trojan_zeroaccess\"},{\"code\":\"200559\",\"value\":\"twitcasting\"},{\"code\":\"200560\",\"value\":\"twitch_irc\"},{\"code\":\"200561\",\"value\":\"ubisoft_games\"},{\"code\":\"200562\",\"value\":\"umeye\"},{\"code\":\"200563\",\"value\":\"vainglory\"},{\"code\":\"200564\",\"value\":\"ventrilo\"},{\"code\":\"200565\",\"value\":\"vivox\"},{\"code\":\"200566\",\"value\":\"vodlocker\"},{\"code\":\"200567\",\"value\":\"vpnrobot\"},{\"code\":\"200568\",\"value\":\"vpn_unlimited\"},{\"code\":\"200569\",\"value\":\"vxworks_exploit\"},{\"code\":\"200570\",\"value\":\"warthunder\"},{\"code\":\"200571\",\"value\":\"weblogic\"},{\"code\":\"200572\",\"value\":\"web_junk\"},{\"code\":\"200573\",\"value\":\"weiqi\"},{\"code\":\"200574\",\"value\":\"win_message\"},{\"code\":\"200575\",\"value\":\"wizard101\"},{\"code\":\"200576\",\"value\":\"wns\"},{\"code\":\"200577\",\"value\":\"wolf_et\"},{\"code\":\"200578\",\"value\":\"worm_22105\"},{\"code\":\"200579\",\"value\":\"wuala\"},{\"code\":\"200580\",\"value\":\"xfire_p2p\"},{\"code\":\"200581\",\"value\":\"xiami\"},{\"code\":\"200582\",\"value\":\"xunlei\"},{\"code\":\"200583\",\"value\":\"xunlei_accel\"},{\"code\":\"200584\",\"value\":\"xunlei_jsq\"},{\"code\":\"200585\",\"value\":\"xunyou\"},{\"code\":\"200586\",\"value\":\"xymon\"},{\"code\":\"200587\",\"value\":\"yahoo_error\"},{\"code\":\"200588\",\"value\":\"yahoo_games\"},{\"code\":\"200589\",\"value\":\"yahoo_webcam\"},{\"code\":\"200590\",\"value\":\"zabbix\"},{\"code\":\"200591\",\"value\":\"zeroaccess\"},{\"code\":\"200592\",\"value\":\"zoom\"},{\"code\":\"200593\",\"value\":\"zynga\"},{\"code\":\"200594\",\"value\":\"ICMP_Flood\"},{\"code\":\"200595\",\"value\":\"IPFRAG_Flood\"},{\"code\":\"200596\",\"value\":\"SYN_Flood\"},{\"code\":\"200597\",\"value\":\"ACK_Flood\"},{\"code\":\"200598\",\"value\":\"RST_Flood\"},{\"code\":\"200599\",\"value\":\"DNS_Flood\"},{\"code\":\"200600\",\"value\":\"NTP_Flood\"},{\"code\":\"200601\",\"value\":\"UDP_Flood\"},{\"code\":\"200602\",\"value\":\"HTTP_Flood\"},{\"code\":\"200603\",\"value\":\"SSDP_Flood\"},{\"code\":\"200604\",\"value\":\"baiduP2P\"},{\"code\":\"200605\",\"value\":\"CSGlobalOffensive\"},{\"code\":\"200606\",\"value\":\"AllSeeingEye\"},{\"code\":\"200607\",\"value\":\"Bittorrent_Extension\"},{\"code\":\"200608\",\"value\":\"BitTorrentSync\"},{\"code\":\"200609\",\"value\":\"Call_of_Duty\"},{\"code\":\"200612\",\"value\":\"CitrixICA\"},{\"code\":\"200613\",\"value\":\"Citrix_Jedi\"},{\"code\":\"200614\",\"value\":\"ClashOfClans\"},{\"code\":\"200615\",\"value\":\"Canon_BJNP\"},{\"code\":\"200617\",\"value\":\"DoyoP2P\"},{\"code\":\"200618\",\"value\":\"FortiClientSSLVPN\"},{\"code\":\"200619\",\"value\":\"GTA_SanAndreas_Multiplayer\"},{\"code\":\"200620\",\"value\":\"HalfLife\"},{\"code\":\"200621\",\"value\":\"IBM-DB2\"},{\"code\":\"200622\",\"value\":\"Flash_Player\"},{\"code\":\"200623\",\"value\":\"Kugou\"},{\"code\":\"200624\",\"value\":\"LeagueOfLegends\"},{\"code\":\"200625\",\"value\":\"GluptebaBackdoor\"},{\"code\":\"200626\",\"value\":\"MedalOfHonor\"},{\"code\":\"200628\",\"value\":\"MultiTheftAuto\"},{\"code\":\"200631\",\"value\":\"NetcoreScan\"},{\"code\":\"200632\",\"value\":\"NeverwinterNights\"},{\"code\":\"200633\",\"value\":\"NoctionIRP\"},{\"code\":\"200634\",\"value\":\"JavaObjectSerialised\"},{\"code\":\"200635\",\"value\":\"RealPlayer\"},{\"code\":\"200636\",\"value\":\"TeamFortress2\"},{\"code\":\"200637\",\"value\":\"TheCrew\"},{\"code\":\"200638\",\"value\":\"TurboVPN\"},{\"code\":\"200639\",\"value\":\"MSN_Voice\"},{\"code\":\"200640\",\"value\":\"MaplestoryChina\"},{\"code\":\"200641\",\"value\":\"Message4U\"},{\"code\":\"200642\",\"value\":\"MongoDB\"},{\"code\":\"200643\",\"value\":\"NDTThroughput\"},{\"code\":\"200644\",\"value\":\"NET-MFP\"},{\"code\":\"200645\",\"value\":\"WindowsMessenger\"},{\"code\":\"200646\",\"value\":\"WolfensteinEnemyTerritory\"},{\"code\":\"200647\",\"value\":\"XboxLive\"},{\"code\":\"200649\",\"value\":\"RBL\"},{\"code\":\"200650\",\"value\":\"RPC_Exploit\"},{\"code\":\"200651\",\"value\":\"Rejection\"},{\"code\":\"200655\",\"value\":\"Silverplatter_DXP\"},{\"code\":\"200659\",\"value\":\"TencentWNS\"},{\"code\":\"200660\",\"value\":\"TrionGames\"},{\"code\":\"200661\",\"value\":\"Trojan.Win32.Generic!SB\"},{\"code\":\"200666\",\"value\":\"WorldOfWarcraft\"},{\"code\":\"200667\",\"value\":\"YY\"},{\"code\":\"200669\",\"value\":\"nopayload\"},{\"code\":\"200670\",\"value\":\"No_FirstPkt\"},{\"code\":\"200671\",\"value\":\"Invalid\"}],\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_protocol_id",
+      "type": "int",
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"NOT SPECIFIED\"},{\"code\":\"10000\",\"value\":\"NOT SPECIFIED\"},{\"code\":\"10001\",\"value\":\"TCP\"},{\"code\":\"10002\",\"value\":\"UDP\"},{\"code\":\"10003\",\"value\":\"DNS\"},{\"code\":\"10004\",\"value\":\"FTP\"},{\"code\":\"10005\",\"value\":\"FTPS\"},{\"code\":\"10006\",\"value\":\"GRE\"},{\"code\":\"10007\",\"value\":\"HTTP\"},{\"code\":\"10008\",\"value\":\"HTTPS\"},{\"code\":\"10009\",\"value\":\"ICMP\"},{\"code\":\"10010\",\"value\":\"IKE\"},{\"code\":\"10011\",\"value\":\"IMAP\"},{\"code\":\"10012\",\"value\":\"IMAPS\"},{\"code\":\"10013\",\"value\":\"IPSEC\"},{\"code\":\"10014\",\"value\":\"XMPP\"},{\"code\":\"10015\",\"value\":\"L2TP\"},{\"code\":\"10016\",\"value\":\"NTP\"},{\"code\":\"10017\",\"value\":\"POP3\"},{\"code\":\"10018\",\"value\":\"POP3 SSL\"},{\"code\":\"10019\",\"value\":\"PPTP\"},{\"code\":\"10020\",\"value\":\"Quic\"},{\"code\":\"10021\",\"value\":\"SIP\"},{\"code\":\"10022\",\"value\":\"smb\"},{\"code\":\"10023\",\"value\":\"SMTP\"},{\"code\":\"10024\",\"value\":\"SMTPS\"},{\"code\":\"10025\",\"value\":\"SPDY\"},{\"code\":\"10028\",\"value\":\"SSH\"},{\"code\":\"10029\",\"value\":\"SSL\"},{\"code\":\"10030\",\"value\":\"SOCKS\"},{\"code\":\"10031\",\"value\":\"BITTORRENT\"},{\"code\":\"10032\",\"value\":\"RTSP\"},{\"code\":\"10033\",\"value\":\"TELNET\"},{\"code\":\"10034\",\"value\":\"UTP\"},{\"code\":\"10035\",\"value\":\"FASTTRACK\"},{\"code\":\"10036\",\"value\":\"SKINNY\"},{\"code\":\"10037\",\"value\":\"IAX\"},{\"code\":\"10038\",\"value\":\"MGCP\"},{\"code\":\"10039\",\"value\":\"RTCP\"},{\"code\":\"10040\",\"value\":\"RTP\"},{\"code\":\"10041\",\"value\":\"VNC\"},{\"code\":\"10042\",\"value\":\"XDMCP\"},{\"code\":\"10043\",\"value\":\"RDP\"},{\"code\":\"10044\",\"value\":\"AIMINI\"},{\"code\":\"10045\",\"value\":\"IPP\"},{\"code\":\"10046\",\"value\":\"NFS\"},{\"code\":\"10047\",\"value\":\"TFTP\"},{\"code\":\"10048\",\"value\":\"BGP\"},{\"code\":\"10049\",\"value\":\"DHCP\"},{\"code\":\"10050\",\"value\":\"DHCPV6\"},{\"code\":\"10051\",\"value\":\"FINGER\"},{\"code\":\"10052\",\"value\":\"KERBEROS\"},{\"code\":\"10053\",\"value\":\"LDAP\"},{\"code\":\"10054\",\"value\":\"MDNS\"},{\"code\":\"10055\",\"value\":\"NNTP\"},{\"code\":\"10056\",\"value\":\"SNMP\"},{\"code\":\"10057\",\"value\":\"SSDP\"},{\"code\":\"10058\",\"value\":\"SYSLOG\"},{\"code\":\"10059\",\"value\":\"WHOIS\"},{\"code\":\"10060\",\"value\":\"RADIUS\"},{\"code\":\"10061\",\"value\":\"OPENVPN\"},{\"code\":\"10062\",\"value\":\"STUN\"},{\"code\":\"10063\",\"value\":\"TEREDO\"},{\"code\":\"10064\",\"value\":\"GTP\"},{\"code\":\"10065\",\"value\":\"RTMP\"},{\"code\":\"10066\",\"value\":\"chargen_tcp_udp\"},{\"code\":\"10067\",\"value\":\"llmnr_udp\"},{\"code\":\"10068\",\"value\":\"nbns_udp\"},{\"code\":\"10069\",\"value\":\"NETBIOS\"},{\"code\":\"10070\",\"value\":\"DirectDownloadLink\"},{\"code\":\"10071\",\"value\":\"I23V5\"},{\"code\":\"10072\",\"value\":\"DirectConnect\"},{\"code\":\"10073\",\"value\":\"OFF\"},{\"code\":\"10074\",\"value\":\"OGG\"},{\"code\":\"10075\",\"value\":\"MPEG\"},{\"code\":\"10076\",\"value\":\"IRC\"},{\"code\":\"10077\",\"value\":\"Jabber\"},{\"code\":\"10078\",\"value\":\"VRRP\"},{\"code\":\"10079\",\"value\":\"IGMP\"},{\"code\":\"10080\",\"value\":\"EGP\"},{\"code\":\"10081\",\"value\":\"SCTP\"},{\"code\":\"10082\",\"value\":\"OSPF\"},{\"code\":\"10083\",\"value\":\"IP in IP\"},{\"code\":\"10084\",\"value\":\"ICMPv6\"},{\"code\":\"10085\",\"value\":\"DCE RPC\"},{\"code\":\"10086\",\"value\":\"NetFlow_IPFIX\"},{\"code\":\"10087\",\"value\":\"sFlow\"},{\"code\":\"10088\",\"value\":\"HTTP Connect (SSL over HTTP)\"},{\"code\":\"10089\",\"value\":\"SAP\"},{\"code\":\"10090\",\"value\":\"UPnP\"},{\"code\":\"10091\",\"value\":\"H323\"},{\"code\":\"10092\",\"value\":\"Megaco\"},{\"code\":\"10094\",\"value\":\"bacnet\"},{\"code\":\"10096\",\"value\":\"bjnp\"},{\"code\":\"10097\",\"value\":\"cgp\"},{\"code\":\"10098\",\"value\":\"dahua\"},{\"code\":\"10099\",\"value\":\"dcc\"},{\"code\":\"10100\",\"value\":\"kademlia\"},{\"code\":\"10101\",\"value\":\"lansync\"},{\"code\":\"10102\",\"value\":\"ldap_ad\"},{\"code\":\"10103\",\"value\":\"llp2p\"},{\"code\":\"10104\",\"value\":\"mfnp\"},{\"code\":\"10105\",\"value\":\"mp2p\"},{\"code\":\"10106\",\"value\":\"msn_cache\"},{\"code\":\"10107\",\"value\":\"msn_video\"},{\"code\":\"10108\",\"value\":\"msnc\"},{\"code\":\"10109\",\"value\":\"netflow\"},{\"code\":\"10110\",\"value\":\"notes_rpc\"},{\"code\":\"10111\",\"value\":\"esp\"},{\"code\":\"10112\",\"value\":\"fbcdn_ssl\"},{\"code\":\"10113\",\"value\":\"forticlient_sslvpn\"},{\"code\":\"10114\",\"value\":\"rfb\"},{\"code\":\"10115\",\"value\":\"rtmfp\"},{\"code\":\"10117\",\"value\":\"slp\"},{\"code\":\"10118\",\"value\":\"steam_inhomebroadcast\"},{\"code\":\"10119\",\"value\":\"steam_localbroadcast\"},{\"code\":\"10120\",\"value\":\"tpkt\"},{\"code\":\"10121\",\"value\":\"xmpps\"},{\"code\":\"10122\",\"value\":\"S7COMM\"},{\"code\":\"10123\",\"value\":\"CitrixCGP\"},{\"code\":\"10124\",\"value\":\"ID_Protocol\"},{\"code\":\"10125\",\"value\":\"SMTP_Secure\"},{\"code\":\"10126\",\"value\":\"NAT-PMP\"}],\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_start_time",
+      "type": "int",
+      "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_end_time",
+      "type": "int",
+      "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_con_duration_ms",
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_stream_dir",
+      "type": "int",
+      "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"c2s\"},{\"code\":\"2\",\"value\":\"s2c\"},{\"code\":\"3\",\"value\":\"double\"}]}"
+    },
+    {
+      "name": "common_address_list",
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_has_dup_traffic",
+      "type": "int",
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"No\"},{\"code\":\"1\",\"value\":\"Yes\"}],\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_stream_error",
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_stream_trace_id",
+      "type": "long",
+      "doc": "{\"allow_query\":\"true\"}"
+    },
+    {
+      "name": "http_url",
+      "type": "string"
+    },
+    {
+      "name": "http_host",
+      "type": "string",
+      "doc": "{\"format\":{\"functions\":\"sub_domain\",\"appendTo\":\"http_domain\"}}"
+    },
+    {
+      "name": "http_domain",
+      "type": "string"
+    },
+    {
+      "name": "http_request_line",
+      "type": "string"
+    },
+    {
+      "name": "http_response_line",
+      "type": "string"
+    },
+    {
+      "name": "http_request_header",
+      "type": "string"
+    },
+    {
+      "name": "http_response_header",
+      "type": "string"
+    },
+    {
+      "name": "http_request_body",
+      "type": "string",
+      "doc": "{\"constraints\":{\"type\":\"file\"}}"
+    },
+    {
+      "name": "http_response_body",
+      "type": "string",
+      "doc": "{\"constraints\":{\"type\":\"file\"}}"
+    },
+    {
+      "name": "http_request_body_key",
+      "type": "string",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "http_response_body_key",
+      "type": "string",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "http_proxy_flag",
+      "type": "int"
+    },
+    {
+      "name": "http_sequence",
+      "type": "int"
+    },
+    {
+      "name": "http_snapshot",
+      "type": "string"
+    },
+    {
+      "name": "http_cookie",
+      "type": "string"
+    },
+    {
+      "name": "http_referer",
+      "type": "string"
+    },
+    {
+      "name": "http_user_agent",
+      "type": "string"
+    },
+    {
+      "name": "http_content_length",
+      "type": "string"
+    },
+    {
+      "name": "http_content_type",
+      "type": "string"
+    },
+    {
+      "name": "http_set_cookie",
+      "type": "string"
+    },
+    {
+      "name": "http_version",
+      "type": "string"
+    }
+  ]
+}

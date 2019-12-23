@@ -3,6 +3,7 @@ package com.mesalab.qgw.controller;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
@@ -68,6 +69,7 @@ public class APIController {
             return BaseResultGenerator.success4Message("ok");
         }
         ApiParam param = new ApiParam();
+        param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
         if("tables".equals(type)){
             param.setSchema(name);
             param.setQuery("show tables");

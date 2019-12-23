@@ -1,0 +1,151 @@
+{
+  "namespace": "com.zdjizhi",
+  "type": "record",
+  "name": "traffic_metrics_log",
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "allow_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "allow_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "allow_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "allow_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "allow_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "close_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "default_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "default_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "default_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "default_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "default_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "deny_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "deny_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "deny_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "deny_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "deny_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "device_id",
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "type": "long"
+    },
+    {
+      "name": "intercept_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "intercept_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "intercept_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "intercept_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "intercept_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "live_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "monitor_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "monitor_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "monitor_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "monitor_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "monitor_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "new_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "total_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "total_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "total_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "total_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "total_out_packets",
+      "type": "long"
+    }
+  ]
+}

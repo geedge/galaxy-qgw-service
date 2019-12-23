@@ -1,0 +1,23 @@
+{
+  "namespace": "com.zdjizhi",
+  "type": "record",
+  "name": "radius_onff_log",
+  "fields": [
+    {
+      "name": "event_timestamp",
+      "type": "int"
+    },
+    {
+      "name": "account",
+      "type": "string"
+    },
+    {
+      "name": "framed_ip",
+      "type": "string"
+    },
+    {
+      "name": "acct_status_type",
+      "type": "int"
+    }
+  ]
+}

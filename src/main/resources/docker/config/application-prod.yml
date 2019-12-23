@@ -42,8 +42,8 @@ httpclient:
 ###############################################################################
 ## Schema register
 schema:
-  clickhouse: session_record_log,policy_event_log,radius_log,security_event_log,proxy_event_log,connection_record_log,radius_record_log
-  druid: bandwidth_log,traffic_metrics_log,policy_hits_log,session_intercept_hits_log,top_internal_host_log,top_external_host_log,top_website_domain_log,top_urls_log,top_user_log
+  clickhouse: session_record_log,policy_event_log,radius_log,security_event_log,proxy_event_log,connection_record_log,radius_record_log,radius_onff_log
+  druid: bandwidth_log,traffic_metrics_log,policy_hits_log,session_intercept_hits_log,top_internal_host_log,top_external_host_log,top_website_domain_log,top_urls_log,top_user_log,security_event_hits_log,proxy_event_hits_log,protocol_statistic_log,app_statistic_log,sys_storage_log
 ###############################################################################
 ## Junit Test Configuration
 test:
