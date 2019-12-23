@@ -127,4 +127,16 @@ public class TestController {
         return BaseResultGenerator.success(result.getMessage(), result.getData());
     }
 
+    /**
+     * 校验schema
+     *
+     * @return
+     */
+    @ApiOperation(value = "校验schema", notes = "运行校验schema")
+    @GetMapping(value = "runSchema")
+    public BaseResult runSchema() {
+        BaseResult result = testSqlService.runSchema();
+        return result;
+    }
+
 }
