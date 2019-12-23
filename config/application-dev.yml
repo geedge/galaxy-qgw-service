@@ -1,33 +1,32 @@
 ###############################################################################
-## Production Environment
+## Development Environment
 ###############################################################################
 ## Log configuration Path
 logging:
-  config: classpath:./config/log4j2-prod.xml
+  config: ./config/log4j2-dev.xml
 ###############################################################################
 ## swagger API configuration
 swagger:
-  enable: false
+  enable: true
 ###############################################################################
 ## ClickhHouse configuration
 clickhouse:
-  url: jdbc:clickhouse://10.4.35.4:8123
+  url: jdbc:clickhouse://192.168.40.193:8123
   driverClassName: ru.yandex.clickhouse.ClickHouseDriver
   dbname: tsg_galaxy
-  username: tsgreport
-  password: ceiec2019
-  publicKey: XX
-###############################################################################
-## Druid configuration
+  username: default
+  password: 111111
+  ###############################################################################
+  ## Druid configuration
 druid:
-  url: 10.4.35.6:8082/druid/v2/sql
+  url: 192.168.40.206:8082/druid/v2/sql
   dbname: druid
-  sqlTimeZone: Asia/Almaty
-##Asia/Almaty
-###############################################################################
-## Hbase configuration
+  sqlTimeZone: Asia/Shanghai
+  ##Asia/Almaty
+  ###############################################################################
+  ## Hbase configuration
 hbase:
-  url: 10.4.35.1:4444
+  url: 192.168.40.120:4444
   dbname: tsg
   tableName: report_result
   columnFamily: response
@@ -35,10 +34,10 @@ hbase:
 ###############################################################################
 ## Httpclient configuration
 httpclient:
-  connectTimeout: 5000
+  connectTimeout: 1000
   SocketTimeout: 600000
-  maxConnection: 20000
-  maxPerRoute: 20000
+  maxConnection: 500
+  maxPerRoute: 500
 ###############################################################################
 ## Schema register
 schema:
@@ -67,7 +66,7 @@ spring:
     poolPreparedStatements: true
     maxPoolPreparedStatementPerConnectionSize: 20
     validationQuery: SELECT 1
-    filters: stat,log4j,wall,config
+    filters: stat,log4j,wall,config-temp
   ###############################################################################
   ## Redis configuration(Reserved, for Caching)
   redis:

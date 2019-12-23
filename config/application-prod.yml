@@ -67,7 +67,7 @@ spring:
     poolPreparedStatements: true
     maxPoolPreparedStatementPerConnectionSize: 20
     validationQuery: SELECT 1
-    filters: stat,log4j,wall,config
+    filters: stat,log4j,wall,config-temp
   ###############################################################################
   ## Redis configuration(Reserved, for Caching)
   redis:
