@@ -60,6 +60,7 @@
         <log4j.version>2.10.0</log4j.version>
         <swagger.version>2.8.0</swagger.version>
         <httpclient.version>4.5.6</httpclient.version>
+        <avro.version>1.9.1</avro.version>
 
 
         <docker.build>192.168.40.153</docker.build>
@@ -206,6 +207,7 @@
             <version>${log4j.version}</version>
         </dependency>
 
+
         <!--
             devtools可以实现页面热部署（即页面修改后会立即生效，这个可以直接在application.properties文件中配置spring.thymeleaf.cache=false来实现），
             实现类文件热部署（类文件修改后不会立即生效），实现对属性文件的热部署。
@@ -313,6 +315,13 @@
             <artifactId>jsqlparser</artifactId>
             <version>3.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
+
 
 
         <dependency>
