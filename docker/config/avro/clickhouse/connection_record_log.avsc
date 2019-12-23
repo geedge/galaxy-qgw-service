@@ -110,7 +110,7 @@
     {
       "name": "common_schema_type",
       "type": "string",
-      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"},{\"code\":\"BGP\",\"value\":\"BGP\"},{\"code\":\"VOIP\",\"value\":\"VOIP\"},{\"code\":\"RADIUS\",\"value\":\"RADIUS\"}],\"visibility\":\"hidden\"}"
+      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"},{\"code\":\"BGP\",\"value\":\"BGP\"},{\"code\":\"VOIP\",\"value\":\"VOIP\"},{\"code\":\"RADIUS\",\"value\":\"RADIUS\"}],\"allow_query\":\"true\"}"
     },
     {
       "name": "common_user_tags",
@@ -296,6 +296,10 @@
       "type": "string"
     },
     {
+      "name": "mail_account",
+      "type": "string"
+    },
+    {
       "name": "mail_from",
       "doc": "{\"constraints\":{\"type\":\"email\"}}",
       "type": "string"
@@ -315,6 +319,10 @@
     },
     {
       "name": "mail_subject",
+      "type": "string"
+    },
+    {
+      "name": "mail_subject_charset",
       "type": "string"
     },
     {
