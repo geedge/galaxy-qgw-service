@@ -46,15 +46,20 @@ public class TestSqlServiceImpl {
     @Autowired
     public ClickHouseHttpSource clickHouseHttpSource;
 
-    private static String errorDate;
+    private List errorDate;
 
 
-
+    /**
+     * 运行测试用例
+     * @return
+     */
     public BaseResult runSql(){
-
+        long start = System.currentTimeMillis();
         List list = ckSql();
+        List listDruid = druidSql();
+        list.addAll(listDruid);
         Map<String, String> resultTemp = null;
-        BaseResult<Object> result = new BaseResult<>();
+        BaseResult result = null;
         List<Object> data = new ArrayList<>();
         int countSuccess = 0;
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:00:00");
@@ -84,19 +89,32 @@ public class TestSqlServiceImpl {
             }
             data.add(resultTemp);
         }
-        result.setMessage(String.format("total:%s,success:%s",list.size(),countSuccess));
-        result.setData(data);
+        long cost = System.currentTimeMillis() - start;
+        HashMap<String, Object> statistics = new HashMap<>();
+        statistics.put("elapsed",String.format("%.2f", (double)cost/1000));
+        statistics.put("total", list.size());
+        statistics.put("success", countSuccess);
+        String message = countSuccess==list.size() ? "ok" : "error";
+        result = BaseResultGenerator.success(message, data, statistics);
         return result;
     }
 
+    /**
+     * 运行schema校验
+     * @return
+     */
     public BaseResult runSchema(){
-        errorDate = "";
+        long start = System.currentTimeMillis();
+        errorDate = new ArrayList();
         checkCKSchema("/config/avro/clickhouse");
         checkDruidSchema("/config/avro/druid");
         checkSchema("/config/avro/clickhouse");
         checkSchema("/config/avro/druid");
-        String message = "".equals(errorDate) ? "ok" : "error";
-        return BaseResultGenerator.success(message, errorDate);
+        long cost = System.currentTimeMillis() - start;
+        HashMap<String, Object> statistics = new HashMap<>();
+        statistics.put("elapsed",String.format("%.2f", (double)cost/1000));
+        String message = errorDate.size()==0 ? "ok" : "error";
+        return BaseResultGenerator.success(message, errorDate, statistics);
     }
 
 
@@ -117,10 +135,228 @@ public class TestSqlServiceImpl {
         list.add("select count(1) from connection_record_log");
         list.add("select count(*) from connection_record_log");
         list.add("select * from "+clickHouseProperties.getDbname() +".connection_record_log limit 1");
+
+        //Radius 用户分析
+        //1. radius账户申请客户端IP变化
+        list.add("select framed_ip, arraySlice(groupUniqArray(concat(toString(event_timestamp),':', if(acct_status_type=1,'start','stop'))),1,100000) as timeseries \n" +
+                "from radius_onff_log where event_timestamp >=toDateTime($start_time) and event_timestamp <toDateTime($end_time) and account='admin' group by framed_ip");
+        list.add("select framed_ip, arraySlice(groupUniqArray(concat(toString(event_timestamp),':', if(acct_status_type=1,'start','stop'))),1,100000) as timeseries \n" +
+                "from radius_onff_log where event_timestamp >=$start_time and event_timestamp < $end_time  and account='admin' group by framed_ip");
+        //2. 用户IP承载用户变化
+        list.add("select account, arraySlice(groupUniqArray(concat(toString(event_timestamp),':', if(acct_status_type=1,'start','stop'))),1,100000) as timeseries \n" +
+                "from radius_onff_log where event_timestamp >= $start_time and event_timestamp < $end_time  and framed_ip='127.0.0.1' group by account");
+        list.add("select account, arraySlice(groupUniqArray(concat(toString(event_timestamp),':', if(acct_status_type=1,'start','stop'))),1,100000) as timeseries \n" +
+                "from radius_onff_log where event_timestamp >= $start_time and event_timestamp < $end_time  and framed_ip='127.0.0.1' group by account");
+        //自定义报告API
+        //一.  预置Internal Hosts 报告
+        list.add("select common_client_ip, count(*) as sessions from connection_record_log where common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($end_time)) group by common_client_ip order by sessions desc limit 0,100");
+        //二. 预置External Hosts 报告
+        list.add("select common_server_ip, count(*) as sessions from connection_record_log where common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time)) group by common_server_ip order by sessions desc limit 0,100");
+        //三. 预置Domains报告
+        list.add("select http_domain AS domain,SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes FROM connection_record_log WHERE common_recv_time >= toStartOfDay(toDateTime($start_time))-86400 AND common_recv_time < toStartOfDay(toDateTime($start_time)) and notEmpty(domain) GROUP BY domain ORDER BY bytes DESC LIMIT 100");
+        list.add("select toDateTime(intDiv(toUInt32(toDateTime(toDateTime(common_recv_time))), 300)*300) as stat_time, http_domain, uniq (common_client_ip) as nums  from connection_record_log where common_recv_time >= toStartOfDay(toDateTime($start_time))-86400 AND common_recv_time < toStartOfDay(toDateTime($start_time))  and http_domain in (select http_domain from connection_record_log where common_recv_time >= toStartOfDay(toDateTime($start_time))-86400 AND common_recv_time < toStartOfDay(toDateTime($start_time))  and notEmpty(http_domain) group by http_domain order by SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) desc limit 10 ) group by toDateTime(intDiv(toUInt32(toDateTime(toDateTime(common_recv_time))), 300)*300), http_domain order by stat_time asc limit 500\n");
+        list.add("SELECT http_host as host, SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes FROM connection_record_log WHERE common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time))  and notEmpty(http_host) GROUP BY host ORDER BY bytes DESC limit 10  " +
+                "union all " +
+                "SELECT  'totals'  as host, SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes, SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes, SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes from connection_record_log where common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time))  and notEmpty(http_host)");
+        //四. 预置HTTP/HTTPS URLS报告
+        list.add("SELECT http_url AS url,count(*) AS sessions FROM proxy_event_log WHERE common_recv_time >= toStartOfDay(toDateTime($start_time))-86400 AND common_recv_time < toStartOfDay(toDateTime($start_time)) and notEmpty(http_url) GROUP BY url ORDER BY sessions DESC LIMIT 100");
+        list.add("select toDateTime(intDiv(toUInt32(toDateTime(toDateTime(common_recv_time))), 300)*300) as stat_time, http_url, count(distinct(common_client_ip)) as nums  from proxy_event_log where common_recv_time >= toStartOfDay(toDateTime($start_time))-86400 AND common_recv_time < toStartOfDay(toDateTime($start_time)) and http_url IN (select http_url from proxy_event_log where common_recv_time >= toStartOfDay(toDateTime($start_time))-86400 AND common_recv_time < toStartOfDay(toDateTime($start_time)) and notEmpty(http_url)  group by http_url order by count(*) desc limit 10 )group by toDateTime(intDiv(toUInt32(toDateTime(toDateTime(common_recv_time))), 300)*300), http_url order by stat_time asc limit 500");
+        list.add("select common_subscriber_id as user, count(*) as sessions from connection_record_log where common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time))  and notEmpty(user) group by common_subscriber_id order by sessions desc limit 0,100");
+        list.add("SELECT common_subscriber_id as user,SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes FROM connection_record_log WHERE common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time)) and notEmpty(user) GROUP BY user ORDER BY bytes  DESC LIMIT 100");
+
+        return list;
+    }
+
+    public List druidSql(){
+        List<String> list = new ArrayList<>();
+        //安全策略命中统计
+        //1. 某策略命中计数
+        list.add("select policy_id, sum(hits) as hits from security_event_hits_log where __time >$start_time and __time <$end_time and policy_id=40  group by policy_id");
+        list.add("select policy_id, sum(hits) as hits from security_event_hits_log where __time >$start_time and __time <$end_time and policy_id in (9,10,88,45)  group by policy_id");
+        //2. 某策略命中计数趋势
+        list.add("select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as start_time, sum(hits) as hits from security_event_hits_log where __time >= TIMESTAMP $start_time and __time < TIMESTAMP $end_time and policy_id=10 group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') limit 100");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as start_time, sum(hits) as hits from security_event_hits_log where __time >= $start_time and __time < $end_time and policy_id=10 group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') limit 100");
+        //3. 某策略命中时间（首次和最近一次)
+        list.add("select policy_id,TIME_FORMAT(min(__time) ,'yyyy-MM-dd HH:mm:ss')  as first_used, TIME_FORMAT(max(__time) ,'yyyy-MM-dd HH:mm:ss') as last_used from security_event_hits_log where policy_id in (100,101 ,105, 102) group by policy_id");
+        list.add("select policy_id, DATE_FORMAT(min(__time) ,'%Y-%m-%d %H:%i:%s')  as first_used,  DATE_FORMAT(max(__time) ,'%Y-%m-%d %H:%i:%s') as last_used from security_event_hits_log where policy_id in (100,101 ,105, 102) group by policy_id");
+        //4. TopN 命中策略
+        list.add("select policy_id, action, sum(hits) as hits from security_event_hits_log  where __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time  group by policy_id, action order by hits desc limit 200");
+        list.add("select policy_id, action, sum(hits) as hits from security_event_hits_log  where __time >=$start_time and __time <$end_time  group by policy_id, action order by hits desc limit 200");
+        //二、 代理策略命中统计
+        //1. 某策略命中计数
+        list.add("select policy_id, sum(hits) as hits from proxy_event_hits_log where  __time >=$start_time and __time <$end_time and policy_id=100 group by policy_id");
+        list.add("select policy_id, sum(hits) as hits from proxy_event_hits_log where  __time >=$start_time and __time <$end_time and policy_id=100 group by policy_id");
+        //2. 某策略命中趋势
+        list.add("select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as start_time, sum(hits) as hits from proxy_event_hits_log where __time >= TIMESTAMP $start_time and __time <TIMESTAMP $end_time and policy_id=100 group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') limit 101");
+        list.add("select FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300) as start_time, sum(hits) as hits from proxy_event_hits_log where __time >= $start_time and __time < $end_time and policy_id=100 group by  FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300) limit 101");
+        //3.某策略命中时间（首次和最近一次
+        list.add("select policy_id,TIME_FORMAT(min(__time) ,'yyyy-MM-dd HH:mm:ss')  as first_used, TIME_FORMAT(max(__time) ,'yyyy-MM-dd HH:mm:ss') as last_used from  proxy_event_hits_log where policy_id in (100,101,102,105) group by policy_id");
+        list.add("select policy_id, DATE_FORMAT(min(__time) ,'%Y-%m-%d %H:%i:%s')  as first_used,  DATE_FORMAT(max(__time) ,'%Y-%m-%d %H:%i:%s') as last_used from  proxy_event_hits_log where policy_id in (100,101,102,105) group by policy_id");
+        //4. TopN 命中策略
+        list.add("select policy_id, sub_action as action, sum(hits) as hits from proxy_event_hits_log  where __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time  group by policy_id, sub_action order by hits desc limit 200");
+        list.add("select policy_id, sub_action as action, sum(hits) as hits from proxy_event_hits_log  where __time >=$start_time and __time <$end_time  group by policy_id, sub_action order by hits desc limit 200");
+        //5. Proxy 操纵动作命中计数
+        list.add("select sub_action as action, sum(hits) as hits from proxy_event_hits_log where  __time >= TIMESTAMP $start_time and __time < TIMESTAMP $end_time  group by  sub_action");
+        list.add("select sub_action as action, sum(hits) as hits from proxy_event_hits_log where  __time >= $start_time and __time < $end_time  group by  sub_action");
+        //6. Proxy 操纵动作命中趋势
+        list.add("select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as start_time, sub_action  as action, sum(hits) as hits from proxy_event_hits_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time  group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') , sub_action  limit 100\n");
+        list.add("select  DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as start_time, sub_action  as action, sum(hits) as hits from proxy_event_hits_log where  __time >= $start_time and __time < $end_time  group by  DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s'), sub_action  limit 100\n");
+        //7. Proxy Pinning TIMESTAMP 计数
+        list.add("select  sum(hits) as hits, 'not_pinning_num' as type from security_event_hits_log  where __time >= $start_time and __time < $end_time and pinningst=0 union all  select  sum(hits) as hits, 'pinning_num' as type from security_event_hits_log  where __time >= $start_time and __time < $end_time and pinningst=1 union all  select  sum(hits) as hits, 'maybe_pinning_num' as type from security_event_hits_log  where __time >=TIMESTAMP $start_time and __time < TIMESTAMP $end_time and pinningst=2");
+        list.add("select  sum(hits) as hits, 'not_pinning_num' as type from security_event_hits_log  where __time >= $start_time and __time < $end_time and pinningst=0 union all  select  sum(hits) as hits, 'pinning_num' as type from security_event_hits_log  where __time >= $start_time and __time < $end_time and pinningst=1 union all  select  sum(hits) as hits, 'maybe_pinning_num' as type from security_event_hits_log  where __time >= $start_time and __time < $end_time and pinningst=2");
+        //8.Proxy Pinning计数趋势
+        list.add("select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as start_time, 'not_pinning_num' as type, sum(hits) as hits from security_event_hits_log where __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time and pinningst=0 group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')  as start_time, 'pinning_num' as type, sum(hits) as hits from security_event_hits_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time and pinningst=1  group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as start_time, 'maybe_pinning_num' as type, sum(hits) as hits from security_event_hits_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time and pinningst=2   group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as start_time, 'not_pinning_num' as type, sum(hits) as hits from security_event_hits_log where __time >= $start_time and __time < $end_time and pinningst=0 group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')  as start_time, 'pinning_num' as type, sum(hits) as hits from security_event_hits_log where  __time >= $start_time and __time < $end_time and pinningst=1  group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as start_time, 'maybe_pinning_num' as type, sum(hits) as hits from security_event_hits_log where  __time >= $start_time and __time < $end_time and pinningst=2   group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')");
+        //三、 Traffics-带宽统计
+        //1. Traffic IN/OUT 计数
+        //Bytes
+        list.add("select sum(total_in_bytes) as traffic_in_bytes, sum(total_out_bytes) as traffic_out_bytes  from traffic_metrics_log where  __time >=TIMESTAMP  $start_time and __time <TIMESTAMP $end_time");
+        list.add("select sum(total_in_bytes) as traffic_in_bytes, sum(total_out_bytes) as traffic_out_bytes  from traffic_metrics_log where  __time >= $start_time and __time < $end_time");
+        //Packets
+        list.add("select sum(total_in_packets) as traffic_in_packets, sum(total_out_packets) as traffic_out_packets  from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time");
+        list.add("select sum(total_in_packets) as traffic_in_packets, sum(total_out_packets) as traffic_out_packets  from traffic_metrics_log where  __time >= $start_time and __time < $end_time");
+        //Sessions
+        list.add("select sum(total_conn_num) as sessions  from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time");
+        list.add("select sum(total_conn_num) as sessions  from traffic_metrics_log where  __time >= $start_time and __time < $end_time");
+        //2. Traffic IN/OUT 带宽趋势
+        //Bytes
+        list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_in_bytes' as type, sum(total_in_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_out_bytes' as type, sum(total_out_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_in_bytes' as type, sum(total_in_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_out_bytes' as type, sum(total_out_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
+        //Packets
+        list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_in_packets' as type, sum(total_in_packets) as packets from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP  $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n"+
+                "select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_out_packets' as type, sum(total_out_packets) as packets from traffic_metrics_log where __time >=TIMESTAMP  $start_time and __time <TIMESTAMP  $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_in_packets' as type, sum(total_in_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n"+
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_out_packets' as type, sum(total_out_packets) as packets from traffic_metrics_log where __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
+        //Packets
+        list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_in_packets' as type, sum(total_in_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_out_packets' as type, sum(total_out_packets) as packets from traffic_metrics_log where __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_in_packets' as type, sum(total_in_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_out_packets' as type, sum(total_out_packets) as packets from traffic_metrics_log where __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
+        //Sessions
+        list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'total_conn_num' as type, sum(total_conn_num) as sessions from traffic_metrics_log where __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'total_conn_num' as type, sum(total_conn_num) as sessions from traffic_metrics_log where __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
+        //四、 Traffics-计数统计
+        //1. 新建与活跃链接计数
+        list.add("select  sum(new_conn_num) as new_conn_num, sum(live_conn_num) as live_conn_num from traffic_metrics_log  where   __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time");
+        list.add("select  sum(new_conn_num) as new_conn_num, sum(live_conn_num) as live_conn_num from traffic_metrics_log  where   __time >= $start_time and __time < $end_time");
+        //2.新建与活跃链接计数趋势
+        list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'new_conn_num' as type, sum(new_conn_num) as sessions from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time < TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'live_conn_num' as type, sum(live_conn_num) as sessions from traffic_metrics_log where   __time >= TIMESTAMP $start_time and __time < TIMESTAMP $end_time  group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'new_conn_num' as type, sum(new_conn_num) as sessions from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'live_conn_num' as type, sum(live_conn_num) as sessions from traffic_metrics_log where   __time >= $start_time and __time < $end_time  group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
+        //3. 安全策略动作计数
+        //Bytes
+        list.add("select  sum(default_in_bytes+default_out_bytes) as default_bytes, sum(allow_in_bytes+allow_out_bytes) as allow_bytes, sum(deny_in_bytes+deny_out_bytes) as deny_bytes, sum(monitor_in_bytes+monitor_out_bytes) as monitor_bytes, sum(intercept_in_bytes+intercept_out_bytes) as intercept_bytes from traffic_metrics_log  where   __time >=TIMESTAMP $start_time and __time < TIMESTAMP $end_time");
+        list.add("select  sum(default_in_bytes+default_out_bytes) as default_bytes, sum(allow_in_bytes+allow_out_bytes) as allow_bytes, sum(deny_in_bytes+deny_out_bytes) as deny_bytes, sum(monitor_in_bytes+monitor_out_bytes) as monitor_bytes, sum(intercept_in_bytes+intercept_out_bytes) as intercept_bytes from traffic_metrics_log  where   __time >= $start_time and __time < $end_time");
+        //Packets
+        list.add("select  sum(default_in_packets+default_out_packets) as default_packets, sum(allow_in_packets+allow_in_packets) as allow_packets, sum(deny_in_packets+deny_out_packets) as deny_packets, sum(monitor_in_packets+monitor_out_packets) as monitor_packets, sum(intercept_in_packets+intercept_out_packets) as intercept_packets from traffic_metrics_log  where   __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time\n");
+        list.add("select  sum(default_in_packets+default_out_packets) as default_packets, sum(allow_in_packets+allow_in_packets) as allow_packets, sum(deny_in_packets+deny_out_packets) as deny_packets, sum(monitor_in_packets+monitor_out_packets) as monitor_packets, sum(intercept_in_packets+intercept_out_packets) as intercept_packets from traffic_metrics_log  where   __time >= $start_time and __time < $end_time\n");
+        //Sessions
+        list.add("select sum(default_conn_num) as default_sessions, sum(allow_conn_num) as allow_sessions, sum(deny_conn_num) as deny_sessions, sum(monitor_conn_num) as monitor_sessions, sum(intercept_conn_num) as intercept_sessions from traffic_metrics_log  where   __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time");
+        list.add("select sum(default_conn_num) as default_sessions, sum(allow_conn_num) as allow_sessions, sum(deny_conn_num) as deny_sessions, sum(monitor_conn_num) as monitor_sessions, sum(intercept_conn_num) as intercept_sessions from traffic_metrics_log  where   __time >= $start_time and __time < $end_time");
+        //4. 安全策略动作趋势
+        //Bytes
+        list.add("select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'default_bytes' as type,  sum(default_in_bytes+default_out_bytes) as bytes from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'allow_bytes' as type,  sum(allow_in_bytes+allow_out_bytes) as bytes from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'deny_bytes' as type,  sum(deny_in_bytes+deny_out_bytes) as bytes from traffic_metrics_log where  __time >= TIMESTAMP $start_time and __time <TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') \n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'monitor_bytes' as type,  sum(monitor_in_bytes+monitor_out_bytes) as bytes from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'intercept_bytes' as type,  sum(intercept_in_bytes+intercept_out_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'default_bytes' as type,  sum(default_in_bytes+default_out_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'allow_bytes' as type,  sum(allow_in_bytes+allow_out_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'deny_bytes' as type,  sum(deny_in_bytes+deny_out_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') \n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'monitor_bytes' as type,  sum(monitor_in_bytes+monitor_out_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'intercept_bytes' as type,  sum(intercept_in_bytes+intercept_out_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')");
+        //packets
+        list.add("select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'default_packets' as type,  sum(default_in_packets+default_out_packets) as packets from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP  $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'allow_packets' as type, sum(allow_in_packets+allow_out_packets) as packets from traffic_metrics_log where  __time >=TIMESTAMP  $start_time and __time <TIMESTAMP  $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'deny_packets' as type, sum(deny_in_packets+deny_out_packets) as packets from traffic_metrics_log where  __time >=TIMESTAMP  $start_time and __time <TIMESTAMP  $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') \n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'monitor_packets' as type, sum(monitor_in_packets+monitor_out_packets) as packets from traffic_metrics_log where  __time >=TIMESTAMP  $start_time and __time <TIMESTAMP  $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'intercept_packets' as type, sum(intercept_in_packets+intercept_out_packets) as packets from traffic_metrics_log where  __time >=TIMESTAMP  $start_time and __time <TIMESTAMP  $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'default_packets' as type,  sum(default_in_packets+default_out_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'allow_packets' as type, sum(allow_in_packets+allow_out_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'deny_packets' as type, sum(deny_in_packets+deny_out_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') \n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'monitor_packets' as type, sum(monitor_in_packets+monitor_out_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'intercept_packets' as type, sum(intercept_in_packets+intercept_out_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')");
+        //sessions
+        list.add("select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'default_conn_num' as type, sum(default_conn_num) as sessions from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'allow_conn_num' as type, sum(allow_conn_num) as sessions from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'deny_conn_num' as type, sum(deny_conn_num) as sessions from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') \n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'monitor_conn_num' as type, sum(monitor_conn_num) as sessions from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')\n" +
+                "union all\n" +
+                "select TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'intercept_conn_num' as type, sum(intercept_conn_num) as sessions from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT5M'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'default_conn_num' as type, sum(default_conn_num) as sessions from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'allow_conn_num' as type, sum(allow_conn_num) as sessions from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'deny_conn_num' as type, sum(deny_conn_num) as sessions from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') \n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'monitor_conn_num' as type, sum(monitor_conn_num) as sessions from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')\n" +
+                "union all\n" +
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s') as stat_time, 'intercept_conn_num' as type, sum(intercept_conn_num) as sessions from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/300)*300),'%Y-%m-%d %H:%i:%s')");
+        //五. Traffics-TOPN统计
+        //1. TopN 源IP
+        list.add("select source as client_ip, sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num + s2c_byte_num) as bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from top_internal_host_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time and order_by=source group by source order by source desc limit 100");
+        list.add("select source as client_ip, sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num + s2c_byte_num) as bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from top_internal_host_log where  __time >= $start_time and __time < $end_time and order_by=source group by source order by source desc limit 100");
+        //2. TopN 目的IP
+        list.add("select destination as server_ip, sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num + s2c_byte_num) as bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from top_external_host_log  where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time and order_by=destination group by destination order by destination desc limit 100");
+        list.add("select destination as server_ip, sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num + s2c_byte_num) as bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from top_external_host_log  where  __time >= $start_time and __time < $end_time and order_by=destination group by destination order by destination desc limit 100");
+        //3. TopN 域名
+        list.add("select domain, sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num + s2c_byte_num) as bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from top_website_domain_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time  and order_by=domain group by domain order by domain desc limit 200");
+        list.add("select domain, sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num + s2c_byte_num) as bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from top_website_domain_log where  __time >= $start_time and __time < $end_time  and order_by=domain group by domain order by domain desc limit 200");
+        //4.TopN 用户
+        list.add("select subscriber_id, sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num + s2c_byte_num) as bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from top_user_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time  and order_by=subscriber_id group by subscriber_id order by subscriber_id desc limit 200");
+        list.add("select subscriber_id, sum(session_num) as sessions, sum(c2s_byte_num) as sent_bytes, sum(s2c_byte_num) as received_bytes, sum(c2s_byte_num + s2c_byte_num) as bytes,  sum(c2s_pkt_num) as sent_packets ,sum(s2c_pkt_num) as received_packets, sum(c2s_pkt_num+s2c_pkt_num) as packets from top_user_log where  __time >= $start_time and __time < $end_time  and order_by=subscriber_id group by subscriber_id order by subscriber_id desc limit 200");
+        //六、命中URL统计
+        list.add("select url,sum(session_num) as hits  from top_urls_log where __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time  group by url order by hits desc limit 100");
+        list.add("select url,sum(session_num) as hits  from top_urls_log where __time >= $start_time and __time < $end_time  group by url order by hits desc limit 100");
+
         return list;
     }
 
 
+
+    /**
+     * 查询clickhouse数据库
+     * @param query
+     * @return
+     */
     public List queryCKDynamic(String query){
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
@@ -152,6 +388,11 @@ public class TestSqlServiceImpl {
     }
 
 
+    /**
+     * 查询druid数据库
+     * @param query
+     * @return
+     */
     public List queryDruidDynamic(String query){
         //headers
         HttpHeaders requestHeaders = new HttpHeaders();
@@ -199,8 +440,8 @@ public class TestSqlServiceImpl {
                 resultAvro.add(String.valueOf(next.get("name")));
                 boolean b = resultSql.contains(next.get("name"));
                 if(!b){
-                    String str = String.format("%s.avro中注册多余:%s;", tableName, next.get("name"));
-                    errorDate += str;
+                    String str = String.format("%s.avro中注册多余:%s", tableName, next.get("name"));
+                    errorDate.add(str);
                 }
             }
 
@@ -210,8 +451,8 @@ public class TestSqlServiceImpl {
                 String next = String.valueOf(iteratorSql.next());
                 boolean b = resultAvro.contains(next);
                 if(!b){
-                    String str = String.format("%s.avro中注册缺少:%s;", tableName, next);
-                    errorDate += str;
+                    String str = String.format("%s.avro中注册缺少:%s", tableName, next);
+                    errorDate.add(str);
                 }
             }
         }
@@ -241,8 +482,8 @@ public class TestSqlServiceImpl {
                 resultAvro.add(String.valueOf(next.get("name")));
                 boolean b = resultSql.contains(next.get("name"));
                 if(!b){
-                    String str = String.format("%s.avro中注册多余:%s;", tableName, next.get("name"));
-                    errorDate += str;
+                    String str = String.format("%s.avro中注册多余:%s", tableName, next.get("name"));
+                    errorDate.add(str);
                 }
             }
 
@@ -252,8 +493,8 @@ public class TestSqlServiceImpl {
                 String next = String.valueOf(iteratorSql.next());
                 boolean b = resultAvro.contains(next);
                 if(!b){
-                    String str = String.format("%s.avro中注册缺少:%s;", tableName, next);
-                    errorDate += str;
+                    String str = String.format("%s.avro中注册缺少:%s", tableName, next);
+                    errorDate.add(str);
                 }
             }
         }
@@ -265,7 +506,7 @@ public class TestSqlServiceImpl {
      * @param path
      * @return
      */
-    public static Map<String, JsonProperties> getSchemaInfo(String path){
+    public Map<String, JsonProperties> getSchemaInfo(String path){
         Map<String, JsonProperties> schema = new HashMap<>();
         String pathRoot= null;
         try {
@@ -282,15 +523,15 @@ public class TestSqlServiceImpl {
                         schema.put(ckSchema.getName(), ckSchema);
                     }catch (Exception ex){
                         log.error("遍历" + path + "路径下文件失败: " + f.getName(), ex);
-                        String str = String.format("遍历%s路径下文件失败%s;", path, f.getName());
-                        errorDate += str;
+                        String str = String.format("%s读取文件失败:%s", path, f.getName());
+                        errorDate.add(str);
                     }
                 }
             }
         } catch (Exception e) {
             log.error("获取 项目路径/{}失败", path);
-            String str = String.format("获取项目路径%s失败;", path);
-            errorDate += str;
+            String str = String.format("获取项目路径%s失败", path);
+            errorDate.add(str);
         }
         return schema;
     }
@@ -320,16 +561,16 @@ public class TestSqlServiceImpl {
                     mapDoc = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
                 } catch (Exception ex) {
                     log.error("该字段的 doc 为非JSON字符串，不需类型转换");
-                    String str = String.format("%s.avro中%s字段doc非json格式;", tableName, next.get("name"));
-                    errorDate += str;
+                    String str = String.format("%s.avro中doc非json格式字段%s", tableName, next.get("name"));
+                    errorDate.add(str);
                 }
                 if (mapDoc != null) {
                     next.put("doc", mapDoc);
                 }
                 if (StringUtil.isEmpty(mapDoc) && !StringUtil.isEmpty(next.get("doc"))) {
                     log.error("该字段的 doc 为非JSON字符串，不需类型转换");
-                    String str = String.format("%s.avro中%s字段doc非json格式;", tableName, next.get("name"));
-                    errorDate += str;
+                    String str = String.format("%s.avro中doc非json格式字段%s", tableName, next.get("name"));
+                    errorDate.add(str);
                 }
             }
         }

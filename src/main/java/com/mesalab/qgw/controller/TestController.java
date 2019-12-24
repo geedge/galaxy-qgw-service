@@ -124,7 +124,7 @@ public class TestController {
     @GetMapping(value = "runSql")
     public BaseResult runSql(){
         BaseResult result = testSqlService.runSql();
-        return BaseResultGenerator.success(result.getMessage(), result.getData());
+        return result;
     }
 
     /**
