@@ -17,6 +17,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -40,7 +41,7 @@ public class TestController {
 
     private final Environment environment;
 
-    @Autowired
+    @Resource
     TestSqlServiceImpl testSqlService;
 
     @Autowired
