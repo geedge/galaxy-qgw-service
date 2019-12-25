@@ -3,7 +3,7 @@
 ###############################################################################
 ## Log configuration Path
 logging:
-  config: /home/tsg/galaxy/galaxy-qgw-service/config/log4j2-test.xml
+  config: ./config/log4j2-test.xml
 ###############################################################################
 ## swagger API configuration
 swagger:
@@ -68,7 +68,7 @@ spring:
     poolPreparedStatements: true
     maxPoolPreparedStatementPerConnectionSize: 20
     validationQuery: SELECT 1
-    filters: stat,log4j,wall,config-temp
+    filters: stat,log4j,wall,config
   ###############################################################################
   ## Redis configuration(Reserved, for Caching)
   redis:
