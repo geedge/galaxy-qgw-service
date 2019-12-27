@@ -41,7 +41,7 @@ public class TestController {
 
     private final Environment environment;
 
-    @Resource
+    @Autowired
     TestSqlServiceImpl testSqlService;
 
     @Autowired

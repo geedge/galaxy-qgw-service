@@ -9,7 +9,6 @@ import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
@@ -35,8 +34,9 @@ import java.util.*;
 @Slf4j
 @Service
 public class TestSqlServiceImpl {
-    private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
 
+    @Autowired
+    HttpClientService httpClientService;
     @Autowired
     private ClickHouseProperties clickHouseProperties;
     @Autowired
@@ -121,7 +121,7 @@ public class TestSqlServiceImpl {
 
 
 
-    public List ckSql(){
+    private List ckSql(){
         List<String> list = new ArrayList<>();
         list.add("select toDateTime(common_recv_time) as common_recv_time,common_subscriber_id, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port, ssl_sni, ssl_version from security_event_log where common_recv_time >= toDateTime($start_time) and common_recv_time< toDateTime($end_time) and common_client_ip like '49.7%' order by common_recv_time desc limit 0,20");
         list.add("select FROM_UNIXTIME(common_recv_time) as common_recv_time,common_subscriber_id, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port, ssl_sni, ssl_version from security_event_log where common_recv_time >= UNIX_TIMESTAMP($start_time) and common_recv_time< UNIX_TIMESTAMP($end_time) and common_client_ip like '49.7%' order by common_recv_time desc limit 0,20");
@@ -167,7 +167,7 @@ public class TestSqlServiceImpl {
         return list;
     }
 
-    public List druidSql(){
+    private List druidSql(){
         List<String> list = new ArrayList<>();
         //安全策略命中统计
         //1. 某策略命中计数
@@ -224,8 +224,8 @@ public class TestSqlServiceImpl {
         list.add("select sum(total_in_packets) as traffic_in_packets, sum(total_out_packets) as traffic_out_packets  from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time");
         list.add("select sum(total_in_packets) as traffic_in_packets, sum(total_out_packets) as traffic_out_packets  from traffic_metrics_log where  __time >= $start_time and __time < $end_time");
         //Sessions
-        list.add("select sum(total_conn_num) as sessions  from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time");
-        list.add("select sum(total_conn_num) as sessions  from traffic_metrics_log where  __time >= $start_time and __time < $end_time");
+        list.add("select sum(new_conn_num) as sessions  from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time");
+        list.add("select sum(new_conn_num) as sessions  from traffic_metrics_log where  __time >= $start_time and __time < $end_time");
         //2. Traffic IN/OUT 带宽趋势
         //Bytes
         list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_in_bytes' as type, sum(total_in_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')\n" +
@@ -249,19 +249,19 @@ public class TestSqlServiceImpl {
                 "union all\n" +
                 "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_out_packets' as type, sum(total_out_packets) as packets from traffic_metrics_log where __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
         //Sessions
-        list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'total_conn_num' as type, sum(total_conn_num) as sessions from traffic_metrics_log where __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
-        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'total_conn_num' as type, sum(total_conn_num) as sessions from traffic_metrics_log where __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
+        list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'new_conn_num' as type, sum(new_conn_num) as sessions from traffic_metrics_log where __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'new_conn_num' as type, sum(new_conn_num) as sessions from traffic_metrics_log where __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
         //四、 Traffics-计数统计
         //1. 新建与活跃链接计数
-        list.add("select  sum(new_conn_num) as new_conn_num, sum(live_conn_num) as live_conn_num from traffic_metrics_log  where   __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time");
-        list.add("select  sum(new_conn_num) as new_conn_num, sum(live_conn_num) as live_conn_num from traffic_metrics_log  where   __time >= $start_time and __time < $end_time");
+        list.add("select  sum(new_conn_num) as new_conn_num, sum(established_conn_num) as established_conn_num from traffic_metrics_log  where   __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time");
+        list.add("select  sum(new_conn_num) as new_conn_num, sum(established_conn_num) as established_conn_num from traffic_metrics_log  where   __time >= $start_time and __time < $end_time");
         //2.新建与活跃链接计数趋势
         list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'new_conn_num' as type, sum(new_conn_num) as sessions from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time < TIMESTAMP $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')\n" +
                 "union all\n" +
-                "select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'live_conn_num' as type, sum(live_conn_num) as sessions from traffic_metrics_log where   __time >= TIMESTAMP $start_time and __time < TIMESTAMP $end_time  group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
+                "select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'established_conn_num' as type, sum(established_conn_num) as sessions from traffic_metrics_log where   __time >= TIMESTAMP $start_time and __time < TIMESTAMP $end_time  group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
         list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'new_conn_num' as type, sum(new_conn_num) as sessions from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')\n" +
                 "union all\n" +
-                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'live_conn_num' as type, sum(live_conn_num) as sessions from traffic_metrics_log where   __time >= $start_time and __time < $end_time  group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
+                "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'established_conn_num' as type, sum(established_conn_num) as sessions from traffic_metrics_log where   __time >= $start_time and __time < $end_time  group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
         //3. 安全策略动作计数
         //Bytes
         list.add("select  sum(default_in_bytes+default_out_bytes) as default_bytes, sum(allow_in_bytes+allow_out_bytes) as allow_bytes, sum(deny_in_bytes+deny_out_bytes) as deny_bytes, sum(monitor_in_bytes+monitor_out_bytes) as monitor_bytes, sum(intercept_in_bytes+intercept_out_bytes) as intercept_bytes from traffic_metrics_log  where   __time >=TIMESTAMP $start_time and __time < TIMESTAMP $end_time");
@@ -357,7 +357,7 @@ public class TestSqlServiceImpl {
      * @param query
      * @return
      */
-    public List queryCKDynamic(String query){
+    private List queryCKDynamic(String query){
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
@@ -393,7 +393,7 @@ public class TestSqlServiceImpl {
      * @param query
      * @return
      */
-    public List queryDruidDynamic(String query){
+    private List queryDruidDynamic(String query){
         //headers
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -417,7 +417,7 @@ public class TestSqlServiceImpl {
     }
 
 
-    public void checkDruidSchema(String path){
+    private void checkDruidSchema(String path){
         Map<String, JsonProperties> druidSchemaInfo = getSchemaInfo(path);
         Set<String> name = druidSchemaInfo.keySet();
         Iterator<String> iterator = name.iterator();
@@ -459,7 +459,7 @@ public class TestSqlServiceImpl {
     }
 
 
-    public void checkCKSchema(String path){
+    private void checkCKSchema(String path){
         Map<String, JsonProperties> ckSchemaInfo = getSchemaInfo(path);
         Set<String> name = ckSchemaInfo.keySet();
         Iterator<String> iterator = name.iterator();
@@ -506,7 +506,7 @@ public class TestSqlServiceImpl {
      * @param path
      * @return
      */
-    public Map<String, JsonProperties> getSchemaInfo(String path){
+    private Map<String, JsonProperties> getSchemaInfo(String path){
         Map<String, JsonProperties> schema = new HashMap<>();
         String pathRoot= null;
         try {
@@ -542,7 +542,7 @@ public class TestSqlServiceImpl {
      *
      * @param path 路径
      */
-    public void checkSchema(String path) {
+    private void checkSchema(String path) {
         Map<String, JsonProperties> ckeckSchemaInfo = getSchemaInfo(path);
         Set<String> name = ckeckSchemaInfo.keySet();
         Iterator<String> iterator = name.iterator();
