@@ -27,7 +27,7 @@ druid:
 ###############################################################################
 ## Hbase configuration
 hbase:
-  url: 192.168.40.120:4444
+  url: 192.168.40.120:8084
   dbname: tsg
   tableName: report_result
   columnFamily: response

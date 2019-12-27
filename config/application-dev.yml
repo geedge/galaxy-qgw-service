@@ -11,22 +11,22 @@ swagger:
 ###############################################################################
 ## ClickhHouse configuration
 clickhouse:
-  url: jdbc:clickhouse://192.168.40.193:8123
+  url: jdbc:clickhouse://192.168.40.224:8123
   driverClassName: ru.yandex.clickhouse.ClickHouseDriver
-  dbname: tsg_galaxy
-  username: default
-  password: 111111
+  dbname: tsg_galaxy_v3
+  username: tsg_query
+  password: ceiec2018
   ###############################################################################
   ## Druid configuration
 druid:
-  url: 192.168.40.206:8082/druid/v2/sql
+  url: 192.168.40.224:8082/druid/v2/sql
   dbname: druid
   sqlTimeZone: Asia/Shanghai
   ##Asia/Almaty
   ###############################################################################
   ## Hbase configuration
 hbase:
-  url: 192.168.40.120:4444
+  url: 192.168.40.224:8084
   dbname: tsg
   tableName: report_result
   columnFamily: response
