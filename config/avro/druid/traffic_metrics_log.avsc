@@ -100,7 +100,7 @@
       "type": "long"
     },
     {
-      "name": "live_conn_num",
+      "name": "established_conn_num",
       "type": "long"
     },
     {
@@ -125,10 +125,6 @@
     },
     {
       "name": "new_conn_num",
-      "type": "long"
-    },
-    {
-      "name": "total_conn_num",
       "type": "long"
     },
     {
