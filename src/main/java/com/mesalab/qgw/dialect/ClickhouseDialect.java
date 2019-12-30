@@ -169,24 +169,6 @@ public class ClickhouseDialect implements Dialect {
         m.appendTail(sb);
 
         return sb.toString();
-
-
-    }
-
-    /**
-     * 集群不支持count(1) 需转成count(*)
-     * @param sql
-     * @return
-     */
-    private String generateCount(String sql) {
-        Matcher m = pCount1.matcher(sql);
-        StringBuffer sb = new StringBuffer();
-
-        while (m.find()) {
-            m.appendReplacement(sb, "count(*)");
-        }
-        m.appendTail(sb);
-        return sb.toString();
     }
 
     /**
@@ -272,11 +254,10 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public Dialect sqlDialectTransform() {
         if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.QUERY_SCHEMA.getValue())) {
-            param.setQuery(generateCount(param.getQuery()));
             param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
             param.setQuery(generateUniq(param.getQuery()));
             param.setQuery(generateSubQueryByPartition(param.getQuery()));
-            param.setQuery(String.valueOf(addTableInfo(param.getQuery())));
+            param.setQuery(fixCKInternalBug(param.getQuery()));
             param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
         }
         param.setQuery(generateSqlEncode(param.getQuery()));
@@ -343,11 +324,39 @@ public class ClickhouseDialect implements Dialect {
 
 
     /**
-     * 子查询table信息的添加：库名、别名
+     * 修正ck集群模式bug：子查询必须加表别名、不支持count(1)需转为count(*)
      * @param sql
      * @return
      */
-    private SelectBody addTableInfo(String sql) {
+    private String fixCKInternalBug(String sql){
+        sql = generateCount(sql);
+        SelectBody selectBody = addTableInfo(sql, false);
+        return String.valueOf(selectBody);
+    }
+
+    /**
+     * 集群不支持count(1) 需转成count(*)
+     * @param sql
+     * @return
+     */
+    private String generateCount(String sql) {
+        Matcher m = pCount1.matcher(sql);
+        StringBuffer sb = new StringBuffer();
+
+        while (m.find()) {
+            m.appendReplacement(sb, "count(*)");
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
+    /**
+     * 子查询table信息的添加：库名、别名
+     * @param sql
+     * @param bool 是否是子查询
+     * @return
+     */
+    private SelectBody addTableInfo(String sql, Boolean bool) {
         Statement statement = null;
         try {
             statement = CCJSqlParserUtil.parse(sql);
@@ -362,11 +371,8 @@ public class ClickhouseDialect implements Dialect {
                 PlainSelect plainSelect = (PlainSelect) body;
                 FromItem fromItem = plainSelect.getFromItem();
                 //from
-                if(fromItem instanceof Table){
+                if(fromItem instanceof Table && bool){
                     Table table = (Table) plainSelect.getFromItem();
-                    if(StringUtil.isBlank(table.getSchemaName())){
-                        table.setSchemaName(clickHouseHttpSource.getDbname());
-                    }
                     if (table.getAlias() == null) {
                         Alias alias = new Alias(table.getName());
                         plainSelect.getFromItem().setAlias(alias);
@@ -381,7 +387,7 @@ public class ClickhouseDialect implements Dialect {
                 SetOperationList setOperationList = (SetOperationList) body;
                 List<SelectBody> selectsList = setOperationList.getSelects();
                 for (int i = 0; i < selectsList.size(); i++) {
-                    SelectBody selectBody = addTableInfo(String.valueOf(selectsList.get(i)));
+                    SelectBody selectBody = addTableInfo(String.valueOf(selectsList.get(i)), false);
                     setOperationList.getSelects().set(i,selectBody);
                 }
                 return setOperationList;
@@ -401,14 +407,14 @@ public class ClickhouseDialect implements Dialect {
             ItemsList rightItemsList = whereIn.getRightItemsList();
             if(rightItemsList instanceof SubSelect){
                 SubSelect sub = (SubSelect) rightItemsList;
-                SelectBody selectBody = addTableInfo(String.valueOf(((SubSelect) rightItemsList).getSelectBody()));
+                SelectBody selectBody = addTableInfo(String.valueOf(((SubSelect) rightItemsList).getSelectBody()), true);
                 sub.setSelectBody(selectBody);
                 whereIn.setRightItemsList(sub);
             }
             ItemsList leftItemsList = whereIn.getLeftItemsList();
             if(leftItemsList instanceof SubSelect){
                 SubSelect sub = (SubSelect) leftItemsList;
-                SelectBody selectBody = addTableInfo(String.valueOf(((SubSelect) rightItemsList).getSelectBody()));
+                SelectBody selectBody = addTableInfo(String.valueOf(((SubSelect) rightItemsList).getSelectBody()), true);
                 sub.setSelectBody(selectBody);
                 whereIn.setRightItemsList(sub);
             }

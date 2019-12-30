@@ -35,7 +35,8 @@ public class ClickHouseConfiguration {
 
     @Bean("partitionKey")
     public String partitionKey(){
-        return clickhouseProperties.getPartitionKey();
+        String partitionKey = clickhouseProperties.getPartitionKey() == null ? "" : clickhouseProperties.getPartitionKey();
+        return partitionKey;
     }
 
 
