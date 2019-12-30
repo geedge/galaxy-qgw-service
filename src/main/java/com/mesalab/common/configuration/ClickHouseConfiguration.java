@@ -33,6 +33,11 @@ public class ClickHouseConfiguration {
         return httpSource;
     }
 
+    @Bean("partitionKey")
+    public String partitionKey(){
+        return clickhouseProperties.getPartitionKey();
+    }
+
 
 
 

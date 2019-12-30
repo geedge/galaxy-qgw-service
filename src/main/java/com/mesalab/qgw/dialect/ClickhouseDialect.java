@@ -1,6 +1,7 @@
 package com.mesalab.qgw.dialect;
 
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -35,6 +36,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -48,8 +50,8 @@ public class ClickhouseDialect implements Dialect {
     Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     Pattern pCount = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
     Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
-    Pattern pPartitionKey = Pattern.compile("(common_recv_time|recv_time)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
+    private String partitionKeys = (String) SpringContextUtil.getBean("partitionKey");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
 
@@ -210,22 +212,23 @@ public class ClickhouseDialect implements Dialect {
             return sql;
         }
 
-        Matcher mPartitionKey = pPartitionKey.matcher(param.getSqlQuerySource().getSelectItems());
-        if (mPartitionKey.find()) {
+        String subTimeKey = "";
+        List<String> partitionKeyList = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(partitionKeys);
+        Iterator<String> iterator = partitionKeyList.iterator();
+        while (iterator.hasNext()){
+            String next = iterator.next();
+            if(param.getSqlQuerySource().getSelectItems().contains(next)){
+                return sql;
+            }
+            if(param.getSqlQuerySource().getExpr().contains(next)){
+                subTimeKey = next;
+                break;
+            }
+        }
+        if("".equals(subTimeKey)){
             return sql;
         }
-
-
-
         StringBuffer subQuery = new StringBuffer();
-
-        String expr = param.getSqlQuerySource().getExpr();
-        String subTimeKey = "common_recv_time";
-        if(!expr.contains(subTimeKey) && !expr.contains("recv_time")){
-            return sql;
-        }else if(!expr.contains(subTimeKey)){
-            subTimeKey = "recv_time";
-        }
 
         subQuery.append("select " + subTimeKey +" from ").append(param.getSqlQuerySource().getTableName())
                 .append(" where ").append(param.getSqlQuerySource().getExpr());

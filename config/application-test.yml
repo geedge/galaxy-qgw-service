@@ -17,6 +17,7 @@ clickhouse:
   username: tsg_query
   password: ceiec2018
   publicKey: XX
+  partitionKey: common_recv_time
 ###############################################################################
 ## Druid configuration
 druid:
