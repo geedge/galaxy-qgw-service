@@ -121,7 +121,7 @@ public class TestSqlServiceImpl {
 
 
 
-    private List ckSql(){
+    public List ckSql(){
         List<String> list = new ArrayList<>();
         list.add("select toDateTime(common_recv_time) as common_recv_time,common_subscriber_id, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port, ssl_sni, ssl_version from security_event_log where common_recv_time >= toDateTime($start_time) and common_recv_time< toDateTime($end_time) and common_client_ip like '49.7%' order by common_recv_time desc limit 0,20");
         list.add("select FROM_UNIXTIME(common_recv_time) as common_recv_time,common_subscriber_id, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port, ssl_sni, ssl_version from security_event_log where common_recv_time >= UNIX_TIMESTAMP($start_time) and common_recv_time< UNIX_TIMESTAMP($end_time) and common_client_ip like '49.7%' order by common_recv_time desc limit 0,20");
@@ -167,7 +167,7 @@ public class TestSqlServiceImpl {
         return list;
     }
 
-    private List druidSql(){
+    public List druidSql(){
         List<String> list = new ArrayList<>();
         //安全策略命中统计
         //1. 某策略命中计数
@@ -471,10 +471,15 @@ public class TestSqlServiceImpl {
             }
             //查数据库
             List resultSql = queryCKDynamic("describe " + tableName);
+            if(StringUtil.isEmpty(resultSql)){
+                String str = String.format("avro中注册多余:%s.avsc", tableName);
+                errorDate.add(str);
+                continue;
+            }
 
             List resultAvro = new ArrayList();
 
-            //schema为基础
+            //avro为基础
             List<Map> fields = (List<Map>) resultMap.get("fields");//遍历列
             Iterator<Map> fieldsAvro = fields.iterator();
             while (fieldsAvro.hasNext()) {
@@ -487,7 +492,7 @@ public class TestSqlServiceImpl {
                 }
             }
 
-            //Schema为基础
+            //db为基础
             Iterator iteratorSql = resultSql.iterator();
             while (iteratorSql.hasNext()){
                 String next = String.valueOf(iteratorSql.next());

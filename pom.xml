@@ -398,38 +398,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.surefire</groupId>
-                        <artifactId>surefire-junit47</artifactId>
-                        <version>2.19</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <!--测试用例执行-->
-                    <includes>
-                        <include>**/AvroSchemaFormatTest.java</include>
-                        <include>**/AvroSchemaDynamicTest.java</include>
-                    </includes>
-                    <!--排除测试-->
-                    <excludes>
-                        <exclude>**/RedisClientTemplateTest.java</exclude>
-                        <exclude>**/RandomUtilTest.java</exclude>
-                        <exclude>**/StringUtilTest.java</exclude>
-                        <exclude>**/ClickHouseTest.jaba</exclude>
-                        <exclude>**/GetSchemaInfo.java</exclude>
-                        <exclude>**/MysqlCKDateTest.java</exclude>
-                        <exclude>**/MysqlDruidDateTest.java</exclude>
-                        <exclude>**/QGWSuiteTest.java</exclude>
-                        <exclude>**/DruidTest.java</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-
 
 
 

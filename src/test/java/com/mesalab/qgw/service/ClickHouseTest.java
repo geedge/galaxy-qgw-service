@@ -4,7 +4,11 @@ import com.google.common.base.CharMatcher;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.qgw.service.impl.TestSqlServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.Statement;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,6 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,9 +32,8 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
     public TestRestTemplate restTemplate;
 
     @Autowired
-    private ClickHouseProperties clickHouseProperties;
+    private TestSqlServiceImpl testSqlService;
 
-    private String url = "http://127.0.0.1:9999";
 
     @Before
     public void testBefore() {
@@ -34,107 +41,27 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
     }
 
     /**
-     * 安全策略
+     * ck相关测试
      */
     @Test
-    public void securityEventLog() {
-        String sql = "select toDateTime(common_recv_time) as common_recv_time,common_subscriber_id, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port, ssl_sni, ssl_version from security_event_log where common_recv_time >= toDateTime($start_time) and common_recv_time< toDateTime($end_time) and common_client_ip like '49.7%' order by common_recv_time desc limit 0,20";
-        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
-        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
-        url = url + "/?query=" + sql ;
-        Map map = restTemplate.getForObject(url, Map.class);
-        log.info(JsonMapper.toJsonString(map));
-        Assert.assertEquals((int)map.get("status"), 200);
+    public void parseSqlOfCK() {
+        List list = testSqlService.ckSql();
+
+        SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:00:00");
+        SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date(System.currentTimeMillis());
+        for (Object sql : list) {
+            String s = String.valueOf(sql);
+            try {
+                s = s.replaceAll("\\$start_time", "'" + format1.format(date) + "'");
+                s = s.replaceAll("\\$end_time", "'" + format2.format(date) + "'");
+                Statement parse = CCJSqlParserUtil.parse(s);
+            } catch (Exception e) {
+                log.error("解析异常:{}", s);
+                new RuntimeException(e);
+            }
+        }
     }
-
-    /**
-     * 代理策略
-     */
-    @Test
-    public void proxyEventLog() {
-        String sql = "select toDateTime(common_recv_time) as common_recv_time,common_subscriber_id, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port, http_host,http_url,http_user_agent from proxy_event_log where common_recv_time >= toDateTime($start_time) and common_recv_time< toDateTime($end_time) and http_host like '%joy.cn%' order by common_recv_time desc limit 0,20";
-        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
-        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
-        url = url + "/?query=" + sql ;
-        Map map = restTemplate.getForObject(url, Map.class);
-        log.info(JsonMapper.toJsonString(map));
-        Assert.assertEquals((int)map.get("status"), 200);
-    }
-
-    /**
-     * 协议采集日志
-     */
-    @Test
-    public void connectionRecordLog() {
-        String sql = "select toDateTime(common_recv_time) as common_recv_time,common_subscriber_id, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port from connection_record_log where common_recv_time >= toDateTime($start_time) and common_recv_time< toDateTime($end_time) and common_sled_ip like '112.124%' order by common_recv_time desc limit 0,20";
-        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
-        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
-        url = url + "/?query=" + sql ;
-        Map map = restTemplate.getForObject(url, Map.class);
-        log.info(JsonMapper.toJsonString(map));
-        Assert.assertEquals((int)map.get("status"), 200);
-    }
-
-    /**
-     * RADIUS采集日志
-     */
-    @Test
-    public void radiusRecordLog() {
-        String sql = "select toDateTime(common_recv_time) as common_recv_time, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port, radius_framed_ip, radius_account from radius_record_log where common_recv_time >= toDateTime($start_time) and common_recv_time< toDateTime($start_time) and radius_account='T1yRd' order by common_recv_time desc limit 0,20";
-        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
-        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
-        url = url + "/?query=" + sql ;
-
-        Map map = restTemplate.getForObject(url, Map.class);
-        log.info(JsonMapper.toJsonString(map));
-        Assert.assertEquals((int)map.get("status"), 200);
-    }
-
-    /**
-     * Count(1)
-     */
-    @Test
-    public void testCount1() {
-        String sql = "select count(1) from connection_record_log";
-        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
-        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
-        url = url + "/?query=" + sql ;
-
-        Map map = restTemplate.getForObject(url, Map.class);
-        log.info(JsonMapper.toJsonString(map));
-        Assert.assertEquals((int)map.get("status"), 200);
-    }
-
-    /**
-     * Count(*)
-     */
-    @Test
-    public void testCount() {
-        String sql = "select count(*) from connection_record_log";
-        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
-        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
-        url = url + "/?query=" + sql ;
-
-        Map map = restTemplate.getForObject(url, Map.class);
-        log.info(JsonMapper.toJsonString(map));
-        Assert.assertEquals((int)map.get("status"), 200);
-    }
-
-    /**
-     * dbName.tableName(*)
-     */
-    @Test
-    public void testDBTableName() {
-        String sql = "select * from "+clickHouseProperties.getDbname() +".connection_record_log limit 1";
-        sql = sql.replaceAll("\\$start_time", "'2019-11-10 00:00:00'");
-        sql = sql.replaceAll("\\$end_time", "'2019-12-10 00:00:00'");
-        url = url + "/?query=" + sql ;
-
-        Map map = restTemplate.getForObject(url, Map.class);
-        log.info(JsonMapper.toJsonString(map));
-        Assert.assertEquals((int)map.get("status"), 200);
-    }
-
 
     @After
     public void testAfter() {
