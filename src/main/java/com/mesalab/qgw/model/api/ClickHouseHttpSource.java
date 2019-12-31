@@ -18,6 +18,8 @@ public class ClickHouseHttpSource implements Serializable {
 
     private int enableHttpCompression = 1;
 
+    private String partitionKey;
+
 
 
 

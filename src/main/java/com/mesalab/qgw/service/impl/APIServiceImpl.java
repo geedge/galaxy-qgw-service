@@ -288,7 +288,10 @@ public class APIServiceImpl implements IAPIService {
 
                     PlainSelect select = (PlainSelect) body;
 
-
+                    FromItem fromItem = select.getFromItem();
+                    if (fromItem != null) {
+                        sqlQuerySource.setFromItem(fromItem.toString());
+                    }
 
                     Expression where = select.getWhere();
 
@@ -302,6 +305,17 @@ public class APIServiceImpl implements IAPIService {
                         String selectItemsString =  Joiner.on(",").join(selectItemsList);
                         sqlQuerySource.setSelectItems(selectItemsString);
 
+                    }
+
+                    for (SelectItem item: selectItemsList) {
+                        if (item instanceof  SelectExpressionItem) {
+                            SelectExpressionItem expressionItem =  ((SelectExpressionItem)item);
+                            if (expressionItem.getAlias() != null) {
+                                sqlQuerySource.getFields().put(expressionItem.getAlias().getName().toLowerCase(), expressionItem.getExpression().toString());
+                            }
+
+
+                        }
                     }
 
                     GroupByElement groupBy;

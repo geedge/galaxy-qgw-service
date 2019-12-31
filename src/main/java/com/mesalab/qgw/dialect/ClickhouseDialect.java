@@ -51,7 +51,6 @@ public class ClickhouseDialect implements Dialect {
     Pattern pCount = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
     Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
-    private String partitionKeys = (String) SpringContextUtil.getBean("partitionKey");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ApiParam param;
 
@@ -194,25 +193,17 @@ public class ClickhouseDialect implements Dialect {
             return sql;
         }
 
-        String subTimeKey = "";
-        List<String> partitionKeyList = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(partitionKeys);
-        Iterator<String> iterator = partitionKeyList.iterator();
-        while (iterator.hasNext()){
-            String next = iterator.next();
-            if(param.getSqlQuerySource().getSelectItems().contains(next)){
-                return sql;
-            }
-            if(param.getSqlQuerySource().getExpr().contains(next)){
-                subTimeKey = next;
-                break;
-            }
-        }
-        if("".equals(subTimeKey)){
+
+        String partitionKey = getPartitionKey();
+
+        if (StringUtil.isBlank(partitionKey)) {
             return sql;
         }
+
+
         StringBuffer subQuery = new StringBuffer();
 
-        subQuery.append("select " + subTimeKey +" from ").append(param.getSqlQuerySource().getTableName())
+        subQuery.append("select " + partitionKey +" from ").append(param.getSqlQuerySource().getTableName())
                 .append(" where ").append(param.getSqlQuerySource().getExpr());
 
         if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
@@ -230,17 +221,14 @@ public class ClickhouseDialect implements Dialect {
                 subQuery.append(" limit ").append(param.getSqlQuerySource().getLimit());
             }
 
-
         }
-
-
 
         Matcher m = pWhere.matcher(sql);
 
         StringBuffer sb = new StringBuffer();
 
         while (m.find()) {
-            m.appendReplacement(sb, "where  " + subTimeKey + " in ( " + subQuery + ") and  ");
+            m.appendReplacement(sb, "where  " + partitionKey + " in ( " + subQuery + ") and  ");
         }
 
         m.appendTail(sb);
@@ -250,6 +238,40 @@ public class ClickhouseDialect implements Dialect {
     }
 
 
+    /**
+     * 获取当前CK查询中的分区键，用于子查询优化操作;
+     * 若分区键被其它列当别名使用，返回空
+     * @return
+     */
+    private String getPartitionKey() {
+        String partitionKey = "";
+        List<String> partitionKeyList = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(clickHouseHttpSource.getPartitionKey());
+
+
+        for (String optionKey :  partitionKeyList) {
+            if (param.getSqlQuerySource().getExpr().contains(optionKey)) {
+                partitionKey = optionKey;
+                break;
+            }
+        }
+
+        if (StringUtil.isNotBlank(partitionKey)) {
+            String tempValue = param.getSqlQuerySource().getFields().get(partitionKey);
+            if (StringUtil.isNotBlank(tempValue)) {
+                if (tempValue.contains(partitionKey)) {
+                    partitionKey = tempValue;
+                } else {
+                    partitionKey = "";
+                }
+            }
+
+        }
+
+
+        return partitionKey;
+
+    }
+
 
     @Override
     public Dialect sqlDialectTransform() {
@@ -257,7 +279,7 @@ public class ClickhouseDialect implements Dialect {
             param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
             param.setQuery(generateUniq(param.getQuery()));
             param.setQuery(generateSubQueryByPartition(param.getQuery()));
-            param.setQuery(fixCKInternalBug(param.getQuery()));
+            param.setQuery(generateStandard(param.getQuery()));
             param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
         }
         param.setQuery(generateSqlEncode(param.getQuery()));
@@ -306,8 +328,6 @@ public class ClickhouseDialect implements Dialect {
 
 
 
-
-
            }else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, resultMap.get("result"));
            } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {
@@ -324,14 +344,19 @@ public class ClickhouseDialect implements Dialect {
 
 
     /**
-     * 修正ck集群模式bug：子查询必须加表别名、不支持count(1)需转为count(*)
+     * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
+     * 1.子查询必须加表别名
+     * 2.不支持 count(1) 需转为count(*)
      * @param sql
      * @return
      */
-    private String fixCKInternalBug(String sql){
+    private String generateStandard(String sql){
         sql = generateCount(sql);
-        SelectBody selectBody = addTableInfo(sql, false);
-        return String.valueOf(selectBody);
+        SelectBody body = generateSubqueryAlias(sql);
+        if (StringUtil.isNotEmpty(body)) {
+            sql = body.toString();
+        }
+        return sql;
     }
 
     /**
@@ -351,85 +376,95 @@ public class ClickhouseDialect implements Dialect {
     }
 
     /**
-     * 子查询table信息的添加：库名、别名
+     * clickhouse 集群模式下针对GLOBAL IN subquery 默认需要增加别名
      * @param sql
-     * @param bool 是否是子查询
      * @return
      */
-    private SelectBody addTableInfo(String sql, Boolean bool) {
-        Statement statement = null;
+    private SelectBody generateSubqueryAlias(String sql) {
+
+        SelectBody resultSelectBody = null;
         try {
-            statement = CCJSqlParserUtil.parse(sql);
+            Statement statement = CCJSqlParserUtil.parse(sql);
+
+            if (statement instanceof Select) {
+
+                Select selectStatement = (Select) statement;
+
+                SelectBody body = selectStatement.getSelectBody();
+
+                if (body instanceof PlainSelect) {
+
+                    PlainSelect plainSelect = (PlainSelect) body;
+
+                    //子查询处理
+                    Expression where = plainSelect.getWhere();
+                    if (where != null) {
+                        setInSubqueryAlias(where);
+                    }
+
+                    resultSelectBody = plainSelect;
+
+                } else if (body instanceof SetOperationList) {//连接查询
+                    SetOperationList setOperationList = (SetOperationList) body;
+                    List<SelectBody> selectsList = setOperationList.getSelects();
+                    for (int i = 0; i < selectsList.size(); i++) {
+                        if (selectsList.get(i) instanceof PlainSelect) {
+                            SelectBody selectBody = generateSubqueryAlias(selectsList.get(i).toString());
+                            setOperationList.getSelects().set(i,selectBody);
+                        }
+
+                    }
+
+                    resultSelectBody =  setOperationList;
+
+                }
+            }
+
         } catch (JSQLParserException e) {
             log.error("sqlParser error: ", e);
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
-        }
-        if (statement instanceof Select) {
-            Select selectStatement = (Select) statement;
-            SelectBody body = selectStatement.getSelectBody();
-            if (body instanceof PlainSelect) {
-                PlainSelect plainSelect = (PlainSelect) body;
-                FromItem fromItem = plainSelect.getFromItem();
-                //from
-                if(fromItem instanceof Table && bool){
-                    Table table = (Table) plainSelect.getFromItem();
-                    if (table.getAlias() == null) {
-                        Alias alias = new Alias(table.getName());
-                        plainSelect.getFromItem().setAlias(alias);
-                        plainSelect.setFromItem(plainSelect.getFromItem());
-                    }
-                }
-                //子查询处理
-                Expression where = plainSelect.getWhere();
-                setWhereTableAlias(where);
-                return plainSelect;
-            } else if (body instanceof SetOperationList) {//连接查询
-                SetOperationList setOperationList = (SetOperationList) body;
-                List<SelectBody> selectsList = setOperationList.getSelects();
-                for (int i = 0; i < selectsList.size(); i++) {
-                    SelectBody selectBody = addTableInfo(String.valueOf(selectsList.get(i)), false);
-                    setOperationList.getSelects().set(i,selectBody);
-                }
-                return setOperationList;
 
-            }
         }
-        throw new BusinessException(BaseResultEnum.FAIL.getCode(), "表名信息添加错误[库名、别名]", null);
+
+        return resultSelectBody;
+
     }
 
     /**
      * 子查询别名处理
      * @param where
      */
-    public void setWhereTableAlias(Expression where){
+    private void setInSubqueryAlias(Expression where){
         if(where instanceof InExpression){//where in 查询处理
             InExpression whereIn = (InExpression) where;
             ItemsList rightItemsList = whereIn.getRightItemsList();
             if(rightItemsList instanceof SubSelect){
                 SubSelect sub = (SubSelect) rightItemsList;
-                SelectBody selectBody = addTableInfo(String.valueOf(((SubSelect) rightItemsList).getSelectBody()), true);
-                sub.setSelectBody(selectBody);
-                whereIn.setRightItemsList(sub);
+                SelectBody selectBody = sub.getSelectBody();
+                PlainSelect plainSelect = (PlainSelect) selectBody;
+                Table table = (Table) plainSelect.getFromItem();
+                if (StringUtil.isEmpty(table.getAlias())) {
+                    Alias alias = new Alias(table.getName());
+                    plainSelect.getFromItem().setAlias(alias);
+                }
+                if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
+                    setInSubqueryAlias(plainSelect.getWhere());
+                }
+
             }
-            ItemsList leftItemsList = whereIn.getLeftItemsList();
-            if(leftItemsList instanceof SubSelect){
-                SubSelect sub = (SubSelect) leftItemsList;
-                SelectBody selectBody = addTableInfo(String.valueOf(((SubSelect) rightItemsList).getSelectBody()), true);
-                sub.setSelectBody(selectBody);
-                whereIn.setRightItemsList(sub);
-            }
+
         }else if(where instanceof AndExpression){
             AndExpression whereAnd = (AndExpression) where;
             Expression leftExpression = whereAnd.getLeftExpression();
-            setWhereTableAlias(leftExpression);
+            setInSubqueryAlias(leftExpression);
             Expression rightExpression = whereAnd.getRightExpression();
-            setWhereTableAlias(rightExpression);
+            setInSubqueryAlias(rightExpression);
         }else if(where instanceof OrExpression){
             OrExpression whereOr = (OrExpression) where;
             Expression leftExpression = whereOr.getLeftExpression();
-            setWhereTableAlias(leftExpression);
+            setInSubqueryAlias(leftExpression);
             Expression rightExpression = whereOr.getRightExpression();
-            setWhereTableAlias(rightExpression);
+            setInSubqueryAlias(rightExpression);
         }
     }
 }
