@@ -534,6 +534,13 @@ public class APIServiceImpl implements IAPIService {
         if (resultMap == null) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema未注册此表: " + param.getTableName(), null);
         }
+        Map schemaDoc = (Map) JsonMapper.fromJsonString(String.valueOf(resultMap.get("doc")), Map.class);
+        if(StringUtil.isEmpty(schemaDoc) && !StringUtil.isEmpty(resultMap.get("doc"))){
+            log.error("{}表该的 doc 为非JSON字符串{}，未转换", param.getTableName(), resultMap.get("doc"));
+        }
+        if (!StringUtil.isEmpty(schemaDoc)) {
+            resultMap.put("doc", schemaDoc);
+        }
         List<Map> fields = (List<Map>) resultMap.get("fields");
         Iterator<Map> iterator = fields.iterator();
         Map mapDoc = null;
