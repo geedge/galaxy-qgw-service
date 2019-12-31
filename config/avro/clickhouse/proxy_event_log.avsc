@@ -2,6 +2,7 @@
   "namespace": "com.zdjizhi",
   "type": "record",
   "name": "proxy_event_log",
+  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\"}",
   "fields": [
     {
       "name": "common_recv_time",
