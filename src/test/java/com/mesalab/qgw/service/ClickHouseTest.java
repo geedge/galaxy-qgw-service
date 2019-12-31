@@ -58,7 +58,7 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
                 Statement parse = CCJSqlParserUtil.parse(s);
             } catch (Exception e) {
                 log.error("解析异常:{}", s);
-                new RuntimeException(e);
+                throw new RuntimeException(e);
             }
         }
     }
