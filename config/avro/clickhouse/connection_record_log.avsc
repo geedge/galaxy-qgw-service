@@ -17,7 +17,7 @@
     {
       "name": "common_policy_id",
       "type": "int",
-      "doc": "{\"allow_query\":\"true\"}"
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_subscriber_id",
