@@ -1,14 +1,19 @@
 package com.mesalab.qgw.model.api;
 
+import com.google.common.collect.Maps;
 import lombok.Data;
+
+import java.util.Map;
 
 @Data
 public class SQLQuerySource {
     private String tableName;
+    private String fromItem;
     private String selectItems;
     private String expr;
     private String groupByClause;
     private String orderBy;
     private String limit;
+    private Map<String, String> fields = Maps.newHashMap();
 
 }

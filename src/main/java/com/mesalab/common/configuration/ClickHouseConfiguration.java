@@ -28,16 +28,11 @@ public class ClickHouseConfiguration {
         httpSource.setDbname(clickhouseProperties.getDbname());
         httpSource.setUsername(clickhouseProperties.getUsername());
         httpSource.setPassword(clickhouseProperties.getPassword());
-
+        httpSource.setPartitionKey(clickhouseProperties.getPartitionKey());
 
         return httpSource;
     }
 
-    @Bean("partitionKey")
-    public String partitionKey(){
-        String partitionKey = clickhouseProperties.getPartitionKey() == null ? "" : clickhouseProperties.getPartitionKey();
-        return partitionKey;
-    }
 
 
 
