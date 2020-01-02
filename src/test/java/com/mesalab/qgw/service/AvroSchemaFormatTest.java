@@ -98,16 +98,21 @@ public class AvroSchemaFormatTest extends GalaxyQGWApplicationTests {
             File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
+                    if(!f.getName().toLowerCase().endsWith(".avsc")){
+                        continue;
+                    }
                     try {
                         Schema ckSchema = new Schema.Parser().parse(new File(f.getPath()));
                         cKSchema.put(ckSchema.getName(), ckSchema);
                     } catch (Exception ex) {
                         log.error("遍历" + path + "路径下文件失败: " + f.getName(), ex);
+                        throw new RuntimeException(String.format("遍历%s 路径下文件%s失败: %s", path, f.getName()), ex);
                     }
                 }
             }
         } catch (Exception e) {
-            log.error("获取 项目路径/{}{}失败", path);
+            log.error("获取 项目路径下文件失败", path);
+            throw new RuntimeException(String.format("遍历%s 路径下文件失败", path));
         }
         return cKSchema;
     }
