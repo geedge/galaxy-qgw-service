@@ -16,6 +16,10 @@
       "type": "long"
     },
     {
+      "name": "stored_days",
+      "type": "long"
+    },
+    {
       "name": "used_size",
       "type": "long"
     }
