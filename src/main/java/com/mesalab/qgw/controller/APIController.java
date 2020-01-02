@@ -81,4 +81,17 @@ public class APIController {
         }
         return apiService.executeQuery(param);
     }
+
+    @ApiOperation(value = "HTTP SCHEMA 查询", httpMethod = "GET", notes = "元数据管理，用于描述数据的数据。包含数据库表结构，支持那些数据表，业务规则定义等。")
+    @RequestMapping("/sys/storage/quota")
+    @CachedSubmitCheck
+    public BaseResult storageQuota(){
+        ApiParam param = new ApiParam();
+        param.setQuery("(select log_type, used_size, max_size from sys_storage_log where log_type = 'Analytic_Log' ORDER BY __time desc limit 1)\n" +
+                "UNION ALL\n" +
+                "(select log_type, used_size, max_size from sys_storage_log where log_type = 'Files' ORDER BY __time desc limit 1)\n" +
+                "UNION ALL\n" +
+                "(select log_type, used_size, max_size from sys_storage_log where log_type = 'Traffic_Log' ORDER BY __time desc limit 1)");
+        return apiService.executeQuery(param);
+    }
 }
