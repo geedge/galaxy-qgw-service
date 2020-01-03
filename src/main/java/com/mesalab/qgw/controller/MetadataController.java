@@ -2,12 +2,6 @@ package com.mesalab.qgw.controller;
 
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.BaseResultEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
-import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.CachedSubmitCheck;
-import com.mesalab.qgw.service.IAPIService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import io.swagger.annotations.Api;
@@ -30,7 +24,6 @@ public class MetadataController {
 
     @ApiOperation(value = "HTTP SCHEMA 查询", httpMethod = "GET", notes = "元数据管理，用于描述数据的数据。包含数据库表结构，支持那些数据表，业务规则定义等。")
     @RequestMapping("/schema/v1/{type}/{name}")
-    @CachedSubmitCheck
     public BaseResult getSchema(@PathVariable String type, @PathVariable String name) {
         log.debug("SCHEMA信息获取,参数为{} {}", type, name);
 
