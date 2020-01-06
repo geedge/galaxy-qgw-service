@@ -22,6 +22,14 @@
     {
       "name": "used_size",
       "type": "long"
+    },
+    {
+      "name": "aggregate_size",
+      "type": "long"
+    },
+    {
+      "name": "first_storage",
+      "type": "long"
     }
   ]
 }
