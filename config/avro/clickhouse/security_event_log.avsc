@@ -320,6 +320,7 @@
     },
     {
       "name": "mail_subject",
+      "doc": "{\"format\":{\"functions\":\"decode_of_base64\",\"param\":\"mail_subject_charset\"}}",
       "type": "string"
     },
     {
