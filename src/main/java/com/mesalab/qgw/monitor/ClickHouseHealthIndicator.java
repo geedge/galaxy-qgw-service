@@ -38,6 +38,7 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()
                         .withDetail("app", "ClickHouse")
+                        .withDetail("url", clickHouseHttpSource.getUrl())
                         .withDetail("message", "ok");
             } else {
                 builder.down()

@@ -23,7 +23,7 @@ clickhouse:
 druid:
   url: 10.4.35.6:8082/druid/v2/sql
   dbname: druid
-  sqlTimeZone: Asia/Almaty
+  sqlTimeZone: Asia/Shanghai
 ##Asia/Almaty
 ###############################################################################
 ## Hbase configuration

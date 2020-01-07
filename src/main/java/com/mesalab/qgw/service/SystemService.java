@@ -12,9 +12,9 @@ public interface SystemService {
 
     /**
      * 获取每天日志存储变化
-     * @param start_time
-     * @param end_time
+     * @param searchStartTime
+     * @param searchEndTime
      * @return
      */
-    BaseResult dailyTrendOfStorage(String start_time, String end_time);
+    BaseResult dailyTrendOfStorage(String searchStartTime, String searchEndTime);
 }

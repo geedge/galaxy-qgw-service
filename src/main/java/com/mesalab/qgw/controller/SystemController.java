@@ -19,7 +19,7 @@ import java.util.Date;
 import java.util.Map;
 
 @Slf4j
-@Api(value = "/", tags = "系统相关接口")
+@Api(value = "/sys", tags = "系统相关接口")
 @RestController
 @RequestMapping(value = "/sys")
 public class SystemController {
@@ -39,28 +39,13 @@ public class SystemController {
     @RequestMapping("storage/daily-trend")
     public BaseResult dailyTrendOfStorage(@RequestParam Map<String, Object> param) {
         log.debug("获取系统存储配额信息");
-        String start_time = StringUtil.trim((String) param.get("start_time"));
-        String end_time = StringUtil.trim((String) param.get("end_time"));
-        String format = DateUtils.YYYY_MM_DD_HH24_MM_SS;
-        if(StringUtil.isEmpty(start_time) && StringUtil.isEmpty(end_time)){
-            Date date = new Date();
-            start_time = DateUtils.getFormatDate(DateUtils.getSomeDate(date, -7), format);
-            end_time = DateUtils.getFormatDate(date, format);
-        }else if(StringUtil.isEmpty(start_time)){
-            Date date = DateUtils.convertStringToDate(end_time, format);
-            start_time = DateUtils.getFormatDate(DateUtils.getSomeDate(date, -7), format);
-        }else if(StringUtil.isEmpty(end_time)){
-            Date date = DateUtils.convertStringToDate(start_time, format);
-            end_time = DateUtils.getFormatDate(DateUtils.getSomeDate(date, 7), format);
-        }
-        try {
-            SimpleDateFormat parseFormat = new SimpleDateFormat(format);
-            parseFormat.parse(start_time);
-            parseFormat.parse(end_time);
-        } catch (ParseException e) {
-            log.error("date format error: ", e);
-            return BaseResultGenerator.failure(500, e.toString());
-        }
-        return systemService.dailyTrendOfStorage(start_time, end_time);
+
+
+
+        String searchStartTime = StringUtil.stripToEmpty((String)param.get("start_time"));
+        String searchEndTime =  StringUtil.stripToEmpty((String)param.get("end_time"));
+
+
+        return systemService.dailyTrendOfStorage(searchStartTime, searchEndTime);
     }
 }

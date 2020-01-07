@@ -32,6 +32,7 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()
                         .withDetail("app", "Hbase")
+                        .withDetail("url", hBaseHttpSource.getUrl())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
