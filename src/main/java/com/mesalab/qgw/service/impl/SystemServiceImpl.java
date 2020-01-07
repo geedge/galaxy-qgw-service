@@ -24,17 +24,12 @@ public class SystemServiceImpl implements SystemService {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         ApiParam param = new ApiParam();
-        param.setQuery("(select __time, log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Analytic Logs' ORDER BY __time desc limit 1)\n" +
+        param.setQuery("(select log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Analytic Logs' ORDER BY __time desc limit 1)\n" +
                 "UNION ALL\n" +
-                "(select __time, log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Files' ORDER BY __time desc limit 1)\n" +
+                "(select log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Files' ORDER BY __time desc limit 1)\n" +
                 "UNION ALL\n" +
-                "(select __time, log_type, used_size, max_size,TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Traffic Logs' ORDER BY __time desc limit 1)");
+                "(select log_type, used_size, max_size,TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Traffic Logs' ORDER BY __time desc limit 1)");
         BaseResult result = apiService.executeQuery(param);
-        List<HashMap> data = (List<HashMap>) result.getData();
-        for (Map d : data) {
-            d.remove("__time");
-        }
-        result.setData(data);
         return result;
     }
 

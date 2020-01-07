@@ -2,8 +2,8 @@ package com.mesalab.qgw.controller;
 
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.utils.DateUtils;
 import com.mesalab.qgw.service.SystemService;
+import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -39,21 +39,24 @@ public class SystemController {
     @RequestMapping("storage/daily-trend")
     public BaseResult dailyTrendOfStorage(@RequestParam Map<String, Object> param) {
         log.debug("获取系统存储配额信息");
-        String start_time = param.get("start_time") == null? null: param.get("start_time").toString().replaceAll("\"|\'", "");
-        String end_time = param.get("end_time") == null? null: param.get("end_time").toString().replaceAll("\"|\'", "");
+        String start_time = StringUtil.trim((String) param.get("start_time"));
+        String end_time = StringUtil.trim((String) param.get("end_time"));
+        String format = DateUtils.YYYY_MM_DD_HH24_MM_SS;
         if(StringUtil.isEmpty(start_time) && StringUtil.isEmpty(end_time)){
             Date date = new Date();
-            start_time = DateUtils.getRangeNdayOfTime(DateUtils.formatDateTime(date), -7);
-            end_time = DateUtils.formatDateTime(date);
+            start_time = DateUtils.getFormatDate(DateUtils.getSomeDate(date, -7), format);
+            end_time = DateUtils.getFormatDate(date, format);
         }else if(StringUtil.isEmpty(start_time)){
-            start_time = DateUtils.getRangeNdayOfTime(end_time, -7);
+            Date date = DateUtils.convertStringToDate(end_time, format);
+            start_time = DateUtils.getFormatDate(DateUtils.getSomeDate(date, -7), format);
         }else if(StringUtil.isEmpty(end_time)){
-            end_time = DateUtils.getRangeNdayOfTime(start_time, 7);
+            Date date = DateUtils.convertStringToDate(start_time, format);
+            end_time = DateUtils.getFormatDate(DateUtils.getSomeDate(date, 7), format);
         }
         try {
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            format.parse(start_time);
-            format.parse(end_time);
+            SimpleDateFormat parseFormat = new SimpleDateFormat(format);
+            parseFormat.parse(start_time);
+            parseFormat.parse(end_time);
         } catch (ParseException e) {
             log.error("date format error: ", e);
             return BaseResultGenerator.failure(500, e.toString());
