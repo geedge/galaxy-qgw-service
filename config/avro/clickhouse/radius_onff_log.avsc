@@ -16,7 +16,15 @@
       "type": "string"
     },
     {
+      "name": "acct_session_id",
+      "type": "string"
+    },
+    {
       "name": "acct_status_type",
+      "type": "int"
+    },
+    {
+      "name": "acct_session_time",
       "type": "int"
     }
   ]

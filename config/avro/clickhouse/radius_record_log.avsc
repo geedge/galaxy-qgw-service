@@ -27,11 +27,21 @@
     {
       "name": "common_client_ip",
       "type": "string",
-      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_detail,geo_asn,radius_match\", \"appendTo\":\"common_client_location,common_client_asn,common_subscriber_id\"}}"
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_client_port",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "radius_nas_ip",
+      "type": "string"
+    },
+    {
+      "name": "radius_framed_ip",
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_detail,geo_asn\", \"appendTo\":\"common_client_location,common_client_asn\"}}"
     },
     {
       "name": "common_l4_protocol",
@@ -208,14 +218,6 @@
       "type": "int"
     },
     {
-      "name": "radius_nas_ip",
-      "type": "string"
-    },
-    {
-      "name": "radius_framed_ip",
-      "type": "string"
-    },
-    {
       "name": "radius_account",
       "type": "string"
     },
@@ -237,6 +239,78 @@
     },
     {
       "name": "radius_event_timestamp",
+      "type": "int"
+    },
+    {
+      "name": "radius_service_type",
+      "type": "int"
+    },
+    {
+      "name": "radius_nas_port",
+      "type": "int"
+    },
+    {
+      "name": "radius_framed_protocol",
+      "type": "int"
+    },
+    {
+      "name": "radius_callback_number",
+      "type": "string"
+    },
+    {
+      "name": "radius_callback_id",
+      "type": "string"
+    },
+    {
+      "name": "radius_termination_action",
+      "type": "int"
+    },
+    {
+      "name": "radius_called_station_id",
+      "type": "string"
+    },
+    {
+      "name": "radius_calling_station_id",
+      "type": "string"
+    },
+    {
+      "name": "radius_acct_delay_time",
+      "type": "int"
+    },
+    {
+      "name": "radius_acct_session_id",
+      "type": "string"
+    },
+    {
+      "name": "radius_acct_multi_session_id",
+      "type": "string"
+    },
+    {
+      "name": "radius_acct_input_octets",
+      "type": "int"
+    },
+    {
+      "name": "radius_acct_output_octets",
+      "type": "int"
+    },
+    {
+      "name": "radius_acct_input_packets",
+      "type": "int"
+    },
+    {
+      "name": "radius_acct_output_packets",
+      "type": "int"
+    },
+    {
+      "name": "radius_acct_session_time",
+      "type": "int"
+    },
+    {
+      "name": "radius_acct_link_count",
+      "type": "int"
+    },
+    {
+      "name": "radius_acct_interim_interval",
       "type": "int"
     }
   ]

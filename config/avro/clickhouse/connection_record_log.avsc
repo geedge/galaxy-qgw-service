@@ -301,6 +301,14 @@
       "type": "string"
     },
     {
+      "name": "mail_from_cmd",
+      "type": "string"
+    },
+    {
+      "name": "mail_to_cmd",
+      "type": "string"
+    },
+    {
       "name": "mail_from",
       "doc": "{\"constraints\":{\"type\":\"email\"}}",
       "type": "string"
@@ -479,6 +487,10 @@
     {
       "name": "ssl_con_latency_ms",
       "type": "int"
+    },
+    {
+      "name": "ftp_account",
+      "type": "string"
     },
     {
       "name": "ftp_url",
