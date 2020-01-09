@@ -24,6 +24,7 @@ public class SQLDateFunctionUtil {
     public static Pattern pCKTimeStamp = Pattern.compile("\\s+TIMESTAMP\\s+([^'])", Pattern.CASE_INSENSITIVE);
     public static Pattern pNow = Pattern.compile("NOW\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
     public static Pattern pStrDateTime = Pattern.compile("(<|>|=|between|and)\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
+    public static Pattern pMergeFunction = Pattern.compile("\\WDATE_FORMAT\\(FROM_UNIXTIME\\s*\\(\\s*FLOOR\\s*\\(\\s*UNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
 
 
     /**
@@ -33,18 +34,43 @@ public class SQLDateFunctionUtil {
      * @return
      */
     public static String generateDateFunction(String sql, String dbType) {
-        sql = SQLDateFunctionUtil.parseMarkDate(sql, dbType);
-        sql = SQLDateFunctionUtil.parseDateCalculateNum(sql, dbType);
-        sql = SQLDateFunctionUtil.parseLastDayFunc(sql, dbType);
-        sql = SQLDateFunctionUtil.parseGroupByFormat(sql, dbType);
-        sql = SQLDateFunctionUtil.parseDateFormat(sql, dbType);
-        sql = SQLDateFunctionUtil.parseDateRelative(sql, dbType);
-        sql = SQLDateFunctionUtil.parseUnixTime(sql, dbType);
-        sql = SQLDateFunctionUtil.parseDate(sql, dbType);
-        sql = SQLDateFunctionUtil.parseUnitFuncGetNum(sql, dbType);
-        sql = SQLDateFunctionUtil.specialDisposeEnd(sql, dbType);
-        sql = SQLDateFunctionUtil.replaceMark(sql);
+        sql = parseMergepFunction(sql, dbType);
+        sql = parseMarkDate(sql, dbType);
+        sql = parseDateCalculateNum(sql, dbType);
+        sql = parseLastDayFunc(sql, dbType);
+        sql = parseGroupByFormat(sql, dbType);
+        sql = parseDateFormat(sql, dbType);
+        sql = parseDateRelative(sql, dbType);
+        sql = parseUnixTime(sql, dbType);
+        sql = parseDate(sql, dbType);
+        sql = parseUnitFuncGetNum(sql, dbType);
+        sql = specialDisposeEnd(sql, dbType);
+        sql = replaceMark(sql);
         return sql;
+    }
+
+    /**
+     * 匹配连接函数: DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP(
+     * @param sql
+     * @param dbType
+     * @return
+     */
+    private static String parseMergepFunction(String sql, String dbType) {
+        int count = 0;
+        while (true) {
+            Matcher matcher = pMergeFunction.matcher(sql);
+            if (!matcher.find() || count++ >= 40) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = MergeFromUnixToTimeHavaMark(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
     }
 
 
@@ -276,6 +302,56 @@ public class SQLDateFunctionUtil {
             sql = sql.substring(0, matcher.start()) + str;
         }
     }
+
+
+    /**
+     * 替换连接函数: DATE_FOERMAT(FROM_UNIXTIME(UNIX_TIMESTAMP(...)
+     * @param sql
+     * @param num
+     * @param dbType
+     * @return
+     */
+    private static String MergeFromUnixToTimeHavaMark(String sql, int num, String dbType) {
+        Pattern p = Pattern.compile("DATE_FORMAT\\s*\\(\\s*FROM_UNIXTIME\\s*\\(\\s*FLOOR\\s*\\(\\s*UNIX_TIMESTAMP\\s*(\\((.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
+        StringBuffer sb = new StringBuffer();
+        Matcher m = p.matcher(sql);
+        if (m.find()) {
+            String group = m.group(1);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(group, "(", false);
+            String param = group.substring(1, bracketsMatch[1]);
+            String var = group.substring(bracketsMatch[1] + 1);
+            var = var.replaceAll(" ", "");
+            String replaceValue = m.group(0);
+            if(DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)){
+                switch (var){
+                    case "/60)*60),'%Y-%m-%d%H:%i:%s'": replaceValue = "toStartOfMinute#[toDateTime#[" + param + "]]"; break;
+                    case "/3600)*3600),'%Y-%m-%d%H:%i:%s'": replaceValue = "toStartOfHour#[toDateTime#[" + param + "]]"; break;
+                }
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                if(param.matches("'\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}'")){
+                    param = "TIMESTAMP " + param;
+                }
+                switch (var) {
+                    case "/30)*30),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_FLOOR#[" + param + ",'PT30S'],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/30)*30-30),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_FLOOR#[" + param + ",'PT30S'],'PT30S',-1],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/30)*30+30),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_FLOOR#[" + param + ",'PT30S'],'PT30S',1],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/60)*60),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_FLOOR#[" + param + ",'PT1M'],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/60)*60-60),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_FLOOR#[" + param + ",'PT1M'],'PT1M',-1],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/60)*60+60),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_FLOOR#[" + param + ",'PT1M'],'PT1M',1],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/300)*300),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_FLOOR#[" + param + ",'PT5M'],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/300)*300-300),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_FLOOR#[" + param + ",'PT5M'],'PT5M',-1],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/300)*300+300),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_FLOOR#[" + param + ",'PT5M'],'PT5M',1],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/3600)*3600),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_FLOOR#[" + param + ",'PT1H'],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/3600)*3600-3600),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_FLOOR#[" + param + ",'PT1H'],'PT1H',-1],'yyyy-MM-dd HH:mm:ss']"; break;
+                    case "/3600)*3600+3600),'%Y-%m-%d%H:%i:%s'": replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_FLOOR#[" + param + ",'PT1H'],'PT1H',1],'yyyy-MM-dd HH:mm:ss']"; break;
+                }
+            }
+            m.appendReplacement(sb, replaceValue);
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
 
     /**
      * 替换 涉及DATE()-、DATE()+
