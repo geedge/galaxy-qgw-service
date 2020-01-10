@@ -16,7 +16,6 @@ clickhouse:
   dbname: tsg_galaxy_v3
   username: default
   password: 111111
-  partitionKey: common_recv_time
   ###############################################################################
   ##tsg_query ceiec2018
   ## Druid configuration

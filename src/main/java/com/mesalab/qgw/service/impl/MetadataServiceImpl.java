@@ -7,6 +7,7 @@ import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.CacheBaseUtils;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
@@ -21,8 +22,8 @@ import java.io.File;
 import java.util.*;
 
 @Slf4j
-@Service
-public  class MetadataServiceImpl implements MetadataService {
+@Service("metadataServiceImpl")
+public class MetadataServiceImpl implements MetadataService {
 
     @Autowired
     ClickHouseProperties clickHouseProperties;
@@ -57,7 +58,13 @@ public  class MetadataServiceImpl implements MetadataService {
      * @return
      */
     public BaseResult getSchemaResult(String tableName) {
-        Map<String, JsonProperties> allSchema = getAllSchema();
+        Map<String, JsonProperties> allSchema;
+        Object allSchemasInfo = CacheBaseUtils.get("metadata:schema");
+        if(StringUtil.isNotEmpty(allSchemasInfo)){
+            allSchema = (Map<String, JsonProperties>)allSchemasInfo;
+        }else {
+            allSchema = getAllSchema();
+        }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(allSchema.get(tableName)), Map.class);
         if (resultMap == null) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
@@ -139,6 +146,7 @@ public  class MetadataServiceImpl implements MetadataService {
         if(StringUtil.isNotEmpty(schemasOfDruid)){
             result.putAll(schemasOfDruid);
         }
+        CacheBaseUtils.set("metadata:schema", result, 1000 * 86400);
         return result;
     }
 
@@ -173,5 +181,28 @@ public  class MetadataServiceImpl implements MetadataService {
             log.error("获取 项目路径/{}失败", path);
         }
         return cKSchema;
+    }
+
+    @Override
+    public String getPartitionKey(String tableName){
+        String cacheKey = tableName + ":partition_key";
+        Object value = CacheBaseUtils.get(cacheKey);
+        if (value == null) {
+            String v = "";
+            try {
+                BaseResult schemaResult = getSchemaResult(tableName);
+                Map data = (Map)schemaResult.getData();
+                Map doc = (Map)data.get("doc");
+                if(StringUtil.isNotEmpty(doc)){
+                    Object partition_key = doc.get("partition_key");
+                    v = StringUtil.isEmpty(partition_key) ? v : partition_key.toString();
+                }
+                CacheBaseUtils.set(cacheKey, v, 1000 * 86400);
+            }catch (Exception e){
+                log.error("获取partition_key异常", e);
+            }
+            return v;
+        }
+        return value.toString();
     }
 }

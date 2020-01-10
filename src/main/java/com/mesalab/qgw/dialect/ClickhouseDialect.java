@@ -245,8 +245,12 @@ public class ClickhouseDialect implements Dialect {
      */
     private String getPartitionKey() {
         String partitionKey = "";
-        List<String> partitionKeyList = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(clickHouseHttpSource.getPartitionKey());
+        String str = param.getSqlQuerySource().getPartitionKey();
+        if(StringUtil.isEmpty(str)){
+            return partitionKey;
+        }
 
+        List<String> partitionKeyList = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(str);
 
         for (String optionKey :  partitionKeyList) {
             if (param.getSqlQuerySource().getExpr().contains(optionKey)) {

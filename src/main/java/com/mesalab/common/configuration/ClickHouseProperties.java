@@ -18,9 +18,4 @@ public class ClickHouseProperties {
 
     private String publicKey;
 
-    private String partitionKey;
-
-
-
-
 }

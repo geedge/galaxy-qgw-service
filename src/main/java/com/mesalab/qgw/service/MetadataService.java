@@ -12,4 +12,11 @@ public interface MetadataService {
      * @return
      */
    BaseResult getSchemaInfo(String type, String name);
+
+    /**
+     * 根据表面获取partitionKey
+     * @param tableName
+     * @return
+     */
+    String getPartitionKey(String tableName);
 }
