@@ -8,7 +8,6 @@ import java.util.Map;
 @Data
 public class SQLQuerySource {
     private String tableName;
-    private String partitionKey;
     private String fromItem;
     private String selectItems;
     private String expr;

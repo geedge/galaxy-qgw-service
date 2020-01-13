@@ -1,7 +1,6 @@
 package com.mesalab.qgw.dialect;
 
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -16,6 +15,7 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
@@ -36,7 +36,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.nio.charset.Charset;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -52,6 +51,7 @@ public class ClickhouseDialect implements Dialect {
     Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
+    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private ApiParam param;
 
 
@@ -244,20 +244,7 @@ public class ClickhouseDialect implements Dialect {
      * @return
      */
     private String getPartitionKey() {
-        String partitionKey = "";
-        String str = param.getSqlQuerySource().getPartitionKey();
-        if(StringUtil.isEmpty(str)){
-            return partitionKey;
-        }
-
-        List<String> partitionKeyList = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(str);
-
-        for (String optionKey :  partitionKeyList) {
-            if (param.getSqlQuerySource().getExpr().contains(optionKey)) {
-                partitionKey = optionKey;
-                break;
-            }
-        }
+        String partitionKey = metadataService.getPartitionKey(param.getTableName());
 
         if (StringUtil.isNotBlank(partitionKey)) {
             String tempValue = param.getSqlQuerySource().getFields().get(partitionKey);

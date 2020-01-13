@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service.impl;
 
+import com.google.common.cache.CacheStats;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ClickHouseProperties;
@@ -8,6 +9,7 @@ import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.CacheBaseUtils;
+import com.mesalab.common.utils.CacheUtils;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
@@ -22,7 +24,7 @@ import java.io.File;
 import java.util.*;
 
 @Slf4j
-@Service("metadataServiceImpl")
+@Service("metadataService")
 public class MetadataServiceImpl implements MetadataService {
 
     @Autowired

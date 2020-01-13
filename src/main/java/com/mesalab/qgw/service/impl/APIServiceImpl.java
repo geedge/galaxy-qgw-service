@@ -24,14 +24,11 @@ import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.CacheUtils;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.IAPIService;
-import com.mesalab.qgw.service.MetadataService;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
@@ -41,13 +38,10 @@ import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
-import org.apache.avro.JsonProperties;
-import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
@@ -61,8 +55,6 @@ public class APIServiceImpl implements IAPIService {
     private ClickHouseProperties clickHouseProperties;
     @Autowired
     private DruidIoProperties druidIoProperties;
-    @Autowired
-    private MetadataService metadataService;
 
 
     @Override
@@ -281,7 +273,6 @@ public class APIServiceImpl implements IAPIService {
                     int i = tableName.lastIndexOf(".");
                     tableName = i < 0 ? tableName : tableName.substring(i + 1);
                     sqlQuerySource.setTableName(tableName);
-                    sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
                 } else {
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
                 }
