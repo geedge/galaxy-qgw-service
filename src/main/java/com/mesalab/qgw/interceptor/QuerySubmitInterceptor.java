@@ -1,9 +1,7 @@
 package com.mesalab.qgw.interceptor;
 
 import com.google.common.cache.CacheStats;
-import com.mesalab.common.enums.BaseResultEnum;
-import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.CacheUtils;
+import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
 import com.zdjizhi.utils.StringUtil;
@@ -40,12 +38,12 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
             String queryKey = DigestUtils.md5Hex(request.getQueryString());
 
 
-            log.info("Query Submit Check,ClientId:{}, QueryKey:{}", clientId, DigestUtils.md5Hex(queryKey));
-            Object result = CacheUtils.get(queryKey);
+            log.debug("Query Submit Check,ClientId:{}, QueryKey:{}", clientId, DigestUtils.md5Hex(queryKey));
+            Object result = QueryCacheUtils.get(queryKey);
             if (StringUtil.isNotEmpty(result)) {
 
-                CacheStats stats = CacheUtils.getStats();
-                log.info("Repeat Submit Stat,QEQ_count:{},HIT_count:{},HIT_rate:{}, MISS_count:{}",
+                CacheStats stats = QueryCacheUtils.getStats();
+                log.info(" Query Repeat Submit Stat,QEQ_count:{},HIT_count:{},HIT_rate:{}, MISS_count:{}",
                         stats.requestCount(), stats.hitCount(), stats.hitRate(), stats.missCount());
                 response.setCharacterEncoding("UTF-8");
                 response.setContentType("application/json;charset=UTF-8");

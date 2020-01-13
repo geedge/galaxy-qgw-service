@@ -10,10 +10,11 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class CacheUtils {
+public class QueryCacheUtils {
 
     private static Cache<String,Object> cache;
-    private static final Logger log = LoggerFactory.getLogger(CacheUtils.class);
+
+    private static final Logger log = LoggerFactory.getLogger(QueryCacheUtils.class);
 
     static {
         cache = CacheBuilder.newBuilder().maximumSize(100000)
@@ -33,6 +34,7 @@ public class CacheUtils {
     public static void put(String key,Object value){
         if(StringUtil.isNotBlank(key) && value != null){
             cache.put(key,value);
+
         }
     }
 

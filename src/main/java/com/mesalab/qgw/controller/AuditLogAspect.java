@@ -1,19 +1,13 @@
 package com.mesalab.qgw.controller;
 
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.utils.CacheUtils;
+import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.IPUtil;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.AuditServiceLog;
-import com.zdjizhi.utils.CommonUtil;
 import com.zdjizhi.utils.StringUtil;
-import io.swagger.annotations.Api;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.SecurityUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -25,7 +19,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.Arrays;
 
 
@@ -96,7 +89,7 @@ public class AuditLogAspect {
     public void doAfterReturning(Object result) throws Throwable {
 
         if (StringUtil.isNotEmpty(result) ) {
-            CacheUtils.put(auditServiceLog.getQueryKey(), result);
+            QueryCacheUtils.put(auditServiceLog.getQueryKey(), result);
         }
 
         AuditServiceLog logAfter =  log.get();

@@ -2,6 +2,9 @@ package com.mesalab.qgw.service;
 
 
 import com.mesalab.common.base.BaseResult;
+import org.apache.avro.JsonProperties;
+
+import java.util.Map;
 
 public interface MetadataService {
 
@@ -19,4 +22,6 @@ public interface MetadataService {
      * @return
      */
     String getPartitionKey(String tableName);
+
+    Map<String, JsonProperties> getAllSchema();
 }

@@ -1,6 +1,5 @@
 package com.mesalab.qgw.service.impl;
 
-import com.google.common.cache.CacheStats;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ClickHouseProperties;
@@ -8,8 +7,7 @@ import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.CacheBaseUtils;
-import com.mesalab.common.utils.CacheUtils;
+import com.mesalab.common.utils.SchemaCacheUtils;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
@@ -26,6 +24,8 @@ import java.util.*;
 @Slf4j
 @Service("metadataService")
 public class MetadataServiceImpl implements MetadataService {
+
+    private static final String METADATA_SCHEMA_KEY = "metadata:schema";
 
     @Autowired
     ClickHouseProperties clickHouseProperties;
@@ -61,10 +61,12 @@ public class MetadataServiceImpl implements MetadataService {
      */
     public BaseResult getSchemaResult(String tableName) {
         Map<String, JsonProperties> allSchema;
-        Object allSchemasInfo = CacheBaseUtils.get("metadata:schema");
-        if(StringUtil.isNotEmpty(allSchemasInfo)){
+        Object allSchemasInfo = SchemaCacheUtils.get(METADATA_SCHEMA_KEY);
+        log.info(" Schema Repeat Submit Stat,QEQ_count:{},HIT_count:{},HIT_rate:{}, MISS_count:{}",
+                SchemaCacheUtils.getStats().requestCount(), SchemaCacheUtils.getStats().hitCount(), SchemaCacheUtils.getStats().hitRate(), SchemaCacheUtils.getStats().missCount());
+        if (StringUtil.isNotEmpty(allSchemasInfo)) {
             allSchema = (Map<String, JsonProperties>)allSchemasInfo;
-        }else {
+        } else {
             allSchema = getAllSchema();
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(allSchema.get(tableName)), Map.class);
@@ -134,24 +136,6 @@ public class MetadataServiceImpl implements MetadataService {
         return druidschemas;
     }
 
-    /**
-     * 获取所有schemas
-     * @return
-     */
-    private Map<String, JsonProperties> getAllSchema(){
-        HashMap<String, JsonProperties> result = new HashMap<>();
-        Map<String, JsonProperties> schemasOfCK = getSchemasOfCK();
-        if(StringUtil.isNotEmpty(schemasOfCK)){
-            result.putAll(schemasOfCK);
-        }
-        Map<String, JsonProperties> schemasOfDruid = getSchemasOfDruid();
-        if(StringUtil.isNotEmpty(schemasOfDruid)){
-            result.putAll(schemasOfDruid);
-        }
-        CacheBaseUtils.set("metadata:schema", result, 1000 * 86400);
-        return result;
-    }
-
 
     /**
      * 获取当前路径下的所有schema信息
@@ -187,24 +171,37 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Override
     public String getPartitionKey(String tableName){
-        String cacheKey = tableName + ":partition_key";
-        Object value = CacheBaseUtils.get(cacheKey);
-        if (value == null) {
-            String v = "";
-            try {
-                BaseResult schemaResult = getSchemaResult(tableName);
-                Map data = (Map)schemaResult.getData();
-                Map doc = (Map)data.get("doc");
-                if(StringUtil.isNotEmpty(doc)){
-                    Object partition_key = doc.get("partition_key");
-                    v = StringUtil.isEmpty(partition_key) ? v : partition_key.toString();
-                }
-                CacheBaseUtils.set(cacheKey, v, 1000 * 86400);
-            }catch (Exception e){
-                log.error("获取partition_key异常", e);
+        String partitionKey = "";
+        try {
+            BaseResult schemaResult = getSchemaResult(tableName);
+            Map data = (Map)schemaResult.getData();
+            Map doc = (Map)data.get("doc");
+            if(StringUtil.isNotEmpty(doc)){
+                Object partition_key = doc.get("partition_key");
+                partitionKey = StringUtil.isEmpty(partition_key) ? "" : partition_key.toString();
             }
-            return v;
+
+        }catch (Exception e){
+            log.error("获取 partition_key异常 ", e);
         }
-        return value.toString();
+
+
+        return partitionKey;
     }
+
+    @Override
+    public Map<String, JsonProperties> getAllSchema() {
+        HashMap<String, JsonProperties> result = new HashMap<>();
+        Map<String, JsonProperties> schemasOfCK = getSchemasOfCK();
+        if(StringUtil.isNotEmpty(schemasOfCK)){
+            result.putAll(schemasOfCK);
+        }
+        Map<String, JsonProperties> schemasOfDruid = getSchemasOfDruid();
+        if(StringUtil.isNotEmpty(schemasOfDruid)){
+            result.putAll(schemasOfDruid);
+        }
+
+        return result;
+    }
+
 }

@@ -8,8 +8,8 @@ import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.CacheBaseUtils;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.SchemaCacheUtils;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
@@ -105,7 +105,7 @@ public class TestSqlServiceImpl {
      * @return
      */
     public BaseResult runSchema(){
-        CacheBaseUtils.removeAll();
+        SchemaCacheUtils.removeAll();
         long start = System.currentTimeMillis();
         errorDate = new ArrayList();
         checkCKSchema("/config/avro/clickhouse");
