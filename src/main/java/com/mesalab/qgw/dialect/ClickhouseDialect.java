@@ -47,7 +47,7 @@ public class ClickhouseDialect implements Dialect {
     Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
-    Pattern pCount = Pattern.compile("select \\s*count\\(\\s*\\*\\s*\\)|\\s*count\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
+    Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
     Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
@@ -171,7 +171,7 @@ public class ClickhouseDialect implements Dialect {
     }
 
     /**
-     * 生成基于common_recv_time、recv_time 事件索引子查询，目的提高日志查询检索性能
+     * 生成基于分区键 事件索引子查询，目的提高日志查询检索性能
      * 限制：
      * 1. 仅适用一级普通查询，带where （无group by 统计）的查询
      * 2. 不对count 统计进行生成
@@ -189,7 +189,7 @@ public class ClickhouseDialect implements Dialect {
             return sql;
         }
 
-        if (pCount.matcher(sql).find()) {
+        if (pCount.matcher(param.getSqlQuerySource().getSelectItems()).find()) {
             return sql;
         }
 
