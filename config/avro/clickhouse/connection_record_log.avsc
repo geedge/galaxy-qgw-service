@@ -486,7 +486,8 @@
     },
     {
       "name": "ssl_con_latency_ms",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "ftp_account",
