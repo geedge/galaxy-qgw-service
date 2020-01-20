@@ -28,7 +28,6 @@ public class AuditLogAspect {
 
     ThreadLocal<Long> startTime = new ThreadLocal<>();
     ThreadLocal<AuditServiceLog> log = new ThreadLocal<>();
-    AuditServiceLog auditServiceLog =  new AuditServiceLog();
     private static final Logger logger= LoggerFactory.getLogger(AuditLogAspect.class);
 
 
@@ -56,6 +55,7 @@ public class AuditLogAspect {
         Method method2 = sign.getMethod();
         AuditLog annotation = method2.getAnnotation(AuditLog.class);
 
+        AuditServiceLog auditServiceLog =  new AuditServiceLog();
         auditServiceLog.setParam(url);
         auditServiceLog.setMethod(method);
         auditServiceLog.setRemoteAddr(remoteAddr);
@@ -78,7 +78,7 @@ public class AuditLogAspect {
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
         ApiParam param = (ApiParam) joinPoint.getArgs()[0];
-        auditServiceLog.setDbType(param.getDbType());
+        log.get().setDbType(param.getDbType());
 
     }
 
@@ -88,11 +88,11 @@ public class AuditLogAspect {
     @AfterReturning(returning = "result", pointcut = "annotationPointCut()")
     public void doAfterReturning(Object result) throws Throwable {
 
+        AuditServiceLog logAfter =  log.get();
         if (StringUtil.isNotEmpty(result) ) {
-            QueryCacheUtils.put(auditServiceLog.getQueryKey(), result);
+            QueryCacheUtils.put(logAfter.getQueryKey(), result);
         }
 
-        AuditServiceLog logAfter =  log.get();
         Long exeTime = System.currentTimeMillis() - startTime.get();
         logAfter.setExeTime(exeTime);
 
