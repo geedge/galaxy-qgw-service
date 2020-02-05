@@ -340,7 +340,16 @@
       "type": "string"
     },
     {
+      "name": "mail_content_charset",
+      "type": "string"
+    },
+    {
       "name": "mail_attachment_name",
+      "doc": "{\"format\":{\"functions\":\"decode_of_base64\",\"param\":\"mail_attachment_name_charset\"}}",
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_name_charset",
       "type": "string"
     },
     {
