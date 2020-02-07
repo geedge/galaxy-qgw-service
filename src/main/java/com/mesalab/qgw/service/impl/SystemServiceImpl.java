@@ -41,8 +41,8 @@ public class SystemServiceImpl implements SystemService {
         Date currentDate = DateUtils.convertStringToDate(DateUtils.getCurrentDate(), DateUtils.YYYY_MM_DD);
 
         if (StringUtil.isBlank(searchStartTime) && StringUtil.isBlank(searchEndTime)) {
-            searchStartTime = DateUtils.getFormatDate(DateUtils.getSomeDate(currentDate, -6), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-            searchEndTime = DateUtils.getFormatDate(DateUtils.getSomeDate(currentDate, 1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            searchStartTime = DateUtils.getFormatDate(DateUtils.getSomeDate(currentDate, -7), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            searchEndTime = DateUtils.getFormatDate(currentDate, DateUtils.YYYY_MM_DD_HH24_MM_SS);
         }
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
