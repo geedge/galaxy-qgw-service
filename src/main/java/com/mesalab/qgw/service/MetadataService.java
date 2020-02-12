@@ -17,11 +17,19 @@ public interface MetadataService {
    BaseResult getSchemaInfo(String type, String name);
 
     /**
-     * 根据表面获取partitionKey
+     * 根据表名获取partitionKey
      * @param tableName
      * @return
      */
     String getPartitionKey(String tableName);
+
+    /**
+     * 根据表明获取PrimaryKey
+     * @param tableName
+     * @return
+     */
+    String getPrimaryKey(String tableName);
+
 
     Map<String, JsonProperties> getAllSchema();
 }

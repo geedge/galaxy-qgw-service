@@ -293,6 +293,7 @@ public class APIServiceImpl implements IAPIService {
 
                     if (where != null){
                         sqlQuerySource.setExpr(where.toString());
+                        sqlQuerySource.setExpression(where);
                     }
 
                     List<SelectItem> selectItemsList = select.getSelectItems();
@@ -327,7 +328,7 @@ public class APIServiceImpl implements IAPIService {
                     if (StringUtil.isNotEmpty(orderByList)) {
                         String orderByString =  Joiner.on(",").join(orderByList);
                         sqlQuerySource.setOrderBy(orderByString);
-
+                        sqlQuerySource.setListOrderElement(orderByList);
                     }
 
 
