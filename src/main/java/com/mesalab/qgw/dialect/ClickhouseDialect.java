@@ -538,27 +538,28 @@ public class ClickhouseDialect implements Dialect {
             return null;
         }
 
+        outer:
         for (String slaveTableName : split) {
             String partitionKey = metadataService.getPartitionKey(slaveTableName);
-            if (param.getSqlQuerySource().getExpr().contains(partitionKey)) {
-                List<OrderByElement> listOrderElement = param.getSqlQuerySource().getListOrderElement();
-                if(StringUtil.isNotEmpty(listOrderElement)){//判断order by 列是否在子表中
-                    for (OrderByElement order : listOrderElement) {
-                        String orderField = order.getExpression().toString();
-                        String aliasField = param.getSqlQuerySource().getFields().get(orderField);
-                        if(StringUtil.isNotBlank(aliasField) && !isField(slaveTableName, aliasField)){
-                            return null;
-                        }
-                        if (StringUtil.isBlank(aliasField) && !isField(slaveTableName, orderField)) {
-                            return null;
-                        }
+            if (!param.getSqlQuerySource().getExpr().contains(partitionKey)) {
+                continue;
+            }
+            List<OrderByElement> listOrderElement = param.getSqlQuerySource().getListOrderElement();
+            if(StringUtil.isNotEmpty(listOrderElement)){//判断order by 列是否在子表中
+                for (OrderByElement order : listOrderElement) {
+                    String orderField = order.getExpression().toString();
+                    String aliasField = param.getSqlQuerySource().getFields().get(orderField);
+                    if(StringUtil.isNotBlank(aliasField) && !isField(slaveTableName, aliasField)){
+                        continue outer;
+                    }
+                    if (StringUtil.isBlank(aliasField) && !isField(slaveTableName, orderField)) {
+                        continue outer;
                     }
                 }
-                judgeOfSlaveQuery(param.getSqlQuerySource().getExpression(), param.getTableName(), slaveTableName);
-                if (canSubQueryOfSlaveTable) {
-                    return slaveTableName;
-                }
-                break;
+            }
+            judgeOfSlaveQuery(param.getSqlQuerySource().getExpression(), param.getTableName(), slaveTableName);
+            if (canSubQueryOfSlaveTable) {
+                return slaveTableName;
             }
         }
         return null;
