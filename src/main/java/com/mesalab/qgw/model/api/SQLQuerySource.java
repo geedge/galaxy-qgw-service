@@ -21,4 +21,5 @@ public class SQLQuerySource {
     private List<OrderByElement> listOrderElement;
     private Map<String, String> fields = Maps.newHashMap();
     private String indexTable;
+    private Boolean indexTableQuery = true;
 }
