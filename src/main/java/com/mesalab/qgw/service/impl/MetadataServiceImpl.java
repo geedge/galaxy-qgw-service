@@ -190,23 +190,15 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     @Override
-    public String getPrimaryKey(String tableName){
-        String premarryKey = "";
-        try {
-            BaseResult schemaResult = getSchemaResult(tableName);
-            Map data = (Map)schemaResult.getData();
-            Map doc = (Map)data.get("doc");
-            if(StringUtil.isNotEmpty(doc)){
-                Object partition_key = doc.get("primary_key");
-                premarryKey = StringUtil.isEmpty(partition_key) ? "" : partition_key.toString();
-            }
-
-        }catch (Exception e){
-            log.error("获取 primary_key异常 ", e);
+    public String getValueByKeyInSchemaDoc(String tableName, String key){
+        BaseResult schemaResult = getSchemaResult(tableName);
+        Map data = (Map) schemaResult.getData();
+        Map doc = (Map) data.get("doc");
+        if (StringUtil.isNotEmpty(doc)) {
+            Object value = doc.get(key);
+            return StringUtil.isEmpty(value) ? "" : value.toString();
         }
-
-
-        return premarryKey;
+        return "";
     }
 
     @Override

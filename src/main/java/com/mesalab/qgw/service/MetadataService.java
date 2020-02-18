@@ -24,11 +24,12 @@ public interface MetadataService {
     String getPartitionKey(String tableName);
 
     /**
-     * 根据表明获取PrimaryKey
+     * Schema Doc中: 通过key获取value
      * @param tableName
+     * @param key
      * @return
      */
-    String getPrimaryKey(String tableName);
+    String getValueByKeyInSchemaDoc(String tableName, String key);
 
 
     Map<String, JsonProperties> getAllSchema();

@@ -20,5 +20,5 @@ public class SQLQuerySource {
     private Expression expression;
     private List<OrderByElement> listOrderElement;
     private Map<String, String> fields = Maps.newHashMap();
-
+    private String indexTable;
 }
