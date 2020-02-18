@@ -2,7 +2,7 @@
   "namespace": "com.zdjizhi",
   "type": "record",
   "name": "common_subscriber_id",
-  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_subscriber_id\"}",
+  "doc": "{\"primary_key\":\"common_log_id\",\"index_key\":\"common_subscriber_id\"}",
   "fields": [
     {
       "name": "common_log_id",

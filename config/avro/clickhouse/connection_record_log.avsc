@@ -2,7 +2,7 @@
   "namespace": "com.zdjizhi",
   "type": "record",
   "name": "connection_record_log",
-  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"slave_table\":\"common_client_ip,common_server_ip,common_subscriber_id,http_domain\"}",
+  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"index_table\":\"common_client_ip,common_server_ip,common_subscriber_id,http_domain\"}",
   "fields": [
     {
       "name": "common_recv_time",

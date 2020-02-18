@@ -2,7 +2,7 @@
   "namespace": "com.zdjizhi",
   "type": "record",
   "name": "http_domain",
-  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"http_domain\"}",
+  "doc": "{\"primary_key\":\"common_log_id\",\"index_key\":\"http_domain\"}",
   "fields": [
     {
       "name": "common_log_id",
