@@ -526,13 +526,22 @@ public class ClickhouseDialect implements Dialect {
         }
         for (String indexTableName : indexTables) {
             String indexKey = metadataService.getValueByKeyInSchemaDoc(indexTableName, "index_key");
+            //判断一: where 是否包含索引键
             if (!param.getSqlQuerySource().getExpr().contains(indexKey)) {
                 continue;
             }
-            if (!orderElementInTable(param.getSqlQuerySource().getListOrderElement(), param.getSqlQuerySource().getFields(), indexTableName)) {
+
+            BaseResult indexTableData = metadataService.getSchemaInfo("fields", indexTableName);
+            Schema IndexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData.getData()));
+            //判断二: order by 元素是否都在索引表中
+            if (!orderElementInTable(param.getSqlQuerySource().getListOrderElement(), param.getSqlQuerySource().getFields(), IndexTableSchema)) {
                 continue;
             }
-            whereExpressionInTable(param.getSqlQuerySource().getExpression(), param.getTableName(), indexTableName);
+
+            BaseResult masterTableData = metadataService.getSchemaInfo("fields", param.getTableName());
+            Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData.getData()));
+            //判断三: where 条件列是否都在索引表中
+            whereExpressionInTable(param.getSqlQuerySource().getExpression(), IndexTableSchema, masterTableSchema);
             if(param.getSqlQuerySource().getIndexTableQuery()){
                 param.getSqlQuerySource().setIndexTable(indexTableName);
                 return true;
@@ -542,21 +551,21 @@ public class ClickhouseDialect implements Dialect {
     }
 
     /**
-     * 判断order by 元素是否在table表字段中
+     * 判断order by 元素是否属于schema字段中
      * @param listOrderElement
      * @param fields k: alias, v: field
-     * @param table
+     * @param schema
      * @return
      */
-    private boolean orderElementInTable(List<OrderByElement> listOrderElement, Map<String, String> fields, String table) {
+    private boolean orderElementInTable(List<OrderByElement> listOrderElement, Map<String, String> fields, Schema schema) {
         if (StringUtil.isNotEmpty(listOrderElement)) {
             for (OrderByElement order : listOrderElement) {
                 String orderField = order.getExpression().toString();
                 String originalField = fields.get(orderField);
-                if (StringUtil.isNotBlank(originalField) && !isField(table, originalField)) {
+                if (StringUtil.isNotBlank(originalField) && !isField(schema, originalField)) {
                     return false;
                 }
-                if (StringUtil.isBlank(originalField) && !isField(table, orderField)) {
+                if (StringUtil.isBlank(originalField) && !isField(schema, orderField)) {
                     return false;
                 }
             }
@@ -565,15 +574,12 @@ public class ClickhouseDialect implements Dialect {
     }
 
     /**
-     * 判断schema中是否存在fieldName列
-     * @param tableName
+     * 判断schema中是否存在field列
+     * @param schema
      * @param fieldName
      * @return
      */
-    private boolean isField(String tableName, String fieldName) {
-        BaseResult result = metadataService.getSchemaInfo("fields", tableName);
-        Object data = result.getData();
-        Schema schema = new Schema.Parser().parse(JsonMapper.toJsonString(data));
+    private boolean isField(Schema schema, String fieldName) {
         Schema.Field field = schema.getField(fieldName);
         if (StringUtil.isEmpty(field)) {
             return false;
@@ -584,12 +590,12 @@ public class ClickhouseDialect implements Dialect {
     /**
      * 判断where条件是否可以进行在索引表中的查询
      * @param where
-     * @param masterTableName 主表
-     * @param indexTableName 索引表
+     * @param masterTableSchema 主表
+     * @param indexTableSchema 索引表
      */
-    private void whereExpressionInTable(Expression where, String masterTableName, String indexTableName) {
+    private void whereExpressionInTable(Expression where, Schema masterTableSchema, Schema indexTableSchema) {
 
-        if (StringUtil.isEmpty(masterTableName) || StringUtil.isEmpty(indexTableName)) {
+        if (StringUtil.isEmpty(masterTableSchema) || StringUtil.isEmpty(indexTableSchema)) {
             param.getSqlQuerySource().setIndexTableQuery(false);
             return;
         }
@@ -607,7 +613,7 @@ public class ClickhouseDialect implements Dialect {
             } else {
                 left = String.valueOf(whereIn.getLeftItemsList());
             }
-            if (!isField(masterTableName, left) || !isField(indexTableName, left)) {
+            if (!isField(masterTableSchema, left) || !isField(indexTableSchema, left)) {
                 param.getSqlQuerySource().setIndexTableQuery(false);
                 return;
             }
@@ -615,40 +621,40 @@ public class ClickhouseDialect implements Dialect {
             AndExpression whereAnd = (AndExpression) where;
             Expression leftExpression = whereAnd.getLeftExpression();
             Expression rightExpression = whereAnd.getRightExpression();
-            whereExpressionInTable(leftExpression, masterTableName, indexTableName);
-            whereExpressionInTable(rightExpression, masterTableName, indexTableName);
+            whereExpressionInTable(leftExpression, masterTableSchema, indexTableSchema);
+            whereExpressionInTable(rightExpression, masterTableSchema, indexTableSchema);
         } else if (where instanceof OrExpression) {
             OrExpression whereOr = (OrExpression) where;
             Expression leftExpression = whereOr.getLeftExpression();
             Expression rightExpression = whereOr.getRightExpression();
-            whereExpressionInTable(leftExpression, masterTableName, indexTableName);
-            whereExpressionInTable(rightExpression, masterTableName, indexTableName);
+            whereExpressionInTable(leftExpression, masterTableSchema, indexTableSchema);
+            whereExpressionInTable(rightExpression, masterTableSchema, indexTableSchema);
         } else if (where instanceof ComparisonOperator) {
             ComparisonOperator whereComparisonOperator = (ComparisonOperator) where;
             String leftExpression = String.valueOf(whereComparisonOperator.getLeftExpression());
             String rightExpression = String.valueOf(whereComparisonOperator.getRightExpression());
-            judgeIndexTableQuery(masterTableName, indexTableName, leftExpression, rightExpression);
+            judgeIndexTableQuery(masterTableSchema, indexTableSchema, leftExpression, rightExpression);
         } else if (where instanceof LikeExpression) {
             LikeExpression whereLike = (LikeExpression) where;
             String leftExpression = String.valueOf(whereLike.getLeftExpression());
             String rightExpression = String.valueOf(whereLike.getRightExpression());
-            judgeIndexTableQuery(masterTableName, indexTableName, leftExpression, rightExpression);
+            judgeIndexTableQuery(masterTableSchema, indexTableSchema, leftExpression, rightExpression);
         } else {
             param.getSqlQuerySource().setIndexTableQuery(false);
             return;
         }
     }
 
-    private void judgeIndexTableQuery(String masterTableName, String indexTableName, String leftExpression, String rightExpression) {
-        if (isField(masterTableName, leftExpression) && !isField(indexTableName, leftExpression)) {
+    private void judgeIndexTableQuery(Schema masterTableSchema, Schema indexTableSchema, String leftExpression, String rightExpression) {
+        if (isField(masterTableSchema, leftExpression) && !isField(indexTableSchema, leftExpression)) {
             param.getSqlQuerySource().setIndexTableQuery(false);
             return;
         }
-        if (isField(masterTableName, rightExpression) && !isField(indexTableName, rightExpression)) {
+        if (isField(masterTableSchema, rightExpression) && !isField(indexTableSchema, rightExpression)) {
             param.getSqlQuerySource().setIndexTableQuery(false);
             return;
         }
-        if (!isField(masterTableName, leftExpression) && !isField(masterTableName, rightExpression)) {
+        if (!isField(masterTableSchema, leftExpression) && !isField(masterTableSchema, rightExpression)) {
             param.getSqlQuerySource().setIndexTableQuery(false);
             return;
         }
