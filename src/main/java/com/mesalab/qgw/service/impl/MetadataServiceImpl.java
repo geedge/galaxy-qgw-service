@@ -62,8 +62,6 @@ public class MetadataServiceImpl implements MetadataService {
     public BaseResult getSchemaResult(String tableName) {
         Map<String, JsonProperties> allSchema;
         Object allSchemasInfo = SchemaCacheUtils.get(METADATA_SCHEMA_KEY);
-        log.info(" Schema Repeat Submit Stat,QEQ_count:{},HIT_count:{},HIT_rate:{}, MISS_count:{}",
-                SchemaCacheUtils.getStats().requestCount(), SchemaCacheUtils.getStats().hitCount(), SchemaCacheUtils.getStats().hitRate(), SchemaCacheUtils.getStats().missCount());
         if (StringUtil.isNotEmpty(allSchemasInfo)) {
             allSchema = (Map<String, JsonProperties>)allSchemasInfo;
         } else {
