@@ -308,7 +308,7 @@ public class APIServiceImpl implements IAPIService {
                         if (item instanceof  SelectExpressionItem) {
                             SelectExpressionItem expressionItem =  ((SelectExpressionItem)item);
                             if (expressionItem.getAlias() != null) {
-                                sqlQuerySource.getFields().put(expressionItem.getAlias().getName().toLowerCase(), expressionItem.getExpression().toString());
+                                sqlQuerySource.getFields().put(expressionItem.getAlias().getName(), expressionItem.getExpression().toString());
                             }
 
 
