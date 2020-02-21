@@ -184,7 +184,7 @@ public class ClickhouseDialect implements Dialect {
      * @param sql
      * @return
      */
-    private String generateSubQuery(String sql) {
+    private String generateSubquery(String sql) {
 
 
         if (StringUtil.isBlank(param.getSqlQuerySource().getExpr())) {
@@ -200,47 +200,50 @@ public class ClickhouseDialect implements Dialect {
         }
 
 
-        if (canSubQueryUseIndexTable()) {
-            String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
-            String subSqlTableName = clickHouseHttpSource.getDbname() + "." + param.getSqlQuerySource().getIndexTable();
-            return addSubQueryOfIndexTable(primaryKey, subSqlTableName);
+        if (indexTableIsAvaliable()) {
+
+            String indexTable = clickHouseHttpSource.getDbname() + "." + param.getSqlQuerySource().getIndexTable();
+            return getSubqueryByIndexTable(indexTable);
         } else {
-            String partitionKey = getPartitionKey();
-            if (StringUtil.isBlank(partitionKey)) {
-                return sql;
-            }
-            return addSubQuery(sql, partitionKey, param.getTableName());
+            return getSubqueryByPartitionKey(sql);
         }
     }
 
     /**
      * 基于分区键方式
      * @param sql
-     * @param key
-     * @param subSqlTableName
      * @return
      */
-    private String addSubQuery(String sql, String key, String subSqlTableName) {
-        StringBuffer subQuery = getSubSql(key, subSqlTableName);
-        Matcher m = pWhere.matcher(sql);
-        StringBuffer sb = new StringBuffer();
-        while (m.find()) {
-            m.appendReplacement(sb, "where  " + key + " in ( " + subQuery + ") and  ");
+    private String getSubqueryByPartitionKey(String sql) {
+        String partitionKey = getPartitionKey(param.getTableName());
+        if (StringUtil.isBlank(partitionKey)) {
+            log.warn("Get Partition Key is Null.Focus in tableName {} schema", param.getTableName());
+            return sql;
+        } else {
+            StringBuffer subQuery = getSubquerySql(partitionKey, param.getTableName());
+            Matcher m = pWhere.matcher(sql);
+            StringBuffer sb = new StringBuffer();
+            while (m.find()) {
+                m.appendReplacement(sb, "where  " + partitionKey + " in ( " + subQuery + ") and  ");
+            }
+            m.appendTail(sb);
+            return sb.toString();
         }
-        m.appendTail(sb);
-        return sb.toString();
+
     }
 
     /**
      * 基于索引表方式添加子查询
-     * @param key
-     * @param subSqlTableName
+     * @param indexTable
      * @return
      */
-    private String addSubQueryOfIndexTable(String key, String subSqlTableName) {
-        StringBuffer subQuery = getSubSql(key, subSqlTableName);
+    private String getSubqueryByIndexTable(String indexTable) {
+
+        String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
+
+        StringBuffer subQuery = getSubquerySql(primaryKey, indexTable);
         StringBuffer sb = new StringBuffer();
-        sb.append("select ").append(param.getSqlQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(key).append(" in ( ").append(subQuery).append(")");
+        sb.append("select ").append(param.getSqlQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(primaryKey).append(" in ( ").append(subQuery).append(")");
         if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
             sb.append(" order by ").append(param.getSqlQuerySource().getOrderBy());
         }
@@ -252,14 +255,14 @@ public class ClickhouseDialect implements Dialect {
 
     /**
      * 获取子sql
-     * @param key
+     * @param columnName
      * @param tableName
      * @return
      */
-    private StringBuffer getSubSql(String key, String tableName) {
+    private StringBuffer getSubquerySql(String columnName, String tableName) {
         StringBuffer subQuery = new StringBuffer();
 
-        subQuery.append("select " + key + " from ").append(tableName)
+        subQuery.append("select " + columnName + " from ").append(tableName)
                 .append(" where ").append(param.getSqlQuerySource().getExpr());
 
         //order by中元素存在别名时做替换处理
@@ -299,8 +302,8 @@ public class ClickhouseDialect implements Dialect {
      * 若分区键被其它列当别名使用，返回空
      * @return
      */
-    private String getPartitionKey() {
-        String partitionKey = metadataService.getPartitionKey(param.getTableName());
+    private String getPartitionKey(String tableName) {
+        String partitionKey = metadataService.getPartitionKey(tableName);
 
         if (StringUtil.isNotBlank(partitionKey)) {
             String tempValue = param.getSqlQuerySource().getFields().get(partitionKey);
@@ -325,7 +328,7 @@ public class ClickhouseDialect implements Dialect {
         if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.QUERY_SCHEMA.getValue())) {
             param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
             param.setQuery(generateUniq(param.getQuery()));
-            param.setQuery(generateSubQuery(param.getQuery()));
+            param.setQuery(generateSubquery(param.getQuery()));
             param.setQuery(generateStandard(param.getQuery()));
             param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
         }
@@ -518,7 +521,7 @@ public class ClickhouseDialect implements Dialect {
      * 检验是否可以进行索引表查询
      * @return
      */
-    private boolean canSubQueryUseIndexTable() {
+    private boolean indexTableIsAvaliable() {
         String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
         String[] indexTables = StringUtil.split(str, ",");
         if (StringUtil.isEmpty(indexTables)) {
