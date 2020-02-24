@@ -15,6 +15,7 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.api.ClickHouseSubqueryParam;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
@@ -23,12 +24,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
-import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
-import net.sf.jsqlparser.expression.operators.relational.InExpression;
-import net.sf.jsqlparser.expression.operators.relational.ItemsList;
-import net.sf.jsqlparser.expression.operators.relational.LikeExpression;
+import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
@@ -41,7 +40,6 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,6 +55,7 @@ public class ClickhouseDialect implements Dialect {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private ApiParam param;
+    private ClickHouseSubqueryParam subqueryParam = new ClickHouseSubqueryParam();
 
 
     public ClickhouseDialect(ApiParam param) {
@@ -199,10 +198,9 @@ public class ClickhouseDialect implements Dialect {
             return sql;
         }
 
-
-        if (indexTableIsAvaliable()) {
-
-            String indexTable = clickHouseHttpSource.getDbname() + "." + param.getSqlQuerySource().getIndexTable();
+        setSubqueryParamOfIndexTable();
+        if (subqueryParam.getIsValidIndexTable()) {
+            String indexTable = clickHouseHttpSource.getDbname() + "." + subqueryParam.getIndexTableName();
             return getSubqueryByIndexTable(indexTable);
         } else {
             return getSubqueryByPartitionKey(sql);
@@ -518,62 +516,66 @@ public class ClickhouseDialect implements Dialect {
         }
     }
     /**
-     * 检验是否可以进行索引表查询
+     * 设置索引表子查询参数: 索引表有效性、索引表表名
      * @return
      */
-    private boolean indexTableIsAvaliable() {
+    private void setSubqueryParamOfIndexTable() {
         String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
         String[] indexTables = StringUtil.split(str, ",");
         if (StringUtil.isEmpty(indexTables)) {
-            return false;
+            subqueryParam.setIsValidIndexTable(false);
+            return;
         }
-        for (String indexTableName : indexTables) {
-            String indexKey = metadataService.getValueByKeyInSchemaDoc(indexTableName, "index_key");
+        for (String indexTable : indexTables) {
+            subqueryParam.setIsValidIndexTable(true);
+            String indexKey = metadataService.getValueByKeyInSchemaDoc(indexTable, "index_key");
             //判断一: where 是否包含索引键
             if (!param.getSqlQuerySource().getExpr().contains(indexKey)) {
                 continue;
             }
 
-            BaseResult indexTableData = metadataService.getSchemaInfo("fields", indexTableName);
-            Schema IndexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData.getData()));
+            BaseResult indexTableData = metadataService.getSchemaInfo("fields", indexTable);
+            Schema indexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData.getData()));
             //判断二: order by 元素是否都在索引表中
-            if (!orderElementInTable(param.getSqlQuerySource().getListOrderElement(), param.getSqlQuerySource().getFields(), IndexTableSchema)) {
+            if (!isValidOfOrderElementsInSchema(indexTableSchema)) {
                 continue;
             }
 
             BaseResult masterTableData = metadataService.getSchemaInfo("fields", param.getTableName());
             Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData.getData()));
             //判断三: where 条件列是否都在索引表中
-            whereExpressionInTable(param.getSqlQuerySource().getExpression(), IndexTableSchema, masterTableSchema);
-            if(param.getSqlQuerySource().getIndexTableQuery()){
-                param.getSqlQuerySource().setIndexTable(indexTableName);
-                return true;
+            setValidityByWhereExpressionsInSchema(param.getSqlQuerySource().getExpression(), masterTableSchema, indexTableSchema);
+            if (subqueryParam.getIsValidIndexTable()) {
+                subqueryParam.setIndexTableName(indexTable);
+                return;
             }
         }
-        return false;
+        subqueryParam.setIsValidIndexTable(false);
     }
 
     /**
      * 判断order by 元素是否属于schema字段中
-     * @param listOrderElement
-     * @param fields k: alias, v: field
      * @param schema
      * @return
      */
-    private boolean orderElementInTable(List<OrderByElement> listOrderElement, Map<String, String> fields, Schema schema) {
-        if (StringUtil.isNotEmpty(listOrderElement)) {
+    private boolean isValidOfOrderElementsInSchema(Schema schema) {
+        List<OrderByElement> listOrderElement = param.getSqlQuerySource().getListOrderElement();
+        if (StringUtil.isEmpty(listOrderElement)) {
+            return true;
+        } else {
+            Map<String, String> aliasFields = param.getSqlQuerySource().getFields();
             for (OrderByElement order : listOrderElement) {
-                String orderField = order.getExpression().toString();
-                String originalField = fields.get(orderField);
-                if (StringUtil.isNotBlank(originalField) && !isField(schema, originalField)) {
+                String orderField = String.valueOf(order.getExpression());
+                String originalField = aliasFields.get(orderField);
+                if (StringUtil.isNotBlank(originalField) && !isFieldOfSchema(schema, originalField)) {
                     return false;
                 }
-                if (StringUtil.isBlank(originalField) && !isField(schema, orderField)) {
+                if (StringUtil.isBlank(originalField) && !isFieldOfSchema(schema, orderField)) {
                     return false;
                 }
             }
+            return true;
         }
-        return true;
     }
 
     /**
@@ -582,7 +584,7 @@ public class ClickhouseDialect implements Dialect {
      * @param fieldName
      * @return
      */
-    private boolean isField(Schema schema, String fieldName) {
+    private boolean isFieldOfSchema(Schema schema, String fieldName) {
         Schema.Field field = schema.getField(fieldName);
         if (StringUtil.isEmpty(field)) {
             return false;
@@ -596,10 +598,10 @@ public class ClickhouseDialect implements Dialect {
      * @param masterTableSchema 主表
      * @param indexTableSchema 索引表
      */
-    private void whereExpressionInTable(Expression where, Schema masterTableSchema, Schema indexTableSchema) {
+    private void setValidityByWhereExpressionsInSchema(Expression where, Schema masterTableSchema, Schema indexTableSchema) {
 
         if (StringUtil.isEmpty(masterTableSchema) || StringUtil.isEmpty(indexTableSchema)) {
-            param.getSqlQuerySource().setIndexTableQuery(false);
+            subqueryParam.setIsValidIndexTable(false);
             return;
         }
 
@@ -607,7 +609,7 @@ public class ClickhouseDialect implements Dialect {
             InExpression whereIn = (InExpression) where;
             ItemsList rightItemsList = whereIn.getRightItemsList();
             if (rightItemsList instanceof SubSelect) {
-                param.getSqlQuerySource().setIndexTableQuery(false);
+                subqueryParam.setIsValidIndexTable(false);
                 return;
             }
             String left;
@@ -616,49 +618,81 @@ public class ClickhouseDialect implements Dialect {
             } else {
                 left = String.valueOf(whereIn.getLeftItemsList());
             }
-            if (!isField(masterTableSchema, left) || !isField(indexTableSchema, left)) {
-                param.getSqlQuerySource().setIndexTableQuery(false);
+            if (!isFieldOfSchema(masterTableSchema, left) || !isFieldOfSchema(indexTableSchema, left)) {
+                subqueryParam.setIsValidIndexTable(false);
                 return;
             }
         } else if (where instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) where;
             Expression leftExpression = whereAnd.getLeftExpression();
             Expression rightExpression = whereAnd.getRightExpression();
-            whereExpressionInTable(leftExpression, masterTableSchema, indexTableSchema);
-            whereExpressionInTable(rightExpression, masterTableSchema, indexTableSchema);
+            setValidityByWhereExpressionsInSchema(leftExpression, masterTableSchema, indexTableSchema);
+            setValidityByWhereExpressionsInSchema(rightExpression, masterTableSchema, indexTableSchema);
         } else if (where instanceof OrExpression) {
             OrExpression whereOr = (OrExpression) where;
             Expression leftExpression = whereOr.getLeftExpression();
             Expression rightExpression = whereOr.getRightExpression();
-            whereExpressionInTable(leftExpression, masterTableSchema, indexTableSchema);
-            whereExpressionInTable(rightExpression, masterTableSchema, indexTableSchema);
+            setValidityByWhereExpressionsInSchema(leftExpression, masterTableSchema, indexTableSchema);
+            setValidityByWhereExpressionsInSchema(rightExpression, masterTableSchema, indexTableSchema);
         } else if (where instanceof ComparisonOperator) {
             ComparisonOperator whereComparisonOperator = (ComparisonOperator) where;
             String leftExpression = String.valueOf(whereComparisonOperator.getLeftExpression());
             String rightExpression = String.valueOf(whereComparisonOperator.getRightExpression());
-            judgeIndexTableQuery(masterTableSchema, indexTableSchema, leftExpression, rightExpression);
+            setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, leftExpression, rightExpression);
         } else if (where instanceof LikeExpression) {
             LikeExpression whereLike = (LikeExpression) where;
             String leftExpression = String.valueOf(whereLike.getLeftExpression());
             String rightExpression = String.valueOf(whereLike.getRightExpression());
-            judgeIndexTableQuery(masterTableSchema, indexTableSchema, leftExpression, rightExpression);
+            setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, leftExpression, rightExpression);
+        } else if (where instanceof Function) {
+            Function function = (Function) where;
+            ExpressionList parameters = function.getParameters();
+            setValidityByFunctionParamsInSchema(indexTableSchema, parameters);
         } else {
-            param.getSqlQuerySource().setIndexTableQuery(false);
+            subqueryParam.setIsValidIndexTable(false);
             return;
         }
     }
 
-    private void judgeIndexTableQuery(Schema masterTableSchema, Schema indexTableSchema, String leftExpression, String rightExpression) {
-        if (isField(masterTableSchema, leftExpression) && !isField(indexTableSchema, leftExpression)) {
-            param.getSqlQuerySource().setIndexTableQuery(false);
+    /**
+     * 根据函数参数判断索引表查询是否有效: 只支持0或1(判断是否在schema中)个参数, 其它均设为无效
+     * @param indexTableSchema
+     * @param parameters
+     */
+    private void setValidityByFunctionParamsInSchema(Schema indexTableSchema, ExpressionList parameters) {
+        if (StringUtil.isEmpty(parameters)) {
+            return;
+        } else {
+            List<Expression> expressions = parameters.getExpressions();
+            if (expressions.size() != 1) {
+                subqueryParam.setIsValidIndexTable(false);
+                return;
+            }
+            if (!isFieldOfSchema(indexTableSchema, String.valueOf(expressions.get(0)))) {
+                subqueryParam.setIsValidIndexTable(false);
+                return;
+            }
+        }
+    }
+
+    /**
+     * 根据左右表达式判断索引表查询是否有效
+     * @param masterTableSchema
+     * @param indexTableSchema
+     * @param leftExpression
+     * @param rightExpression
+     */
+    private void setValidityByLRExpressionInSchema(Schema masterTableSchema, Schema indexTableSchema, String leftExpression, String rightExpression) {
+        if (isFieldOfSchema(masterTableSchema, leftExpression) && !isFieldOfSchema(indexTableSchema, leftExpression)) {
+            subqueryParam.setIsValidIndexTable(false);
             return;
         }
-        if (isField(masterTableSchema, rightExpression) && !isField(indexTableSchema, rightExpression)) {
-            param.getSqlQuerySource().setIndexTableQuery(false);
+        if (isFieldOfSchema(masterTableSchema, rightExpression) && !isFieldOfSchema(indexTableSchema, rightExpression)) {
+            subqueryParam.setIsValidIndexTable(false);
             return;
         }
-        if (!isField(masterTableSchema, leftExpression) && !isField(masterTableSchema, rightExpression)) {
-            param.getSqlQuerySource().setIndexTableQuery(false);
+        if (!isFieldOfSchema(masterTableSchema, leftExpression) && !isFieldOfSchema(masterTableSchema, rightExpression)) {
+            subqueryParam.setIsValidIndexTable(false);
             return;
         }
     }
