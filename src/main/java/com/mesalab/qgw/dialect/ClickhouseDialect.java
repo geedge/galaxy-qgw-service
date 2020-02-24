@@ -636,18 +636,16 @@ public class ClickhouseDialect implements Dialect {
             setValidityByWhereExpressionsInSchema(rightExpression, masterTableSchema, indexTableSchema);
         } else if (where instanceof ComparisonOperator) {
             ComparisonOperator whereComparisonOperator = (ComparisonOperator) where;
-            String leftExpression = String.valueOf(whereComparisonOperator.getLeftExpression());
-            String rightExpression = String.valueOf(whereComparisonOperator.getRightExpression());
-            setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, leftExpression, rightExpression);
+            setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, whereComparisonOperator.getLeftExpression(), whereComparisonOperator.getRightExpression());
         } else if (where instanceof LikeExpression) {
             LikeExpression whereLike = (LikeExpression) where;
-            String leftExpression = String.valueOf(whereLike.getLeftExpression());
-            String rightExpression = String.valueOf(whereLike.getRightExpression());
-            setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, leftExpression, rightExpression);
+            setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, whereLike.getLeftExpression(), whereLike.getRightExpression());
         } else if (where instanceof Function) {
             Function function = (Function) where;
-            ExpressionList parameters = function.getParameters();
-            setValidityByFunctionParamsInSchema(indexTableSchema, parameters);
+            boolean bool = getValidityByFunctionParamsInSchema(indexTableSchema, function);
+            if(!bool){
+                subqueryParam.setIsValidIndexTable(false);
+            }
         } else {
             subqueryParam.setIsValidIndexTable(false);
             return;
@@ -656,22 +654,22 @@ public class ClickhouseDialect implements Dialect {
 
     /**
      * 根据函数参数判断索引表查询是否有效: 只支持0或1(判断是否在schema中)个参数, 其它均设为无效
-     * @param indexTableSchema
-     * @param parameters
+     * @param schema
+     * @param function
      */
-    private void setValidityByFunctionParamsInSchema(Schema indexTableSchema, ExpressionList parameters) {
+    private boolean getValidityByFunctionParamsInSchema(Schema schema, Function function) {
+        ExpressionList parameters = function.getParameters();
         if (StringUtil.isEmpty(parameters)) {
-            return;
+            return true;
         } else {
             List<Expression> expressions = parameters.getExpressions();
             if (expressions.size() != 1) {
-                subqueryParam.setIsValidIndexTable(false);
-                return;
+                return false;
             }
-            if (!isFieldOfSchema(indexTableSchema, String.valueOf(expressions.get(0)))) {
-                subqueryParam.setIsValidIndexTable(false);
-                return;
+            if (!isFieldOfSchema(schema, String.valueOf(expressions.get(0)))) {
+                return false;
             }
+            return true;
         }
     }
 
@@ -682,16 +680,87 @@ public class ClickhouseDialect implements Dialect {
      * @param leftExpression
      * @param rightExpression
      */
-    private void setValidityByLRExpressionInSchema(Schema masterTableSchema, Schema indexTableSchema, String leftExpression, String rightExpression) {
-        if (isFieldOfSchema(masterTableSchema, leftExpression) && !isFieldOfSchema(indexTableSchema, leftExpression)) {
+    private void setValidityByLRExpressionInSchema(Schema masterTableSchema, Schema indexTableSchema, Expression leftExpression, Expression rightExpression) {
+        String leftStr = String.valueOf(leftExpression);
+        String rightStr = String.valueOf(rightExpression);
+        if (leftExpression instanceof Function && rightExpression instanceof Function) {
+            setValidityByFunAndFunInSchema(masterTableSchema, indexTableSchema, (Function) leftExpression, (Function) rightExpression);
+        } else if (!(leftExpression instanceof Function) && rightExpression instanceof Function) {
+            setValidityByFunctionAndStrInSchema(masterTableSchema, indexTableSchema, (Function) rightExpression, leftStr);
+        } else if (leftExpression instanceof Function && !(rightExpression instanceof Function)) {
+            setValidityByFunctionAndStrInSchema(masterTableSchema, indexTableSchema, (Function) leftExpression, rightStr);
+        } else {
+            setValidityBuStrAndStrInSchema(masterTableSchema, indexTableSchema, leftStr, rightStr);
+        }
+    }
+
+    /**
+     * 操作符左右两边都是非函数类型(转String)
+     * @param masterTableSchema
+     * @param indexTableSchema
+     * @param leftStr
+     * @param rightStr
+     */
+    private void setValidityBuStrAndStrInSchema(Schema masterTableSchema, Schema indexTableSchema, String leftStr, String rightStr) {
+        if (isFieldOfSchema(masterTableSchema, leftStr) && !isFieldOfSchema(indexTableSchema, leftStr)) {
             subqueryParam.setIsValidIndexTable(false);
             return;
         }
-        if (isFieldOfSchema(masterTableSchema, rightExpression) && !isFieldOfSchema(indexTableSchema, rightExpression)) {
+        if (isFieldOfSchema(masterTableSchema, rightStr) && !isFieldOfSchema(indexTableSchema, rightStr)) {
             subqueryParam.setIsValidIndexTable(false);
             return;
         }
-        if (!isFieldOfSchema(masterTableSchema, leftExpression) && !isFieldOfSchema(masterTableSchema, rightExpression)) {
+        if (!isFieldOfSchema(masterTableSchema, leftStr) && !isFieldOfSchema(masterTableSchema, rightStr)) {
+            subqueryParam.setIsValidIndexTable(false);
+            return;
+        }
+    }
+
+    /**
+     * 操作符左右两边都是函数
+     * @param masterTableSchema
+     * @param indexTableSchema
+     * @param leftExpression
+     * @param rightExpression
+     */
+    private void setValidityByFunAndFunInSchema(Schema masterTableSchema, Schema indexTableSchema, Function leftExpression, Function rightExpression) {
+        boolean validLeftInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, leftExpression);
+        boolean validLeftInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, leftExpression);
+        if (validLeftInMaster && !validLeftInIndex) {
+            subqueryParam.setIsValidIndexTable(false);
+            return;
+        }
+        boolean validRightInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, rightExpression);
+        boolean validRightInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, rightExpression);
+        if (validRightInMaster && !validRightInIndex) {
+            subqueryParam.setIsValidIndexTable(false);
+            return;
+        }
+        if (!validLeftInMaster && !validRightInMaster) {
+            subqueryParam.setIsValidIndexTable(false);
+            return;
+        }
+    }
+
+    /**
+     * 操作符左右一边是函数类型一边是非函数(转String)
+     * @param masterTableSchema
+     * @param indexTableSchema
+     * @param function
+     * @param str
+     */
+    private void setValidityByFunctionAndStrInSchema(Schema masterTableSchema, Schema indexTableSchema, Function function, String str) {
+        boolean validFunInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, function);
+        boolean validFunInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, function);
+        if (validFunInMaster && !validFunInIndex) {
+            subqueryParam.setIsValidIndexTable(false);
+            return;
+        }
+        if (isFieldOfSchema(masterTableSchema, str) && !isFieldOfSchema(indexTableSchema, str)) {
+            subqueryParam.setIsValidIndexTable(false);
+            return;
+        }
+        if (!isFieldOfSchema(masterTableSchema, str) && !validFunInMaster) {
             subqueryParam.setIsValidIndexTable(false);
             return;
         }
