@@ -15,7 +15,6 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.mesalab.qgw.model.api.ClickHouseSubqueryParam;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
@@ -55,7 +54,9 @@ public class ClickhouseDialect implements Dialect {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private ApiParam param;
-    private ClickHouseSubqueryParam subqueryParam = new ClickHouseSubqueryParam();
+    private Boolean subIndexValidFlag = true;
+
+
 
 
     public ClickhouseDialect(ApiParam param) {
@@ -103,6 +104,15 @@ public class ClickhouseDialect implements Dialect {
 
         return Encodes.urlEncode(sql);
 
+    }
+
+
+    private void  setSubIndexValidFlag(Boolean subIndexValidFlag) {
+        this.subIndexValidFlag = subIndexValidFlag;
+    }
+
+    private Boolean getSubIndexValidFlag() {
+        return subIndexValidFlag;
     }
 
     /**
@@ -198,9 +208,9 @@ public class ClickhouseDialect implements Dialect {
             return sql;
         }
 
-        setSubqueryParamOfIndexTable();
-        if (subqueryParam.getIsValidIndexTable()) {
-            String indexTable = clickHouseHttpSource.getDbname() + "." + subqueryParam.getIndexTableName();
+        String indexTable  = getAvaliableIndexTable();
+        if (StringUtil.isNotBlank(indexTable)) {
+            indexTable = clickHouseHttpSource.getDbname() + "." + indexTable;
             return getSubqueryByIndexTable(indexTable);
         } else {
             return getSubqueryByPartitionKey(sql);
@@ -519,22 +529,22 @@ public class ClickhouseDialect implements Dialect {
      * 设置索引表子查询参数: 索引表有效性、索引表表名
      * @return
      */
-    private void setSubqueryParamOfIndexTable() {
+    private String getAvaliableIndexTable() {
+        String indexTable = "";
         String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
         String[] indexTables = StringUtil.split(str, ",");
         if (StringUtil.isEmpty(indexTables)) {
-            subqueryParam.setIsValidIndexTable(false);
-            return;
+            return StringUtil.EMPTY;
         }
-        for (String indexTable : indexTables) {
-            subqueryParam.setIsValidIndexTable(true);
-            String indexKey = metadataService.getValueByKeyInSchemaDoc(indexTable, "index_key");
+        for (String tempIndexTable : indexTables) {
+
+            String indexKey = metadataService.getValueByKeyInSchemaDoc(tempIndexTable, "index_key");
             //判断一: where 是否包含索引键
             if (!param.getSqlQuerySource().getExpr().contains(indexKey)) {
                 continue;
             }
 
-            BaseResult indexTableData = metadataService.getSchemaInfo("fields", indexTable);
+            BaseResult indexTableData = metadataService.getSchemaInfo("fields", tempIndexTable);
             Schema indexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData.getData()));
             //判断二: order by 元素是否都在索引表中
             if (!isValidOfOrderElementsInSchema(indexTableSchema)) {
@@ -545,12 +555,12 @@ public class ClickhouseDialect implements Dialect {
             Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData.getData()));
             //判断三: where 条件列是否都在索引表中
             setValidityByWhereExpressionsInSchema(param.getSqlQuerySource().getExpression(), masterTableSchema, indexTableSchema);
-            if (subqueryParam.getIsValidIndexTable()) {
-                subqueryParam.setIndexTableName(indexTable);
-                return;
+            if (getSubIndexValidFlag()) {
+               indexTable = tempIndexTable;
+                break;
             }
         }
-        subqueryParam.setIsValidIndexTable(false);
+        return indexTable;
     }
 
     /**
@@ -601,7 +611,7 @@ public class ClickhouseDialect implements Dialect {
     private void setValidityByWhereExpressionsInSchema(Expression where, Schema masterTableSchema, Schema indexTableSchema) {
 
         if (StringUtil.isEmpty(masterTableSchema) || StringUtil.isEmpty(indexTableSchema)) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
 
@@ -609,7 +619,7 @@ public class ClickhouseDialect implements Dialect {
             InExpression whereIn = (InExpression) where;
             ItemsList rightItemsList = whereIn.getRightItemsList();
             if (rightItemsList instanceof SubSelect) {
-                subqueryParam.setIsValidIndexTable(false);
+                setSubIndexValidFlag(false);
                 return;
             }
             String left;
@@ -619,7 +629,7 @@ public class ClickhouseDialect implements Dialect {
                 left = String.valueOf(whereIn.getLeftItemsList());
             }
             if (!isFieldOfSchema(masterTableSchema, left) || !isFieldOfSchema(indexTableSchema, left)) {
-                subqueryParam.setIsValidIndexTable(false);
+                setSubIndexValidFlag(false);
                 return;
             }
         } else if (where instanceof AndExpression) {
@@ -644,10 +654,10 @@ public class ClickhouseDialect implements Dialect {
             Function function = (Function) where;
             boolean bool = getValidityByFunctionParamsInSchema(indexTableSchema, function);
             if(!bool){
-                subqueryParam.setIsValidIndexTable(false);
+                setSubIndexValidFlag(false);
             }
         } else {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
     }
@@ -703,15 +713,15 @@ public class ClickhouseDialect implements Dialect {
      */
     private void setValidityBuStrAndStrInSchema(Schema masterTableSchema, Schema indexTableSchema, String leftStr, String rightStr) {
         if (isFieldOfSchema(masterTableSchema, leftStr) && !isFieldOfSchema(indexTableSchema, leftStr)) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
         if (isFieldOfSchema(masterTableSchema, rightStr) && !isFieldOfSchema(indexTableSchema, rightStr)) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
         if (!isFieldOfSchema(masterTableSchema, leftStr) && !isFieldOfSchema(masterTableSchema, rightStr)) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
     }
@@ -727,17 +737,17 @@ public class ClickhouseDialect implements Dialect {
         boolean validLeftInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, leftExpression);
         boolean validLeftInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, leftExpression);
         if (validLeftInMaster && !validLeftInIndex) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
         boolean validRightInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, rightExpression);
         boolean validRightInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, rightExpression);
         if (validRightInMaster && !validRightInIndex) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
         if (!validLeftInMaster && !validRightInMaster) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
     }
@@ -753,15 +763,15 @@ public class ClickhouseDialect implements Dialect {
         boolean validFunInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, function);
         boolean validFunInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, function);
         if (validFunInMaster && !validFunInIndex) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
         if (isFieldOfSchema(masterTableSchema, str) && !isFieldOfSchema(indexTableSchema, str)) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
         if (!isFieldOfSchema(masterTableSchema, str) && !validFunInMaster) {
-            subqueryParam.setIsValidIndexTable(false);
+            setSubIndexValidFlag(false);
             return;
         }
     }
