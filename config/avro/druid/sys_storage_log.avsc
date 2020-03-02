@@ -1,5 +1,5 @@
 {
-  "namespace": "com.zdjizhi",
+  "namespace": "druid",
   "type": "record",
   "name": "sys_storage_log",
   "fields": [

@@ -1,5 +1,5 @@
 {
-  "namespace": "com.zdjizhi",
+  "namespace": "druid",
   "type": "record",
   "name": "security_event_hits_log",
   "fields": [

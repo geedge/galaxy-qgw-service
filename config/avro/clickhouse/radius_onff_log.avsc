@@ -1,5 +1,5 @@
 {
-  "namespace": "com.zdjizhi",
+  "namespace": "tsg_galaxy_v3",
   "type": "record",
   "name": "radius_onff_log",
   "fields": [

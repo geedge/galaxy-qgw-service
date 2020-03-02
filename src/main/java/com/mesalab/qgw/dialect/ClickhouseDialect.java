@@ -210,7 +210,6 @@ public class ClickhouseDialect implements Dialect {
 
         String indexTable  = getAvaliableIndexTable();
         if (StringUtil.isNotBlank(indexTable)) {
-            indexTable = clickHouseHttpSource.getDbname() + "." + indexTable;
             return getSubqueryByIndexTable(indexTable);
         } else {
             return getSubqueryByPartitionKey(sql);
@@ -556,7 +555,7 @@ public class ClickhouseDialect implements Dialect {
             //判断三: where 条件列是否都在索引表中
             setValidityByWhereExpressionsInSchema(param.getSqlQuerySource().getExpression(), masterTableSchema, indexTableSchema);
             if (getSubIndexValidFlag()) {
-               indexTable = tempIndexTable;
+               indexTable = indexTableSchema.getFullName();
                 break;
             }
         }

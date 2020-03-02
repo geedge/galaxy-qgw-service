@@ -1,5 +1,5 @@
 {
-  "namespace": "com.zdjizhi",
+  "namespace": "tsg_galaxy_v3",
   "type": "record",
   "name": "common_subscriber_id",
   "doc": "{\"primary_key\":\"common_log_id\",\"index_key\":\"common_subscriber_id\"}",
