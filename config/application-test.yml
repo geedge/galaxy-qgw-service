@@ -42,7 +42,7 @@ httpclient:
 ###############################################################################
 ## Schema register
 schema:
-  clickhouse: security_event_log,proxy_event_log,connection_record_log,radius_record_log,radius_onff_log
+  clickhouse: security_event_log,proxy_event_log,connection_record_log,radius_record_log,radius_onff_log,sys_packet_capture_log
   druid: traffic_metrics_log,top_internal_host_log,top_external_host_log,top_website_domain_log,top_urls_log,top_user_log,security_event_hits_log,proxy_event_hits_log,sys_storage_log,protocol_statistic_log,app_statistic_log
 ###############################################################################
 ## Junit Test Configuration

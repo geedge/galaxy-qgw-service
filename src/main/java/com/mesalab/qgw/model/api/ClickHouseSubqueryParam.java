@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ClickHouseSubqueryParam {
-    private String indexTableName;
+    private String indexTableFullName;
     private Boolean isValidIndexTable;
 }

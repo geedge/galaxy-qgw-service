@@ -1,5 +1,5 @@
 {
-  "namespace": "com.zdjizhi",
+  "namespace": "druid",
   "type": "record",
   "name": "traffic_metrics_log",
   "fields": [

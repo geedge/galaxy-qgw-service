@@ -1,5 +1,5 @@
 {
-  "namespace": "com.zdjizhi",
+  "namespace": "druid",
   "type": "record",
   "name": "top_external_host_log",
   "fields": [

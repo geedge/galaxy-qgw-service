@@ -200,8 +200,8 @@ public class ClickhouseDialect implements Dialect {
 
         setSubqueryParamOfIndexTable();
         if (subqueryParam.getIsValidIndexTable()) {
-            String indexTable = clickHouseHttpSource.getDbname() + "." + subqueryParam.getIndexTableName();
-            return getSubqueryByIndexTable(indexTable);
+            String indexTableFullName = subqueryParam.getIndexTableFullName();
+            return getSubqueryByIndexTable(indexTableFullName);
         } else {
             return getSubqueryByPartitionKey(sql);
         }
@@ -546,7 +546,7 @@ public class ClickhouseDialect implements Dialect {
             //判断三: where 条件列是否都在索引表中
             setValidityByWhereExpressionsInSchema(param.getSqlQuerySource().getExpression(), masterTableSchema, indexTableSchema);
             if (subqueryParam.getIsValidIndexTable()) {
-                subqueryParam.setIndexTableName(indexTable);
+                subqueryParam.setIndexTableFullName(indexTableSchema.getFullName());
                 return;
             }
         }

@@ -1,5 +1,5 @@
 {
-  "namespace": "com.zdjizhi",
+  "namespace": "druid",
   "type": "record",
   "name": "top_user_log",
   "fields": [
