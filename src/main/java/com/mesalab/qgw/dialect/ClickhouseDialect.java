@@ -348,22 +348,7 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public BaseResult executeHttpQuery() {
         BaseResult baseResult = null;
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(clickHouseHttpSource.getUrl()).append("/?");
-
-        StringBuilder queryparamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
-                .append("database=")
-                .append(clickHouseHttpSource.getDbname()).append("&")
-                .append("query=").append(param.getQuery())
-                .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
-
-        log.info("Query Session and Events Query : {}" , urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
-
-        List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
-
-        Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
+        Map<String, String> resultMap = executeHttpGet(param);
 
        if (StringUtil.isEmpty(resultMap)) {
            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
@@ -397,6 +382,30 @@ public class ClickhouseDialect implements Dialect {
 
        return  baseResult;
 
+    }
+
+    /**
+     * 查询clickhouse: http get
+     * @param param
+     * @return
+     */
+    private Map<String, String> executeHttpGet(ApiParam param) {
+        StringBuilder urlBuilder = new StringBuilder("http://")
+                .append(clickHouseHttpSource.getUrl()).append("/?");
+
+        StringBuilder queryparamBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
+                .append("database=")
+                .append(clickHouseHttpSource.getDbname()).append("&")
+                .append("query=").append(param.getQuery())
+                .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
+
+        log.info("Query Session and Events Query : {}" , urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
+
+        List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
+
+        return httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
     }
 
 
@@ -554,12 +563,29 @@ public class ClickhouseDialect implements Dialect {
             Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData.getData()));
             //判断三: where 条件列是否都在索引表中
             setValidityByWhereExpressionsInSchema(param.getSqlQuerySource().getExpression(), masterTableSchema, indexTableSchema);
-            if (getSubIndexValidFlag()) {
-               indexTable = indexTableSchema.getFullName();
+            if (getSubIndexValidFlag() && tableIsAvaliableInDB(indexTableSchema.getFullName())) {
+                indexTable = indexTableSchema.getFullName();
                 break;
             }
         }
         return indexTable;
+    }
+
+    /**
+     * 判断table是否在DB中
+     * @param tableName
+     * @return
+     */
+    private boolean tableIsAvaliableInDB(String tableName) {
+        ApiParam tempParam = new ApiParam();
+        tempParam.setQuery(String.format("select 1 from %s limit 1", tableName));
+        tempParam.setFormat(QueryFormatEnum.JSON.getValue());
+        Map<String, String> result = executeHttpGet(tempParam);
+        if (result.get("status") == null || Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
+            log.info("DB中不存在该表: {}", tableName);
+            return false;
+        }
+        return true;
     }
 
     /**
