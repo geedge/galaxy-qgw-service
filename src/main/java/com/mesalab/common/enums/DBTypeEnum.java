@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum DBTypeEnum {
     CLICKHOUSE("clickhouse"),
     DRUID("druid"),
-    HBASE("hbase"),;
+    HBASE("hbase"),
+    INFLUXDB("influxdb"),;
     private String value;
     DBTypeEnum(String value) {this.value = value;}
 }
