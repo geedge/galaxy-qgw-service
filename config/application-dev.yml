@@ -33,8 +33,10 @@ hbase:
   columnFamily: response
   columnName: result
   ## xxl-job-admin configuration
-job-admin:
+xxl-job-admin:
   url: http://192.168.41.22:8080/xxl-job-admin
+  userName: admin
+  password: 123456
 ###############################################################################
 ## Httpclient configuration
 httpclient:

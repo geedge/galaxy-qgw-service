@@ -2,6 +2,7 @@ package com.mesalab.qgw.service.impl;
 
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -119,6 +121,7 @@ public class HttpClientService {
             HttpPost httpPost = new HttpPost(url);
             httpPost.setHeader("Content-Type", "application/json");
             httpPost.setEntity(new ByteArrayEntity(jsonString.getBytes("utf-8")));
+            HttpEntity entity1 = httpPost.getEntity();
             response = httpClient.execute(httpPost);
             // 获取响应实体
             HttpEntity entity = response.getEntity();
@@ -148,14 +151,40 @@ public class HttpClientService {
         return resultMap;
     }
 
+    public Map<String, String> getHttpPostResponseHeads(String url, Map<String, String> headers) {
 
-
-
-
-
-
-
-
-
-
+        CloseableHttpResponse response = null;
+        HashMap<String, String> map = Maps.newHashMap();
+        try {
+            HttpPost httpPost = new HttpPost(url);
+            for (Object k : headers.keySet()) {
+                httpPost.setHeader(k.toString(), headers.get(k).toString());
+            }
+            response = httpClient.execute(httpPost);
+            Header[] Headers = response.getAllHeaders();
+            for (Header h : Headers) {
+                map.put(h.getName().toUpperCase(), h.getValue());
+            }
+        } catch (ClientProtocolException e) {
+            log.error("协议错误: {}", e.getMessage());
+            e.printStackTrace();
+        } catch (ParseException e) {
+            log.error("解析错误: {}", e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            log.error("IO错误: {}", e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (null != response) {
+                try {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("释放链接错误: {}", e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+        return map;
+    }
 }
