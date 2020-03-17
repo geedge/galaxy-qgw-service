@@ -2,6 +2,8 @@ package com.mesalab.qgw.controller;
 
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.SystemService;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
@@ -9,9 +11,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -47,5 +48,20 @@ public class SystemController {
 
 
         return systemService.dailyTrendOfStorage(searchStartTime, searchEndTime);
+    }
+
+    @ApiOperation(value = "数据删除", httpMethod = "POST", notes = "修改日志删除策略")
+    @PostMapping(value = "storage/deletion")
+    public BaseResult storageDeletion(@RequestBody Map<String, String> logInfo) {
+        log.debug("数据删除接口");
+        String logType = logInfo.get("logType");
+        String maxDays = logInfo.get("maxDays");
+        if (StringUtil.isBlank(logType) || StringUtil.isBlank(maxDays)) {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：logType 与 maxDays 需同时填写", null);
+        }
+        if (!StringUtil.isNumeric(maxDays)) {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：maxDays 必须是数值且[1-2000]", null);
+        }
+        return systemService.deleteStorage(logInfo.get("logType").trim(), Integer.parseInt(maxDays));
     }
 }
