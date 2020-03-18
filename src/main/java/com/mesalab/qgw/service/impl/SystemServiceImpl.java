@@ -42,6 +42,8 @@ public class SystemServiceImpl implements SystemService {
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
 
+    private Map<String, String> headers = Maps.newHashMap();
+
     @Override
     public BaseResult getStorageQuota() {
 
@@ -74,116 +76,130 @@ public class SystemServiceImpl implements SystemService {
         } else {
             throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
         }
-
-
-
-
     }
 
     @Override
     public BaseResult deleteStorage(String logType, int maxDays) {
-        if (0 == maxDays) {
-            return executeDeleteAllLogs(logType);
-        } else {
-            return executeDeleteByMaxDays(logType, maxDays);
-        }
-    }
-
-    public String getCookie() {
-        StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl());
-        Map headers = Maps.newHashMap();
-        headers.put("Content-Type", "application/json");
-        String urlParamsByMap = getUrlParamsByMap(getObjectToMap(jobAdminHttpSource));
-        Map httpPostResponseHeads = httpClientService.getHttpPostResponseHeads(url + "/login?" + urlParamsByMap, headers);
-        return String.valueOf(httpPostResponseHeads.get("SET-COOKIE"));
-    }
-
-    /**
-     * 删除指定最大天数的日志
-     *
-     * @param logType
-     * @param maxDays
-     * @return
-     */
-    private BaseResult executeDeleteByMaxDays(String logType, int maxDays) {
         BaseResult baseResult = null;
-        StringBuilder urlBuilder = new StringBuilder(jobAdminHttpSource.getUrl());
-        String url = urlBuilder.append("/jobinfo/update?").toString();
+        setCookie();
+        if (0 == maxDays && "ALL".equals(logType.toUpperCase())) {
+            baseResult = deleteAllAndUpdate();
+        } else {
+            baseResult = deleteByMaxDays(logType, maxDays);
+        }
+        return baseResult;
+    }
+
+    private BaseResult deleteByMaxDays(String logType, int maxDays) {
+        BaseResult baseResult;
         if ("Traffic Logs".equalsIgnoreCase(logType)) {
-            Map data = getDataByHandler(JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
-            ExecutorParam executorParam = getClickHouseExecutorParam(maxDays);
-            String updateParam = setJobInfoParam(data, executorParam);
-            baseResult = httpGetUpdateJobInfo(url, updateParam);
-        } else if ("Report and Metrics".equalsIgnoreCase(logType)) {
-            Map data = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            ExecutorParam executorParam = getDruidExecutorParam(maxDays);
-            String updateParam = setJobInfoParam(data, executorParam);
-            baseResult = httpGetUpdateJobInfo(url, updateParam);
-        } else if ("ALL".equalsIgnoreCase(logType)) {
-            Map data = getDataByHandler(JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
-            ExecutorParam executorParam = getClickHouseExecutorParam(maxDays);
-            String updateParam = setJobInfoParam(data, executorParam);
-            BaseResult baseResult1 = httpGetUpdateJobInfo(url, updateParam);
+            Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
+            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(maxDays));
+            BaseResult resultUpdateTraffic = executeManageJob("update", xxlJobInfo);
+            BaseResult resultTriggerTraffic = executeManageJob("trigger", xxlJobInfo);
 
-            data = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            executorParam = getDruidExecutorParam(maxDays);
-            updateParam = setJobInfoParam(data, executorParam);
-            BaseResult baseResult2 = httpGetUpdateJobInfo(url, updateParam);
-
-            if (baseResult1.getStatus().equals(HttpStatus.SC_OK) && baseResult2.getStatus().equals(HttpStatus.SC_OK)) {
+            if (resultUpdateTraffic.getStatus().equals(HttpStatus.SC_OK) && resultTriggerTraffic.getStatus().equals(HttpStatus.SC_OK)) {
                 baseResult = BaseResultGenerator.success("ok", null);
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult1.getMessage() + "\n" + baseResult2.getMessage());
+                String info = String.format("启动删除ClickHouse: %s, 更新删除ClickHouse: %s", resultTriggerTraffic.getStatus(), resultUpdateTraffic.getStatus());
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
             }
+
+        } else if ("Report and Metrics".equalsIgnoreCase(logType)) {
+            Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
+            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(maxDays));
+            BaseResult resultUpdateReport = executeManageJob("update", xxlJobInfo);
+            BaseResult resultTriggerReport = executeManageJob("trigger", xxlJobInfo);
+
+            if (resultUpdateReport.getStatus().equals(HttpStatus.SC_OK) && resultTriggerReport.getStatus().equals(HttpStatus.SC_OK)) {
+                baseResult = BaseResultGenerator.success("ok", null);
+            } else {
+                String info = String.format("启动删除Druid: %s, 更新删除Druid: %s", resultTriggerReport.getStatus(), resultUpdateReport.getStatus());
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
+            }
+
         } else {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_OK, "没有匹配的logType");
         }
         return baseResult;
     }
 
-    /**
-     * 删除所有日志
-     *
-     * @param logType
-     * @return
-     */
-    private BaseResult executeDeleteAllLogs(String logType) {
-        BaseResult baseResult = null;
-        StringBuilder urlBuilder = new StringBuilder(jobAdminHttpSource.getUrl());
-        String url = urlBuilder.append("/jobinfo/trigger?").toString();
-        if ("Traffic Logs".equalsIgnoreCase(logType)) {
-            Map data = getDataByHandler(JobHandlerEnum.DELETE_ALL_TRAFFIC_DATA_JOB_HANDLER.getValue());
-            ExecutorParam executorParam = getClickHouseExecutorParam(0);
-            String updateParam = setJobInfoParam(data, executorParam);
-            baseResult = httpGetUpdateJobInfo(url, updateParam);
-        } else if ("Report and Metrics".equalsIgnoreCase(logType)) {
-            Map data = getDataByHandler(JobHandlerEnum.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            Map temp = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            Map<String, Object> map = (Map<String, Object>) JsonMapper.fromJsonString(temp.get("executorParam").toString(), Map.class);
-            ExecutorParam executorParam = getDruidExecutorParam(Integer.parseInt(map.get("maxdays").toString()));
-            String updateParam = setJobInfoParam(data, executorParam);
-            baseResult = httpGetUpdateJobInfo(url, updateParam);
-        } else if ("ALL".equalsIgnoreCase(logType)) {
-            Map data = getDataByHandler(JobHandlerEnum.DELETE_ALL_TRAFFIC_DATA_JOB_HANDLER.getValue());
-            ExecutorParam executorParam = getClickHouseExecutorParam(0);
-            String updateParam = setJobInfoParam(data, executorParam);
-            BaseResult baseResult1 = httpGetUpdateJobInfo(url, updateParam);
+    private BaseResult deleteAllAndUpdate() {
+        BaseResult baseResult;
+        Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_ALL_TRAFFIC_DATA_JOB_HANDLER.getValue());
+        XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(30));
+        BaseResult resultUpdateAllTraffic = executeManageJob("update", xxlJobInfo);
+        BaseResult resultTriggerAllTraffic = executeManageJob("trigger", xxlJobInfo);
 
-            data = getDataByHandler(JobHandlerEnum.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            Map temp = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            Map<String, Object> map = (Map<String, Object>) JsonMapper.fromJsonString(temp.get("executorParam").toString(), Map.class);
-            executorParam = getDruidExecutorParam(Integer.parseInt(map.get("maxdays").toString()));
-            updateParam = setJobInfoParam(data, executorParam);
-            BaseResult baseResult2 = httpGetUpdateJobInfo(url, updateParam);
+        trafficDate = getDataByHandler(JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
+        xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(30));
+        BaseResult resultUpdateTraffic = executeManageJob("update", xxlJobInfo);
 
-            if (baseResult1.getStatus().equals(HttpStatus.SC_OK) && baseResult2.getStatus().equals(HttpStatus.SC_OK)) {
-                baseResult = BaseResultGenerator.success("ok", null);
-            } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult1.getMessage() + "\n" + baseResult2.getMessage());
-            }
+        trafficDate = getDataByHandler(JobHandlerEnum.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
+        xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(180));
+        BaseResult resultUpdateAllReport = executeManageJob("update", xxlJobInfo);
+        BaseResult resultTriggerAllReport = executeManageJob("trigger", xxlJobInfo);
 
+        trafficDate = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
+        xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(180));
+        BaseResult resultUpdateReport = executeManageJob("update", xxlJobInfo);
+
+        if (resultTriggerAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateTraffic.getStatus().equals(HttpStatus.SC_OK)
+                && resultTriggerAllReport.getStatus().equals(HttpStatus.SC_OK) && resultUpdateAllReport.getStatus().equals(HttpStatus.SC_OK) && resultUpdateReport.getStatus().equals(HttpStatus.SC_OK)) {
+            baseResult = BaseResultGenerator.success("ok", null);
+        } else {
+            String info =
+                    String.format("启动清库Druid: %s, 更新清库Druid: %s, 更新删除Druid: %s; 启动清库clickHouse: %s, 更新清库ClickHouse: %s, 更新删除Clickhouse: %s",
+                            resultTriggerAllReport.getStatus(), resultUpdateAllReport.getStatus(), resultUpdateReport.getStatus(),
+                            resultTriggerAllTraffic.getStatus(), resultUpdateAllTraffic.getStatus(), resultUpdateTraffic.getStatus());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
         }
         return baseResult;
+    }
+
+
+    /**
+     * 执行调度平台任务更新
+     *
+     * @param executeType
+     * @param xxlJobInfo
+     * @return
+     */
+    private BaseResult executeManageJob(String executeType, XxlJobInfo xxlJobInfo) {
+        BaseResult baseResult = null;
+        String params = getUrlParamsByMap(getObjectToMap(xxlJobInfo));
+        String url = String.format("%s/jobinfo/%s/?%s", jobAdminHttpSource.getUrl(), executeType, params);
+        Map<String, String> resultMap = httpClientService.httpGet(url, headers);
+        log.info("请求调度任务" + executeType + "接口" + url);
+        if (StringUtil.isEmpty(resultMap)) {
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系调度平台方！");
+        } else {
+            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+                baseResult = BaseResultGenerator.success("ok", null);
+            } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, resultMap.get("result"));
+            } else {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultMap.get("result"));
+            }
+        }
+        return baseResult;
+    }
+
+
+    /**
+     * 获取调度平台Cookie
+     *
+     * @return
+     */
+    public void setCookie() {
+        StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl());
+        Map headers = Maps.newHashMap();
+        headers.put("Content-Type", "application/json");
+        String urlParamsByMap = getUrlParamsByMap(getObjectToMap(jobAdminHttpSource));
+        Map httpPostResponseHeads = httpClientService.getHttpPostResponseHeads(url + "/login?" + urlParamsByMap, headers);
+        String cookie = String.valueOf(httpPostResponseHeads.get("SET-COOKIE"));
+        headers.put("Cookie", cookie);
+        headers.put("Content-Type", "application/json");
     }
 
     /**
@@ -196,15 +212,11 @@ public class SystemServiceImpl implements SystemService {
         StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).
                 append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
                 append(handlerValue);
-        String cookie = getCookie();
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put("Cookie", cookie);
-        headers.put("Content-Type", "application/json");
         Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers);
         if (resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             List<Map> data = (List) maps.get("data");
-            if (data.size() == 1) {
+            if (data.size() >= 1) {
                 return data.get(0);
             }
         }
@@ -218,10 +230,10 @@ public class SystemServiceImpl implements SystemService {
      * @param executorParam
      * @return
      */
-    private String setJobInfoParam(Map data, ExecutorParam executorParam) {
+    private XxlJobInfo setXxlJobInfoParam(Map data, ExecutorParam executorParam) {
         XxlJobInfo xxlJobInfo = mapToBean(data, XxlJobInfo.class);
         xxlJobInfo.setExecutorParam(JsonMapper.toJsonString(executorParam));
-        return getUrlParamsByMap(getObjectToMap(xxlJobInfo));
+        return xxlJobInfo;
     }
 
     /**
@@ -235,7 +247,7 @@ public class SystemServiceImpl implements SystemService {
         executorParam.setMaxdays(maxDays);
         executorParam.setServer(druidIoHttpSource.getUrl().substring(0, druidIoHttpSource.getUrl().indexOf("/")));
         executorParam.setDatasource(druidIoHttpSource.getDbname());
-        executorParam.setTablename("top_external_host_log_aggr");
+        executorParam.setTablename("top_external_host_log_hot_test");
         return executorParam;
     }
 
@@ -252,38 +264,8 @@ public class SystemServiceImpl implements SystemService {
         executorParam.setDatasource(clickHouseHttpSource.getDbname());
         executorParam.setUsername(clickHouseHttpSource.getUsername());
         executorParam.setPassword(clickHouseHttpSource.getPassword());
-        executorParam.setTablename("connection_record_log_local_ttl2");
+        executorParam.setTablename("security_event_log_local");
         return executorParam;
-    }
-
-
-    /**
-     * 更新jobInfo
-     *
-     * @param url
-     * @param params
-     * @return
-     */
-    private BaseResult httpGetUpdateJobInfo(String url, String params) {
-        BaseResult baseResult;
-        String cookie = getCookie();
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put("Cookie", cookie);
-        headers.put("Content-Type", "application/json");
-        Map<String, String> resultMap = httpClientService.httpGet(url + params, headers);
-        log.info(url + params);
-        if (StringUtil.isEmpty(resultMap)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系调度平台方！");
-        } else {
-            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-                baseResult = BaseResultGenerator.success("ok", null);
-            } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, resultMap.get("result"));
-            } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultMap.get("result"));
-            }
-        }
-        return baseResult;
     }
 
     public static String getUrlParamsByMap(Map<String, Object> map) {

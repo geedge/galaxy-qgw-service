@@ -57,10 +57,16 @@ public class SystemController {
         String logType = logInfo.get("logType");
         String maxDays = logInfo.get("maxDays");
         if (StringUtil.isBlank(logType) || StringUtil.isBlank(maxDays)) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：logType 与 maxDays 需同时填写", null);
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType 与 maxDays 需同时填写", null);
         }
         if (!StringUtil.isNumeric(maxDays)) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：maxDays 必须是数值且[1-2000]", null);
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: maxDays 必须是数值", null);
+        }
+        if ("ALL".equals(logType.toUpperCase()) && Integer.parseInt(maxDays) != 0) {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType为All：maxDays 必须为0", null);
+        }
+        if (!"ALL".equals(logType.toUpperCase()) && !(Integer.parseInt(maxDays) >= 1 && Integer.parseInt(maxDays) <= 2000)) {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType非All: maxDays 必须是数值且[1-2000]", null);
         }
         return systemService.deleteStorage(logInfo.get("logType").trim(), Integer.parseInt(maxDays));
     }
