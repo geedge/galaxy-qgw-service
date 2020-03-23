@@ -23,11 +23,20 @@ public interface Dialect {
      * @return 分页查询的sql
      */
     String getLimitString(String sql, int offset, int limit);
-
-
     Dialect sqlDialectTransform();
+    Dialect executeHttpQuery();
+    Dialect executeUDF();
+    BaseResult build();
 
-    BaseResult executeHttpQuery();
+
+
+
+
+
+
+
+
+
 
 
 

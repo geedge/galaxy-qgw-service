@@ -9,6 +9,8 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.support.IConvertor;
+import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLDateFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
@@ -17,6 +19,7 @@ import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +42,8 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,6 +59,7 @@ public class ClickhouseDialect implements Dialect {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private ApiParam param;
+    private Map<String, String> results;
     private Boolean subIndexValidFlag = true;
 
 
@@ -61,6 +67,7 @@ public class ClickhouseDialect implements Dialect {
 
     public ClickhouseDialect(ApiParam param) {
         this.param = param;
+        results = Maps.newHashMap();
     }
 
     @Override
@@ -345,44 +352,109 @@ public class ClickhouseDialect implements Dialect {
         return this;
     }
 
+
+
     @Override
-    public BaseResult executeHttpQuery() {
-        BaseResult baseResult = null;
-        Map<String, String> resultMap = executeHttpGet(param);
-
-       if (StringUtil.isEmpty(resultMap)) {
-           baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
-       } else {
-           if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-
-               if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                   baseResult = BaseResultGenerator.success("ok", resultMap.get("result"), null);
-               } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                   Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(resultMap.get("result"),  Map.class);
-                   Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
-                   Map<String, Object> statistics = Maps.newHashMap();
-                   statistics.put("elapsed", String.format("%.2f", (double)statisticMap.get("elapsed")));
-                   statistics.put("rows_read", statisticMap.get("rows_read"));
-                   int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
-                   statistics.put("result_size", resultSize);
-                   baseResult = BaseResultGenerator.success("ok", maps.get("data"), statistics);
-               }
-
-
-
-           }else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
-               baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, resultMap.get("result"));
-           } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {
-               baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultMap.get("result"));
-           } else {
-               baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultMap.get("result"));
-           }
-       }
-
-
-       return  baseResult;
+    public Dialect executeHttpQuery() {
+        results = executeHttpGet(param);
+       return  this;
 
     }
+
+    @Override
+    public Dialect executeUDF() {
+
+        String groupLabel = "http_domain";
+        String timeGranLabel = "stat_time";
+
+
+        if (StringUtil.isNotEmpty(results)) {
+            if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
+                    param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue()) ) {
+
+                Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(results.get("result"),  Map.class);
+
+                List<Object> lists = (List<Object>)maps.get("data");
+
+
+                Map<String, Map<String, Map<String, String>>> targetTimeseriesMap = ConvertUtil.convertResultListToTimeseries(lists,
+                        groupLabel, timeGranLabel);
+
+
+
+                for (String key : targetTimeseriesMap.keySet()) {
+                    TreeMap <String, Map<String, String>>  groupMap = (TreeMap <String, Map<String, String>>) targetTimeseriesMap.get(key);
+
+                    Map <String, Map<String, String>>  completeMap = ConvertUtil.completeTimeseries(groupMap,
+                            DateUtils.getDateRange(DateUtils.convertStringToDate("2019-12-13 09:00:12", DateUtils.YYYY_MM_DD_HH24_MM_SS),
+                                    DateUtils.convertStringToDate("2019-12-14 10:00:12", DateUtils.YYYY_MM_DD_HH24_MM_SS), "PT5M"), "none");
+
+                    targetTimeseriesMap.put(key,completeMap);
+
+                }
+
+
+                List<Map<String, String>>  targetResult =  ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
+
+
+                //maps.put("data", targetResult);
+
+                //results.put("result", JsonMapper.toJsonString(maps));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            }
+        }
+
+
+        return this;
+    }
+
+    @Override
+    public BaseResult build() {
+        BaseResult baseResult = null;
+        if (StringUtil.isEmpty(results)) {
+            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
+        } else {
+            if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+
+                if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+                    baseResult = BaseResultGenerator.success("ok", results.get("result"), null);
+                } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+                    Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(results.get("result"),  Map.class);
+                    Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
+                    Map<String, Object> statistics = Maps.newHashMap();
+                    statistics.put("elapsed", String.format("%.2f", (double)statisticMap.get("elapsed")));
+                    statistics.put("rows_read", statisticMap.get("rows_read"));
+                    int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
+                    statistics.put("result_size", resultSize);
+                    baseResult = BaseResultGenerator.success("ok", maps.get("data"), statistics);
+                }
+
+            } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, results.get("result"));
+            } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
+            } else {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
+            }
+        }
+        return baseResult;
+    }
+
 
     /**
      * 查询clickhouse: http get

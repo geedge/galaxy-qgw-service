@@ -1,6 +1,13 @@
 package com.mesalab.common.utils;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.mesalab.common.support.IConvertor;
+import com.zdjizhi.utils.CommonUtil;
+import com.zdjizhi.utils.DateUtils;
+import com.zdjizhi.utils.StringUtil;
 import org.nutz.lang.Lang;
 
 import java.util.*;
@@ -12,6 +19,23 @@ import java.util.*;
  * @date 2018/5/9
  */
 public class ConvertUtil {
+
+      enum  Fill {
+
+        NONE(""),  NULL("NULL"), ZERO("0"), PREVIOUS("previous"), NEXT("next");
+
+        private final String value;
+
+        private Fill(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+    }
+
 
     /**
      * 将来源collection转换成目标list.
@@ -110,5 +134,196 @@ public class ConvertUtil {
         }
         return mapping;
     }
+
+    /**
+     * 将时序特征的数据，转换成层级结构；
+     * 例如：Map<groupKey, timeseries Map>
+     *         Map<timeGran,Metrics Map>
+     *             Map<metric,value>
+     *
+     * @param sources
+     * @param groupLabel
+     * @param timeGranLabel
+     * @return
+     */
+    public static  Map<String, Map<String, Map<String, String>>> convertResultListToTimeseries(Collection<Object> sources,
+                                                                                       String groupLabel, String timeGranLabel) {
+        Map<String, Map<String, Map<String, String>>> resultMap = Maps.newHashMap();
+
+        for (Object source : sources) {
+            Map<String, String> sourceMap = ((Map<String, String>) source);
+            String groupKey = sourceMap.get(groupLabel);
+            String timeGran = sourceMap.get(timeGranLabel);
+
+            sourceMap.remove(groupLabel);
+            sourceMap.remove(timeGranLabel);
+
+            Map groupMap = resultMap.get(groupKey);
+
+            if (StringUtil.isEmpty(groupMap)) {
+                groupMap = Maps.newTreeMap();
+                groupMap.put(timeGran, sourceMap);
+                resultMap.put(groupKey,groupMap);
+
+            } else {
+
+                groupMap.put(timeGran, sourceMap);
+            }
+
+
+        }
+
+        return resultMap;
+
+    }
+
+
+    public static List<Map<String, String>> convertTimeseriesToList(Map<String, Map<String, Map<String, String>>> target, String groupLabel, String timeGranLabel) {
+        List<Map<String, String>> results = Lists.newArrayList();
+
+        for(String groupKey : target.keySet()) {
+            Map<String, Map<String, String>> groupMap = target.get(groupKey);
+
+            for (String timeGranKey : groupMap.keySet()) {
+
+                Map<String, String> metricMap = groupMap.get(timeGranKey);
+
+                Map<String, String> resultMap = Maps.newLinkedHashMap();
+
+                resultMap.put(timeGranLabel, timeGranKey);
+                resultMap.put(groupLabel, groupKey);
+
+                for (String metricLabel : metricMap.keySet()) {
+                    resultMap.put(metricLabel, metricMap.get(metricLabel));
+                }
+
+                results.add(resultMap);
+
+
+
+            }
+
+
+        }
+
+
+
+
+
+        return results;
+    }
+
+
+    /**
+     * 时序数据补全操作
+     * @param sources TreeMap<timeGran, metricMap>
+     * @param dateList
+     * @param fill
+     * @return
+     */
+    public static Map<String, Map<String, String>> completeTimeseries(TreeMap<String, Map<String, String>> sources,
+                                                               List<Date> dateList, String fill) {
+        Map<String, String> defaultElement = Maps.newHashMap(sources.firstEntry().getValue());
+
+
+        if (fill.equalsIgnoreCase(Fill.ZERO.name())){
+            for(String key: defaultElement.keySet()){
+                defaultElement.put(key, Fill.ZERO.getValue());
+            }
+
+        } else if (fill.equalsIgnoreCase(Fill.NULL.name())){
+            for(String key: defaultElement.keySet()) {
+                defaultElement.put(key, Fill.NULL.value);
+            }
+        } else if (fill.equalsIgnoreCase(Fill.NONE.name())) {
+            for(String key: defaultElement.keySet()) {
+                defaultElement.put(key, Fill.NONE.value);
+            }
+        } else {
+            for(String key: defaultElement.keySet()) {
+                defaultElement.clear();
+            }
+        }
+
+        TreeMap<String, Map<String, String>> target = Maps.newTreeMap(sources);
+        for(Date date : dateList) {
+            String key = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            Map<String, String> metricsMap = sources.get(key);
+            if (StringUtil.isEmpty(metricsMap)) {
+                target.put(key, defaultElement);
+            }
+        }
+
+
+
+        if (StringUtil.isEmpty(defaultElement)) {
+
+            defaultElement = getDefaultElement(sources.firstEntry().getValue());
+
+            for (String key : target.keySet()) {
+
+                if (StringUtil.isEmpty(target.get(key))) {
+
+                    Map<String, String> element=  getPositionElement(target, key, fill);
+
+                    if (StringUtil.isEmpty(element)) {
+                        target.put(key, defaultElement);
+                    } else {
+                        target.put(key, element);
+                    }
+
+
+                }
+
+
+            }
+
+        }
+
+
+        return target;
+    }
+
+
+    private static Map<String, String> getPositionElement(TreeMap<String, Map<String, String>> target,
+                                                   String key, String fill) {
+        Map<String, String> element = Maps.newHashMap();
+
+        if (fill.equalsIgnoreCase(Fill.PREVIOUS.name())) {
+            if (StringUtil.isNotEmpty(target.lowerEntry(key))) {
+                element = target.lowerEntry(key).getValue();
+            }
+
+
+        } else if (fill.equalsIgnoreCase(Fill.NEXT.name())) {
+            if (StringUtil.isNotEmpty(target.higherEntry(key))) {
+                element = target.higherEntry(key).getValue();
+            }
+
+
+        }
+        return element;
+    }
+
+
+
+    private static Map<String, String> getDefaultElement(Map<String, String> firstElement) {
+        Map<String, String> element = Maps.newHashMap(firstElement);
+
+        for (String key : element.keySet()) {
+            element.put(key, Fill.NONE.getValue());
+        }
+
+        return element;
+    }
+
+
+
+
+
+
+
+
+
 
 }

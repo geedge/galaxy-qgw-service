@@ -1,5 +1,6 @@
 package com.mesalab.qgw.dialect;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -18,14 +19,20 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 public class HbaseDialect implements Dialect{
     private HBaseHttpSource hBaseHttpSource = (HBaseHttpSource) SpringContextUtil.getBean("hBaseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
+    private Map<String, String> results;
     private ApiParam param;
+    private Stopwatch watch = Stopwatch.createUnstarted();
 
     public HbaseDialect(ApiParam param) {
+
         this.param = param;
+        results = Maps.newHashMap();
     }
 
     @Override
@@ -51,8 +58,8 @@ public class HbaseDialect implements Dialect{
     }
 
     @Override
-    public BaseResult executeHttpQuery() {
-        BaseResult baseResult = null;
+    public Dialect executeHttpQuery() {
+        watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(hBaseHttpSource.getUrl()).append("/");
         StringBuilder queryparamBuilder = new StringBuilder(hBaseHttpSource.getDbName())
@@ -65,20 +72,32 @@ public class HbaseDialect implements Dialect{
         Map<String, String> headers = Maps.newHashMap();
 
         headers.put("Accept", "application/json");
-        long beginTime = System.currentTimeMillis();
-        Map<String, String> resultMap = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
-        double executeTime = (System.currentTimeMillis()-beginTime) / 1000.0;
 
-        if (StringUtil.isEmpty(resultMap)) {
+        results = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
+
+       return this;
+    }
+
+    @Override
+    public Dialect executeUDF() {
+        return this;
+    }
+
+    @Override
+    public BaseResult build() {
+        BaseResult baseResult = null;
+
+        if (StringUtil.isEmpty(results)) {
             baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系平台方！");
         } else {
-            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
 
-                String result = decryptHbaseResult(resultMap.get("result"));
+                String result = decryptHbaseResult(results.get("result"));
                 Map<String, Object> maps =(Map<String, Object>) JsonMapper.fromJsonString(result,  Map.class);
                 Map<String, Object> statisticMap = (Map<String, Object>) maps.get("statistics");
 
                 Map<String, Object> statistics = Maps.newHashMap();
+                Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS)/1000.0;
                 statistics.put("elapsed", "stat:" + statisticMap.get("elapsed") + ",result: "+ executeTime);
 
                 statistics.put("rows_read", statisticMap.get("rows_read"));
@@ -89,12 +108,12 @@ public class HbaseDialect implements Dialect{
 
                 baseResult = BaseResultGenerator.success("ok", maps.get("data"), statistics);
 
-            } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, resultMap.get("result").toString());
-            } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, JsonMapper.fromJsonString(resultMap.get("result"), Object.class).toString());
+            } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, results.get("result").toString());
+            } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, JsonMapper.fromJsonString(results.get("result"), Object.class).toString());
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, JsonMapper.fromJsonString(resultMap.get("result"), Object.class).toString());
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, JsonMapper.fromJsonString(results.get("result"), Object.class).toString());
             }
         }
 
