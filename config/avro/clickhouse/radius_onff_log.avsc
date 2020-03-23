@@ -5,27 +5,33 @@
   "fields": [
     {
       "name": "event_timestamp",
-      "type": "int"
+      "type": "int",
+      "label": "Event Time"
     },
     {
       "name": "account",
-      "type": "string"
+      "type": "string",
+      "label": "Account"
     },
     {
       "name": "framed_ip",
-      "type": "string"
+      "type": "string",
+      "label": "Framed IP"
     },
     {
       "name": "acct_session_id",
-      "type": "string"
+      "type": "string",
+      "label": "Acct Session ID"
     },
     {
       "name": "acct_status_type",
-      "type": "int"
+      "type": "int",
+      "label": "Acct Status Type"
     },
     {
       "name": "acct_session_time",
-      "type": "int"
+      "type": "int",
+      "label": "Acct Session Time"
     }
   ]
 }

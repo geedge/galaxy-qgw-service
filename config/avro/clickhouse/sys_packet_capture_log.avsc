@@ -77,7 +77,7 @@
       "name": "common_entrance_id",
       "type": "int",
       "label": "Entrance ID",
-      "doc": "{\"allow_query\":\"true\"}"
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_sled_ip",
@@ -135,7 +135,7 @@
       "name": "common_schema_type",
       "type": "string",
       "label": "Schema Type",
-      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"},{\"code\":\"BGP\",\"value\":\"BGP\"},{\"code\":\"VOIP\",\"value\":\"VOIP\"},{\"code\":\"RADIUS\",\"value\":\"RADIUS\"}],\"allow_query\":\"true\"}"
+      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"},{\"code\":\"BGP\",\"value\":\"BGP\"},{\"code\":\"VOIP\",\"value\":\"VOIP\"},{\"code\":\"RADIUS\",\"value\":\"RADIUS\"}],\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_user_tags",
@@ -177,7 +177,7 @@
       "name": "common_encapsulation",
       "type": "int",
       "label": "Encapsulation",
-      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"Cisco HDLC\"}]}"
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"CiscoHDLC\"}]}"
     },
     {
       "name": "common_app_label",

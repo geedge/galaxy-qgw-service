@@ -77,7 +77,7 @@
       "name": "common_entrance_id",
       "type": "int",
       "label": "Entrance ID",
-      "doc": "{\"allow_query\":\"true\"}"
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_sled_ip",
@@ -176,7 +176,7 @@
       "name": "common_encapsulation",
       "type": "int",
       "label": "Encapsulation",
-      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"Cisco HDLC\"}]}"
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"CiscoHDLC\"}]}"
     },
     {
       "name": "common_app_label",
@@ -207,6 +207,12 @@
       "type": "int",
       "label": "End Time",
       "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_establish_latency_ms",
+      "type": "int",
+      "label": "Establish Latency(ms)",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_con_duration_ms",
@@ -356,6 +362,18 @@
       "name": "http_version",
       "type": "string",
       "label": "Version"
+    },
+    {
+      "name": "http_response_lantency_ms",
+      "type": "int",
+      "label": "Response Latency(ms)",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "http_session_duration_ms",
+      "type": "int",
+      "label": "Session Duration(ms)",
+      "doc": "{\"visibility\":\"hidden\"}"
     }
   ]
 }
