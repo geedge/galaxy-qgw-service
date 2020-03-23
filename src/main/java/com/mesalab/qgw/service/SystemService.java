@@ -19,10 +19,17 @@ public interface SystemService {
     BaseResult dailyTrendOfStorage(String searchStartTime, String searchEndTime);
 
     /**
-     * 删除数据接口
+     * 数据配额设置
      * @param logType
      * @param maxDays
      * @return
      */
     BaseResult deleteStorage(String logType, int maxDays);
+
+    /**
+     * 数据配额设置状态
+     * @param logType
+     * @return
+     */
+    BaseResult deleteStorageStatus(String logType);
 }

@@ -37,6 +37,7 @@ xxl-job-admin:
   url: http://192.168.41.22:8080/xxl-job-admin
   userName: admin
   password: 123456
+  druidDeleteNode: 192.168.40.119:8079
 ###############################################################################
 ## Httpclient configuration
 httpclient:

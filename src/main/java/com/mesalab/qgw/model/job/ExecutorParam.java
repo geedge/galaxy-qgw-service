@@ -1,4 +1,4 @@
-package com.mesalab.qgw.model;
+package com.mesalab.qgw.model.job;
 
 import lombok.Data;
 

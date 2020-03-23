@@ -27,6 +27,7 @@ public class JobAdminConfiguration {
         httpSource.setUrl(jobAdminProperties.getUrl());
         httpSource.setUserName(jobAdminProperties.getUserName());
         httpSource.setPassword(jobAdminProperties.getPassword());
+        httpSource.setDruidDeleteNode(jobAdminProperties.getDruidDeleteNode());
         return httpSource;
     }
 }

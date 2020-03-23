@@ -3,13 +3,15 @@ package com.mesalab.qgw.service.impl;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.JobHandlerEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SpringContextUtil;
-import com.mesalab.qgw.model.ExecutorParam;
-import com.mesalab.qgw.model.XxlJobInfo;
+import com.mesalab.qgw.model.job.ExecutorParam;
+import com.mesalab.qgw.model.job.StorageDeletionInfo;
+import com.mesalab.qgw.model.job.XxlJobInfo;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
@@ -35,6 +37,8 @@ public class SystemServiceImpl implements SystemService {
 
     @Autowired
     IAPIService apiService;
+    @Autowired
+    private SchemaProperties schemaProperties;
 
 
     ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
@@ -49,7 +53,7 @@ public class SystemServiceImpl implements SystemService {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         ApiParam param = new ApiParam();
-        param.setQuery("(select log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Report and Metrics' ORDER BY __time desc limit 1)\n" +
+        param.setQuery("(select log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'r' ORDER BY __time desc limit 1)\n" +
                 "UNION ALL\n" +
                 "(select log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Files' ORDER BY __time desc limit 1)\n" +
                 "UNION ALL\n" +
@@ -90,6 +94,46 @@ public class SystemServiceImpl implements SystemService {
         return baseResult;
     }
 
+    @Override
+    public BaseResult deleteStorageStatus(String logType) {
+        setCookie();
+        List list = new ArrayList<>();
+        if (StringUtil.isBlank(logType)) {
+
+            StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler("Traffic Logs", JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
+            list.add(trafficInfo);
+
+            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler("Report and Metrics", JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
+            list.add(reportInfo);
+        } else if ("Traffic Logs".equalsIgnoreCase(logType)) {
+            StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
+            list.add(trafficInfo);
+        } else if ("Report and Metrics".equalsIgnoreCase(logType)) {
+            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
+            list.add(reportInfo);
+        } else {
+            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "无匹配的logType");
+        }
+        return BaseResultGenerator.success("ok", list);
+    }
+
+    /**
+     * 通过handler获取数据配额设置状态
+     * @param logType
+     * @param jobHandlerValue
+     * @return
+     */
+    private StorageDeletionInfo getStorageDeletionInfoByHandler(String logType, String jobHandlerValue) {
+        StorageDeletionInfo storageDeletionInfo = new StorageDeletionInfo();
+        Map trafficDate = getDataByHandler(jobHandlerValue);
+        XxlJobInfo xxlJobInfo = mapToBean(trafficDate, XxlJobInfo.class);
+        Map executorParam = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), Map.class);
+        Object maxDays = executorParam.get("maxdays");
+        storageDeletionInfo.setLogType(logType);
+        storageDeletionInfo.setMaxDays(Integer.parseInt(String.valueOf(maxDays)));
+        return storageDeletionInfo;
+    }
+
     private BaseResult deleteByMaxDays(String logType, int maxDays) {
         BaseResult baseResult;
         if ("Traffic Logs".equalsIgnoreCase(logType)) {
@@ -107,7 +151,7 @@ public class SystemServiceImpl implements SystemService {
 
         } else if ("Report and Metrics".equalsIgnoreCase(logType)) {
             Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(maxDays));
+            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(false, maxDays));
             BaseResult resultUpdateReport = executeManageJob("update", xxlJobInfo);
             BaseResult resultTriggerReport = executeManageJob("trigger", xxlJobInfo);
 
@@ -136,12 +180,12 @@ public class SystemServiceImpl implements SystemService {
         BaseResult resultUpdateTraffic = executeManageJob("update", xxlJobInfo);
 
         trafficDate = getDataByHandler(JobHandlerEnum.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-        xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(180));
+        xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(true, 365));
         BaseResult resultUpdateAllReport = executeManageJob("update", xxlJobInfo);
         BaseResult resultTriggerAllReport = executeManageJob("trigger", xxlJobInfo);
 
         trafficDate = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-        xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(180));
+        xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(false, 365));
         BaseResult resultUpdateReport = executeManageJob("update", xxlJobInfo);
 
         if (resultTriggerAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateTraffic.getStatus().equals(HttpStatus.SC_OK)
@@ -213,6 +257,7 @@ public class SystemServiceImpl implements SystemService {
                 append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
                 append(handlerValue);
         Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers);
+        log.info("请求调度任务pageList接口" + url);
         if (resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             List<Map> data = (List) maps.get("data");
@@ -240,14 +285,20 @@ public class SystemServiceImpl implements SystemService {
      * 获取druid 执行参数
      *
      * @param maxDays
+     * @param deleteAll
      * @return
      */
-    private ExecutorParam getDruidExecutorParam(int maxDays) {
+    private ExecutorParam getDruidExecutorParam(boolean deleteAll, int maxDays) {
         ExecutorParam executorParam = new ExecutorParam();
         executorParam.setMaxdays(maxDays);
-        executorParam.setServer(druidIoHttpSource.getUrl().substring(0, druidIoHttpSource.getUrl().indexOf("/")));
+        String queryServer = druidIoHttpSource.getUrl().substring(0, druidIoHttpSource.getUrl().indexOf("/"));
+        if (deleteAll) {
+            executorParam.setServer(jobAdminHttpSource.getDruidDeleteNode() + "," + queryServer);
+        } else {
+            executorParam.setServer(queryServer);
+        }
         executorParam.setDatasource(druidIoHttpSource.getDbname());
-        executorParam.setTablename("top_external_host_log_hot_test");
+        executorParam.setTablename(schemaProperties.getDruid());
         return executorParam;
     }
 
@@ -264,7 +315,7 @@ public class SystemServiceImpl implements SystemService {
         executorParam.setDatasource(clickHouseHttpSource.getDbname());
         executorParam.setUsername(clickHouseHttpSource.getUsername());
         executorParam.setPassword(clickHouseHttpSource.getPassword());
-        executorParam.setTablename("security_event_log_local");
+        executorParam.setTablename(schemaProperties.getClickhouse());
         return executorParam;
     }
 
@@ -301,7 +352,6 @@ public class SystemServiceImpl implements SystemService {
     public static Map<String, Object> getObjectToMap(Object obj) {
         Map<String, Object> map = new LinkedHashMap<String, Object>();
         Class<?> clazz = obj.getClass();
-        System.out.println(clazz);
         for (Field field : clazz.getDeclaredFields()) {
             field.setAccessible(true);
             String fieldName = field.getName();

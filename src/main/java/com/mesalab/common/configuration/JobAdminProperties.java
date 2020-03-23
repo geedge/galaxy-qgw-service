@@ -13,4 +13,6 @@ public class JobAdminProperties {
 
     private String password;
 
+    private String druidDeleteNode;
+
 }

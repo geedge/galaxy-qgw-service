@@ -1,22 +1,17 @@
 package com.mesalab.qgw.controller;
 
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.service.SystemService;
-import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Map;
 
 @Slf4j
@@ -50,24 +45,30 @@ public class SystemController {
         return systemService.dailyTrendOfStorage(searchStartTime, searchEndTime);
     }
 
-    @ApiOperation(value = "数据删除", httpMethod = "POST", notes = "修改日志删除策略")
+    @ApiOperation(value = "数据配额设置", httpMethod = "POST", notes = "修改日志删除策略")
     @PostMapping(value = "storage/deletion")
-    public BaseResult storageDeletion(@RequestBody Map<String, String> logInfo) {
-        log.debug("数据删除接口");
-        String logType = logInfo.get("logType");
-        String maxDays = logInfo.get("maxDays");
-        if (StringUtil.isBlank(logType) || StringUtil.isBlank(maxDays)) {
+    public BaseResult storageDeletion(@RequestBody StorageDeletionInfo storageDeletionInfo) {
+
+        String logType = storageDeletionInfo.getLogType();
+        Integer maxDays = storageDeletionInfo.getMaxDays();
+        log.info("数据配额设置, 参数: params is {}", storageDeletionInfo);
+        if (StringUtil.isBlank(logType) || StringUtil.isBlank(String.valueOf(maxDays))) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType 与 maxDays 需同时填写", null);
         }
-        if (!StringUtil.isNumeric(maxDays)) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: maxDays 必须是数值", null);
-        }
-        if ("ALL".equals(logType.toUpperCase()) && Integer.parseInt(maxDays) != 0) {
+        if ("ALL".equalsIgnoreCase(logType) && maxDays != 0) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType为All：maxDays 必须为0", null);
         }
-        if (!"ALL".equals(logType.toUpperCase()) && !(Integer.parseInt(maxDays) >= 1 && Integer.parseInt(maxDays) <= 2000)) {
+        if (!"ALL".equalsIgnoreCase(logType) && !(maxDays >= 1 && maxDays <= 2000)) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType非All: maxDays 必须是数值且[1-2000]", null);
         }
-        return systemService.deleteStorage(logInfo.get("logType").trim(), Integer.parseInt(maxDays));
+        return systemService.deleteStorage(logType, maxDays);
+    }
+
+    @ApiOperation(value = "数据配额设置状态", httpMethod = "GET", notes = "获取当前设置删除配额状态")
+    @GetMapping(value = "storage/deletion")
+    public BaseResult storageDeletionStatus(StorageDeletionInfo storageDeletionInfo) {
+
+        log.info("数据配额设置状态, 参数: params is {}", storageDeletionInfo);
+        return systemService.deleteStorageStatus(storageDeletionInfo.getLogType());
     }
 }
