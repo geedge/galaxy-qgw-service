@@ -291,11 +291,11 @@ public class SystemServiceImpl implements SystemService {
     private ExecutorParam getDruidExecutorParam(boolean deleteAll, int maxDays) {
         ExecutorParam executorParam = new ExecutorParam();
         executorParam.setMaxdays(maxDays);
-        String queryServer = druidIoHttpSource.getUrl().substring(0, druidIoHttpSource.getUrl().indexOf("/"));
+        String deleteServer = jobAdminHttpSource.getDruidDeleteNode();
         if (deleteAll) {
-            executorParam.setServer(jobAdminHttpSource.getDruidDeleteNode() + "," + queryServer);
+            executorParam.setServer(deleteServer + "," + druidIoHttpSource.getUrl().substring(0, druidIoHttpSource.getUrl().indexOf("/")));
         } else {
-            executorParam.setServer(queryServer);
+            executorParam.setServer(deleteServer);
         }
         executorParam.setDatasource(druidIoHttpSource.getDbname());
         executorParam.setTablename(schemaProperties.getDruid());
@@ -315,7 +315,7 @@ public class SystemServiceImpl implements SystemService {
         executorParam.setDatasource(clickHouseHttpSource.getDbname());
         executorParam.setUsername(clickHouseHttpSource.getUsername());
         executorParam.setPassword(clickHouseHttpSource.getPassword());
-        executorParam.setTablename(schemaProperties.getClickhouse());
+        executorParam.setTablename(jobAdminHttpSource.getClickhouseLocalTable());
         return executorParam;
     }
 

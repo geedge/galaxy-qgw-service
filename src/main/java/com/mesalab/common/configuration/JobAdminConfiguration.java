@@ -28,6 +28,7 @@ public class JobAdminConfiguration {
         httpSource.setUserName(jobAdminProperties.getUserName());
         httpSource.setPassword(jobAdminProperties.getPassword());
         httpSource.setDruidDeleteNode(jobAdminProperties.getDruidDeleteNode());
+        httpSource.setClickhouseLocalTable(jobAdminProperties.getClickhouseLocalTable());
         return httpSource;
     }
 }

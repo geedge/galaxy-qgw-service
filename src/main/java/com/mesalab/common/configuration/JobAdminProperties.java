@@ -15,4 +15,6 @@ public class JobAdminProperties {
 
     private String druidDeleteNode;
 
+    private String clickhouseLocalTable;
+
 }
