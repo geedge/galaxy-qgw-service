@@ -85,9 +85,11 @@ public class APIServiceImpl implements IAPIService {
     }
 
     private BaseResult executeSelectStatement(ApiParam param) {
+
         validateAndGetTableName(param);
 
-        BaseResult baseResult = parserAndGetDialect(param).sqlDialectTransform().executeHttpQuery();
+        BaseResult baseResult = parserAndGetDialect(param).sqlDialectTransform().executeHttpQuery()
+                .executeUDF().build();
 
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus() ,baseResult.getMessage(), null);
@@ -514,7 +516,7 @@ public class APIServiceImpl implements IAPIService {
         param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery();
+        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "describe table error, please check tableName", null);
         }
@@ -549,7 +551,7 @@ public class APIServiceImpl implements IAPIService {
         param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery();
+        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), result.getMessage(), null);
         }

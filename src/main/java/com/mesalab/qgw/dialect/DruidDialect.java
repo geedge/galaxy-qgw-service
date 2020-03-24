@@ -1,6 +1,7 @@
 package com.mesalab.qgw.dialect;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -25,19 +26,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 public class DruidDialect implements  Dialect {
 
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-
-
     private ApiParam param;
 
     private int pageOffset;
 
+    private Map<String, String> results;
+
+    private Stopwatch watch = Stopwatch.createUnstarted();
+
     public DruidDialect(ApiParam param) {
+
         this.param = param;
+
+        results = Maps.newHashMap();
+
     }
 
     @Override
@@ -79,9 +88,8 @@ public class DruidDialect implements  Dialect {
     }
 
     @Override
-    public BaseResult executeHttpQuery() {
-        BaseResult baseResult = null;
-
+    public Dialect executeHttpQuery() {
+        watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
         DruidDialect.DruidQueryParam druidQueryParam = new DruidDialect.DruidQueryParam();
 
@@ -97,17 +105,29 @@ public class DruidDialect implements  Dialect {
             druidQueryParam.setResultFormat("csv");
         }
 
-        long beginTime = System.currentTimeMillis();
-        Map<String, String> resultMap = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
-        double executeTime = (System.currentTimeMillis()-beginTime) / 1000.0;
+        results = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
 
-        if (StringUtil.isEmpty(resultMap)) {
+        return this;
+
+    }
+
+    @Override
+    public Dialect executeUDF() {
+        return this;
+    }
+
+    @Override
+    public BaseResult build() {
+
+        BaseResult baseResult = null;
+
+        if (StringUtil.isEmpty(results)) {
             baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
         } else {
-            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
 
                 if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                    String result = resultMap.get("result");
+                    String result = results.get("result");
 
                     String[] results = result.split("\n");
 
@@ -115,7 +135,7 @@ public class DruidDialect implements  Dialect {
                         if (pageOffset >= results.length) {
                             result = "";
                         } else {
-                           String[] subResult = ArrayUtils.subarray(results, pageOffset, results.length);
+                            String[] subResult = ArrayUtils.subarray(results, pageOffset, results.length);
                             result = Joiner.on("\n").join(subResult).toString();
 
 
@@ -127,7 +147,7 @@ public class DruidDialect implements  Dialect {
 
 
                 } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                    List<Object> allResults = (List<Object>) JsonMapper.fromJsonString(resultMap.get("result"), Object.class);
+                    List<Object> allResults = (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class);
                     if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
                         if (pageOffset >= allResults.size()) {
                             allResults = new ArrayList<>();
@@ -135,7 +155,7 @@ public class DruidDialect implements  Dialect {
                             allResults = allResults.subList(pageOffset, allResults.size());
                         }
                     }
-
+                    Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS)/1000.0;
                     Map<String, Object> statistics = Maps.newHashMap();
                     statistics.put("elapsed", String.format("%.2f", executeTime));
                     statistics.put("rows_read", allResults.size());
@@ -148,18 +168,17 @@ public class DruidDialect implements  Dialect {
 
 
 
-            } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,  JsonMapper.fromJsonString(resultMap.get("result"), Object.class).toString());
-            } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, JsonMapper.fromJsonString(resultMap.get("result"), Object.class).toString());
+            } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,  JsonMapper.fromJsonString(results.get("result"), Object.class).toString());
+            } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, JsonMapper.fromJsonString(results.get("result"), Object.class).toString());
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, JsonMapper.fromJsonString(resultMap.get("result"), Object.class).toString());
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, JsonMapper.fromJsonString(results.get("result"), Object.class).toString());
             }
         }
 
         return baseResult;
     }
-
 
 
     @Data
