@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 public class SchemaProperties {
     private String clickhouse;
     private String druid;
-    private String influxDB;
     private  int  defaultMaxRows;
 
 

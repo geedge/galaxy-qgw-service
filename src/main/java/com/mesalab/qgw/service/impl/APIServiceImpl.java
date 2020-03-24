@@ -24,7 +24,6 @@ import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.UserDefinedFunctionUtils;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -112,12 +111,6 @@ public class APIServiceImpl implements IAPIService {
             } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getDruid())
                     .contains(param.getTableName().toLowerCase())) {
                 param.setDbType(DBTypeEnum.DRUID.getValue());
-            } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getInfluxDB())
-                    .contains(param.getTableName().toLowerCase())) {
-                param.setDbType(DBTypeEnum.INFLUXDB.getValue());
-                String sql = UserDefinedFunctionUtils.generateCustomFunction(param.getQuery());
-                log.info(sql);
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), " 自定义influxDB SQL函数解析为: " + sql, null);
             } else {
                 throw new BusinessException(BaseResultEnum.FAIL.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
             }
