@@ -10,10 +10,7 @@ import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.support.IConvertor;
-import com.mesalab.common.utils.ConvertUtil;
-import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SQLDateFunctionUtil;
-import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.*;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
@@ -344,6 +341,7 @@ public class ClickhouseDialect implements Dialect {
             param.setQuery(generateUniq(param.getQuery()));
             param.setQuery(generateSubquery(param.getQuery()));
             param.setQuery(generateStandard(param.getQuery()));
+            param.setQuery(UserDefinedFunctionUtils.generateCustomFunction(param.getQuery()));
             param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
         }
         param.setQuery(generateSqlEncode(param.getQuery()));
@@ -366,6 +364,12 @@ public class ClickhouseDialect implements Dialect {
 
         String groupLabel = "http_domain";
         String timeGranLabel = "stat_time";
+        if (param.getSqlQuerySource().getUdfList().size() == 1) {
+            String end = param.getSqlQuerySource().getUdfList().get(0).getEnd();
+            String start = param.getSqlQuerySource().getUdfList().get(0).getStart();
+            List parameterList = param.getSqlQuerySource().getUdfList().get(0).getParameterList();
+            System.out.println(1);
+        }
 
 
         if (StringUtil.isNotEmpty(results)) {

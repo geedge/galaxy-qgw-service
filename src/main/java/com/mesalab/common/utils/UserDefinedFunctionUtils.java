@@ -19,20 +19,14 @@ import java.util.regex.Pattern;
 public class UserDefinedFunctionUtils {
 
     public static Pattern fun1 = Pattern.compile("\\bTIME_FLOOR_WITH_FILL\\(", Pattern.CASE_INSENSITIVE);
-    public static Pattern fun2 = Pattern.compile("\\bNUMBER_UNIT\\(", Pattern.CASE_INSENSITIVE);
     public static final HashMap<String, String> functions = Maps.newHashMap();
 
     static {
-        /*Param param = new Param();
-        param.setSize(3);
-        param.setFormat("%s(%s) fill(%s)");*/
-        functions.put("TIME_FLOOR_WITH_FILL", "%s(%s) fill(%s)");
-        functions.put("NUMBER_UNIT", "%s%s");
+        functions.put("TIME_FLOOR_WITH_FILL", null);
     }
 
     public static String generateCustomFunction(String query) {
         query = conversionFun(fun1, query);
-        query = conversionFun(fun2, query);
         return query;
     }
 
@@ -76,7 +70,7 @@ public class UserDefinedFunctionUtils {
     private static String replace(String funName, String... paramsList) {
         String s = functions.get(funName.toUpperCase());
         if (com.zdjizhi.utils.StringUtil.isBlank(s)) {
-            new Throwable("user defined function replace error");
+            return paramsList[0];
         }
         String format = String.format(s, paramsList);
         return format;
@@ -88,10 +82,4 @@ public class UserDefinedFunctionUtils {
         private String name;
         private List<String> paramsList = new ArrayList<>();
     }
-
-    /*@Data
-    static class Param {
-        private int size;
-        private String format;
-    }*/
 }

@@ -25,13 +25,19 @@ import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SQLHelper;
+import com.mesalab.common.utils.UserDefinedFunctionUtils;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.api.UDFOfTimeFloorWithFill;
 import com.mesalab.qgw.service.IAPIService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
+import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.DescribeStatement;
 import net.sf.jsqlparser.statement.ShowStatement;
@@ -323,6 +329,20 @@ public class APIServiceImpl implements IAPIService {
                         String groupByString = Joiner.on(",").join(groupList);
                         sqlQuerySource.setGroupByClause(groupByString);
 
+                        for (Expression expr : groupList) {
+                            if (expr instanceof Function) {
+                                Function fun = (Function) expr;
+                                if (UserDefinedFunctionUtils.functions.keySet().contains(fun.getName())) {
+                                    List<Expression> expressions = fun.getParameters().getExpressions();
+                                    List params = new ArrayList<>();
+                                    params.addAll(expressions);
+                                    UDFOfTimeFloorWithFill udf = new UDFOfTimeFloorWithFill(fun.getName(), params, "", "");
+                                    setUdf(udf, where, params.get(0).toString());
+                                    sqlQuerySource.getUdfList().add(udf);
+                                }
+                            }
+                        }
+
                     }
 
 
@@ -379,6 +399,35 @@ public class APIServiceImpl implements IAPIService {
         return sqlQuerySource;
     }
 
+    private void setUdf(UDFOfTimeFloorWithFill udf, Expression where, String field) {
+        if (where instanceof ComparisonOperator) {
+            ComparisonOperator whereOperator = (ComparisonOperator) where;
+            String operator = whereOperator.getStringExpression();
+            String left = whereOperator.getLeftExpression().toString();
+            String right = whereOperator.getRightExpression().toString();
+            if (field.equals(left)) {
+                if (operator.contains("<")) {
+                    udf.setEnd(right);
+                } else if (operator.contains(">")) {
+                    udf.setStart(right);
+                }
+            } else if (field.equals(right)) {
+                if (operator.contains("<")) {
+                    udf.setEnd(left);
+                } else if (operator.contains(">")) {
+                    udf.setStart(left);
+                }
+            }
+        } else if (where instanceof AndExpression) {
+            AndExpression whereAnd = (AndExpression) where;
+            setUdf(udf, whereAnd.getLeftExpression(), field);
+            setUdf(udf, whereAnd.getRightExpression(), field);
+        } else if (where instanceof OrExpression) {
+            OrExpression whereOr = (OrExpression) where;
+            setUdf(udf, whereOr.getLeftExpression(), field);
+            setUdf(udf, whereOr.getRightExpression(), field);
+        }
+    }
 
     /**
      *  对SQL语句进行预先解析,为语法树结构

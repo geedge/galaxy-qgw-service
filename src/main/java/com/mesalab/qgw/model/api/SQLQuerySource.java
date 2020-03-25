@@ -1,5 +1,6 @@
 package com.mesalab.qgw.model.api;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.Data;
 import net.sf.jsqlparser.expression.Expression;
@@ -20,4 +21,5 @@ public class SQLQuerySource {
     private Expression expression;
     private List<OrderByElement> listOrderElement;
     private Map<String, String> fields = Maps.newHashMap();
+    private List<UDFOfTimeFloorWithFill> udfList = Lists.newArrayList();
 }
