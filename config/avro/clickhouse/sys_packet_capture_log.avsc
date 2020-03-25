@@ -210,6 +210,12 @@
       "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
     },
     {
+      "name": "common_establish_latency_ms",
+      "type": "int",
+      "label": "Establish Latency(ms)",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
       "name": "common_con_duration_ms",
       "type": "int",
       "label": "Duration(ms)",
