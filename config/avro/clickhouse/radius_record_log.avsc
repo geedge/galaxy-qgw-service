@@ -60,7 +60,8 @@
     {
       "name": "common_server_port",
       "type": "int",
-      "label": "Server Port"
+      "label": "Server Port",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_action",
