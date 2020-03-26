@@ -194,7 +194,11 @@ public class MetadataServiceImpl implements MetadataService {
         Map doc = (Map) data.get("doc");
         if (StringUtil.isNotEmpty(doc)) {
             Object value = doc.get(key);
-            return StringUtil.isEmpty(value) ? "" : value.toString();
+            if (value instanceof Map) {
+                return JsonMapper.toJsonString(value);
+            } else {
+                return StringUtil.isEmpty(value) ? "" : value.toString();
+            }
         }
         return "";
     }

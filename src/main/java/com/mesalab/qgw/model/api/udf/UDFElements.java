@@ -1,19 +1,16 @@
-package com.mesalab.qgw.model.api;
+package com.mesalab.qgw.model.api.udf;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.sf.jsqlparser.expression.Expression;
 
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UDFOfTimeFloorWithFill {
-
+public class UDFElements {
     private String name;
-    private List parameterList;
-    private String start;
-    private String end;
-
+    private List<Expression> params;
 }

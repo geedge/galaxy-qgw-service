@@ -2,6 +2,8 @@ package com.mesalab.qgw.model.api;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mesalab.qgw.model.api.udf.PartitionKeyRange;
+import com.mesalab.qgw.model.api.udf.UDF;
 import lombok.Data;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.select.OrderByElement;
@@ -21,5 +23,8 @@ public class SQLQuerySource {
     private Expression expression;
     private List<OrderByElement> listOrderElement;
     private Map<String, String> fields = Maps.newHashMap();
-    private List<UDFOfTimeFloorWithFill> udfList = Lists.newArrayList();
+    private List<UDF> udfList = Lists.newArrayList();
+    private Map<String, Object> groupDimension = Maps.newHashMap();
+    private PartitionKeyRange partitionKeyRange;
+
 }

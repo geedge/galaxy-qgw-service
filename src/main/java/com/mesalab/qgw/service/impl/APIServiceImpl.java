@@ -24,13 +24,17 @@ import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.UserDefinedFunctionUtils;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.mesalab.qgw.model.api.UDFOfTimeFloorWithFill;
+import com.mesalab.qgw.model.api.udf.PartitionKeyRange;
+import com.mesalab.qgw.model.api.udf.UDF;
+import com.mesalab.qgw.model.api.udf.UDFElements;
 import com.mesalab.qgw.service.IAPIService;
+import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
@@ -61,6 +65,8 @@ public class APIServiceImpl implements IAPIService {
     private ClickHouseProperties clickHouseProperties;
     @Autowired
     private DruidIoProperties druidIoProperties;
+    @Autowired
+    private MetadataService metadataService;
 
 
     @Override
@@ -299,9 +305,13 @@ public class APIServiceImpl implements IAPIService {
 
                     Expression where = select.getWhere();
 
-                    if (where != null){
+                    if (where != null) {
                         sqlQuerySource.setExpr(where.toString());
                         sqlQuerySource.setExpression(where);
+                        String partitionKey = metadataService.getPartitionKey(sqlQuerySource.getTableName());
+                        PartitionKeyRange partitionKeyRange = new PartitionKeyRange();
+                        setPartitionKeyRange(partitionKeyRange, where, partitionKey);
+                        sqlQuerySource.setPartitionKeyRange(partitionKeyRange);
                     }
 
                     List<SelectItem> selectItemsList = select.getSelectItems();
@@ -329,22 +339,15 @@ public class APIServiceImpl implements IAPIService {
                         String groupByString = Joiner.on(",").join(groupList);
                         sqlQuerySource.setGroupByClause(groupByString);
 
+                        String schemaQuery = metadataService.getValueByKeyInSchemaDoc(sqlQuerySource.getTableName(), "schema_query");
+                        Map map = (Map) JsonMapper.fromJsonString(schemaQuery, Map.class);
+
                         for (Expression expr : groupList) {
-                            if (expr instanceof Function) {
-                                Function fun = (Function) expr;
-                                if (UserDefinedFunctionUtils.functions.keySet().contains(fun.getName())) {
-                                    List<Expression> expressions = fun.getParameters().getExpressions();
-                                    List params = new ArrayList<>();
-                                    params.addAll(expressions);
-                                    UDFOfTimeFloorWithFill udf = new UDFOfTimeFloorWithFill(fun.getName(), params, "", "");
-                                    setUdf(udf, where, params.get(0).toString());
-                                    sqlQuerySource.getUdfList().add(udf);
-                                }
-                            }
+
+                            addUDFList(sqlQuerySource, expr);
+                            if (addGroupDimension(sqlQuerySource, map)) continue;
                         }
-
                     }
-
 
                     List<OrderByElement> orderByList = select.getOrderByElements();
                     if (StringUtil.isNotEmpty(orderByList)) {
@@ -399,33 +402,93 @@ public class APIServiceImpl implements IAPIService {
         return sqlQuerySource;
     }
 
-    private void setUdf(UDFOfTimeFloorWithFill udf, Expression where, String field) {
+    private boolean addGroupDimension(SQLQuerySource sqlQuerySource, Map map) {
+        if (map == null) {
+            return true;
+        }
+        List<String> dimensions = (List<String>) map.get("dimensions");
+        if (dimensions == null) {
+            return true;
+        }
+        Map<String, String> fields = sqlQuerySource.getFields();
+        for (String dimension : dimensions) {
+            for (String key : fields.keySet()) {
+                String s = fields.get(key);
+                if (s.contains(dimension)) {
+                    sqlQuerySource.getGroupDimension().put(dimension, key);
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 自定义函数封装
+     * @param sqlQuerySource
+     * @param expr
+     */
+    private void addUDFList(SQLQuerySource sqlQuerySource, Expression expr) {
+        if (expr instanceof Function) {
+            Function fun = (Function) expr;
+            if (UserDefinedFunctionUtils.functions.keySet().contains(fun.getName().toUpperCase())) {
+                List<Expression> expressions = fun.getParameters().getExpressions();
+                UDF udf = getUdf(fun, expressions);
+                sqlQuerySource.getUdfList().add(udf);
+            }
+        }
+    }
+
+    /**
+     * 获取自定义函数类
+     * @param fun
+     * @param expressions
+     * @return
+     */
+    private UDF getUdf(Function fun, List<Expression> expressions) {
+        UDF udf;
+        String funName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_UNDERSCORE, fun.getName());
+        try {
+            Class dialectClazz = Class.forName("com.mesalab.qgw.model.api.udf." + CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_UNDERSCORE, fun.getName().toUpperCase()));
+            Constructor constructor = dialectClazz.getConstructor(UDFElements.class);
+            UDFElements udfElements = new UDFElements(funName, expressions);
+            udf = (UDF) constructor.newInstance(udfElements);
+        } catch (Exception e) {
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "自定义函数转换实例异常！", e);
+        }
+        return udf;
+    }
+
+    private void setPartitionKeyRange(PartitionKeyRange partitionKeyRange, Expression where, String partitionKey) {
         if (where instanceof ComparisonOperator) {
             ComparisonOperator whereOperator = (ComparisonOperator) where;
             String operator = whereOperator.getStringExpression();
             String left = whereOperator.getLeftExpression().toString();
             String right = whereOperator.getRightExpression().toString();
-            if (field.equals(left)) {
+            if (partitionKey.equals(left)) {
                 if (operator.contains("<")) {
-                    udf.setEnd(right);
+                    partitionKeyRange.setRightOfRange(right);
                 } else if (operator.contains(">")) {
-                    udf.setStart(right);
+                    partitionKeyRange.setLeftOfRange(right);
+                } else if (operator.equals("=")) {
+                    partitionKeyRange.setEqual(right);
                 }
-            } else if (field.equals(right)) {
+            } else if (partitionKey.equals(right)) {
                 if (operator.contains("<")) {
-                    udf.setEnd(left);
+                    partitionKeyRange.setRightOfRange(left);
                 } else if (operator.contains(">")) {
-                    udf.setStart(left);
+                    partitionKeyRange.setLeftOfRange(left);
+                } else if (operator.equals("=")) {
+                    partitionKeyRange.setEqual(left);
                 }
             }
         } else if (where instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) where;
-            setUdf(udf, whereAnd.getLeftExpression(), field);
-            setUdf(udf, whereAnd.getRightExpression(), field);
+            setPartitionKeyRange(partitionKeyRange, whereAnd.getLeftExpression(), partitionKey);
+            setPartitionKeyRange(partitionKeyRange, whereAnd.getRightExpression(), partitionKey);
         } else if (where instanceof OrExpression) {
             OrExpression whereOr = (OrExpression) where;
-            setUdf(udf, whereOr.getLeftExpression(), field);
-            setUdf(udf, whereOr.getRightExpression(), field);
+            setPartitionKeyRange(partitionKeyRange, whereOr.getLeftExpression(), partitionKey);
+            setPartitionKeyRange(partitionKeyRange, whereOr.getRightExpression(), partitionKey);
         }
     }
 

@@ -14,6 +14,9 @@ import com.mesalab.common.utils.*;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.api.udf.PartitionKeyRange;
+import com.mesalab.qgw.model.api.udf.TIME_FLOOR_WITH_FILL;
+import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.DateUtils;
@@ -341,7 +344,7 @@ public class ClickhouseDialect implements Dialect {
             param.setQuery(generateUniq(param.getQuery()));
             param.setQuery(generateSubquery(param.getQuery()));
             param.setQuery(generateStandard(param.getQuery()));
-            param.setQuery(UserDefinedFunctionUtils.generateCustomFunction(param.getQuery()));
+            //param.setQuery(UserDefinedFunctionUtils.generateCustomFunction(param.getQuery()));
             param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
         }
         param.setQuery(generateSqlEncode(param.getQuery()));
@@ -364,13 +367,17 @@ public class ClickhouseDialect implements Dialect {
 
         String groupLabel = "http_domain";
         String timeGranLabel = "stat_time";
-        if (param.getSqlQuerySource().getUdfList().size() == 1) {
-            String end = param.getSqlQuerySource().getUdfList().get(0).getEnd();
-            String start = param.getSqlQuerySource().getUdfList().get(0).getStart();
-            List parameterList = param.getSqlQuerySource().getUdfList().get(0).getParameterList();
-            System.out.println(1);
-        }
 
+        List<UDF> udfList = param.getSqlQuerySource().getUdfList();
+        for (UDF udf : udfList) {
+            if(udf instanceof TIME_FLOOR_WITH_FILL){
+                System.out.println(udf);
+            }
+        }
+        Map<String, Object> groupDimension = param.getSqlQuerySource().getGroupDimension();
+        System.out.println(groupDimension);
+        PartitionKeyRange partitionKeyRange = param.getSqlQuerySource().getPartitionKeyRange();
+        System.out.println(partitionKeyRange);
 
         if (StringUtil.isNotEmpty(results)) {
             if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
