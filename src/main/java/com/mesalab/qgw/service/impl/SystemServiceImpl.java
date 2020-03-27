@@ -85,8 +85,8 @@ public class SystemServiceImpl implements SystemService {
     public BaseResult deleteStorage(String logType, int maxDays) {
         BaseResult baseResult = null;
         setCookie();
-        if (0 == maxDays && "ALL".equals(logType.toUpperCase())) {
-            baseResult = deleteAllAndUpdate();
+        if ("ALL".equals(logType.toUpperCase())) {
+            baseResult = deleteAllAndUpdate(maxDays);
         } else {
             baseResult = deleteByMaxDays(logType, maxDays);
         }
@@ -94,7 +94,7 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Override
-    public BaseResult deleteStorageStatus(String logType) {
+    public BaseResult getDeleteStorageStatus(String logType) {
         setCookie();
         List list = new ArrayList<>();
         if (StringUtil.isBlank(logType)) {
@@ -150,7 +150,7 @@ public class SystemServiceImpl implements SystemService {
 
         } else if ("Report and Metrics".equalsIgnoreCase(logType)) {
             Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(false, maxDays));
+            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(maxDays));
             BaseResult resultUpdateReport = executeManageJob("update", xxlJobInfo);
             BaseResult resultTriggerReport = executeManageJob("trigger", xxlJobInfo);
 
@@ -167,35 +167,48 @@ public class SystemServiceImpl implements SystemService {
         return baseResult;
     }
 
-    private BaseResult deleteAllAndUpdate() {
+    private BaseResult deleteAllAndUpdate(int maxDays) {
         BaseResult baseResult;
-        Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_ALL_TRAFFIC_DATA_JOB_HANDLER.getValue());
-        XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(30));
-        BaseResult resultUpdateAllTraffic = executeManageJob("update", xxlJobInfo);
-        BaseResult resultTriggerAllTraffic = executeManageJob("trigger", xxlJobInfo);
-
-        trafficDate = getDataByHandler(JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
-        xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(30));
-        BaseResult resultUpdateTraffic = executeManageJob("update", xxlJobInfo);
-
-        trafficDate = getDataByHandler(JobHandlerEnum.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-        xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(true, 365));
-        BaseResult resultUpdateAllReport = executeManageJob("update", xxlJobInfo);
-        BaseResult resultTriggerAllReport = executeManageJob("trigger", xxlJobInfo);
-
-        trafficDate = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-        xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(false, 365));
-        BaseResult resultUpdateReport = executeManageJob("update", xxlJobInfo);
-
-        if (resultTriggerAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateTraffic.getStatus().equals(HttpStatus.SC_OK)
-                && resultTriggerAllReport.getStatus().equals(HttpStatus.SC_OK) && resultUpdateAllReport.getStatus().equals(HttpStatus.SC_OK) && resultUpdateReport.getStatus().equals(HttpStatus.SC_OK)) {
-            baseResult = BaseResultGenerator.success("ok", null);
+        if (maxDays > 0) {
+            BaseResult resultUpdateTraffic = deleteByMaxDays("Traffic Logs", maxDays);
+            BaseResult resultUpdateReport = deleteByMaxDays("Report and Metrics", maxDays);
+            if (resultUpdateTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateReport.getStatus().equals(HttpStatus.SC_OK)) {
+                baseResult = BaseResultGenerator.success("ok", null);
+            } else {
+                String info =
+                        String.format("更新删除ClickHouse: %s; 启动清库Druid: %s, 更新删除: %s",
+                                resultUpdateTraffic.getStatus(), resultUpdateReport.getStatus());
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
+            }
         } else {
-            String info =
-                    String.format("启动清库Druid: %s, 更新清库Druid: %s, 更新删除Druid: %s; 启动清库clickHouse: %s, 更新清库ClickHouse: %s, 更新删除Clickhouse: %s",
-                            resultTriggerAllReport.getStatus(), resultUpdateAllReport.getStatus(), resultUpdateReport.getStatus(),
-                            resultTriggerAllTraffic.getStatus(), resultUpdateAllTraffic.getStatus(), resultUpdateTraffic.getStatus());
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
+            Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_ALL_TRAFFIC_DATA_JOB_HANDLER.getValue());
+            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(30));
+            BaseResult resultUpdateAllTraffic = executeManageJob("update", xxlJobInfo);
+            BaseResult resultTriggerAllTraffic = executeManageJob("trigger", xxlJobInfo);
+
+            trafficDate = getDataByHandler(JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
+            xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(30));
+            BaseResult resultUpdateTraffic = executeManageJob("update", xxlJobInfo);
+
+            trafficDate = getDataByHandler(JobHandlerEnum.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
+            xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(365));
+            BaseResult resultUpdateAllReport = executeManageJob("update", xxlJobInfo);
+            BaseResult resultTriggerAllReport = executeManageJob("trigger", xxlJobInfo);
+
+            trafficDate = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
+            xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(365));
+            BaseResult resultUpdateReport = executeManageJob("update", xxlJobInfo);
+
+            if (resultTriggerAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateTraffic.getStatus().equals(HttpStatus.SC_OK)
+                    && resultTriggerAllReport.getStatus().equals(HttpStatus.SC_OK) && resultUpdateAllReport.getStatus().equals(HttpStatus.SC_OK) && resultUpdateReport.getStatus().equals(HttpStatus.SC_OK)) {
+                baseResult = BaseResultGenerator.success("ok", null);
+            } else {
+                String info =
+                        String.format("启动清库Druid: %s, 更新清库Druid: %s, 更新删除Druid: %s; 启动清库clickHouse: %s, 更新清库ClickHouse: %s, 更新删除ClickHouse: %s",
+                                resultTriggerAllReport.getStatus(), resultUpdateAllReport.getStatus(), resultUpdateReport.getStatus(),
+                                resultTriggerAllTraffic.getStatus(), resultUpdateAllTraffic.getStatus(), resultUpdateTraffic.getStatus());
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
+            }
         }
         return baseResult;
     }
@@ -284,20 +297,11 @@ public class SystemServiceImpl implements SystemService {
      * 获取druid 执行参数
      *
      * @param maxDays
-     * @param deleteAll
      * @return
      */
-    private ExecutorParam getDruidExecutorParam(boolean deleteAll, int maxDays) {
+    private ExecutorParam getDruidExecutorParam(int maxDays) {
         ExecutorParam executorParam = new ExecutorParam();
         executorParam.setMaxdays(maxDays);
-        String deleteServer = jobAdminHttpSource.getDruidDeleteNode();
-        if (deleteAll) {
-            executorParam.setServer(deleteServer + "," + druidIoHttpSource.getUrl().substring(0, druidIoHttpSource.getUrl().indexOf("/")));
-        } else {
-            executorParam.setServer(deleteServer);
-        }
-        executorParam.setDatasource(druidIoHttpSource.getDbname());
-        executorParam.setTablename(schemaProperties.getDruid());
         return executorParam;
     }
 
@@ -310,11 +314,6 @@ public class SystemServiceImpl implements SystemService {
     private ExecutorParam getClickHouseExecutorParam(int maxDays) {
         ExecutorParam executorParam = new ExecutorParam();
         executorParam.setMaxdays(maxDays);
-        executorParam.setServer(clickHouseHttpSource.getUrl());
-        executorParam.setDatasource(clickHouseHttpSource.getDbname());
-        executorParam.setUsername(clickHouseHttpSource.getUsername());
-        executorParam.setPassword(clickHouseHttpSource.getPassword());
-        executorParam.setTablename(jobAdminHttpSource.getClickhouseLocalTable());
         return executorParam;
     }
 

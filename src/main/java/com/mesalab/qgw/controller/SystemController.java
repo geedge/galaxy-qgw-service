@@ -69,6 +69,6 @@ public class SystemController {
     public BaseResult storageDeletionStatus(StorageDeletionInfo storageDeletionInfo) {
 
         log.info("数据配额设置状态, 参数: params is {}", storageDeletionInfo);
-        return systemService.deleteStorageStatus(storageDeletionInfo.getLogType());
+        return systemService.getDeleteStorageStatus(storageDeletionInfo.getLogType());
     }
 }

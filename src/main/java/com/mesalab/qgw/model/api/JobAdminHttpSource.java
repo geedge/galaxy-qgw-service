@@ -13,8 +13,4 @@ public class JobAdminHttpSource implements Serializable {
 
     private String password;
 
-    private String druidDeleteNode;
-
-    private String clickhouseLocalTable;
-
 }

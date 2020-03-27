@@ -31,5 +31,5 @@ public interface SystemService {
      * @param logType
      * @return
      */
-    BaseResult deleteStorageStatus(String logType);
+    BaseResult getDeleteStorageStatus(String logType);
 }
