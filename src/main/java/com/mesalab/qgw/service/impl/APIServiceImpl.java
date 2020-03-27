@@ -41,6 +41,7 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
+import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.DescribeStatement;
@@ -459,6 +460,9 @@ public class APIServiceImpl implements IAPIService {
     }
 
     private void setPartitionKeyRange(PartitionKeyRange partitionKeyRange, Expression where, String partitionKey) {
+        if (StringUtil.isBlank(partitionKey)) {
+            return;
+        }
         if (where instanceof ComparisonOperator) {
             ComparisonOperator whereOperator = (ComparisonOperator) where;
             String operator = whereOperator.getStringExpression();
@@ -480,6 +484,13 @@ public class APIServiceImpl implements IAPIService {
                 } else if (operator.equals("=")) {
                     partitionKeyRange.setEqual(left);
                 }
+            }
+        } else if (where instanceof Between) {
+            Between whereBetween = (Between) where;
+            Expression leftExpression = whereBetween.getLeftExpression();
+            if (partitionKey.equals(leftExpression.toString())) {
+                partitionKeyRange.setLeftOfRange(whereBetween.getBetweenExpressionStart().toString());
+                partitionKeyRange.setRightOfRange(whereBetween.getBetweenExpressionEnd().toString());
             }
         } else if (where instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) where;
