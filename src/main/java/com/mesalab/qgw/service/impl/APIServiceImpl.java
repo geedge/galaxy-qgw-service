@@ -324,8 +324,10 @@ public class APIServiceImpl implements IAPIService {
                     for (SelectItem item: selectItemsList) {
                         if (item instanceof  SelectExpressionItem) {
                             SelectExpressionItem expressionItem =  ((SelectExpressionItem)item);
-                            if (expressionItem.getAlias() != null) {
-                                sqlQuerySource.getFields().put(expressionItem.getAlias().getName(), expressionItem.getExpression().toString());
+                            if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
+                                sqlQuerySource.getAliasFields().put(expressionItem.getAlias().getName(), expressionItem.getExpression().toString());
+                            } else {
+                                sqlQuerySource.getAliasFields().put(expressionItem.getExpression().toString(), expressionItem.getExpression().toString());
                             }
                             addUDFList(sqlQuerySource, expressionItem.getExpression());//伪代码：后期需要在SQLQuerySource where对象中提取
 
@@ -400,11 +402,19 @@ public class APIServiceImpl implements IAPIService {
     }
 
     private void addGroupLabel(SQLQuerySource sqlQuerySource, Expression expr) {
-        Map<String, String> fields = sqlQuerySource.getFields();
-        if (fields.keySet().contains(expr.toString())) {
-            sqlQuerySource.getGroupDimension().put(fields.get(expr.toString()), expr.toString());
+        Map<String, String> fields = sqlQuerySource.getAliasFields();
+
+        if (StringUtil.isNotBlank(fields.get(expr.toString()))) { //别名
+            sqlQuerySource.getGroupDimension().put(expr.toString(), fields.get(expr.toString()));
         } else {
-            sqlQuerySource.getGroupDimension().put(expr.toString(), expr.toString());
+            //非别名，确定实际的别名
+            for (String key : fields.keySet()) {
+                if (fields.get(key).equalsIgnoreCase(expr.toString())) {
+                    sqlQuerySource.getGroupDimension().put(key, expr.toString());
+                    break;
+                }
+            }
+
         }
     }
 

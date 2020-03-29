@@ -31,12 +31,12 @@ public class SQLQuerySource {
     private String limit;
     private Expression expression; /** where 对象 **/
     private List<OrderByElement> listOrderElement;
-    private Map<String, String> fields = Maps.newHashMap();
+    private Map<String, String> aliasFields= Maps.newHashMap();
     private List<UDF> udfList = Lists.newArrayList();
-    private Map<String, Object> groupDimension = Maps.newHashMap();
-    private PartitionRange partitionRange;
+    private Map<String, String> groupDimension = Maps.newHashMap();
+    private PartitionTimeRange partitionTimeRange;
     @Data
-    public class PartitionRange {
+    public class PartitionTimeRange {
         private Expression left;
         private Expression right;
         private Expression equal;
@@ -45,11 +45,11 @@ public class SQLQuerySource {
 
 
 
-    public PartitionRange getPartitionRange() {
-        partitionRange = new PartitionRange();
+    public PartitionTimeRange getPartitionTimeRange() {
+        partitionTimeRange = new PartitionTimeRange();
         parserExpressionForPartitionRange(expression, partitionKey);
 
-      return partitionRange;
+      return partitionTimeRange;
     }
 
 
@@ -67,28 +67,28 @@ public class SQLQuerySource {
             if (partitionKey.equals(left.toString())) {
                 right = getActualValue(right);
                 if (operator.contains("<")) {
-                    partitionRange.setRight(right);
+                    partitionTimeRange.setRight(right);
                 } else if (operator.contains(">")) {
-                    partitionRange.setLeft(right);
+                    partitionTimeRange.setLeft(right);
                 } else if (operator.equals("=")) {
-                    partitionRange.setEqual(right);
+                    partitionTimeRange.setEqual(right);
                 }
             } else if (partitionKey.equals(right.toString())) {
                 left = getActualValue(left);
                 if (operator.contains("<")) {
-                    partitionRange.setRight(left);
+                    partitionTimeRange.setRight(left);
                 } else if (operator.contains(">")) {
-                    partitionRange.setLeft(left);
+                    partitionTimeRange.setLeft(left);
                 } else if (operator.equals("=")) {
-                    partitionRange.setEqual(left);
+                    partitionTimeRange.setEqual(left);
                 }
             }
         } else if (expression instanceof Between) {
             Between whereBetween = (Between) expression;
             Expression leftExpression = whereBetween.getLeftExpression();
             if (partitionKey.equals(leftExpression.toString())) {
-                partitionRange.setLeft(whereBetween.getBetweenExpressionStart());
-                partitionRange.setRight(whereBetween.getBetweenExpressionEnd());
+                partitionTimeRange.setLeft(whereBetween.getBetweenExpressionStart());
+                partitionTimeRange.setRight(whereBetween.getBetweenExpressionEnd());
             }
         } else if (expression instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) expression;

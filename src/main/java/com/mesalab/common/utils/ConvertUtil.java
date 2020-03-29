@@ -10,6 +10,7 @@ import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import org.nutz.lang.Lang;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -246,11 +247,20 @@ public class ConvertUtil {
         }
 
         TreeMap<String, Map<String, String>> target = Maps.newTreeMap(sources);
+
+        boolean isTimestamp = isTimestamp(sources.firstKey());
         for(Date date : dateList) {
-            String key = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-            Map<String, String> metricsMap = sources.get(key);
+
+            String timeKey;
+            if (isTimestamp) {
+                timeKey = String.valueOf(date.getTime()/100);
+            } else {
+                timeKey = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            }
+
+            Map<String, String> metricsMap = sources.get(timeKey);
             if (StringUtil.isEmpty(metricsMap)) {
-                target.put(key, defaultElement);
+                target.put(timeKey, defaultElement);
             }
         }
 
@@ -282,6 +292,31 @@ public class ConvertUtil {
 
 
         return target;
+    }
+
+
+    private static boolean isTimestamp(String datetime) {
+        boolean isTimestamp = false;
+
+        try {
+
+            Long timestap = Long.parseLong(datetime);
+
+            Long firstTime = DateUtils.convertStringToTimestamp("1970-01-01 00:00:00", DateUtils.YYYY_MM_DD_HH24_MM_SS);
+
+            if (timestap - firstTime > 0) {
+                isTimestamp = true;
+            }
+
+
+        } catch (Exception e) {
+            isTimestamp = false;
+
+        }
+
+        return isTimestamp;
+
+
     }
 
 

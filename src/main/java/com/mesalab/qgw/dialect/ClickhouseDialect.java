@@ -282,7 +282,7 @@ public class ClickhouseDialect implements Dialect {
             String orderBy = param.getSqlQuerySource().getOrderBy();
             for (OrderByElement order : listOrderElement) {
                 String orderField = order.getExpression().toString();
-                String originalField = param.getSqlQuerySource().getFields().get(orderField);
+                String originalField = param.getSqlQuerySource().getAliasFields().get(orderField);
                 if(StringUtil.isNotBlank(originalField)){
                     orderBy = orderBy.replaceAll("\\b"+orderField+"\\b", originalField);
                 }
@@ -317,7 +317,7 @@ public class ClickhouseDialect implements Dialect {
         String partitionKey = metadataService.getPartitionKey(tableName);
 
         if (StringUtil.isNotBlank(partitionKey)) {
-            String tempValue = param.getSqlQuerySource().getFields().get(partitionKey);
+            String tempValue = param.getSqlQuerySource().getAliasFields().get(partitionKey);
             if (StringUtil.isNotBlank(tempValue)) {
                 if (tempValue.contains(partitionKey)) {
                     partitionKey = tempValue;
@@ -341,7 +341,7 @@ public class ClickhouseDialect implements Dialect {
             param.setQuery(generateUniq(param.getQuery()));
             param.setQuery(generateSubquery(param.getQuery()));
             param.setQuery(generateStandard(param.getQuery()));
-            //param.setQuery(UserDefinedFunctionUtils.generateCustomFunction(param.getQuery()));
+            param.setQuery(UserDefinedFunctionUtils.generateCustomFunction(param.getQuery()));
             param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
         }
         param.setQuery(generateSqlEncode(param.getQuery()));
@@ -375,9 +375,8 @@ public class ClickhouseDialect implements Dialect {
                         List<Object> lists = (List<Object>) maps.get("data");
 
                         List<Map<String, String>>  targetResult  =  (List<Map<String, String>>) udf.execute(param.getSqlQuerySource(), lists);
-                        //maps.put("data", targetResult);
-
-                        //results.put("result", JsonMapper.toJsonString(maps));
+                        maps.put("data", targetResult);
+                        results.put("result", JsonMapper.toJsonString(maps));
 
                     }
                 }
@@ -635,7 +634,7 @@ public class ClickhouseDialect implements Dialect {
         if (StringUtil.isEmpty(listOrderElement)) {
             return true;
         } else {
-            Map<String, String> aliasFields = param.getSqlQuerySource().getFields();
+            Map<String, String> aliasFields = param.getSqlQuerySource().getAliasFields();
             for (OrderByElement order : listOrderElement) {
                 String orderField = String.valueOf(order.getExpression());
                 String originalField = aliasFields.get(orderField);
