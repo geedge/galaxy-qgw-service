@@ -30,7 +30,6 @@ import com.mesalab.common.utils.UserDefinedFunctionUtils;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.mesalab.qgw.model.api.udf.PartitionKeyRange;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.model.api.udf.UDFElements;
 import com.mesalab.qgw.service.IAPIService;
@@ -288,9 +287,12 @@ public class APIServiceImpl implements IAPIService {
                     int i = tableName.lastIndexOf(".");
                     tableName = i < 0 ? tableName : tableName.substring(i + 1);
                     sqlQuerySource.setTableName(tableName);
+                    sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
                 } else {
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
                 }
+
+
 
                 SelectBody body = selectStatement.getSelectBody();
 
@@ -309,10 +311,6 @@ public class APIServiceImpl implements IAPIService {
                     if (where != null) {
                         sqlQuerySource.setExpr(where.toString());
                         sqlQuerySource.setExpression(where);
-                        String partitionKey = metadataService.getPartitionKey(sqlQuerySource.getTableName());
-                        PartitionKeyRange partitionKeyRange = new PartitionKeyRange();
-                        setPartitionKeyRange(partitionKeyRange, where, partitionKey);
-                        sqlQuerySource.setPartitionKeyRange(partitionKeyRange);
                     }
 
                     List<SelectItem> selectItemsList = select.getSelectItems();
@@ -348,6 +346,7 @@ public class APIServiceImpl implements IAPIService {
                             addUDFList(sqlQuerySource, expr);
                             if (addGroupDimension(sqlQuerySource, map)) continue;
                         }
+
                     }
 
                     List<OrderByElement> orderByList = select.getOrderByElements();
@@ -459,49 +458,7 @@ public class APIServiceImpl implements IAPIService {
         return udf;
     }
 
-    private void setPartitionKeyRange(PartitionKeyRange partitionKeyRange, Expression where, String partitionKey) {
-        if (StringUtil.isBlank(partitionKey)) {
-            return;
-        }
-        if (where instanceof ComparisonOperator) {
-            ComparisonOperator whereOperator = (ComparisonOperator) where;
-            String operator = whereOperator.getStringExpression();
-            String left = whereOperator.getLeftExpression().toString();
-            String right = whereOperator.getRightExpression().toString();
-            if (partitionKey.equals(left)) {
-                if (operator.contains("<")) {
-                    partitionKeyRange.setRightOfRange(right);
-                } else if (operator.contains(">")) {
-                    partitionKeyRange.setLeftOfRange(right);
-                } else if (operator.equals("=")) {
-                    partitionKeyRange.setEqual(right);
-                }
-            } else if (partitionKey.equals(right)) {
-                if (operator.contains("<")) {
-                    partitionKeyRange.setRightOfRange(left);
-                } else if (operator.contains(">")) {
-                    partitionKeyRange.setLeftOfRange(left);
-                } else if (operator.equals("=")) {
-                    partitionKeyRange.setEqual(left);
-                }
-            }
-        } else if (where instanceof Between) {
-            Between whereBetween = (Between) where;
-            Expression leftExpression = whereBetween.getLeftExpression();
-            if (partitionKey.equals(leftExpression.toString())) {
-                partitionKeyRange.setLeftOfRange(whereBetween.getBetweenExpressionStart().toString());
-                partitionKeyRange.setRightOfRange(whereBetween.getBetweenExpressionEnd().toString());
-            }
-        } else if (where instanceof AndExpression) {
-            AndExpression whereAnd = (AndExpression) where;
-            setPartitionKeyRange(partitionKeyRange, whereAnd.getLeftExpression(), partitionKey);
-            setPartitionKeyRange(partitionKeyRange, whereAnd.getRightExpression(), partitionKey);
-        } else if (where instanceof OrExpression) {
-            OrExpression whereOr = (OrExpression) where;
-            setPartitionKeyRange(partitionKeyRange, whereOr.getLeftExpression(), partitionKey);
-            setPartitionKeyRange(partitionKeyRange, whereOr.getRightExpression(), partitionKey);
-        }
-    }
+
 
     /**
      *  对SQL语句进行预先解析,为语法树结构

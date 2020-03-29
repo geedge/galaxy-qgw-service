@@ -9,12 +9,10 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.support.IConvertor;
 import com.mesalab.common.utils.*;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.mesalab.qgw.model.api.udf.PartitionKeyRange;
 import com.mesalab.qgw.model.api.udf.TIME_FLOOR_WITH_FILL;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.MetadataService;
@@ -42,7 +40,6 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -365,68 +362,25 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public Dialect executeUDF() {
 
-        String groupLabel = "http_domain";
-        String timeGranLabel = "stat_time";
-
         List<UDF> udfList = param.getSqlQuerySource().getUdfList();
         for (UDF udf : udfList) {
             if(udf instanceof TIME_FLOOR_WITH_FILL){
-                System.out.println(udf);
-            }
-        }
-        Map<String, Object> groupDimension = param.getSqlQuerySource().getGroupDimension();
-        System.out.println(groupDimension);
-        PartitionKeyRange partitionKeyRange = param.getSqlQuerySource().getPartitionKeyRange();
-        System.out.println(partitionKeyRange);
 
-        if (StringUtil.isNotEmpty(results)) {
-            if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
-                    param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue()) ) {
+                if (StringUtil.isNotEmpty(results)) {
+                    if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
+                            param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue()) ) {
 
-                Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(results.get("result"),  Map.class);
+                        Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
 
-                List<Object> lists = (List<Object>)maps.get("data");
+                        List<Object> lists = (List<Object>) maps.get("data");
 
+                        List<Map<String, String>>  targetResult  =  (List<Map<String, String>>) udf.execute(param.getSqlQuerySource(), lists);
+                        //maps.put("data", targetResult);
 
-                Map<String, Map<String, Map<String, String>>> targetTimeseriesMap = ConvertUtil.convertResultListToTimeseries(lists,
-                        groupLabel, timeGranLabel);
+                        //results.put("result", JsonMapper.toJsonString(maps));
 
-
-
-                for (String key : targetTimeseriesMap.keySet()) {
-                    TreeMap <String, Map<String, String>>  groupMap = (TreeMap <String, Map<String, String>>) targetTimeseriesMap.get(key);
-
-                    Map <String, Map<String, String>>  completeMap = ConvertUtil.completeTimeseries(groupMap,
-                            DateUtils.getDateRange(DateUtils.convertStringToDate("2019-12-13 09:00:12", DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                                    DateUtils.convertStringToDate("2019-12-14 10:00:12", DateUtils.YYYY_MM_DD_HH24_MM_SS), "PT5M"), "none");
-
-                    targetTimeseriesMap.put(key,completeMap);
-
+                    }
                 }
-
-
-                List<Map<String, String>>  targetResult =  ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
-
-
-                //maps.put("data", targetResult);
-
-                //results.put("result", JsonMapper.toJsonString(maps));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             }
         }
 
