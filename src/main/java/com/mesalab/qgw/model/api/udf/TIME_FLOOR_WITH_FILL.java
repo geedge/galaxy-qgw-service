@@ -29,7 +29,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         this.name = udfElements.getName();
         this.timestamp = udfElements.getParams().get(0);
         this.period = udfElements.getParams().get(1);
-        this.fill = udfElements.getParams().get(2);
+        if (udfElements.getParams().size() >= 3) {
+            this.fill = udfElements.getParams().get(2);
+        }
     }
 
 

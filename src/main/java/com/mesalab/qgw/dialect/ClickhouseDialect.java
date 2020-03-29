@@ -361,7 +361,7 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeUDF() {
-
+        //此处转换设置 SQLQuerySource中partitionRange 的实际值: 目前是在SQLQuerySource对象中假实现
         List<UDF> udfList = param.getSqlQuerySource().getUdfList();
         for (UDF udf : udfList) {
             if(udf instanceof TIME_FLOOR_WITH_FILL){

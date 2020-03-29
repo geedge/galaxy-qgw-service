@@ -327,7 +327,7 @@ public class APIServiceImpl implements IAPIService {
                             if (expressionItem.getAlias() != null) {
                                 sqlQuerySource.getFields().put(expressionItem.getAlias().getName(), expressionItem.getExpression().toString());
                             }
-
+                            addUDFList(sqlQuerySource, expressionItem.getExpression());//伪代码：后期需要在SQLQuerySource where对象中提取
 
                         }
                     }
@@ -338,13 +338,10 @@ public class APIServiceImpl implements IAPIService {
                         String groupByString = Joiner.on(",").join(groupList);
                         sqlQuerySource.setGroupByClause(groupByString);
 
-                        String schemaQuery = metadataService.getValueByKeyInSchemaDoc(sqlQuerySource.getTableName(), "schema_query");
-                        Map map = (Map) JsonMapper.fromJsonString(schemaQuery, Map.class);
-
                         for (Expression expr : groupList) {
 
-                            addUDFList(sqlQuerySource, expr);
-                            if (addGroupDimension(sqlQuerySource, map)) continue;
+                            addUDFList(sqlQuerySource, expr);//伪代码：后期需要在SQLQuerySource groupBy对象中提取
+                            addGroupLabel(sqlQuerySource, expr);//伪代码：后期需要在SQLQuerySource groupBy对象中提取
                         }
 
                     }
@@ -402,24 +399,13 @@ public class APIServiceImpl implements IAPIService {
         return sqlQuerySource;
     }
 
-    private boolean addGroupDimension(SQLQuerySource sqlQuerySource, Map map) {
-        if (map == null) {
-            return true;
-        }
-        List<String> dimensions = (List<String>) map.get("dimensions");
-        if (dimensions == null) {
-            return true;
-        }
+    private void addGroupLabel(SQLQuerySource sqlQuerySource, Expression expr) {
         Map<String, String> fields = sqlQuerySource.getFields();
-        for (String dimension : dimensions) {
-            for (String key : fields.keySet()) {
-                String s = fields.get(key);
-                if (s.contains(dimension)) {
-                    sqlQuerySource.getGroupDimension().put(dimension, key);
-                }
-            }
+        if (fields.keySet().contains(expr.toString())) {
+            sqlQuerySource.getGroupDimension().put(fields.get(expr.toString()), expr.toString());
+        } else {
+            sqlQuerySource.getGroupDimension().put(expr.toString(), expr.toString());
         }
-        return false;
     }
 
     /**

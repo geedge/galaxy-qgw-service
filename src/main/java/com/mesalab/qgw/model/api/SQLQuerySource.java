@@ -6,6 +6,7 @@ import com.mesalab.qgw.model.api.udf.UDF;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
@@ -36,16 +37,16 @@ public class SQLQuerySource {
     private PartitionRange partitionRange;
     @Data
     public class PartitionRange {
-        private String left;
-        private String right;
-        private String equal;
+        private Expression left;
+        private Expression right;
+        private Expression equal;
 
     }
 
 
 
     public PartitionRange getPartitionRange() {
-
+        partitionRange = new PartitionRange();
         parserExpressionForPartitionRange(expression, partitionKey);
 
       return partitionRange;
@@ -58,13 +59,13 @@ public class SQLQuerySource {
         if (StringUtil.isEmpty(expression) || StringUtil.isBlank(partitionKey)) {
             return;
         }
-        partitionRange = new PartitionRange();
         if (expression instanceof ComparisonOperator) {
             ComparisonOperator whereOperator = (ComparisonOperator) expression;
             String operator = whereOperator.getStringExpression();
-            String left = whereOperator.getLeftExpression().toString();
-            String right = whereOperator.getRightExpression().toString();
-            if (partitionKey.equals(left)) {
+            Expression left = whereOperator.getLeftExpression();
+            Expression right = whereOperator.getRightExpression();
+            if (partitionKey.equals(left.toString())) {
+                right = getActualValue(right);
                 if (operator.contains("<")) {
                     partitionRange.setRight(right);
                 } else if (operator.contains(">")) {
@@ -72,7 +73,8 @@ public class SQLQuerySource {
                 } else if (operator.equals("=")) {
                     partitionRange.setEqual(right);
                 }
-            } else if (partitionKey.equals(right)) {
+            } else if (partitionKey.equals(right.toString())) {
+                left = getActualValue(left);
                 if (operator.contains("<")) {
                     partitionRange.setRight(left);
                 } else if (operator.contains(">")) {
@@ -85,8 +87,8 @@ public class SQLQuerySource {
             Between whereBetween = (Between) expression;
             Expression leftExpression = whereBetween.getLeftExpression();
             if (partitionKey.equals(leftExpression.toString())) {
-                partitionRange.setLeft(whereBetween.getBetweenExpressionStart().toString());
-                partitionRange.setRight(whereBetween.getBetweenExpressionEnd().toString());
+                partitionRange.setLeft(whereBetween.getBetweenExpressionStart());
+                partitionRange.setRight(whereBetween.getBetweenExpressionEnd());
             }
         } else if (expression instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) expression;
@@ -99,6 +101,26 @@ public class SQLQuerySource {
         }
     }
 
+    /**
+     * 伪代码：后期需要在相应的dialect中获取；以及根据函数实际值
+     * @param expr
+     * @return
+     */
+    private Expression getActualValue(Expression expr) {
+        if (expr == null) {
+            return null;
+        }
+        if (expr instanceof Function) {
+            Function fun = (Function) expr;
+            if (fun.getName().equalsIgnoreCase("toDateTime")) {
+                Expression expression = fun.getParameters().getExpressions().get(0);
+                return expression;
+            } else if (fun.getName().contains("toStartOfDay")) {
+                return fun.getParameters().getExpressions().get(0);
+            }
+        }
+        return expr;
+    }
 
 
 
