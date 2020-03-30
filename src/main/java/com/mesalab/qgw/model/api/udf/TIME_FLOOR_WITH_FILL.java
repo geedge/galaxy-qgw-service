@@ -1,7 +1,6 @@
 package com.mesalab.qgw.model.api.udf;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.zdjizhi.utils.DateUtils;
@@ -10,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.StringValue;
 
 import java.util.*;
@@ -39,8 +37,8 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     @Override
     public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
         List<Map<String, String>>  targetResult = null;
-        String groupLabel= "";
-        String timeGranLabel = "";
+        String groupLabel= null;
+        String timeGranLabel = null;
 
 
 
@@ -52,14 +50,12 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 if (groupDimension.get(groupKey).contains(name)) {
                     timeGranLabel = groupKey;
                 } else {
-                    groupLabel = Joiner.on(",").join(groupKey, groupLabel);//todo 分组多key拼接
+                    groupLabel = Joiner.on(",").skipNulls().join(groupKey, groupLabel);//todo 分组多key拼接
                 }
 
             }
 
-            if (groupLabel.split(",").length == 1) {
-                groupLabel = groupLabel.substring(0,groupLabel.length()-1);
-            }
+
 
             Map<String, Map<String, Map<String, String>>> targetTimeseriesMap = ConvertUtil.convertResultListToTimeseries(results,
                     groupLabel, timeGranLabel);

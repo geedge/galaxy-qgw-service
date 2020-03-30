@@ -364,23 +364,22 @@ public class ClickhouseDialect implements Dialect {
         //此处转换设置 SQLQuerySource中partitionRange 的实际值: 目前是在SQLQuerySource对象中假实现
         List<UDF> udfList = param.getSqlQuerySource().getUdfList();
         for (UDF udf : udfList) {
-            if(udf instanceof TIME_FLOOR_WITH_FILL){
 
-                if (StringUtil.isNotEmpty(results)) {
-                    if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
-                            param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue()) ) {
+            if (StringUtil.isNotEmpty(results)) {
+                if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
+                        param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue()) ) {
 
-                        Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
+                    Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
 
-                        List<Object> lists = (List<Object>) maps.get("data");
+                    List<Object> lists = (List<Object>) maps.get("data");
 
-                        List<Map<String, String>>  targetResult  =  (List<Map<String, String>>) udf.execute(param.getSqlQuerySource(), lists);
-                        maps.put("data", targetResult);
-                        results.put("result", JsonMapper.toJsonString(maps));
+                    List<Map<String, String>>  targetResult  =  (List<Map<String, String>>) udf.execute(param.getSqlQuerySource(), lists);
+                    maps.put("data", targetResult);
+                    results.put("result", JsonMapper.toJsonString(maps));
 
-                    }
                 }
             }
+
         }
 
 
