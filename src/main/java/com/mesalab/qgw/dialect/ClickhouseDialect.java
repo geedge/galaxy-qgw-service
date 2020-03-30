@@ -204,7 +204,7 @@ public class ClickhouseDialect implements Dialect {
             return sql;
         }
 
-        if (StringUtil.isNotBlank(param.getSqlQuerySource().getGroupByClause())) {
+        if (StringUtil.isNotEmpty(param.getSqlQuerySource().getGroupByElement())) {
             return sql;
         }
 

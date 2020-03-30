@@ -11,6 +11,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
+import net.sf.jsqlparser.statement.select.GroupByElement;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 
 import java.util.List;
@@ -26,10 +27,10 @@ public class SQLQuerySource {
     private String fromItem;
     private String selectItems;
     private String expr;
-    private String groupByClause;
     private String orderBy;
     private String limit;
     private Expression expression; /** where 对象 **/
+    private GroupByElement groupByElement;
     private List<OrderByElement> listOrderElement;
     private Map<String, String> aliasFields= Maps.newHashMap();
     private List<UDF> udfList = Lists.newArrayList();
@@ -43,6 +44,30 @@ public class SQLQuerySource {
 
     }
 
+    public Map<String, String> getGroupDimension() {
+        if (groupByElement == null) {
+            return null;
+        }
+        for (Expression groupByExpression : groupByElement.getGroupByExpressions()) {
+            addGroupLabel(groupByExpression);
+        }
+        return groupDimension;
+    }
+
+    private void addGroupLabel(Expression expr) {
+        if (StringUtil.isNotBlank(aliasFields.get(expr.toString()))) { //别名
+            groupDimension.put(expr.toString(), aliasFields.get(expr.toString()));
+        } else {
+            //非别名，确定实际的别名
+            for (String key : aliasFields.keySet()) {
+                if (aliasFields.get(key).equalsIgnoreCase(expr.toString())) {
+                    groupDimension.put(key, expr.toString());
+                    break;
+                }
+            }
+        }
+    }
+
 
 
     public PartitionTimeRange getPartitionTimeRange() {
@@ -51,9 +76,6 @@ public class SQLQuerySource {
 
       return partitionTimeRange;
     }
-
-
-
 
     private void parserExpressionForPartitionRange(Expression expression, String partitionKey) {
         if (StringUtil.isEmpty(expression) || StringUtil.isBlank(partitionKey)) {

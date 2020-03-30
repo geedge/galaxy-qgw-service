@@ -337,13 +337,11 @@ public class APIServiceImpl implements IAPIService {
                     GroupByElement groupBy;
                     List<Expression> groupList;
                     if (StringUtil.isNotEmpty(groupBy = select.getGroupBy()) && StringUtil.isNotEmpty(groupList = groupBy.getGroupByExpressions())) {
-                        String groupByString = Joiner.on(",").join(groupList);
-                        sqlQuerySource.setGroupByClause(groupByString);
+                        sqlQuerySource.setGroupByElement(groupBy);
 
                         for (Expression expr : groupList) {
 
                             addUDFList(sqlQuerySource, expr);//伪代码：后期需要在SQLQuerySource groupBy对象中提取
-                            addGroupLabel(sqlQuerySource, expr);//伪代码：后期需要在SQLQuerySource groupBy对象中提取
                         }
 
                     }
@@ -401,22 +399,6 @@ public class APIServiceImpl implements IAPIService {
         return sqlQuerySource;
     }
 
-    private void addGroupLabel(SQLQuerySource sqlQuerySource, Expression expr) {
-        Map<String, String> fields = sqlQuerySource.getAliasFields();
-
-        if (StringUtil.isNotBlank(fields.get(expr.toString()))) { //别名
-            sqlQuerySource.getGroupDimension().put(expr.toString(), fields.get(expr.toString()));
-        } else {
-            //非别名，确定实际的别名
-            for (String key : fields.keySet()) {
-                if (fields.get(key).equalsIgnoreCase(expr.toString())) {
-                    sqlQuerySource.getGroupDimension().put(key, expr.toString());
-                    break;
-                }
-            }
-
-        }
-    }
 
     /**
      * 自定义函数封装
@@ -424,12 +406,22 @@ public class APIServiceImpl implements IAPIService {
      * @param expr
      */
     private void addUDFList(SQLQuerySource sqlQuerySource, Expression expr) {
+        parserExpressionForFun(sqlQuerySource, expr);
+    }
+
+    private void parserExpressionForFun(SQLQuerySource sqlQuerySource, Expression expr) {
         if (expr instanceof Function) {
             Function fun = (Function) expr;
             if (UserDefinedFunctionUtils.functions.keySet().contains(fun.getName().toUpperCase())) {
                 List<Expression> expressions = fun.getParameters().getExpressions();
                 UDF udf = getUdf(fun, expressions);
                 sqlQuerySource.getUdfList().add(udf);
+            }
+            if (fun.getParameters() == null) {
+                return;
+            }
+            for (Expression expression : fun.getParameters().getExpressions()) {
+                parserExpressionForFun(sqlQuerySource, expression);
             }
         }
     }
