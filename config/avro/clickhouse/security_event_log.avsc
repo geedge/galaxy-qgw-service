@@ -273,12 +273,14 @@
     {
       "name": "http_request_line",
       "type": "string",
-      "label": "Request Line"
+      "label": "Request Line",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_response_line",
       "type": "string",
-      "label": "Response Line"
+      "label": "Response Line",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_request_header",

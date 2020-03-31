@@ -1,8 +1,8 @@
 {
   "namespace": "tsg_galaxy_v3",
   "type": "record",
-  "name": "common_server_ip",
-  "doc": "{\"primary_key\":\"common_log_id\",\"index_key\":\"common_server_ip\"}",
+  "name": "connection_record_log_http_domain",
+  "doc": "{\"primary_key\":\"common_log_id\",\"index_key\":\"http_domain\"}",
   "fields": [
     {
       "name": "common_log_id",
