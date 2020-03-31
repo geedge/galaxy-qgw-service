@@ -1,16 +1,12 @@
 package com.mesalab.common.utils;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.support.IConvertor;
-import com.zdjizhi.utils.CommonUtil;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import org.nutz.lang.Lang;
-
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -152,11 +148,18 @@ public class ConvertUtil {
         Map<String, Map<String, Map<String, String>>> resultMap = Maps.newHashMap();
 
         for (Object source : sources) {
-            Map<String, String> sourceMap = ((Map<String, String>) source);
-            String groupKey = sourceMap.get(groupLabel);
-            String timeGran = sourceMap.get(timeGranLabel);
 
-            sourceMap.remove(groupLabel);
+            Map<String, String> sourceMap = ((Map<String, String>) source);
+
+            String groupKey = null;
+            for(String group : groupLabel.split("-")) {
+                groupKey = Joiner.on("-").skipNulls().join(groupKey, sourceMap.get(group));
+                sourceMap.remove(group);
+            }
+
+
+
+            String timeGran = sourceMap.get(timeGranLabel);
             sourceMap.remove(timeGranLabel);
 
             Map groupMap = resultMap.get(groupKey);
@@ -183,6 +186,7 @@ public class ConvertUtil {
         List<Map<String, String>> results = Lists.newArrayList();
 
         for(String groupKey : target.keySet()) {
+
             Map<String, Map<String, String>> groupMap = target.get(groupKey);
 
             for (String timeGranKey : groupMap.keySet()) {
@@ -192,7 +196,14 @@ public class ConvertUtil {
                 Map<String, String> resultMap = Maps.newLinkedHashMap();
 
                 resultMap.put(timeGranLabel, timeGranKey);
-                resultMap.put(groupLabel, groupKey);
+
+                String[] grouLabelArray = groupLabel.split("-");
+                String[] groupKeyArray = groupKey.split("-");
+
+                for (int i=0; i<grouLabelArray.length; i++) {
+                    resultMap.put(grouLabelArray[i], groupKeyArray[i]);
+                }
+
 
                 for (String metricLabel : metricMap.keySet()) {
                     resultMap.put(metricLabel, metricMap.get(metricLabel));

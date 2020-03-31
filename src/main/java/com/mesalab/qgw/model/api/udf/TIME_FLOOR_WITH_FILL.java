@@ -50,7 +50,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 if (groupDimension.get(groupKey).contains(name)) {
                     timeGranLabel = groupKey;
                 } else {
-                    groupLabel = Joiner.on(",").skipNulls().join(groupKey, groupLabel);//todo 分组多key拼接
+                    groupLabel = Joiner.on("-").skipNulls().join(groupKey, groupLabel);
                 }
 
             }
