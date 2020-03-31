@@ -17,6 +17,8 @@ import java.util.*;
  */
 public class ConvertUtil {
 
+    public static final String GROUP_SEPRATOR = "-";
+
       enum  Fill {
 
         NONE(""),  NULL("NULL"), ZERO("0"), PREVIOUS("previous"), NEXT("next");
@@ -152,8 +154,8 @@ public class ConvertUtil {
             Map<String, String> sourceMap = ((Map<String, String>) source);
 
             String groupKey = null;
-            for(String group : groupLabel.split("-")) {
-                groupKey = Joiner.on("-").skipNulls().join(groupKey, sourceMap.get(group));
+            for(String group : groupLabel.split(GROUP_SEPRATOR)) {
+                groupKey = Joiner.on(GROUP_SEPRATOR).skipNulls().join(groupKey, sourceMap.get(group));
                 sourceMap.remove(group);
             }
 
@@ -197,8 +199,8 @@ public class ConvertUtil {
 
                 resultMap.put(timeGranLabel, timeGranKey);
 
-                String[] grouLabelArray = groupLabel.split("-");
-                String[] groupKeyArray = groupKey.split("-");
+                String[] grouLabelArray = groupLabel.split(GROUP_SEPRATOR);
+                String[] groupKeyArray = groupKey.split(GROUP_SEPRATOR);
 
                 for (int i=0; i<grouLabelArray.length; i++) {
                     resultMap.put(grouLabelArray[i], groupKeyArray[i]);
@@ -264,7 +266,7 @@ public class ConvertUtil {
 
             String timeKey;
             if (isTimestamp) {
-                timeKey = String.valueOf(date.getTime()/100);
+                timeKey = String.valueOf(date.getTime()/1000);
             } else {
                 timeKey = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
             }
