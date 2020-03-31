@@ -49,24 +49,23 @@ public class SQLQuerySource {
             return null;
         }
         for (Expression groupByExpression : groupByElement.getGroupByExpressions()) {
-            addGroupLabel(groupByExpression);
+
+            if (StringUtil.isNotBlank(aliasFields.get(groupByExpression.toString()))) { //别名
+                groupDimension.put(groupByExpression.toString(), aliasFields.get(groupByExpression.toString()));
+            } else {
+                //非别名，确定实际的别名
+                for (String key : aliasFields.keySet()) {
+                    if (aliasFields.get(key).equalsIgnoreCase(groupByExpression.toString())) {
+                        groupDimension.put(key, groupByExpression.toString());
+                        break;
+                    }
+                }
+            }
+
         }
         return groupDimension;
     }
 
-    private void addGroupLabel(Expression expr) {
-        if (StringUtil.isNotBlank(aliasFields.get(expr.toString()))) { //别名
-            groupDimension.put(expr.toString(), aliasFields.get(expr.toString()));
-        } else {
-            //非别名，确定实际的别名
-            for (String key : aliasFields.keySet()) {
-                if (aliasFields.get(key).equalsIgnoreCase(expr.toString())) {
-                    groupDimension.put(key, expr.toString());
-                    break;
-                }
-            }
-        }
-    }
 
 
 
