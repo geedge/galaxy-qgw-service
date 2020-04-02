@@ -24,7 +24,6 @@ import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.UserDefinedFunctionUtils;
 import com.mesalab.qgw.dialect.Dialect;
@@ -38,10 +37,6 @@ import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
-import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
-import net.sf.jsqlparser.expression.operators.relational.Between;
-import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.DescribeStatement;
 import net.sf.jsqlparser.statement.ShowStatement;
@@ -310,7 +305,7 @@ public class APIServiceImpl implements IAPIService {
 
                     if (where != null) {
                         sqlQuerySource.setExpr(where.toString());
-                        sqlQuerySource.setExpression(where);
+                        sqlQuerySource.setWhereExpression(where);
                     }
 
                     List<SelectItem> selectItemsList = select.getSelectItems();

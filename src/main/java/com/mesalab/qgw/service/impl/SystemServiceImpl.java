@@ -39,10 +39,7 @@ public class SystemServiceImpl implements SystemService {
     IAPIService apiService;
 
 
-    SchemaProperties schemaProperties = (SchemaProperties) SpringContextUtil.getBean("schemaProperties");
-    ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     JobAdminHttpSource jobAdminHttpSource = (JobAdminHttpSource) SpringContextUtil.getBean("jobAdminHttpSource");
-    private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
 
     private Map<String, String> headers = Maps.newHashMap();
