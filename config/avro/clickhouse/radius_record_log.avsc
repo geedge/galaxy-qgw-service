@@ -294,7 +294,8 @@
     {
       "name": "radius_acct_terminate_cause",
       "type": "int",
-      "label": "Acct Terminate Cause"
+      "label": "Acct Terminate Cause",
+      "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"User Request\"},{\"code\":\"2\",\"value\":\"Lost Carrier\"},{\"code\":\"3\",\"value\":\"Lost Service\"},{\"code\":\"4\",\"value\":\"Idle Timeout\"},{\"code\":\"5\",\"value\":\"Session Timeout\"},{\"code\":\"6\",\"value\":\"Admin Reset\"},{\"code\":\"7\",\"value\":\"Admin Reboot\"},{\"code\":\"8\",\"value\":\"Port Error\"},{\"code\":\"9\",\"value\":\"NAS Error\"},{\"code\":\"10\",\"value\":\"NAS Request\"},{\"code\":\"11\",\"value\":\"NAS Reboot\"},{\"code\":\"12\",\"value\":\"Port Unneeded\"},{\"code\":\"13\",\"value\":\"Port Preempted\"},{\"code\":\"14\",\"value\":\"Port Suspended\"},{\"code\":\"15\",\"value\":\"Service Unavailable\"},{\"code\":\"16\",\"value\":\"Callback\"},{\"code\":\"17\",\"value\":\"User Error\"},{\"code\":\"18\",\"value\":\"Host Request\"}]}"
     },
     {
       "name": "radius_event_timestamp",
