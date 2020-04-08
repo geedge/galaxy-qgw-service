@@ -147,8 +147,7 @@
     {
       "name": "common_sub_action",
       "type": "string",
-      "label": "Sub Action",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "label": "Sub Action"
     },
     {
       "name": "common_user_region",
@@ -202,25 +201,23 @@
       "name": "common_start_time",
       "type": "int",
       "label": "Start Time",
-      "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
+      "doc": "{\"constraints\":{\"type\":\"timestamp\"}}"
     },
     {
       "name": "common_end_time",
       "type": "int",
       "label": "End Time",
-      "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
+      "doc": "{\"constraints\":{\"type\":\"timestamp\"}}"
     },
     {
       "name": "common_establish_latency_ms",
       "type": "int",
-      "label": "Establish Latency(ms)",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "label": "Establish Latency(ms)"
     },
     {
       "name": "common_con_duration_ms",
       "type": "int",
-      "label": "Duration(ms)",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "label": "Duration(ms)"
     },
     {
       "name": "common_stream_dir",
@@ -319,12 +316,14 @@
     {
       "name": "http_proxy_flag",
       "type": "int",
-      "label": "Proxy Flag"
+      "label": "Proxy Flag",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_sequence",
       "type": "int",
-      "label": "Sequence"
+      "label": "Sequence",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_snapshot",
@@ -370,8 +369,7 @@
     {
       "name": "http_response_lantency_ms",
       "type": "int",
-      "label": "Response Latency(ms)",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "label": "Response Latency(ms)"
     },
     {
       "name": "http_action_file_sz",
@@ -381,8 +379,7 @@
     {
       "name": "http_session_duration_ms",
       "type": "int",
-      "label": "Session Duration(ms)",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "label": "Session Duration(ms)"
     },
     {
       "name": "mail_protocol_type",
