@@ -16,7 +16,6 @@ import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +34,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.nio.charset.Charset;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -338,8 +336,7 @@ public class ClickhouseDialect implements Dialect {
             param.setQuery(generateUniq(param.getQuery()));
             param.setQuery(generateSubquery(param.getQuery()));
             param.setQuery(generateStandard(param.getQuery()));
-            param.setQuery(UserDefinedFunctionUtils.generateCustomFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
-            param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
+            param.setQuery(SQLFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
         }
         param.setQuery(generateSqlEncode(param.getQuery()));
 
@@ -358,7 +355,6 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeUDF() {
-        setActualPartitionTimeRange();
 
         List<UDF> udfList = param.getSqlQuerySource().getUdfList();
         for (UDF udf : udfList) {
@@ -416,152 +412,6 @@ public class ClickhouseDialect implements Dialect {
         return baseResult;
     }
 
-
-    /**
-     * 解析Where条件设置partitionRange属性值
-     */
-    private void setActualPartitionTimeRange() {
-        parserWhereExpressionForPartitionRange(param.getSqlQuerySource().getWhereExpression());
-    }
-
-    private void parserWhereExpressionForPartitionRange(Expression whereExpression) {
-        if (StringUtil.isEmpty(param.getSqlQuerySource().getWhereExpression()) || StringUtil.isBlank(param.getSqlQuerySource().getPartitionKey())) {
-            return;
-        }
-        if (whereExpression instanceof ComparisonOperator) {
-            ComparisonOperator whereOperator = (ComparisonOperator) whereExpression;
-            String operator = whereOperator.getStringExpression();
-            Expression left = whereOperator.getLeftExpression();
-            Expression right = whereOperator.getRightExpression();
-            if (param.getSqlQuerySource().getPartitionKey().equals(left.toString())) {
-                right = getActualValue(right);
-                if (operator.contains("<")) {
-                    param.getSqlQuerySource().getPartitionTimeRange().setRight(right);
-                } else if (operator.contains(">")) {
-                    param.getSqlQuerySource().getPartitionTimeRange().setLeft(right);
-                } else if (operator.equals("=")) {
-                    param.getSqlQuerySource().getPartitionTimeRange().setEqual(right);
-                }
-            } else if (param.getSqlQuerySource().getPartitionKey().equals(right.toString())) {
-                left = getActualValue(left);
-                if (operator.contains("<")) {
-                    param.getSqlQuerySource().getPartitionTimeRange().setRight(left);
-                } else if (operator.contains(">")) {
-                    param.getSqlQuerySource().getPartitionTimeRange().setLeft(left);
-                } else if (operator.equals("=")) {
-                    param.getSqlQuerySource().getPartitionTimeRange().setEqual(left);
-                }
-            }
-        } else if (whereExpression instanceof Between) {
-            Between whereBetween = (Between) whereExpression;
-            Expression leftExpression = whereBetween.getLeftExpression();
-            if (param.getSqlQuerySource().getPartitionKey().equals(leftExpression.toString())) {
-                param.getSqlQuerySource().getPartitionTimeRange().setLeft(whereBetween.getBetweenExpressionStart());
-                param.getSqlQuerySource().getPartitionTimeRange().setRight(whereBetween.getBetweenExpressionEnd());
-            }
-        } else if (whereExpression instanceof AndExpression) {
-            AndExpression whereAnd = (AndExpression) whereExpression;
-            parserWhereExpressionForPartitionRange(whereAnd.getLeftExpression());
-            parserWhereExpressionForPartitionRange(whereAnd.getRightExpression());
-        } else if (whereExpression instanceof OrExpression) {
-            OrExpression whereOr = (OrExpression) whereExpression;
-            parserWhereExpressionForPartitionRange(whereOr.getLeftExpression());
-            parserWhereExpressionForPartitionRange(whereOr.getRightExpression());
-        }
-    }
-
-    /**
-     * 根据函数实际值
-     * @param expr
-     * @return
-     */
-    private Expression getActualValue(Expression expr) {
-        if (exprIsFunOfSingleParam(expr)) {
-            Expression paramOfFun = getExprParam(expr);
-            try {
-                Date date = null;
-                if (paramOfFun instanceof LongValue) {
-                    long value = ((LongValue) paramOfFun).getValue();
-                    date = DateUtils.convertStringToDate(DateUtils.convertTimestampToString(value, DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                } else if (paramOfFun instanceof StringValue) {
-                    String paramValue = ((StringValue) paramOfFun).getValue();
-                    date = DateUtils.convertStringToDate(paramValue, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                }
-                if (expr.toString().contains("toStartOfDay")) {
-                    date = DateUtils.getTimeFloor(date, "P1D");
-                } else if (expr.toString().contains("toMonday")) {
-                    date = DateUtils.getTimeFloor(date, "P1W");
-                } else if (expr.toString().contains("toStartOfMonth")) {
-                    date = DateUtils.getTimeFloor(date, "P1M");
-                } else if (expr.toString().contains("toStartOfYear")) {
-                    date = DateUtils.getTimeFloor(date, "P1Y");
-                } else if (expr.toString().contains("toStartOfHour")) {
-                    date = DateUtils.getTimeFloor(date, "PT1H");
-                } else if (expr.toString().contains("toStartOfFiveMinute")) {
-                    date = DateUtils.getTimeFloor(date, "PT5M");
-                } else if (expr.toString().contains("toStartOfMinute")) {
-                    date = DateUtils.getTimeFloor(date, "PT1M");
-                }
-                String formatDate = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                StringValue stringValue = new StringValue(formatDate);
-                return stringValue;
-            } catch (Exception ex) {
-                log.error("根据函数实际值异常,取原有参数值 {}", ex);
-                return paramOfFun;
-            }
-
-        }
-        return expr;
-    }
-
-    /**
-     * 获取函数原始参数，只针对单参
-     * fun1(fun2(param)) 返回param
-     * @param expr
-     * @return
-     */
-    private Expression getExprParam(Expression expr) {
-        if (expr instanceof Function) {
-            Function fun = (Function) expr;
-            int size = fun.getParameters().getExpressions().size();
-            if (size == 1) {
-                Expression expression = fun.getParameters().getExpressions().get(0);
-                if (expression instanceof Function) {
-                    Expression exprParam = getExprParam(expression);
-                    if (StringUtil.isNotEmpty(exprParam)) {
-                        return exprParam;
-                    }
-                } else {
-                    return expression;
-                }
-            }
-        }
-        return expr;
-    }
-
-    /**
-     * 判断expr是否是单参函数
-     * @param expr
-     * @return
-     */
-    private boolean exprIsFunOfSingleParam(Expression expr) {
-        if (expr instanceof Function) {
-            Function fun = (Function) expr;
-            int size = fun.getParameters().getExpressions().size();
-            if (size == 1) {
-                Expression expression = fun.getParameters().getExpressions().get(0);
-                if (expression instanceof Function) {
-                    boolean b = exprIsFunOfSingleParam(expression);
-                    if (b) {
-                        return true;
-                    }
-                } else {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
     /**
      * 查询clickhouse: http get

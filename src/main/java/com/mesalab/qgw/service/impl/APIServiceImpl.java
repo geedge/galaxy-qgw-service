@@ -24,8 +24,8 @@ import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
-import com.mesalab.common.utils.UserDefinedFunctionUtils;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
@@ -407,9 +407,9 @@ public class APIServiceImpl implements IAPIService {
     private void parserExpressionForFun(SQLQuerySource sqlQuerySource, Expression expr) {
         if (expr instanceof Function) {
             Function fun = (Function) expr;
-            if (UserDefinedFunctionUtils.functions.keySet().contains(fun.getName().toUpperCase())) {
+            if (SQLFunctionUtil.functions.keySet().contains(fun.getName().toUpperCase())) {
                 List<Expression> expressions = fun.getParameters().getExpressions();
-                UDF udf = getUdf(fun, expressions);
+                UDF udf = getUDF(fun, expressions);
                 sqlQuerySource.getUdfList().add(udf);
             }
             if (fun.getParameters() == null) {
@@ -427,7 +427,7 @@ public class APIServiceImpl implements IAPIService {
      * @param expressions
      * @return
      */
-    private UDF getUdf(Function fun, List<Expression> expressions) {
+    private UDF getUDF(Function fun, List<Expression> expressions) {
         UDF udf;
         String funName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_UNDERSCORE, fun.getName());
         try {

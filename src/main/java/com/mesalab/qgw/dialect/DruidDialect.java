@@ -8,7 +8,7 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SQLDateFunctionUtil;
+import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -18,12 +18,10 @@ import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.statement.select.Join;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -83,7 +81,7 @@ public class DruidDialect implements  Dialect {
     @Override
     public Dialect sqlDialectTransform() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
-        param.setQuery(SQLDateFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.DRUID.getValue()));
+        param.setQuery(SQLFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.DRUID.getValue()));
         return this;
     }
 

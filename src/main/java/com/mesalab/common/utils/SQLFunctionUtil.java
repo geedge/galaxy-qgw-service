@@ -1,8 +1,21 @@
 package com.mesalab.common.utils;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Maps;
 import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import com.mesalab.qgw.model.api.DruidIoHttpSource;
+import com.mesalab.qgw.service.impl.HttpClientService;
+import lombok.Data;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,7 +23,27 @@ import java.util.regex.Pattern;
  * @author GouGe
  * @data 2019/8/1 10:13
  */
-public class SQLDateFunctionUtil {
+public class SQLFunctionUtil {
+    public static final String TIME_FLOOR_WITH_FILL = "TIME_FLOOR_WITH_FILL";
+
+    private static DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
+    private static ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
+    private static HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
+
+    /**
+     * 自定义函数
+     */
+    public static Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern periodOfPT = Pattern.compile("PT(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
+    public static Pattern periodOfP = Pattern.compile("P(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
+    public static final HashMap<String, String> functions = Maps.newHashMap();
+    static {
+        functions.put(TIME_FLOOR_WITH_FILL, null);
+    }
+
+    /**
+     * 标准函数
+     */
     public static Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static Pattern pDateRelative = Pattern.compile("\\W(ADDDATE|DATE_ADD|DATE_SUB|SUBDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -34,6 +67,7 @@ public class SQLDateFunctionUtil {
      * @return
      */
     public static String generateDateFunction(String sql, String dbType) {
+        sql = translateUDF(sql, dbType);
         sql = parseMergepFunction(sql, dbType);
         sql = parseMarkDate(sql, dbType);
         sql = parseDateCalculateNum(sql, dbType);
@@ -48,6 +82,81 @@ public class SQLDateFunctionUtil {
         sql = replaceMark(sql);
         return sql;
     }
+
+    /**
+     * 转义自定义函数
+     * @param sql
+     * @param dbType
+     * @return
+     */
+    public static String translateUDF(String sql, String dbType) {
+        sql = translateByPattern(sql, dbType, pTimeFloorWithFill);
+        return sql;
+    }
+
+    /**
+     * 查询数据源获取函数实际值
+     * @param query
+     * @param dbType
+     * @return
+     */
+    public static String getQueryValue(String query, String dbType) {
+        query = generateDateFunction("select " + query + " as actualValue", dbType);
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            Map<String, String> results = executeHttpGetOfCK(query);
+            Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
+            List<Map<String, Object>> dates = (List<Map<String, Object>>) maps.get("data");
+            Map<String, Object> data = dates.get(0);
+            Object actualValue = data.get("actualValue");
+            return actualValue.toString();
+        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            Map<String, String> results = executeHttpPostOfDruid(query);
+            List<Object> maps = (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class);
+            Map<String, Object> data = (Map<String, Object>) maps.get(0);
+            Object actualValue = data.get("actualValue");
+            return actualValue.toString();
+        } else {
+            return query;
+        }
+    }
+
+    /**
+     * post查询druid
+     * @param query
+     * @return
+     */
+    public static Map<String, String> executeHttpPostOfDruid(String query) {
+        StringBuilder urlBuilder = new StringBuilder("http://").append(druidIoHttpSource.getUrl());
+        DruidQueryParam druidQueryParam = new DruidQueryParam();
+        druidQueryParam.setQuery(query);
+        druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
+        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
+        druidQueryParam.setResultFormat("object");
+        Map<String, String> stringStringMap = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
+        return stringStringMap;
+
+    }
+
+    /**
+     * get查询clickHouse
+     * @param sql
+     * @return
+     */
+    private static Map<String, String> executeHttpGetOfCK(String sql) {
+        StringBuilder urlBuilder = new StringBuilder("http://")
+                .append(clickHouseHttpSource.getUrl()).append("/?");
+        StringBuilder queryparamBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
+                .append("database=")
+                .append(clickHouseHttpSource.getDbname()).append("&")
+                .append("query=").append(sql)
+                .append(" FORMAT JSON;");
+        List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
+        Map<String, String> stringStringMap = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
+        return stringStringMap;
+    }
+
 
     /**
      * 匹配连接函数: DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP(
@@ -901,5 +1010,148 @@ public class SQLDateFunctionUtil {
             resultTemp += div;
         }
         return result;
+    }
+
+
+    /**
+     * 公共，通过pattern匹配转义
+     * @param sql
+     * @param dbType
+     * @param pattern
+     * @return
+     */
+    private static String translateByPattern(String sql, String dbType, Pattern pattern) {
+        int count = 0;
+        while (true) {
+            Matcher matcher = pattern.matcher(sql);
+            if (!matcher.find() || count++ >= 40) {
+                return sql;
+            }
+            String sqlParse = sql.substring(matcher.start());
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+
+            if (bracketsMatch[0] >= 1) {
+                int start = StringUtils.indexOf(sqlParse, "(");
+                Function function = new Function();
+                function.setName(sqlParse.substring(0, start));
+                int end = bracketsMatch[1];
+                List<String> strings = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(sqlParse.substring(start + 1, end));
+                StringBuffer sb = new StringBuffer();
+                for (String str : strings) {
+                    sb.append(str);
+                    int[] a = StringUtil.getBracketsMatch(sb.toString(), "(", true);
+                    if (a[0] != -1) {
+                        function.getParamsList().add(sb.toString());
+                        sb = new StringBuffer();
+                        continue;
+                    } else {
+                        sb.append(",");
+                    }
+                }
+
+                String replace = translateFunction(function, dbType);
+                sql = sql.substring(0, matcher.start()) + replace + sql.substring(matcher.start() + 1 + end);
+            }
+        }
+    }
+
+    /**
+     * 转义函数
+     *
+     * @param function
+     * @param dbType
+     * @return
+     */
+    private static String translateFunction(Function function, String dbType) {
+        String fun = translateTimeFloorWithFill(function, dbType);
+        return fun;
+    }
+
+    /**
+     * 转义time_floor_with_fill
+     *
+     * @param function
+     * @param dbType
+     * @return
+     */
+    private static String translateTimeFloorWithFill(Function function, String dbType) {
+        if (TIME_FLOOR_WITH_FILL.equals(function.getName())) {
+            String timestamp = function.getParamsList().get(0);
+            String period = function.getParamsList().get(1);
+
+            Matcher matcherPT = periodOfPT.matcher(period);
+            if (matcherPT.find()) {
+                String num = matcherPT.group(1);
+                String unit = matcherPT.group(2);
+                if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                    String format = "toDateTime(intDiv(toUInt32(toDateTime(toDateTime(%s))), %s ) * %s )";
+                    if ("S".equalsIgnoreCase(unit)) {
+                        num = num;
+                    } else if ("M".equalsIgnoreCase(unit)) {
+                        num = num + " * 60 ";
+                    } else if ("H".equalsIgnoreCase(unit)) {
+                        num = num + " * 3600 ";
+                    }
+                    return String.format(format, timestamp, num, num);
+                } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                    String format = "time_floor(%s, %s)";
+                    return String.format(format, timestamp, period);
+                }
+            }
+
+            Matcher matcherP = periodOfP.matcher(period);
+            if (matcherP.find()) {
+                String num = matcherP.group(1);
+                String unit = matcherP.group(2);
+                if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                    String format = null;
+                    if ("1".equals(num)) {
+                        if ("D".equalsIgnoreCase(unit)) {
+                            format = "toStartOfDay(toDateTime(%s))";
+                        } else if ("W".equalsIgnoreCase(unit)) {
+                            format = "toDateTime(toMonday(toDateTime(%s)))";
+                        } else if ("M".equalsIgnoreCase(unit)) {
+                            format = "toDateTime(toStartOfMonth(toDateTime(%s)))";
+                        } else if ("Y".equalsIgnoreCase(unit)) {
+                            format = "toDateTime(toStartOfYear(toDateTime(%s)))";
+                        }
+                        System.out.println(String.format(format, timestamp));
+                        return String.format(format, timestamp);
+                    } else {
+                        if ("D".equalsIgnoreCase(unit)) {
+                            format = "toDateTime(toStartOfDay(toDateTime(intDiv(toUInt32(toDateTime(toDateTime(%s))), %s ) * %s)))";
+                            num = num + " * 86400 ";
+                        } else if ("W".equalsIgnoreCase(unit)) {
+                            format = "toDateTime(toMonday(toDateTime(intDiv(toUInt32(toDateTime(toDateTime(%s))), %s ) * %s)))";
+                            num = num + " * 604800 ";
+                        } else if ("M".equalsIgnoreCase(unit)) {
+                            format = "toDateTime(toStartOfMonth(toDateTime(intDiv(toUInt32(toDateTime(toDateTime(%s))), %s ) * %s)))";
+                            num = num + " * 2592000 ";
+                        } else if ("Y".equalsIgnoreCase(unit)) {
+                            format = "toDateTime(toStartOfYear(toDateTime(intDiv(toUInt32(toDateTime(toDateTime(%s))), %s ) * %s)))";
+                            num = num + " * 31536000 ";
+                        }
+                        return String.format(format, timestamp, num, num);
+                    }
+                } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                    String format = "time_floor(%s, %s)";
+                    return String.format(format, timestamp, period);
+                }
+            }
+        }
+        return function.toString();
+    }
+
+    @Data
+    static class Function {
+        private String name;
+        private List<String> paramsList = new ArrayList<>();
+    }
+    @Data
+    static class DruidQueryParam {
+        private String query;
+        private Map<String, String> context = Maps.newHashMap();
+        private String resultFormat;
+
     }
 }

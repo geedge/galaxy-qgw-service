@@ -31,6 +31,12 @@ public interface MetadataService {
      */
     String getValueByKeyInSchemaDoc(String tableName, String key);
 
+    /**
+     * 通过表名获取在哪个数据库
+     * @param tableName
+     * @return
+     */
+    String getDBTypeByTableName(String tableName);
 
     Map<String, JsonProperties> getAllSchema();
 }

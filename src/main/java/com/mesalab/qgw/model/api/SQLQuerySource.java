@@ -30,14 +30,7 @@ public class SQLQuerySource {
     private Map<String, String> aliasFields= Maps.newHashMap();
     private List<UDF> udfList = Lists.newArrayList();
     private Map<String, String> groupDimension = Maps.newHashMap();
-    private PartitionTimeRange partitionTimeRange = new PartitionTimeRange();
-    @Data
-    public class PartitionTimeRange {
-        private Expression left;
-        private Expression right;
-        private Expression equal;
 
-    }
 
     public Map<String, String> getGroupDimension() {
         if (groupByElement == null) {

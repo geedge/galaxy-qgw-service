@@ -5,6 +5,7 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SchemaCacheUtils;
@@ -201,6 +202,24 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         return "";
+    }
+
+    @Override
+    public String getDBTypeByTableName(String tableName) {
+        BaseResult tablesCK = getSchemaInfo("tables", clickHouseProperties.getDbname());
+        Map dataCK = (HashMap) tablesCK.getData();
+        List symbolsCK = (List) dataCK.get("symbols");
+        if (symbolsCK != null && symbolsCK.contains(tableName)) {
+            return DBTypeEnum.CLICKHOUSE.getValue();
+        }
+
+        BaseResult tablesDruid = getSchemaInfo("tables", druidIoProperties.getDbname());
+        Map dataDruid = (HashMap) tablesDruid.getData();
+        List symbolsDruid = (List) dataDruid.get("symbols");
+        if (symbolsDruid != null && symbolsDruid.contains(tableName)) {
+            return DBTypeEnum.DRUID.getValue();
+        }
+        throw new BusinessException(BaseResultEnum.FAIL.getCode(), "获取数据库类型异常: " + tableName + " 表没有注册在Schema数据库中", null);
     }
 
     @Override
