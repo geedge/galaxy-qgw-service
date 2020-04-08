@@ -1,6 +1,7 @@
 package com.mesalab.qgw.controller;
 
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -47,21 +49,24 @@ public class SystemController {
 
     @ApiOperation(value = "数据配额设置", httpMethod = "POST", notes = "修改日志删除策略")
     @PostMapping(value = "storage/deletion")
-    public BaseResult storageDeletion(@RequestBody StorageDeletionInfo storageDeletionInfo) {
+    public BaseResult storageDeletion(@RequestBody List<StorageDeletionInfo> list) {
+        log.info("数据配额设置, 参数: params is {}", list);
 
-        String logType = storageDeletionInfo.getLogType();
-        Integer maxDays = storageDeletionInfo.getMaxDays();
-        log.info("数据配额设置, 参数: params is {}", storageDeletionInfo);
-        if (StringUtil.isBlank(logType) || StringUtil.isBlank(String.valueOf(maxDays))) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType 与 maxDays 需同时填写", null);
+        if (StringUtil.isEmpty(list)) {
+            return BaseResultGenerator.failure(BaseResultEnum.FAIL.getCode(), "未获取到参数");
         }
-        if ("ALL".equalsIgnoreCase(logType) && maxDays != 0) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType为All：maxDays 必须为0", null);
+        for (StorageDeletionInfo info : list) {
+            if (StringUtil.isBlank(info.getLogType()) || StringUtil.isBlank(String.valueOf(info.getMaxDays()))) {
+                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType 与 maxDays 需同时填写", null);
+            }
+            if ("ALL".equalsIgnoreCase(info.getLogType()) && info.getMaxDays() != 0) {
+                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType为All：maxDays 必须为0", null);
+            }
+            if (!"ALL".equalsIgnoreCase(info.getLogType()) && !(info.getMaxDays() >= 1 && info.getMaxDays() <= 2000)) {
+                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType非All: maxDays 必须是数值且[1-2000]", null);
+            }
         }
-        if (!"ALL".equalsIgnoreCase(logType) && !(maxDays >= 1 && maxDays <= 2000)) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType非All: maxDays 必须是数值且[1-2000]", null);
-        }
-        return systemService.deleteStorage(logType, maxDays);
+        return systemService.deleteStorage(list);
     }
 
     @ApiOperation(value = "数据配额设置状态", httpMethod = "GET", notes = "获取当前设置删除配额状态")

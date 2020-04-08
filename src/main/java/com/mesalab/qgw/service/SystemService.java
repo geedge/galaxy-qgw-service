@@ -1,6 +1,9 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.qgw.model.job.StorageDeletionInfo;
+
+import java.util.List;
 
 public interface SystemService {
 
@@ -20,11 +23,10 @@ public interface SystemService {
 
     /**
      * 数据配额设置
-     * @param logType
-     * @param maxDays
+     * @param list
      * @return
      */
-    BaseResult deleteStorage(String logType, int maxDays);
+    BaseResult deleteStorage(List<StorageDeletionInfo> list);
 
     /**
      * 数据配额设置状态

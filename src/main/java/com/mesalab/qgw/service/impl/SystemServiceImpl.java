@@ -79,9 +79,27 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Override
-    public BaseResult deleteStorage(String logType, int maxDays) {
+    public BaseResult deleteStorage(List<StorageDeletionInfo> list) {
         BaseResult baseResult = null;
+        List<BaseResult> listResult = new ArrayList<>();
+        String messages = StringUtil.EMPTY;
         setCookie();
+        for (StorageDeletionInfo info : list) {
+            baseResult = executeDeleteStorageJob(info.getLogType(), info.getMaxDays());
+            listResult.add(baseResult);
+        }
+        for (BaseResult result : listResult) {
+            if (Integer.parseInt(result.getStatus().toString()) != HttpStatus.SC_OK) {
+                baseResult.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                messages += result.getMessage() + "; ";
+            }
+        }
+        baseResult.setMessage(messages == StringUtil.EMPTY ? "ok" : messages);
+        return baseResult;
+    }
+
+    private BaseResult executeDeleteStorageJob(String logType, int maxDays) {
+        BaseResult baseResult;
         if ("ALL".equals(logType.toUpperCase())) {
             baseResult = deleteAllAndUpdate(maxDays);
         } else {
@@ -101,14 +119,22 @@ public class SystemServiceImpl implements SystemService {
 
             StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler("Report and Metrics", JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
             list.add(reportInfo);
+
+            StorageDeletionInfo storageDeletionInfo = new StorageDeletionInfo();
+            storageDeletionInfo.setLogType("Files");
+            storageDeletionInfo.setMaxDays(365);
+            list.add(storageDeletionInfo);
         } else if ("Traffic Logs".equalsIgnoreCase(logType)) {
             StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
             list.add(trafficInfo);
         } else if ("Report and Metrics".equalsIgnoreCase(logType)) {
             StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
             list.add(reportInfo);
+        } else if ("Files".equalsIgnoreCase(logType)) {
+            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_FILES_JOB_HANDLER.getValue());
+            list.add(reportInfo);
         } else {
-            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "无匹配的logType");
+            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "无匹配的logType: " + logType);
         }
         return BaseResultGenerator.success("ok", list);
     }
@@ -158,8 +184,10 @@ public class SystemServiceImpl implements SystemService {
                 baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
             }
 
+        } else if ("Files".equalsIgnoreCase(logType)) {
+            baseResult = BaseResultGenerator.success("ok", null);
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_OK, "没有匹配的logType");
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的logType: " + logType);
         }
         return baseResult;
     }
@@ -267,7 +295,7 @@ public class SystemServiceImpl implements SystemService {
                 append(handlerValue);
         Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers);
         log.info("请求调度任务pageList接口" + url);
-        if (resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+        if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
