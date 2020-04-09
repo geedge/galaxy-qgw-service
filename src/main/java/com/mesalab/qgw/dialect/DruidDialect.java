@@ -14,6 +14,7 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
@@ -104,13 +105,31 @@ public class DruidDialect implements  Dialect {
         }
 
         results = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
-
+        executeUDF();
         return this;
 
     }
 
     @Override
     public Dialect executeUDF() {
+        List<UDF> udfList = param.getSqlQuerySource().getUdfList();
+        for (UDF udf : udfList) {
+
+            if (StringUtil.isNotEmpty(results)) {
+                if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
+                        param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue()) ) {
+
+                    List<Object> lists =  (List<Object>)JsonMapper.fromJsonString(results.get("result"), List.class);
+
+                    List<Map<String, String>>  targetResult  =  (List<Map<String, String>>) udf.execute(param.getSqlQuerySource(), lists);
+
+                    results.put("result", JsonMapper.toJsonString(targetResult));
+
+                }
+            }
+
+        }
+
         return this;
     }
 

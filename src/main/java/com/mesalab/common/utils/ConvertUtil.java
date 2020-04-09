@@ -154,10 +154,15 @@ public class ConvertUtil {
             Map<String, String> sourceMap = ((Map<String, String>) source);
 
             String groupKey = null;
-            for(String group : groupLabel.split(GROUP_SEPRATOR)) {
-                groupKey = Joiner.on(GROUP_SEPRATOR).skipNulls().join(groupKey, sourceMap.get(group));
-                sourceMap.remove(group);
+            if (StringUtil.isBlank(groupLabel)) {
+                groupKey = "default";
+            } else {
+                for(String group : groupLabel.split(GROUP_SEPRATOR)) {
+                    groupKey = Joiner.on(GROUP_SEPRATOR).skipNulls().join(groupKey, sourceMap.get(group));
+                    sourceMap.remove(group);
+                }
             }
+
 
 
 
@@ -199,11 +204,15 @@ public class ConvertUtil {
 
                 resultMap.put(timeGranLabel, timeGranKey);
 
-                String[] grouLabelArray = groupLabel.split(GROUP_SEPRATOR);
-                String[] groupKeyArray = groupKey.split(GROUP_SEPRATOR);
 
-                for (int i=0; i<grouLabelArray.length; i++) {
-                    resultMap.put(grouLabelArray[i], groupKeyArray[i]);
+                if (StringUtil.isNotBlank(groupLabel)) {
+                    String[] grouLabelArray = groupLabel.split(GROUP_SEPRATOR);
+                    String[] groupKeyArray = groupKey.split(GROUP_SEPRATOR);
+
+                    for (int i=0; i<grouLabelArray.length; i++) {
+                        resultMap.put(grouLabelArray[i], groupKeyArray[i]);
+                    }
+
                 }
 
 
