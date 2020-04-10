@@ -25,6 +25,7 @@ import org.apache.http.HttpStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -112,8 +113,8 @@ public class DruidDialect implements  Dialect {
 
     @Override
     public Dialect executeUDF() {
-        List<UDF> udfList = param.getSqlQuerySource().getUdfList();
-        for (UDF udf : udfList) {
+        Set<UDF> udfSet = param.getSqlQuerySource().getUdfSet();
+        for (UDF udf : udfSet) {
 
             if (StringUtil.isNotEmpty(results)) {
                 if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&

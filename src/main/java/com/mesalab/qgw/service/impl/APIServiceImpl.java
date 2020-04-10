@@ -324,7 +324,7 @@ public class APIServiceImpl implements IAPIService {
                             } else {
                                 sqlQuerySource.getAliasFields().put(expressionItem.getExpression().toString(), expressionItem.getExpression().toString());
                             }
-                            addUDFList(sqlQuerySource, expressionItem.getExpression());//伪代码：后期需要在SQLQuerySource where对象中提取
+                            addUDFSet(sqlQuerySource, expressionItem.getExpression());//伪代码：后期需要在SQLQuerySource where对象中提取
 
                         }
                     }
@@ -336,7 +336,7 @@ public class APIServiceImpl implements IAPIService {
 
                         for (Expression expr : groupList) {
 
-                            addUDFList(sqlQuerySource, expr);//伪代码：后期需要在SQLQuerySource groupBy对象中提取
+                            addUDFSet(sqlQuerySource, expr);//伪代码：后期需要在SQLQuerySource groupBy对象中提取
                         }
 
                     }
@@ -400,7 +400,7 @@ public class APIServiceImpl implements IAPIService {
      * @param sqlQuerySource
      * @param expr
      */
-    private void addUDFList(SQLQuerySource sqlQuerySource, Expression expr) {
+    private void addUDFSet(SQLQuerySource sqlQuerySource, Expression expr) {
         parserExpressionForFun(sqlQuerySource, expr);
     }
 
@@ -410,7 +410,7 @@ public class APIServiceImpl implements IAPIService {
             if (SQLFunctionUtil.functions.keySet().contains(fun.getName().toUpperCase())) {
                 List<Expression> expressions = fun.getParameters().getExpressions();
                 UDF udf = getUDF(fun, expressions);
-                sqlQuerySource.getUdfList().add(udf);
+                sqlQuerySource.getUdfSet().add(udf);
             }
             if (fun.getParameters() == null) {
                 return;

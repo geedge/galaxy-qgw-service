@@ -1,7 +1,7 @@
 package com.mesalab.qgw.model.api;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
@@ -11,6 +11,7 @@ import net.sf.jsqlparser.statement.select.OrderByElement;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * SQL Parser properties
@@ -28,7 +29,7 @@ public class SQLQuerySource {
     private GroupByElement groupByElement;
     private List<OrderByElement> listOrderElement;
     private Map<String, String> aliasFields= Maps.newHashMap();
-    private List<UDF> udfList = Lists.newArrayList();
+    private Set<UDF> udfSet = Sets.newHashSet();
     private Map<String, String> groupDimension = Maps.newHashMap();
 
 

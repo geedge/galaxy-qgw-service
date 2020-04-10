@@ -2,6 +2,7 @@
   "namespace": "druid",
   "type": "record",
   "name": "top_internal_host_log",
+  "doc": "{\"partition_key\":\"__time\"}",
   "fields": [
     {
       "name": "__time",

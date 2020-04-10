@@ -2,6 +2,7 @@
   "namespace": "druid",
   "type": "record",
   "name": "sys_storage_log",
+  "doc": "{\"partition_key\":\"__time\"}",
   "fields": [
     {
       "name": "__time",

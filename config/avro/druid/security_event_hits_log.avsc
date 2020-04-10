@@ -2,6 +2,7 @@
   "namespace": "druid",
   "type": "record",
   "name": "security_event_hits_log",
+  "doc": "{\"partition_key\":\"__time\"}",
   "fields": [
     {
       "name": "__time",

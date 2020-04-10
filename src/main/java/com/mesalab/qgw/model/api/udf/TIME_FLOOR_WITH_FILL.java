@@ -81,13 +81,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
             if (StringUtil.isNotEmpty(partitionTimeRange)) {
 
-                if (StringUtil.isNotEmpty(partitionTimeRange.getLeft()) && StringUtil.isNotEmpty(partitionTimeRange.getRight()) ) {
-                    dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getLeft()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                            DateUtils.convertStringToDate( (partitionTimeRange.getRight()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
+                if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isNotEmpty(partitionTimeRange.getEnd()) ) {
+                    dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
+                            DateUtils.convertStringToDate( (partitionTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
 
-                } else if (StringUtil.isNotEmpty(partitionTimeRange.getLeft()) && StringUtil.isEmpty(partitionTimeRange.getRight())) {
+                } else if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isEmpty(partitionTimeRange.getEnd())) {
 
-                    dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getLeft()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
+                    dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
                             DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
 
                 }
@@ -152,36 +152,40 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             Expression left = whereOperator.getLeftExpression();
             Expression right = whereOperator.getRightExpression();
             if (partitionKey.equals(left.toString())) {
-                String query = right.toString();
-                if (!(right instanceof StringValue || right instanceof LongValue)) {
-                    query = SQLFunctionUtil.getQueryValue(query, dbType);
+                String query;
+                if (right instanceof StringValue) {
+                    query = ((StringValue) right).getValue();
+                } else if (right instanceof LongValue) {
+                    query = right.toString();
+                } else {
+                    query = SQLFunctionUtil.getQueryValue(right.toString(), dbType);
                 }
                 if (operator.contains("<")) {
-                    partitionTimeRange.setRight(query);
+                    partitionTimeRange.setEnd(query);
                 } else if (operator.contains(">")) {
-                    partitionTimeRange.setLeft(query);
-                } else if (operator.equals("=")) {
-                    partitionTimeRange.setEqual(query);
+                    partitionTimeRange.setStart(query);
                 }
             } else if (partitionKey.equals(right.toString())) {
-                String query = left.toString();
-                if (!(left instanceof StringValue || left instanceof LongValue)) {
-                    query = SQLFunctionUtil.getQueryValue(query, dbType);
+                String query;
+                if (left instanceof StringValue) {
+                    query = ((StringValue) right).getValue();
+                } else if (left instanceof LongValue) {
+                    query = left.toString();
+                } else {
+                    query = SQLFunctionUtil.getQueryValue(left.toString(), dbType);
                 }
                 if (operator.contains("<")) {
-                    partitionTimeRange.setRight(query);
+                    partitionTimeRange.setStart(query);
                 } else if (operator.contains(">")) {
-                    partitionTimeRange.setLeft(query);
-                } else if (operator.equals("=")) {
-                    partitionTimeRange.setEqual(query);
+                    partitionTimeRange.setEnd(query);
                 }
             }
         } else if (whereExpression instanceof Between) {
             Between whereBetween = (Between) whereExpression;
             Expression leftExpression = whereBetween.getLeftExpression();
             if (partitionKey.equals(leftExpression.toString())) {
-                partitionTimeRange.setLeft(whereBetween.getBetweenExpressionStart().toString());
-                partitionTimeRange.setRight(whereBetween.getBetweenExpressionEnd().toString());
+                partitionTimeRange.setStart(whereBetween.getBetweenExpressionStart().toString());
+                partitionTimeRange.setEnd(whereBetween.getBetweenExpressionEnd().toString());
             }
         } else if (whereExpression instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) whereExpression;
@@ -196,9 +200,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     @Data
     private class PartitionTimeRange {
-        private String left;
-        private String right;
-        private String equal;
-
+        private String start;
+        private String end;
     }
 }
