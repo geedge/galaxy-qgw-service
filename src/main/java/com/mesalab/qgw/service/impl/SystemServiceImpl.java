@@ -3,7 +3,6 @@ package com.mesalab.qgw.service.impl;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.JobHandlerEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -13,8 +12,6 @@ import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
 import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
 import com.mesalab.qgw.service.IAPIService;
 import com.mesalab.qgw.service.SystemService;
@@ -43,6 +40,11 @@ public class SystemServiceImpl implements SystemService {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
 
     private Map<String, String> headers = Maps.newHashMap();
+
+    String TRAFFIC_LOGS = "Traffic Logs";
+    String REPORT_AND_METRICS = "Report and Metrics";
+    String FILES = "Files";
+    String ALL = "ALL";
 
     @Override
     public BaseResult getStorageQuota() {
@@ -85,25 +87,27 @@ public class SystemServiceImpl implements SystemService {
         String messages = StringUtil.EMPTY;
         setCookie();
         for (StorageDeletionInfo info : list) {
-            baseResult = executeDeleteStorageJob(info.getLogType(), info.getMaxDays());
-            listResult.add(baseResult);
+            BaseResult result = executeDeleteStorageJob(info.getLogType(), info.getMaxDays());
+            listResult.add(result);
         }
         for (BaseResult result : listResult) {
-            if (Integer.parseInt(result.getStatus().toString()) != HttpStatus.SC_OK) {
-                baseResult.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            if (!result.getStatus().equals(HttpStatus.SC_OK)) {
                 messages += result.getMessage() + "; ";
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, messages + "其它未提示的则为成功");
             }
         }
-        baseResult.setMessage(messages == StringUtil.EMPTY ? "ok" : messages);
+        if (baseResult == null) {
+            baseResult = BaseResultGenerator.success("ok", null);
+        }
         return baseResult;
     }
 
     private BaseResult executeDeleteStorageJob(String logType, int maxDays) {
         BaseResult baseResult;
-        if ("ALL".equals(logType.toUpperCase())) {
-            baseResult = deleteAllAndUpdate(maxDays);
+        if (maxDays == 0) {
+            baseResult = deleteAll(logType);
         } else {
-            baseResult = deleteByMaxDays(logType, maxDays);
+            baseResult = deletePart(logType, maxDays);
         }
         return baseResult;
     }
@@ -114,27 +118,27 @@ public class SystemServiceImpl implements SystemService {
         List list = new ArrayList<>();
         if (StringUtil.isBlank(logType)) {
 
-            StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler("Traffic Logs", JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
+            StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(TRAFFIC_LOGS, JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
             list.add(trafficInfo);
 
-            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler("Report and Metrics", JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
+            StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(REPORT_AND_METRICS, JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
             list.add(reportInfo);
 
             StorageDeletionInfo storageDeletionInfo = new StorageDeletionInfo();
-            storageDeletionInfo.setLogType("Files");
+            storageDeletionInfo.setLogType(FILES);//伪代码
             storageDeletionInfo.setMaxDays(365);
             list.add(storageDeletionInfo);
-        } else if ("Traffic Logs".equalsIgnoreCase(logType)) {
+        } else if (TRAFFIC_LOGS.equalsIgnoreCase(logType)) {
             StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
             list.add(trafficInfo);
-        } else if ("Report and Metrics".equalsIgnoreCase(logType)) {
+        } else if (REPORT_AND_METRICS.equalsIgnoreCase(logType)) {
             StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
             list.add(reportInfo);
-        } else if ("Files".equalsIgnoreCase(logType)) {
+        } else if (FILES.equalsIgnoreCase(logType)) {
             StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_FILES_JOB_HANDLER.getValue());
             list.add(reportInfo);
         } else {
-            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "无匹配的logType: " + logType);
+            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的日志类型: " + logType);
         }
         return BaseResultGenerator.success("ok", list);
     }
@@ -156,84 +160,128 @@ public class SystemServiceImpl implements SystemService {
         return storageDeletionInfo;
     }
 
-    private BaseResult deleteByMaxDays(String logType, int maxDays) {
+    /**
+     * 删除部分日志
+     * @param logType
+     * @param maxDays
+     * @return
+     */
+    private BaseResult deletePart(String logType, int maxDays) {
         BaseResult baseResult;
-        if ("Traffic Logs".equalsIgnoreCase(logType)) {
+        if (TRAFFIC_LOGS.equalsIgnoreCase(logType)) {
             Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
-            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(maxDays));
-            BaseResult resultUpdateTraffic = executeManageJob("update", xxlJobInfo);
-            BaseResult resultTriggerTraffic = executeManageJob("trigger", xxlJobInfo);
-
-            if (resultUpdateTraffic.getStatus().equals(HttpStatus.SC_OK) && resultTriggerTraffic.getStatus().equals(HttpStatus.SC_OK)) {
-                baseResult = BaseResultGenerator.success("ok", null);
-            } else {
-                String info = String.format("启动删除ClickHouse: %s, 更新删除ClickHouse: %s", resultTriggerTraffic.getStatus(), resultUpdateTraffic.getStatus());
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
-            }
-
-        } else if ("Report and Metrics".equalsIgnoreCase(logType)) {
+            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getExecutorParam(maxDays));
+            baseResult = executeAndUpdate(xxlJobInfo);
+        } else if (REPORT_AND_METRICS.equalsIgnoreCase(logType)) {
             Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(maxDays));
-            BaseResult resultUpdateReport = executeManageJob("update", xxlJobInfo);
-            BaseResult resultTriggerReport = executeManageJob("trigger", xxlJobInfo);
-
-            if (resultUpdateReport.getStatus().equals(HttpStatus.SC_OK) && resultTriggerReport.getStatus().equals(HttpStatus.SC_OK)) {
-                baseResult = BaseResultGenerator.success("ok", null);
+            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getExecutorParam(maxDays));
+            baseResult = executeAndUpdate(xxlJobInfo);
+        } else if (FILES.equalsIgnoreCase(logType)) {
+            baseResult = BaseResultGenerator.success("ok", null);//伪代码
+        } else if(ALL.equalsIgnoreCase(logType)){
+            BaseResult resultTraffic = deletePart(TRAFFIC_LOGS, maxDays);
+            BaseResult resultReport = deletePart(REPORT_AND_METRICS, maxDays);
+            BaseResult resultFiles = deletePart(FILES, maxDays);
+            if (resultTraffic.getStatus().equals(HttpStatus.SC_OK)
+                    && resultReport.getStatus().equals(HttpStatus.SC_OK)
+                    && resultFiles.getStatus().equals(HttpStatus.SC_OK)) {
+                baseResult = BaseResultGenerator.success("所有日志类型数据删除成功", null);
             } else {
-                String info = String.format("启动删除Druid: %s, 更新删除Druid: %s", resultTriggerReport.getStatus(), resultUpdateReport.getStatus());
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultTraffic.getMessage() +
+                        ";" + resultReport.getMessage() +
+                        ";" + resultFiles.getMessage());
             }
-
-        } else if ("Files".equalsIgnoreCase(logType)) {
-            baseResult = BaseResultGenerator.success("ok", null);
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的logType: " + logType);
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的日志类型: " + logType);
         }
         return baseResult;
     }
 
-    private BaseResult deleteAllAndUpdate(int maxDays) {
+    /**
+     * 清空日志
+     *
+     * @param logType
+     * @return
+     */
+    private BaseResult deleteAll(String logType) {
         BaseResult baseResult;
-        if (maxDays > 0) {
-            BaseResult resultUpdateTraffic = deleteByMaxDays("Traffic Logs", maxDays);
-            BaseResult resultUpdateReport = deleteByMaxDays("Report and Metrics", maxDays);
-            if (resultUpdateTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateReport.getStatus().equals(HttpStatus.SC_OK)) {
-                baseResult = BaseResultGenerator.success("ok", null);
+        if (TRAFFIC_LOGS.equalsIgnoreCase(logType)) {
+            ExecutorParam executorParam = getExecutorParam(30);
+            baseResult = getResultOfDeleteAll(JobHandlerEnum.DELETE_ALL_TRAFFIC_DATA_JOB_HANDLER.getValue(),
+                    JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue(),
+                    executorParam);
+        } else if (REPORT_AND_METRICS.equalsIgnoreCase(logType)) {
+            ExecutorParam executorParam = getExecutorParam(365);
+            baseResult = getResultOfDeleteAll(JobHandlerEnum.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue(),
+                    JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue(),
+                    executorParam);
+        } else if (FILES.equalsIgnoreCase(logType)) {
+            baseResult = BaseResultGenerator.success("ok", null);//伪代码
+        } else if (ALL.equalsIgnoreCase(logType)) {
+            BaseResult resultTraffic = deleteAll(TRAFFIC_LOGS);
+            BaseResult resultReport = deleteAll(REPORT_AND_METRICS);
+            BaseResult resultFiles = deleteAll(FILES);
+            if (resultTraffic.getStatus().equals(HttpStatus.SC_OK)
+                    && resultReport.getStatus().equals(HttpStatus.SC_OK)
+                    && resultFiles.getStatus().equals(HttpStatus.SC_OK)) {
+                baseResult = BaseResultGenerator.success("所有日志类型数据清空成功", null);
             } else {
-                String info =
-                        String.format("更新删除ClickHouse: %s; 启动清库Druid: %s, 更新删除: %s",
-                                resultUpdateTraffic.getStatus(), resultUpdateReport.getStatus());
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultTraffic.getMessage() +
+                        ";" + resultReport.getMessage() +
+                        ";" + resultFiles.getMessage());
             }
         } else {
-            Map trafficDate = getDataByHandler(JobHandlerEnum.DELETE_ALL_TRAFFIC_DATA_JOB_HANDLER.getValue());
-            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(30));
-            BaseResult resultUpdateAllTraffic = executeManageJob("update", xxlJobInfo);
-            BaseResult resultTriggerAllTraffic = executeManageJob("trigger", xxlJobInfo);
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的日志类型: " + logType);
+        }
+        return baseResult;
+    }
 
-            trafficDate = getDataByHandler(JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
-            xxlJobInfo = setXxlJobInfoParam(trafficDate, getClickHouseExecutorParam(30));
-            BaseResult resultUpdateTraffic = executeManageJob("update", xxlJobInfo);
-
-            trafficDate = getDataByHandler(JobHandlerEnum.DELETE_ALL_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(365));
-            BaseResult resultUpdateAllReport = executeManageJob("update", xxlJobInfo);
-            BaseResult resultTriggerAllReport = executeManageJob("trigger", xxlJobInfo);
-
-            trafficDate = getDataByHandler(JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
-            xxlJobInfo = setXxlJobInfoParam(trafficDate, getDruidExecutorParam(365));
-            BaseResult resultUpdateReport = executeManageJob("update", xxlJobInfo);
-
-            if (resultTriggerAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateAllTraffic.getStatus().equals(HttpStatus.SC_OK) && resultUpdateTraffic.getStatus().equals(HttpStatus.SC_OK)
-                    && resultTriggerAllReport.getStatus().equals(HttpStatus.SC_OK) && resultUpdateAllReport.getStatus().equals(HttpStatus.SC_OK) && resultUpdateReport.getStatus().equals(HttpStatus.SC_OK)) {
+    /**
+     * 获取清空日志结果
+     *
+     * @param deleteAllHandler
+     * @param deletePartHandler
+     * @param executorParam
+     * @return
+     */
+    private BaseResult getResultOfDeleteAll(String deleteAllHandler, String deletePartHandler, ExecutorParam executorParam) {
+        BaseResult baseResult;
+        Map trafficDate = getDataByHandler(deleteAllHandler);
+        XxlJobInfo xxlJobInfo = setXxlJobInfoParam(trafficDate, executorParam);
+        BaseResult resultExecuteAndUpdate = executeAndUpdate(xxlJobInfo);
+        if (resultExecuteAndUpdate.getStatus().equals(HttpStatus.SC_OK)) {
+            Map dataByHandler = getDataByHandler(deletePartHandler);
+            XxlJobInfo xxlJobInfoOfUpdate = setXxlJobInfoParam(dataByHandler, executorParam);
+            BaseResult resultUpdate = executeManageJob("update", xxlJobInfoOfUpdate);
+            if (resultUpdate.getStatus().equals(HttpStatus.SC_OK)) {
                 baseResult = BaseResultGenerator.success("ok", null);
             } else {
-                String info =
-                        String.format("启动清库Druid: %s, 更新清库Druid: %s, 更新删除Druid: %s; 启动清库clickHouse: %s, 更新清库ClickHouse: %s, 更新删除ClickHouse: %s",
-                                resultTriggerAllReport.getStatus(), resultUpdateAllReport.getStatus(), resultUpdateReport.getStatus(),
-                                resultTriggerAllTraffic.getStatus(), resultUpdateAllTraffic.getStatus(), resultUpdateTraffic.getStatus());
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, info);
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, deleteAllHandler + ": 执行清库成功, 更新删除部分日志失败。");
             }
+        } else {
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultExecuteAndUpdate.getMessage());
+        }
+        return baseResult;
+    }
+
+    /**
+     * 更新任务并触发执行器
+     *
+     * @param xxlJobInfo
+     * @return
+     */
+    private BaseResult executeAndUpdate(XxlJobInfo xxlJobInfo) {
+        BaseResult baseResult;
+        BaseResult resultUpdate = executeManageJob("update", xxlJobInfo);
+        if (resultUpdate.getStatus().equals(HttpStatus.SC_OK)) {
+            BaseResult resultExecute = executeManageJob("trigger", xxlJobInfo);
+            if (resultExecute.getStatus().equals(HttpStatus.SC_OK)) {
+                baseResult = BaseResultGenerator.success("OK", null);
+            } else {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "更新任务成功, 触发执行器失败: " + xxlJobInfo.getExecutorHandler());
+            }
+        } else {
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "更新任务失败: " + xxlJobInfo.getExecutorHandler());
         }
         return baseResult;
     }
@@ -319,24 +367,12 @@ public class SystemServiceImpl implements SystemService {
     }
 
     /**
-     * 获取druid 执行参数
+     * 获取执行参数
      *
      * @param maxDays
      * @return
      */
-    private ExecutorParam getDruidExecutorParam(int maxDays) {
-        ExecutorParam executorParam = new ExecutorParam();
-        executorParam.setMaxdays(maxDays);
-        return executorParam;
-    }
-
-    /**
-     * 获取clickHouse 执行参数
-     *
-     * @param maxDays
-     * @return
-     */
-    private ExecutorParam getClickHouseExecutorParam(int maxDays) {
+    private ExecutorParam getExecutorParam(int maxDays) {
         ExecutorParam executorParam = new ExecutorParam();
         executorParam.setMaxdays(maxDays);
         return executorParam;
