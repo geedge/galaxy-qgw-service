@@ -36,15 +36,15 @@ public class SystemServiceImpl implements SystemService {
     IAPIService apiService;
 
 
-    JobAdminHttpSource jobAdminHttpSource = (JobAdminHttpSource) SpringContextUtil.getBean("jobAdminHttpSource");
+    private JobAdminHttpSource jobAdminHttpSource = (JobAdminHttpSource) SpringContextUtil.getBean("jobAdminHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
 
     private Map<String, String> headers = Maps.newHashMap();
 
-    String TRAFFIC_LOGS = "Traffic Logs";
-    String REPORT_AND_METRICS = "Report and Metrics";
-    String FILES = "Files";
-    String ALL = "ALL";
+    private static String TRAFFIC_LOGS = "Traffic Logs";
+    private static String REPORT_AND_METRICS = "Report and Metrics";
+    private static String FILES = "Files";
+    private static String ALL = "ALL";
 
     @Override
     public BaseResult getStorageQuota() {

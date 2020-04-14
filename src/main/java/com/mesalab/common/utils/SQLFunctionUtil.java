@@ -1084,7 +1084,7 @@ public class SQLFunctionUtil {
                 String num = matcherPT.group(1);
                 String unit = matcherPT.group(2);
                 if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                    String format = "toUnixTimestamp(intDiv(toUInt32(%s), %s ) * %s)";
+                    String format = "toUnixTimestamp(intDiv(toUInt32(toDateTime(%s)), %s ) * %s)";
                     if ("S".equalsIgnoreCase(unit)) {
                         num = num;
                     } else if ("M".equalsIgnoreCase(unit)) {
@@ -1119,16 +1119,16 @@ public class SQLFunctionUtil {
                         return String.format(format, timestamp);
                     } else {
                         if ("D".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toStartOfDay(toDateTime(intDiv(toUInt32(%s), %s ) * %s)))";
+                            format = "toUnixTimestamp(toStartOfDay(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s)))";
                             num = num + " * 86400 ";
                         } else if ("W".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toDateTime(toMonday(toDateTime(intDiv(toUInt32(%s), %s ) * %s))))";
+                            format = "toUnixTimestamp(toDateTime(toMonday(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
                             num = num + " * 604800 ";
                         } else if ("M".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toDateTime(toStartOfMonth(toDateTime(intDiv(toUInt32(%s), %s ) * %s))))";
+                            format = "toUnixTimestamp(toDateTime(toStartOfMonth(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
                             num = num + " * 2592000 ";
                         } else if ("Y".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toDateTime(toStartOfYear(toDateTime(intDiv(toUInt32(%s), %s ) * %s))))";
+                            format = "toUnixTimestamp(toDateTime(toStartOfYear(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
                             num = num + " * 31536000 ";
                         }
                         return String.format(format, timestamp, num, num);
