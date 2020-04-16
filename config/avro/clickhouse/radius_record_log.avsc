@@ -137,7 +137,7 @@
       "name": "common_schema_type",
       "type": "string",
       "label": "Schema Type",
-      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"},{\"code\":\"BGP\",\"value\":\"BGP\"},{\"code\":\"VOIP\",\"value\":\"VOIP\"},{\"code\":\"RADIUS\",\"value\":\"RADIUS\"}],\"visibility\":\"hidden\"}"
+      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"}],\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_user_tags",
@@ -148,7 +148,8 @@
     {
       "name": "common_sub_action",
       "type": "string",
-      "label": "Sub Action"
+      "label": "Sub Action",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_user_region",
@@ -178,7 +179,7 @@
       "name": "common_encapsulation",
       "type": "int",
       "label": "Encapsulation",
-      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"CiscoHDLC\"}]}"
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"CiscoHDLC\"}],\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_app_label",

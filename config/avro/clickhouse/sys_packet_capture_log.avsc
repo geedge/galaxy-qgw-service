@@ -136,7 +136,7 @@
       "name": "common_schema_type",
       "type": "string",
       "label": "Schema Type",
-      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"},{\"code\":\"BGP\",\"value\":\"BGP\"},{\"code\":\"VOIP\",\"value\":\"VOIP\"},{\"code\":\"RADIUS\",\"value\":\"RADIUS\"}],\"visibility\":\"hidden\"}"
+      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"}],\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_user_tags",
