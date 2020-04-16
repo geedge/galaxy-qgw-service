@@ -322,13 +322,11 @@ public class SystemServiceImpl implements SystemService {
      */
     public void setCookie() {
         StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl());
-        Map headers = Maps.newHashMap();
         headers.put("Content-Type", "application/json");
         String urlParamsByMap = getUrlParamsByMap(getObjectToMap(jobAdminHttpSource));
         Map httpPostResponseHeads = httpClientService.getHttpPostResponseHeads(url + "/login?" + urlParamsByMap, headers);
         String cookie = String.valueOf(httpPostResponseHeads.get("SET-COOKIE"));
         headers.put("Cookie", cookie);
-        headers.put("Content-Type", "application/json");
     }
 
     /**
@@ -345,12 +343,17 @@ public class SystemServiceImpl implements SystemService {
         log.info("请求调度任务pageList接口" + url);
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
+            if (StringUtil.isEmpty(maps)) {
+                throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "获取或封装结果异常: " + resultPageList, null);
+            }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
                 return data.get(0);
+            } else {
+                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "无匹配executorHandler(" + handlerValue + ")的jobInfo信息", null);
             }
         }
-        return new HashMap();
+        throw new BusinessException(BaseResultEnum.FAIL.getCode(), "获取jobInfo异常: " + resultPageList, null);
     }
 
     /**
