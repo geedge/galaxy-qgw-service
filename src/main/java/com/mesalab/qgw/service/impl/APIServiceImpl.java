@@ -167,7 +167,8 @@ public class APIServiceImpl implements IAPIService {
        if (StringUtil.isNotBlank(param.getOption())) {
 
             if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.REAL_TIME.getValue()) &&
-                    !param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
+                    !param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue()) &&
+                    !param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
                 throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：option 参数错误", null);
             }
 

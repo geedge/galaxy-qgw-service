@@ -7,6 +7,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
@@ -16,6 +17,7 @@ import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +84,9 @@ public class DruidDialect implements  Dialect {
 
     @Override
     public Dialect sqlDialectTransform() {
-        param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+        if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
+            param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+        }
         param.setQuery(SQLFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.DRUID.getValue()));
         return this;
     }
@@ -92,8 +96,11 @@ public class DruidDialect implements  Dialect {
         watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
         DruidDialect.DruidQueryParam druidQueryParam = new DruidDialect.DruidQueryParam();
-
-        druidQueryParam.setQuery(param.getQuery());
+        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
+            druidQueryParam.setQuery("select 1");
+        } else {
+            druidQueryParam.setQuery(param.getQuery());
+        }
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
 
@@ -143,7 +150,10 @@ public class DruidDialect implements  Dialect {
             baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
         } else {
             if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-
+                String message = "ok";
+                if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
+                    message = Encodes.urlDecode(param.getQuery());
+                }
                 if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
                     String result = results.get("result");
 
@@ -161,7 +171,7 @@ public class DruidDialect implements  Dialect {
                     }
 
 
-                    baseResult = BaseResultGenerator.success("ok", result , null);
+                    baseResult = BaseResultGenerator.success(message, result , null);
 
 
                 } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
@@ -181,7 +191,7 @@ public class DruidDialect implements  Dialect {
                     int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
                     statistics.put("result_size", resultSize);
 
-                    baseResult = BaseResultGenerator.success("ok", allResults , statistics);
+                    baseResult = BaseResultGenerator.success(message, allResults, statistics);
                 }
 
 

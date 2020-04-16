@@ -333,7 +333,9 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public Dialect sqlDialectTransform() {
         if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.QUERY_SCHEMA.getValue())) {
-            param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+            if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
+                param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+            }
             param.setQuery(generateUniq(param.getQuery()));
             param.setQuery(generateSubquery(param.getQuery()));
             param.setQuery(generateStandard(param.getQuery()));
@@ -349,8 +351,15 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeHttpQuery() {
-        results = executeHttpGet(param);
-       return  this;
+        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
+            ApiParam temp = new ApiParam();
+            temp.setQuery("select 1");
+            temp.setFormat(param.getFormat());
+            results = executeHttpGet(temp);
+        } else {
+            results = executeHttpGet(param);
+        }
+        return this;
 
     }
 
@@ -386,9 +395,12 @@ public class ClickhouseDialect implements Dialect {
             baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
         } else {
             if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-
+                String message = "ok";
+                if(param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())){
+                    message = Encodes.urlDecode(param.getQuery());
+                }
                 if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                    baseResult = BaseResultGenerator.success("ok", results.get("result"), null);
+                    baseResult = BaseResultGenerator.success(message, results.get("result"), null);
                 } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
                     Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(results.get("result"),  Map.class);
                     Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
@@ -397,7 +409,7 @@ public class ClickhouseDialect implements Dialect {
                     statistics.put("rows_read", statisticMap.get("rows_read"));
                     int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
                     statistics.put("result_size", resultSize);
-                    baseResult = BaseResultGenerator.success("ok", maps.get("data"), statistics);
+                    baseResult = BaseResultGenerator.success(message, maps.get("data"), statistics);
                 }
 
             } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
