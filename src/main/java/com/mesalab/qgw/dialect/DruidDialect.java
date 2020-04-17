@@ -83,24 +83,24 @@ public class DruidDialect implements  Dialect {
     }
 
     @Override
-    public Dialect sqlDialectTransform() {
-        if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
-        }
+    public Dialect queryTransformation() {
         param.setQuery(SQLFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.DRUID.getValue()));
         return this;
     }
 
     @Override
-    public Dialect executeHttpQuery() {
+    public Dialect queryOptimization() {
+        param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+        return this;
+    }
+
+
+    @Override
+    public Dialect executeQuery() {
         watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
         DruidDialect.DruidQueryParam druidQueryParam = new DruidDialect.DruidQueryParam();
-        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            druidQueryParam.setQuery("select 1");
-        } else {
-            druidQueryParam.setQuery(param.getQuery());
-        }
+        druidQueryParam.setQuery(param.getQuery());
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
 
@@ -116,6 +116,12 @@ public class DruidDialect implements  Dialect {
         executeUDF();
         return this;
 
+    }
+
+    @Override
+    public Dialect executeSyntaxCheck() {
+        results.put("message", param.getQuery());
+        return this;
     }
 
     @Override
@@ -151,9 +157,11 @@ public class DruidDialect implements  Dialect {
         } else {
             if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
                 String message = "ok";
-                if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-                    message = Encodes.urlDecode(param.getQuery());
+
+                if (StringUtil.isNotBlank(results.get("message"))) {
+                    message = results.get("message");
                 }
+
                 if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
                     String result = results.get("result");
 

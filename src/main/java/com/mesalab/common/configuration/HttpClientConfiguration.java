@@ -126,10 +126,7 @@ public class HttpClientConfiguration {
                 }
                 HttpClientContext clientContext = HttpClientContext.adapt(context);
                 HttpRequest request = clientContext.getRequest();
-                if (!(request instanceof HttpEntityEnclosingRequest)) {
-                    return true;
-                }
-                return false;
+                return !(request instanceof HttpEntityEnclosingRequest);
             }
         };
 

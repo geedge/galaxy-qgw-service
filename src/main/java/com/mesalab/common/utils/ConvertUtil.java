@@ -25,7 +25,7 @@ public class ConvertUtil {
 
         private final String value;
 
-        private Fill(String value) {
+        Fill(String value) {
             this.value = value;
         }
 
@@ -151,11 +151,12 @@ public class ConvertUtil {
 
         for (Object source : sources) {
 
-            Map<String, String> sourceMap = ((Map<String, String>) source);
+            Map<String, Object> sourceMap = ((Map<String, Object>) source);
 
             String groupKey = null;
             if (StringUtil.isBlank(groupLabel)) {
                 groupKey = "default";
+
             } else {
                 for(String group : groupLabel.split(GROUP_SEPRATOR)) {
                     groupKey = Joiner.on(GROUP_SEPRATOR).skipNulls().join(groupKey, sourceMap.get(group));
@@ -166,7 +167,7 @@ public class ConvertUtil {
 
 
 
-            String timeGran = sourceMap.get(timeGranLabel);
+            String timeGran = sourceMap.get(timeGranLabel).toString();
             sourceMap.remove(timeGranLabel);
 
             Map groupMap = resultMap.get(groupKey);

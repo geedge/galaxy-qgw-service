@@ -914,12 +914,7 @@ public class SQLFunctionUtil {
         String innerValue = "";
         StringBuffer sb = new StringBuffer();
         if (matcherParse.find()) {
-            Boolean sign;
-            if(matcherParse.group(1).toUpperCase().contains("ADD")){
-                sign = true;
-            }else {
-                sign = false;
-            }
+            Boolean sign = matcherParse.group(1).toUpperCase().contains("ADD");
             if (StringUtil.getBracketsMatch(matcherParse.group(2), null,false)[0] >= 0) {
                 List<String> params = diviParam(matcherParse.group(2), ",");
                 innerValue = dateRelative(params, sign, dbType);

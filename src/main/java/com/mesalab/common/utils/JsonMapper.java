@@ -63,7 +63,7 @@ public class JsonMapper extends ObjectMapper {
 		this.registerModule(new SimpleModule().addSerializer(String.class, new JsonSerializer<String>() {
 			@Override
 			public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
-					throws IOException, JsonProcessingException {
+					throws IOException {
 				jgen.writeString(StringEscapeUtils.unescapeHtml4(value));
 			}
 		}));

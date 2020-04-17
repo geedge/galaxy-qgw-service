@@ -331,26 +331,28 @@ public class ClickhouseDialect implements Dialect {
 
 
     @Override
-    public Dialect sqlDialectTransform() {
-        if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.QUERY_SCHEMA.getValue())) {
-            if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-                param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
-            }
-            param.setQuery(generateUniq(param.getQuery()));
-            param.setQuery(generateSubquery(param.getQuery()));
-            param.setQuery(generateStandard(param.getQuery()));
-            param.setQuery(SQLFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
-        }
-        param.setQuery(generateSqlEncode(param.getQuery()));
+    public Dialect queryTransformation() {
 
+        param.setQuery(generateStandard(param.getQuery()));
+        param.setQuery(SQLFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
+        param.setQuery(generateSqlEncode(param.getQuery()));
+        return this;
+    }
+
+    @Override
+    public Dialect queryOptimization() {
+        param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+        param.setQuery(generateUniq(param.getQuery()));
+        param.setQuery(generateSubquery(param.getQuery()));
 
         return this;
     }
 
 
 
+
     @Override
-    public Dialect executeHttpQuery() {
+    public Dialect executeQuery() {
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
             ApiParam temp = new ApiParam();
             temp.setQuery("select 1");
@@ -361,6 +363,13 @@ public class ClickhouseDialect implements Dialect {
         }
         return this;
 
+    }
+
+    @Override
+    public Dialect executeSyntaxCheck() {
+        results.put("message", param.getQuery());
+
+        return this;
     }
 
     @Override
@@ -396,9 +405,10 @@ public class ClickhouseDialect implements Dialect {
         } else {
             if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
                 String message = "ok";
-                if(param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())){
-                    message = Encodes.urlDecode(param.getQuery());
+                if (StringUtil.isNotBlank(results.get("message"))) {
+                    message = results.get("message");
                 }
+
                 if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
                     baseResult = BaseResultGenerator.success(message, results.get("result"), null);
                 } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {

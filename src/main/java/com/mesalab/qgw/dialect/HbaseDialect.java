@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpStatus;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -52,13 +53,18 @@ public class HbaseDialect implements Dialect{
     }
 
     @Override
-    public Dialect sqlDialectTransform() {
+    public Dialect queryTransformation() {
 
         return this;
     }
 
     @Override
-    public Dialect executeHttpQuery() {
+    public Dialect queryOptimization() {
+        return this;
+    }
+
+    @Override
+    public Dialect executeQuery() {
         watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(hBaseHttpSource.getUrl()).append("/");
@@ -76,6 +82,11 @@ public class HbaseDialect implements Dialect{
         results = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
 
        return this;
+    }
+
+    @Override
+    public Dialect executeSyntaxCheck() {
+        return this;
     }
 
     @Override
@@ -109,7 +120,7 @@ public class HbaseDialect implements Dialect{
                 baseResult = BaseResultGenerator.success("ok", maps.get("data"), statistics);
 
             } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, results.get("result").toString());
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, results.get("result"));
             } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {
                 baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, JsonMapper.fromJsonString(results.get("result"), Object.class).toString());
             } else {
@@ -139,7 +150,7 @@ public class HbaseDialect implements Dialect{
             if (StringUtil.isNotEmpty(rowList)) {
                 Map<String ,Object> keyMap = (Map<String ,Object>)rowList.get(0);
                 String encryptResult = ((Map<String ,Object>)((ArrayList)keyMap.get("Cell")).get(0)).get("$").toString();
-                result = new String(Base64.getDecoder().decode(encryptResult), "utf-8");
+                result = new String(Base64.getDecoder().decode(encryptResult), StandardCharsets.UTF_8);
 
             }
 

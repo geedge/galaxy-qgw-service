@@ -95,11 +95,17 @@ public class APIServiceImpl implements IAPIService {
 
         validateAndGetTableName(param);
 
-        BaseResult baseResult = parserAndGetDialect(param).sqlDialectTransform().executeHttpQuery()
-                .executeUDF().build();
+        Dialect dialect = parserAndGetDialect(param);
+
+        BaseResult baseResult = null;
+        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
+            baseResult = dialect.queryTransformation().executeQuery().build();
+        } else {
+            baseResult = dialect.queryOptimization().queryTransformation().executeQuery().executeUDF().build();
+        }
 
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus() ,baseResult.getMessage(), null);
+            throw new BusinessException(baseResult.getStatus(),baseResult.getMessage(), null);
         }
 
 
@@ -580,7 +586,7 @@ public class APIServiceImpl implements IAPIService {
         param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery().build();
+        BaseResult result = dialect.executeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "describe table error, please check tableName", null);
         }
@@ -615,7 +621,7 @@ public class APIServiceImpl implements IAPIService {
         param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.sqlDialectTransform().executeHttpQuery().build();
+        BaseResult result = dialect.executeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), result.getMessage(), null);
         }
