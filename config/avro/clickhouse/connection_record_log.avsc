@@ -280,12 +280,14 @@
     {
       "name": "http_request_header",
       "type": "string",
-      "label": "Request Headers"
+      "label": "Request Headers",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_response_header",
       "type": "string",
-      "label": "Response Headers"
+      "label": "Response Headers",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_request_body",
@@ -377,8 +379,7 @@
     {
       "name": "http_action_file_size",
       "type": "int",
-      "label": "Action File Size",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "label": "Action File Size"
     },
     {
       "name": "mail_protocol_type",

@@ -287,12 +287,14 @@
     {
       "name": "http_request_header",
       "type": "string",
-      "label": "Request Headers"
+      "label": "Request Headers",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_response_header",
       "type": "string",
-      "label": "Response Headers"
+      "label": "Response Headers",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_request_body",
