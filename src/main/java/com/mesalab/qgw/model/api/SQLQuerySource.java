@@ -28,7 +28,7 @@ public class SQLQuerySource {
     private Expression whereExpression; /** where 对象 **/
     private GroupByElement groupByElement;
     private List<OrderByElement> listOrderElement;
-    private Map<String, String> aliasFields= Maps.newHashMap();
+    private Map<String, String> aliasFields= Maps.newHashMap();/** k=alias,v=column **/
     private Set<UDF> udfSet = Sets.newHashSet();
     private Map<String, String> groupDimension = Maps.newHashMap();
 
