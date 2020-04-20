@@ -1,0 +1,20 @@
+{
+  "namespace": "druid",
+  "type": "record",
+  "name": "injection_metrics_log",
+  "doc": "{\"partition_key\":\"__time\"}",
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "bytes",
+      "type": "long"
+    },
+    {
+      "name": "service_type",
+      "type": "string"
+    }
+  ]
+}

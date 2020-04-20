@@ -31,6 +31,10 @@
     {
       "name": "sub_action",
       "type": "string"
+    },
+    {
+      "name": "ip_object",
+      "type": "string"
     }
   ]
 }

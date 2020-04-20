@@ -1,0 +1,20 @@
+{
+  "namespace": "druid",
+  "type": "record",
+  "name": "policy_id_ip_num_log",
+  "doc": "{\"partition_key\":\"__time\"}",
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "ip_num",
+      "type": "long"
+    },
+    {
+      "name": "policy_id",
+      "type": "long"
+    }
+  ]
+}

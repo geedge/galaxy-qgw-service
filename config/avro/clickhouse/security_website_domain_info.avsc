@@ -1,0 +1,47 @@
+{
+  "namespace": "tsg_galaxy_v3",
+  "type": "record",
+  "name": "security_website_domain_info",
+  "fields": [
+    {
+      "name": "stat_time",
+      "type": "int"
+    },
+    {
+      "name": "policy_id",
+      "type": "int"
+    },
+    {
+      "name": "domain",
+      "type": "string"
+    },
+    {
+      "name": "ip_list",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    {
+      "name": "cdn_list",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    {
+      "name": "protocol_type_list",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    {
+      "name": "port_list",
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
+    }
+  ]
+}
