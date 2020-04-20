@@ -7,7 +7,6 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -353,22 +352,18 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeQuery() {
-        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            ApiParam temp = new ApiParam();
-            temp.setQuery("select 1");
-            temp.setFormat(param.getFormat());
-            results = executeHttpGet(temp);
-        } else {
-            results = executeHttpGet(param);
-        }
+        results = executeHttpGet(param);
         return this;
 
     }
 
     @Override
     public Dialect executeSyntaxCheck() {
-        results.put("message", param.getQuery());
-
+        ApiParam temp = new ApiParam();
+        temp.setQuery("select 1");
+        temp.setFormat(param.getFormat());
+        results = executeHttpGet(temp);
+        results.put("message", Encodes.urlDecode(param.getQuery()));
         return this;
     }
 

@@ -32,10 +32,9 @@ import java.util.*;
 public class SystemServiceImpl implements SystemService {
 
 
-    @Autowired
-    IAPIService apiService;
 
 
+    private IAPIService apiService = (IAPIService) SpringContextUtil.getBean("apiService");
     private JobAdminHttpSource jobAdminHttpSource = (JobAdminHttpSource) SpringContextUtil.getBean("jobAdminHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
 

@@ -99,7 +99,7 @@ public class APIServiceImpl implements IAPIService {
 
         BaseResult baseResult = null;
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            baseResult = dialect.queryTransformation().executeQuery().build();
+            baseResult = dialect.queryTransformation().executeSyntaxCheck().build();
         } else {
             baseResult = dialect.queryOptimization().queryTransformation().executeQuery().executeUDF().build();
         }
@@ -583,7 +583,6 @@ public class APIServiceImpl implements IAPIService {
             param.setDialectDBType(DBTypeEnum.DRUID.getValue());
             param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + name + "'");
         }
-        param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
         BaseResult result = dialect.executeQuery().build();
@@ -618,7 +617,6 @@ public class APIServiceImpl implements IAPIService {
         } else {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema name error", null);
         }
-        param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
         BaseResult result = dialect.executeQuery().build();

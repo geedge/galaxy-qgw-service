@@ -36,8 +36,6 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public BaseResult getSchemaInfo(String type, String name) {
 
-        ApiParam param = new ApiParam();
-        param.setOption(QueryOptionEnum.QUERY_SCHEMA.getValue());
         if("tables".equals(type)){//查询库中所有表
             if(clickHouseProperties.getDbname().equals(name)){
                 return encapsulationTablesResult(new ArrayList<>(getSchemasOfCK().keySet()) , clickHouseProperties.getDbname());

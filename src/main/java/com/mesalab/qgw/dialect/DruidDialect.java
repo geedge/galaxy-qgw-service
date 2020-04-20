@@ -120,7 +120,10 @@ public class DruidDialect implements  Dialect {
 
     @Override
     public Dialect executeSyntaxCheck() {
-        results.put("message", param.getQuery());
+        String sql = param.getQuery();
+        param.setQuery("select 1");
+        executeQuery();
+        results.put("message", Encodes.urlDecode(sql));
         return this;
     }
 
