@@ -25,6 +25,9 @@ import java.util.regex.Pattern;
  */
 public class SQLFunctionUtil {
     public static final String TIME_FLOOR_WITH_FILL = "TIME_FLOOR_WITH_FILL";
+    public static final String IP_TO_GEO = "IP_TO_GEO";
+    public static final String IP_TO_CITY = "IP_TO_CITY";
+    public static final String IP_TO_COUNTRY = "IP_TO_COUNTRY";
 
     private static DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private static ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
@@ -34,11 +37,18 @@ public class SQLFunctionUtil {
      * 自定义函数
      */
     public static Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pIpToGeo = Pattern.compile("\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pIpToCity = Pattern.compile("\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
+    public static Pattern pIpToCountry = Pattern.compile("\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
+
     public static Pattern periodOfPT = Pattern.compile("PT(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
     public static Pattern periodOfP = Pattern.compile("P(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
     public static final HashMap<String, String> functions = Maps.newHashMap();
     static {
         functions.put(TIME_FLOOR_WITH_FILL, null);
+        functions.put(IP_TO_GEO, null);
+        functions.put(IP_TO_CITY, null);
+        functions.put(IP_TO_COUNTRY, null);
     }
 
     /**
@@ -90,8 +100,12 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String translateUDF(String sql, String dbType) {
-        sql = translateByPattern(sql, dbType, pTimeFloorWithFill);
-        return sql;
+        String resultSql = sql;
+        resultSql = translateByPattern(resultSql, dbType, pTimeFloorWithFill);
+        resultSql = translateByPattern(resultSql, dbType, pIpToGeo);
+        resultSql = translateByPattern(resultSql, dbType, pIpToCity);
+        resultSql = translateByPattern(resultSql, dbType, pIpToCountry);
+        return resultSql;
     }
 
     /**
@@ -1053,13 +1067,52 @@ public class SQLFunctionUtil {
     /**
      * 转义函数
      *
-     * @param function
+     * @param fun
      * @param dbType
      * @return
      */
-    private static String translateFunction(Function function, String dbType) {
-        String fun = translateTimeFloorWithFill(function, dbType);
-        return fun;
+    private static String translateFunction(Function fun, String dbType) {
+        String function = null;
+        if (TIME_FLOOR_WITH_FILL.equals(fun.getName())) {
+            function = translateTimeFloorWithFill(fun, dbType);
+        } else if (IP_TO_GEO.equals(fun.getName())) {
+            function = translateIpToGeo(fun);
+        } else if (IP_TO_CITY.equals(fun.getName())) {
+            function = translateIpToCity(fun);
+        } else if (IP_TO_COUNTRY.equals(fun.getName())) {
+            function = translateIpToCountry(fun);
+        }
+        return function;
+    }
+
+    /**
+     * 转义IP_TO_GEO
+     *
+     * @param fun
+     * @return
+     */
+    private static String translateIpToCountry(Function fun) {
+        return fun.paramsList.get(0);
+    }
+
+    /**
+     * 转义IP_TO_CITY
+     *
+     * @param fun
+     * @return
+     */
+    private static String translateIpToCity(Function fun) {
+        return fun.paramsList.get(0);
+    }
+
+    /**
+     * 转义IP_TO_COUNTRY
+     *
+     * @param fun
+     * @return
+     */
+    private static String translateIpToGeo(Function fun) {
+        return fun.paramsList.get(0);
     }
 
     /**
@@ -1070,68 +1123,66 @@ public class SQLFunctionUtil {
      * @return
      */
     private static String translateTimeFloorWithFill(Function function, String dbType) {
-        if (TIME_FLOOR_WITH_FILL.equals(function.getName())) {
-            String timestamp = function.getParamsList().get(0);
-            String period = function.getParamsList().get(1);
+        String timestamp = function.getParamsList().get(0);
+        String period = function.getParamsList().get(1);
 
-            Matcher matcherPT = periodOfPT.matcher(period);
-            if (matcherPT.find()) {
-                String num = matcherPT.group(1);
-                String unit = matcherPT.group(2);
-                if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                    String format = "toUnixTimestamp(intDiv(toUInt32(toDateTime(%s)), %s ) * %s)";
-                    if ("S".equalsIgnoreCase(unit)) {
-                        num = num;
+        Matcher matcherPT = periodOfPT.matcher(period);
+        if (matcherPT.find()) {
+            String num = matcherPT.group(1);
+            String unit = matcherPT.group(2);
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                String format = "toUnixTimestamp(intDiv(toUInt32(toDateTime(%s)), %s ) * %s)";
+                if ("S".equalsIgnoreCase(unit)) {
+                    num = num;
+                } else if ("M".equalsIgnoreCase(unit)) {
+                    num = num + " * 60 ";
+                } else if ("H".equalsIgnoreCase(unit)) {
+                    num = num + " * 3600 ";
+                }
+                return String.format(format, timestamp, num, num);
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP( 1000 * (%s) ), %s))/1000";
+                return String.format(format, timestamp, period);
+            }
+        }
+
+        Matcher matcherP = periodOfP.matcher(period);
+        if (matcherP.find()) {
+            String num = matcherP.group(1);
+            String unit = matcherP.group(2);
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                String format = null;
+                if ("1".equals(num)) {
+                    if ("D".equalsIgnoreCase(unit)) {
+                        format = "toUnixTimestamp(toStartOfDay(toDateTime(%s)))";
+                    } else if ("W".equalsIgnoreCase(unit)) {
+                        format = "toUnixTimestamp(toDateTime(toMonday(toDateTime(%s))))";
                     } else if ("M".equalsIgnoreCase(unit)) {
-                        num = num + " * 60 ";
-                    } else if ("H".equalsIgnoreCase(unit)) {
-                        num = num + " * 3600 ";
+                        format = "toUnixTimestamp(toDateTime(toStartOfMonth(toDateTime(%s))))";
+                    } else if ("Y".equalsIgnoreCase(unit)) {
+                        format = "toUnixTimestamp(toDateTime(toStartOfYear(toDateTime(%s))))";
+                    }
+                    System.out.println(String.format(format, timestamp));
+                    return String.format(format, timestamp);
+                } else {
+                    if ("D".equalsIgnoreCase(unit)) {
+                        format = "toUnixTimestamp(toStartOfDay(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s)))";
+                        num = num + " * 86400 ";
+                    } else if ("W".equalsIgnoreCase(unit)) {
+                        format = "toUnixTimestamp(toDateTime(toMonday(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
+                        num = num + " * 604800 ";
+                    } else if ("M".equalsIgnoreCase(unit)) {
+                        format = "toUnixTimestamp(toDateTime(toStartOfMonth(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
+                        num = num + " * 2592000 ";
+                    } else if ("Y".equalsIgnoreCase(unit)) {
+                        format = "toUnixTimestamp(toDateTime(toStartOfYear(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
+                        num = num + " * 31536000 ";
                     }
                     return String.format(format, timestamp, num, num);
-                } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                    String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP( 1000 * (%s) ), %s))/1000";
-                    return String.format(format, timestamp, period);
                 }
-            }
-
-            Matcher matcherP = periodOfP.matcher(period);
-            if (matcherP.find()) {
-                String num = matcherP.group(1);
-                String unit = matcherP.group(2);
-                if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                    String format = null;
-                    if ("1".equals(num)) {
-                        if ("D".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toStartOfDay(toDateTime(%s)))";
-                        } else if ("W".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toDateTime(toMonday(toDateTime(%s))))";
-                        } else if ("M".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toDateTime(toStartOfMonth(toDateTime(%s))))";
-                        } else if ("Y".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toDateTime(toStartOfYear(toDateTime(%s))))";
-                        }
-                        System.out.println(String.format(format, timestamp));
-                        return String.format(format, timestamp);
-                    } else {
-                        if ("D".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toStartOfDay(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s)))";
-                            num = num + " * 86400 ";
-                        } else if ("W".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toDateTime(toMonday(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
-                            num = num + " * 604800 ";
-                        } else if ("M".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toDateTime(toStartOfMonth(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
-                            num = num + " * 2592000 ";
-                        } else if ("Y".equalsIgnoreCase(unit)) {
-                            format = "toUnixTimestamp(toDateTime(toStartOfYear(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
-                            num = num + " * 31536000 ";
-                        }
-                        return String.format(format, timestamp, num, num);
-                    }
-                } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                    String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP( 1000 * (%s) ), %s))/1000";
-                    return String.format(format, timestamp, period);
-                }
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP( 1000 * (%s) ), %s))/1000";
+                return String.format(format, timestamp, period);
             }
         }
         return function.toString();

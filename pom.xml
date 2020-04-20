@@ -377,6 +377,10 @@
                             <targetPath>/config</targetPath>
                             <directory>config</directory>
                         </resource>
+                        <resource>
+                            <targetPath>/dat</targetPath>
+                            <directory>dat</directory>
+                        </resource>
 
 
 

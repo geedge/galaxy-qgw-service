@@ -26,7 +26,7 @@ public class IP_TO_GEO implements  UDF{
 
     public IP_TO_GEO(UDFElements udfElements) {
         this.name = udfElements.getName();
-        this.address = ((StringValue) udfElements.getParams().get(0)).getValue();
+        this.address = udfElements.getParams().get(0).toString();
     }
 
     @Override

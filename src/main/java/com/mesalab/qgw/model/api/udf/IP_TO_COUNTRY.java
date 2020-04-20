@@ -24,7 +24,7 @@ public class IP_TO_COUNTRY implements  UDF{
 
     public IP_TO_COUNTRY(UDFElements udfElements) {
         this.name = udfElements.getName();
-        this.address = ((StringValue) udfElements.getParams().get(0)).getValue();
+        this.address = udfElements.getParams().get(0).toString();
     }
 
     @Override
