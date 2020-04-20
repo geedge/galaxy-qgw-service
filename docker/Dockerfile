@@ -4,6 +4,7 @@ MAINTAINER Galaxy
 VOLUME /tmp
 WORKDIR /home/tsg/galaxy/galaxy-qgw-service
 COPY config config
+COPY dat dat
 ARG JAR_FILE
 COPY ${JAR_FILE} galaxy-qgw-service.jar
 #dockercompose set JAVA_OPTS
