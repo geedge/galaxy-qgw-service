@@ -62,7 +62,8 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
 
             for (String groupKey: groupDimension.keySet()) {
-                if (groupDimension.get(groupKey).contains(name)) {
+                if (groupDimension.get(groupKey).contains(name) &&
+                        groupDimension.get(groupKey).contains(timestamp)) {
                     timeGranLabel = groupKey;
                 } else {
                     groupLabel = Joiner.on(ConvertUtil.GROUP_SEPRATOR).skipNulls().join(groupKey, groupLabel);

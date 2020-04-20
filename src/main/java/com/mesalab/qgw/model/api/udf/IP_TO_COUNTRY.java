@@ -33,8 +33,10 @@ public class IP_TO_COUNTRY implements  UDF{
         String addressLabel = StringUtil.EMPTY;
         try {
             for (String alias : sqlQuerySource.getAliasFields().keySet()) {
-                if (sqlQuerySource.getAliasFields().get(alias).equalsIgnoreCase(address)) {
+                if (sqlQuerySource.getAliasFields().get(alias).contains(address) &&
+                        sqlQuerySource.getAliasFields().get(alias).contains(name) ) {
                     addressLabel = alias;
+                    break;
                 }
             }
              for (Object source: results) {

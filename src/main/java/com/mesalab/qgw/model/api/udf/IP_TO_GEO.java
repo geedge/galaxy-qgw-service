@@ -36,8 +36,10 @@ public class IP_TO_GEO implements  UDF{
         try {
 
             for (String alias : sqlQuerySource.getAliasFields().keySet()) {
-                if (sqlQuerySource.getAliasFields().get(alias).equalsIgnoreCase(address)) {
+                if (sqlQuerySource.getAliasFields().get(alias).contains(address) &&
+                        sqlQuerySource.getAliasFields().get(alias).contains(name) ) {
                     addressLabel = alias;
+                    break;
                 }
             }
 
