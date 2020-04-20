@@ -71,7 +71,6 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
 
 
-
             Map<String, Map<String, Map<String, String>>> targetTimeseriesMap = ConvertUtil.convertResultListToTimeseries(results,
                     groupLabel, timeGranLabel);
 
