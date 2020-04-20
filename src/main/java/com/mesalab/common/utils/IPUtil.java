@@ -1,5 +1,7 @@
 package com.mesalab.common.utils;
 
+import com.zdjizhi.utils.IpLookup;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -13,6 +15,25 @@ public class IPUtil {
     private static final String UNKNOWN = "unknown";
     private static final String DEFAULT_SEPARATOR = ",";
     private static final int DEFAULT_IP_LENGTH = 15;
+    private static IpLookup ipLookup =  new IpLookup.Builder(false).loadDataFileV4("dat/all_ip_info_v4.mmdb")
+            .loadDataFileV6("dat/all_ip_info_ipv6.mmdb")
+            .loadAsnDataFileV4("dat/asn_v4.mmdb")
+            .loadAsnDataFileV6("dat/asn_v6.mmdb")
+            .build();
+
+    public static String getGeo(String ip) {
+        return ipLookup.latLngLookup(ip);
+    }
+
+    public static String getCityDetail(String ip) {
+        return ipLookup.cityLookupDetail(ip);
+    }
+
+    public static String getCountry(String ip) {
+        return ipLookup.countryLookup(ip);
+    }
+
+
 
     /**
      * 从http request中获取真实IP
