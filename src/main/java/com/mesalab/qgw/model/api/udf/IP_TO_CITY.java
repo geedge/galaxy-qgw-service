@@ -3,6 +3,7 @@ package com.mesalab.qgw.model.api.udf;
 import com.google.common.collect.Lists;
 import com.mesalab.common.utils.IPUtil;
 import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,17 +30,24 @@ public class IP_TO_CITY implements  UDF{
     @Override
     public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
         List<Map<String, Object>>  targetResult = Lists.newArrayList();
+        String addressLabel = StringUtil.EMPTY;
         try {
-             for (Object source: results) {
+            for (String alias : sqlQuerySource.getAliasFields().keySet()) {
+                if (sqlQuerySource.getAliasFields().get(alias).equalsIgnoreCase(address)) {
+                    addressLabel = alias;
+                }
+            }
+
+            for (Object source: results) {
                  Map<String, Object> sourceMap = ((Map<String, Object>) source);
-                 if (sourceMap.containsKey(address)) {
-                     sourceMap.put(address, IPUtil.getCityDetail(sourceMap.get(address).toString()));
+                 if (sourceMap.containsKey(addressLabel)) {
+                     sourceMap.put(addressLabel, IPUtil.getCityDetail(sourceMap.get(addressLabel).toString()));
                  }
                    targetResult.add(sourceMap);
              }
 
         } catch (Exception e) {
-            log.error("execute IpToGEO ERROR: " + e);
+            log.error("execute IP_TO_CITY ERROR: " + e);
         }
 
         return targetResult;
