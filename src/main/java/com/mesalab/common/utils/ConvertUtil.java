@@ -264,9 +264,7 @@ public class ConvertUtil {
                 defaultElement.put(key, Fill.NONE.value);
             }
         } else {
-            for(String key: defaultElement.keySet()) {
-                defaultElement.clear();
-            }
+            defaultElement.clear();
         }
 
         TreeMap<String, Map<String, String>> target = Maps.newTreeMap(sources);

@@ -107,7 +107,12 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 targetTimeseriesMap.put(key,ConvertUtil.completeTimeseries(seriesMap, dateRangeList, fill.toString()));
 
             }
-            targetResult =  ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
+            targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
+
+            int limit = StringUtil.isEmpty(sqlQuerySource.getLimit()) ? 200 : Integer.parseInt(sqlQuerySource.getLimit());
+            if (targetResult.size() > limit) {
+                targetResult = targetResult.subList(0, limit);
+            }
         } catch (Exception e) {
             log.error("Parser function : TIME_FLOOR_WITH_FILL error : {} ", e);
         }
