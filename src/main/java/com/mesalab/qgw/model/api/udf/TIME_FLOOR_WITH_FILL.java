@@ -55,12 +55,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         String groupLabel= null;
         String timeGranLabel = null;
 
-
-
         try {
 
-            Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
+            if(StringUtil.isBlank(fill)) {
+                return results;
+            }
 
+            Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
             for (String groupKey: groupDimension.keySet()) {
                 if (groupDimension.get(groupKey).contains(name) &&
                         groupDimension.get(groupKey).contains(timestamp)) {
@@ -70,7 +71,6 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 }
 
             }
-
 
             Map<String, Map<String, Map<String, String>>> targetTimeseriesMap = ConvertUtil.convertResultListToTimeseries(results,
                     groupLabel, timeGranLabel);
