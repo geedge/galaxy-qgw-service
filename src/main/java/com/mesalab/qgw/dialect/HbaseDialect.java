@@ -68,12 +68,14 @@ public class HbaseDialect implements Dialect{
         watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(hBaseHttpSource.getUrl()).append("/");
+
+        String queryId = StringUtil.isNotBlank(param.getResultId()) ? param.getResultId() : param.getReportId();
         StringBuilder queryparamBuilder = new StringBuilder(hBaseHttpSource.getDbName())
                 .append(":").append(hBaseHttpSource.getTableName()).append("/")
-                .append(getQueryId(param.getReportId(), param.getQuery())).append("/")
+                .append(getQueryId(queryId, param.getQuery())).append("/")
                 .append(hBaseHttpSource.getColumnFamily()).append(":").append(hBaseHttpSource.getColumnName());
 
-        log.info("Report Query：{}, Report Id: {}, sql:{}" ,urlBuilder.toString() + queryparamBuilder.toString(),param.getReportId(), param.getQuery());
+        log.info("Report Query：{}, queryId Id: {}, sql:{}", urlBuilder.toString() + queryparamBuilder.toString(), queryId, param.getQuery());
 
         Map<String, String> headers = Maps.newHashMap();
 

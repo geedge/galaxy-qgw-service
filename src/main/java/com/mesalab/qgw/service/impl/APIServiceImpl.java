@@ -179,8 +179,8 @@ public class APIServiceImpl implements IAPIService {
             }
 
             if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
-                if (StringUtil.isBlank(param.getReportId())) {
-                    throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：option=long-term,需指定reportId", null);
+                if (StringUtil.isBlank(param.getReportId()) && StringUtil.isBlank(param.getResultId())) {
+                    throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：option=long-term,需指定reportId或resultId", null);
                 }
             }
 
