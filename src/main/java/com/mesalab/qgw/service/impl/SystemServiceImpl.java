@@ -92,7 +92,7 @@ public class SystemServiceImpl implements SystemService {
         for (BaseResult result : listResult) {
             if (!result.getStatus().equals(HttpStatus.SC_OK)) {
                 messages += result.getMessage() + "; ";
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, messages + "其它未提示的则为成功");
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, messages);
             }
         }
         if (baseResult == null) {
@@ -271,16 +271,62 @@ public class SystemServiceImpl implements SystemService {
      */
     private BaseResult executeAndUpdate(XxlJobInfo xxlJobInfo) {
         BaseResult baseResult;
-        BaseResult resultUpdate = executeManageJob("update", xxlJobInfo);
-        if (resultUpdate.getStatus().equals(HttpStatus.SC_OK)) {
-            BaseResult resultExecute = executeManageJob("trigger", xxlJobInfo);
-            if (resultExecute.getStatus().equals(HttpStatus.SC_OK)) {
-                baseResult = BaseResultGenerator.success("OK", null);
-            } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "更新任务成功, 触发执行器失败: " + xxlJobInfo.getExecutorHandler());
-            }
+        BaseResult jobStatus = queryJobStatusByJobId(xxlJobInfo.getId());
+        if (!jobStatus.getStatus().equals(HttpStatus.SC_OK)) {
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "任务繁忙, 请稍后再试: " + xxlJobInfo.getExecutorHandler());
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "更新任务失败: " + xxlJobInfo.getExecutorHandler());
+            BaseResult resultUpdate = executeManageJob("update", xxlJobInfo);
+            if (resultUpdate.getStatus().equals(HttpStatus.SC_OK)) {
+                BaseResult resultExecute = executeManageJob("trigger", xxlJobInfo);
+                if (resultExecute.getStatus().equals(HttpStatus.SC_OK)) {
+                    baseResult = BaseResultGenerator.success("OK", null);
+                } else {
+                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "更新任务成功, 触发执行器失败: " + xxlJobInfo.getExecutorHandler());
+                }
+            } else {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "更新任务失败: " + xxlJobInfo.getExecutorHandler());
+            }
+        }
+        return baseResult;
+    }
+
+    /**
+     * 查询任务状态
+     *
+     * @param jobId
+     * @return
+     */
+    private BaseResult queryJobStatusByJobId(int jobId) {
+        BaseResult baseResult = null;
+        StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).
+                append("/jobinfo/jobBeat?jobId=").
+                append(jobId);
+        Map<String, String> resultMap = httpClientService.httpGet(url.toString(), headers);
+        baseResult = resultEncapsulationOfJob(resultMap);
+        return baseResult;
+    }
+
+    /**
+     * 执行调度任务结果封装
+     *
+     * @param resultMap
+     * @return
+     */
+    private BaseResult resultEncapsulationOfJob(Map<String, String> resultMap) {
+        BaseResult baseResult;
+        if (StringUtil.isEmpty(resultMap)) {
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系调度平台方！");
+        } else {
+            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+                Map result = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(resultMap.get("result")), Map.class);
+                if (result.get("code").equals(HttpStatus.SC_OK)) {
+                    baseResult = BaseResultGenerator.success("ok", null);
+                } else {
+                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请稍后再试: " + result.get("msg"));
+                }
+            } else {
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultMap.get("msg"));
+            }
         }
         return baseResult;
     }
@@ -299,17 +345,7 @@ public class SystemServiceImpl implements SystemService {
         String url = String.format("%s/jobinfo/%s/?%s", jobAdminHttpSource.getUrl(), executeType, params);
         Map<String, String> resultMap = httpClientService.httpGet(url, headers);
         log.info("请求调度任务" + executeType + "接口" + url);
-        if (StringUtil.isEmpty(resultMap)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系调度平台方！");
-        } else {
-            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-                baseResult = BaseResultGenerator.success("ok", null);
-            } else if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, resultMap.get("result"));
-            } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultMap.get("result"));
-            }
-        }
+        baseResult = resultEncapsulationOfJob(resultMap);
         return baseResult;
     }
 
