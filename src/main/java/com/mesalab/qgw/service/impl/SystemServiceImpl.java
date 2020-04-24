@@ -84,7 +84,7 @@ public class SystemServiceImpl implements SystemService {
         preProcessOfLogType(list);
 
         if (jobIsBusy(list)) {
-            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "任务繁忙中, 请稍后尝试!");
+            return BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "任务繁忙中, 请稍后尝试!");
         }
 
         BaseResult baseResult = null;
@@ -160,19 +160,25 @@ public class SystemServiceImpl implements SystemService {
                 continue;
             }
             String handler = getDeletePartHandlerByLogType(info.getLogType());
-            Map dataByHandler = getDataByHandler(handler);
-            Object id = dataByHandler.get("id");
-            BaseResult result = queryJobStatusByJobId(Integer.parseInt(String.valueOf(id)));
-            if (!result.getStatus().equals(HttpStatus.SC_OK)) {
+            if (jobIsBusyByHandler(handler)) {
                 return true;
             }
             handler = getDeleteAllHandlerByLogType(info.getLogType());
-            dataByHandler = getDataByHandler(handler);
-            id = dataByHandler.get("id");
-            result = queryJobStatusByJobId(Integer.parseInt(String.valueOf(id)));
-            if (!result.getStatus().equals(HttpStatus.SC_OK)) {
+            if (jobIsBusyByHandler(handler)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    private boolean jobIsBusyByHandler(String handler) {
+        Map dataByHandler = getDataByHandler(handler);
+        String id = String.valueOf(dataByHandler.get("id"));
+        BaseResult result = queryJobStatusByJobId(Integer.parseInt(id));
+        if (result.getStatus().equals(HttpStatus.SC_LOCKED)) {
+            return true;
+        } else if (!result.getStatus().equals(HttpStatus.SC_OK)) {
+            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "获取任务状态异常: " + result.getMessage(), null);
         }
         return false;
     }
@@ -281,7 +287,7 @@ public class SystemServiceImpl implements SystemService {
         if (resultExecute.getStatus().equals(HttpStatus.SC_OK)) {
             BaseResult resultUpdate = executeManageJob("update", xxlJobInfo);
             if (resultUpdate.getStatus().equals(HttpStatus.SC_OK)) {
-                baseResult = BaseResultGenerator.success("OK", null);
+                baseResult = BaseResultGenerator.success("ok", null);
             } else {
                 baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "更新任务失败: " + xxlJobInfo.getExecutorHandler());
             }
@@ -323,8 +329,10 @@ public class SystemServiceImpl implements SystemService {
                 Map result = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(resultMap.get("result")), Map.class);
                 if (result.get("code").equals(HttpStatus.SC_OK)) {
                     baseResult = BaseResultGenerator.success("ok", null);
+                } else if (result.get("code").equals(HttpStatus.SC_LOCKED)) {
+                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "资源被锁定: " + result.get("msg"));
                 } else {
-                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请稍后再试: " + result.get("msg"));
+                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(result.get("msg")));
                 }
             } else {
                 baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultMap.get("msg"));

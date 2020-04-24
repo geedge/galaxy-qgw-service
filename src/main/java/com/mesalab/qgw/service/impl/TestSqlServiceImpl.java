@@ -166,6 +166,20 @@ public class TestSqlServiceImpl {
         list.add("select common_subscriber_id as user, count(*) as sessions from connection_record_log where common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time))  and notEmpty(user) group by common_subscriber_id order by sessions desc limit 0,100");
         list.add("SELECT common_subscriber_id as user,SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes FROM connection_record_log WHERE common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time)) and notEmpty(user) GROUP BY user ORDER BY bytes  DESC LIMIT 100");
 
+        //RADIUS账户总计
+        list.add("select count(distinct(framed_ip)) as active_ip_num , sum(acct_session_time) as online_duration from (select any(framed_ip) as framed_ip ,max(acct_session_time) as acct_session_time from radius_onff_log where account='000jS' and event_timestamp >= $start_time and event_timestamp < $end_time  group by acct_session_id)");
+        //RADIUS账户IP详情
+        list.add("select distinct(framed_ip) as framed_ip from radius_onff_log where account='000iS' and event_timestamp >= $start_time and event_timestamp < $end_time");
+        //RADIUS账户访问详情
+        list.add("select max(if(acct_status_type=1,event_timestamp,0)) as start_time,max(if(acct_status_type=2,event_timestamp,0)) as end_time, any(framed_ip) as ip,max(acct_session_time) as online_duration  from radius_onff_log where account='000jS' and event_timestamp >= $start_time and event_timestamp < $end_time  group by acct_session_id  order by start_time desc limit 200");
+        //目标资源分析
+        list.add("SELECT  domain, groupUniqArrayMerge(ip_list) as ip_list, groupUniqArrayMerge(cdn_list) as cdn_list, groupUniqArrayMerge(protocol_type_list) as protocol_type_list, groupUniqArrayMerge(port_list) as port_list  FROM security_website_domain_info where  stat_time >= $start_time and stat_time < $end_time and policy_id=0 group by domain");
+        //某IP的关联域名关系
+        list.add("SELECT  ip, FROM_UNIXTIME(max(stat_time)) as last_time, FROM_UNIXTIME(min(stat_time)) as first_time, groupUniqArrayMerge(domain_list) as domain_list, groupUniqArrayMerge(port_list) as port_list  FROM security_ip_info where  stat_time >= $start_time and stat_time < $end_time and ip='192.168.50.70' group by ip");
+        //自定义函数测试
+        list.add("SELECT policy_id, APPROX_COUNT_DISTINCT_DS_HLL(isp) as num  FROM proxy_event_hits_log where  __time >= '2020-04-05 00:00:00' and __time < '2020-05-05 00:00:00' and policy_id=0 group by policy_id");
+        list.add("SELECT ip, IP_TO_CITY(ip) as location, IP_TO_GEO(ip) as geo from (SELECT policy_id, arrayJoin(groupUniqArrayMerge(ip_list)) as ip FROM proxy_ip_info where  stat_time >= $start_time and stat_time < $end_time and policy_id=0 group by policy_id)");
+
         return list;
     }
 
@@ -348,6 +362,19 @@ public class TestSqlServiceImpl {
         //六、命中URL统计
         list.add("select url,sum(session_num) as hits  from top_urls_log where __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time  group by url order by hits desc limit 100");
         list.add("select url,sum(session_num) as hits  from top_urls_log where __time >= $start_time and __time < $end_time  group by url order by hits desc limit 100");
+
+        //国家客户端数量
+        list.add("SELECT country, APPROX_COUNT_DISTINCT_DS_HLL(ip_object) as num FROM source_country_ip_num_log group by country order by num desc limit 200");
+        //域名推荐
+        list.add("SELECT domain, protocol_type, ip_num, session_num  FROM top_domain_recommend_daily_log where __time = now()");
+        //推荐URL
+        list.add("SELECT url, content_length, ip_num, session_num  FROM top_website_urls_daily_log where __time = now()");
+        //劫持客户端数量
+        list.add("SELECT policy_id, APPROX_COUNT_DISTINCT_DS_HLL(isp) as num  FROM proxy_event_hits_log where  __time >= $start_time and __time < $end_time and policy_id=0 group by policy_id");
+        //劫持客户端IP地域分布
+        list.add("select ip, IP_TO_CITY(ip) as location, IP_TO_GEO(ip) as geo from (SELECT policy_id, arrayJoin(groupUniqArrayMerge(ip_list)) as ip FROM proxy_ip_info where  stat_time >= $start_time and stat_time < $end_time and policy_id=0 group by policy_id)");
+        //注入流量统计
+        list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time,  sum(bytes) as bytes from injection_metrics_log where  __time >= $start_time and __time < $end_time  group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') limit 100");
 
         return list;
     }
