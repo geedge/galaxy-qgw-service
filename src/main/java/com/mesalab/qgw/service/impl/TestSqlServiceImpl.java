@@ -179,6 +179,7 @@ public class TestSqlServiceImpl {
         //自定义函数测试
         list.add("SELECT policy_id, APPROX_COUNT_DISTINCT_DS_HLL(isp) as num  FROM proxy_event_hits_log where  __time >= '2020-04-05 00:00:00' and __time < '2020-05-05 00:00:00' and policy_id=0 group by policy_id");
         list.add("SELECT ip, IP_TO_CITY(ip) as location, IP_TO_GEO(ip) as geo from (SELECT policy_id, arrayJoin(groupUniqArrayMerge(ip_list)) as ip FROM proxy_ip_info where  stat_time >= $start_time and stat_time < $end_time and policy_id=0 group by policy_id)");
+        list.add("select TIME_FLOOR_WITH_FILL(common_recv_time,'PT5M','previous') as stat_time from connection_record_log where  common_recv_time > $start_time and common_recv_time < $end_time  group by stat_time");
 
         return list;
     }
