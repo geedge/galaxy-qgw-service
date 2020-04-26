@@ -136,7 +136,7 @@
       "name": "common_schema_type",
       "type": "string",
       "label": "Schema Type",
-      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"}],\"allow_query\":\"true\"}"
+      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"SSL\",\"value\":\"SSL\"}],\"allow_query\":\"true\"}"
     },
     {
       "name": "common_user_tags",
