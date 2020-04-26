@@ -56,12 +56,10 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         String timeGranLabel = null;
 
         try {
-
-            if(StringUtil.isBlank(fill)) {
+            Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
+            if(StringUtil.isBlank(fill) || StringUtil.isEmpty(groupDimension)) { //补全函数为空或列无时间序列key时，直接返回
                 return results;
             }
-
-            Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
             for (String groupKey: groupDimension.keySet()) {
                 if (groupDimension.get(groupKey).contains(name) &&
                         groupDimension.get(groupKey).contains(timestamp)) {
