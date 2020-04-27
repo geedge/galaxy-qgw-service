@@ -337,15 +337,8 @@ public class APIServiceImpl implements IAPIService {
                     }
 
                     GroupByElement groupBy;
-                    List<Expression> groupList;
-                    if (StringUtil.isNotEmpty(groupBy = select.getGroupBy()) && StringUtil.isNotEmpty(groupList = groupBy.getGroupByExpressions())) {
+                    if (StringUtil.isNotEmpty(groupBy = select.getGroupBy())) {
                         sqlQuerySource.setGroupByElement(groupBy);
-
-                        for (Expression expr : groupList) {
-
-                            addUDFSet(sqlQuerySource, expr);//伪代码：后期需要在SQLQuerySource groupBy对象中提取
-                        }
-
                     }
 
                     List<OrderByElement> orderByList = select.getOrderByElements();
