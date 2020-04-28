@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
@@ -198,6 +199,10 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             OrExpression whereOr = (OrExpression) whereExpression;
             parserWhereExpressionForPartitionRange(partitionTimeRange, whereOr.getLeftExpression(), partitionKey, dbType);
             parserWhereExpressionForPartitionRange(partitionTimeRange, whereOr.getRightExpression(), partitionKey, dbType);
+        } else if (whereExpression instanceof Parenthesis) {
+            Parenthesis whereExpressionParenthesis = (Parenthesis) whereExpression;
+            Expression expression = whereExpressionParenthesis.getExpression();
+            parserWhereExpressionForPartitionRange(partitionTimeRange, expression, partitionKey, dbType);
         }
     }
 
