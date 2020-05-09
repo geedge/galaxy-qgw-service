@@ -2,7 +2,6 @@ package com.mesalab.qgw.service;
 
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.utils.IPUtil;
-import com.zdjizhi.utils.IpLookup;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -20,6 +19,12 @@ public class IpLocationTest extends GalaxyQGWApplicationTests {
     @Test
     public void testIpToCity() {
         log.info(IPUtil.getCityDetail("157.255.77.80"));
+
+    }
+
+    @Test
+    public void testIpToCountry() {
+        log.info(IPUtil.getCountry("157.255.77.80"));
 
     }
 
