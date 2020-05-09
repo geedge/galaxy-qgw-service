@@ -15,8 +15,11 @@ public class IPUtil {
     private static final String UNKNOWN = "unknown";
     private static final String DEFAULT_SEPARATOR = ",";
     private static final int DEFAULT_IP_LENGTH = 15;
-    private static IpLookup ipLookup =  new IpLookup.Builder(false).loadDataFileV4("dat/all_ip_info_v4.mmdb")
-            .loadDataFileV6("dat/all_ip_info_ipv6.mmdb")
+    private static IpLookup ipLookup =  new IpLookup.Builder(true)
+            .loadDataFileV4("dat/ip_v4.mmdb")
+            .loadDataFileV6("dat/ip_v6.mmdb")
+            .loadDataFilePrivateV4("dat/ip_private_v4.mmdb")
+            .loadDataFilePrivateV4("dat/ip_private_v6.mmdb")
             .loadAsnDataFileV4("dat/asn_v4.mmdb")
             .loadAsnDataFileV6("dat/asn_v6.mmdb")
             .build();
