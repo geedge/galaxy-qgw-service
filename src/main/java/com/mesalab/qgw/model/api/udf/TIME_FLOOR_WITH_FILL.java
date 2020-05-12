@@ -21,6 +21,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -95,15 +96,12 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
 
             for (String key : targetTimeseriesMap.keySet()) {
+
                 TreeMap<String, Map<String, String>> seriesMap = (TreeMap <String, Map<String, String>>) targetTimeseriesMap.get(key);
 
-                if(StringUtil.isEmpty(dateRangeList)){ //尝试补全中间结果
-                    dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate(seriesMap.firstKey(), DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                            DateUtils.convertStringToDate(seriesMap.lastKey(), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
+                if(StringUtil.isNotEmpty(dateRangeList)){
+                    targetTimeseriesMap.put(key,ConvertUtil.completeTimeseries(seriesMap, dateRangeList, fill.toString()));
                 }
-
-                targetTimeseriesMap.put(key,ConvertUtil.completeTimeseries(seriesMap, dateRangeList, fill.toString()));
-
             }
             targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
 
