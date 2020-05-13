@@ -8,6 +8,7 @@ import lombok.Data;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.select.GroupByElement;
 import net.sf.jsqlparser.statement.select.OrderByElement;
+import net.sf.jsqlparser.statement.select.SubSelect;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,9 @@ public class SQLQuerySource {
     private String expr;
     private String orderBy;
     private String limit;
+    private SubSelect subSelect;
+    private Boolean needMemoryQuery = false;
+    private Object subSqlQuerySource;
     private Expression whereExpression; /** where 对象 **/
     private GroupByElement groupByElement;
     private List<OrderByElement> listOrderElement;

@@ -23,11 +23,14 @@ public interface Dialect {
      * @return 分页查询的sql
      */
     String getLimitString(String sql, int offset, int limit);
-    Dialect queryTransformation();
-    Dialect queryOptimization();
-    Dialect executeQuery();
+    String queryTransformation(String sql);
+    String queryOptimization(String sql);
+    Dialect queryDefaultPreProcess();
+    Dialect executeSubQuery();
+    Dialect executeGeneralQuery();
+    Dialect executeMemoryQuery();
     Dialect executeSyntaxCheck();
-    Dialect executeUDF();
+    Dialect executeUDF(SQLQuerySource sqlQuerySource);
     BaseResult build();
 
 

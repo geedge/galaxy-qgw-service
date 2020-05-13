@@ -99,9 +99,31 @@ public class APIServiceImpl implements IAPIService {
 
         BaseResult baseResult = null;
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            baseResult = dialect.queryTransformation().executeSyntaxCheck().build();
+            if (param.getSqlQuerySource().getNeedMemoryQuery()) {
+                baseResult = dialect
+                        .executeSyntaxCheck()
+                        .build();
+            } else {
+                baseResult = dialect
+                        .queryDefaultPreProcess()
+                        .executeSyntaxCheck()
+                        .build();
+            }
         } else {
-            baseResult = dialect.queryOptimization().queryTransformation().executeQuery().executeUDF().build();
+            if (param.getSqlQuerySource().getNeedMemoryQuery()) {
+                baseResult = dialect
+                        .executeSubQuery()
+                        .executeUDF((SQLQuerySource) param.getSqlQuerySource().getSubSqlQuerySource())
+                        .executeMemoryQuery()
+                        .executeUDF(param.getSqlQuerySource())
+                        .build();
+            } else {
+                baseResult = dialect
+                        .queryDefaultPreProcess()
+                        .executeGeneralQuery()
+                        .executeUDF(param.getSqlQuerySource())
+                        .build();
+            }
         }
 
         if (!baseResult.isSuccess()) {
@@ -132,8 +154,11 @@ public class APIServiceImpl implements IAPIService {
 
             param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
 
-            param.setSqlQuerySource(parserSQLByAst(param.getQuery()));
+        }
+        param.setSqlQuerySource(parserSQLByAst(param.getQuery()));
 
+        if (param.getSqlQuerySource().getNeedMemoryQuery()) {
+            param.getSqlQuerySource().setSubSqlQuerySource(parserSQLByAst(param.getSqlQuerySource().getSubSelect().getSelectBody().toString()));
         }
         dialect = getDialect(param);
 
@@ -331,7 +356,7 @@ public class APIServiceImpl implements IAPIService {
                             } else {
                                 sqlQuerySource.getAliasFields().put(expressionItem.getExpression().toString(), expressionItem.getExpression().toString());
                             }
-                            addUDFSet(sqlQuerySource, expressionItem.getExpression());//伪代码：后期需要在SQLQuerySource where对象中提取
+                            addUDFSet(sqlQuerySource.getUdfSet(), expressionItem.getExpression());//伪代码：后期需要在SQLQuerySource where对象中提取
 
                         }
                     }
@@ -352,8 +377,19 @@ public class APIServiceImpl implements IAPIService {
 
                     FromItem subItem = select.getFromItem();
 
-                    if (subItem instanceof  SubSelect) {
-                        log.info("SQL 包含子查询,暂不做解析处理  ");
+                    if (subItem instanceof SubSelect) {
+                        log.info("SQL 包含子查询");
+                        SubSelect subItemTemp = (SubSelect) subItem;
+                        Set<String> udfMethodNames = SQLFunctionUtil.functions.keySet();
+                        String s = subItemTemp.toString();
+                        for (String udfMethodName : udfMethodNames) {
+                            if (s.contains(udfMethodName)) {
+                                sqlQuerySource.setNeedMemoryQuery(true);
+                                sqlQuerySource.setSubSelect(subItemTemp);
+                                log.info("SQL 子查询中包含自定义函数");
+                                break;
+                            }
+                        }
                     }
 
 
@@ -397,26 +433,27 @@ public class APIServiceImpl implements IAPIService {
 
     /**
      * 自定义函数封装
-     * @param sqlQuerySource
+     *
+     * @param udfSet
      * @param expr
      */
-    private void addUDFSet(SQLQuerySource sqlQuerySource, Expression expr) {
-        parserExpressionForFun(sqlQuerySource, expr);
+    private void addUDFSet(Set<UDF> udfSet, Expression expr) {
+        parserExpressionForFun(udfSet, expr);
     }
 
-    private void parserExpressionForFun(SQLQuerySource sqlQuerySource, Expression expr) {
+    private void parserExpressionForFun(Set<UDF> udfSet, Expression expr) {
         if (expr instanceof Function) {
             Function fun = (Function) expr;
             if (SQLFunctionUtil.functions.keySet().contains(fun.getName().toUpperCase())) {
                 List<Expression> expressions = fun.getParameters().getExpressions();
                 UDF udf = getUDF(fun, expressions);
-                sqlQuerySource.getUdfSet().add(udf);
+                udfSet.add(udf);
             }
             if (fun.getParameters() == null) {
                 return;
             }
             for (Expression expression : fun.getParameters().getExpressions()) {
-                parserExpressionForFun(sqlQuerySource, expression);
+                parserExpressionForFun(udfSet, expression);
             }
         }
     }
@@ -578,7 +615,7 @@ public class APIServiceImpl implements IAPIService {
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeQuery().build();
+        BaseResult result = dialect.executeGeneralQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "describe table error, please check tableName", null);
         }
@@ -612,7 +649,7 @@ public class APIServiceImpl implements IAPIService {
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeQuery().build();
+        BaseResult result = dialect.executeGeneralQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), result.getMessage(), null);
         }

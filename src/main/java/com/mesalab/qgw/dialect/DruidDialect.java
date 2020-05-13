@@ -7,7 +7,6 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
@@ -17,7 +16,6 @@ import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -83,24 +81,37 @@ public class DruidDialect implements  Dialect {
     }
 
     @Override
-    public Dialect queryTransformation() {
-        param.setQuery(SQLFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.DRUID.getValue()));
-        return this;
-    }
-
-    @Override
-    public Dialect queryOptimization() {
+    public Dialect queryDefaultPreProcess() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
         return this;
     }
 
+    @Override
+    public String queryTransformation(String sql) {
+        sql = SQLFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.DRUID.getValue());
+        return sql;
+    }
 
     @Override
-    public Dialect executeQuery() {
+    public String queryOptimization(String sql) {
+        return sql;
+    }
+
+    @Override
+    public Dialect executeSubQuery() {
+        return this;
+    }
+
+
+    @Override
+    public Dialect executeGeneralQuery() {
+        String query = param.getQuery();
+        query = queryTransformation(query);
+        query = queryOptimization(query);
         watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
         DruidDialect.DruidQueryParam druidQueryParam = new DruidDialect.DruidQueryParam();
-        druidQueryParam.setQuery(param.getQuery());
+        druidQueryParam.setQuery(query);
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
 
@@ -113,23 +124,27 @@ public class DruidDialect implements  Dialect {
         }
 
         results = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
-        executeUDF();
         return this;
 
+    }
+
+    @Override
+    public Dialect executeMemoryQuery() {
+        return this;
     }
 
     @Override
     public Dialect executeSyntaxCheck() {
-        String sql = param.getQuery();
+        String sql = queryTransformation(param.getQuery());
         param.setQuery("select 1");
-        executeQuery();
-        results.put("message", Encodes.urlDecode(sql));
+        executeGeneralQuery();
+        results.put("message", sql);
         return this;
     }
 
     @Override
-    public Dialect executeUDF() {
-        Set<UDF> udfSet = param.getSqlQuerySource().getUdfSet();
+    public Dialect executeUDF(SQLQuerySource sqlQuerySource) {
+        Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
 
             if (StringUtil.isNotEmpty(results)) {

@@ -2,6 +2,7 @@ package com.mesalab.qgw.dialect;
 
 
 import com.google.common.collect.Maps;
+import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.BaseResultEnum;
@@ -33,9 +34,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -330,56 +329,86 @@ public class ClickhouseDialect implements Dialect {
 
 
     @Override
-    public Dialect queryTransformation() {
-
-        param.setQuery(generateStandard(param.getQuery()));
-        param.setQuery(SQLFunctionUtil.generateDateFunction(param.getQuery(), DBTypeEnum.CLICKHOUSE.getValue()));
-        param.setQuery(generateSqlEncode(param.getQuery()));
-        return this;
+    public String queryTransformation(String sql) {
+        sql = generateStandard(sql);
+        sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.CLICKHOUSE.getValue());
+        sql = generateSqlEncode(sql);
+        return sql;
     }
 
     @Override
-    public Dialect queryOptimization() {
+    public String queryOptimization(String sql) {
+        sql = generateUniq(sql);
+        sql = generateSubquery(sql);
+
+        return sql;
+    }
+
+    @Override
+    public Dialect queryDefaultPreProcess() {
         param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
-        param.setQuery(generateUniq(param.getQuery()));
-        param.setQuery(generateSubquery(param.getQuery()));
-
         return this;
     }
-
-
 
 
     @Override
-    public Dialect executeQuery() {
-        results = executeHttpGet(param);
+    public Dialect executeGeneralQuery() {
+        String sql = queryOptimization(param.getQuery());
+        sql = queryTransformation(sql);
+        results = executeHttpGet(sql, param.getFormat());
         return this;
-
     }
+
+    @Override
+    public Dialect executeSubQuery() {
+        String sql = queryTransformation(param.getSqlQuerySource().getSubSelect().getSelectBody().toString());
+        results = executeHttpGet(sql, param.getFormat());
+        return this;
+    }
+
+    @Override
+    public Dialect executeMemoryQuery() {
+        try {
+            Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(String.valueOf(results.get("result")), Map.class);
+            List<Map<String, Object>> data = (List<Map<String, Object>>) maps.get("data");
+            List<Map<String, String>> meta = (List<Map<String, String>>) maps.get("meta");
+            List list = CalciteMemoryUtils.calciteQueryMemoryData(meta, data, param);
+            maps.put("data", list);
+            results.put("result", JsonMapper.toJsonString(maps));
+        } catch (Exception ex) {
+            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error: ", ex);
+        }
+        return this;
+    }
+
 
     @Override
     public Dialect executeSyntaxCheck() {
-        ApiParam temp = new ApiParam();
-        temp.setQuery("select 1");
-        temp.setFormat(param.getFormat());
-        results = executeHttpGet(temp);
-        results.put("message", Encodes.urlDecode(param.getQuery()));
+        String query;
+        if (param.getSqlQuerySource().getNeedMemoryQuery()) {
+            query = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
+        } else {
+            query = param.getQuery();
+        }
+        query = queryTransformation(query);
+        results = executeHttpGet("select 1", param.getFormat());
+        results.put("message", Encodes.urlDecode(query));
         return this;
     }
 
     @Override
-    public Dialect executeUDF() {
-        Set<UDF> udfSet = param.getSqlQuerySource().getUdfSet();
+    public Dialect executeUDF(SQLQuerySource sqlQuerySource) {
+        Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
             if (StringUtil.isNotEmpty(results)) {
                 if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
-                        param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue()) ) {
+                        param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
 
                     Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
 
                     List<Object> lists = (List<Object>) maps.get("data");
 
-                    List<Map<String, String>>  targetResult  =  (List<Map<String, String>>) udf.execute(param.getSqlQuerySource(), lists);
+                    List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, lists);
                     maps.put("data", targetResult);
                     results.put("result", JsonMapper.toJsonString(maps));
 
@@ -431,10 +460,11 @@ public class ClickhouseDialect implements Dialect {
 
     /**
      * 查询clickhouse: http get
-     * @param param
+     * @param sql
+     * @param format
      * @return
      */
-    private Map<String, String> executeHttpGet(ApiParam param) {
+    private Map<String, String> executeHttpGet(String sql, String format) {
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
 
@@ -443,10 +473,10 @@ public class ClickhouseDialect implements Dialect {
                 .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
                 .append("database=")
                 .append(clickHouseHttpSource.getDbname()).append("&")
-                .append("query=").append(param.getQuery())
-                .append(" FORMAT ").append(param.getFormat().toUpperCase()).append(" ;");
+                .append("query=").append(sql)
+                .append(" FORMAT ").append(format.toUpperCase()).append(" ;");
 
-        log.info("Query Session and Events Query : {}" , urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
+        log.info("Query Session and Events Query : {}", urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
 
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
 
@@ -622,10 +652,7 @@ public class ClickhouseDialect implements Dialect {
      * @return
      */
     private boolean tableIsAvaliableInDB(String tableName) {
-        ApiParam tempParam = new ApiParam();
-        tempParam.setQuery(String.format("select 1 from %s limit 1", tableName));
-        tempParam.setFormat(QueryFormatEnum.JSON.getValue());
-        Map<String, String> result = executeHttpGet(tempParam);
+        Map<String, String> result = executeHttpGet(String.format("select 1 from %s limit 1", tableName), QueryFormatEnum.JSON.getValue());
         if (result.get("status") == null || Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
             log.info("DB中不存在该表: {}", tableName);
             return false;

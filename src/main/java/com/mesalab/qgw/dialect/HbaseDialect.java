@@ -2,13 +2,18 @@ package com.mesalab.qgw.dialect;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
+import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +21,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpStatus;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -53,18 +55,34 @@ public class HbaseDialect implements Dialect{
     }
 
     @Override
-    public Dialect queryTransformation() {
+    public String queryTransformation(String sql) {
 
+        return sql;
+    }
+
+    @Override
+    public String queryOptimization(String sql) {
+        return sql;
+    }
+
+    @Override
+    public Dialect queryDefaultPreProcess() {
         return this;
     }
 
     @Override
-    public Dialect queryOptimization() {
+    public Dialect executeSubQuery() {
+        executeQuery();
         return this;
     }
 
     @Override
-    public Dialect executeQuery() {
+    public Dialect executeGeneralQuery() {
+        executeQuery();
+        return this;
+    }
+
+    private void executeQuery() {
         watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(hBaseHttpSource.getUrl()).append("/");
@@ -82,8 +100,25 @@ public class HbaseDialect implements Dialect{
         headers.put("Accept", "application/json");
 
         results = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
+    }
 
-       return this;
+    @Override
+    public Dialect executeMemoryQuery() {
+        try {
+            if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+                throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "report query not found result", null);
+            }
+            String result = results.get("result");
+            Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(result, Map.class);
+            List<Map<String, Object>> data = (List<Map<String, Object>>) maps.get("data");
+            List<Map<String, String>> meta = (List<Map<String, String>>) maps.get("meta");
+            List list = CalciteMemoryUtils.calciteQueryMemoryData(meta, data, param);
+            maps.put("data", list);
+            results.put("result", JsonMapper.toJsonString(maps));
+        } catch (Exception ex) {
+            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error", ex);
+        }
+        return this;
     }
 
     @Override
@@ -92,9 +127,28 @@ public class HbaseDialect implements Dialect{
     }
 
     @Override
-    public Dialect executeUDF() {
+    public Dialect executeUDF(SQLQuerySource sqlQuerySource) {
+        Set<UDF> udfSet = sqlQuerySource.getUdfSet();
+        for (UDF udf : udfSet) {
+            if (StringUtil.isNotEmpty(results)) {
+                if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
+                        param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+
+                    String result = decryptHbaseResult(results.get("result"));
+                    Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(result, Map.class);
+                    List<Object> lists = (List<Object>) maps.get("data");
+
+                    List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, lists);
+                    maps.put("data", targetResult);
+                    results.put("result", JsonMapper.toJsonString(maps));
+
+                }
+            }
+
+        }
         return this;
     }
+
 
     @Override
     public BaseResult build() {
@@ -105,7 +159,10 @@ public class HbaseDialect implements Dialect{
         } else {
             if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
 
-                String result = decryptHbaseResult(results.get("result"));
+                String result = results.get("result");
+                if (!param.getSqlQuerySource().getNeedMemoryQuery()) {
+                    result = decryptHbaseResult(result);
+                }
                 Map<String, Object> maps =(Map<String, Object>) JsonMapper.fromJsonString(result,  Map.class);
                 Map<String, Object> statisticMap = (Map<String, Object>) maps.get("statistics");
 
@@ -118,7 +175,6 @@ public class HbaseDialect implements Dialect{
                 int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
 
                 statistics.put("result_size", resultSize);
-
                 baseResult = BaseResultGenerator.success("ok", maps.get("data"), statistics);
 
             } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
