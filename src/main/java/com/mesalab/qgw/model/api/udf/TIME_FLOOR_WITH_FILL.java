@@ -22,7 +22,6 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -65,6 +64,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             for (String groupKey: groupDimension.keySet()) {
                 if (groupDimension.get(groupKey).contains(name) &&
                         groupDimension.get(groupKey).contains(timestamp)) {
+                    if (groupKey.indexOf("\"") == 0 && groupKey.lastIndexOf("\"") == (groupKey.length() - 1)) {
+                        groupKey = groupKey.substring(1, groupKey.length() - 1);
+                    }
                     timeGranLabel = groupKey;
                 } else {
                     groupLabel = Joiner.on(ConvertUtil.GROUP_SEPRATOR).skipNulls().join(groupKey, groupLabel);
@@ -106,7 +108,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
             targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
 
-            int limit = StringUtil.isEmpty(sqlQuerySource.getLimit()) ? 200 : Integer.parseInt(sqlQuerySource.getLimit());
+            int limit = StringUtil.isEmpty(sqlQuerySource.getLimit()) ? targetResult.size() : Integer.parseInt(sqlQuerySource.getLimit());
             if (targetResult.size() > limit) {
                 targetResult = targetResult.subList(0, limit);
             }
