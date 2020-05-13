@@ -108,7 +108,6 @@ public class APIServiceImpl implements IAPIService {
                         .executeSubQuery()
                         .executeUDF((SQLQuerySource) param.getSqlQuerySource().getSubSqlQuerySource())
                         .executeMemoryQuery()
-                        .executeUDF(param.getSqlQuerySource())
                         .build();
             } else {
                 baseResult = dialect

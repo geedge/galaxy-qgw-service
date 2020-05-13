@@ -104,10 +104,11 @@ public class HbaseDialect implements Dialect{
 
     @Override
     public Dialect executeMemoryQuery() {
+
+        if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "report query error, result: " + results.get("result"), null);
+        }
         try {
-            if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-                throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "report query not found result", null);
-            }
             String result = results.get("result");
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(result, Map.class);
             List<Map<String, Object>> data = (List<Map<String, Object>>) maps.get("data");

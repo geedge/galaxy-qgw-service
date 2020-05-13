@@ -368,6 +368,9 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeMemoryQuery() {
+        if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "query error, result: " + results.get("result"), null);
+        }
         try {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(String.valueOf(results.get("result")), Map.class);
             List<Map<String, Object>> data = (List<Map<String, Object>>) maps.get("data");
@@ -391,8 +394,10 @@ public class ClickhouseDialect implements Dialect {
             query = param.getQuery();
         }
         query = queryTransformation(query);
+        query = Encodes.urlDecode(query);
         results = executeHttpGet("select 1", param.getFormat());
-        results.put("message", Encodes.urlDecode(query));
+        results.put("message", query);
+        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
         return this;
     }
 

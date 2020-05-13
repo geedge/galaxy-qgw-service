@@ -6,7 +6,6 @@ import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.zdjizhi.utils.JsonMapper;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
@@ -53,7 +52,7 @@ public class CalciteMemoryUtils {
             Statement parse = CCJSqlParserUtil.parse(param.getQuery());
             sql = parse.toString().replace(param.getSqlQuerySource().getSubSelect().toString(),alias.getName());
         } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e.getCause());
+            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "calcite memory sql 解析错误", e.getCause());
         }
 
         java.sql.Statement st = connection.createStatement();
