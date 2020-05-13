@@ -53,12 +53,15 @@ public class InMemoryTable extends AbstractTable implements ScannableTable {
 
                     @Override
                     public Object[] current() {
-                        Object[] data = _table.getData(cur++);
+                        Object[] data = _table.getData(cur);
                         return data;
                     }
 
                     @Override
                     public boolean moveNext() {
+                        if (cur != 0 || count >= 1) {
+                            ++cur;
+                        }
                         if (count++ >= 1 && cur == 0) {
                             return false;
                         }
