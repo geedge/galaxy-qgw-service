@@ -99,16 +99,9 @@ public class APIServiceImpl implements IAPIService {
 
         BaseResult baseResult = null;
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            if (param.getSqlQuerySource().getNeedMemoryQuery()) {
-                baseResult = dialect
-                        .executeSyntaxCheck()
-                        .build();
-            } else {
-                baseResult = dialect
-                        .queryDefaultPreProcess()
-                        .executeSyntaxCheck()
-                        .build();
-            }
+            baseResult = dialect
+                    .executeSyntaxCheck()
+                    .build();
         } else {
             if (param.getSqlQuerySource().getNeedMemoryQuery()) {
                 baseResult = dialect
