@@ -276,9 +276,12 @@ public class ClickhouseDialect implements Dialect {
             String orderBy = param.getSqlQuerySource().getOrderBy();
             for (OrderByElement order : listOrderElement) {
                 String orderField = order.getExpression().toString();
+                if (orderField.indexOf("\"") == 0 && orderField.lastIndexOf("\"") == (orderField.length() - 1)) {
+                    orderField = orderField.substring(1, orderField.length() - 1);
+                }
                 String originalField = param.getSqlQuerySource().getAliasFields().get(orderField);
                 if(StringUtil.isNotBlank(originalField)){
-                    orderBy = orderBy.replaceAll("\\b"+orderField+"\\b", originalField);
+                    orderBy = orderBy.replaceAll("(\"" + orderField + "\")|(\\b" + orderField + "\\b)", originalField);
                 }
 
             }
@@ -678,6 +681,9 @@ public class ClickhouseDialect implements Dialect {
             Map<String, String> aliasFields = param.getSqlQuerySource().getAliasFields();
             for (OrderByElement order : listOrderElement) {
                 String orderField = String.valueOf(order.getExpression());
+                if (orderField.indexOf("\"") == 0 && orderField.lastIndexOf("\"") == (orderField.length() - 1)) {
+                    orderField = orderField.substring(1, orderField.length() - 1);
+                }
                 String originalField = aliasFields.get(orderField);
                 if (StringUtil.isNotBlank(originalField) && !isFieldOfSchema(schema, originalField)) {
                     return false;

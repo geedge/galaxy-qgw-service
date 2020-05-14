@@ -344,7 +344,11 @@ public class APIServiceImpl implements IAPIService {
                         if (item instanceof  SelectExpressionItem) {
                             SelectExpressionItem expressionItem =  ((SelectExpressionItem)item);
                             if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
-                                sqlQuerySource.getAliasFields().put(expressionItem.getAlias().getName(), expressionItem.getExpression().toString());
+                                String aliasName = expressionItem.getAlias().getName();
+                                if (aliasName.indexOf("\"") == 0 && aliasName.lastIndexOf("\"") == (aliasName.length() - 1)) {
+                                    aliasName = aliasName.substring(1, aliasName.length() - 1);
+                                }
+                                sqlQuerySource.getAliasFields().put(aliasName, expressionItem.getExpression().toString());
                             } else {
                                 sqlQuerySource.getAliasFields().put(expressionItem.getExpression().toString(), expressionItem.getExpression().toString());
                             }

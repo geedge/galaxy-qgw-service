@@ -64,9 +64,6 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             for (String groupKey: groupDimension.keySet()) {
                 if (groupDimension.get(groupKey).contains(name) &&
                         groupDimension.get(groupKey).contains(timestamp)) {
-                    if (groupKey.indexOf("\"") == 0 && groupKey.lastIndexOf("\"") == (groupKey.length() - 1)) {
-                        groupKey = groupKey.substring(1, groupKey.length() - 1);
-                    }
                     timeGranLabel = groupKey;
                 } else {
                     groupLabel = Joiner.on(ConvertUtil.GROUP_SEPRATOR).skipNulls().join(groupKey, groupLabel);

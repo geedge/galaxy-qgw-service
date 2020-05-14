@@ -43,13 +43,17 @@ public class SQLQuerySource {
         }
         for (Expression groupByExpression : groupByElement.getGroupByExpressions()) {
 
-            if (StringUtil.isNotBlank(aliasFields.get(groupByExpression.toString()))) { //别名
-                groupDimension.put(groupByExpression.toString(), aliasFields.get(groupByExpression.toString()));
+            String groupBy = groupByExpression.toString();
+            if (groupBy.indexOf("\"") == 0 && groupBy.lastIndexOf("\"") == (groupBy.length() - 1)) {
+                groupBy = groupBy.substring(1, groupBy.length() - 1);
+            }
+            if (StringUtil.isNotBlank(aliasFields.get(groupBy))) {
+                groupDimension.put(groupBy, aliasFields.get(groupBy));
             } else {
                 //非别名，确定实际的别名
                 for (String key : aliasFields.keySet()) {
-                    if (aliasFields.get(key).equalsIgnoreCase(groupByExpression.toString())) {
-                        groupDimension.put(key, groupByExpression.toString());
+                    if (aliasFields.get(key).equalsIgnoreCase(groupBy)) {
+                        groupDimension.put(key, groupBy);
                         break;
                     }
                 }
