@@ -14,6 +14,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
+import com.mesalab.qgw.service.impl.APIServiceImpl;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -102,6 +103,23 @@ public class HbaseDialect implements Dialect{
         results = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
     }
 
+    private Map<String, String> getFormatSql() {
+        StringBuilder urlBuilder = new StringBuilder("http://")
+                .append(hBaseHttpSource.getUrl()).append("/");
+        String queryId = StringUtil.isNotBlank(param.getResultId()) ? param.getResultId() : param.getReportId();
+        StringBuilder queryparamBuilder = new StringBuilder(hBaseHttpSource.getDbName())
+                .append(":").append(hBaseHttpSource.getTableName()).append("/")
+                .append(getQueryId(queryId, param.getQuery())).append("/")
+                .append("detail:format_sql");
+        log.info("Report Query：{}, queryId Id: {}, sql:{}", urlBuilder.toString() + queryparamBuilder.toString(), queryId, param.getQuery());
+
+        Map<String, String> headers = Maps.newHashMap();
+
+        headers.put("Accept", "application/json");
+
+        return httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
+    }
+
     @Override
     public Dialect executeMemoryQuery() {
 
@@ -130,6 +148,14 @@ public class HbaseDialect implements Dialect{
     @Override
     public Dialect executeUDF(SQLQuerySource sqlQuerySource) {
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
+        if (!udfSet.isEmpty()) {
+            getAndParserFormatSql();
+            if (param.getSqlQuerySource().getNeedMemoryQuery()) {
+                sqlQuerySource = (SQLQuerySource) param.getSqlQuerySource().getSubSqlQuerySource();
+            } else {
+                sqlQuerySource = param.getSqlQuerySource();
+            }
+        }
         for (UDF udf : udfSet) {
             if (StringUtil.isNotEmpty(results)) {
                 if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
@@ -148,6 +174,22 @@ public class HbaseDialect implements Dialect{
 
         }
         return this;
+    }
+
+    private void getAndParserFormatSql() {
+        if (StringUtil.isNotEmpty(results)) {
+            if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
+                    param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+                Map<String, String> formatSql = getFormatSql();
+                String sql = decryptHbaseResult(formatSql.get("result"));
+                param.setQuery(sql);
+                param.setSqlQuerySource(APIServiceImpl.parserSQLByAst(sql));
+                if (param.getSqlQuerySource().getNeedMemoryQuery()) {
+                    SQLQuerySource subSqlSource = APIServiceImpl.parserSQLByAst(param.getSqlQuerySource().getSubSelect().getSelectBody().toString());
+                    param.getSqlQuerySource().setSubSqlQuerySource(subSqlSource);
+                }
+            }
+        }
     }
 
 
