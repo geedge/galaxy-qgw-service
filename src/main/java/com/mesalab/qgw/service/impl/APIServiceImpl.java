@@ -103,19 +103,11 @@ public class APIServiceImpl implements IAPIService {
                     .executeSyntaxCheck()
                     .build();
         } else {
-            if (param.getSqlQuerySource().getNeedMemoryQuery()) {
-                baseResult = dialect
-                        .executeSubQuery()
-                        .executeUDF((SQLQuerySource) param.getSqlQuerySource().getSubSqlQuerySource())
-                        .executeMemoryQuery()
-                        .build();
-            } else {
-                baseResult = dialect
-                        .queryDefaultPreProcess()
-                        .executeGeneralQuery()
-                        .executeUDF(param.getSqlQuerySource())
-                        .build();
-            }
+            baseResult = dialect
+                    .executeQuery()
+                    .executeUDF(param.getSqlQuerySource().getExecuteSQLSource() == null ? param.getSqlQuerySource() : (SQLQuerySource) param.getSqlQuerySource().getExecuteSQLSource())
+                    .executeMemoryQuery()
+                    .build();
         }
 
         if (!baseResult.isSuccess()) {
@@ -149,9 +141,6 @@ public class APIServiceImpl implements IAPIService {
         }
         param.setSqlQuerySource(parserSQLByAst(param.getQuery()));
 
-        if (param.getSqlQuerySource().getNeedMemoryQuery()) {
-            param.getSqlQuerySource().setSubSqlQuerySource(parserSQLByAst(param.getSqlQuerySource().getSubSelect().getSelectBody().toString()));
-        }
         dialect = getDialect(param);
 
         return dialect;
@@ -345,7 +334,7 @@ public class APIServiceImpl implements IAPIService {
                             SelectExpressionItem expressionItem =  ((SelectExpressionItem)item);
                             if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
                                 String aliasName = expressionItem.getAlias().getName();
-                                if (aliasName.indexOf("\"") == 0 && aliasName.lastIndexOf("\"") == (aliasName.length() - 1)) {
+                                if (aliasName.startsWith("\"") && aliasName.endsWith("\"")) {
                                     aliasName = aliasName.substring(1, aliasName.length() - 1);
                                 }
                                 sqlQuerySource.getAliasFields().put(aliasName, expressionItem.getExpression().toString());
@@ -378,13 +367,12 @@ public class APIServiceImpl implements IAPIService {
                         SubSelect subItemTemp = (SubSelect) subItem;
                         Set<String> udfMethodNames = SQLFunctionUtil.functions.keySet();
                         String s = subItemTemp.toString();
-                        for (String udfMethodName : udfMethodNames) {
-                            if (s.contains(udfMethodName)) {
-                                sqlQuerySource.setNeedMemoryQuery(true);
-                                sqlQuerySource.setSubSelect(subItemTemp);
-                                log.info("SQL 子查询中包含自定义函数");
-                                break;
-                            }
+                        if (udfMethodNames.stream().anyMatch(s::contains)) {
+                            log.info("SQL 子查询中包含自定义函数, 需设置executeSqlSource");
+                            sqlQuerySource.setSubSelect(subItemTemp);
+                            sqlQuerySource.setExecuteSQLSource(parserSQLByAst(s));
+                        } else {
+                            log.info("SQL 子查询中不含自定义函数, 不做解析处理, 无需设置executeSqlSource");
                         }
                     }
 
@@ -611,7 +599,7 @@ public class APIServiceImpl implements IAPIService {
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeGeneralQuery().build();
+        BaseResult result = dialect.executeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), "describe table error, please check tableName", null);
         }
@@ -645,7 +633,7 @@ public class APIServiceImpl implements IAPIService {
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeGeneralQuery().build();
+        BaseResult result = dialect.executeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(BaseResultEnum.FAIL.getCode(), result.getMessage(), null);
         }

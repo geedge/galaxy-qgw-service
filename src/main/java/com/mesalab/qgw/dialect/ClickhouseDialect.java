@@ -276,7 +276,7 @@ public class ClickhouseDialect implements Dialect {
             String orderBy = param.getSqlQuerySource().getOrderBy();
             for (OrderByElement order : listOrderElement) {
                 String orderField = order.getExpression().toString();
-                if (orderField.indexOf("\"") == 0 && orderField.lastIndexOf("\"") == (orderField.length() - 1)) {
+                if (orderField.startsWith("\"") && orderField.endsWith("\"")) {
                     orderField = orderField.substring(1, orderField.length() - 1);
                 }
                 String originalField = param.getSqlQuerySource().getAliasFields().get(orderField);
@@ -355,22 +355,24 @@ public class ClickhouseDialect implements Dialect {
 
 
     @Override
-    public Dialect executeGeneralQuery() {
-        String sql = queryOptimization(param.getQuery());
+    public Dialect executeQuery() {
+        String sql;
+        if (param.getSqlQuerySource().getExecuteSQLSource() != null) {
+            sql = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
+        } else {
+            queryDefaultPreProcess();
+            sql = queryOptimization(param.getQuery());
+        }
         sql = queryTransformation(sql);
         results = executeHttpGet(sql, param.getFormat());
         return this;
     }
 
     @Override
-    public Dialect executeSubQuery() {
-        String sql = queryTransformation(param.getSqlQuerySource().getSubSelect().getSelectBody().toString());
-        results = executeHttpGet(sql, param.getFormat());
-        return this;
-    }
-
-    @Override
     public Dialect executeMemoryQuery() {
+        if (param.getSqlQuerySource().getExecuteSQLSource() == null) {
+            return this;
+        }
         if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "query error, result: " + results.get("result"), null);
         }
@@ -391,7 +393,7 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public Dialect executeSyntaxCheck() {
         String query;
-        if (param.getSqlQuerySource().getNeedMemoryQuery()) {
+        if (param.getSqlQuerySource().getExecuteSQLSource() != null) {
             query = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
         } else {
             query = param.getQuery();
@@ -681,7 +683,7 @@ public class ClickhouseDialect implements Dialect {
             Map<String, String> aliasFields = param.getSqlQuerySource().getAliasFields();
             for (OrderByElement order : listOrderElement) {
                 String orderField = String.valueOf(order.getExpression());
-                if (orderField.indexOf("\"") == 0 && orderField.lastIndexOf("\"") == (orderField.length() - 1)) {
+                if (orderField.startsWith("\"") && orderField.endsWith("\"")) {
                     orderField = orderField.substring(1, orderField.length() - 1);
                 }
                 String originalField = aliasFields.get(orderField);

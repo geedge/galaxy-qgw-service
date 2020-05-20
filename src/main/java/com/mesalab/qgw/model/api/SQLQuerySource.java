@@ -27,8 +27,7 @@ public class SQLQuerySource {
     private String orderBy;
     private String limit;
     private SubSelect subSelect;
-    private Boolean needMemoryQuery = false;
-    private Object subSqlQuerySource;
+    private Object executeSQLSource;
     private Expression whereExpression; /** where 对象 **/
     private GroupByElement groupByElement;
     private List<OrderByElement> listOrderElement;
@@ -44,7 +43,7 @@ public class SQLQuerySource {
         for (Expression groupByExpression : groupByElement.getGroupByExpressions()) {
 
             String groupBy = groupByExpression.toString();
-            if (groupBy.indexOf("\"") == 0 && groupBy.lastIndexOf("\"") == (groupBy.length() - 1)) {
+            if (groupBy.startsWith("\"") && groupBy.endsWith("\"")) {
                 groupBy = groupBy.substring(1, groupBy.length() - 1);
             }
             if (StringUtil.isNotBlank(aliasFields.get(groupBy))) {

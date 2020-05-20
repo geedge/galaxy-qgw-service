@@ -26,11 +26,10 @@ public interface Dialect {
     String queryTransformation(String sql);
     String queryOptimization(String sql);
     Dialect queryDefaultPreProcess();
-    Dialect executeSubQuery();
-    Dialect executeGeneralQuery();
-    Dialect executeMemoryQuery();
     Dialect executeSyntaxCheck();
+    Dialect executeQuery();
     Dialect executeUDF(SQLQuerySource sqlQuerySource);
+    Dialect executeMemoryQuery();
     BaseResult build();
 
 

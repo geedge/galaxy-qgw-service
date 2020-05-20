@@ -98,13 +98,8 @@ public class DruidDialect implements  Dialect {
     }
 
     @Override
-    public Dialect executeSubQuery() {
-        return this;
-    }
-
-
-    @Override
-    public Dialect executeGeneralQuery() {
+    public Dialect executeQuery() {
+        queryDefaultPreProcess();
         String query = param.getQuery();
         query = queryTransformation(query);
         query = queryOptimization(query);
@@ -137,7 +132,7 @@ public class DruidDialect implements  Dialect {
     public Dialect executeSyntaxCheck() {
         String sql = queryTransformation(param.getQuery());
         param.setQuery("select 1");
-        executeGeneralQuery();
+        executeQuery();
         results.put("message", sql);
         return this;
     }

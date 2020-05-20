@@ -32,7 +32,7 @@ public class CalciteMemoryUtils {
 
         Alias alias = param.getSqlQuerySource().getSubSelect().getAlias();
         if (alias == null) {
-            SQLQuerySource subSqlQuerySource = (SQLQuerySource) param.getSqlQuerySource().getSubSqlQuerySource();
+            SQLQuerySource subSqlQuerySource = (SQLQuerySource) param.getSqlQuerySource().getExecuteSQLSource();
             alias = new Alias(subSqlQuerySource.getTableName());
         }
 

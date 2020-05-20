@@ -72,18 +72,7 @@ public class HbaseDialect implements Dialect{
     }
 
     @Override
-    public Dialect executeSubQuery() {
-        executeQuery();
-        return this;
-    }
-
-    @Override
-    public Dialect executeGeneralQuery() {
-        executeQuery();
-        return this;
-    }
-
-    private void executeQuery() {
+    public Dialect executeQuery() {
         watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(hBaseHttpSource.getUrl()).append("/");
@@ -101,6 +90,10 @@ public class HbaseDialect implements Dialect{
         headers.put("Accept", "application/json");
 
         results = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            results.put("result", decryptHbaseResult(results.get("result")));
+        }
+        return this;
     }
 
     private Map<String, String> getFormatSql() {
@@ -117,12 +110,18 @@ public class HbaseDialect implements Dialect{
 
         headers.put("Accept", "application/json");
 
-        return httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
+        Map<String, String> formatSql = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
+        if (formatSql.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            formatSql.put("result", decryptHbaseResult(formatSql.get("result")));
+        }
+        return formatSql;
     }
 
     @Override
     public Dialect executeMemoryQuery() {
-
+        if (param.getSqlQuerySource().getExecuteSQLSource() == null) {
+            return this;
+        }
         if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "report query error, result: " + results.get("result"), null);
         }
@@ -150,8 +149,8 @@ public class HbaseDialect implements Dialect{
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         if (!udfSet.isEmpty()) {
             getAndParserFormatSql();
-            if (param.getSqlQuerySource().getNeedMemoryQuery()) {
-                sqlQuerySource = (SQLQuerySource) param.getSqlQuerySource().getSubSqlQuerySource();
+            if (param.getSqlQuerySource().getExecuteSQLSource() != null) {
+                sqlQuerySource = (SQLQuerySource) param.getSqlQuerySource().getExecuteSQLSource();
             } else {
                 sqlQuerySource = param.getSqlQuerySource();
             }
@@ -161,7 +160,7 @@ public class HbaseDialect implements Dialect{
                 if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
                         param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
 
-                    String result = decryptHbaseResult(results.get("result"));
+                    String result = results.get("result");
                     Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(result, Map.class);
                     List<Object> lists = (List<Object>) maps.get("data");
 
@@ -181,13 +180,10 @@ public class HbaseDialect implements Dialect{
             if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
                     param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
                 Map<String, String> formatSql = getFormatSql();
-                String sql = decryptHbaseResult(formatSql.get("result"));
+                String sql = formatSql.get("result");
+                log.info("从离线报表获取formatSql，解析并重制SQLQuerySource对象");
                 param.setQuery(sql);
                 param.setSqlQuerySource(APIServiceImpl.parserSQLByAst(sql));
-                if (param.getSqlQuerySource().getNeedMemoryQuery()) {
-                    SQLQuerySource subSqlSource = APIServiceImpl.parserSQLByAst(param.getSqlQuerySource().getSubSelect().getSelectBody().toString());
-                    param.getSqlQuerySource().setSubSqlQuerySource(subSqlSource);
-                }
             }
         }
     }
@@ -203,9 +199,6 @@ public class HbaseDialect implements Dialect{
             if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
 
                 String result = results.get("result");
-                if (!param.getSqlQuerySource().getNeedMemoryQuery()) {
-                    result = decryptHbaseResult(result);
-                }
                 Map<String, Object> maps =(Map<String, Object>) JsonMapper.fromJsonString(result,  Map.class);
                 Map<String, Object> statisticMap = (Map<String, Object>) maps.get("statistics");
 
