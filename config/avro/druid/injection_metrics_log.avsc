@@ -15,6 +15,10 @@
     {
       "name": "service_type",
       "type": "string"
+    },
+    {
+      "name": "device_id",
+      "type": "string"
     }
   ]
 }
