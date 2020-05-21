@@ -21,6 +21,14 @@
       "type": "long"
     },
     {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
+    },
+    {
       "name": "intercept_state",
       "type": "long"
     },

@@ -37,6 +37,18 @@
       "type": "string"
     },
     {
+      "name": "location",
+      "type": "string"
+    },
+    {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
+    },
+    {
       "name": "ip_object",
       "type": "string"
     }
