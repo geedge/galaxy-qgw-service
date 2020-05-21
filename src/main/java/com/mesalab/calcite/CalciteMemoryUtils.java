@@ -6,6 +6,7 @@ import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
@@ -18,6 +19,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.*;
 
+@Slf4j
 public class CalciteMemoryUtils {
 
 
@@ -40,13 +42,14 @@ public class CalciteMemoryUtils {
             return data;
         }
 
+        log.info("执行导入内存数据库data.size()为: " + data.size());
         //将数据存入缓存表
         Storage.DummyTable table = addDummyTableMeta(meta, alias.getName());
         table = addDummyTableRow(data, table);
         InMemoryTable inMemoryTable = new InMemoryTable(alias.getName(), table);
         //将缓存表植入rootSchema
         calciteConn.getRootSchema().add(alias.getName(), inMemoryTable);
-
+        log.info("内存数据库 数据导入成功");
         String sql;
         try {
             Statement parse = CCJSqlParserUtil.parse(param.getQuery());
