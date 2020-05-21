@@ -48,6 +48,7 @@ import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
@@ -61,7 +62,15 @@ public class APIServiceImpl implements IAPIService {
     private ClickHouseProperties clickHouseProperties;
     @Autowired
     private DruidIoProperties druidIoProperties;
-    private static MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    @Autowired
+    private MetadataService metadataServiceTemp;
+
+    private static MetadataService metadataService;
+
+    @PostConstruct
+    private void initMetadataService() {
+        metadataService = this.metadataServiceTemp;
+    }
 
 
     @Override

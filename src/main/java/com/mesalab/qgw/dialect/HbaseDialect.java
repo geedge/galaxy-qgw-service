@@ -161,6 +161,7 @@ public class HbaseDialect implements Dialect{
                         param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
 
                     String result = results.get("result");
+                    log.info("执行自定义函数操作result结果字符长度: " + result.length());
                     Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(result, Map.class);
                     List<Object> lists = (List<Object>) maps.get("data");
 
@@ -181,7 +182,7 @@ public class HbaseDialect implements Dialect{
                     param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
                 Map<String, String> formatSql = getFormatSql();
                 String sql = formatSql.get("result");
-                log.info("从离线报表获取formatSql，解析并重制SQLQuerySource对象");
+                log.info("从离线报表获取formatSql，解析并重制SQLQuerySource对象: " + sql);
                 param.setQuery(sql);
                 param.setSqlQuerySource(APIServiceImpl.parserSQLByAst(sql));
             }
