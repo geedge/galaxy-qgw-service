@@ -1,5 +1,6 @@
 package com.mesalab.qgw.model.api;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mesalab.qgw.model.api.udf.UDF;
@@ -19,6 +20,7 @@ import java.util.Set;
  */
 @Data
 public class SQLQuerySource {
+
     private String tableName;
     private String partitionKey;/** 分区键，多用于检索查询首要过滤列；例如timestamp **/
     private String fromItem;
@@ -34,6 +36,25 @@ public class SQLQuerySource {
     private Map<String, String> aliasFields= Maps.newHashMap();/** k=alias,v=column **/
     private Set<UDF> udfSet = Sets.newHashSet();
     private Map<String, String> groupDimension = Maps.newHashMap();
+    private List<SQLQuerySource> subSqlQuerySources = Lists.newArrayList();
+    private boolean needMemoryQuery;
+
+
+    public boolean isNeedMemoryQuery() {
+
+        if (StringUtil.isNotEmpty(subSqlQuerySources)) {
+
+            SQLQuerySource  innerQuerySource = subSqlQuerySources.get(subSqlQuerySources.size()-1);
+
+            return innerQuerySource.getUdfSet().size() > 0 ? true : false;
+
+        } else {
+            return false;
+        }
+
+    }
+
+
 
 
     public Map<String, String> getGroupDimension() {
