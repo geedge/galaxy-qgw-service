@@ -89,7 +89,11 @@ public class ClickhouseDialect implements Dialect {
      */
     private String generatePageSql(String sql, SQLQuerySource sqlQuerySource) {
         if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
-            return getLimitString(sql, 0, 200);
+            if (StringUtil.isNotEmpty(sqlQuerySource.getGroupByElement())) {
+                return getLimitString(sql, 0, 1048576);
+            } else {
+                return getLimitString(sql, 0, 200);
+            }
         } else {
             return sql;
         }
@@ -361,6 +365,10 @@ public class ClickhouseDialect implements Dialect {
         String sql;
         if (param.getSqlQuerySource().isNeedMemoryQuery()) {
             sql = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
+            if (param.getSqlQuerySource().getSubSqlQuerySources().get(0).getGroupByElement() != null
+                    && param.getSqlQuerySource().getSubSqlQuerySources().get(0).getLimit() == null) {
+                sql = sql + " limit 1048576";
+            }
         } else {
             queryDefaultPreProcess();
             sql = queryOptimization(param.getQuery());
@@ -397,7 +405,13 @@ public class ClickhouseDialect implements Dialect {
         String query;
         if (param.getSqlQuerySource().isNeedMemoryQuery()) {
             query = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
+            if (param.getSqlQuerySource().getSubSqlQuerySources().get(0).getGroupByElement() != null
+                    && param.getSqlQuerySource().getSubSqlQuerySources().get(0).getLimit() == null) {
+                query = query + " limit 1048576";
+
+            }
         } else {
+            queryDefaultPreProcess();
             query = param.getQuery();
         }
         query = queryTransformation(query);
