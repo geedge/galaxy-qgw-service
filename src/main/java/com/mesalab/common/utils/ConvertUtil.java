@@ -1,11 +1,11 @@
 package com.mesalab.common.utils;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import com.mesalab.common.support.IConvertor;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.nutz.lang.Lang;
 import java.util.*;
 
@@ -17,7 +17,7 @@ import java.util.*;
  */
 public class ConvertUtil {
 
-    public static final String GROUP_SEPRATOR = "-";
+    public static final String GROUP_SEPRATOR = "|G|";
 
       enum  Fill {
 
@@ -145,9 +145,10 @@ public class ConvertUtil {
      * @param timeGranLabel
      * @return
      */
-    public static  Map<String, Map<String, Map<String, String>>> convertResultListToTimeseries(Collection<Object> sources,
-                                                                                       String groupLabel, String timeGranLabel) {
-        Map<String, Map<String, Map<String, String>>> resultMap = Maps.newHashMap();
+    public static  Map<String, Map<String, Map<String, Object>>> convertResultListToTimeseries(Collection<Object> sources,  String groupLabel, String timeGranLabel) {
+
+
+        Map<String, Map<String, Map<String, Object>>> resultMap = Maps.newLinkedHashMap();
 
         for (Object source : sources) {
 
@@ -158,13 +159,11 @@ public class ConvertUtil {
                 groupKey = "default";
 
             } else {
-                for(String group : groupLabel.split(GROUP_SEPRATOR)) {
+                for(String group : StringUtils.split(groupLabel, GROUP_SEPRATOR)) {
                     groupKey = Joiner.on(GROUP_SEPRATOR).skipNulls().join(groupKey, sourceMap.get(group));
                     sourceMap.remove(group);
                 }
             }
-
-
 
 
             String timeGran = sourceMap.get(timeGranLabel).toString();
@@ -190,52 +189,41 @@ public class ConvertUtil {
     }
 
 
-    public static List<Map<String, String>> convertTimeseriesToList(Map<String, Map<String, Map<String, String>>> target, String groupLabel, String timeGranLabel) {
-        List<Map<String, String>> results = Lists.newArrayList();
 
+    public static List<Map<String, Object>> convertTimeseriesToList(Map<String, Map<String, Map<String, Object>>> target, String groupLabel, String timeGranLabel) {
+        List<Map<String, Object>> results = Lists.newArrayList();
+        String[] grouLabelArray;
+        String[] groupKeyArray;
         for(String groupKey : target.keySet()) {
 
-            Map<String, Map<String, String>> groupMap = target.get(groupKey);
+            Map<String, Map<String, Object>> groupMap =  target.get(groupKey);
 
-            for (String timeGranKey : groupMap.keySet()) {
+            for (Map.Entry<String, Map<String,Object>> entry: groupMap.entrySet()) {
 
-                Map<String, String> metricMap = groupMap.get(timeGranKey);
-
-                Map<String, String> resultMap = Maps.newLinkedHashMap();
-
-                resultMap.put(timeGranLabel, timeGranKey);
-
-
+                Map<String, Object> resultMap = Maps.newLinkedHashMap();
+                resultMap.put(timeGranLabel, entry.getKey());
                 if (StringUtil.isNotBlank(groupLabel)) {
-                    String[] grouLabelArray = groupLabel.split(GROUP_SEPRATOR);
-                    String[] groupKeyArray = groupKey.split(GROUP_SEPRATOR);
-
-                    for (int i=0; i<grouLabelArray.length; i++) {
+                   grouLabelArray = StringUtils.split(groupLabel, GROUP_SEPRATOR);
+                   groupKeyArray = StringUtils.split(groupKey, GROUP_SEPRATOR);
+                    for (int i=0; i < grouLabelArray.length; i++) {
                         resultMap.put(grouLabelArray[i], groupKeyArray[i]);
                     }
 
                 }
-
-
-                for (String metricLabel : metricMap.keySet()) {
-                    resultMap.put(metricLabel, metricMap.get(metricLabel));
-                }
-
+                //metrics
+                resultMap.putAll(entry.getValue());
                 results.add(resultMap);
 
-
-
             }
-
-
         }
 
-
-
-
+        target.clear();
 
         return results;
     }
+
+
+
 
 
     /**
@@ -245,9 +233,10 @@ public class ConvertUtil {
      * @param fill
      * @return
      */
-    public static Map<String, Map<String, String>> completeTimeseries(TreeMap<String, Map<String, String>> sources,
+    public static Map<String, Map<String, Object>> completeTimeseries(TreeMap<String, Map<String, Object>> sources,
                                                                List<Date> dateList, String fill) {
-        Map<String, String> defaultElement = Maps.newHashMap(sources.firstEntry().getValue());
+
+        Map<String, Object> defaultElement = Maps.newHashMap(sources.firstEntry().getValue());
 
 
         if (fill.equalsIgnoreCase(Fill.ZERO.name())){
@@ -267,7 +256,7 @@ public class ConvertUtil {
             defaultElement.clear();
         }
 
-        TreeMap<String, Map<String, String>> target = Maps.newTreeMap(sources);
+        TreeMap<String, Map<String, Object>> target = Maps.newTreeMap(sources);
 
         boolean isTimestamp = isTimestamp(sources.firstKey());
         for(Date date : dateList) {
@@ -279,7 +268,7 @@ public class ConvertUtil {
                 timeKey = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
             }
 
-            Map<String, String> metricsMap = sources.get(timeKey);
+            Map<String, Object> metricsMap = sources.get(timeKey);
             if (StringUtil.isEmpty(metricsMap)) {
                 target.put(timeKey, defaultElement);
             }
@@ -289,13 +278,13 @@ public class ConvertUtil {
 
         if (StringUtil.isEmpty(defaultElement)) {
 
-            defaultElement = getDefaultElement(sources.firstEntry().getValue());
+            defaultElement = getDefaultElement(sources.get(sources.firstKey()));
 
             for (String key : target.keySet()) {
 
                 if (StringUtil.isEmpty(target.get(key))) {
 
-                    Map<String, String> element=  getPositionElement(target, key, fill);
+                    Map<String, Object> element=  getPositionElement(target, key, fill);
 
                     if (StringUtil.isEmpty(element)) {
                         target.put(key, defaultElement);
@@ -341,9 +330,9 @@ public class ConvertUtil {
     }
 
 
-    private static Map<String, String> getPositionElement(TreeMap<String, Map<String, String>> target,
+    private static Map<String, Object> getPositionElement(TreeMap<String, Map<String, Object>> target,
                                                    String key, String fill) {
-        Map<String, String> element = Maps.newHashMap();
+        Map<String, Object> element = Maps.newHashMap();
 
         if (fill.equalsIgnoreCase(Fill.PREVIOUS.name())) {
             if (StringUtil.isNotEmpty(target.lowerEntry(key))) {
@@ -363,8 +352,8 @@ public class ConvertUtil {
 
 
 
-    private static Map<String, String> getDefaultElement(Map<String, String> firstElement) {
-        Map<String, String> element = Maps.newHashMap(firstElement);
+    private static Map<String, Object> getDefaultElement(Map<String, Object> firstElement) {
+        Map<String, Object> element = Maps.newHashMap(firstElement);
 
         for (String key : element.keySet()) {
             element.put(key, Fill.NONE.getValue());

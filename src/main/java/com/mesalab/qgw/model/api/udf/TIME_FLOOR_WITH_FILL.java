@@ -1,6 +1,7 @@
 package com.mesalab.qgw.model.api.udf;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ConvertUtil;
@@ -38,6 +39,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     private String timestamp;
     private String period;
     private String fill;
+    private static  final int DEFAULT_DATASET_LIMIT = 1048576;
 
     public TIME_FLOOR_WITH_FILL(UDFElements udfElements) {
         this.name = udfElements.getName();
@@ -52,7 +54,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     @Override
     public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
-        List<Map<String, String>>  targetResult = null;
+        List<Map<String, Object>>  targetResult = null;
         String groupLabel= null;
         String timeGranLabel = null;
 
@@ -71,13 +73,12 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
             }
 
-            Map<String, Map<String, Map<String, String>>> targetTimeseriesMap = ConvertUtil.convertResultListToTimeseries(results,
+            Map<String, Map<String, Map<String, Object>>> targetTimeseriesMap =  ConvertUtil.convertResultListToTimeseries(results,
                     groupLabel, timeGranLabel);
 
-
-            List<Date> dateRangeList = null;
+            results = null;
             PartitionTimeRange partitionTimeRange = getPartitionTimeRange(sqlQuerySource);
-
+            List<Date> dateRangeList = null;
             if (StringUtil.isNotEmpty(partitionTimeRange)) {
 
                 if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isNotEmpty(partitionTimeRange.getEnd()) ) {
@@ -94,28 +95,40 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
             }
 
+            int  maxSeriesNum =  DEFAULT_DATASET_LIMIT / dateRangeList.size();
 
-            for (String key : targetTimeseriesMap.keySet()) {
+            int actualSeriesNum = maxSeriesNum > targetTimeseriesMap.size() ? targetTimeseriesMap.size() : maxSeriesNum;
 
-                TreeMap<String, Map<String, String>> seriesMap = (TreeMap <String, Map<String, String>>) targetTimeseriesMap.get(key);
+            if (actualSeriesNum > 0) {
 
-                if(StringUtil.isNotEmpty(dateRangeList)){
-                    targetTimeseriesMap.put(key,ConvertUtil.completeTimeseries(seriesMap, dateRangeList, fill.toString()));
+                Map<String, Map<String, Map<String, Object>>> limitTimeseriesMap = Maps.newLinkedHashMap();
+                int i = 1;
+                for (Map.Entry<String, Map<String, Map<String, Object>>> entry: targetTimeseriesMap.entrySet()) {
+                    limitTimeseriesMap.put(entry.getKey(), entry.getValue());
+                    if (++i > actualSeriesNum) {
+                        break;
+                    }
+
+                }
+                targetTimeseriesMap.clear();
+                targetTimeseriesMap.putAll(limitTimeseriesMap);
+            }
+
+
+            if(StringUtil.isNotEmpty(dateRangeList)){
+
+                for (String key : targetTimeseriesMap.keySet()) {
+                    targetTimeseriesMap.put(key,ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeseriesMap.get(key), dateRangeList, fill.toString()));
                 }
             }
+
             targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
 
-            int limit = StringUtil.isEmpty(sqlQuerySource.getLimit()) ? targetResult.size() : Integer.parseInt(sqlQuerySource.getLimit());
-            if (targetResult.size() > limit) {
-                targetResult = targetResult.subList(0, limit);
-            }
         } catch (Exception e) {
             log.error("Parser function : TIME_FLOOR_WITH_FILL error : {} ", e);
         }
 
-
         return targetResult;
-
     }
 
     /**

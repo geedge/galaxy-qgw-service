@@ -168,6 +168,7 @@ public class HbaseDialect implements Dialect{
                     List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, lists);
                     maps.put("data", targetResult);
                     results.put("result", JsonMapper.toJsonString(maps));
+                    maps.clear();
 
                 }
             }
