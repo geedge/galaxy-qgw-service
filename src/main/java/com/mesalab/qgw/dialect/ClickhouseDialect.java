@@ -359,7 +359,7 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public Dialect executeQuery() {
         String sql;
-        if (param.getSqlQuerySource().getExecuteSQLSource() != null) {
+        if (param.getSqlQuerySource().isNeedMemoryQuery()) {
             sql = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
         } else {
             queryDefaultPreProcess();
@@ -372,7 +372,7 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeMemoryQuery() {
-        if (param.getSqlQuerySource().getExecuteSQLSource() == null) {
+        if (!param.getSqlQuerySource().isNeedMemoryQuery()) {
             return this;
         }
         if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
@@ -395,7 +395,7 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public Dialect executeSyntaxCheck() {
         String query;
-        if (param.getSqlQuerySource().getExecuteSQLSource() != null) {
+        if (param.getSqlQuerySource().isNeedMemoryQuery()) {
             query = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
         } else {
             query = param.getQuery();
@@ -409,7 +409,13 @@ public class ClickhouseDialect implements Dialect {
     }
 
     @Override
-    public Dialect executeUDF(SQLQuerySource sqlQuerySource) {
+    public Dialect executeUDF() {
+        SQLQuerySource sqlQuerySource;
+        if (param.getSqlQuerySource().isNeedMemoryQuery()) {
+            sqlQuerySource = param.getSqlQuerySource().getSubSqlQuerySources().get(0);
+        } else {
+            sqlQuerySource = param.getSqlQuerySource();
+        }
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
             if (StringUtil.isNotEmpty(results)) {

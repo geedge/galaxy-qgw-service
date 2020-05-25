@@ -138,7 +138,13 @@ public class DruidDialect implements  Dialect {
     }
 
     @Override
-    public Dialect executeUDF(SQLQuerySource sqlQuerySource) {
+    public Dialect executeUDF() {
+        SQLQuerySource sqlQuerySource;
+        if (param.getSqlQuerySource().isNeedMemoryQuery()) {
+            sqlQuerySource = param.getSqlQuerySource().getSubSqlQuerySources().get(0);
+        } else {
+            sqlQuerySource = param.getSqlQuerySource();
+        }
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
 

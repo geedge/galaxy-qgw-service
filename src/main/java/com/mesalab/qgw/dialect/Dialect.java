@@ -28,7 +28,7 @@ public interface Dialect {
     Dialect queryDefaultPreProcess();
     Dialect executeSyntaxCheck();
     Dialect executeQuery();
-    Dialect executeUDF(SQLQuerySource sqlQuerySource);
+    Dialect executeUDF();
     Dialect executeMemoryQuery();
     BaseResult build();
 

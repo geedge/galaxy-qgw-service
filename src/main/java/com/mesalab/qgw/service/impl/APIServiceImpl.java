@@ -114,7 +114,7 @@ public class APIServiceImpl implements IAPIService {
         } else {
             baseResult = dialect
                     .executeQuery()
-                    .executeUDF(param.getSqlQuerySource().getExecuteSQLSource() == null ? param.getSqlQuerySource() : (SQLQuerySource) param.getSqlQuerySource().getExecuteSQLSource())
+                    .executeUDF()
                     .executeMemoryQuery()
                     .build();
         }
@@ -372,17 +372,10 @@ public class APIServiceImpl implements IAPIService {
                     FromItem subItem = select.getFromItem();
 
                     if (subItem instanceof SubSelect) {
-                        log.info("SQL 包含子查询");
-                        SubSelect subItemTemp = (SubSelect) subItem;
-                        Set<String> udfMethodNames = SQLFunctionUtil.functions.keySet();
-                        String s = subItemTemp.toString();
-                        if (udfMethodNames.stream().anyMatch(s::contains)) {
-                            log.info("SQL 子查询中包含自定义函数, 需设置executeSqlSource");
-                            sqlQuerySource.setSubSelect(subItemTemp);
-                            sqlQuerySource.setExecuteSQLSource(parserSQLByAst(s));
-                        } else {
-                            log.info("SQL 子查询中不含自定义函数, 不做解析处理, 无需设置executeSqlSource");
-                        }
+                        SubSelect subSelect = (SubSelect) subItem;
+                        log.info("解析subSql: {}", subSelect);
+                        sqlQuerySource.setSubSelect(subSelect);
+                        sqlQuerySource.getSubSqlQuerySources().add(parserSQLByAst(String.valueOf(subSelect.getSelectBody())));
                     }
 
 

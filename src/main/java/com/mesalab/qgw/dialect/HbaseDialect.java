@@ -119,7 +119,7 @@ public class HbaseDialect implements Dialect{
 
     @Override
     public Dialect executeMemoryQuery() {
-        if (param.getSqlQuerySource().getExecuteSQLSource() == null) {
+        if (!param.getSqlQuerySource().isNeedMemoryQuery()) {
             return this;
         }
         if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
@@ -145,12 +145,18 @@ public class HbaseDialect implements Dialect{
     }
 
     @Override
-    public Dialect executeUDF(SQLQuerySource sqlQuerySource) {
+    public Dialect executeUDF() {
+        SQLQuerySource sqlQuerySource;
+        if (param.getSqlQuerySource().isNeedMemoryQuery()) {
+            sqlQuerySource = param.getSqlQuerySource().getSubSqlQuerySources().get(0);
+        } else {
+            sqlQuerySource = param.getSqlQuerySource();
+        }
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         if (!udfSet.isEmpty()) {
             getAndParserFormatSql();
-            if (param.getSqlQuerySource().getExecuteSQLSource() != null) {
-                sqlQuerySource = (SQLQuerySource) param.getSqlQuerySource().getExecuteSQLSource();
+            if (param.getSqlQuerySource().isNeedMemoryQuery()) {
+                sqlQuerySource = param.getSqlQuerySource().getSubSqlQuerySources().get(0);
             } else {
                 sqlQuerySource = param.getSqlQuerySource();
             }

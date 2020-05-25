@@ -29,7 +29,6 @@ public class SQLQuerySource {
     private String orderBy;
     private String limit;
     private SubSelect subSelect;
-    private Object executeSQLSource;
     private Expression whereExpression; /** where 对象 **/
     private GroupByElement groupByElement;
     private List<OrderByElement> listOrderElement;
