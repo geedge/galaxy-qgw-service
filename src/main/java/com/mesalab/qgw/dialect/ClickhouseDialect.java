@@ -1,6 +1,7 @@
 package com.mesalab.qgw.dialect;
 
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
@@ -35,6 +36,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -413,14 +415,11 @@ public class ClickhouseDialect implements Dialect {
             if (StringUtil.isNotEmpty(results)) {
                 if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
                         param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-
                     Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
-
-                    List<Object> lists = (List<Object>) maps.get("data");
-
-                    List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, lists);
+                    List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, (List<Object>) maps.get("data"));
                     maps.put("data", targetResult);
                     results.put("result", JsonMapper.toJsonString(maps));
+                    maps.clear();
 
                 }
             }
