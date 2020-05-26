@@ -112,11 +112,19 @@ public class APIServiceImpl implements IAPIService {
                     .executeSyntaxCheck()
                     .build();
         } else {
-            baseResult = dialect
-                    .executeQuery()
-                    .executeUDF()
-                    .executeMemoryQuery()
-                    .build();
+
+            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+                baseResult = dialect
+                        .executeQuery()
+                        .build();
+            } else {
+                baseResult = dialect
+                        .executeQuery()
+                        .executeUDF()
+                        .executeMemoryQuery()
+                        .build();
+            }
+
         }
 
         if (!baseResult.isSuccess()) {

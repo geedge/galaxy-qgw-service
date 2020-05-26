@@ -52,15 +52,15 @@ public class ClickhouseDialect implements Dialect {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private ApiParam param;
-    private Map<String, String> results;
     private Boolean subIndexValidFlag = true;
+    private BaseResult baseResult;
 
 
 
 
     public ClickhouseDialect(ApiParam param) {
         this.param = param;
-        results = Maps.newHashMap();
+        baseResult = BaseResultGenerator.success();
     }
 
     @Override
@@ -362,7 +362,10 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeQuery() {
+
+
         String sql;
+
         if (param.getSqlQuerySource().isNeedMemoryQuery()) {
             sql = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
             if (param.getSqlQuerySource().getSubSqlQuerySources().get(0).getGroupByElement() != null
@@ -373,26 +376,45 @@ public class ClickhouseDialect implements Dialect {
             queryDefaultPreProcess();
             sql = queryOptimization(param.getQuery());
         }
+
+
         sql = queryTransformation(sql);
-        results = executeHttpGet(sql, param.getFormat());
+
+        Map<String, String> results = executeHttpGet(sql, param.getFormat());
+
+        if (StringUtil.isEmpty(results)) {
+            baseResult = BaseResultGenerator.error();
+        }  else {
+
+            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+                        JsonMapper.fromJsonString(results.get("result"), Map.class), null, param.getFormat());
+            } else {
+                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+                        results.get("result"), null, param.getFormat());
+            }
+
+        }
+
         return this;
     }
 
     @Override
     public Dialect executeMemoryQuery() {
-        if (!param.getSqlQuerySource().isNeedMemoryQuery()) {
-            return this;
-        }
-        if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "query error, result: " + results.get("result"), null);
-        }
+
         try {
-            Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(String.valueOf(results.get("result")), Map.class);
-            List<Map<String, Object>> data = (List<Map<String, Object>>) maps.get("data");
-            List<Map<String, String>> meta = (List<Map<String, String>>) maps.get("meta");
-            List list = CalciteMemoryUtils.calciteQueryMemoryData(meta, data, param);
-            maps.put("data", list);
-            results.put("result", JsonMapper.toJsonString(maps));
+            if (baseResult.isSuccess()) {
+
+                if (!param.getSqlQuerySource().isNeedMemoryQuery()) {
+                    return this;
+                }
+
+                Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
+                List resultList = CalciteMemoryUtils.calciteQueryMemoryData((List<Map<String, String>>) resultMap.get("meta"),
+                                            (List<Map<String, Object>>) resultMap.get("data"), param);
+                resultMap.put("data", resultList);
+
+            }
         } catch (Exception ex) {
             throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error: ", ex);
         }
@@ -402,6 +424,7 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeSyntaxCheck() {
+
         String query;
         if (param.getSqlQuerySource().isNeedMemoryQuery()) {
             query = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
@@ -416,71 +439,72 @@ public class ClickhouseDialect implements Dialect {
         }
         query = queryTransformation(query);
         query = Encodes.urlDecode(query);
-        results = executeHttpGet("select 1", param.getFormat());
-        results.put("message", query);
+
+        Map<String, String>  results = executeHttpGet("select 1", param.getFormat());
+
+        baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), query,
+                JsonMapper.fromJsonString(results.get("result"), Map.class), null, param.getFormat());
         log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
         return this;
     }
 
     @Override
     public Dialect executeUDF() {
-        SQLQuerySource sqlQuerySource;
-        if (param.getSqlQuerySource().isNeedMemoryQuery()) {
-            sqlQuerySource = param.getSqlQuerySource().getSubSqlQuerySources().get(0);
-        } else {
-            sqlQuerySource = param.getSqlQuerySource();
-        }
-        Set<UDF> udfSet = sqlQuerySource.getUdfSet();
-        for (UDF udf : udfSet) {
-            if (StringUtil.isNotEmpty(results)) {
-                if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK)) &&
-                        param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                    Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
-                    List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, (List<Object>) maps.get("data"));
-                    maps.put("data", targetResult);
-                    results.put("result", JsonMapper.toJsonString(maps));
-                    maps.clear();
 
-                }
-            }
+        if (baseResult.isSuccess()) {
+            SQLQuerySource sqlQuerySource = param.getSqlQuerySource().isNeedMemoryQuery() ?
+                            param.getSqlQuerySource().getSubSqlQuerySources().get(0) : param.getSqlQuerySource();
+            Set<UDF> udfSet = sqlQuerySource.getUdfSet();
 
-        }
+           Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
+           for (UDF udf : udfSet) {
+               List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, (List<Object>) resultMap.get("data"));
+               resultMap.put("data", targetResult);
 
+           }
+      }
 
         return this;
     }
 
     @Override
     public BaseResult build() {
-        BaseResult baseResult = null;
-        if (StringUtil.isEmpty(results)) {
+
+        Object dataObject = baseResult.getData();
+
+        if (StringUtil.isEmpty(dataObject)) {
             baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
         } else {
-            if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-                String message = "ok";
-                if (StringUtil.isNotBlank(results.get("message"))) {
-                    message = results.get("message");
+            if (baseResult.getStatus().equals(HttpStatus.SC_OK)) {
+
+                if (StringUtil.isBlank(baseResult.getMessage())) {
+                    baseResult.setMessage("ok");
                 }
 
-                if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                    baseResult = BaseResultGenerator.success(message, results.get("result"), null);
-                } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                    Map<String, Object> maps =(Map<String, Object>)JsonMapper.fromJsonString(results.get("result"),  Map.class);
-                    Map<String, Object> statisticMap = (Map<String, Object>)maps.get("statistics");
+                if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+                    Map<String, Object> resultMap = (Map<String, Object>) dataObject;
+                    Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
                     Map<String, Object> statistics = Maps.newHashMap();
                     statistics.put("elapsed", String.format("%.2f", (double)statisticMap.get("elapsed")));
                     statistics.put("rows_read", statisticMap.get("rows_read"));
-                    int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
+                    int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
                     statistics.put("result_size", resultSize);
-                    baseResult = BaseResultGenerator.success(message, maps.get("data"), statistics);
+                    baseResult.setData(resultMap.get("data"));
+                    baseResult.setStatistics(statistics);
                 }
 
-            } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_NOT_FOUND))) {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, results.get("result"));
-            } else if (results.get("status").equals(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR))) {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
+            } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
+
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
+
+            } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
+
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
+
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+
             }
         }
         return baseResult;

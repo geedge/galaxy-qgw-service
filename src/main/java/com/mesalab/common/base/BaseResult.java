@@ -33,6 +33,8 @@ public class BaseResult<T> implements Serializable {
 
     private T data;
 
+    private String formatType;
+
 
 
 
