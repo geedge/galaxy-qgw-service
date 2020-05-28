@@ -193,43 +193,41 @@ public class DruidDialect implements  Dialect {
         Object dataObject = baseResult.getData();
 
         if (baseResult.isSuccess()) {
-            if (baseResult.getStatus().equals(HttpStatus.SC_OK)) {
-                if (StringUtil.isBlank(baseResult.getMessage())) {
-                    baseResult.setMessage("ok");
-                }
-                if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                    String result = String.valueOf(dataObject);
+            if (StringUtil.isBlank(baseResult.getMessage())) {
+                baseResult.setMessage("ok");
+            }
+            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+                String result = String.valueOf(dataObject);
 
-                    String[] results = result.split("\n");
+                String[] results = result.split("\n");
 
-                    if (pageOffset > 0 && StringUtil.isNotEmpty(results)) {
-                        if (pageOffset >= results.length) {
-                            result = "";
-                        } else {
-                            String[] subResult = ArrayUtils.subarray(results, pageOffset, results.length);
-                            result = Joiner.on("\n").join(subResult).toString();
-                        }
+                if (pageOffset > 0 && StringUtil.isNotEmpty(results)) {
+                    if (pageOffset >= results.length) {
+                        result = "";
+                    } else {
+                        String[] subResult = ArrayUtils.subarray(results, pageOffset, results.length);
+                        result = Joiner.on("\n").join(subResult).toString();
                     }
-                    baseResult.setData(result);
-                } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                    List<Object> allResults = (List<Object>) dataObject;
-                    if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
-                        if (pageOffset >= allResults.size()) {
-                            allResults = new ArrayList<>();
-                        } else {
-                            allResults = allResults.subList(pageOffset, allResults.size());
-                        }
-                    }
-                    Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
-                    Map<String, Object> statistics = Maps.newHashMap();
-                    statistics.put("elapsed", String.format("%.2f", executeTime));
-                    statistics.put("rows_read", allResults.size());
-
-                    int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
-                    statistics.put("result_size", resultSize);
-                    baseResult.setData(allResults);
-                    baseResult.setStatistics(statistics);
                 }
+                baseResult.setData(result);
+            } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+                List<Object> allResults = (List<Object>) dataObject;
+                if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
+                    if (pageOffset >= allResults.size()) {
+                        allResults = new ArrayList<>();
+                    } else {
+                        allResults = allResults.subList(pageOffset, allResults.size());
+                    }
+                }
+                Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
+                Map<String, Object> statistics = Maps.newHashMap();
+                statistics.put("elapsed", String.format("%.2f", executeTime));
+                statistics.put("rows_read", allResults.size());
+
+                int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
+                statistics.put("result_size", resultSize);
+                baseResult.setData(allResults);
+                baseResult.setStatistics(statistics);
             }
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());

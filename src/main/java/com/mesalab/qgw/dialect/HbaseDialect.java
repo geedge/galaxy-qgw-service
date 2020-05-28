@@ -176,23 +176,20 @@ public class HbaseDialect implements Dialect{
         Object dataObject = baseResult.getData();
 
         if (baseResult.isSuccess()) {
-            if (baseResult.isSuccess()) {
+            Map<String, Object> maps = (Map<String, Object>) dataObject;
+            Map<String, Object> statisticMap = (Map<String, Object>) maps.get("statistics");
 
-                Map<String, Object> maps = (Map<String, Object>) dataObject;
-                Map<String, Object> statisticMap = (Map<String, Object>) maps.get("statistics");
+            Map<String, Object> statistics = Maps.newHashMap();
+            Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
+            statistics.put("elapsed", "stat:" + statisticMap.get("elapsed") + ",result: " + executeTime);
 
-                Map<String, Object> statistics = Maps.newHashMap();
-                Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
-                statistics.put("elapsed", "stat:" + statisticMap.get("elapsed") + ",result: " + executeTime);
+            statistics.put("rows_read", statisticMap.get("rows_read"));
 
-                statistics.put("rows_read", statisticMap.get("rows_read"));
+            int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
 
-                int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
-
-                statistics.put("result_size", resultSize);
-                baseResult.setData(maps.get("data"));
-                baseResult.setStatistics(statistics);
-            }
+            statistics.put("result_size", resultSize);
+            baseResult.setData(maps.get("data"));
+            baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {

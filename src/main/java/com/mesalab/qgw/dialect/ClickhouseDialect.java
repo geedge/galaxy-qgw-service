@@ -437,23 +437,20 @@ public class ClickhouseDialect implements Dialect {
 
         Object dataObject = baseResult.getData();
         if (baseResult.isSuccess()) {
-            if (baseResult.getStatus().equals(HttpStatus.SC_OK)) {
+            if (StringUtil.isBlank(baseResult.getMessage())) {
+                baseResult.setMessage("ok");
+            }
 
-                if (StringUtil.isBlank(baseResult.getMessage())) {
-                    baseResult.setMessage("ok");
-                }
-
-                if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                    Map<String, Object> resultMap = (Map<String, Object>) dataObject;
-                    Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
-                    Map<String, Object> statistics = Maps.newHashMap();
-                    statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")));
-                    statistics.put("rows_read", statisticMap.get("rows_read"));
-                    int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
-                    statistics.put("result_size", resultSize);
-                    baseResult.setData(resultMap.get("data"));
-                    baseResult.setStatistics(statistics);
-                }
+            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+                Map<String, Object> resultMap = (Map<String, Object>) dataObject;
+                Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
+                Map<String, Object> statistics = Maps.newHashMap();
+                statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")));
+                statistics.put("rows_read", statisticMap.get("rows_read"));
+                int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
+                statistics.put("result_size", resultSize);
+                baseResult.setData(resultMap.get("data"));
+                baseResult.setStatistics(statistics);
             }
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
