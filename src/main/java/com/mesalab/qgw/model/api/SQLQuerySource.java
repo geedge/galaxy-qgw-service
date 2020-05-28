@@ -7,9 +7,7 @@ import com.mesalab.qgw.model.api.udf.UDF;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.statement.select.GroupByElement;
-import net.sf.jsqlparser.statement.select.OrderByElement;
-import net.sf.jsqlparser.statement.select.SubSelect;
+import net.sf.jsqlparser.statement.select.*;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +19,7 @@ import java.util.Set;
 @Data
 public class SQLQuerySource {
 
+    private String sqlBody;
     private String tableName;
     private String partitionKey;/** 分区键，多用于检索查询首要过滤列；例如timestamp **/
     private String fromItem;
@@ -43,7 +42,7 @@ public class SQLQuerySource {
 
         if (StringUtil.isNotEmpty(subSqlQuerySources)) {
 
-            SQLQuerySource  innerQuerySource = subSqlQuerySources.get(subSqlQuerySources.size()-1);
+            SQLQuerySource innerQuerySource = subSqlQuerySources.get(0);
 
             return innerQuerySource.getUdfSet().size() > 0 ? true : false;
 

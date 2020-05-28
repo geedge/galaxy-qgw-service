@@ -7,6 +7,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.qgw.model.api.DefaultConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.DateUtils;
@@ -35,11 +36,11 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     @Autowired
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    private DefaultConfigSource defaultConfigSource = (DefaultConfigSource) SpringContextUtil.getBean("defaultConfigSource");
     private String name;
     private String timestamp;
     private String period;
     private String fill;
-    private static  final int DEFAULT_DATASET_LIMIT = 1048576;
 
     public TIME_FLOOR_WITH_FILL(UDFElements udfElements) {
         this.name = udfElements.getName();
@@ -95,7 +96,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
             }
 
-            int  maxSeriesNum =  DEFAULT_DATASET_LIMIT / dateRangeList.size();
+            int  maxSeriesNum =  defaultConfigSource.getMaxNumLimit() / dateRangeList.size();
 
             int actualSeriesNum = maxSeriesNum > targetTimeseriesMap.size() ? targetTimeseriesMap.size() : maxSeriesNum;
 

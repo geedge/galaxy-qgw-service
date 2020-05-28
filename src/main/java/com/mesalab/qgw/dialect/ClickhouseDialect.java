@@ -1,11 +1,11 @@
 package com.mesalab.qgw.dialect;
 
 
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.configuration.DefaultConfigProperties;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
@@ -13,6 +13,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import com.mesalab.qgw.model.api.DefaultConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.MetadataService;
@@ -33,10 +34,10 @@ import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,6 +52,7 @@ public class ClickhouseDialect implements Dialect {
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    private DefaultConfigSource defaultConfigSource = (DefaultConfigSource) SpringContextUtil.getBean("defaultConfigSource");
     private ApiParam param;
     private Boolean subIndexValidFlag = true;
     private BaseResult baseResult;
@@ -82,20 +84,16 @@ public class ClickhouseDialect implements Dialect {
 
 
     /**
-     * 默认分页处理
-     * @param sql
+     * 默认最大条数限制
+     *
      * @param sqlQuerySource
      * @return
      */
-    private String generatePageSql(String sql, SQLQuerySource sqlQuerySource) {
+    private String generateInnerSqlLimit(SQLQuerySource sqlQuerySource) {
         if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
-            if (StringUtil.isNotEmpty(sqlQuerySource.getGroupByElement())) {
-                return getLimitString(sql, 0, 1048576);
-            } else {
-                return getLimitString(sql, 0, 200);
-            }
+            return getLimitString(sqlQuerySource.getSqlBody(), 0, defaultConfigSource.getMaxNumLimit());
         } else {
-            return sql;
+            return sqlQuerySource.getSqlBody();
         }
     }
 
@@ -305,7 +303,7 @@ public class ClickhouseDialect implements Dialect {
             }
 
         } else {
-            subQuery.append(" limit 0, 200");
+            subQuery.append(" limit 0, " + defaultConfigSource.getMaxNumLimit());
         }
         return subQuery;
     }
@@ -355,7 +353,8 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect queryDefaultPreProcess() {
-        param.setQuery(generatePageSql(param.getQuery(), param.getSqlQuerySource()));
+        param.setQuery(param.getSqlQuerySource().getSqlBody());
+        generateSetMaxLimit();
         return this;
     }
 
@@ -363,29 +362,13 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public Dialect executeQuery() {
 
-
-        String sql;
-
-        if (param.getSqlQuerySource().isNeedMemoryQuery()) {
-            sql = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
-            if (param.getSqlQuerySource().getSubSqlQuerySources().get(0).getGroupByElement() != null
-                    && param.getSqlQuerySource().getSubSqlQuerySources().get(0).getLimit() == null) {
-                sql = sql + " limit 1048576";
-            }
-        } else {
-            queryDefaultPreProcess();
-            sql = queryOptimization(param.getQuery());
-        }
-
-
-        sql = queryTransformation(sql);
+        String sql = getExecuteDBSql();
 
         Map<String, String> results = executeHttpGet(sql, param.getFormat());
 
         if (StringUtil.isEmpty(results)) {
             baseResult = BaseResultGenerator.error();
-        }  else {
-
+        } else {
             if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
                 baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
                         JsonMapper.fromJsonString(results.get("result"), Map.class), null, param.getFormat());
@@ -401,22 +384,21 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeMemoryQuery() {
-
-        try {
-            if (baseResult.isSuccess()) {
-
-                if (!param.getSqlQuerySource().isNeedMemoryQuery()) {
-                    return this;
+        if (baseResult.isSuccess()) {
+            if (isNeedMemoryQuery()) {
+                try {
+                    SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySourceParent();
+                    Alias alias = sqlQuerySource.getSubSelect().getAlias();
+                    String tableName = alias == null ? sqlQuerySource.getTableName() : alias.getName();
+                    String sql = param.getQuery().replace(sqlQuerySource.getSubSelect().toString(), tableName);
+                    Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
+                    List resultList = CalciteMemoryUtils.calciteQueryMemoryData(tableName, (List<Map<String, String>>) resultMap.get("meta"),
+                            (List<Map<String, Object>>) resultMap.get("data"), sql);
+                    resultMap.put("data", resultList);
+                } catch (Exception ex) {
+                    throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error: ", ex);
                 }
-
-                Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
-                List resultList = CalciteMemoryUtils.calciteQueryMemoryData((List<Map<String, String>>) resultMap.get("meta"),
-                                            (List<Map<String, Object>>) resultMap.get("data"), param);
-                resultMap.put("data", resultList);
-
             }
-        } catch (Exception ex) {
-            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error: ", ex);
         }
         return this;
     }
@@ -424,23 +406,8 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect executeSyntaxCheck() {
-
-        String query;
-        if (param.getSqlQuerySource().isNeedMemoryQuery()) {
-            query = param.getSqlQuerySource().getSubSelect().getSelectBody().toString();
-            if (param.getSqlQuerySource().getSubSqlQuerySources().get(0).getGroupByElement() != null
-                    && param.getSqlQuerySource().getSubSqlQuerySources().get(0).getLimit() == null) {
-                query = query + " limit 1048576";
-
-            }
-        } else {
-            queryDefaultPreProcess();
-            query = param.getQuery();
-        }
-        query = queryTransformation(query);
-        query = Encodes.urlDecode(query);
-
-        Map<String, String>  results = executeHttpGet("select 1", param.getFormat());
+        String query = getSyntaxCheckSql();
+        Map<String, String> results = executeHttpGet("select 1", param.getFormat());
 
         baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), query,
                 JsonMapper.fromJsonString(results.get("result"), Map.class), null, param.getFormat());
@@ -452,17 +419,15 @@ public class ClickhouseDialect implements Dialect {
     public Dialect executeUDF() {
 
         if (baseResult.isSuccess()) {
-            SQLQuerySource sqlQuerySource = param.getSqlQuerySource().isNeedMemoryQuery() ?
-                            param.getSqlQuerySource().getSubSqlQuerySources().get(0) : param.getSqlQuerySource();
+            SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
             Set<UDF> udfSet = sqlQuerySource.getUdfSet();
 
-           Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
-           for (UDF udf : udfSet) {
-               List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, (List<Object>) resultMap.get("data"));
-               resultMap.put("data", targetResult);
-
-           }
-      }
+            Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
+            for (UDF udf : udfSet) {
+                List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, (List<Object>) resultMap.get("data"));
+                resultMap.put("data", targetResult);
+            }
+        }
 
         return this;
     }
@@ -471,10 +436,7 @@ public class ClickhouseDialect implements Dialect {
     public BaseResult build() {
 
         Object dataObject = baseResult.getData();
-
-        if (StringUtil.isEmpty(dataObject)) {
-            baseResult =  BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系数据平台方！");
-        } else {
+        if (baseResult.isSuccess()) {
             if (baseResult.getStatus().equals(HttpStatus.SC_OK)) {
 
                 if (StringUtil.isBlank(baseResult.getMessage())) {
@@ -485,31 +447,129 @@ public class ClickhouseDialect implements Dialect {
                     Map<String, Object> resultMap = (Map<String, Object>) dataObject;
                     Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
                     Map<String, Object> statistics = Maps.newHashMap();
-                    statistics.put("elapsed", String.format("%.2f", (double)statisticMap.get("elapsed")));
+                    statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")));
                     statistics.put("rows_read", statisticMap.get("rows_read"));
                     int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
                     statistics.put("result_size", resultSize);
                     baseResult.setData(resultMap.get("data"));
                     baseResult.setStatistics(statistics);
                 }
-
-            } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
-
-            } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
-
-            } else {
-
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
-
             }
+        } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
+        } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+        } else {
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
         }
         return baseResult;
     }
 
+
+
+    /**
+     * 获取语法检测sql
+     *
+     * @return
+     */
+    private String getSyntaxCheckSql() {
+        SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
+        String query = queryTransformation(sqlQuerySource.getSqlBody());
+        query = Encodes.urlDecode(query);
+        return query;
+    }
+
+    /**
+     * 获取在DB中实际执行的sql
+     *
+     * @return
+     */
+    private String getExecuteDBSql() {
+        SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
+        String sql = sqlQuerySource.getSqlBody();
+        if (!isNeedMemoryQuery()) {
+            sql = queryOptimization(sql);
+        }
+        sql = queryTransformation(sql);
+        return sql;
+    }
+
+    /**
+     * 判定sql是否存在需要缓存查询
+     *
+     * @return
+     */
+    private boolean isNeedMemoryQuery() {
+        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
+        while (!sqlQuerySource.isNeedMemoryQuery()) {
+            if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
+                return false;
+            } else {
+                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 获取实际执行(在DB中)的sqlQuerySource
+     *
+     * @return
+     */
+    private SQLQuerySource getExecuteDBSqlQuerySource() {
+        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
+        while (true) {
+            if (!sqlQuerySource.isNeedMemoryQuery()) {
+                if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
+                    sqlQuerySource = param.getSqlQuerySource();
+                    break;
+                } else {
+                    sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
+                }
+            } else {
+                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
+                break;
+            }
+        }
+        return sqlQuerySource;
+    }
+
+    /**
+     * 在存在缓存查询情况下，获取执行sqlQuerySource的上层sqlQuerySource
+     *
+     * @return
+     */
+    private SQLQuerySource getExecuteDBSqlQuerySourceParent() {
+        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
+        while (StringUtil.isNotEmpty(sqlQuerySource.getSubSelect())) {
+            if (sqlQuerySource.isNeedMemoryQuery()) {
+                return sqlQuerySource;
+            } else {
+                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 设置sqlBody最大查询条数limit限制
+     */
+    private void generateSetMaxLimit() {
+        SQLQuerySource innerSqlQuerySource = param.getSqlQuerySource();
+        while (StringUtil.isNotEmpty(innerSqlQuerySource.getSubSelect())) {
+            innerSqlQuerySource = innerSqlQuerySource.getSubSqlQuerySources().get(0);
+        }
+        String sql = generateInnerSqlLimit(innerSqlQuerySource);
+
+        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
+        while (StringUtil.isNotEmpty(sqlQuerySource)) {
+            sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(innerSqlQuerySource.getSqlBody(), sql));
+            if (sqlQuerySource.getSubSqlQuerySources().isEmpty()) {
+                break;
+            }
+            sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
+        }
+    }
 
     /**
      * 查询clickhouse: http get

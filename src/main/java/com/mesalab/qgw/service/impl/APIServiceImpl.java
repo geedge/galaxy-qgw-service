@@ -26,7 +26,6 @@ import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
-import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
@@ -109,16 +108,19 @@ public class APIServiceImpl implements IAPIService {
         BaseResult baseResult = null;
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
             baseResult = dialect
+                    .queryDefaultPreProcess()
                     .executeSyntaxCheck()
                     .build();
         } else {
 
             if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
                 baseResult = dialect
+                        .queryDefaultPreProcess()
                         .executeQuery()
                         .build();
             } else {
                 baseResult = dialect
+                        .queryDefaultPreProcess()
                         .executeQuery()
                         .executeUDF()
                         .executeMemoryQuery()
@@ -304,6 +306,7 @@ public class APIServiceImpl implements IAPIService {
             Statement statement = CCJSqlParserUtil.parse(sql);
             if (statement instanceof Select) {
                 Select selectStatement = (Select) statement;
+                sqlQuerySource.setSqlBody(String.valueOf(selectStatement.getSelectBody()));
                 TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
                 List<String> tableList =  tablesNamesFinder.getTableList(selectStatement);
 
@@ -383,7 +386,7 @@ public class APIServiceImpl implements IAPIService {
                         SubSelect subSelect = (SubSelect) subItem;
                         log.info("解析subSql: {}", subSelect);
                         sqlQuerySource.setSubSelect(subSelect);
-                        sqlQuerySource.getSubSqlQuerySources().add(parserSQLByAst(String.valueOf(subSelect.getSelectBody())));
+                        sqlQuerySource.getSubSqlQuerySources().add(0, parserSQLByAst(String.valueOf(subSelect.getSelectBody())));
                     }
 
 

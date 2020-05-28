@@ -2,14 +2,7 @@ package com.mesalab.calcite;
 
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
-import com.mesalab.common.enums.BaseResultEnum;
-import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.SQLQuerySource;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.Alias;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
 import org.apache.calcite.jdbc.CalciteConnection;
 
 import java.io.File;
@@ -23,7 +16,7 @@ import java.util.*;
 public class CalciteMemoryUtils {
 
 
-    public static List calciteQueryMemoryData(List<Map<String, String>> meta, List<Map<String, Object>> data, ApiParam param) throws Exception {
+    public static List calciteQueryMemoryData(String tableName, List<Map<String, String>> meta, List<Map<String, Object>> data, String sql) throws Exception {
         Class.forName("org.apache.calcite.jdbc.Driver");
         Properties info = new Properties();
         info.setProperty("lex", "MYSQL_ANSI");
@@ -32,31 +25,18 @@ public class CalciteMemoryUtils {
         CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
         ResultSet executeQueryResult = null;
 
-        Alias alias = param.getSqlQuerySource().getSubSelect().getAlias();
-        if (alias == null) {
-            SQLQuerySource subSqlQuerySource = param.getSqlQuerySource().getSubSqlQuerySources().get(0);
-            alias = new Alias(subSqlQuerySource.getTableName());
-        }
-
         if (data.isEmpty()) {
             return data;
         }
 
         log.info("执行导入内存数据库data.size()为: " + data.size());
         //将数据存入缓存表
-        Storage.DummyTable table = addDummyTableMeta(meta, alias.getName());
+        Storage.DummyTable table = addDummyTableMeta(meta, tableName);
         table = addDummyTableRow(data, table);
-        InMemoryTable inMemoryTable = new InMemoryTable(alias.getName(), table);
+        InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
         //将缓存表植入rootSchema
-        calciteConn.getRootSchema().add(alias.getName(), inMemoryTable);
+        calciteConn.getRootSchema().add(tableName, inMemoryTable);
         log.info("内存数据库 数据导入成功");
-        String sql;
-        try {
-            Statement parse = CCJSqlParserUtil.parse(param.getQuery());
-            sql = parse.toString().replace(param.getSqlQuerySource().getSubSelect().toString(),alias.getName());
-        } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "calcite memory sql 解析错误", e.getCause());
-        }
 
         java.sql.Statement st = connection.createStatement();
         executeQueryResult = st.executeQuery(sql);

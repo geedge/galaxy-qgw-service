@@ -38,6 +38,10 @@ xxl-job-admin:
   userName: admin
   password: 123456
 ###############################################################################
+## Default configuration
+default:
+  maxNumLimit: 1048576
+###############################################################################
 ## Httpclient configuration
 httpclient:
   connectTimeout: 5000
