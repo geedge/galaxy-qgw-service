@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -45,12 +46,19 @@ public class HttpClientService {
             resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
         } catch (ClientProtocolException e) {
             log.error("协议错误: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             e.printStackTrace();
         } catch (ParseException e) {
             log.error("解析错误: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             e.printStackTrace();
         } catch (IOException e) {
             log.error("IO错误: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
+            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("IO错误: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
             e.printStackTrace();
         } finally {
             if (null != response) {
