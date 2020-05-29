@@ -362,40 +362,44 @@ public class ClickhouseDialect implements Dialect {
     @Override
     public Dialect executeQuery() {
 
-        Map<String, String> results = executeHttpGet(getExecuteDBSql(), param.getFormat());
+        String sql = getExecuteDBSql();
 
-        if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, param.getFormat());
+        Map<String, String> results = executeHttpGet(sql, param.getFormat());
+
+        if (StringUtil.isEmpty(results)) {
+            baseResult = BaseResultGenerator.error();
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                    results.get("result"), null, param.getFormat());
+            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
+                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+                        JsonMapper.fromJsonString(results.get("result"), Map.class), null, param.getFormat());
+            } else {
+                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+                        results.get("result"), null, param.getFormat());
+            }
+
         }
-
-
 
         return this;
     }
 
     @Override
     public Dialect executeMemoryQuery() {
-
-        if (baseResult.isSuccess() && isNeedMemoryQuery()) {
-
-            try {
-                SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySourceParent();
-                Alias alias = sqlQuerySource.getSubSelect().getAlias();
-                String tableName = StringUtil.isEmpty(alias) ? sqlQuerySource.getTableName() : alias.getName();
-                String sql = param.getQuery().replace(sqlQuerySource.getSubSelect().toString(), tableName);
-                Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
-                List resultList = CalciteMemoryUtils.calciteQueryMemoryData(tableName, (List<Map<String, String>>) resultMap.get("meta"),
-                        (List<Map<String, Object>>) resultMap.get("data"), sql);
-                resultMap.put("data", resultList);
-            } catch (Exception ex) {
-                throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error: ", ex);
+        if (baseResult.isSuccess()) {
+            if (isNeedMemoryQuery()) {
+                try {
+                    SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySourceParent();
+                    Alias alias = sqlQuerySource.getSubSelect().getAlias();
+                    String tableName = alias == null ? sqlQuerySource.getTableName() : alias.getName();
+                    String sql = param.getQuery().replace(sqlQuerySource.getSubSelect().toString(), tableName);
+                    Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
+                    List resultList = CalciteMemoryUtils.calciteQueryMemoryData(tableName, (List<Map<String, String>>) resultMap.get("meta"),
+                            (List<Map<String, Object>>) resultMap.get("data"), sql);
+                    resultMap.put("data", resultList);
+                } catch (Exception ex) {
+                    throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error: ", ex);
+                }
             }
         }
-
         return this;
     }
 
@@ -432,9 +436,7 @@ public class ClickhouseDialect implements Dialect {
     public BaseResult build() {
 
         Object dataObject = baseResult.getData();
-
-        if (baseResult.getStatus().equals(HttpStatus.SC_OK)) {
-
+        if (baseResult.isSuccess()) {
             if (StringUtil.isBlank(baseResult.getMessage())) {
                 baseResult.setMessage("ok");
             }
@@ -450,17 +452,13 @@ public class ClickhouseDialect implements Dialect {
                 baseResult.setData(resultMap.get("data"));
                 baseResult.setStatistics(statistics);
             }
-
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, StringUtil.setDefaultIfEmpty(dataObject, "").toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, StringUtil.setDefaultIfEmpty(dataObject, "").toString());
-        } else if (baseResult.getStatus().equals(HttpStatus.SC_BAD_GATEWAY)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_BAD_GATEWAY,  "服务繁忙，请联系数据平台方！"+ StringUtil.setDefaultIfEmpty(dataObject, "").toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, StringUtil.setDefaultIfEmpty(dataObject, "").toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
         }
-
         return baseResult;
     }
 
