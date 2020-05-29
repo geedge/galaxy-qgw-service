@@ -222,7 +222,7 @@ public class HbaseDialect implements Dialect{
      */
     private boolean isNeedMemoryQuery() {
         SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
-        while (!sqlQuerySource.isNeedMemoryQuery()) {
+        while (!sqlQuerySource.isSplitOfMemoryQuery()) {
             if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
                 return false;
             } else {
@@ -241,7 +241,7 @@ public class HbaseDialect implements Dialect{
     private SQLQuerySource getExecuteDBSqlQuerySource() {
         SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
         while (true) {
-            if (!sqlQuerySource.isNeedMemoryQuery()) {
+            if (!sqlQuerySource.isSplitOfMemoryQuery()) {
                 if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
                     sqlQuerySource = param.getSqlQuerySource();
                     break;
@@ -264,7 +264,7 @@ public class HbaseDialect implements Dialect{
     private SQLQuerySource getExecuteDBSqlQuerySourceParent() {
         SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
         while (StringUtil.isNotEmpty(sqlQuerySource.getSubSelect())) {
-            if (sqlQuerySource.isNeedMemoryQuery()) {
+            if (sqlQuerySource.isSplitOfMemoryQuery()) {
                 return sqlQuerySource;
             } else {
                 sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);

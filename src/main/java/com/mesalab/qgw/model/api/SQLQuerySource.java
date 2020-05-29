@@ -35,16 +35,16 @@ public class SQLQuerySource {
     private Set<UDF> udfSet = Sets.newHashSet();
     private Map<String, String> groupDimension = Maps.newHashMap();
     private List<SQLQuerySource> subSqlQuerySources = Lists.newArrayList();
-    private boolean needMemoryQuery;
+    private boolean splitOfMemoryQuery;
 
 
-    public boolean isNeedMemoryQuery() {
+    public boolean isSplitOfMemoryQuery() {
 
-        if (StringUtil.isNotEmpty(subSqlQuerySources)) {
+        if (StringUtil.isNotEmpty(subSelect)) {
 
             SQLQuerySource innerQuerySource = subSqlQuerySources.get(0);
 
-            return innerQuerySource.getUdfSet().size() > 0 ? true : false;
+            return innerQuerySource.getUdfSet().size() > 0;
 
         } else {
             return false;

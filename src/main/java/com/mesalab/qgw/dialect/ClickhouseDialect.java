@@ -5,7 +5,6 @@ import com.google.common.collect.Maps;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.configuration.DefaultConfigProperties;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
@@ -34,7 +33,6 @@ import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -498,7 +496,7 @@ public class ClickhouseDialect implements Dialect {
      */
     private boolean isNeedMemoryQuery() {
         SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
-        while (!sqlQuerySource.isNeedMemoryQuery()) {
+        while (!sqlQuerySource.isSplitOfMemoryQuery()) {
             if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
                 return false;
             } else {
@@ -516,7 +514,7 @@ public class ClickhouseDialect implements Dialect {
     private SQLQuerySource getExecuteDBSqlQuerySource() {
         SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
         while (true) {
-            if (!sqlQuerySource.isNeedMemoryQuery()) {
+            if (!sqlQuerySource.isSplitOfMemoryQuery()) {
                 if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
                     sqlQuerySource = param.getSqlQuerySource();
                     break;
@@ -539,7 +537,7 @@ public class ClickhouseDialect implements Dialect {
     private SQLQuerySource getExecuteDBSqlQuerySourceParent() {
         SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
         while (StringUtil.isNotEmpty(sqlQuerySource.getSubSelect())) {
-            if (sqlQuerySource.isNeedMemoryQuery()) {
+            if (sqlQuerySource.isSplitOfMemoryQuery()) {
                 return sqlQuerySource;
             } else {
                 sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
