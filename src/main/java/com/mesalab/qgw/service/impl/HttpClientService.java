@@ -57,7 +57,7 @@ public class HttpClientService {
             resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
             e.printStackTrace();
         } catch (Exception e) {
-            log.error("IO错误: {}", e.getMessage());
+            log.error("其它错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
             e.printStackTrace();
         } finally {
