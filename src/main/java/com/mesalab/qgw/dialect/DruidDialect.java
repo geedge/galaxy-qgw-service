@@ -3,34 +3,28 @@ package com.mesalab.qgw.dialect;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
-import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.DefaultConfigSource;
+import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.Alias;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -38,21 +32,12 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private DefaultConfigSource defaultConfigSource = (DefaultConfigSource) SpringContextUtil.getBean("defaultConfigSource");
-    private ApiParam param;
-
+    private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private int pageOffset;
-
-    private BaseResult baseResult;
-
     private Stopwatch watch = Stopwatch.createUnstarted();
 
     public DruidDialect(ApiParam param) {
-
-        this.param = param;
-
-        baseResult = BaseResultGenerator.success();
-
+        initialize(param);
     }
 
     @Override
@@ -71,7 +56,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
     private String generateInnerSqlLimit(SQLQuerySource sqlQuerySource) {
         if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
-            return getLimitString(sqlQuerySource.getSqlBody(), 0, defaultConfigSource.getMaxNumLimit());
+            return getLimitString(sqlQuerySource.getSqlBody(), 0, engineConfigSource.getMaxCacheNum());
         } else {
 
             if (sqlQuerySource.getLimit().split(",").length >= 2 ) {
@@ -86,12 +71,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
     }
 
-    @Override
-    public Dialect queryDefaultPreProcess() {
-        param.setQuery(param.getDbQuerySource().getSqlBody());
-        generateSetMaxLimit();
-        return this;
-    }
+
 
     @Override
     public String convertQuery(String sql) {
@@ -106,6 +86,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
     @Override
     public Dialect executeQuery() {
+
         String query = getExecuteDBSql();
 
         watch.start();
@@ -144,7 +125,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
     @Override
     public Dialect executeSyntaxCheck() {
-        SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
+        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
         String sql = convertQuery(sqlQuerySource.getSqlBody());
         param.getDbQuerySource().setSqlBody("select 1");
         executeQuery();
@@ -234,52 +215,16 @@ public class DruidDialect extends  AbstractDataSourceDialect {
      * @return
      */
     private String getExecuteDBSql() {
-        SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
+        generateSetMaxLimit();
+        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
         String sql = sqlQuerySource.getSqlBody();
         sql = findBestQuery(sql);
         sql = convertQuery(sql);
         return sql;
     }
 
-    /**
-     * 判定sql是否存在需要缓存查询
-     *
-     * @return
-     */
-    private boolean isNeedMemoryQuery() {
-        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
-        while (!sqlQuerySource.isNeedMemoryQuery()) {
-            if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
-                return false;
-            } else {
-                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-            }
-        }
-        return true;
-    }
 
-    /**
-     * 获取实际执行(在DB中)的sqlQuerySource
-     *
-     * @return
-     */
-    private SQLQuerySource getExecuteDBSqlQuerySource() {
-        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
-        while (true) {
-            if (!sqlQuerySource.isNeedMemoryQuery()) {
-                if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
-                    sqlQuerySource = param.getDbQuerySource();
-                    break;
-                } else {
-                    sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-                }
-            } else {
-                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-                break;
-            }
-        }
-        return sqlQuerySource;
-    }
+
 
 
     @Data

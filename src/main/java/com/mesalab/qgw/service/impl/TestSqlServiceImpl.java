@@ -90,6 +90,16 @@ public class TestSqlServiceImpl {
             }
             data.add(resultTemp);
         }
+
+        Collections.sort(data, new Comparator<Object>() {
+
+            @Override
+            public int compare(Object o1, Object o2) {
+                Map<String, Object> oneMap = (Map<String, Object>) o1;
+                Map<String, Object>  twoMap = (Map<String, Object>) o2;
+                return Integer.valueOf(twoMap.get("status").toString()).compareTo(Integer.valueOf(oneMap.get("status").toString()));
+            }
+        });
         long cost = System.currentTimeMillis() - start;
         HashMap<String, Object> statistics = new HashMap<>();
         statistics.put("elapsed",String.format("%.2f", (double)cost/1000));
@@ -157,7 +167,7 @@ public class TestSqlServiceImpl {
         //三. 预置Domains报告
         list.add("select http_domain AS domain,SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes FROM connection_record_log WHERE common_recv_time >= toStartOfDay(toDateTime($start_time))-86400 AND common_recv_time < toStartOfDay(toDateTime($start_time)) and notEmpty(domain) GROUP BY domain ORDER BY bytes DESC LIMIT 100");
         list.add("select toDateTime(intDiv(toUInt32(toDateTime(toDateTime(common_recv_time))), 300)*300) as stat_time, http_domain, uniq (common_client_ip) as nums  from connection_record_log where common_recv_time >= toStartOfDay(toDateTime($start_time))-86400 AND common_recv_time < toStartOfDay(toDateTime($start_time))  and http_domain in (select http_domain from connection_record_log where common_recv_time >= toStartOfDay(toDateTime($start_time))-86400 AND common_recv_time < toStartOfDay(toDateTime($start_time))  and notEmpty(http_domain) group by http_domain order by SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) desc limit 10 ) group by toDateTime(intDiv(toUInt32(toDateTime(toDateTime(common_recv_time))), 300)*300), http_domain order by stat_time asc limit 500\n");
-        list.add("SELECT http_host as host, SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes FROM connection_record_log WHERE common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time))  and notEmpty(http_host) GROUP BY host ORDER BY bytes DESC limit 10  " +
+        list.add("SELECT http_host as host, SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes FROM connection_record_log WHERE common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time))  and notEmpty(http_host) GROUP BY host ORDER BY bytes DESC  " +
                 "union all " +
                 "SELECT  'totals'  as host, SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes, SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes, SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes from connection_record_log where common_recv_time>= toStartOfDay(toDateTime($start_time))-604800 and common_recv_time< toStartOfDay(toDateTime($start_time))  and notEmpty(http_host)");
         //四. 预置HTTP/HTTPS URLS报告

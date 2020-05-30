@@ -30,14 +30,10 @@ import java.util.concurrent.TimeUnit;
 public class HbaseDialect extends  AbstractDataSourceDialect {
     private HBaseHttpSource hBaseHttpSource = (HBaseHttpSource) SpringContextUtil.getBean("hBaseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private BaseResult baseResult;
-    private ApiParam param;
     private Stopwatch watch = Stopwatch.createUnstarted();
 
     public HbaseDialect(ApiParam param) {
-
-        this.param = param;
-        baseResult = BaseResultGenerator.success();
+        initialize(param);
     }
 
     @Override
@@ -67,10 +63,6 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
         return sql;
     }
 
-    @Override
-    public Dialect queryDefaultPreProcess() {
-        return this;
-    }
 
     @Override
     public Dialect executeQuery() {

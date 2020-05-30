@@ -2,10 +2,8 @@ package com.mesalab.qgw.dialect;
 
 
 import com.google.common.collect.Maps;
-import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.configuration.DefaultConfigProperties;
 import com.mesalab.common.enums.BaseResultEnum;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
@@ -13,13 +11,13 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.DefaultConfigSource;
+import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.*;
@@ -34,7 +32,7 @@ import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -49,19 +47,15 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
     Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
     Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
+    Pattern pLimit = Pattern.compile("limit\\s*(.*?)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
-    private DefaultConfigSource defaultConfigSource = (DefaultConfigSource) SpringContextUtil.getBean("defaultConfigSource");
-    private ApiParam param;
+    private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private Boolean subIndexValidFlag = true;
-    private BaseResult baseResult;
-
-
 
     public ClickhouseDialect(ApiParam param) {
-        this.param = param;
-        baseResult = BaseResultGenerator.success();
+        initialize(param);
     }
 
     @Override
@@ -89,8 +83,9 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
      * @return
      */
     private String generateInnerSqlLimit(SQLQuerySource sqlQuerySource) {
+
         if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
-            return getLimitString(sqlQuerySource.getSqlBody(), 0, defaultConfigSource.getMaxNumLimit());
+            return getLimitString(sqlQuerySource.getSqlBody(), 0, engineConfigSource.getMaxCacheNum());
         } else {
             return sqlQuerySource.getSqlBody();
         }
@@ -132,90 +127,12 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
         return sb.toString();
     }
 
-    /**
-     * count(distinct())转为uniqCombined函数
-     * @param sql
-     * @return
-     */
-    private String generateUniqCombined(String sql) {
-
-        Matcher m = pUniqCombined.matcher(sql);
-
-        StringBuffer sb = new StringBuffer();
-
-        while (m.find()) {
-
-            if (m.groupCount() == 1) {
-                String replaceValue = m.group(1);
-                m.appendReplacement(sb, "uniqCombined(" + replaceValue);
-
-            }
-        }
-
-        m.appendTail(sb);
-
-        return sb.toString();
 
 
-    }
-
-    /**
-     * count(distinct())转为uniq函数
-     * @param sql
-     * @return
-     */
-    private String generateUniq(String sql) {
-
-        Matcher m = pUniq.matcher(sql);
-
-        StringBuffer sb = new StringBuffer();
-
-        while (m.find()) {
-
-            if (m.groupCount() == 1) {
-                String replaceValue = m.group(1);
-                m.appendReplacement(sb, "uniq(" + replaceValue);
-
-            }
-        }
-
-        m.appendTail(sb);
-
-        return sb.toString();
-    }
-
-    /**
-     * 事件索引子查询，目的提高日志查询检索性能:
-     * 方式1.基于索引表
-     * 方式2.基于分区键
-     * 限制：
-     * 1. 仅适用一级普通查询，带where （无group by 统计）的查询
-     * 2. 不对count 统计进行生成
-     * @param sql
-     * @return
-     */
-    private String generateSubquery(String sql) {
 
 
-        if (StringUtil.isBlank(param.getDbQuerySource().getExpr())) {
-            return sql;
-        }
 
-        if (StringUtil.isNotEmpty(param.getDbQuerySource().getGroupByElement())) {
-            return sql;
-        }
 
-        if (pCount.matcher(param.getDbQuerySource().getSelectItems()).find()) {
-            return sql;
-        }
-
-        String indexTable  = getAvaliableIndexTable();
-        if (StringUtil.isNotBlank(indexTable)) {
-            return getSubqueryByIndexTable(indexTable);
-        } else {
-            return getSubqueryByPartitionKey(sql);
-        }
-    }
 
     /**
      * 基于分区键方式
@@ -302,7 +219,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
             }
 
         } else {
-            subQuery.append(" limit 0, " + defaultConfigSource.getMaxNumLimit());
+            subQuery.append(" limit 0, " + engineConfigSource.getDefaultResultNum());
         }
         return subQuery;
     }
@@ -344,18 +261,182 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
 
     @Override
     public String findBestQuery(String sql) {
-        sql = generateUniq(sql);
-        sql = generateSubquery(sql);
-
-        return sql;
+        return new Optimizer().generateQueryLimit().
+                generateSQL().generateUniq().generateSubquery().build();
     }
 
-    @Override
-    public Dialect queryDefaultPreProcess() {
-        param.setQuery(param.getDbQuerySource().getSqlBody());
-        generateSetMaxLimit();
-        return this;
+
+
+
+      class Optimizer {
+
+        String sql = null;
+
+          /**
+           * 对SQL最内层的结果数据集进行限制
+           * 参见查询网关系统参数：engine.maxCacheNum
+           *
+           * @return
+           */
+        public Optimizer generateQueryLimit() {
+
+            if(StringUtil.isEmpty(param.getEngineQuerySource())) {
+                setDefaultResultRows(param.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
+            }
+
+            setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+
+
+            return this;
+        }
+
+
+        private  void setDefaultResultRows(SQLQuerySource sqlQuerySource, int defaultResultRows) {
+            if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
+                sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody() + " limit " + defaultResultRows);
+                sqlQuerySource.setLimit(String.valueOf(defaultResultRows));
+            }
+
+        }
+
+          /**
+           * 设置最大缓存数据集
+           * @param sqlQuerySource
+           * @return
+           */
+      private void setMaxCacheResultRows(SQLQuerySource sqlQuerySource, int maxCacheResultRows) {
+          SQLQuerySource innerSqlQuerySource = sqlQuerySource;
+          while (StringUtil.isNotEmpty(innerSqlQuerySource.getSubSelect())) {
+              innerSqlQuerySource = innerSqlQuerySource.getSubSqlQuerySources().get(0);
+          }
+
+          if (!innerSqlQuerySource.isEnableLimit()) {
+              return;
+          }
+
+          String orginInnerSql = innerSqlQuerySource.getSqlBody();
+
+          String limitInnerSql = innerSqlQuerySource.getSqlBody();
+          if (StringUtil.isNotBlank(innerSqlQuerySource.getLimit())) {
+
+              String[] limits = innerSqlQuerySource.getLimit().split(",");
+
+              if (Integer.valueOf(limits[limits.length-1]) > maxCacheResultRows) {
+                  limits[limits.length-1] = String.valueOf(maxCacheResultRows);
+                  Matcher m = pLimit.matcher(orginInnerSql);
+                  StringBuffer sb = new StringBuffer();
+                  while (m.find()) {
+                      if (m.groupCount() == 1) {
+                          m.appendReplacement(sb, "limit " + String.join(",", limits).toString());
+                      }
+                  }
+                  limitInnerSql = sb.toString();
+                  innerSqlQuerySource.setLimit(String.join(",", limits).toString());
+                  innerSqlQuerySource.setSqlBody(limitInnerSql);
+
+              }
+
+          } else {
+              limitInnerSql = innerSqlQuerySource.getSqlBody() + " limit " + maxCacheResultRows;
+              innerSqlQuerySource.setLimit(String.valueOf(maxCacheResultRows));
+              innerSqlQuerySource.setSqlBody(limitInnerSql);
+
+          }
+
+          if (StringUtil.isNotEmpty(sqlQuerySource.getSubSqlQuerySources())) {
+              sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(orginInnerSql, limitInnerSql));
+          }
+
+      }
+
+        public Optimizer generateSQL() {
+            SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+            sql = sqlQuerySource.getSqlBody();
+            return this;
+        }
+
+          /**
+           * count(distinct())转为uniq函数
+           * @return
+           */
+         public Optimizer generateUniq() {
+             Matcher m = pUniq.matcher(sql);
+             StringBuffer sb = new StringBuffer();
+             while (m.find()) {
+                 if (m.groupCount() == 1) {
+                     String replaceValue = m.group(1);
+                     m.appendReplacement(sb, "uniq(" + replaceValue);
+
+                 }
+             }
+             m.appendTail(sb);
+             sql = sb.toString();
+
+             return this;
+         }
+
+          /**
+           * count(distinct())转为uniqCombined函数
+           * @return
+           */
+          private Optimizer generateUniqCombined() {
+
+              Matcher m = pUniqCombined.matcher(sql);
+
+              StringBuffer sb = new StringBuffer();
+
+              while (m.find()) {
+
+                  if (m.groupCount() == 1) {
+                      String replaceValue = m.group(1);
+                      m.appendReplacement(sb, "uniqCombined(" + replaceValue);
+
+                  }
+              }
+              m.appendTail(sb);
+
+              sql = sb.toString();
+              return this;
+          }
+
+          /**
+           * 事件索引子查询，目的提高日志查询检索性能:
+           * 方式1.基于索引表
+           * 方式2.基于分区键
+           * 限制：
+           * 1. 仅适用一级普通查询，带where （无group by 统计）的查询
+           * 2. 不对count 统计进行生成
+           * @return
+           */
+         public Optimizer generateSubquery() {
+
+             if (StringUtil.isBlank(param.getDbQuerySource().getExpr())) {
+                 return this;
+             }
+
+             if (StringUtil.isNotEmpty(param.getDbQuerySource().getGroupByElement())) {
+                 return this;
+             }
+
+             if (pCount.matcher(param.getDbQuerySource().getSelectItems()).find()) {
+                 return this;
+             }
+
+             String indexTable = getAvaliableIndexTable();
+             if (StringUtil.isNotBlank(indexTable)) {
+                 sql = getSubqueryByIndexTable(indexTable);
+             } else {
+                 sql = getSubqueryByPartitionKey(sql);
+             }
+             return this;
+         }
+
+        public String build() {
+            return sql;
+        }
+
     }
+
 
 
     @Override
@@ -448,6 +529,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
      * @return
      */
     private String getExecuteDBSql() {
+
         SQLQuerySource sqlQuerySource = param.getDbQuerySource();
         String sql = sqlQuerySource.getSqlBody();
         sql = findBestQuery(sql);
@@ -457,25 +539,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
 
 
 
-    /**
-     * 设置sqlBody最大查询条数limit限制
-     */
-    private void generateSetMaxLimit() {
-        SQLQuerySource innerSqlQuerySource = param.getDbQuerySource();
-        while (StringUtil.isNotEmpty(innerSqlQuerySource.getSubSelect())) {
-            innerSqlQuerySource = innerSqlQuerySource.getSubSqlQuerySources().get(0);
-        }
-        String sql = generateInnerSqlLimit(innerSqlQuerySource);
 
-        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
-        while (StringUtil.isNotEmpty(sqlQuerySource)) {
-            sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(innerSqlQuerySource.getSqlBody(), sql));
-            if (sqlQuerySource.getSubSqlQuerySources().isEmpty()) {
-                break;
-            }
-            sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-        }
-    }
 
     /**
      * 查询clickhouse: http get

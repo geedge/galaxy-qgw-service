@@ -25,22 +25,6 @@ public interface Dialect {
     String getLimitString(String sql, int offset, int limit);
 
     /**
-     * SQL查询语句转换为方言所认知的查询语句。
-     * @param sql
-     * @return
-     */
-    String convertQuery(String sql);
-
-    /**
-     * 基于RBO(rule-base optimizer)获取最优化的SQL
-     * @param sql
-     * @return
-     */
-    String findBestQuery(String sql);
-
-    Dialect queryDefaultPreProcess();
-
-    /**
      * 执行SQL语法检查
      * @return
      */

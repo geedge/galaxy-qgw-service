@@ -72,7 +72,9 @@ public class APIServiceImpl implements IAPIService {
         metadataService = this.metadataServiceTemp;
     }
 
-    private static final int MAX_PARSER_LEVEL = 5;
+    public static final int MAX_PARSER_LEVEL = 5;
+
+    public static final String UNVALID_LIMIT_DESC = "NO LIMIT";
 
 
     @Override
@@ -113,24 +115,21 @@ public class APIServiceImpl implements IAPIService {
         BaseResult baseResult = null;
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
             baseResult = dbDialect
-                    .queryDefaultPreProcess()
                     .executeSyntaxCheck()
                     .build();
         } else {
 
             if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
                 baseResult = dbDialect
-                        .queryDefaultPreProcess()
                         .executeQuery()
                         .build();
             } else {
                 baseResult = dbDialect
-                        .queryDefaultPreProcess()
                         .executeQuery()
                         .build();
             }
 
-           baseResult = new FederationDialect(param, baseResult).queryDefaultPreProcess().executeQuery().build();
+           baseResult = new FederationDialect(param, baseResult).executeQuery().build();
 
 
 
@@ -317,52 +316,39 @@ public class APIServiceImpl implements IAPIService {
         SQLQuerySource engineQuerySource = null;
         SQLQuerySource dbQuerySource = null;
 
-        SQLQuerySource splitSqlQuerySource = null;
+        SQLQuerySource indexUpSqlQuerySource = null;
         SQLQuerySource indexSqlQuerySource = sqlQuerySource;
         for (int i = 0; i < MAX_PARSER_LEVEL; i++) {
-            if (StringUtil.isEmpty(indexSqlQuerySource.getSubSelect()) || indexSqlQuerySource.getUdfSet().size() > 0) {
-                dbQuerySource = getSQLQuerySource(indexSqlQuerySource);
+            if (indexSqlQuerySource.getUdfSet().size() > 0) {
+                dbQuerySource = indexSqlQuerySource;
+                break;
+            }
+            if (StringUtil.isEmpty(indexSqlQuerySource.getSubSelect())) {
+                dbQuerySource = sqlQuerySource;
+                indexUpSqlQuerySource = null;
                 break;
             } else {
-                splitSqlQuerySource = indexSqlQuerySource;
-                indexSqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-                if (sqlQuerySource.getUdfSet().size() > 0) {
-                    dbQuerySource = getSQLQuerySource(indexSqlQuerySource);
+                indexUpSqlQuerySource = indexSqlQuerySource;
+                indexSqlQuerySource = indexSqlQuerySource.getSubSqlQuerySources().get(0);
+                if (indexSqlQuerySource.getUdfSet().size() > 0) {
+                    dbQuerySource = indexSqlQuerySource;
                     break;
                 }
             }
         }
 
-        if (StringUtil.isNotEmpty(splitSqlQuerySource)) {
+        if (StringUtil.isNotEmpty(indexUpSqlQuerySource)) {
             engineQuerySource = new SQLQuerySource();
-            String tablName = StringUtil.isEmpty(splitSqlQuerySource.getSubSelect().getAlias()) ? splitSqlQuerySource.getTableName() : splitSqlQuerySource.getSubSelect().getAlias().getName();
-            String replace = sqlQuerySource.getSqlBody().replace(splitSqlQuerySource.getSubSelect().toString(), tablName);
+            String tableName = StringUtil.isEmpty(indexUpSqlQuerySource.getSubSelect().getAlias()) ? indexUpSqlQuerySource.getTableName() : indexUpSqlQuerySource.getSubSelect().getAlias().getName();
+            String replace = sqlQuerySource.getSqlBody().replace(indexUpSqlQuerySource.getSubSelect().toString(), tableName);
             engineQuerySource.setSqlBody(replace);
-            engineQuerySource.setTableName(tablName);
+            engineQuerySource.setTableName(tableName);
         }
 
         param.setDbQuerySource(dbQuerySource);
         param.setEngineQuerySource(engineQuerySource);
-
     }
 
-    private static SQLQuerySource getSQLQuerySource(SQLQuerySource sqlQuerySource) {
-        SQLQuerySource querySource = new SQLQuerySource();
-        querySource.setSqlBody(sqlQuerySource.getSqlBody());
-        querySource.setTableName(sqlQuerySource.getTableName());
-        querySource.setPartitionKey(sqlQuerySource.getPartitionKey());
-        querySource.setFromItem(sqlQuerySource.getFromItem());
-        querySource.setSelectItems(sqlQuerySource.getSelectItems());
-        querySource.setExpr(sqlQuerySource.getExpr());
-        querySource.setOrderBy(sqlQuerySource.getOrderBy());
-        querySource.setLimit(sqlQuerySource.getLimit());
-        querySource.setWhereExpression(sqlQuerySource.getWhereExpression());
-        querySource.setGroupByElement(sqlQuerySource.getGroupByElement());
-        querySource.setListOrderElement(sqlQuerySource.getListOrderElement());
-        querySource.setUdfSet(sqlQuerySource.getUdfSet());
-        querySource.setAliasFields(sqlQuerySource.getAliasFields());
-        return querySource;
-    }
 
 
 
@@ -480,7 +466,7 @@ public class APIServiceImpl implements IAPIService {
 
 
                 } else if (body instanceof SetOperationList) { // 连接查询
-                    sqlQuerySource.setLimit("NO LIMIT");
+                    sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                 } else { //其它暂不支持
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
                 }
@@ -629,7 +615,7 @@ public class APIServiceImpl implements IAPIService {
                     } else if (sqlSelectQuery instanceof SQLUnionQuery) {
                         SQLUnionQuery sqlUnionQuery = (SQLUnionQuery) sqlSelectQuery;
                         sqlQuerySource.setTableName(getMultiSqlTableName(sqlUnionQuery.getRight()));
-                        sqlQuerySource.setLimit("NO LIMIT");
+                        sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                     }
                 } else {
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
