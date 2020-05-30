@@ -42,7 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-public class ClickhouseDialect implements Dialect {
+public class ClickhouseDialect extends  AbstractDataSourceDialect{
     Pattern pGlobalIn = Pattern.compile("\\s+in\\s*\\(", Pattern.CASE_INSENSITIVE);
     Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
@@ -56,7 +56,6 @@ public class ClickhouseDialect implements Dialect {
     private ApiParam param;
     private Boolean subIndexValidFlag = true;
     private BaseResult baseResult;
-
 
 
 
@@ -198,15 +197,15 @@ public class ClickhouseDialect implements Dialect {
     private String generateSubquery(String sql) {
 
 
-        if (StringUtil.isBlank(param.getSqlQuerySource().getExpr())) {
+        if (StringUtil.isBlank(param.getDbQuerySource().getExpr())) {
             return sql;
         }
 
-        if (StringUtil.isNotEmpty(param.getSqlQuerySource().getGroupByElement())) {
+        if (StringUtil.isNotEmpty(param.getDbQuerySource().getGroupByElement())) {
             return sql;
         }
 
-        if (pCount.matcher(param.getSqlQuerySource().getSelectItems()).find()) {
+        if (pCount.matcher(param.getDbQuerySource().getSelectItems()).find()) {
             return sql;
         }
 
@@ -252,12 +251,12 @@ public class ClickhouseDialect implements Dialect {
 
         StringBuffer subQuery = getSubquerySql(primaryKey, indexTable);
         StringBuffer sb = new StringBuffer();
-        sb.append("select ").append(param.getSqlQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(primaryKey).append(" in ( ").append(subQuery).append(")");
-        if (StringUtil.isNotBlank(param.getSqlQuerySource().getOrderBy())) {
-            sb.append(" order by ").append(param.getSqlQuerySource().getOrderBy());
+        sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(primaryKey).append(" in ( ").append(subQuery).append(")");
+        if (StringUtil.isNotBlank(param.getDbQuerySource().getOrderBy())) {
+            sb.append(" order by ").append(param.getDbQuerySource().getOrderBy());
         }
-        if (StringUtil.isNotBlank(param.getSqlQuerySource().getLimit())) {
-            sb.append(" limit ").append(param.getSqlQuerySource().getLimit());
+        if (StringUtil.isNotBlank(param.getDbQuerySource().getLimit())) {
+            sb.append(" limit ").append(param.getDbQuerySource().getLimit());
         }
         return sb.toString();
     }
@@ -272,18 +271,18 @@ public class ClickhouseDialect implements Dialect {
         StringBuffer subQuery = new StringBuffer();
 
         subQuery.append("select " + columnName + " from ").append(tableName)
-                .append(" where ").append(param.getSqlQuerySource().getExpr());
+                .append(" where ").append(param.getDbQuerySource().getExpr());
 
         //order by中元素存在别名时做替换处理
-        List<OrderByElement> listOrderElement = param.getSqlQuerySource().getListOrderElement();
+        List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
         if (StringUtil.isNotEmpty(listOrderElement)) {
-            String orderBy = param.getSqlQuerySource().getOrderBy();
+            String orderBy = param.getDbQuerySource().getOrderBy();
             for (OrderByElement order : listOrderElement) {
                 String orderField = order.getExpression().toString();
                 if (orderField.startsWith("\"") && orderField.endsWith("\"")) {
                     orderField = orderField.substring(1, orderField.length() - 1);
                 }
-                String originalField = param.getSqlQuerySource().getAliasFields().get(orderField);
+                String originalField = param.getDbQuerySource().getAliasFields().get(orderField);
                 if(StringUtil.isNotBlank(originalField)){
                     orderBy = orderBy.replaceAll("(\"" + orderField + "\")|(\\b" + orderField + "\\b)", originalField);
                 }
@@ -293,13 +292,13 @@ public class ClickhouseDialect implements Dialect {
         }
 
 
-        if (StringUtil.isNotBlank(param.getSqlQuerySource().getLimit())) {
-            String[] limits = param.getSqlQuerySource().getLimit().split(",");
+        if (StringUtil.isNotBlank(param.getDbQuerySource().getLimit())) {
+            String[] limits = param.getDbQuerySource().getLimit().split(",");
             if (limits.length == 2) {
                 int rows = Integer.valueOf(limits[0].trim()) + Integer.valueOf(limits[1].trim());
                 subQuery.append(" limit ").append(rows);
             } else {
-                subQuery.append(" limit ").append(param.getSqlQuerySource().getLimit());
+                subQuery.append(" limit ").append(param.getDbQuerySource().getLimit());
             }
 
         } else {
@@ -318,7 +317,7 @@ public class ClickhouseDialect implements Dialect {
         String partitionKey = metadataService.getPartitionKey(tableName);
 
         if (StringUtil.isNotBlank(partitionKey)) {
-            String tempValue = param.getSqlQuerySource().getAliasFields().get(partitionKey);
+            String tempValue = param.getDbQuerySource().getAliasFields().get(partitionKey);
             if (StringUtil.isNotBlank(tempValue)) {
                 if (tempValue.contains(partitionKey)) {
                     partitionKey = tempValue;
@@ -336,7 +335,7 @@ public class ClickhouseDialect implements Dialect {
 
 
     @Override
-    public String queryTransformation(String sql) {
+    public String convertQuery(String sql) {
         sql = generateStandard(sql);
         sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.CLICKHOUSE.getValue());
         sql = generateSqlEncode(sql);
@@ -344,7 +343,7 @@ public class ClickhouseDialect implements Dialect {
     }
 
     @Override
-    public String queryOptimization(String sql) {
+    public String findBestQuery(String sql) {
         sql = generateUniq(sql);
         sql = generateSubquery(sql);
 
@@ -353,7 +352,7 @@ public class ClickhouseDialect implements Dialect {
 
     @Override
     public Dialect queryDefaultPreProcess() {
-        param.setQuery(param.getSqlQuerySource().getSqlBody());
+        param.setQuery(param.getDbQuerySource().getSqlBody());
         generateSetMaxLimit();
         return this;
     }
@@ -371,10 +370,10 @@ public class ClickhouseDialect implements Dialect {
         } else {
             if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
                 baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                        JsonMapper.fromJsonString(results.get("result"), Map.class), null, param.getFormat());
+                        JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, param.getFormat());
             } else {
                 baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                        results.get("result"), null, param.getFormat());
+                        results.get("result"), null, null, param.getFormat());
             }
 
         }
@@ -382,26 +381,7 @@ public class ClickhouseDialect implements Dialect {
         return this;
     }
 
-    @Override
-    public Dialect executeMemoryQuery() {
-        if (baseResult.isSuccess()) {
-            if (isNeedMemoryQuery()) {
-                try {
-                    SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySourceParent();
-                    Alias alias = sqlQuerySource.getSubSelect().getAlias();
-                    String tableName = alias == null ? sqlQuerySource.getTableName() : alias.getName();
-                    String sql = param.getQuery().replace(sqlQuerySource.getSubSelect().toString(), tableName);
-                    Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
-                    List resultList = CalciteMemoryUtils.calciteQueryMemoryData(tableName, (List<Map<String, String>>) resultMap.get("meta"),
-                            (List<Map<String, Object>>) resultMap.get("data"), sql);
-                    resultMap.put("data", resultList);
-                } catch (Exception ex) {
-                    throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error: ", ex);
-                }
-            }
-        }
-        return this;
-    }
+
 
 
     @Override
@@ -410,27 +390,12 @@ public class ClickhouseDialect implements Dialect {
         Map<String, String> results = executeHttpGet("select 1", param.getFormat());
 
         baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), query,
-                JsonMapper.fromJsonString(results.get("result"), Map.class), null, param.getFormat());
+                JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, param.getFormat());
         log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
         return this;
     }
 
-    @Override
-    public Dialect executeUDF() {
 
-        if (baseResult.isSuccess()) {
-            SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
-            Set<UDF> udfSet = sqlQuerySource.getUdfSet();
-
-            Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
-            for (UDF udf : udfSet) {
-                List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, (List<Object>) resultMap.get("data"));
-                resultMap.put("data", targetResult);
-            }
-        }
-
-        return this;
-    }
 
     @Override
     public BaseResult build() {
@@ -450,6 +415,7 @@ public class ClickhouseDialect implements Dialect {
                 int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
                 statistics.put("result_size", resultSize);
                 baseResult.setData(resultMap.get("data"));
+                baseResult.setMeta(resultMap.get("meta"));
                 baseResult.setStatistics(statistics);
             }
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
@@ -470,8 +436,8 @@ public class ClickhouseDialect implements Dialect {
      * @return
      */
     private String getSyntaxCheckSql() {
-        SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
-        String query = queryTransformation(sqlQuerySource.getSqlBody());
+        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+        String query = convertQuery(sqlQuerySource.getSqlBody());
         query = Encodes.urlDecode(query);
         return query;
     }
@@ -482,83 +448,26 @@ public class ClickhouseDialect implements Dialect {
      * @return
      */
     private String getExecuteDBSql() {
-        SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
+        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
         String sql = sqlQuerySource.getSqlBody();
-        if (!isNeedMemoryQuery()) {
-            sql = queryOptimization(sql);
-        }
-        sql = queryTransformation(sql);
+        sql = findBestQuery(sql);
+        sql = convertQuery(sql);
         return sql;
     }
 
-    /**
-     * 判定sql是否存在需要缓存查询
-     *
-     * @return
-     */
-    private boolean isNeedMemoryQuery() {
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
-        while (!sqlQuerySource.isNeedMemoryQuery()) {
-            if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
-                return false;
-            } else {
-                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-            }
-        }
-        return true;
-    }
 
-    /**
-     * 获取实际执行(在DB中)的sqlQuerySource
-     *
-     * @return
-     */
-    private SQLQuerySource getExecuteDBSqlQuerySource() {
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
-        while (true) {
-            if (!sqlQuerySource.isNeedMemoryQuery()) {
-                if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
-                    sqlQuerySource = param.getSqlQuerySource();
-                    break;
-                } else {
-                    sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-                }
-            } else {
-                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-                break;
-            }
-        }
-        return sqlQuerySource;
-    }
-
-    /**
-     * 在存在缓存查询情况下，获取执行sqlQuerySource的上层sqlQuerySource
-     *
-     * @return
-     */
-    private SQLQuerySource getExecuteDBSqlQuerySourceParent() {
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
-        while (StringUtil.isNotEmpty(sqlQuerySource.getSubSelect())) {
-            if (sqlQuerySource.isNeedMemoryQuery()) {
-                return sqlQuerySource;
-            } else {
-                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-            }
-        }
-        return null;
-    }
 
     /**
      * 设置sqlBody最大查询条数limit限制
      */
     private void generateSetMaxLimit() {
-        SQLQuerySource innerSqlQuerySource = param.getSqlQuerySource();
+        SQLQuerySource innerSqlQuerySource = param.getDbQuerySource();
         while (StringUtil.isNotEmpty(innerSqlQuerySource.getSubSelect())) {
             innerSqlQuerySource = innerSqlQuerySource.getSubSqlQuerySources().get(0);
         }
         String sql = generateInnerSqlLimit(innerSqlQuerySource);
 
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
+        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
         while (StringUtil.isNotEmpty(sqlQuerySource)) {
             sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(innerSqlQuerySource.getSqlBody(), sql));
             if (sqlQuerySource.getSubSqlQuerySources().isEmpty()) {
@@ -592,6 +501,8 @@ public class ClickhouseDialect implements Dialect {
 
         return httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
     }
+
+
 
 
     /**
@@ -733,7 +644,7 @@ public class ClickhouseDialect implements Dialect {
 
             String indexKey = metadataService.getValueByKeyInSchemaDoc(tempIndexTable, "index_key");
             //判断一: where 是否包含索引键
-            if (!param.getSqlQuerySource().getExpr().contains(indexKey)) {
+            if (!param.getDbQuerySource().getExpr().contains(indexKey)) {
                 continue;
             }
 
@@ -747,7 +658,7 @@ public class ClickhouseDialect implements Dialect {
             BaseResult masterTableData = metadataService.getSchemaInfo("fields", param.getTableName());
             Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData.getData()));
             //判断三: where 条件列是否都在索引表中
-            setValidityByWhereExpressionsInSchema(param.getSqlQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
+            setValidityByWhereExpressionsInSchema(param.getDbQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
             if (getSubIndexValidFlag() && tableIsAvaliableInDB(indexTableSchema.getFullName())) {
                 indexTable = indexTableSchema.getFullName();
                 break;
@@ -776,11 +687,11 @@ public class ClickhouseDialect implements Dialect {
      * @return
      */
     private boolean isValidOfOrderElementsInSchema(Schema schema) {
-        List<OrderByElement> listOrderElement = param.getSqlQuerySource().getListOrderElement();
+        List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
         if (StringUtil.isEmpty(listOrderElement)) {
             return true;
         } else {
-            Map<String, String> aliasFields = param.getSqlQuerySource().getAliasFields();
+            Map<String, String> aliasFields = param.getDbQuerySource().getAliasFields();
             for (OrderByElement order : listOrderElement) {
                 String orderField = String.valueOf(order.getExpression());
                 if (orderField.startsWith("\"") && orderField.endsWith("\"")) {

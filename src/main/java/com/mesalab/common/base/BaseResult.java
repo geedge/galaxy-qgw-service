@@ -31,13 +31,11 @@ public class BaseResult<T> implements Serializable {
 
     private Map<String, Object> statistics;
 
-    private T data;
-
     private String formatType;
 
+    private T meta;
 
-
-
+    private T data;
 
 
     /**

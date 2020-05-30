@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class DruidDialect implements  Dialect {
+public class DruidDialect extends  AbstractDataSourceDialect {
 
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
@@ -88,19 +88,19 @@ public class DruidDialect implements  Dialect {
 
     @Override
     public Dialect queryDefaultPreProcess() {
-        param.setQuery(param.getSqlQuerySource().getSqlBody());
+        param.setQuery(param.getDbQuerySource().getSqlBody());
         generateSetMaxLimit();
         return this;
     }
 
     @Override
-    public String queryTransformation(String sql) {
+    public String convertQuery(String sql) {
         sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.DRUID.getValue());
         return sql;
     }
 
     @Override
-    public String queryOptimization(String sql) {
+    public String findBestQuery(String sql) {
         return sql;
     }
 
@@ -115,7 +115,7 @@ public class DruidDialect implements  Dialect {
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
 
-        log.info("TSDB Query ：{}, SQL: {}", urlBuilder.toString() , param.getSqlQuerySource().getSqlBody());
+        log.info("TSDB Query ：{}, SQL: {}", urlBuilder.toString() , param.getDbQuerySource().getSqlBody());
 
         if (param.getFormat().equals(QueryFormatEnum.JSON.getValue())) {
             druidQueryParam.setResultFormat("object");
@@ -130,9 +130,9 @@ public class DruidDialect implements  Dialect {
         } else {
             if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
                 baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                        (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, param.getFormat());
+                        (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, param.getFormat());
             } else {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null, null,
                         results.get("result"), null, param.getFormat());
             }
         }
@@ -140,52 +140,19 @@ public class DruidDialect implements  Dialect {
 
     }
 
-    @Override
-    public Dialect executeMemoryQuery() {
-        if (baseResult.isSuccess()) {
-            if (isNeedMemoryQuery()) {
-                try {
-                    SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySourceParent();
-                    Alias alias = sqlQuerySource.getSubSelect().getAlias();
-                    String tableName = alias == null ? sqlQuerySource.getTableName() : alias.getName();
-                    String sql = param.getQuery().replace(sqlQuerySource.getSubSelect().toString(), tableName);
-                    Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
-                    List resultList = CalciteMemoryUtils.calciteQueryMemoryData(tableName, (List<Map<String, String>>) resultMap.get("meta"),
-                            (List<Map<String, Object>>) resultMap.get("data"), sql);
-                    resultMap.put("data", resultList);
-                } catch (Exception ex) {
-                    throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error: ", ex);
-                }
-            }
-        }
-        return this;
-    }
+
 
     @Override
     public Dialect executeSyntaxCheck() {
         SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
-        String sql = queryTransformation(sqlQuerySource.getSqlBody());
-        param.getSqlQuerySource().setSqlBody("select 1");
+        String sql = convertQuery(sqlQuerySource.getSqlBody());
+        param.getDbQuerySource().setSqlBody("select 1");
         executeQuery();
         baseResult.setMessage(sql);
         return this;
     }
 
-    @Override
-    public Dialect executeUDF() {
 
-        if (baseResult.isSuccess()) {
-            SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
-            Set<UDF> udfSet = sqlQuerySource.getUdfSet();
-
-            List<Object> lists = (List<Object>) baseResult.getData();
-            for (UDF udf : udfSet) {
-                List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, lists);
-                baseResult.setData(targetResult);
-            }
-        }
-        return this;
-    }
 
     @Override
     public BaseResult build() {
@@ -244,13 +211,13 @@ public class DruidDialect implements  Dialect {
      * 设置sqlBody最大查询条数limit限制
      */
     private void generateSetMaxLimit() {
-        SQLQuerySource innerSqlQuerySource = param.getSqlQuerySource();
+        SQLQuerySource innerSqlQuerySource = param.getDbQuerySource();
         while (StringUtil.isNotEmpty(innerSqlQuerySource.getSubSelect())) {
             innerSqlQuerySource = innerSqlQuerySource.getSubSqlQuerySources().get(0);
         }
         String sql = generateInnerSqlLimit(innerSqlQuerySource);
 
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
+        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
         while (StringUtil.isNotEmpty(sqlQuerySource)) {
             sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(innerSqlQuerySource.getSqlBody(), sql));
             if (sqlQuerySource.getSubSqlQuerySources().isEmpty()) {
@@ -269,8 +236,8 @@ public class DruidDialect implements  Dialect {
     private String getExecuteDBSql() {
         SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
         String sql = sqlQuerySource.getSqlBody();
-        sql = queryOptimization(sql);
-        sql = queryTransformation(sql);
+        sql = findBestQuery(sql);
+        sql = convertQuery(sql);
         return sql;
     }
 
@@ -280,7 +247,7 @@ public class DruidDialect implements  Dialect {
      * @return
      */
     private boolean isNeedMemoryQuery() {
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
+        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
         while (!sqlQuerySource.isNeedMemoryQuery()) {
             if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
                 return false;
@@ -297,11 +264,11 @@ public class DruidDialect implements  Dialect {
      * @return
      */
     private SQLQuerySource getExecuteDBSqlQuerySource() {
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
+        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
         while (true) {
             if (!sqlQuerySource.isNeedMemoryQuery()) {
                 if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
-                    sqlQuerySource = param.getSqlQuerySource();
+                    sqlQuerySource = param.getDbQuerySource();
                     break;
                 } else {
                     sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
@@ -314,22 +281,6 @@ public class DruidDialect implements  Dialect {
         return sqlQuerySource;
     }
 
-    /**
-     * 在存在缓存查询情况下，获取执行sqlQuerySource的上层sqlQuerySource
-     *
-     * @return
-     */
-    private SQLQuerySource getExecuteDBSqlQuerySourceParent() {
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
-        while (StringUtil.isNotEmpty(sqlQuerySource.getSubSelect())) {
-            if (sqlQuerySource.isNeedMemoryQuery()) {
-                return sqlQuerySource;
-            } else {
-                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-            }
-        }
-        return null;
-    }
 
     @Data
     class DruidQueryParam {

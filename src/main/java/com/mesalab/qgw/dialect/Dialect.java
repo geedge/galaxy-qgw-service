@@ -23,13 +23,39 @@ public interface Dialect {
      * @return 分页查询的sql
      */
     String getLimitString(String sql, int offset, int limit);
-    String queryTransformation(String sql);
-    String queryOptimization(String sql);
+
+    /**
+     * SQL查询语句转换为方言所认知的查询语句。
+     * @param sql
+     * @return
+     */
+    String convertQuery(String sql);
+
+    /**
+     * 基于RBO(rule-base optimizer)获取最优化的SQL
+     * @param sql
+     * @return
+     */
+    String findBestQuery(String sql);
+
     Dialect queryDefaultPreProcess();
+
+    /**
+     * 执行SQL语法检查
+     * @return
+     */
     Dialect executeSyntaxCheck();
+
+    /**
+     * 执行查询操作
+     * @return
+     */
     Dialect executeQuery();
-    Dialect executeUDF();
-    Dialect executeMemoryQuery();
+
+    /**
+     * 返回结果数据进行封装
+     * @return
+     */
     BaseResult build();
 
 
