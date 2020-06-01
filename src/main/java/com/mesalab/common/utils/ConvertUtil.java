@@ -203,10 +203,10 @@ public class ConvertUtil {
                 Map<String, Object> resultMap = Maps.newLinkedHashMap();
                 resultMap.put(timeGranLabel, entry.getKey());
                 if (StringUtil.isNotBlank(groupLabel)) {
-                   grouLabelArray = StringUtils.split(groupLabel, GROUP_SEPRATOR);
-                   groupKeyArray = StringUtils.split(groupKey, GROUP_SEPRATOR);
-                    for (int i=0; i < grouLabelArray.length; i++) {
-                        resultMap.put(grouLabelArray[i], groupKeyArray[i]);
+                    grouLabelArray = StringUtils.split(groupLabel, GROUP_SEPRATOR);
+                    groupKeyArray = StringUtils.splitByWholeSeparatorPreserveAllTokens(groupKey, GROUP_SEPRATOR);
+                    for (int i = 0; i < grouLabelArray.length; i++) {
+                        resultMap.put(grouLabelArray[i], StringUtil.isBlank(groupKey) ? StringUtil.EMPTY : groupKeyArray[i]);
                     }
 
                 }
