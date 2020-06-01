@@ -54,13 +54,12 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
 
     @Override
     public String convertQuery(String sql) {
-
         return sql;
     }
 
     @Override
-    public String findBestQuery(String sql) {
-        return sql;
+    public String findBestQuery() {
+        return null;
     }
 
 
@@ -86,10 +85,12 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
                     JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class), null, null, param.getFormat());
+            getAndParserFormatSql();
         } else {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null, null,
                     results.get("result"), null, param.getFormat());
         }
+
         return this;
     }
 
@@ -142,7 +143,7 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
             baseResult.setData(maps.get("data"));
             baseResult.setMeta(maps.get("meta"));
             baseResult.setStatistics(statistics);
-            getAndParserFormatSql();
+
 
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());

@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public class SQLHelper {
 
     public static Pattern pOrder = Pattern.compile("order\\s*by[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
-    public static Pattern pLimit = Pattern.compile("limit\\s*[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
+
 
     /**
      * 去除qlString的select子句。
@@ -24,13 +24,13 @@ public class SQLHelper {
         return qlString.substring(beginPos);
     }
     /**
-     * 去除hql的orderBy子句。
+     * 去除orderBy子句。
      *
-     * @param qlString
+     * @param sql
      * @return
      */
-    public static String removeOrders(String qlString) {
-        Matcher m = pOrder.matcher(qlString);
+    public static String removeOrders(String sql) {
+        Matcher m = pOrder.matcher(sql);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
             m.appendReplacement(sb, "");
@@ -39,15 +39,7 @@ public class SQLHelper {
         return sb.toString();
     }
 
-    public static String removeLimit(String qlString) {
-        Matcher m = pLimit.matcher(qlString);
-        StringBuffer sb = new StringBuffer();
-        while (m.find()) {
-            m.appendReplacement(sb, "");
-        }
-        m.appendTail(sb);
-        return sb.toString();
-    }
+
 
 
     public static String getDialectDBType(String dbType) {

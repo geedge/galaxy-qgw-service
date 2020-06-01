@@ -26,7 +26,6 @@ public class FederationDialect extends AbstractEngineDialect{
     private Stopwatch watch = Stopwatch.createUnstarted();
     public FederationDialect(ApiParam param, BaseResult result) {
         initialize(param, result);
-        executeUDF();
     }
 
 
@@ -50,6 +49,7 @@ public class FederationDialect extends AbstractEngineDialect{
     public Dialect executeQuery() {
         try {
             watch.start();
+            executeUDF();
             if (baseResult.isSuccess() && StringUtil.isNotEmpty(param.getEngineQuerySource())) {
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
                 List resultList = CalciteMemoryUtils.calciteQueryMemoryData(sqlQuerySource.getTableName(), (List<Map<String, String>>) baseResult.getMeta(),

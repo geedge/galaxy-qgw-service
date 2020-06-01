@@ -29,10 +29,9 @@ public abstract class AbstractDataSourceDialect implements Dialect {
 
     /**
      * 基于RBO(rule-base optimizer)获取最优化的SQL
-     * @param sql
      * @return
      */
-    abstract  String findBestQuery(String sql);
+    abstract  String findBestQuery();
 
 
 
