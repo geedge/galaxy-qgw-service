@@ -38,9 +38,10 @@ xxl-job-admin:
   userName: admin
   password: 123456
 ###############################################################################
-## Default configuration
-default:
-  maxNumLimit: 1048576
+## Engine configuration
+engine:
+  maxCacheNum: 1048576
+  defaultResultNum: 200
 ###############################################################################
 ## Httpclient configuration
 httpclient:

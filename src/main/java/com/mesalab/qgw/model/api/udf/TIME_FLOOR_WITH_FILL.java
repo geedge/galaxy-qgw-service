@@ -7,7 +7,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
-import com.mesalab.qgw.model.api.DefaultConfigSource;
+import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.DateUtils;
@@ -36,7 +36,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     @Autowired
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
-    private DefaultConfigSource defaultConfigSource = (DefaultConfigSource) SpringContextUtil.getBean("defaultConfigSource");
+    private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private String name;
     private String timestamp;
     private String period;
@@ -64,6 +64,23 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             if(StringUtil.isBlank(fill) || StringUtil.isEmpty(groupDimension)) { //补全函数为空或列无时间序列key时，直接返回
                 return results;
             }
+
+            PartitionTimeRange partitionTimeRange = getPartitionTimeRange(sqlQuerySource);
+            List<Date> dateRangeList = null;
+            if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isNotEmpty(partitionTimeRange.getEnd()) ) {
+                dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
+                        DateUtils.convertStringToDate( (partitionTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
+
+            } else if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isEmpty(partitionTimeRange.getEnd())) {
+
+                dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
+                        DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
+
+            } else {
+                log.warn("SQL中时间条件不完整[startTime:{} - endTime:{}],补全功能无效!", partitionTimeRange.getStart(), partitionTimeRange.getEnd());
+                return results;
+            }
+
             for (String groupKey: groupDimension.keySet()) {
                 if (groupDimension.get(groupKey).contains(name) &&
                         groupDimension.get(groupKey).contains(timestamp)) {
@@ -74,29 +91,15 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
             }
 
-            Map<String, Map<String, Map<String, Object>>> targetTimeseriesMap =  ConvertUtil.convertResultListToTimeseries(results,
-                    groupLabel, timeGranLabel);
-
-            results = null;
-            PartitionTimeRange partitionTimeRange = getPartitionTimeRange(sqlQuerySource);
-            List<Date> dateRangeList = null;
-            if (StringUtil.isNotEmpty(partitionTimeRange)) {
-
-                if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isNotEmpty(partitionTimeRange.getEnd()) ) {
-                    dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                            DateUtils.convertStringToDate( (partitionTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
-
-                } else if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isEmpty(partitionTimeRange.getEnd())) {
-
-                    dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                            DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
-
-                }
-
-
+            int  maxSeriesNum =  engineConfigSource.getMaxCacheNum() / dateRangeList.size();
+            if (maxSeriesNum == 0) {
+                log.warn("初始时间范围超出系统设置，无法进行补全[getMaxCacheNum:{} - dateRangeNum:{}],补全功能无效!", engineConfigSource.getMaxCacheNum(), dateRangeList.size());
+                return results;
             }
 
-            int  maxSeriesNum =  defaultConfigSource.getMaxNumLimit() / dateRangeList.size();
+
+            Map<String, Map<String, Map<String, Object>>> targetTimeseriesMap =  ConvertUtil.convertResultListToTimeseries(results,
+                    groupLabel, timeGranLabel);
 
             int actualSeriesNum = maxSeriesNum > targetTimeseriesMap.size() ? targetTimeseriesMap.size() : maxSeriesNum;
 
@@ -114,7 +117,6 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 targetTimeseriesMap.clear();
                 targetTimeseriesMap.putAll(limitTimeseriesMap);
             }
-
 
             if(StringUtil.isNotEmpty(dateRangeList)){
 

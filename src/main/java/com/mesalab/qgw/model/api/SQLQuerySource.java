@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mesalab.qgw.model.api.udf.UDF;
+import com.mesalab.qgw.service.impl.APIServiceImpl;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.expression.Expression;
@@ -35,22 +36,17 @@ public class SQLQuerySource {
     private Set<UDF> udfSet = Sets.newHashSet();
     private Map<String, String> groupDimension = Maps.newHashMap();
     private List<SQLQuerySource> subSqlQuerySources = Lists.newArrayList();
-    private boolean splitOfMemoryQuery;
+    private boolean isEnableLimit;
 
 
-    public boolean isSplitOfMemoryQuery() {
-
-        if (StringUtil.isNotEmpty(subSelect)) {
-
-            SQLQuerySource innerQuerySource = subSqlQuerySources.get(0);
-
-            return innerQuerySource.getUdfSet().size() > 0;
-
-        } else {
+    public boolean isEnableLimit() {
+        if (StringUtil.isNotBlank(limit) && limit.equalsIgnoreCase(APIServiceImpl.UNVALID_LIMIT_DESC)) {
             return false;
+        } else {
+            return true;
         }
-
     }
+
 
 
 

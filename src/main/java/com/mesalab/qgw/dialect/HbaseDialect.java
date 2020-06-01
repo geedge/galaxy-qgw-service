@@ -27,17 +27,13 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class HbaseDialect implements Dialect{
+public class HbaseDialect extends  AbstractDataSourceDialect {
     private HBaseHttpSource hBaseHttpSource = (HBaseHttpSource) SpringContextUtil.getBean("hBaseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private BaseResult baseResult;
-    private ApiParam param;
     private Stopwatch watch = Stopwatch.createUnstarted();
 
     public HbaseDialect(ApiParam param) {
-
-        this.param = param;
-        baseResult = BaseResultGenerator.success();
+        initialize(param);
     }
 
     @Override
@@ -46,31 +42,15 @@ public class HbaseDialect implements Dialect{
     }
 
     @Override
-    public String getLimitString(String sql, int offset, int limit) {
-        return sql;
-    }
-
-
-    public String getLimitString(String sql, SQLQuerySource sqlQuerySource) {
-
+    public String convertQuery(String sql) {
         return sql;
     }
 
     @Override
-    public String queryTransformation(String sql) {
-
-        return sql;
+    public String findBestQuery() {
+        return param.getSql();
     }
 
-    @Override
-    public String queryOptimization(String sql) {
-        return sql;
-    }
-
-    @Override
-    public Dialect queryDefaultPreProcess() {
-        return this;
-    }
 
     @Override
     public Dialect executeQuery() {
@@ -93,11 +73,13 @@ public class HbaseDialect implements Dialect{
         Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                    JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class), null, param.getFormat());
+                    JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class), null, null, param.getFormat());
+            getAndParserFormatSql();
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null, null,
                     results.get("result"), null, param.getFormat());
         }
+
         return this;
     }
 
@@ -119,57 +101,19 @@ public class HbaseDialect implements Dialect{
         if (formatSql.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             formatSql.put("result", decryptHbaseResult(formatSql.get("result")));
         }
+
+
         return formatSql;
     }
 
-    @Override
-    public Dialect executeMemoryQuery() {
-        if (baseResult.isSuccess()) {
-            if (isNeedMemoryQuery()) {
-                try {
-                    SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySourceParent();
 
-                    Alias alias = sqlQuerySource.getSubSelect().getAlias();
-                    String tableName = alias == null ? sqlQuerySource.getTableName() : alias.getName();
-                    String memorySql = param.getQuery().replace(sqlQuerySource.getSubSelect().toString(), tableName);
-
-                    Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
-                    List<Map<String, Object>> data = (List<Map<String, Object>>) resultMap.get("data");
-                    List<Map<String, String>> meta = (List<Map<String, String>>) resultMap.get("meta");
-
-                    List resultList = CalciteMemoryUtils.calciteQueryMemoryData(tableName, meta, data, memorySql);
-                    resultMap.put("data", resultList);
-                } catch (Exception ex) {
-                    throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error", ex);
-                }
-            }
-        }
-        return this;
-    }
 
     @Override
     public Dialect executeSyntaxCheck() {
         return this;
     }
 
-    @Override
-    public Dialect executeUDF() {
-        if (baseResult.isSuccess()) {
-            SQLQuerySource sqlQuerySource = getExecuteDBSqlQuerySource();
-            Set<UDF> udfSet = sqlQuerySource.getUdfSet();
-            if (!udfSet.isEmpty()) {
-                getAndParserFormatSql();
-                sqlQuerySource = getExecuteDBSqlQuerySource();
-                udfSet = sqlQuerySource.getUdfSet();
-            }
-            Map<String, Object> resultMap = (Map<String, Object>) baseResult.getData();
-            for (UDF udf : udfSet) {
-                List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource, (List<Object>) resultMap.get("data"));
-                resultMap.put("data", targetResult);
-            }
-        }
-        return this;
-    }
+
 
     @Override
     public BaseResult build() {
@@ -181,15 +125,17 @@ public class HbaseDialect implements Dialect{
 
             Map<String, Object> statistics = Maps.newHashMap();
             Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
-            statistics.put("elapsed", "stat:" + statisticMap.get("elapsed") + ",result: " + executeTime);
-
+            statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")+ executeTime));
             statistics.put("rows_read", statisticMap.get("rows_read"));
 
             int resultSize = StringUtil.isEmpty(maps.get("data")) ? 0 : JsonMapper.toJsonString(maps.get("data")).getBytes().length;
 
             statistics.put("result_size", resultSize);
             baseResult.setData(maps.get("data"));
+            baseResult.setMeta(maps.get("meta"));
             baseResult.setStatistics(statistics);
+
+
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
@@ -209,68 +155,10 @@ public class HbaseDialect implements Dialect{
                 Map<String, String> formatSql = getFormatSql();
                 String sql = formatSql.get("result");
                 log.info("从离线报表获取formatSql，解析并重制SQLQuerySource对象: " + sql);
-                param.setSqlQuerySource(APIServiceImpl.parserSQLByAst(sql));
-                param.setQuery(param.getSqlQuerySource().getSqlBody());
+                APIServiceImpl.convertQueryRecursive(param, APIServiceImpl.parserSQLByAst(sql));
+                param.setQuery(param.getDbQuerySource().getSqlBody());
             }
         }
-    }
-
-    /**
-     * 判定sql是否存在需要缓存查询
-     *
-     * @return
-     */
-    private boolean isNeedMemoryQuery() {
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
-        while (!sqlQuerySource.isSplitOfMemoryQuery()) {
-            if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
-                return false;
-            } else {
-                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-            }
-        }
-        return true;
-    }
-
-
-    /**
-     * 获取实际执行(在DB中)的sqlQuerySource
-     *
-     * @return
-     */
-    private SQLQuerySource getExecuteDBSqlQuerySource() {
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
-        while (true) {
-            if (!sqlQuerySource.isSplitOfMemoryQuery()) {
-                if (StringUtil.isEmpty(sqlQuerySource.getSubSelect())) {
-                    sqlQuerySource = param.getSqlQuerySource();
-                    break;
-                } else {
-                    sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-                }
-            } else {
-                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-                break;
-            }
-        }
-        return sqlQuerySource;
-    }
-
-    /**
-     * 在存在缓存查询情况下，获取执行sqlQuerySource的上层sqlQuerySource
-     *
-     * @return
-     */
-    private SQLQuerySource getExecuteDBSqlQuerySourceParent() {
-        SQLQuerySource sqlQuerySource = param.getSqlQuerySource();
-        while (StringUtil.isNotEmpty(sqlQuerySource.getSubSelect())) {
-            if (sqlQuerySource.isSplitOfMemoryQuery()) {
-                return sqlQuerySource;
-            } else {
-                sqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-            }
-        }
-        return null;
     }
 
 

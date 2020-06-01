@@ -5,7 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Data
-@ConfigurationProperties(prefix = "default")
-public class DefaultConfigProperties {
-    private int maxNumLimit;
+@ConfigurationProperties(prefix = "engine")
+public class EngineProperties {
+    private int maxCacheNum;
+    private int defaultResultNum;
 }

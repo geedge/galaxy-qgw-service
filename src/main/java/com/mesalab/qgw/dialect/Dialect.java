@@ -15,21 +15,21 @@ public interface Dialect {
     boolean supportsLimit();
 
     /**
-     * 将sql转换为分页SQL，分别调用分页sql
-     *
-     * @param sql    SQL语句
-     * @param offset 开始条数
-     * @param limit  每页显示多少纪录条数
-     * @return 分页查询的sql
+     * 执行SQL语法检查
+     * @return
      */
-    String getLimitString(String sql, int offset, int limit);
-    String queryTransformation(String sql);
-    String queryOptimization(String sql);
-    Dialect queryDefaultPreProcess();
     Dialect executeSyntaxCheck();
+
+    /**
+     * 执行查询操作
+     * @return
+     */
     Dialect executeQuery();
-    Dialect executeUDF();
-    Dialect executeMemoryQuery();
+
+    /**
+     * 返回结果数据进行封装
+     * @return
+     */
     BaseResult build();
 
 

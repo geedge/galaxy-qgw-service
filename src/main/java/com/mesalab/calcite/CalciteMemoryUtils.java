@@ -46,7 +46,7 @@ public class CalciteMemoryUtils {
         while (executeQueryResult.next()) {
             Map<String, Object> rowData = new HashMap();
             for (int i = 1; i <= columnCount; i++) {
-                rowData.put(md.getColumnName(i), executeQueryResult.getObject(i));
+                rowData.put(md.getColumnLabel(i), executeQueryResult.getObject(i));
             }
             list.add(rowData);
         }

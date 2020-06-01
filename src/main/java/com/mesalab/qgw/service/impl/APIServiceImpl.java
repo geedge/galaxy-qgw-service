@@ -27,6 +27,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.qgw.dialect.Dialect;
+import com.mesalab.qgw.dialect.FederationDialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
@@ -71,6 +72,10 @@ public class APIServiceImpl implements IAPIService {
         metadataService = this.metadataServiceTemp;
     }
 
+    public static final int MAX_PARSER_LEVEL = 5;
+
+    public static final String UNVALID_LIMIT_DESC = "NO LIMIT";
+
 
     @Override
     public BaseResult executeQuery(ApiParam param) {
@@ -99,35 +104,38 @@ public class APIServiceImpl implements IAPIService {
         return baseResult;
     }
 
+
+
+
+
     private BaseResult executeSelectStatement(ApiParam param) {
 
-        validateAndGetTableName(param);
-
-        Dialect dialect = parserAndGetDialect(param);
+        Dialect dbDialect = parserSQL(param);
 
         BaseResult baseResult = null;
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            baseResult = dialect
-                    .queryDefaultPreProcess()
+            baseResult = dbDialect
                     .executeSyntaxCheck()
                     .build();
         } else {
 
             if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                baseResult = dialect
-                        .queryDefaultPreProcess()
+                baseResult = dbDialect
                         .executeQuery()
                         .build();
             } else {
-                baseResult = dialect
-                        .queryDefaultPreProcess()
+                baseResult = dbDialect
                         .executeQuery()
-                        .executeUDF()
-                        .executeMemoryQuery()
                         .build();
             }
 
+           baseResult = new FederationDialect(param, baseResult).executeQuery().build();
+
+
+
         }
+
+
 
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(),baseResult.getMessage(), null);
@@ -136,6 +144,14 @@ public class APIServiceImpl implements IAPIService {
 
         return baseResult;
     }
+
+    private Dialect parserSQL(ApiParam param) {
+        param.setTableName(validateAndGetTableName(param));
+        return parserAndGetDialect(param);
+    }
+
+
+
 
     private Dialect parserAndGetDialect(ApiParam param) {
 
@@ -158,7 +174,9 @@ public class APIServiceImpl implements IAPIService {
             param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
 
         }
-        param.setSqlQuerySource(parserSQLByAst(param.getQuery()));
+
+          SQLQuerySource sqlQuerySource = parserSQLByAst(param.getQuery());
+          convertQueryRecursive(param, sqlQuerySource);
 
         dialect = getDialect(param);
 
@@ -188,7 +206,7 @@ public class APIServiceImpl implements IAPIService {
      * format：输出格式，默认为JSON
      * option：查询选项，默认为real-time
      */
-    private void  validateAndGetTableName(ApiParam param) {
+    private String  validateAndGetTableName(ApiParam param) {
 
 
        if (StringUtil.isBlank(param.getQuery())) {
@@ -225,7 +243,7 @@ public class APIServiceImpl implements IAPIService {
             param.setFormat(QueryFormatEnum.JSON.getValue());
         }
 
-        param.setTableName(getTableName(param.getQuery()));
+        return getTableName(param.getQuery());
 
     }
 
@@ -289,6 +307,50 @@ public class APIServiceImpl implements IAPIService {
         }
         return  tableName;
     }
+
+    /**
+     * 递归解析SQLQuerySource ，拆分为数据库执行SQL与引擎执行的SQL source
+     * @param sqlQuerySource SQL解析对象
+     */
+    public static void convertQueryRecursive(ApiParam param, SQLQuerySource sqlQuerySource) {
+        SQLQuerySource engineQuerySource = null;
+        SQLQuerySource dbQuerySource = null;
+
+        SQLQuerySource indexUpSqlQuerySource = null;
+        SQLQuerySource indexSqlQuerySource = sqlQuerySource;
+        for (int i = 0; i < MAX_PARSER_LEVEL; i++) {
+            if (indexSqlQuerySource.getUdfSet().size() > 0) {
+                dbQuerySource = indexSqlQuerySource;
+                break;
+            }
+            if (StringUtil.isEmpty(indexSqlQuerySource.getSubSelect())) {
+                dbQuerySource = sqlQuerySource;
+                indexUpSqlQuerySource = null;
+                break;
+            } else {
+                indexUpSqlQuerySource = indexSqlQuerySource;
+                indexSqlQuerySource = indexSqlQuerySource.getSubSqlQuerySources().get(0);
+                if (indexSqlQuerySource.getUdfSet().size() > 0) {
+                    dbQuerySource = indexSqlQuerySource;
+                    break;
+                }
+            }
+        }
+
+        if (StringUtil.isNotEmpty(indexUpSqlQuerySource)) {
+            engineQuerySource = new SQLQuerySource();
+            String tableName = StringUtil.isEmpty(indexUpSqlQuerySource.getSubSelect().getAlias()) ? indexUpSqlQuerySource.getTableName() : indexUpSqlQuerySource.getSubSelect().getAlias().getName();
+            String replace = sqlQuerySource.getSqlBody().replace(indexUpSqlQuerySource.getSubSelect().toString(), tableName);
+            engineQuerySource.setSqlBody(replace);
+            engineQuerySource.setTableName(tableName);
+        }
+
+        param.setDbQuerySource(dbQuerySource);
+        param.setEngineQuerySource(engineQuerySource);
+    }
+
+
+
 
 
     /**
@@ -404,7 +466,7 @@ public class APIServiceImpl implements IAPIService {
 
 
                 } else if (body instanceof SetOperationList) { // 连接查询
-                    sqlQuerySource.setLimit("NO LIMIT");
+                    sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                 } else { //其它暂不支持
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
                 }
@@ -553,7 +615,7 @@ public class APIServiceImpl implements IAPIService {
                     } else if (sqlSelectQuery instanceof SQLUnionQuery) {
                         SQLUnionQuery sqlUnionQuery = (SQLUnionQuery) sqlSelectQuery;
                         sqlQuerySource.setTableName(getMultiSqlTableName(sqlUnionQuery.getRight()));
-                        sqlQuerySource.setLimit("NO LIMIT");
+                        sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                     }
                 } else {
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
