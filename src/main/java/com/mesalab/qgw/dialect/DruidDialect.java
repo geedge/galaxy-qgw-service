@@ -42,7 +42,6 @@ public class DruidDialect extends  AbstractDataSourceDialect {
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
-    Pattern pLimit = Pattern.compile("limit\\s*(.*?)", Pattern.CASE_INSENSITIVE);
     private int pageOffset;
     private Stopwatch watch = Stopwatch.createUnstarted();
 
@@ -55,39 +54,18 @@ public class DruidDialect extends  AbstractDataSourceDialect {
         return true;
     }
 
-    @Override
-    public String getLimitString(String sql, int offset, int rowCount) {
-        try {
-            Statement statement = CCJSqlParserUtil.parse(sql);
-            Select selectStatement = (Select) statement;
-            PlainSelect select = (PlainSelect) selectStatement.getSelectBody();
-            Limit limit = new Limit();
-            if (offset > 0) {
-                limit.setOffset(new LongValue(offset));
-            }
-            limit.setRowCount(new LongValue(rowCount));
-            select.setLimit(limit);
-            sql = String.valueOf(selectStatement.getSelectBody());
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Druid Parser getLimit error : ", e);
-        }
-
-        return sql;
-    }
-
-
 
     @Override
     public String convertQuery(String sql) {
-        return new Converter(sql).
-                generateStandard().generateDateFunction().build();
+        return new Converter(sql).generateStandard().generateDateFunction().build();
+
     }
 
     @Override
     public String findBestQuery() {
-        return new Optimizer().generateQueryLimit().
-                generateSQL().build();
+
+        return new Optimizer().generateQueryLimit().generateSQL().build();
+
     }
 
     @Override
@@ -194,7 +172,6 @@ public class DruidDialect extends  AbstractDataSourceDialect {
     }
 
 
-
     class Converter {
         String sql = null;
 
@@ -216,7 +193,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
                 int offset = Integer.valueOf(limits[0].trim());
                 int rowNum = Integer.valueOf(limits[1].trim());
                 pageOffset = offset;
-                sql = getLimitString(dbQuerySource.getSqlBody(),0, (offset + rowNum));
+                sql = SQLHelper.getLimitString(dbQuerySource.getSqlBody(),0, (offset + rowNum));
             }
             return this;
         }
@@ -289,14 +266,13 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
                 if (Integer.valueOf(limits[limits.length-1]) > maxCacheResultRows) {
                     limits[limits.length-1] = String.valueOf(maxCacheResultRows);
-                    Matcher m = pLimit.matcher(orginInnerSql);
-                    StringBuffer sb = new StringBuffer();
-                    while (m.find()) {
-                        if (m.groupCount() == 1) {
-                            m.appendReplacement(sb, "limit " + String.join(",", limits).toString());
-                        }
+
+                    if (limits.length == 2 ) {
+                        limitInnerSql = SQLHelper.getLimitString(limitInnerSql, Integer.valueOf(limits[0]), Integer.valueOf(limits[1]));
+                    } else {
+                        limitInnerSql = SQLHelper.getLimitString(limitInnerSql,0, Integer.valueOf(limits[0]));
                     }
-                    limitInnerSql = sb.toString();
+
                     innerSqlQuerySource.setLimit(String.join(",", limits).toString());
                     innerSqlQuerySource.setSqlBody(limitInnerSql);
 

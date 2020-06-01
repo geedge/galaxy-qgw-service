@@ -28,21 +28,14 @@ public class FederationDialect extends AbstractEngineDialect{
         initialize(param, result);
     }
 
-
     @Override
     public boolean supportsLimit() {
         return false;
     }
 
     @Override
-    public String getLimitString(String sql, int offset, int limit) {
-        return null;
-    }
-
-
-    @Override
     public Dialect executeSyntaxCheck() {
-        return null;
+        return this;
     }
 
     @Override
@@ -52,18 +45,17 @@ public class FederationDialect extends AbstractEngineDialect{
             executeUDF();
             if (baseResult.isSuccess() && StringUtil.isNotEmpty(param.getEngineQuerySource())) {
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                List resultList = CalciteMemoryUtils.calciteQueryMemoryData(sqlQuerySource.getTableName(), (List<Map<String, String>>) baseResult.getMeta(),
+                List resultList = CalciteMemoryUtils.calciteQueryMemoryData(sqlQuerySource.getTableName(),
+                        (List<Map<String, String>>) baseResult.getMeta(),
                         (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
                 baseResult.setData(resultList);
             }
         } catch (Exception ex) {
-            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "calcite execute query memory is error: ", ex);
+            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "Calcite execute query memory is error: ", ex);
         }
-
 
         return this;
     }
-
 
 
 
@@ -78,7 +70,6 @@ public class FederationDialect extends AbstractEngineDialect{
 
         return baseResult;
     }
-
 
 
     @Override

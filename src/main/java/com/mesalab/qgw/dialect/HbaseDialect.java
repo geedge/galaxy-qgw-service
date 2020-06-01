@@ -42,24 +42,13 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
     }
 
     @Override
-    public String getLimitString(String sql, int offset, int limit) {
-        return sql;
-    }
-
-
-    public String getLimitString(String sql, SQLQuerySource sqlQuerySource) {
-
-        return sql;
-    }
-
-    @Override
     public String convertQuery(String sql) {
         return sql;
     }
 
     @Override
     public String findBestQuery() {
-        return null;
+        return param.getSql();
     }
 
 
@@ -112,6 +101,8 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
         if (formatSql.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             formatSql.put("result", decryptHbaseResult(formatSql.get("result")));
         }
+
+
         return formatSql;
     }
 

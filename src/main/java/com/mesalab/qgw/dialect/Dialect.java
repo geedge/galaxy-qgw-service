@@ -15,16 +15,6 @@ public interface Dialect {
     boolean supportsLimit();
 
     /**
-     * 将sql转换为分页SQL，分别调用分页sql
-     *
-     * @param sql    SQL语句
-     * @param offset 开始条数
-     * @param limit  每页显示多少纪录条数
-     * @return 分页查询的sql
-     */
-    String getLimitString(String sql, int offset, int limit);
-
-    /**
      * 执行SQL语法检查
      * @return
      */

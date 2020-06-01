@@ -9,6 +9,7 @@ import lombok.Data;
 public abstract class AbstractEngineDialect implements Dialect {
     public ApiParam param;
     public BaseResult baseResult;
+
     abstract void executeUDF();
 
     public void initialize(ApiParam param, BaseResult baseResult) {

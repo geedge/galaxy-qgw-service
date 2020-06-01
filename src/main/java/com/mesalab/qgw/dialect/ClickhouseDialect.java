@@ -65,28 +65,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
         return true;
     }
 
-    @Override
-    public String getLimitString(String sql, int offset, int rowCount) {
 
-        try {
-
-            Statement statement = CCJSqlParserUtil.parse(sql);
-            Select selectStatement = (Select) statement;
-            PlainSelect select = (PlainSelect) selectStatement.getSelectBody();
-            Limit limit = new Limit();
-            if (offset > 0) {
-                limit.setOffset(new LongValue(offset));
-            }
-            limit.setRowCount(new LongValue(rowCount));
-            select.setLimit(limit);
-            sql = String.valueOf(selectStatement.getSelectBody());
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Clickhouse Parser getLimit error : ", e);
-        }
-
-        return sql;
-    }
 
 
     @Override
@@ -257,7 +236,6 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
   }
 
 
-
   class Optimizer {
     private Boolean subIndexValidFlag = true;
     String sql = null;
@@ -302,8 +280,8 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
       }
 
       String orginInnerSql = innerSqlQuerySource.getSqlBody();
-
       String limitInnerSql = innerSqlQuerySource.getSqlBody();
+
       if (StringUtil.isNotBlank(innerSqlQuerySource.getLimit())) {
 
           String[] limits = innerSqlQuerySource.getLimit().split(",");
@@ -312,9 +290,9 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
               limits[limits.length-1] = String.valueOf(maxCacheResultRows);
 
              if (limits.length == 2 ) {
-                 limitInnerSql = getLimitString(limitInnerSql, Integer.valueOf(limits[0]), Integer.valueOf(limits[1]));
+                 limitInnerSql = SQLHelper.getLimitString(limitInnerSql, Integer.valueOf(limits[0]), Integer.valueOf(limits[1]));
              } else {
-                 limitInnerSql = getLimitString(limitInnerSql,0, Integer.valueOf(limits[0]));
+                 limitInnerSql = SQLHelper.getLimitString(limitInnerSql,0, Integer.valueOf(limits[0]));
              }
 
               innerSqlQuerySource.setLimit(String.join(",", limits).toString());
@@ -560,6 +538,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
           }
           return subQuery;
       }
+
       /**
        * 获取当前CK查询中的分区键，用于子查询优化操作;
        * 若分区键被其它列当别名使用，返回空
