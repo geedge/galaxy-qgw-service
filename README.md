@@ -12,7 +12,7 @@
 
 ## 系统架构
 
-
+![系统架构图](help/images/qgw_architecture.png)
 
 
 
