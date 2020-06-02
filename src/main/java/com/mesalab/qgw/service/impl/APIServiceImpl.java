@@ -175,9 +175,13 @@ public class APIServiceImpl implements IAPIService {
 
         }
 
-          SQLQuerySource sqlQuerySource = parserSQLByAst(param.getQuery());
-          convertQueryRecursive(param, sqlQuerySource);
+        SQLQuerySource sqlQuerySource = parserSQLByAst(param.getQuery());
 
+        if (param.getDbType().equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
+            param.setDbQuerySource(sqlQuerySource);
+        } else {
+            convertQueryRecursive(param, sqlQuerySource);
+        }
         dialect = getDialect(param);
 
         return dialect;

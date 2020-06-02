@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -61,12 +62,14 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public BaseResult build() {
+        if (baseResult.isSuccess()) {
+            Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
+            Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
+            statisticMap.put("elapsed", String.format("%.2f", Double.valueOf(statisticMap.get("elapsed").toString()) + executeTime));
+            int resultSize = StringUtil.isEmpty(baseResult.getData()) ? 0 : JsonMapper.toJsonString(baseResult.getData()).getBytes().length;
+            statisticMap.put("result_size", resultSize);
+        }
 
-        Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
-        Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
-        statisticMap.put("elapsed", String.format("%.2f", Double.valueOf(statisticMap.get("elapsed").toString()) + executeTime));
-        int resultSize = StringUtil.isEmpty(baseResult.getData()) ? 0 : JsonMapper.toJsonString(baseResult.getData()).getBytes().length;
-        statisticMap.put("result_size", resultSize);
 
         return baseResult;
     }

@@ -162,11 +162,11 @@ public class DruidDialect extends  AbstractDataSourceDialect {
                 baseResult.setStatistics(statistics);
             }
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, baseResult.getMessage());
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
         }
         return baseResult;
     }
