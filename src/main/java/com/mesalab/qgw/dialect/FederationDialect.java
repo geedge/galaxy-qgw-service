@@ -68,6 +68,7 @@ public class FederationDialect extends AbstractEngineDialect{
             statisticMap.put("elapsed", String.format("%.2f", Double.valueOf(statisticMap.get("elapsed").toString()) + executeTime));
             int resultSize = StringUtil.isEmpty(baseResult.getData()) ? 0 : JsonMapper.toJsonString(baseResult.getData()).getBytes().length;
             statisticMap.put("result_size", resultSize);
+            statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
 
 

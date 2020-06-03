@@ -123,7 +123,7 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
             Map<String, Object> maps = (Map<String, Object>) dataObject;
             Map<String, Object> statisticMap = (Map<String, Object>) maps.get("statistics");
 
-            Map<String, Object> statistics = Maps.newHashMap();
+            Map<String, Object> statistics = Maps.newLinkedHashMap();
             Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
             statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")+ executeTime));
             statistics.put("rows_read", statisticMap.get("rows_read"));

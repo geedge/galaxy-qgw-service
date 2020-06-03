@@ -862,7 +862,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
             if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
                 Map<String, Object> resultMap = (Map<String, Object>) dataObject;
                 Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
-                Map<String, Object> statistics = Maps.newHashMap();
+                Map<String, Object> statistics = Maps.newLinkedHashMap();
                 statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")));
                 statistics.put("rows_read", statisticMap.get("rows_read"));
                 int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
