@@ -3,6 +3,7 @@ package com.mesalab.qgw.dialect;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
+import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -19,22 +20,14 @@ import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.Limit;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectBody;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 public class DruidDialect extends  AbstractDataSourceDialect {
@@ -159,6 +152,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
                 int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
                 statistics.put("result_size", resultSize);
                 baseResult.setData(allResults);
+                baseResult.setMeta(getMeta(allResults));
                 baseResult.setStatistics(statistics);
             }
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
@@ -171,6 +165,26 @@ public class DruidDialect extends  AbstractDataSourceDialect {
         return baseResult;
     }
 
+    private List getMeta(List<Object> results) {
+        List meta = new ArrayList<Map<String, String>>();
+        if (results.size() > 0) {
+            Map<String, Object> map = (Map) results.get(0);
+            for (String key : map.keySet()) {
+                Object value = map.get(key);
+                Map<String, String> temp = new HashMap<>();
+                temp.put("name", key);
+                if (value instanceof Integer) {
+                    temp.put("type", DataTypeMapping.BIGINT);
+                } else if (value instanceof Double) {
+                    temp.put("type", DataTypeMapping.DOUBLE);
+                } else {
+                    temp.put("type", DataTypeMapping.VARCHAR);
+                }
+                meta.add(temp);
+            }
+        }
+        return meta;
+    }
 
     class Converter {
         String sql = null;

@@ -177,11 +177,7 @@ public class APIServiceImpl implements IAPIService {
 
         SQLQuerySource sqlQuerySource = parserSQLByAst(param.getQuery());
 
-        if (param.getDbType().equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
-            param.setDbQuerySource(sqlQuerySource);
-        } else {
-            convertQueryRecursive(param, sqlQuerySource);
-        }
+        convertQueryRecursive(param, sqlQuerySource);
         dialect = getDialect(param);
 
         return dialect;
@@ -470,6 +466,15 @@ public class APIServiceImpl implements IAPIService {
 
 
                 } else if (body instanceof SetOperationList) { // 连接查询
+                    SetOperationList setOperationList = (SetOperationList) body;
+                    List<SelectBody> selects = setOperationList.getSelects();
+                    for (SelectBody select : selects) {
+                        SQLQuerySource parseSql = parserSQLByAst(select.toString());
+                        if (parseSql.getUdfSet().size() > 0) {
+                            sqlQuerySource.getUdfSet().addAll(parseSql.getUdfSet());
+                            break;
+                        }
+                    }
                     sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                 } else { //其它暂不支持
                     throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");

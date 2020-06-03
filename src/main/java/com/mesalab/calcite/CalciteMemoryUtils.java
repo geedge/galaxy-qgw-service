@@ -1,5 +1,6 @@
 package com.mesalab.calcite;
 
+import com.google.common.base.Splitter;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
 import lombok.extern.slf4j.Slf4j;
@@ -102,8 +103,10 @@ public class CalciteMemoryUtils {
             String originalName = columnInfo.get("name");
             String originalType = columnInfo.get("type");
             String dummyColumnType;
-            if (intString.contains(originalType)) {
+            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(intStr).contains(originalType)) {
                 dummyColumnType = DataTypeMapping.BIGINT;
+            } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(doubleStr).contains(originalType)) {
+                dummyColumnType = DataTypeMapping.DOUBLE;
             } else {
                 dummyColumnType = DataTypeMapping.VARCHAR;
             }
@@ -113,6 +116,7 @@ public class CalciteMemoryUtils {
         return dummyTable;
     }
 
-    private static String intString = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64";
+    private static String intStr = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint";
+    private static String doubleStr = "Float32,Float64,float,double";
 
 }
