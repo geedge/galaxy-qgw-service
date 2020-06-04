@@ -143,6 +143,66 @@
     {
       "name": "total_out_packets",
       "type": "long"
+    },
+    {
+      "name": "alert_bytes",
+      "type": "long"
+    },
+    {
+      "name": "flood_bytes",
+      "type": "long"
+    },
+    {
+      "name": "hijack_bytes",
+      "type": "long"
+    },
+    {
+      "name": "insert_bytes",
+      "type": "long"
+    },
+    {
+      "name": "intercept_allow_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "intercept_deny_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "intercept_hijack_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "intercept_insert_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "intercept_monitor_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "intercept_redirect_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "intercept_replace_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "maybe_pinning_num",
+      "type": "long"
+    },
+    {
+      "name": "not_pinning_num",
+      "type": "long"
+    },
+    {
+      "name": "pinning_num",
+      "type": "long"
+    },
+    {
+      "name": "reflection_bytes",
+      "type": "long"
     }
   ]
 }
