@@ -118,29 +118,16 @@ public class APIServiceImpl implements IAPIService {
                     .executeSyntaxCheck()
                     .build();
         } else {
+            baseResult = dbDialect
+                    .executeQuery()
+                    .build();
 
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                baseResult = dbDialect
-                        .executeQuery()
-                        .build();
-            } else {
-                baseResult = dbDialect
-                        .executeQuery()
-                        .build();
-            }
-
-           baseResult = new FederationDialect(param, baseResult).executeQuery().build();
-
-
-
+            baseResult = new FederationDialect(param, baseResult).executeQuery().build();
         }
-
-
 
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(),baseResult.getMessage(), null);
+            throw new BusinessException(baseResult.getStatus(), baseResult.getMessage(), null);
         }
-
 
         return baseResult;
     }

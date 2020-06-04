@@ -17,7 +17,7 @@ import java.util.*;
 public class CalciteMemoryUtils {
 
 
-    public static List calciteQueryMemoryData(String tableName, List<Map<String, String>> meta, List<Map<String, Object>> data, String sql) throws Exception {
+    public static Map calciteQueryMemoryData(String tableName, List<Map<String, String>> meta, List<Map<String, Object>> data, String sql) throws Exception {
         Class.forName("org.apache.calcite.jdbc.Driver");
         Properties info = new Properties();
         info.setProperty("lex", "MYSQL_ANSI");
@@ -25,10 +25,6 @@ public class CalciteMemoryUtils {
         Connection connection = DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
         CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
         ResultSet executeQueryResult = null;
-
-        if (data.isEmpty()) {
-            return data;
-        }
 
         log.info("执行导入内存数据库data.size()为: " + data.size());
         //将数据存入缓存表
@@ -41,17 +37,31 @@ public class CalciteMemoryUtils {
 
         java.sql.Statement st = connection.createStatement();
         executeQueryResult = st.executeQuery(sql);
-        ResultSetMetaData md = executeQueryResult.getMetaData();
-        int columnCount = md.getColumnCount();
-        List list = new ArrayList();
-        while (executeQueryResult.next()) {
-            Map<String, Object> rowData = new HashMap();
-            for (int i = 1; i <= columnCount; i++) {
-                rowData.put(md.getColumnLabel(i), executeQueryResult.getObject(i));
-            }
-            list.add(rowData);
+        ResultSetMetaData metaData = executeQueryResult.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+        meta.clear();
+        data.clear();
+        HashMap<String, String> metaMap;
+        for (int i = 1; i <= columnCount; i++) {
+            metaMap = new HashMap<>();
+            metaMap.put("name", metaData.getColumnLabel(i));
+            metaMap.put("type", metaData.getColumnTypeName(i));
+            meta.add(metaMap);
         }
-        return list;
+
+        while (executeQueryResult.next()) {
+            Map<String, Object> rowData = new HashMap(metaData.getColumnCount());
+            for (int i = 1; i <= columnCount; i++) {
+                rowData.put(metaData.getColumnLabel(i), executeQueryResult.getObject(i));
+            }
+            data.add(rowData);
+        }
+
+        HashMap result = new HashMap<String, Object>();
+        result.put("meta", meta);
+        result.put("data", data);
+        return result;
     }
 
     /**
@@ -103,9 +113,9 @@ public class CalciteMemoryUtils {
             String originalName = columnInfo.get("name");
             String originalType = columnInfo.get("type");
             String dummyColumnType;
-            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(intStr).contains(originalType)) {
+            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(intUnits).contains(originalType)) {
                 dummyColumnType = DataTypeMapping.BIGINT;
-            } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(doubleStr).contains(originalType)) {
+            } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(doubleUnits).contains(originalType)) {
                 dummyColumnType = DataTypeMapping.DOUBLE;
             } else {
                 dummyColumnType = DataTypeMapping.VARCHAR;
@@ -116,7 +126,7 @@ public class CalciteMemoryUtils {
         return dummyTable;
     }
 
-    private static String intStr = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint";
-    private static String doubleStr = "Float32,Float64,float,double";
+    private static String intUnits = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint";
+    private static String doubleUnits = "Float32,Float64,float,double";
 
 }

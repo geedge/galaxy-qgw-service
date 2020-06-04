@@ -73,11 +73,10 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
         Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                    JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class), null, null, param.getFormat());
+                    JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class), null, null, QueryFormatEnum.JSON.getValue());
             getAndParserFormatSql();
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null, null,
-                    results.get("result"), null, param.getFormat());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
         }
 
         return this;
@@ -137,11 +136,11 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
 
 
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, baseResult.getMessage());
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
         }
         return baseResult;
     }
@@ -151,13 +150,11 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
      */
     private void getAndParserFormatSql() {
         if (baseResult.isSuccess()) {
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                Map<String, String> formatSql = getFormatSql();
-                String sql = formatSql.get("result");
-                log.info("从离线报表获取formatSql，解析并重制SQLQuerySource对象: " + sql);
-                APIServiceImpl.convertQueryRecursive(param, APIServiceImpl.parserSQLByAst(sql));
-                param.setQuery(param.getDbQuerySource().getSqlBody());
-            }
+            Map<String, String> formatSql = getFormatSql();
+            String sql = formatSql.get("result");
+            log.info("从离线报表获取formatSql，解析并重制SQLQuerySource对象: " + sql);
+            APIServiceImpl.convertQueryRecursive(param, APIServiceImpl.parserSQLByAst(sql));
+            param.setQuery(param.getDbQuerySource().getSqlBody());
         }
     }
 

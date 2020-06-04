@@ -815,19 +815,12 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
 
         String sql = convertQuery(findBestQuery());
 
-        Map<String, String> results = executeHttpGet(sql, param.getFormat());
-
-        if (StringUtil.isEmpty(results)) {
-            baseResult = BaseResultGenerator.error();
+        Map<String, String> results = executeHttpGet(sql, QueryFormatEnum.JSON.getValue());
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                        JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, param.getFormat());
-            } else {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                        results.get("result"), null, null, param.getFormat());
-            }
-
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
         }
 
         return this;
@@ -857,25 +850,22 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
             if (StringUtil.isBlank(baseResult.getMessage())) {
                 baseResult.setMessage("ok");
             }
-
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                Map<String, Object> resultMap = (Map<String, Object>) dataObject;
-                Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
-                Map<String, Object> statistics = Maps.newLinkedHashMap();
-                statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")));
-                statistics.put("rows_read", statisticMap.get("rows_read"));
-                int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
-                statistics.put("result_size", resultSize);
-                baseResult.setData(resultMap.get("data"));
-                baseResult.setMeta(resultMap.get("meta"));
-                baseResult.setStatistics(statistics);
-            }
+            Map<String, Object> resultMap = (Map<String, Object>) dataObject;
+            Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
+            Map<String, Object> statistics = Maps.newLinkedHashMap();
+            statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")));
+            statistics.put("rows_read", statisticMap.get("rows_read"));
+            int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
+            statistics.put("result_size", resultSize);
+            baseResult.setData(resultMap.get("data"));
+            baseResult.setMeta(resultMap.get("meta"));
+            baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, baseResult.getMessage());
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
         }
         return baseResult;
     }

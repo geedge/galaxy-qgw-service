@@ -67,46 +67,52 @@ public class DruidDialect extends  AbstractDataSourceDialect {
         String sql = convertQuery(findBestQuery());
 
         watch.start();
-        StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
-        DruidDialect.DruidQueryParam druidQueryParam = new DruidDialect.DruidQueryParam();
-        druidQueryParam.setQuery(sql);
-        druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
-        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
+        Map<String, String> results = executeHttpPost(sql, QueryFormatEnum.JSON.getValue());
 
-        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
-
-        if (param.getFormat().equals(QueryFormatEnum.JSON.getValue())) {
-            druidQueryParam.setResultFormat("object");
-        } else if (param.getFormat().equals(QueryFormatEnum.CSV.getValue())) {
-            druidQueryParam.setResultFormat("csv");
-        }
-
-        Map<String, String> results = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
-
-        if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                        (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, param.getFormat());
-            } else {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null, null,
-                        results.get("result"), null, param.getFormat());
-            }
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
         }
         return this;
 
     }
 
 
+    /**
+     * Druid Http Query Interface
+     * @param sql SQL语句
+     * @param format 结果显示格式,JSON OR CSV
+     * @return
+     */
+    private Map<String, String> executeHttpPost(String sql, String format) {
+        StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
+        DruidQueryParam druidQueryParam = new DruidQueryParam();
+        druidQueryParam.setQuery(sql);
+        druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
+        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
+
+        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
+
+        if (format.equals(QueryFormatEnum.JSON.getValue())) {
+            druidQueryParam.setResultFormat("object");
+        } else if (format.equals(QueryFormatEnum.CSV.getValue())) {
+            druidQueryParam.setResultFormat("csv");
+        }
+
+        return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
+    }
+
 
     @Override
     public Dialect executeSyntaxCheck() {
-        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
-        String sql = convertQuery(sqlQuerySource.getSqlBody());
-        param.getDbQuerySource().setSqlBody("select 1");
-        executeQuery();
-        baseResult.setMessage(sql);
+        String query = convertQuery(param.getDbQuerySource().getSqlBody());
+        Map<String, String> results = executeHttpPost("select 1", param.getFormat());
+
+        baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), query,
+                (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, param.getFormat());
+        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
         return this;
     }
 
@@ -121,40 +127,24 @@ public class DruidDialect extends  AbstractDataSourceDialect {
             if (StringUtil.isBlank(baseResult.getMessage())) {
                 baseResult.setMessage("ok");
             }
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                String result = String.valueOf(dataObject);
-
-                String[] results = result.split("\n");
-
-                if (pageOffset > 0 && StringUtil.isNotEmpty(results)) {
-                    if (pageOffset >= results.length) {
-                        result = "";
-                    } else {
-                        String[] subResult = ArrayUtils.subarray(results, pageOffset, results.length);
-                        result = Joiner.on("\n").join(subResult).toString();
-                    }
+            List<Object> allResults = (List<Object>) dataObject;
+            if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
+                if (pageOffset >= allResults.size()) {
+                    allResults = new ArrayList<>();
+                } else {
+                    allResults = allResults.subList(pageOffset, allResults.size());
                 }
-                baseResult.setData(result);
-            } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                List<Object> allResults = (List<Object>) dataObject;
-                if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
-                    if (pageOffset >= allResults.size()) {
-                        allResults = new ArrayList<>();
-                    } else {
-                        allResults = allResults.subList(pageOffset, allResults.size());
-                    }
-                }
-                Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
-                Map<String, Object> statistics = Maps.newLinkedHashMap();
-                statistics.put("elapsed", String.format("%.2f", executeTime));
-                statistics.put("rows_read", allResults.size());
-
-                int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
-                statistics.put("result_size", resultSize);
-                baseResult.setData(allResults);
-                baseResult.setMeta(getMeta(allResults));
-                baseResult.setStatistics(statistics);
             }
+            Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
+            Map<String, Object> statistics = Maps.newHashMap();
+            statistics.put("elapsed", String.format("%.2f", executeTime));
+            statistics.put("rows_read", allResults.size());
+
+            int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
+            statistics.put("result_size", resultSize);
+            baseResult.setData(allResults);
+            baseResult.setMeta(getMeta(allResults));
+            baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, baseResult.getMessage());
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {

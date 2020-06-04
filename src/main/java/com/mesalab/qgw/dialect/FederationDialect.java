@@ -1,20 +1,21 @@
 package com.mesalab.qgw.dialect;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.BaseResultEnum;
-import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.zdjizhi.utils.StringUtil;
+import org.json.CDL;
+import org.json.JSONArray;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,10 +48,11 @@ public class FederationDialect extends AbstractEngineDialect{
             executeUDF();
             if (baseResult.isSuccess() && StringUtil.isNotEmpty(param.getEngineQuerySource())) {
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                List resultList = CalciteMemoryUtils.calciteQueryMemoryData(sqlQuerySource.getTableName(),
+                Map resultMap = CalciteMemoryUtils.calciteQueryMemoryData(sqlQuerySource.getTableName(),
                         (List<Map<String, String>>) baseResult.getMeta(),
                         (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
-                baseResult.setData(resultList);
+                baseResult.setData(resultMap.get("data"));
+                baseResult.setMeta(resultMap.get("meta"));
             }
         } catch (Exception ex) {
             throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "Calcite execute query memory is error: ", ex);
@@ -70,10 +72,28 @@ public class FederationDialect extends AbstractEngineDialect{
             int resultSize = StringUtil.isEmpty(baseResult.getData()) ? 0 : JsonMapper.toJsonString(baseResult.getData()).getBytes().length;
             statisticMap.put("result_size", resultSize);
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
+            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+                buildCsvResult();
+            }
+            baseResult.setFormatType(param.getFormat());
+        }
+        return baseResult;
+    }
+
+    private void buildCsvResult() {
+        List<Map<String, Object>> dataList = (List<Map<String, Object>>) baseResult.getData();
+        List<Map<String, Object>> metaList = (List<Map<String, Object>>) baseResult.getMeta();
+
+        List list = new ArrayList();
+        for (Map<String, Object> map : metaList) {
+            list.add(map.get("name"));
         }
 
-
-        return baseResult;
+        JSONArray meta = new JSONArray(list);
+        JSONArray data = new JSONArray(dataList);
+        String s = CDL.toString(meta, data);
+        baseResult.setData(s);
+        baseResult.setMeta(String.join(",", list));
     }
 
 
