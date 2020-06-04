@@ -175,9 +175,8 @@ public class APIServiceImpl implements IAPIService {
 
         }
 
-        SQLQuerySource sqlQuerySource = parserSQLByAst(param.getQuery());
+        convertQueryRecursive(param, parserSQLByAst(param.getQuery()));
 
-        convertQueryRecursive(param, sqlQuerySource);
         dialect = getDialect(param);
 
         return dialect;
@@ -343,6 +342,7 @@ public class APIServiceImpl implements IAPIService {
             String replace = sqlQuerySource.getSqlBody().replace(indexUpSqlQuerySource.getSubSelect().toString(), tableName);
             engineQuerySource.setSqlBody(replace);
             engineQuerySource.setTableName(tableName);
+            engineQuerySource.setLimit(sqlQuerySource.getLimit());
         }
 
         param.setDbQuerySource(dbQuerySource);

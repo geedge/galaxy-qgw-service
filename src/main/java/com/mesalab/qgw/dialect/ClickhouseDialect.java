@@ -248,9 +248,8 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
        */
     public Optimizer generateQueryLimit() {
 
-        if(StringUtil.isEmpty(param.getEngineQuerySource())) {
-            setDefaultResultRows(param.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
-        }
+        setDefaultResultRows(StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
+
         setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
         return this;
     }
