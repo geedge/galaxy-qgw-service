@@ -164,8 +164,7 @@
     {
       "name": "common_device_id",
       "type": "string",
-      "label": "Device ID",
-      "doc": "{\"visibility\":\"disabled\"}"
+      "label": "Device ID"
     },
     {
       "name": "common_link_id",
