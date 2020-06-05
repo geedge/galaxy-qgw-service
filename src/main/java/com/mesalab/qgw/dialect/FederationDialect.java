@@ -1,6 +1,10 @@
 package com.mesalab.qgw.dialect;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.BaseResultEnum;
@@ -11,14 +15,11 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.zdjizhi.utils.StringUtil;
-import org.json.CDL;
-import org.json.JSONArray;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import javax.annotation.Nullable;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -73,27 +74,33 @@ public class FederationDialect extends AbstractEngineDialect{
             statisticMap.put("result_size", resultSize);
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
             if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                buildCsvResult();
+                convertJsonToCSV();
             }
             baseResult.setFormatType(param.getFormat());
         }
         return baseResult;
     }
 
-    private void buildCsvResult() {
-        List<Map<String, Object>> dataList = (List<Map<String, Object>>) baseResult.getData();
-        List<Map<String, Object>> metaList = (List<Map<String, Object>>) baseResult.getMeta();
+    private void convertJsonToCSV() {
 
-        List list = new ArrayList();
-        for (Map<String, Object> map : metaList) {
-            list.add(map.get("name"));
-        }
+        List<String> results = Lists.transform( (List<Map<String, Object>>) baseResult.getData(), new Function<Map<String, Object>, String>() {
+            @Nullable
+            @Override
+            public String apply(@Nullable Map<String, Object> input) {
+                return Joiner.on(",").join(input.values());
+            }
+        });
 
-        JSONArray meta = new JSONArray(list);
-        JSONArray data = new JSONArray(dataList);
-        String s = CDL.toString(meta, data);
-        baseResult.setData(s);
-        baseResult.setMeta(String.join(",", list));
+        List<Object> metas = Lists.transform((List<Map<String, Object>>) baseResult.getMeta(), new Function<Map<String, Object>, Object>() {
+            @Nullable
+            @Override
+            public Object apply(@Nullable Map<String, Object> input) {
+                return input.get("name");
+            }
+        });
+
+        baseResult.setData(Joiner.on("\n").join(results));
+        baseResult.setMeta(Joiner.on(",").join(metas));
     }
 
 
