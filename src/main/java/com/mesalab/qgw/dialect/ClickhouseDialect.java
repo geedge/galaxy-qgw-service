@@ -820,7 +820,8 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
                     JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+                    results.get("result"), null, null, param.getFormat());
         }
 
         return this;
@@ -861,11 +862,11 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
             baseResult.setMeta(resultMap.get("meta"));
             baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, baseResult.getMessage());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, String.valueOf(dataObject));
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(dataObject));
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(dataObject));
         }
         return baseResult;
     }
