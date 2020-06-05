@@ -76,7 +76,8 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
                     JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class), null, null, QueryFormatEnum.JSON.getValue());
             getAndParserFormatSql();
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+                    results.get("result"), null, null, param.getFormat());
         }
 
         return this;
@@ -136,11 +137,11 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
 
 
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, baseResult.getMessage());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, String.valueOf(dataObject));
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(dataObject));
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(dataObject));
         }
         return baseResult;
     }
