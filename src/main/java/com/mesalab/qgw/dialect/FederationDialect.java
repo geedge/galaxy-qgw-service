@@ -43,21 +43,28 @@ public class FederationDialect extends AbstractEngineDialect{
     }
 
 
+
     @Override
     public Dialect executeQuery() {
         try {
             watch.start();
-            executeUDF();
-            if (baseResult.isSuccess() && StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-                SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                Map resultMap = CalciteMemoryUtils.calciteQueryMemoryData(sqlQuerySource.getTableName(),
-                        (List<Map<String, String>>) baseResult.getMeta(),
-                        (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
-                baseResult.setData(resultMap.get("data"));
-                baseResult.setMeta(resultMap.get("meta"));
+
+            if (baseResult.isSuccess()) {
+
+                executeUDF();
+
+                if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
+                    SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
+                    Map resultMap = CalciteMemoryUtils.calciteQueryMemoryData(sqlQuerySource.getTableName(),
+                            (List<Map<String, String>>) baseResult.getMeta(),
+                            (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
+                    baseResult.setData(resultMap.get("data"));
+                    baseResult.setMeta(resultMap.get("meta"));
+                }
             }
         } catch (Exception ex) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Calcite execute query memory is error.", ex.getCause());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                    ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute query memory is error.", ex.getCause());
         }
 
         return this;
@@ -67,7 +74,9 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public BaseResult build() {
-        if (baseResult.isSuccess()) {
+
+        if (baseResult.isSuccess() ) {
+
             Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
             Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
             statisticMap.put("elapsed", String.format("%.2f", Double.valueOf(statisticMap.get("elapsed").toString()) + executeTime));
@@ -82,6 +91,22 @@ public class FederationDialect extends AbstractEngineDialect{
         log.info("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
         return baseResult;
     }
+
+
+    @Override
+    public void executeUDF() {
+
+            SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+            Set<UDF> udfSet = sqlQuerySource.getUdfSet();
+            for (UDF udf : udfSet) {
+                List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,
+                        (List<Object>) baseResult.getData());
+                baseResult.setData(targetResult);
+            }
+
+
+    }
+
 
     private void convertJsonToCSV() {
 
@@ -103,21 +128,6 @@ public class FederationDialect extends AbstractEngineDialect{
 
         baseResult.setData(Joiner.on("\n").useForNull("").join(results));
         baseResult.setMeta(Joiner.on(",").useForNull("").join(metas));
-    }
-
-
-    @Override
-    public void executeUDF() {
-        if (baseResult.isSuccess()) {
-            SQLQuerySource sqlQuerySource = param.getDbQuerySource();
-            Set<UDF> udfSet = sqlQuerySource.getUdfSet();
-            for (UDF udf : udfSet) {
-                List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,
-                        (List<Object>) baseResult.getData());
-                baseResult.setData(targetResult);
-            }
-        }
-
     }
 
 

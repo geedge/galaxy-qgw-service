@@ -138,12 +138,9 @@ public class DruidDialect extends  AbstractDataSourceDialect {
                 }
             }
             Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
-            Map<String, Object> statistics = Maps.newHashMap();
+            Map<String, Object> statistics = Maps.newLinkedHashMap();
             statistics.put("elapsed", String.format("%.2f", executeTime));
             statistics.put("rows_read", allResults.size());
-
-            int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
-            statistics.put("result_size", resultSize);
             baseResult.setData(allResults);
             baseResult.setMeta(getMeta(allResults));
             baseResult.setStatistics(statistics);

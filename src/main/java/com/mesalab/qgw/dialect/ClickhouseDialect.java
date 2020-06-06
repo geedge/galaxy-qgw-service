@@ -854,8 +854,6 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
             Map<String, Object> statistics = Maps.newLinkedHashMap();
             statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")));
             statistics.put("rows_read", statisticMap.get("rows_read"));
-            int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
-            statistics.put("result_size", resultSize);
             baseResult.setData(resultMap.get("data"));
             baseResult.setMeta(resultMap.get("meta"));
             baseResult.setStatistics(statistics);
