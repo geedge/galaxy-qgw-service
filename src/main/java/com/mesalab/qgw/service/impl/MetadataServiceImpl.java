@@ -4,12 +4,10 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.configuration.DruidIoProperties;
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SchemaCacheUtils;
-import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -43,11 +41,11 @@ public class MetadataServiceImpl implements MetadataService {
             if(druidIoProperties.getDbname().equals(name)){
                 return encapsulationTablesResult(new ArrayList<>(getSchemasOfDruid().keySet()) , druidIoProperties.getDbname());
             }
-            throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "check DBName please", null);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), "check DBName please", null);
         }else if("fields".equals(type)){//查询表字段具体信息
             return getSchemaResult(name);
         }else {
-            throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "Not found, check url please", null);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), "Not found, check url please", null);
         }
     }
 
@@ -68,7 +66,7 @@ public class MetadataServiceImpl implements MetadataService {
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(allSchema.get(tableName)), Map.class);
         if (resultMap == null) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
         }
         Map schemaDoc = (Map) JsonMapper.fromJsonString(String.valueOf(resultMap.get("doc")), Map.class);
         if(StringUtil.isEmpty(schemaDoc) && !StringUtil.isEmpty(resultMap.get("doc"))){
@@ -217,7 +215,7 @@ public class MetadataServiceImpl implements MetadataService {
         if (symbolsDruid != null && symbolsDruid.contains(tableName)) {
             return DBTypeEnum.DRUID.getValue();
         }
-        throw new BusinessException(BaseResultEnum.FAIL.getCode(), "获取数据库类型异常: " + tableName + " 表没有注册在Schema数据库中", null);
+        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "获取数据库类型异常: " + tableName + " 表没有注册在Schema数据库中", null);
     }
 
     @Override

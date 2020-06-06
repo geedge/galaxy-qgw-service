@@ -6,7 +6,8 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
@@ -56,7 +57,7 @@ public class FederationDialect extends AbstractEngineDialect{
                 baseResult.setMeta(resultMap.get("meta"));
             }
         } catch (Exception ex) {
-            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "Calcite execute query memory is error: ", ex);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Calcite execute query memory is error.", ex.getCause());
         }
 
         return this;
@@ -85,23 +86,23 @@ public class FederationDialect extends AbstractEngineDialect{
     private void convertJsonToCSV() {
 
         List<String> results = Lists.transform( (List<Map<String, Object>>) baseResult.getData(), new Function<Map<String, Object>, String>() {
-            @Nullable
+
             @Override
             public String apply(@Nullable Map<String, Object> input) {
-                return Joiner.on(",").join(input.values());
+                return Joiner.on(",").useForNull("").join(input.values());
             }
         });
 
         List<Object> metas = Lists.transform((List<Map<String, Object>>) baseResult.getMeta(), new Function<Map<String, Object>, Object>() {
-            @Nullable
+
             @Override
             public Object apply(@Nullable Map<String, Object> input) {
                 return input.get("name");
             }
         });
 
-        baseResult.setData(Joiner.on("\n").join(results));
-        baseResult.setMeta(Joiner.on(",").join(metas));
+        baseResult.setData(Joiner.on("\n").useForNull("").join(results));
+        baseResult.setMeta(Joiner.on(",").useForNull("").join(metas));
     }
 
 

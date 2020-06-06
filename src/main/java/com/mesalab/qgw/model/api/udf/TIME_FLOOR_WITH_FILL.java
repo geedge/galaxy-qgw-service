@@ -2,7 +2,8 @@ package com.mesalab.qgw.model.api.udf;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.common.utils.SQLFunctionUtil;
@@ -147,7 +148,8 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         try {
             parserWhereExpressionForPartitionRange(partitionTimeRange, whereExpression, partitionKey, dbType);
         } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "解析where表达式获取partitionRange异常", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "解析where表达式获取partitionRange异常", e);
         }
         return partitionTimeRange;
     }

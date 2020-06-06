@@ -4,7 +4,8 @@ package com.mesalab.qgw.dialect;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -17,7 +18,6 @@ import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
-import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.*;
@@ -25,7 +25,6 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.parser.SimpleNode;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
@@ -33,7 +32,6 @@ import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import tk.mybatis.mapper.mapperhelper.SqlHelper;
 
 
 import java.nio.charset.Charset;
@@ -186,7 +184,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
 
           } catch (JSQLParserException e) {
               log.error("sqlParser error: ", e);
-              throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
+              throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "参数校验：SQL 解析错误", e);
 
           }
 
@@ -817,10 +815,10 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
 
         Map<String, String> results = executeHttpGet(sql, QueryFormatEnum.JSON.getValue());
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), null,
                     JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
                     results.get("result"), null, null, param.getFormat());
         }
 
@@ -835,7 +833,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
         String query = getSyntaxCheckSql();
         Map<String, String> results = executeHttpGet("select 1", param.getFormat());
 
-        baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), query,
+        baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),null, query,
                 JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, param.getFormat());
         log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
         return this;
@@ -862,11 +860,14 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
             baseResult.setMeta(resultMap.get("meta"));
             baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, String.valueOf(dataObject));
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,
+                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager" : String.valueOf(dataObject));
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(dataObject));
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager" : String.valueOf(dataObject));
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(dataObject));
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager " : String.valueOf(dataObject));
         }
         return baseResult;
     }

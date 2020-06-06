@@ -86,7 +86,7 @@ public class APIServiceImpl implements IAPIService {
         try {
             statement = CCJSqlParserUtil.parse(param.getQuery());
         } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e.getCause());
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e.getCause());
         }
 
         BaseResult baseResult;
@@ -99,7 +99,8 @@ public class APIServiceImpl implements IAPIService {
             ShowStatement showStatement = (ShowStatement) statement;
             baseResult = executeShowStatement(param, showStatement);
         } else {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,目前只支持SELECT、SHOW、DESCRIBE 操作", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                    "SQL Syntax Error: Only support statement operations for select, show and describe.", null);
         }
         return baseResult;
     }
@@ -126,7 +127,7 @@ public class APIServiceImpl implements IAPIService {
         }
 
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), baseResult.getMessage(), null);
+            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
         }
 
         return baseResult;
@@ -155,7 +156,7 @@ public class APIServiceImpl implements IAPIService {
                     .contains(param.getTableName().toLowerCase())) {
                 param.setDbType(DBTypeEnum.DRUID.getValue());
             } else {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
             }
 
             param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
@@ -177,7 +178,7 @@ public class APIServiceImpl implements IAPIService {
             dialect = (Dialect) constructor.newInstance(param);
 
         } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "方言转换实例异常！", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
         }
 
         return dialect;
@@ -196,7 +197,7 @@ public class APIServiceImpl implements IAPIService {
 
 
        if (StringUtil.isBlank(param.getQuery())) {
-           throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：query SQL 错误", null);
+           throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The SQL must be exists.", null);
        }
 
        if (StringUtil.isNotBlank(param.getOption())) {
@@ -204,12 +205,12 @@ public class APIServiceImpl implements IAPIService {
             if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.REAL_TIME.getValue()) &&
                     !param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue()) &&
                     !param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：option 参数错误", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),  "Param Syntax Error：The option must be real-time or long-term or syntax-check. ", null);
             }
 
             if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
                 if (StringUtil.isBlank(param.getReportId()) && StringUtil.isBlank(param.getResultId())) {
-                    throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：option=long-term,需指定reportId或resultId", null);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The option=long-term,must be reportId or resultId.", null);
                 }
             }
 
@@ -222,7 +223,7 @@ public class APIServiceImpl implements IAPIService {
 
             if (!param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())
                 && !param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：format 参数错误", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error: The format must be json or csv.", null);
             }
 
         } else {
@@ -248,18 +249,18 @@ public class APIServiceImpl implements IAPIService {
                     int i = tableName.lastIndexOf(".");
                     tableName = i < 0 ? tableName : tableName.substring(i + 1);
                 } else {
-                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
+                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Get Table Name Error." );
                 }
 
 
             } else {
                 log.warn("Not support DML Parser");
-                throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,不支持SELECT 之外操作" );
+                throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error, Not support DML Parser." );
             }
 
         } catch (Exception e) {
 
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e.getCause());
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error: ", ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), e.getCause());
         }
 
         return  tableName;
@@ -289,7 +290,7 @@ public class APIServiceImpl implements IAPIService {
 
         } catch (Exception e) {
                 log.error("sqlParser error: ", e);
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
         }
         return  tableName;
     }
@@ -366,7 +367,7 @@ public class APIServiceImpl implements IAPIService {
                     sqlQuerySource.setTableName(tableName);
                     sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
                 } else {
-                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
+                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Can't find table name." );
                 }
 
 
@@ -464,21 +465,21 @@ public class APIServiceImpl implements IAPIService {
                     }
                     sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                 } else { //其它暂不支持
-                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
+                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
                 }
 
 
 
             } else {
                 log.warn("Not support DML Parser");
-                throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,不支持SELECT 之外操作" );
+                throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Only support statement operation as select." );
             }
 
 
 
         } catch (Exception e) {
             log.error("sqlParser error: ", e);
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e);
 
         }
 
@@ -528,7 +529,7 @@ public class APIServiceImpl implements IAPIService {
             UDFElements udfElements = new UDFElements(funName, expressions);
             udf = (UDF) constructor.newInstance(udfElements);
         } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "自定义函数转换实例异常！", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "自定义函数转换实例异常！", e);
         }
         return udf;
     }
@@ -614,7 +615,7 @@ public class APIServiceImpl implements IAPIService {
                         sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                     }
                 } else {
-                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
+                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
                 }
 
 
@@ -622,7 +623,7 @@ public class APIServiceImpl implements IAPIService {
             }
         } catch (Exception e) {
             log.error("sqlParser error: ", e);
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
 
         }
 
@@ -636,7 +637,7 @@ public class APIServiceImpl implements IAPIService {
         if (subTable instanceof SQLExprTableSource) {
             return ((SQLExprTableSource) subTable).getName().getSimpleName();
         } else {
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：暂不支持多级嵌套子查询操作");
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Multi-level nested subqueries are not supported yet.");
         }
     }
 
@@ -672,7 +673,7 @@ public class APIServiceImpl implements IAPIService {
         Dialect dialect = getDialect(param);
         BaseResult result = dialect.executeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "describe table error, please check tableName", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "describe table error, please check tableName", null);
         }
         BaseResult baseResult = dataEncapsulationOfSchema(result, param);
         return baseResult;
@@ -687,7 +688,7 @@ public class APIServiceImpl implements IAPIService {
     private BaseResult executeShowStatement(ApiParam param, ShowStatement showStatement) {
 
         if (showStatement != null && !"tables".equalsIgnoreCase(showStatement.getName())) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持Show tables 之外的操作", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error：不支持Show tables 之外的操作", null);
         }
         if (clickHouseProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
@@ -700,13 +701,13 @@ public class APIServiceImpl implements IAPIService {
             BaseResult result = getAllTables();
             return result;
         } else {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema name error", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema name error", null);
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
         Dialect dialect = getDialect(param);
         BaseResult result = dialect.executeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), result.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), result.getMessage(), null);
         }
         List tables = (ArrayList) result.getData();
         List<String> list = new ArrayList<>();
@@ -770,7 +771,7 @@ public class APIServiceImpl implements IAPIService {
             druid.setData(date);
             return druid;
         }else {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "查询所有tables异常", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "查询所有tables异常", null);
         }
     }
 

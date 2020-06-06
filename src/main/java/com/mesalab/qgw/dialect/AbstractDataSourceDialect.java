@@ -17,6 +17,7 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         param.setSql(param.getDbQuerySource().getSqlBody());
         baseResult = BaseResultGenerator.success();
 
+
     }
 
     /**

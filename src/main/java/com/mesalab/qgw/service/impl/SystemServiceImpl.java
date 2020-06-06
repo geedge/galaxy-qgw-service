@@ -3,7 +3,7 @@ package com.mesalab.qgw.service.impl;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.JobHandlerEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
@@ -70,7 +70,7 @@ public class SystemServiceImpl implements SystemService {
             param.setQuery(sql);
             return apiService.executeQuery(param);
         } else {
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
         }
     }
 
@@ -178,7 +178,7 @@ public class SystemServiceImpl implements SystemService {
         if (result.getStatus().equals(HttpStatus.SC_LOCKED)) {
             return true;
         } else if (!result.getStatus().equals(HttpStatus.SC_OK)) {
-            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "获取任务状态异常: " + result.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取任务状态异常: " + result.getMessage(), null);
         }
         return false;
     }
@@ -228,7 +228,7 @@ public class SystemServiceImpl implements SystemService {
             baseResult = executeTriggerAndUpdate(xxlJobInfo);
         }
         if (!baseResult.getStatus().equals(HttpStatus.SC_OK)) {
-            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "调度任务数据配额设置任务执行失败", null);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务数据配额设置任务执行失败", null);
         }
         return baseResult;
     }
@@ -389,16 +389,16 @@ public class SystemServiceImpl implements SystemService {
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {
-                throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "获取或封装结果异常: " + resultPageList, null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取或封装结果异常: " + resultPageList, null);
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
                 return data.get(0);
             } else {
-                throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "调度任务无匹配executorHandler(" + handlerValue + ")的任务信息", null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务无匹配executorHandler(" + handlerValue + ")的任务信息", null);
             }
         }
-        throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "获取调度任务异常: " + resultPageList, null);
+        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取调度任务异常: " + resultPageList, null);
     }
 
     /**

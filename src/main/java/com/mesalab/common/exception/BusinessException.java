@@ -1,6 +1,7 @@
 package com.mesalab.common.exception;
 
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import lombok.*;
 
 /**
@@ -19,25 +20,28 @@ public class BusinessException extends RuntimeException {
     /**
      * 异常代码
      */
-    private int errorCode = BaseResultEnum.SERVER_ERROR.getCode();
+    private int errorStatus = ResultStatusEnum.SERVER_ERROR.getCode();
+
+    private String errorCode = ResultCodeEnum.UNKNOW_ERROR.getCode();
+
+
     /**
      * 异常信息
      */
     private String errorMessage;
 
     public BusinessException(String errorMessage) {
-        this.errorCode = BaseResultEnum.SERVER_ERROR.getCode();
         this.errorMessage = errorMessage;
     }
 
 
     public BusinessException(String errorMessage, Throwable e) {
         super(errorMessage, e);
-        this.errorCode = BaseResultEnum.SERVER_ERROR.getCode();
     }
 
-    public BusinessException(int errorCode, String errorMessage, Throwable e) {
+    public BusinessException(int errorStatus, String errorCode,  String errorMessage, Throwable e) {
         super(errorMessage, e);
+        this.errorStatus = errorStatus;
         this.errorCode = errorCode;
     }
 
