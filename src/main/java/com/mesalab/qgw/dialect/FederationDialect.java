@@ -3,7 +3,6 @@ package com.mesalab.qgw.dialect;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
@@ -15,7 +14,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.zdjizhi.utils.StringUtil;
-
+import lombok.extern.slf4j.Slf4j;
 
 
 import javax.annotation.Nullable;
@@ -25,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 联邦查询-基于Calcite支持多源联合查询
  */
+@Slf4j
 public class FederationDialect extends AbstractEngineDialect{
     private Stopwatch watch = Stopwatch.createUnstarted();
     public FederationDialect(ApiParam param, BaseResult result) {
@@ -78,6 +78,7 @@ public class FederationDialect extends AbstractEngineDialect{
             }
             baseResult.setFormatType(param.getFormat());
         }
+        log.info("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
         return baseResult;
     }
 
@@ -115,6 +116,7 @@ public class FederationDialect extends AbstractEngineDialect{
                 baseResult.setData(targetResult);
             }
         }
+
     }
 
 

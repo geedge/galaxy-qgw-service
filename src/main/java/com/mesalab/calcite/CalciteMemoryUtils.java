@@ -1,66 +1,101 @@
 package com.mesalab.calcite;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
+import com.mesalab.common.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.schema.ScannableTable;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.sql.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class CalciteMemoryUtils {
 
+    public static Map<String, Object> calciteQueryMemoryData(String tableName, List<Map<String, String>> meta,
+                                                                            List<Map<String, Object>> data, String sql) {
+        Map<String, Object> result = Maps.newHashMap();
+        ResultSet resultSet = null;
+        java.sql.Statement statement = null;
+        Connection connection = null;
+        try {
+           Class.forName("org.apache.calcite.jdbc.Driver");
+           Properties info = new Properties();
+           info.setProperty("lex", "MYSQL_ANSI");
+           String jsonModel = new File("").getCanonicalPath() + "/config/memorySchema.json";
+           connection = DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
+           CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
 
-    public static Map calciteQueryMemoryData(String tableName, List<Map<String, String>> meta, List<Map<String, Object>> data, String sql) throws Exception {
-        Class.forName("org.apache.calcite.jdbc.Driver");
-        Properties info = new Properties();
-        info.setProperty("lex", "MYSQL_ANSI");
-        String jsonModel = new File("").getCanonicalPath() + "/config/memorySchema.json";
-        Connection connection = DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
-        CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
-        ResultSet executeQueryResult = null;
 
-        log.info("执行导入内存数据库data.size()为: " + data.size());
-        //将数据存入缓存表
-        Storage.DummyTable table = addDummyTableMeta(meta, tableName);
-        table = addDummyTableRow(data, table);
-        InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
-        //将缓存表植入rootSchema
-        calciteConn.getRootSchema().add(tableName, inMemoryTable);
-        log.info("内存数据库 数据导入成功");
+           log.info("Calcite: 加载数据的数量: " + data.size());
+           //将数据存入缓存表
+           Storage.DummyTable table = addDummyTableMeta(meta, tableName);
+           table = addDummyTableRow(data, table);
+           InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
 
-        java.sql.Statement st = connection.createStatement();
-        executeQueryResult = st.executeQuery(sql);
-        ResultSetMetaData metaData = executeQueryResult.getMetaData();
-        int columnCount = metaData.getColumnCount();
+           //将缓存表植入rootSchema
+           calciteConn.getRootSchema().add(tableName, inMemoryTable);
+           statement = connection.createStatement();
+           resultSet = statement.executeQuery(sql);
+           ResultSetMetaData metaData = resultSet.getMetaData();
+           meta.clear();
+           data.clear();
 
-        meta.clear();
-        data.clear();
-        HashMap<String, String> metaMap;
-        for (int i = 1; i <= columnCount; i++) {
-            metaMap = new HashMap<>();
-            metaMap.put("name", metaData.getColumnLabel(i));
-            metaMap.put("type", metaData.getColumnTypeName(i));
-            meta.add(metaMap);
-        }
+           for (int i = 1; i <= metaData.getColumnCount(); i++) {
+               Map<String, String> metaMap = Maps.newLinkedHashMap();
+               metaMap.put("name", metaData.getColumnLabel(i));
+               metaMap.put("type", metaData.getColumnTypeName(i));
+               meta.add(metaMap);
+           }
 
-        while (executeQueryResult.next()) {
-            Map<String, Object> rowData = new HashMap(metaData.getColumnCount());
-            for (int i = 1; i <= columnCount; i++) {
-                rowData.put(metaData.getColumnLabel(i), executeQueryResult.getObject(i));
+           while (resultSet.next()) {
+               Map<String, Object> rowData = Maps.newLinkedHashMap();
+               for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                   rowData.put(metaData.getColumnLabel(i), resultSet.getObject(i));
+               }
+               data.add(rowData);
+           }
+
+           result.put("meta", meta);
+           result.put("data", data);
+
+       } catch (Exception e) {
+           e.printStackTrace();
+           throw new BusinessException("Calcite SQL Execute Error : " , e);
+
+       } finally {
+           if (resultSet != null) {
+               try {
+                   resultSet.close();
+               } catch (SQLException throwables) {
+                   throwables.printStackTrace();
+               }
+           }
+
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
             }
-            data.add(rowData);
-        }
 
-        HashMap result = new HashMap<String, Object>();
-        result.put("meta", meta);
-        result.put("data", data);
+           if (connection != null) {
+               try {
+                   connection.close();
+               } catch (SQLException throwables) {
+                   throwables.printStackTrace();
+               }
+           }
+       }
+
+
         return result;
     }
 
