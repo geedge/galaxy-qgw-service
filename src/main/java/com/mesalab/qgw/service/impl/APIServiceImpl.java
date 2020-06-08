@@ -456,12 +456,13 @@ public class APIServiceImpl implements IAPIService {
                 } else if (body instanceof SetOperationList) { // 连接查询
                     SetOperationList setOperationList = (SetOperationList) body;
                     List<SelectBody> selects = setOperationList.getSelects();
-                    for (SelectBody select : selects) {
-                        SQLQuerySource parseSql = parserSQLByAst(select.toString());
-                        if (parseSql.getUdfSet().size() > 0) {
-                            sqlQuerySource.getUdfSet().addAll(parseSql.getUdfSet());
-                            break;
-                        }
+                    //暂时只解析第一个结构，不接受不相同的where
+                    if(StringUtil.isNotEmpty(selects)) {
+                        SQLQuerySource parseSql = parserSQLByAst(selects.get(0).toString());
+                        sqlQuerySource.setUdfSet(parseSql.getUdfSet());
+                        sqlQuerySource.setWhereExpression(parseSql.getWhereExpression());
+                        sqlQuerySource.setGroupByElement(parseSql.getGroupByElement());
+                        sqlQuerySource.setAliasFields(parseSql.getAliasFields());
                     }
                     sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                 } else { //其它暂不支持
