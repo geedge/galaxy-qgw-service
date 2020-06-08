@@ -80,9 +80,14 @@ public class FederationDialect extends AbstractEngineDialect{
             Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
             Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
             statisticMap.put("elapsed", String.format("%.2f", Double.valueOf(statisticMap.get("elapsed").toString()) + executeTime));
-            int resultSize = StringUtil.isEmpty(baseResult.getData()) ? 0 : JsonMapper.toJsonString(baseResult.getData()).getBytes().length;
-            statisticMap.put("result_size", resultSize);
-            statisticMap.put("result_rows", ((List) baseResult.getData()).size());
+            if (StringUtil.isEmpty(baseResult.getData())) {
+                statisticMap.put("result_size", 0);
+                statisticMap.put("result_rows", 0);
+            } else {
+                statisticMap.put("result_size", JsonMapper.toJsonString(baseResult.getData()).getBytes().length);
+                statisticMap.put("result_rows", ((List) baseResult.getData()).size());
+            }
+
             if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
                 convertJsonToCSV();
             }
