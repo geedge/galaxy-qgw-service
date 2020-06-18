@@ -2,7 +2,7 @@
   "namespace": "tsg_galaxy_v3",
   "type": "record",
   "name": "proxy_event_log",
-  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"schema_query\":{\"dimensions\":[\"common_server_ip\",\"common_client_ip\",\"common_policy_id\",\"common_sub_action\",\"common_sled_ip\",\"common_server_location\",\"common_subscriber_id\",\"http_domain\",\"http_url\"],\"metrics\":[\"common_server_ip\",\"common_client_ip\",\"common_subscriber_id\"],\"filters\":[\"common_policy_id\",\"common_sub_action\",\"common_address_type\",\"common_server_ip\",\"common_client_ip\",\"common_server_port\",\"common_server_location\",\"common_subscriber_id\",\"http_domain\",\"http_url\",\"http_content_type\"]},\"schema_type\":{\"HTTP\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_encapsulation\",\"common_app_label\",\"common_app_id\",\"common_protocol_id\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"http_url\",\"http_host\",\"http_domain\",\"http_request_line\",\"http_response_line\",\"http_request_header\",\"http_response_header\",\"http_request_body\",\"http_response_body\",\"http_request_body_key\",\"http_response_body_key\",\"http_proxy_flag\",\"http_sequence\",\"http_snapshot\",\"http_cookie\",\"http_referer\",\"http_user_agent\",\"http_content_length\",\"http_content_type\",\"http_set_cookie\",\"http_version\",\"http_response_lantency_ms\",\"http_session_duration_ms\",\"http_action_file_size\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"http_url\",\"common_sub_action\"]}},\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"http_url\",\"common_sub_action\"]}",
+  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"schema_query\":{\"dimensions\":[\"common_server_ip\",\"common_client_ip\",\"common_policy_id\",\"common_sub_action\",\"common_sled_ip\",\"common_server_location\",\"common_subscriber_id\",\"http_domain\",\"http_url\"],\"metrics\":[\"common_server_ip\",\"common_client_ip\",\"common_subscriber_id\",\"common_c2s_byte_num\",\"common_s2c_byte_num\"],\"filters\":[\"common_policy_id\",\"common_sub_action\",\"common_address_type\",\"common_server_ip\",\"common_client_ip\",\"common_server_port\",\"common_server_location\",\"common_subscriber_id\",\"http_domain\",\"http_url\",\"http_content_type\"]},\"schema_type\":{\"HTTP\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_encapsulation\",\"common_app_label\",\"common_app_id\",\"common_protocol_id\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"http_url\",\"http_host\",\"http_domain\",\"http_request_line\",\"http_response_line\",\"http_request_header\",\"http_response_header\",\"http_request_body\",\"http_response_body\",\"http_request_body_key\",\"http_response_body_key\",\"http_proxy_flag\",\"http_sequence\",\"http_snapshot\",\"http_cookie\",\"http_referer\",\"http_user_agent\",\"http_content_length\",\"http_content_type\",\"http_set_cookie\",\"http_version\",\"http_response_lantency_ms\",\"http_session_duration_ms\",\"http_action_file_size\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"http_url\",\"common_sub_action\"]}},\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"http_url\",\"common_sub_action\"]}",
   "fields": [
     {
       "name": "common_recv_time",
@@ -260,136 +260,136 @@
     {
       "name": "http_url",
       "type": "string",
-      "label": "URL",
+      "label": "Http.URL",
       "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "http_host",
       "type": "string",
-      "label": "Host",
+      "label": "Http.Host",
       "doc": "{\"format\":{\"functions\":\"sub_domain\",\"appendTo\":\"http_domain\"}}"
     },
     {
       "name": "http_domain",
       "type": "string",
-      "label": "Domain",
+      "label": "Http.Domain",
       "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "http_request_line",
       "type": "string",
-      "label": "Request Line",
+      "label": "Http.Request Line",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_response_line",
       "type": "string",
-      "label": "Response Line",
+      "label": "Http.Response Line",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_request_header",
       "type": "string",
-      "label": "Request Headers",
+      "label": "Http.Request Header",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_response_header",
       "type": "string",
-      "label": "Response Headers",
+      "label": "Http.Response Header",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_request_body",
       "type": "string",
-      "label": "Request Body",
+      "label": "Http.Request Body",
       "doc": "{\"constraints\":{\"type\":\"file\"}}"
     },
     {
       "name": "http_response_body",
       "type": "string",
-      "label": "Response Body",
+      "label": "Http.Response Body",
       "doc": "{\"constraints\":{\"type\":\"file\"}}"
     },
     {
       "name": "http_request_body_key",
       "type": "string",
-      "label": "Request Body Key",
+      "label": "Http.Request Body Key",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "http_response_body_key",
       "type": "string",
-      "label": "Response Body Key",
+      "label": "Http.Response Body Key",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "http_proxy_flag",
       "type": "int",
-      "label": "Proxy Flag",
+      "label": "Http.Proxy Flag",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_sequence",
       "type": "int",
-      "label": "Sequence",
+      "label": "Http.Sequence",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_snapshot",
       "type": "string",
-      "label": "Http Snapshot",
+      "label": "Http.Snapshot",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_cookie",
       "type": "string",
-      "label": "Cookie"
+      "label": "Http.Cookie"
     },
     {
       "name": "http_referer",
       "type": "string",
-      "label": "Referer"
+      "label": "Http.Referer"
     },
     {
       "name": "http_user_agent",
       "type": "string",
-      "label": "User Agent"
+      "label": "Http.User Agent"
     },
     {
       "name": "http_content_length",
       "type": "string",
-      "label": "Content Length"
+      "label": "Http.Content Length"
     },
     {
       "name": "http_content_type",
       "type": "string",
-      "label": "Content Type"
+      "label": "Http.Content Type"
     },
     {
       "name": "http_set_cookie",
       "type": "string",
-      "label": "Set Cookie"
+      "label": "Http.Set Cookie"
     },
     {
       "name": "http_version",
       "type": "string",
-      "label": "Version"
+      "label": "Http.Version"
     },
     {
       "name": "http_response_lantency_ms",
       "type": "int",
-      "label": "Response Latency(ms)"
+      "label": "Http.Response Latency(ms)"
     },
     {
       "name": "http_session_duration_ms",
       "type": "int",
-      "label": "Session Duration(ms)"
+      "label": "Http.Session Duration(ms)"
     },
     {
       "name": "http_action_file_size",
       "type": "int",
-      "label": "Action File Size"
+      "label": "Http.Action File Size"
     }
   ]
 }

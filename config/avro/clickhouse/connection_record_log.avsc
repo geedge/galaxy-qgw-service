@@ -257,472 +257,481 @@
     {
       "name": "http_url",
       "type": "string",
-      "label": "URL"
+      "label": "Http.URL"
     },
     {
       "name": "http_host",
       "type": "string",
-      "label": "Host",
+      "label": "Http.Host",
       "doc": "{\"format\":{\"functions\":\"sub_domain\",\"appendTo\":\"http_domain\"}}"
     },
     {
       "name": "http_domain",
       "type": "string",
       "doc": "{\"allow_query\":\"true\"}",
-      "label": "Domain"
+      "label": "Http.Domain"
     },
     {
       "name": "http_request_line",
       "type": "string",
-      "label": "Request Line",
+      "label": "Http.Request Line",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_response_line",
       "type": "string",
-      "label": "Response Line",
+      "label": "Http.Response Line",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_request_header",
       "type": "string",
-      "label": "Request Headers",
+      "label": "Http.Request Headers",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_response_header",
       "type": "string",
-      "label": "Response Headers",
+      "label": "Http.Response Headers",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_request_body",
       "type": "string",
-      "label": "Request Body",
+      "label": "Http.Request Body",
       "doc": "{\"constraints\":{\"type\":\"file\"}}"
     },
     {
       "name": "http_response_body",
       "type": "string",
-      "label": "Response Body",
+      "label": "Http.Response Body",
       "doc": "{\"constraints\":{\"type\":\"file\"}}"
     },
     {
       "name": "http_request_body_key",
       "type": "string",
-      "label": "Request Body Key",
+      "label": "Http.Request Body Key",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "http_response_body_key",
       "type": "string",
-      "label": "Response Body Key",
+      "label": "Http.Response Body Key",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "http_proxy_flag",
       "type": "int",
-      "label": "Proxy Flag",
+      "label": "Http.Proxy Flag",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_sequence",
       "type": "int",
-      "label": "Sequence",
+      "label": "Http.Sequence",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_snapshot",
       "type": "string",
-      "label": "Http Snapshot",
+      "label": "Http.Snapshot",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "http_cookie",
       "type": "string",
-      "label": "Cookie"
+      "label": "Http.Cookie"
     },
     {
       "name": "http_referer",
       "type": "string",
-      "label": "Referer"
+      "label": "Http.Referer"
     },
     {
       "name": "http_user_agent",
       "type": "string",
-      "label": "User Agent"
+      "label": "Http.User Agent"
     },
     {
       "name": "http_content_length",
       "type": "string",
-      "label": "Content Length"
+      "label": "Http.Content Length"
     },
     {
       "name": "http_content_type",
       "type": "string",
-      "label": "Content Type"
+      "label": "Http.Content Type"
     },
     {
       "name": "http_set_cookie",
       "type": "string",
-      "label": "Set Cookie"
+      "label": "Http.Set Cookie"
     },
     {
       "name": "http_version",
       "type": "string",
-      "label": "Version"
+      "label": "Http.Version"
     },
     {
       "name": "http_response_lantency_ms",
       "type": "int",
-      "label": "Response Latency(ms)"
+      "label": "Http.Response Latency(ms)"
     },
     {
       "name": "http_session_duration_ms",
       "type": "int",
-      "label": "Session Duration(ms)"
+      "label": "Http.Session Duration(ms)"
     },
     {
       "name": "http_action_file_size",
       "type": "int",
-      "label": "Action File Size"
+      "label": "Http.Action File Size"
     },
     {
       "name": "mail_protocol_type",
       "type": "string",
-      "label": "Protocol Type"
+      "label": "Mail.Protocol Type"
     },
     {
       "name": "mail_account",
       "type": "string",
-      "label": "Account"
+      "label": "Mail.Account"
     },
     {
       "name": "mail_from_cmd",
       "type": "string",
-      "label": "From CMD"
+      "label": "Mail.From CMD"
     },
     {
       "name": "mail_to_cmd",
       "type": "string",
-      "label": "To CMD"
+      "label": "Mail.To CMD"
     },
     {
       "name": "mail_from",
       "doc": "{\"constraints\":{\"type\":\"email\"}}",
       "type": "string",
-      "label": "From"
+      "label": "Mail.From"
     },
     {
       "name": "mail_to",
       "doc": "{\"constraints\":{\"type\":\"email\"}}",
       "type": "string",
-      "label": "To"
+      "label": "Mail.To"
     },
     {
       "name": "mail_cc",
       "type": "string",
-      "label": "CC"
+      "label": "Mail.CC"
     },
     {
       "name": "mail_bcc",
       "type": "string",
-      "label": "BCC"
+      "label": "Mail.BCC"
     },
     {
       "name": "mail_subject",
       "doc": "{\"format\":{\"functions\":\"decode_of_base64\",\"param\":\"mail_subject_charset\"}}",
       "type": "string",
-      "label": "Subject"
+      "label": "Mail.Subject"
     },
     {
       "name": "mail_subject_charset",
       "type": "string",
-      "label": "Subject Charset",
+      "label": "Mail.Subject Charset",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "mail_content",
       "type": "string",
-      "label": "Content",
+      "label": "Mail.Content",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "mail_content_charset",
       "type": "string",
-      "label": "Content Charset",
+      "label": "Mail.Content Charset",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "mail_attachment_name",
       "doc": "{\"format\":{\"functions\":\"decode_of_base64\",\"param\":\"mail_attachment_name_charset\"}}",
       "type": "string",
-      "label": "Attachment"
+      "label": "Mail.Attachment"
     },
     {
       "name": "mail_attachment_name_charset",
       "type": "string",
-      "label": "Attachment Charset",
+      "label": "Mail.Attachment Charset",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "mail_attachment_content",
       "type": "string",
-      "label": "Attachment Content",
+      "label": "Mail.Attachment Content",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "mail_eml_file",
       "doc": "{\"constraints\":{\"type\":\"file\"}}",
       "type": "string",
-      "label": "EML File"
+      "label": "Mail.EML File"
     },
     {
       "name": "mail_snapshot",
       "type": "string",
-      "label": "Snapshot",
+      "label": "Mail.Snapshot",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "dns_message_id",
       "type": "int",
-      "label": "Message ID"
+      "label": "Dns.Message ID"
     },
     {
       "name": "dns_qr",
       "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"QUERY\"},{\"code\":\"1\",\"value\":\"REESPONSE\"}]}",
       "type": "int",
-      "label": "QR"
+      "label": "Dns.QR"
     },
     {
       "name": "dns_opcode",
       "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"QUERY\"},{\"code\":\"1\",\"value\":\"IQUERY\"},{\"code\":\"2\",\"value\":\"STATUS\"},{\"code\":\"5\",\"value\":\"UPDATE\"}]}",
       "type": "int",
-      "label": "OPCODE"
+      "label": "Dns.OPCODE"
     },
     {
       "name": "dns_aa",
       "type": "int",
-      "label": "AA"
+      "label": "Dns.AA"
     },
     {
       "name": "dns_tc",
       "type": "int",
-      "label": "TC"
+      "label": "Dns.TC"
     },
     {
       "name": "dns_rd",
       "type": "int",
-      "label": "RD"
+      "label": "Dns.RD"
     },
     {
       "name": "dns_ra",
       "type": "int",
-      "label": "RA"
+      "label": "Dns.RA"
     },
     {
       "name": "dns_rcode",
       "type": "int",
-      "label": "RCODE"
+      "label": "Dns.RCODE"
     },
     {
       "name": "dns_qdcount",
       "type": "int",
-      "label": "QDCOUNT"
+      "label": "Dns.QDCOUNT"
     },
     {
       "name": "dns_ancount",
       "type": "int",
-      "label": "ANCOUNT"
+      "label": "Dns.ANCOUNT"
     },
     {
       "name": "dns_nscount",
       "type": "int",
-      "label": "NSCOUNT"
+      "label": "Dns.NSCOUNT"
     },
     {
       "name": "dns_arcount",
       "type": "int",
-      "label": "ARCOUNT"
+      "label": "Dns.ARCOUNT"
     },
     {
       "name": "dns_qname",
       "type": "string",
-      "label": "QNAME"
+      "label": "Dns.QNAME"
     },
     {
       "name": "dns_qtype",
       "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"A\"},{\"code\":\"2\",\"value\":\"NS\"},{\"code\":\"5\",\"value\":\"CNAME\"},{\"code\":\"6\",\"value\":\"SOA\"},{\"code\":\"11\",\"value\":\"WKS\"},{\"code\":\"12\",\"value\":\"PTR\"},{\"code\":\"13\",\"value\":\"HINFO\"},{\"code\":\"11\",\"value\":\"WKS\"},{\"code\":\"15\",\"value\":\"MX\"},{\"code\":\"28\",\"value\":\"AAAA\"}]}",
       "type": "int",
-      "label": "QTYPE"
+      "label": "Dns.QTYPE"
     },
     {
       "name": "dns_qclass",
       "type": "int",
-      "label": "QCLASS"
+      "label": "Dns.QCLASS"
     },
     {
       "name": "dns_cname",
       "type": "string",
-      "label": "CNAME"
+      "label": "Dns.CNAME"
     },
     {
       "name": "dns_sub",
       "type": "int",
-      "label": "SUB",
+      "label": "Dns.SUB",
       "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"DNS\"},{\"code\":\"2\",\"value\":\"DNSSEC\"}]}"
     },
     {
       "name": "dns_rr",
       "type": "string",
-      "label": "RR"
+      "label": "Dns.RR"
     },
     {
       "name": "ssl_version",
       "type": "string",
-      "label": "Version",
+      "label": "SSL.Version",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "ssl_sni",
       "doc": "{\"allow_query\":\"true\",\"format\":{\"functions\":\"sub_domain\",\"appendTo\":\"http_domain\"}}",
       "type": "string",
-      "label": "SNI"
+      "label": "SSL.SNI"
     },
     {
       "name": "ssl_san",
       "type": "string",
-      "label": "SAN"
+      "label": "SSL.SAN"
     },
     {
       "name": "ssl_cn",
       "type": "string",
-      "label": "CN"
+      "label": "SSL.CN"
     },
     {
       "name": "ssl_pinningst",
       "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Not Pinning\"},{\"code\":\"1\",\"value\":\"Pinning\"},{\"code\":\"2\",\"value\":\"Maybe Pinning\"}]}",
       "type": "int",
-      "label": "Pinning"
+      "label": "SSL.Pinning"
     },
     {
       "name": "ssl_intercept_state",
       "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Passthrough\"},{\"code\":\"1\",\"value\":\"Intercept\"},{\"code\":\"2\",\"value\":\"Shutdown\"}]}",
       "type": "int",
-      "label": "Intercept State"
+      "label": "SSL.Intercept State"
     },
     {
       "name": "ssl_server_side_latency",
       "type": "int",
-      "label": "Server Side Latency(ms)"
+      "label": "SSL.Server Side Latency(ms)"
     },
     {
       "name": "ssl_client_side_latency",
       "type": "int",
-      "label": "Client Side Latency(ms)"
+      "label": "SSL.Client Side Latency(ms)"
     },
     {
       "name": "ssl_server_side_version",
       "type": "string",
-      "label": "Server Side Version"
+      "label": "SSL.Server Side Version"
     },
     {
       "name": "ssl_client_side_version",
       "type": "string",
-      "label": "Client Side Version"
+      "label": "SSL.Client Side Version"
     },
     {
       "name": "ssl_cert_verify",
       "type": "int",
-      "label": "Certificate Verify",
+      "label": "SSL.Certificate Verify",
       "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"No\"},{\"code\":\"1\",\"value\":\"Yes\"}]}"
     },
     {
       "name": "ssl_error",
       "type": "string",
-      "label": "Error"
+      "label": "SSL.Error"
     },
     {
       "name": "ssl_con_latency_ms",
       "type": "int",
-      "label": "Connection Latency(ms)",
+      "label": "SSL.Connection Latency(ms)",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "quic_version",
       "type": "string",
-      "label": "Version"
+      "label": "Quic.Version"
     },
     {
       "name": "quic_sni",
       "type": "string",
-      "label": "SNI",
+      "label": "Quic.SNI",
       "doc": "{\"format\":{\"functions\":\"sub_domain\",\"appendTo\":\"http_domain\"}}"
     },
     {
       "name": "quic_user_agent",
       "type": "string",
-      "label": "User Agent"
+      "label": "Quic.User Agent"
     },
     {
       "name": "ftp_account",
       "type": "string",
-      "label": "Account"
+      "label": "Ftp.Account"
     },
     {
       "name": "ftp_url",
       "type": "string",
-      "label": "URL"
+      "label": "Ftp.URL"
     },
     {
       "name": "ftp_content",
       "type": "string",
-      "label": "Content"
+      "label": "Ftp.Content"
     },
     {
       "name": "bgp_type",
       "type": "int",
-      "label": "Type"
+      "label": "BGP.Type",
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "bgp_as_num",
       "type": "string",
-      "label": "AS Number"
+      "label": "BGP.AS Number",
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "bgp_route",
       "type": "string",
-      "label": "Route"
+      "label": "BGP.Route",
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "voip_calling_account",
       "type": "string",
-      "label": "Calling Account"
+      "label": "Voip.Calling Account",
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "voip_called_account",
       "type": "string",
-      "label": "Called Account"
+      "label": "Voip.Called Account",
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "voip_calling_number",
       "type": "string",
-      "label": "Calling Number"
+      "label": "Voip.Calling Number",
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "voip_called_number",
       "type": "string",
-      "label": "Called Number"
+      "label": "Voip.Called Number",
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "streaming_media_url",
       "type": "string",
-      "label": "Media URL"
+      "label": "Streaming.Media URL",
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "streaming_media_protocol",
       "type": "string",
-      "label": "Media Protocol"
+      "label": "Streaming.Media Protocol",
+      "doc": "{\"visibility\":\"disabled\"}"
     }
   ]
 }
