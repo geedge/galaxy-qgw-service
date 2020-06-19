@@ -1,6 +1,8 @@
 package com.mesalab.qgw.model.api.udf;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -25,6 +27,8 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
+import org.joda.time.DateTime;
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -75,32 +79,28 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
             }
 
-            PartitionTimeRange partitionTimeRange = getPartitionTimeRange(sqlQuerySource);
-            String benchmarkDate = getBenchmarkDate(results, timeGranLabel);
-            List<Date> dateRangeList = new ArrayList<>();
-            if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isNotEmpty(partitionTimeRange.getEnd()) && StringUtil.isNotEmpty(benchmarkDate)) {
-                List<Date> leftRangeList = DateUtils.getLeftDateRange(DateUtils.convertStringToDate(benchmarkDate, DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                        DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
-                List<Date> rightDateRange = DateUtils.getRightDateRange(DateUtils.convertStringToDate(benchmarkDate, DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                        DateUtils.convertStringToDate((partitionTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+            WhereTimeRange whereTimeRange = getWhereTimeRange(sqlQuerySource);
+            Date benchmarkDate = getBenchmarkDate((Map<String,Object>) results.get(0), timeGranLabel);
 
-                Collections.reverse(leftRangeList);
-                dateRangeList.addAll(leftRangeList);
-                dateRangeList.addAll(rightDateRange);
 
-            } else if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isEmpty(partitionTimeRange.getEnd()) && StringUtil.isNotEmpty(benchmarkDate)) {
-                List<Date> leftRangeList = DateUtils.getLeftDateRange(DateUtils.convertStringToDate(benchmarkDate, DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                        DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+            List<Date> dateRangeList = Lists.newArrayList();
 
-                List<Date> rightDateRange = DateUtils.getRightDateRange(DateUtils.convertStringToDate(benchmarkDate, DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                        DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+            if (StringUtil.isNotBlank(whereTimeRange.getStart())) {
 
-                Collections.reverse(leftRangeList);
-                dateRangeList.addAll(leftRangeList);
-                dateRangeList.addAll(rightDateRange);
+                if (StringUtil.isBlank(whereTimeRange.getEnd())) {
+                    whereTimeRange.setEnd(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                }
+
+                List<Date> leftDateRange = DateUtils.getLeftDateRange(benchmarkDate,
+                        DateUtils.convertStringToDate((whereTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+                List<Date> rightDateRange = DateUtils.getRightDateRange(benchmarkDate,
+                        DateUtils.convertStringToDate((whereTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+
+                Collections.reverse(leftDateRange);
+                dateRangeList = Lists.newArrayList(Iterables.concat(leftDateRange, rightDateRange));
 
             } else {
-                log.warn("SQL中时间条件不完整[startTime:{} - endTime:{}, benchmarkDate为空],补全功能无效!", partitionTimeRange.getStart(), partitionTimeRange.getEnd());
+                log.warn("SQL中时间条件不完整[startTime:{} - endTime:{}],补全功能无效!", whereTimeRange.getStart(), whereTimeRange.getEnd());
                 return results;
             }
 
@@ -148,55 +148,58 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         return targetResult;
     }
 
-    private String getBenchmarkDate(Collection<Object> sources, String timeGranLabel) {
-        Object timeGran = null;
-        for (Object source : sources) {
-            Map<String, Object> sourceMap = ((Map<String, Object>) source);
-            timeGran = sourceMap.get(timeGranLabel);
-            break;
-        }
+
+    /**
+     * 获取基准时间
+     * @param firstElement
+     * @param timeGranLabel
+     * @return
+     */
+    private Date getBenchmarkDate(Map<String, Object> firstElement, String timeGranLabel) {
+        Date benchmarkDate = null;
         try {
-            if (timeGran instanceof Integer) {
-                return DateUtils.convertTimestampToString(Long.parseLong(timeGran.toString()), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-            } else if (timeGran instanceof String) {
-                Date date = DateUtils.convertStringToDate(timeGran.toString().trim(), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                return DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            Object benchmarkDateObject = firstElement.get(timeGranLabel);
+
+            if (StringUtil.isNumeric(benchmarkDateObject.toString())) {
+                benchmarkDate = new DateTime(Long.valueOf(benchmarkDateObject.toString())*1000).toDate();
             } else {
-                return StringUtil.EMPTY;
+                benchmarkDate = DateUtils.convertStringToDate(benchmarkDateObject.toString(), DateUtils.YYYY_MM_DD_HH24_MM_SS);
             }
         } catch (Exception ex) {
             log.error("Get BenchmarkDate Error ", ex);
-            return StringUtil.EMPTY;
+
         }
+
+        return benchmarkDate;
     }
 
     /**
-     * 获取partitionRange
+     * 获取where查询时间范围
      * @param sqlQuerySource
      * @return
      */
-    private PartitionTimeRange getPartitionTimeRange(SQLQuerySource sqlQuerySource) {
+    private WhereTimeRange getWhereTimeRange(SQLQuerySource sqlQuerySource) {
         String partitionKey = sqlQuerySource.getPartitionKey();
         Expression whereExpression = sqlQuerySource.getWhereExpression();
         String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableName());
-        PartitionTimeRange partitionTimeRange = new PartitionTimeRange();
+        WhereTimeRange whereTimeRange = new WhereTimeRange();
         try {
-            parserWhereExpressionForPartitionRange(partitionTimeRange, whereExpression, partitionKey, dbType);
+            parserWhereExpressionForWhereTimeRange(whereTimeRange, whereExpression, partitionKey, dbType);
         } catch (Exception e) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "解析where表达式获取partitionRange异常", e);
+                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "解析where表达式，获取数据的时间范围异常", e);
         }
-        return partitionTimeRange;
+        return whereTimeRange;
     }
 
     /**
-     * 解析where表达式并设置partitionRange
-     * @param partitionTimeRange
+     * 解析where表达式并设置数据的时间范围
+     * @param whereTimeRange
      * @param whereExpression
      * @param partitionKey
      * @param dbType
      */
-    private void parserWhereExpressionForPartitionRange(PartitionTimeRange partitionTimeRange, Expression whereExpression, String partitionKey, String dbType) {
+    private void parserWhereExpressionForWhereTimeRange(WhereTimeRange whereTimeRange, Expression whereExpression, String partitionKey, String dbType) {
         if (StringUtil.isEmpty(whereExpression) || StringUtil.isBlank(partitionKey)) {
             return;
         }
@@ -215,9 +218,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                     query = SQLFunctionUtil.getQueryValue(right.toString(), dbType);
                 }
                 if (operator.contains("<")) {
-                    partitionTimeRange.setEnd(query);
+                    whereTimeRange.setEnd(query);
                 } else if (operator.contains(">")) {
-                    partitionTimeRange.setStart(query);
+                    whereTimeRange.setStart(query);
                 }
             } else if (partitionKey.equals(right.toString())) {
                 String query;
@@ -229,36 +232,40 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                     query = SQLFunctionUtil.getQueryValue(left.toString(), dbType);
                 }
                 if (operator.contains("<")) {
-                    partitionTimeRange.setStart(query);
+                    whereTimeRange.setStart(query);
                 } else if (operator.contains(">")) {
-                    partitionTimeRange.setEnd(query);
+                    whereTimeRange.setEnd(query);
                 }
             }
         } else if (whereExpression instanceof Between) {
             Between whereBetween = (Between) whereExpression;
             Expression leftExpression = whereBetween.getLeftExpression();
             if (partitionKey.equals(leftExpression.toString())) {
-                partitionTimeRange.setStart(whereBetween.getBetweenExpressionStart().toString());
-                partitionTimeRange.setEnd(whereBetween.getBetweenExpressionEnd().toString());
+                whereTimeRange.setStart(whereBetween.getBetweenExpressionStart().toString());
+                whereTimeRange.setEnd(whereBetween.getBetweenExpressionEnd().toString());
             }
         } else if (whereExpression instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) whereExpression;
-            parserWhereExpressionForPartitionRange(partitionTimeRange, whereAnd.getLeftExpression(), partitionKey, dbType);
-            parserWhereExpressionForPartitionRange(partitionTimeRange, whereAnd.getRightExpression(), partitionKey, dbType);
+            parserWhereExpressionForWhereTimeRange(whereTimeRange, whereAnd.getLeftExpression(), partitionKey, dbType);
+            parserWhereExpressionForWhereTimeRange(whereTimeRange, whereAnd.getRightExpression(), partitionKey, dbType);
         } else if (whereExpression instanceof OrExpression) {
             OrExpression whereOr = (OrExpression) whereExpression;
-            parserWhereExpressionForPartitionRange(partitionTimeRange, whereOr.getLeftExpression(), partitionKey, dbType);
-            parserWhereExpressionForPartitionRange(partitionTimeRange, whereOr.getRightExpression(), partitionKey, dbType);
+            parserWhereExpressionForWhereTimeRange(whereTimeRange, whereOr.getLeftExpression(), partitionKey, dbType);
+            parserWhereExpressionForWhereTimeRange(whereTimeRange, whereOr.getRightExpression(), partitionKey, dbType);
         } else if (whereExpression instanceof Parenthesis) {
             Parenthesis whereExpressionParenthesis = (Parenthesis) whereExpression;
             Expression expression = whereExpressionParenthesis.getExpression();
-            parserWhereExpressionForPartitionRange(partitionTimeRange, expression, partitionKey, dbType);
+            parserWhereExpressionForWhereTimeRange(whereTimeRange, expression, partitionKey, dbType);
         }
     }
 
     @Data
-    private class PartitionTimeRange {
+    private class WhereTimeRange {
         private String start;
         private String end;
+
+
     }
+
+
 }
