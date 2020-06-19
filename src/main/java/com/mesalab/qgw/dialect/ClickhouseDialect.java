@@ -4,10 +4,7 @@ package com.mesalab.qgw.dialect;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -47,7 +44,6 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
     Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
     Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
-    Pattern pLimit = Pattern.compile("limit\\s*(.*?)\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
@@ -831,14 +827,13 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
     @Override
     public Dialect executeSyntaxCheck() {
         String query = getSyntaxCheckSql();
-        Map<String, String> results = executeHttpGet("select 1", param.getFormat());
+        Map<String, String> results = executeHttpGet(query, param.getFormat());
 
         baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),null, query,
                 JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, param.getFormat());
         log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
         return this;
     }
-
 
 
     @Override
@@ -878,8 +873,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
      * @return
      */
     private String getSyntaxCheckSql() {
-        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
-        String query = convertQuery(sqlQuerySource.getSqlBody());
+        String query = convertQuery(findBestQuery());
         query = Encodes.urlDecode(query);
         return query;
     }
@@ -898,13 +892,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
 
-        StringBuilder queryparamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
-                .append("database=")
-                .append(clickHouseHttpSource.getDbname()).append("&")
-                .append("query=").append(sql)
-                .append(" FORMAT ").append(format.toUpperCase()).append(" ;");
+        StringBuilder queryparamBuilder = getQueryParam(sql, format);
 
         log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
 
@@ -913,7 +901,30 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
         return httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
     }
 
+    private StringBuilder getQueryParam(String sql, String format) {
+        String queryId = StringUtil.isNotBlank(param.getResultId()) ? param.getResultId() : param.getReportId();
+        StringBuilder queryParam;
+        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+            queryParam = new StringBuilder("user=")
+                    .append(clickHouseHttpSource.getLongTimeAccount().getUsername()).append("&")
+                    .append("password=").append(clickHouseHttpSource.getLongTimeAccount().getPassword()).append("&")
+                    .append("database=").append(clickHouseHttpSource.getRealTimeAccount().getDbname()).append("&")
+                    .append("query_id=").append(ReportCacheUtils.getQueryId(queryId, param.getQuery())).append("&");
+        } else if (metadataService.getDBTypeByTableName(param.getTableName()).equals(clickHouseHttpSource.getLongTimeAccount().getDbname())) {
+            queryParam = new StringBuilder("user=")
+                    .append(clickHouseHttpSource.getLongTimeAccount().getUsername()).append("&")
+                    .append("password=").append(clickHouseHttpSource.getLongTimeAccount().getPassword()).append("&")
+                    .append("database=").append(clickHouseHttpSource.getLongTimeAccount().getDbname()).append("&");
+        } else {
+            queryParam = new StringBuilder("user=")
+                    .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
+                    .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                    .append("database=").append(clickHouseHttpSource.getRealTimeAccount().getDbname()).append("&");
+        }
 
-
+        queryParam.append("query=").append(sql)
+                .append(" FORMAT ").append(format.toUpperCase()).append(" ;");
+        return queryParam;
+    }
 
 }

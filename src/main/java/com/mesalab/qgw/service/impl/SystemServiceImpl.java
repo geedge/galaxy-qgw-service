@@ -3,10 +3,12 @@ package com.mesalab.qgw.service.impl;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.JobHandlerEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
@@ -18,12 +20,15 @@ import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
 import org.apache.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.*;
 
 @Slf4j
@@ -37,6 +42,8 @@ public class SystemServiceImpl implements SystemService {
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
     private HttpClientService httpClientService;
+    @Autowired
+    private ClickHouseHttpSource clickHouseHttpSource;
 
     private Map<String, String> headers = Maps.newHashMap();
 
@@ -125,6 +132,32 @@ public class SystemServiceImpl implements SystemService {
         return BaseResultGenerator.success("ok", list);
     }
 
+    @Override
+    public BaseResult deleteQueryTask(String queryId) {
+        Map<String, String> map = executeCKHttpGet("kill query where query_id = '" + queryId + "'", "FORMAT JSON ");
+        if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            return BaseResultGenerator.success4Message("ok");
+        } else {
+            return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
+        }
+    }
+
+    private Map<String, String> executeCKHttpGet(String sql, String format) {
+        StringBuilder urlBuilder = new StringBuilder("http://")
+                .append(clickHouseHttpSource.getUrl()).append("/?");
+        StringBuilder queryparamBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getLongTimeAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getLongTimeAccount().getPassword()).append("&")
+                .append("database=").append(clickHouseHttpSource.getLongTimeAccount().getDbname()).append("&")
+                .append("query=").append(sql)
+                .append(" FORMAT ").append("JSON").append(" ;");
+
+        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
+
+        List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
+
+        return httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
+    }
 
     private boolean logTypeIsAvaliable(List<StorageDeletionInfo> list) {
         List<LogType> logTypes = Arrays.asList(LogType.values());

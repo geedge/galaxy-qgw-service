@@ -76,4 +76,15 @@ public class SystemController {
         log.info("数据配额设置状态, 参数: params is {}", storageDeletionInfo);
         return systemService.getDeleteStorageStatus(storageDeletionInfo.getLogType());
     }
+
+    @ApiOperation(value = "终止查询任务", httpMethod = "DELETE", notes = "基于查询唯一标识查询任务")
+    @DeleteMapping(value = "engine/tasks/{queryId}")
+    public BaseResult killQuery(@PathVariable String queryId) {
+        log.info("停止查询, 参数: queryId is {}", queryId);
+        if (StringUtil.isBlank(queryId)) {
+            return BaseResultGenerator.success4Message("ok");
+        }
+        return systemService.deleteQueryTask(queryId);
+    }
+
 }

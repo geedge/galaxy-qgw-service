@@ -62,10 +62,9 @@ public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
-                .append("database=")
-                .append(clickHouseHttpSource.getDbname()).append("&")
+                .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                .append("database=").append(clickHouseHttpSource.getRealTimeAccount().getDbname()).append("&")
                 .append("query=").append(query)
                 .append(" FORMAT JSON;");
 

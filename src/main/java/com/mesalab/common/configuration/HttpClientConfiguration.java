@@ -2,14 +2,11 @@ package com.mesalab.common.configuration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.*;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
-import org.apache.http.impl.NoConnectionReuseStrategy;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.protocol.HTTP;
@@ -102,15 +99,9 @@ public class HttpClientConfiguration {
                 if (exception instanceof NoHttpResponseException) {
                     return true;
                 }
-                // time out 超时重试
+                // time out
                 if (exception instanceof InterruptedIOException) {
-                    try {
-                        log.warn(" SocketTimeout Connection Retry {}" , executionCount);
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    return true;
+                    return false;
                 }
                 // Unknown host
                 if (exception instanceof UnknownHostException) {

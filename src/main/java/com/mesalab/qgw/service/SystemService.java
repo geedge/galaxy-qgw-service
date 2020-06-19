@@ -34,4 +34,11 @@ public interface SystemService {
      * @return
      */
     BaseResult getDeleteStorageStatus(String logType);
+
+    /**
+     * 终止查询任务
+     * @param queryId
+     * @return
+     */
+    BaseResult deleteQueryTask(String queryId);
 }

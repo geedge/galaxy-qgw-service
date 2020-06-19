@@ -146,7 +146,7 @@ public class TestSqlServiceImpl {
 
         list.add("select count(1) from connection_record_log");
         list.add("select count(*) from connection_record_log");
-        list.add("select * from "+clickHouseProperties.getDbname() +".connection_record_log limit 1");
+        list.add("select * from "+clickHouseProperties.getRealTimeAccount().getDbname() +".connection_record_log limit 1");
 
         //Radius 用户分析
         //1. radius账户申请客户端IP变化
@@ -401,10 +401,10 @@ public class TestSqlServiceImpl {
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
+                .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
                 .append("database=")
-                .append(clickHouseHttpSource.getDbname()).append("&")
+                .append(clickHouseHttpSource.getRealTimeAccount().getDbname()).append("&")
                 .append("query=").append(query)
                 .append(" FORMAT JSON;");
 

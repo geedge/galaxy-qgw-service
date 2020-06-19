@@ -10,12 +10,8 @@ public class ClickHouseProperties {
 
     private String driverClassName;
 
-    private String dbname;
+    private DBAccount realTimeAccount;
 
-    private String username;
-
-    private String password;
-
-    private String publicKey;
+    private DBAccount longTimeAccount;
 
 }

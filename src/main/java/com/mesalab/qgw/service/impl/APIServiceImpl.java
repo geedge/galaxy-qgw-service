@@ -14,16 +14,15 @@ import com.alibaba.druid.stat.TableStat;
 import com.alibaba.druid.util.JdbcConstants;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.SchemaBase;
 import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.configuration.DruidIoProperties;
-import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.qgw.dialect.Dialect;
@@ -56,8 +55,6 @@ import java.util.*;
 @Service("apiService")
 public class APIServiceImpl implements IAPIService {
 
-    @Autowired
-    private SchemaProperties schemaProperties;
     @Autowired
     private ClickHouseProperties clickHouseProperties;
     @Autowired
@@ -119,6 +116,12 @@ public class APIServiceImpl implements IAPIService {
                     .executeSyntaxCheck()
                     .build();
         } else {
+            if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+                baseResult = ReportCacheUtils.get(param);
+                if (baseResult.isSuccess()) {
+                    return baseResult;
+                }
+            }
             baseResult = dbDialect
                     .executeQuery()
                     .build();
@@ -139,34 +142,19 @@ public class APIServiceImpl implements IAPIService {
     }
 
 
-
-
     private Dialect parserAndGetDialect(ApiParam param) {
-
         Dialect dialect = null;
-
-        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {//离线查询无需解析sql
-            param.setDbType(DBTypeEnum.HBASE.getValue());
-            param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
+        String dbType = metadataService.getDBTypeByTableName(param.getTableName().toLowerCase());
+        if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(dbType)) {
+            param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
+        } else if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(dbType)) {
+            param.setDbType(DBTypeEnum.DRUID.getValue());
         } else {
-            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getClickhouse())
-                    .contains(param.getTableName().toLowerCase())) {
-                param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
-            } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getDruid())
-                    .contains(param.getTableName().toLowerCase())) {
-                param.setDbType(DBTypeEnum.DRUID.getValue());
-            } else {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
-            }
-
-            param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
-
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
         }
-
+        param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
         convertQueryRecursive(param, parserSQLByAst(param.getQuery()));
-
         dialect = getDialect(param);
-
         return dialect;
     }
 
@@ -193,45 +181,38 @@ public class APIServiceImpl implements IAPIService {
      * format：输出格式，默认为JSON
      * option：查询选项，默认为real-time
      */
-    private String  validateAndGetTableName(ApiParam param) {
+    private String validateAndGetTableName(ApiParam param) {
 
+        if (StringUtil.isBlank(param.getQuery())) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The SQL must be exists.", null);
+        }
 
-       if (StringUtil.isBlank(param.getQuery())) {
-           throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The SQL must be exists.", null);
-       }
-
-       if (StringUtil.isNotBlank(param.getOption())) {
-
+        if (StringUtil.isNotBlank(param.getOption())) {
             if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.REAL_TIME.getValue()) &&
                     !param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue()) &&
                     !param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),  "Param Syntax Error：The option must be real-time or long-term or syntax-check. ", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The option must be real-time or long-term or syntax-check. ", null);
             }
-
             if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
                 if (StringUtil.isBlank(param.getReportId()) && StringUtil.isBlank(param.getResultId())) {
                     throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The option=long-term,must be reportId or resultId.", null);
                 }
             }
-
-       } else {
+        } else {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
-       }
+        }
 
 
         if (StringUtil.isNotBlank(param.getFormat())) {
-
             if (!param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())
-                && !param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+                    && !param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error: The format must be json or csv.", null);
             }
-
         } else {
             param.setFormat(QueryFormatEnum.JSON.getValue());
         }
 
         return getTableName(param.getQuery());
-
     }
 
 
@@ -655,7 +636,7 @@ public class APIServiceImpl implements IAPIService {
         param.setTableName(name);
         //查ck
         ApiParam temp = new ApiParam();
-        temp.setSchema(clickHouseProperties.getDbname());
+        temp.setSchema(clickHouseProperties.getRealTimeAccount().getDbname());
         temp.setTableName(name);
         temp.setQuery("show tables");
         BaseResult ckResult = executeShowStatement(temp, null);
@@ -691,7 +672,7 @@ public class APIServiceImpl implements IAPIService {
         if (showStatement != null && !"tables".equalsIgnoreCase(showStatement.getName())) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error：不支持Show tables 之外的操作", null);
         }
-        if (clickHouseProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
+        if (clickHouseProperties.getRealTimeAccount().getDbname().equalsIgnoreCase(param.getSchema())) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
             param.setDialectDBType(DBTypeEnum.CLICKHOUSE.getValue());
         } else if (druidIoProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
@@ -728,7 +709,7 @@ public class APIServiceImpl implements IAPIService {
         //查ck
         ApiParam temp = new ApiParam();
         temp.setQuery("show tables");
-        temp.setSchema(clickHouseProperties.getDbname());
+        temp.setSchema(clickHouseProperties.getRealTimeAccount().getDbname());
         BaseResult ck = new BaseResult();
         try {
             ck = executeShowStatement(temp, null);
