@@ -62,26 +62,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
         try {
             Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
-            if(StringUtil.isBlank(fill) || StringUtil.isEmpty(groupDimension)) { //补全函数为空或列无时间序列key时，直接返回
+            if (results.isEmpty() || StringUtil.isBlank(fill) || StringUtil.isEmpty(groupDimension)) {
                 return results;
             }
-
-            PartitionTimeRange partitionTimeRange = getPartitionTimeRange(sqlQuerySource);
-            List<Date> dateRangeList = null;
-            if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isNotEmpty(partitionTimeRange.getEnd()) ) {
-                dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                        DateUtils.convertStringToDate( (partitionTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
-
-            } else if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isEmpty(partitionTimeRange.getEnd())) {
-
-                dateRangeList = DateUtils.getDateRange(DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS),
-                        DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS), period.toString());
-
-            } else {
-                log.warn("SQL中时间条件不完整[startTime:{} - endTime:{}],补全功能无效!", partitionTimeRange.getStart(), partitionTimeRange.getEnd());
-                return results;
-            }
-
             for (String groupKey: groupDimension.keySet()) {
                 if (groupDimension.get(groupKey).contains(name) &&
                         groupDimension.get(groupKey).contains(timestamp)) {
@@ -90,6 +73,35 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                     groupLabel = Joiner.on(ConvertUtil.GROUP_SEPRATOR).skipNulls().join(groupKey, groupLabel);
                 }
 
+            }
+
+            PartitionTimeRange partitionTimeRange = getPartitionTimeRange(sqlQuerySource);
+            String benchmarkDate = getBenchmarkDate(results, timeGranLabel);
+            List<Date> dateRangeList = new ArrayList<>();
+            if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isNotEmpty(partitionTimeRange.getEnd()) && StringUtil.isNotEmpty(benchmarkDate)) {
+                List<Date> leftRangeList = DateUtils.getLeftDateRange(DateUtils.convertStringToDate(benchmarkDate, DateUtils.YYYY_MM_DD_HH24_MM_SS),
+                        DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+                List<Date> rightDateRange = DateUtils.getRightDateRange(DateUtils.convertStringToDate(benchmarkDate, DateUtils.YYYY_MM_DD_HH24_MM_SS),
+                        DateUtils.convertStringToDate((partitionTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+
+                Collections.reverse(leftRangeList);
+                dateRangeList.addAll(leftRangeList);
+                dateRangeList.addAll(rightDateRange);
+
+            } else if (StringUtil.isNotEmpty(partitionTimeRange.getStart()) && StringUtil.isEmpty(partitionTimeRange.getEnd()) && StringUtil.isNotEmpty(benchmarkDate)) {
+                List<Date> leftRangeList = DateUtils.getLeftDateRange(DateUtils.convertStringToDate(benchmarkDate, DateUtils.YYYY_MM_DD_HH24_MM_SS),
+                        DateUtils.convertStringToDate((partitionTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+
+                List<Date> rightDateRange = DateUtils.getRightDateRange(DateUtils.convertStringToDate(benchmarkDate, DateUtils.YYYY_MM_DD_HH24_MM_SS),
+                        DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+
+                Collections.reverse(leftRangeList);
+                dateRangeList.addAll(leftRangeList);
+                dateRangeList.addAll(rightDateRange);
+
+            } else {
+                log.warn("SQL中时间条件不完整[startTime:{} - endTime:{}, benchmarkDate为空],补全功能无效!", partitionTimeRange.getStart(), partitionTimeRange.getEnd());
+                return results;
             }
 
             int  maxSeriesNum =  engineConfigSource.getMaxCacheNum() / dateRangeList.size();
@@ -134,6 +146,28 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         }
 
         return targetResult;
+    }
+
+    private String getBenchmarkDate(Collection<Object> sources, String timeGranLabel) {
+        Object timeGran = null;
+        for (Object source : sources) {
+            Map<String, Object> sourceMap = ((Map<String, Object>) source);
+            timeGran = sourceMap.get(timeGranLabel);
+            break;
+        }
+        try {
+            if (timeGran instanceof Integer) {
+                return DateUtils.convertTimestampToString(Long.parseLong(timeGran.toString()), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            } else if (timeGran instanceof String) {
+                Date date = DateUtils.convertStringToDate(timeGran.toString().trim(), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+                return DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            } else {
+                return StringUtil.EMPTY;
+            }
+        } catch (Exception ex) {
+            log.error("Get BenchmarkDate Error ", ex);
+            return StringUtil.EMPTY;
+        }
     }
 
     /**
