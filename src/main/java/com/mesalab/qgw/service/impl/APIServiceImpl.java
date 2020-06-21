@@ -43,6 +43,7 @@ import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -108,24 +109,24 @@ public class APIServiceImpl implements IAPIService {
 
     private BaseResult executeSelectStatement(ApiParam param) {
 
-        Dialect dbDialect = parserSQL(param);
-
         BaseResult baseResult = null;
-        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            baseResult = dbDialect
-                    .executeSyntaxCheck()
-                    .build();
-        } else {
-            if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-                baseResult = ReportCacheUtils.get(param);
-                if (baseResult.isSuccess()) {
-                    return baseResult;
-                }
-            }
-            baseResult = dbDialect
-                    .executeQuery()
-                    .build();
+        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+            baseResult = ReportCacheUtils.get(param);
+            if (baseResult.isSuccess()) {
+                return baseResult;
+            } else {
+                log.warn("Long-Term Results not exist, execute real-time query: resultID-{}, sql-{}",
+                        param.getResultId(), StringUtil.strip(param.getQuery()) );
 
+            }
+
+        }
+
+        Dialect dbDialect = parserSQL(param);
+        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
+            baseResult = dbDialect.executeSyntaxCheck().build();
+        } else {
+            baseResult = dbDialect.executeQuery().build();
             baseResult = new FederationDialect(param, baseResult).executeQuery().build();
         }
 
@@ -161,8 +162,10 @@ public class APIServiceImpl implements IAPIService {
     private Dialect getDialect(ApiParam param) {
         Dialect dialect;
         try {
-            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
+            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
+                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
+
             dialect = (Dialect) constructor.newInstance(param);
 
         } catch (Exception e) {
@@ -415,7 +418,7 @@ public class APIServiceImpl implements IAPIService {
 
                     if (subItem instanceof SubSelect) {
                         SubSelect subSelect = (SubSelect) subItem;
-                        log.info("解析subSql: {}", subSelect);
+                        log.debug("存在子查询为: {}", subSelect);
                         sqlQuerySource.setSubSelect(subSelect);
                         sqlQuerySource.getSubSqlQuerySources().add(0, parserSQLByAst(String.valueOf(subSelect.getSelectBody())));
                     }
@@ -636,7 +639,7 @@ public class APIServiceImpl implements IAPIService {
         param.setTableName(name);
         //查ck
         ApiParam temp = new ApiParam();
-        temp.setSchema(clickHouseProperties.getRealTimeAccount().getDbname());
+        temp.setSchema(clickHouseProperties.getDbname());
         temp.setTableName(name);
         temp.setQuery("show tables");
         BaseResult ckResult = executeShowStatement(temp, null);
@@ -672,7 +675,7 @@ public class APIServiceImpl implements IAPIService {
         if (showStatement != null && !"tables".equalsIgnoreCase(showStatement.getName())) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error：不支持Show tables 之外的操作", null);
         }
-        if (clickHouseProperties.getRealTimeAccount().getDbname().equalsIgnoreCase(param.getSchema())) {
+        if (clickHouseProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
             param.setDialectDBType(DBTypeEnum.CLICKHOUSE.getValue());
         } else if (druidIoProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
@@ -709,7 +712,7 @@ public class APIServiceImpl implements IAPIService {
         //查ck
         ApiParam temp = new ApiParam();
         temp.setQuery("show tables");
-        temp.setSchema(clickHouseProperties.getRealTimeAccount().getDbname());
+        temp.setSchema(clickHouseProperties.getDbname());
         BaseResult ck = new BaseResult();
         try {
             ck = executeShowStatement(temp, null);

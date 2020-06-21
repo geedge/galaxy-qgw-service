@@ -23,8 +23,6 @@ public class SchemaCacheUtils {
                 @Override
                 public Object load(String key) throws Exception{
                     Object value = metadataService.getAllSchema();
-                     log.info("loading value by key,key:{}, value:{}", key, value);
-
                      return value;
                 }
 
@@ -34,7 +32,7 @@ public class SchemaCacheUtils {
         try {
            return loadingCache.get(key);
         } catch(Exception e) {
-            log.warn(" Schema Cache ,get key error ", e);
+            log.error(" Schema Cache ,get key error ", e);
             return null;
         }
     }

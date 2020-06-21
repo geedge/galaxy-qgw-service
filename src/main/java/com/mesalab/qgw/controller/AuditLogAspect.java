@@ -56,12 +56,14 @@ public class AuditLogAspect {
         AuditLog annotation = method2.getAnnotation(AuditLog.class);
 
         AuditServiceLog auditServiceLog =  new AuditServiceLog();
-        auditServiceLog.setParam(url);
+        auditServiceLog.setUrl(url);
         auditServiceLog.setMethod(method);
         auditServiceLog.setRemoteAddr(remoteAddr);
         auditServiceLog.setClientIp(clientIp);
         auditServiceLog.setClassMethod(class_method);
-        auditServiceLog.setParam(param);
+        if (logger.isDebugEnabled()) {
+            auditServiceLog.setParam(param);
+        }
         auditServiceLog.setAnnotation(annotation.value());
         auditServiceLog.setQueryKey(DigestUtils.md5Hex(StringUtil.isNotBlank(request.getQueryString()) ? request.getQueryString() : ""));
 

@@ -28,7 +28,6 @@ import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
 import org.joda.time.DateTime;
-import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;

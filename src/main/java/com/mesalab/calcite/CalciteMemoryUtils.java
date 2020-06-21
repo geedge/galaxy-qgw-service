@@ -32,8 +32,7 @@ public class CalciteMemoryUtils {
            connection = DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
            CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
 
-
-           log.info("Calcite: 加载数据的数量: " + data.size());
+           log.debug("Calcite: 加载数据的数量: " + data.size());
            //将数据存入缓存表
            Storage.DummyTable table = addDummyTableMeta(meta, tableName);
            table = addDummyTableRow(data, table);

@@ -1,6 +1,5 @@
 package com.mesalab.common.utils;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -35,16 +34,16 @@ public class ReportCacheUtils {
         BaseResult<Object> baseResult;
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(hBaseHttpSource.getUrl()).append("/");
-        String queryId = StringUtil.isNotBlank(param.getResultId()) ? param.getResultId() : param.getReportId();
-        StringBuilder queryparamBuilder = new StringBuilder(hBaseHttpSource.getDbName())
+
+        StringBuilder queryParamBuilder = new StringBuilder(hBaseHttpSource.getDbName())
                 .append(":").append(hBaseHttpSource.getTableName()).append("/")
-                .append(getQueryId(queryId, param.getQuery())).append("/")
+                .append(getQueryId(param.getResultId(), param.getQuery())).append("/")
                 .append(hBaseHttpSource.getColumnFamily()).append(":").append(hBaseHttpSource.getColumnName());
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put("Accept", "application/json");
 
-        Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
+        Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryParamBuilder.toString(), headers);
 
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map result = (Map) JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class);
@@ -54,7 +53,6 @@ public class ReportCacheUtils {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
                     results.get("result"), null, null, param.getFormat());
         }
-        log.info("HBase Result is: {}", baseResult);
         return baseResult;
     }
 
@@ -85,10 +83,10 @@ public class ReportCacheUtils {
      * 通过SQL生成查询唯一kEY
      *
      * @param sql
-     * @param reportId
+     * @param resultId
      * @return
      */
-    public static String getQueryId(String reportId, String sql) {
-        return DigestUtils.md5Hex(reportId + sql.trim());
+    public static String getQueryId(String resultId, String sql) {
+        return DigestUtils.md5Hex(resultId + sql.trim());
     }
 }

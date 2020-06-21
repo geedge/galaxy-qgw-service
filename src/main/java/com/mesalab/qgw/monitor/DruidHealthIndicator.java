@@ -1,12 +1,9 @@
 package com.mesalab.qgw.monitor;
 import com.google.common.collect.Maps;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.qgw.dialect.DruidDialect;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import lombok.Data;
 import org.apache.http.HttpStatus;
-import org.apache.shiro.crypto.hash.Hash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;

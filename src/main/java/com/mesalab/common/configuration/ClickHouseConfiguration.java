@@ -8,9 +8,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Slf4j
 @Configuration
 @EnableConfigurationProperties(ClickHouseProperties.class)
@@ -27,18 +24,9 @@ public class ClickHouseConfiguration {
     public ClickHouseHttpSource clickhouseHttpSource() {
         ClickHouseHttpSource httpSource  = new ClickHouseHttpSource();
         httpSource.setUrl(StringUtil.substringAfter(clickhouseProperties.getUrl(), "//"));
-
-        DBAccount realTermAccount = new DBAccount();
-        realTermAccount.setDbname(clickhouseProperties.getRealTimeAccount().getDbname());
-        realTermAccount.setUsername(clickhouseProperties.getRealTimeAccount().getUsername());
-        realTermAccount.setPassword(clickhouseProperties.getRealTimeAccount().getPassword());
-        httpSource.setRealTimeAccount(realTermAccount);
-
-        DBAccount longTermAccount = new DBAccount();
-        longTermAccount.setDbname(clickhouseProperties.getLongTimeAccount().getDbname());
-        longTermAccount.setUsername(clickhouseProperties.getLongTimeAccount().getUsername());
-        longTermAccount.setPassword(clickhouseProperties.getLongTimeAccount().getPassword());
-        httpSource.setLongTimeAccount(longTermAccount);
+        httpSource.setDbName(clickhouseProperties.getDbname());
+        httpSource.setRealTimeAccount(clickhouseProperties.getRealTimeAccount());
+        httpSource.setLongTermAccount(clickhouseProperties.getLongTermAccount());
 
         return httpSource;
     }

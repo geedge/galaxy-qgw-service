@@ -134,7 +134,19 @@ public class SystemServiceImpl implements SystemService {
 
     @Override
     public BaseResult deleteQueryTask(String queryId) {
-        Map<String, String> map = executeCKHttpGet("kill query where query_id = '" + queryId + "'", "FORMAT JSON ");
+        String executeSql = "kill query where query_id = '" + queryId + "'";
+        StringBuilder urlBuilder = new StringBuilder("http://")
+                .append(clickHouseHttpSource.getUrl()).append("/?");
+        StringBuilder queryParamBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
+                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
+                .append("query=").append(executeSql)
+                .append(" FORMAT ").append("JSON").append(" ;");
+
+        List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
+
+        Map<String, String> map = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
         if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             return BaseResultGenerator.success4Message("ok");
         } else {
@@ -142,24 +154,9 @@ public class SystemServiceImpl implements SystemService {
         }
     }
 
-    private Map<String, String> executeCKHttpGet(String sql, String format) {
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(clickHouseHttpSource.getUrl()).append("/?");
-        StringBuilder queryparamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getLongTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getLongTimeAccount().getPassword()).append("&")
-                .append("database=").append(clickHouseHttpSource.getLongTimeAccount().getDbname()).append("&")
-                .append("query=").append(sql)
-                .append(" FORMAT ").append("JSON").append(" ;");
-
-        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
-
-        List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
-
-        return httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
-    }
 
     private boolean logTypeIsAvaliable(List<StorageDeletionInfo> list) {
+
         List<LogType> logTypes = Arrays.asList(LogType.values());
         List<String> logType = new ArrayList<>();
         for (LogType type : logTypes) {
@@ -501,11 +498,9 @@ public class SystemServiceImpl implements SystemService {
     enum LogType {
         TRAFFIC_LOGS("Traffic Logs"), REPORT_AND_METRICS("Report and Metrics"), FILES("Files"), ALL("ALL");
         private final String value;
-
         LogType(String value) {
             this.value = value;
         }
-
         public String getValue() {
             return value;
         }

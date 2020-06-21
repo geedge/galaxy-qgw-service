@@ -1,6 +1,4 @@
 package com.mesalab.qgw.monitor;
-import com.google.common.collect.Maps;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;

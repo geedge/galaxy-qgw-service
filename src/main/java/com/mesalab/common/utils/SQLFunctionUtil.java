@@ -162,7 +162,7 @@ public class SQLFunctionUtil {
         StringBuilder queryparamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
                 .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
-                .append("database=").append(clickHouseHttpSource.getRealTimeAccount().getDbname()).append("&")
+                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(sql)
                 .append(" FORMAT JSON;");
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));

@@ -93,7 +93,7 @@ public class FederationDialect extends AbstractEngineDialect{
             }
             baseResult.setFormatType(param.getFormat());
         }
-        log.info("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
+        log.debug("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
         return baseResult;
     }
 

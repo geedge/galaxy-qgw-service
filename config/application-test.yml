@@ -13,12 +13,11 @@ swagger:
 clickhouse:
   url: jdbc:clickhouse://192.168.40.186:8123
   driverClassName: ru.yandex.clickhouse.ClickHouseDriver
+  dbname: tsg_galaxy_v3
   realTimeAccount:
-    dbname: tsg_galaxy_v3
     username: tsg_query
     password: ceiec2018
-  longTimeAccount:
-    dbname: system
+  longTermAccount:
     username: tsg_report
     password: ceiec2019
 ###############################################################################

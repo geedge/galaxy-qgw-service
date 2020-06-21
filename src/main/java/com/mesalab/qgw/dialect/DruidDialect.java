@@ -1,6 +1,5 @@
 package com.mesalab.qgw.dialect;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
@@ -21,7 +20,6 @@ import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
 import java.util.ArrayList;

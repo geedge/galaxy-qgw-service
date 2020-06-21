@@ -187,8 +187,8 @@ public class MetadataServiceImpl implements MetadataService {
         if (StringUtil.isEmpty(schema)) {
             return StringUtil.EMPTY;
         }
-        if (clickHouseProperties.getRealTimeAccount().getDbname().equalsIgnoreCase(schema.getNamespace())
-                || clickHouseProperties.getLongTimeAccount().getDbname().equalsIgnoreCase(schema.getNamespace())) {
+        if (clickHouseProperties.getDbname().equalsIgnoreCase(schema.getNamespace())
+                || "system".equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.CLICKHOUSE.getValue();
         }
         if (druidIoProperties.getDbname().equalsIgnoreCase(schema.getNamespace())) {
@@ -196,6 +196,13 @@ public class MetadataServiceImpl implements MetadataService {
         }
         return StringUtil.EMPTY;
     }
+
+    @Override
+    public String getDBNameByTableName(String tableName) {
+        Schema schema = getSchemaByName(tableName);
+        return StringUtil.isNotEmpty(schema) ? schema.getNamespace() : clickHouseProperties.getDbname() ;
+    }
+
 
     @Override
     public Map<String, Schema> getAllSchema() {
