@@ -79,6 +79,20 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
     }
 
+    @Override
+    public Dialect executeAdministrativeQuery() {
+        Map<String, String> results = executeHttpPost(param.getQuery(), QueryFormatEnum.JSON.getValue());
+
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(),  null,
+                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
+                    results.get("result"), null, null, param.getFormat());
+        }
+        return this;
+    }
+
 
     /**
      * Druid Http Query Interface

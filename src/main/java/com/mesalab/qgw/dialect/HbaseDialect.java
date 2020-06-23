@@ -75,7 +75,12 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
             return this;
         }
 
-        private Map<String, String> getFormatSql() {
+    @Override
+    public Dialect executeAdministrativeQuery() {
+        return this;
+    }
+
+    private Map<String, String> getFormatSql() {
             StringBuilder urlBuilder = new StringBuilder("http://")
                     .append(hBaseHttpSource.getUrl()).append("/");
             String queryId = StringUtil.isNotBlank(param.getResultId()) ? param.getResultId() : param.getReportId();

@@ -637,11 +637,14 @@ public class APIServiceImpl implements IAPIService {
     private BaseResult executeDescStatement(ApiParam param, DescribeStatement statement) {
         String name = statement == null ? param.getTableName() : statement.getTable().getName();
         param.setTableName(name);
-        //查ck
+
+
         ApiParam temp = new ApiParam();
         temp.setSchema(clickHouseProperties.getDbname());
         temp.setTableName(name);
         temp.setQuery("show tables");
+
+
         BaseResult ckResult = executeShowStatement(temp, null);
         Map data = (Map) ckResult.getData();
         List symbols = (List) data.get("symbols");
@@ -655,8 +658,13 @@ public class APIServiceImpl implements IAPIService {
             param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + name + "'");
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
+
+        SQLQuerySource dbQuerySource = new SQLQuerySource();
+        dbQuerySource.setSqlBody(param.getQuery());
+        param.setDbQuerySource(dbQuerySource);
+
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeQuery().build();
+        BaseResult result = dialect.executeAdministrativeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "describe table error, please check tableName", null);
         }
@@ -689,8 +697,13 @@ public class APIServiceImpl implements IAPIService {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema name error", null);
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
+
+        SQLQuerySource dbQuerySource = new SQLQuerySource();
+        dbQuerySource.setSqlBody(param.getQuery());
+        param.setDbQuerySource(dbQuerySource);
+
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeQuery().build();
+        BaseResult result = dialect.executeAdministrativeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), result.getMessage(), null);
         }

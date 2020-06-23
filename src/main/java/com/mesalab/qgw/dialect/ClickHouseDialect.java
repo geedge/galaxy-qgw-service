@@ -823,7 +823,19 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
         return this;
     }
 
+    @Override
+    public Dialect executeAdministrativeQuery() {
+        Map<String, String> results = executeHttpGet(param.getQuery());
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), null,
+                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
+                    results.get("result"), null, null, param.getFormat());
+        }
 
+        return this;
+    }
 
 
     @Override

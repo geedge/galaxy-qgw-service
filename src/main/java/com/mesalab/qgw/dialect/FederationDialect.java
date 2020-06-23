@@ -70,6 +70,10 @@ public class FederationDialect extends AbstractEngineDialect{
         return this;
     }
 
+    @Override
+    public Dialect executeAdministrativeQuery() {
+        return this;
+    }
 
 
     @Override
