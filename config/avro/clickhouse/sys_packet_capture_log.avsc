@@ -275,6 +275,11 @@
       "name": "packet_url",
       "type": "string",
       "label": "Packet URL"
+    },
+    {
+      "name": "pcap_storage_task_id",
+      "type": "int",
+      "label": "Task ID"
     }
   ]
 }

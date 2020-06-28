@@ -203,6 +203,18 @@
     {
       "name": "reflection_bytes",
       "type": "long"
+    },
+    {
+      "name": "ad_cc_bytes",
+      "type": "long"
+    },
+    {
+      "name": "ad_flood_bytes",
+      "type": "long"
+    },
+    {
+      "name": "ad_reflection_bytes",
+      "type": "long"
     }
   ]
 }

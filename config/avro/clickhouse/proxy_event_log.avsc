@@ -2,7 +2,7 @@
   "namespace": "tsg_galaxy_v3",
   "type": "record",
   "name": "proxy_event_log",
-  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"schema_query\":{\"dimensions\":[\"common_server_ip\",\"common_client_ip\",\"common_policy_id\",\"common_sub_action\",\"common_sled_ip\",\"common_server_location\",\"common_subscriber_id\",\"http_domain\",\"http_url\"],\"metrics\":[\"common_server_ip\",\"common_client_ip\",\"common_subscriber_id\",\"common_c2s_byte_num\",\"common_s2c_byte_num\"],\"filters\":[\"common_policy_id\",\"common_sub_action\",\"common_address_type\",\"common_server_ip\",\"common_client_ip\",\"common_server_port\",\"common_server_location\",\"common_subscriber_id\",\"http_domain\",\"http_url\",\"http_content_type\"]},\"schema_type\":{\"HTTP\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_encapsulation\",\"common_app_label\",\"common_app_id\",\"common_protocol_id\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"http_url\",\"http_host\",\"http_domain\",\"http_request_line\",\"http_response_line\",\"http_request_header\",\"http_response_header\",\"http_request_body\",\"http_response_body\",\"http_request_body_key\",\"http_response_body_key\",\"http_proxy_flag\",\"http_sequence\",\"http_snapshot\",\"http_cookie\",\"http_referer\",\"http_user_agent\",\"http_content_length\",\"http_content_type\",\"http_set_cookie\",\"http_version\",\"http_response_lantency_ms\",\"http_session_duration_ms\",\"http_action_file_size\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"http_url\",\"common_sub_action\"]}},\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"http_url\",\"common_sub_action\"]}",
+  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"schema_query\":{\"dimensions\":[\"common_server_ip\",\"common_client_ip\",\"common_policy_id\",\"common_sub_action\",\"common_sled_ip\",\"common_server_location\",\"common_subscriber_id\",\"common_server_port\",\"http_domain\",\"http_url\"],\"metrics\":[\"common_server_ip\",\"common_client_ip\",\"common_subscriber_id\",\"common_c2s_byte_num\",\"common_s2c_byte_num\"],\"filters\":[\"common_policy_id\",\"common_sub_action\",\"common_address_type\",\"common_server_ip\",\"common_client_ip\",\"common_server_port\",\"common_server_location\",\"common_subscriber_id\",\"http_domain\",\"http_url\",\"http_content_type\"]},\"schema_type\":{\"HTTP\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_encapsulation\",\"common_app_label\",\"common_app_id\",\"common_protocol_id\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"http_url\",\"http_host\",\"http_domain\",\"http_request_line\",\"http_response_line\",\"http_request_header\",\"http_response_header\",\"http_request_body\",\"http_response_body\",\"http_request_body_key\",\"http_response_body_key\",\"http_proxy_flag\",\"http_sequence\",\"http_snapshot\",\"http_cookie\",\"http_referer\",\"http_user_agent\",\"http_content_length\",\"http_content_type\",\"http_set_cookie\",\"http_version\",\"http_response_lantency_ms\",\"http_session_duration_ms\",\"http_action_file_size\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"http_url\",\"common_sub_action\"]},\"DOH\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_encapsulation\",\"common_app_label\",\"common_app_id\",\"common_protocol_id\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"doh_url\",\"doh_host\",\"doh_request_line\",\"doh_response_line\",\"doh_cookie\",\"doh_referer\",\"doh_user_agent\",\"doh_content_length\",\"doh_content_type\",\"doh_set_cookie\",\"doh_version\",\"doh_message_id\",\"doh_qr\",\"doh_opcode\",\"doh_aa\",\"doh_tc\",\"doh_rd\",\"doh_ra\",\"doh_rcode\",\"doh_qdcount\",\"doh_ancount\",\"doh_nscount\",\"doh_arcount\",\"doh_qname\",\"doh_qtype\",\"doh_qclass\",\"doh_cname\",\"doh_sub\",\"doh_rr\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_client_ip\",\"doh_url\",\"doh_qname\",\"common_server_port\"]}},\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_client_ip\",\"common_server_ip\",\"common_server_port\",\"common_sub_action\",\"common_schema_type\"]}",
   "fields": [
     {
       "name": "common_recv_time",
@@ -144,7 +144,7 @@
       "name": "common_schema_type",
       "type": "string",
       "label": "Schema Type",
-      "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"}],\"visibility\":\"hidden\"}"
+      "doc": "{\"data\":[{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"DOH\",\"value\":\"DOH\"}]}"
     },
     {
       "name": "common_user_tags",
@@ -390,6 +390,158 @@
       "name": "http_action_file_size",
       "type": "int",
       "label": "Http.Action File Size"
+    },
+    {
+      "name": "doh_url",
+      "label": "DoH.URL",
+      "doc": "{\"allow_query\":\"true\"}",
+      "type": "string"
+    },
+    {
+      "name": "doh_host",
+      "label": "DoH.Host",
+      "type": "string"
+    },
+    {
+      "name": "doh_request_line",
+      "label": "DoH.Request Line",
+      "doc": "{\"visibility\":\"hidden\"}",
+      "type": "string"
+    },
+    {
+      "name": "doh_response_line",
+      "doc": "{\"visibility\":\"hidden\"}",
+      "label": "DoH.Response Line",
+      "type": "string"
+    },
+    {
+      "name": "doh_cookie",
+      "label": "DoH.Cookie",
+      "type": "string"
+    },
+    {
+      "name": "doh_referer",
+      "label": "DoH.Referer",
+      "type": "string"
+    },
+    {
+      "name": "doh_user_agent",
+      "label": "DoH.User Agent",
+      "type": "string"
+    },
+    {
+      "name": "doh_content_length",
+      "label": "DoH.Content Length",
+      "type": "string"
+    },
+    {
+      "name": "doh_content_type",
+      "label": "DoH.Content Type",
+      "type": "string"
+    },
+    {
+      "name": "doh_set_cookie",
+      "label": "DoH.Set Cookie",
+      "type": "string"
+    },
+    {
+      "name": "doh_version",
+      "label": "DoH.Version",
+      "type": "string"
+    },
+    {
+      "name": "doh_message_id",
+      "label": "DoH.Message ID",
+      "type": "int"
+    },
+    {
+      "name": "doh_qr",
+      "label": "DoH.QR",
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"QUERY\"},{\"code\":\"1\",\"value\":\"REESPONSE\"}]}",
+      "type": "int"
+    },
+    {
+      "name": "doh_opcode",
+      "label": "DoH.OPCODE",
+      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"QUERY\"},{\"code\":\"1\",\"value\":\"IQUERY\"},{\"code\":\"2\",\"value\":\"STATUS\"},{\"code\":\"5\",\"value\":\"UPDATE\"}]}",
+      "type": "int"
+    },
+    {
+      "name": "doh_aa",
+      "label": "DoH.AA",
+      "type": "int"
+    },
+    {
+      "name": "doh_tc",
+      "label": "DoH.TC",
+      "type": "int"
+    },
+    {
+      "name": "doh_rd",
+      "label": "DoH.RD",
+      "type": "int"
+    },
+    {
+      "name": "doh_ra",
+      "label": "DoH.RA",
+      "type": "int"
+    },
+    {
+      "name": "doh_rcode",
+      "label": "DoH.RCODE",
+      "type": "int"
+    },
+    {
+      "name": "doh_qdcount",
+      "label": "DoH.QDCOUNT",
+      "type": "int"
+    },
+    {
+      "name": "doh_ancount",
+      "label": "DoH.ANCOUNT",
+      "type": "int"
+    },
+    {
+      "name": "doh_nscount",
+      "label": "DoH.NSCOUNT",
+      "type": "int"
+    },
+    {
+      "name": "doh_arcount",
+      "label": "DoH.ARCOUNT",
+      "type": "int"
+    },
+    {
+      "name": "doh_qname",
+      "label": "DoH.QNAME",
+      "type": "string"
+    },
+    {
+      "name": "doh_qtype",
+      "label": "DoH.QTYPE",
+      "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"A\"},{\"code\":\"2\",\"value\":\"NS\"},{\"code\":\"5\",\"value\":\"CNAME\"},{\"code\":\"6\",\"value\":\"SOA\"},{\"code\":\"11\",\"value\":\"WKS\"},{\"code\":\"12\",\"value\":\"PTR\"},{\"code\":\"13\",\"value\":\"HINFO\"},{\"code\":\"11\",\"value\":\"WKS\"},{\"code\":\"15\",\"value\":\"MX\"},{\"code\":\"28\",\"value\":\"AAAA\"}]}",
+      "type": "int"
+    },
+    {
+      "name": "doh_qclass",
+      "label": "DoH.QCLASS",
+      "type": "int"
+    },
+    {
+      "name": "doh_cname",
+      "label": "DoH.CNAME",
+      "type": "string"
+    },
+    {
+      "name": "doh_sub",
+      "label": "DoH.SUB",
+      "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"DNS\"},{\"code\":\"2\",\"value\":\"DNSSEC\"}]}",
+      "type": "int"
+    },
+    {
+      "name": "doh_rr",
+      "label": "DoH.RR",
+      "type": "string"
     }
   ]
 }
