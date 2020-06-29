@@ -191,16 +191,10 @@
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
-      "name": "common_app_id",
-      "type": "int",
-      "label": "Application ID",
-      "doc": "{\"visibility\":\"disabled\"}"
-    },
-    {
-      "name": "common_protocol_id",
-      "type": "int",
-      "label": "Protocol ID",
-      "doc": "{\"visibility\":\"disabled\"}"
+      "name": "common_protocol_label",
+      "type": "string",
+      "label": "Protocol Label",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_start_time",
