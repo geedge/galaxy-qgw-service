@@ -2,6 +2,7 @@ package com.mesalab.calcite;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
@@ -18,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CalciteMemoryUtils {
 
-    public static Map<String, Object> calciteQueryMemoryData(String tableName, List<Map<String, String>> meta,
+    public static Map<String, Object> executeMemoryQuery(String tableName, List<Map<String, String>> meta,
                                                                             List<Map<String, Object>> data, String sql) {
         Map<String, Object> result = Maps.newHashMap();
         ResultSet resultSet = null;
@@ -34,8 +35,8 @@ public class CalciteMemoryUtils {
 
            log.debug("Calcite: 加载数据的数量: " + data.size());
            //将数据存入缓存表
-           Storage.DummyTable table = addDummyTableMeta(meta, tableName);
-           table = addDummyTableRow(data, table);
+           Storage.DummyTable table = buildDummyTable(meta, tableName);
+           table = loadData(table, data);
            InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
 
            //将缓存表植入rootSchema
@@ -98,63 +99,53 @@ public class CalciteMemoryUtils {
         return result;
     }
 
+
     /**
-     * 给虚拟表插入数据
-     *
-     * @param data
-     * @param table
+     * 数据加载 ： MAP To List
+     * @param table 转换为table
+     * @param data 原始结果集合
      * @return
      */
-    private static Storage.DummyTable addDummyTableRow(List<Map<String, Object>> data, Storage.DummyTable table) {
+    private static Storage.DummyTable loadData(Storage.DummyTable table, List<Map<String, Object>> data) {
         List<Storage.DummyColumn> columns = table.getColumns();
-        for (int i = 0; i < data.size(); i++) {
-            List list = new ArrayList<>();
-            for (int j = 0; j < columns.size(); j++) {
-                list.add(null);
-            }
-            for (Map.Entry entry : data.get(i).entrySet()) {
-                int countColumn = 0;
-                Object key = entry.getKey();
-                for (Storage.DummyColumn column : columns) {
-                    if (column.getName().equals(String.valueOf(key))) {
-                        Storage.DummyColumn dummyColumn = columns.get(countColumn);
-                        String type = dummyColumn.getType();
-                        if (DataTypeMapping.BIGINT.equals(type)) {
-                            list.set(countColumn, Long.valueOf(String.valueOf(entry.getValue())));
-                        } else {
-                            list.set(countColumn, String.valueOf(entry.getValue()));
-                        }
-                    }
-                    ++countColumn;
+
+        data.stream().forEach(item -> {
+            List list = Lists.newArrayList();
+            for (Storage.DummyColumn column : columns) {
+                if (DataTypeMapping.BIGINT.equals(column.getType())) {
+                    list.add(Long.valueOf(item.get(column.getName()).toString()));
+                } else {
+                    list.add(item.get(column.getName()).toString());
                 }
+
             }
-            //若可以最好直接以列的形式插入数据
+
             table.addRow(list.toArray());
-        }
+
+        });
         return table;
     }
 
     /**
-     * 生成虚拟表元数据
-     *
-     * @param meta
-     * @param tableName
+     * 生成虚拟表
+     * @param meta schema 表结构字段
+     * @param tableName 表名
      * @return
      */
-    private static Storage.DummyTable addDummyTableMeta(List<Map<String, String>> meta, String tableName) {
+    private static Storage.DummyTable buildDummyTable(List<Map<String, String>> meta, String tableName) {
         Storage.DummyTable dummyTable = new Storage.DummyTable(tableName);
-        for (Map<String, String> columnInfo : meta) {
-            String originalName = columnInfo.get("name");
-            String originalType = columnInfo.get("type");
+        for (Map<String, String> column : meta) {
+            String fieldName = column.get("name");
+            String fieldType = column.get("type");
             String dummyColumnType;
-            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(intUnits).contains(originalType)) {
+            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(intUnits).contains(fieldName)) {
                 dummyColumnType = DataTypeMapping.BIGINT;
-            } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(doubleUnits).contains(originalType)) {
+            } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(doubleUnits).contains(fieldType)) {
                 dummyColumnType = DataTypeMapping.DOUBLE;
             } else {
                 dummyColumnType = DataTypeMapping.VARCHAR;
             }
-            Storage.DummyColumn name = new Storage.DummyColumn(originalName, dummyColumnType);
+            Storage.DummyColumn name = new Storage.DummyColumn(fieldName, dummyColumnType);
             dummyTable.addColumn(name);
         }
         return dummyTable;
