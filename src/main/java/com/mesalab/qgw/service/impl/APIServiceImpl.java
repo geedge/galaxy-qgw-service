@@ -698,10 +698,6 @@ public class APIServiceImpl implements IAPIService {
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
 
-        SQLQuerySource dbQuerySource = new SQLQuerySource();
-        dbQuerySource.setSqlBody(param.getQuery());
-        param.setDbQuerySource(dbQuerySource);
-
         Dialect dialect = getDialect(param);
         BaseResult result = dialect.executeAdministrativeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {

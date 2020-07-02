@@ -17,6 +17,7 @@ import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -63,57 +64,45 @@ public class DruidDialect extends  AbstractDataSourceDialect {
     @Override
     public Dialect executeQuery() {
 
-        String sql = convertQuery(findBestQuery());
-
         watch.start();
-        Map<String, String> results = executeHttpPost(sql, QueryFormatEnum.JSON.getValue());
-
-        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(),  null,
-                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
-        } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
-                    results.get("result"), null, null, param.getFormat());
-        }
+        generateBaseResult(convertQuery(findBestQuery()));
         return this;
 
     }
 
     @Override
     public Dialect executeAdministrativeQuery() {
-        Map<String, String> results = executeHttpPost(param.getQuery(), QueryFormatEnum.JSON.getValue());
+        generateBaseResult(param.getQuery());
+        return this;
+    }
+
+    private void generateBaseResult(String sql) {
+
+        Map<String, String> results = executeHttpPost(sql);
 
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(),  null,
                     (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
                     results.get("result"), null, null, param.getFormat());
         }
-        return this;
     }
-
 
     /**
      * Druid Http Query Interface
      * @param sql SQL语句
-     * @param format 结果显示格式,JSON OR CSV
      * @return
      */
-    private Map<String, String> executeHttpPost(String sql, String format) {
+    private Map<String, String> executeHttpPost(String sql) {
         StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
         DruidQueryParam druidQueryParam = new DruidQueryParam();
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
+        druidQueryParam.setResultFormat("object");
 
         log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
-
-        if (format.equals(QueryFormatEnum.JSON.getValue())) {
-            druidQueryParam.setResultFormat("object");
-        } else if (format.equals(QueryFormatEnum.CSV.getValue())) {
-            druidQueryParam.setResultFormat("csv");
-        }
 
         return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
     }
@@ -122,7 +111,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
     @Override
     public Dialect executeSyntaxCheck() {
         String query = convertQuery(param.getDbQuerySource().getSqlBody());
-        Map<String, String> results = executeHttpPost("select 1", param.getFormat());
+        Map<String, String> results = executeHttpPost("select 1");
 
         baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),null, query,
                 (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, param.getFormat());

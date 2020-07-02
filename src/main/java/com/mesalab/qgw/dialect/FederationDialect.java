@@ -55,12 +55,14 @@ public class FederationDialect extends AbstractEngineDialect{
 
                 if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
                     SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                    Map resultMap = CalciteMemoryUtils.calciteQueryMemoryData(sqlQuerySource.getTableName(),
+                    Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableName(),
                             (List<Map<String, String>>) baseResult.getMeta(),
                             (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
                     baseResult.setData(resultMap.get("data"));
                     baseResult.setMeta(resultMap.get("meta"));
                 }
+
+                log.info("calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
             }
         } catch (Exception ex) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),

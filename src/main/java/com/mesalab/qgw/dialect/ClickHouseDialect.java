@@ -808,51 +808,35 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
 
     @Override
     public Dialect executeQuery() {
-
-        String sql = convertQuery(findBestQuery());
-
-        Map<String, String> results = executeHttpGet(sql);
-        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), null,
-                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
-        } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, param.getFormat());
-        }
-
+        generateBaseResult(convertQuery(findBestQuery()));
         return this;
     }
 
     @Override
     public Dialect executeAdministrativeQuery() {
-        Map<String, String> results = executeHttpGet(param.getQuery());
-        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), null,
-                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
-        } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, param.getFormat());
-        }
-
+        generateBaseResult(param.getQuery());
         return this;
     }
 
 
     @Override
     public Dialect executeSyntaxCheck() {
-        String query = getSyntaxCheckSql();
-        Map<String, String> results = executeHttpGet(query);
+        String sql = getSyntaxCheckSql();
+        generateBaseResult(sql);
+        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), sql);
+        return this;
+    }
 
+    private void generateBaseResult(String sql) {
+
+        Map<String, String> results = executeHttpGet(sql);
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), Encodes.urlDecode(query),
-                      JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), Encodes.urlDecode(sql),
+                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
                     results.get("result"), null, null, param.getFormat());
         }
-
-        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
-        return this;
     }
 
 
