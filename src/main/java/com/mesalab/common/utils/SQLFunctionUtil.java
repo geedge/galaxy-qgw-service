@@ -6,6 +6,7 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.zdjizhi.utils.Encodes;
 import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.NameValuePair;
@@ -117,6 +118,7 @@ public class SQLFunctionUtil {
     public static String getQueryValue(String query, String dbType) {
         query = generateDateFunction("select " + query + " as actualValue", dbType);
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            query = Encodes.urlEncode(query);
             Map<String, String> results = executeHttpGetOfCK(query);
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
             List<Map<String, Object>> dates = (List<Map<String, Object>>) maps.get("data");
