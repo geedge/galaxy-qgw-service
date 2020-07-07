@@ -1,0 +1,44 @@
+{
+  "namespace": "druid",
+  "type": "record",
+  "name": "traffic_protocol_stat_log",
+  "doc": "{\"partition_key\":\"__time\"}",
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "protocol_id",
+      "type": "string"
+    },
+    {
+      "name": "isp",
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "type": "long"
+    },
+    {
+      "name": "sessions",
+      "type": "long"
+    },
+    {
+      "name": "c2s_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
+    }
+  ]
+}
