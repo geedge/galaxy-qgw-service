@@ -144,7 +144,7 @@
       "name": "common_schema_type",
       "type": "string",
       "label": "Schema Type",
-      "doc": "{\"data\":[{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"DOH\",\"value\":\"DOH\"}]}"
+      "doc": "{\"allow_query\":\"true\",\"data\":[{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"DOH\",\"value\":\"DOH\"}]}"
     },
     {
       "name": "common_user_tags",
@@ -254,8 +254,7 @@
     {
       "name": "http_url",
       "type": "string",
-      "label": "Http.URL",
-      "doc": "{\"allow_query\":\"true\"}"
+      "label": "Http.URL"
     },
     {
       "name": "http_host",
@@ -388,7 +387,6 @@
     {
       "name": "doh_url",
       "label": "DoH.URL",
-      "doc": "{\"allow_query\":\"true\"}",
       "type": "string"
     },
     {
