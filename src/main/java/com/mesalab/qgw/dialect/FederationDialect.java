@@ -83,9 +83,9 @@ public class FederationDialect extends AbstractEngineDialect{
 
         if (baseResult.isSuccess() ) {
 
-            Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
+            long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
-            statisticMap.put("elapsed", String.format("%.2f", Double.valueOf(statisticMap.get("elapsed").toString()) + executeTime));
+            statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
             if (StringUtil.isEmpty(baseResult.getData())) {
                 statisticMap.put("result_size", 0);
                 statisticMap.put("result_rows", 0);
