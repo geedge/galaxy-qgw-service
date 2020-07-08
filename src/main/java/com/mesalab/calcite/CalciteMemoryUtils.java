@@ -22,6 +22,13 @@ public class CalciteMemoryUtils {
     public static Map<String, Object> executeMemoryQuery(String tableName, List<Map<String, String>> meta,
                                                                             List<Map<String, Object>> data, String sql) {
         Map<String, Object> result = Maps.newHashMap();
+        if (meta.isEmpty() || data.isEmpty()) {
+            data.clear();
+            meta.clear();
+            result.put("meta", meta);
+            result.put("data", data);
+            return result;
+        }
         ResultSet resultSet = null;
         java.sql.Statement statement = null;
         Connection connection = null;
