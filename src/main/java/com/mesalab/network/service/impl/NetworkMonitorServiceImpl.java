@@ -147,18 +147,18 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     private String generateProtocolDataRateSql(QueryParam queryParam) {
         return String.format("(" +
-                        "SELECT TIME_FORMAT(TIME_FLOOR(__time, '%s'), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
+                        "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
                         "where protocol_id = '%s' and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' " +
-                        "group by TIME_FLOOR(__time, '%s'), protocol_id " +
+                        "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc" +
                         ") " +
                         "union all " +
                         "(" +
-                        "SELECT TIME_FORMAT(TIME_FLOOR(__time, '%s'), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
+                        "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
                         "where protocol_id like CONCAT('%s','/%s') and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' and (LENGTH('%s')-LENGTH(REPLACE('%s','/',''))) + 1 = (LENGTH(protocol_id)-LENGTH(REPLACE(protocol_id,'/',''))) " +
-                        "group by TIME_FLOOR(__time, '%s'), protocol_id " +
+                        "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc) ",
                 queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getGranularity(),
                 queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), '%', queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getParameters(), queryParam.getParameters(), queryParam.getGranularity());

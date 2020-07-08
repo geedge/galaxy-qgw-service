@@ -145,7 +145,7 @@ public class CalciteMemoryUtils {
             String fieldName = column.get("name");
             String fieldType = column.get("type");
             String dummyColumnType;
-            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(intUnits).contains(fieldName)) {
+            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(intUnits).contains(fieldType)) {
                 dummyColumnType = DataTypeMapping.BIGINT;
             } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(doubleUnits).contains(fieldType)) {
                 dummyColumnType = DataTypeMapping.DOUBLE;

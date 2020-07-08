@@ -116,8 +116,8 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String getQueryValue(String query, String dbType) {
-        query = generateDateFunction("select " + query + " as actualValue", dbType);
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            query = generateDateFunction("select " + query + " as actualValue", dbType);
             query = Encodes.urlEncode(query);
             Map<String, String> results = executeHttpGetOfCK(query);
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
@@ -126,6 +126,7 @@ public class SQLFunctionUtil {
             Object actualValue = data.get("actualValue");
             return actualValue.toString();
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            query = generateDateFunction("select TIME_FORMAT(" + query + ", 'yyyy-MM-dd HH:mm:ss') as actualValue", dbType);
             Map<String, String> results = executeHttpPostOfDruid(query);
             List<Object> maps = (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class);
             Map<String, Object> data = (Map<String, Object>) maps.get(0);
