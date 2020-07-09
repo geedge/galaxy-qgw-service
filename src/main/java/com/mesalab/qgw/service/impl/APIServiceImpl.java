@@ -35,6 +35,7 @@ import com.mesalab.qgw.service.IAPIService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -43,7 +44,6 @@ import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -496,6 +496,12 @@ public class APIServiceImpl implements IAPIService {
             for (Expression expression : fun.getParameters().getExpressions()) {
                 parserExpressionForFun(udfSet, expression);
             }
+        } else if (expr instanceof BinaryExpression) {
+            BinaryExpression binary = (BinaryExpression) expr;
+            Expression leftExpression = binary.getLeftExpression();
+            parserExpressionForFun(udfSet, leftExpression);
+            Expression rightExpression = binary.getRightExpression();
+            parserExpressionForFun(udfSet, rightExpression);
         }
     }
 
