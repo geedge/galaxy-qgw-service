@@ -97,7 +97,7 @@ public class HttpClientConfiguration {
                 }
                 // 服务端断掉客户端的连接异常
                 if (exception instanceof NoHttpResponseException) {
-                    return true;
+                    return false;
                 }
                 // time out
                 if (exception instanceof InterruptedIOException) {
