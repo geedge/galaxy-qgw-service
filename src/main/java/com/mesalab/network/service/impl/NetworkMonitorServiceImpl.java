@@ -169,11 +169,11 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return String.format("SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip, " +
                         "SUM(sessions) AS total_sessions, " +
                         "SUM(bytes) AS total_bytes, " +
-                        "ROUND((SUM(bytes) * 8 * 1000)/(TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')),2) AS data_rate, " +
+                        "(SUM(bytes) * 8 * 1000)/(TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')) AS data_rate, " +
                         "SUM(one_sided_connections) AS one_sided_connections, " +
                         "SUM(uncategorized_bytes) AS total_uncategorized_bytes, " +
-                        "CASE SUM(sessions) WHEN 0 THEN 0 ELSE ROUND(SUM(one_sided_connections)*1.0/SUM(sessions),2) END AS one_sided_percent, " +
-                        "CASE SUM(bytes) WHEN 0 THEN 0 ELSE ROUND(SUM(uncategorized_bytes)*1.0/SUM(bytes),2) END AS total_uncategorized_percent " +
+                        "CASE SUM(sessions) WHEN 0 THEN 0 ELSE ROUND(SUM(one_sided_connections)*1.0/SUM(sessions),4) END AS one_sided_percent, " +
+                        "CASE SUM(bytes) WHEN 0 THEN 0 ELSE ROUND(SUM(uncategorized_bytes)*1.0/SUM(bytes),4) END AS total_uncategorized_percent " +
                         "FROM %s " +
                         "WHERE __time >= TIMESTAMP '%s' " +
                         "AND __time < TIMESTAMP '%s' LIMIT 1 ",
