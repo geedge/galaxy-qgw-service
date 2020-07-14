@@ -87,19 +87,14 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                 && String.valueOf(HttpStatus.SC_OK).equals(dataRateResult.get("status"))) {
             Map session = (Map) JsonMapper.fromJsonString(currentSessionResult.get("result"), Map.class);
             List<Map> sessionData = (List<Map>) session.get("data");
-            Object sessions;
-            if (sessionData.isEmpty()) {
-                sessions = 0;
-            } else {
-                sessions = sessionData.get(0).get("current_sessions");
-            }
 
             Map result = (Map) JsonMapper.fromJsonString(dataRateResult.get("result"), Map.class);
-            List<Map> data = (List<Map>) result.get("data");
-            Optional.ofNullable(data).ifPresent(o ->
-                    o.get(0).put("current_sessions", sessions)
-            );
-            baseResult = BaseResultGenerator.success("ok", data, (Map) result.get("statistics"));
+            List<Map> resultData = (List<Map>) result.get("data");
+
+            for (int i = 0; i < resultData.size(); i++) {
+                resultData.get(i).put("current_sessions", sessionData.get(i).get("current_sessions") == null ? 0 : sessionData.get(i).get("current_sessions"));
+            }
+            baseResult = BaseResultGenerator.success("ok", resultData, (Map) result.get("statistics"));
         } else {
             baseResult = BaseResultGenerator.error("dataRate result: " + dataRateResult.toString() + "; currentSession result is: " + currentSessionResult);
         }
@@ -157,11 +152,11 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         "(" +
                         "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
-                        "where protocol_id like CONCAT('%s','/%s') and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' and (LENGTH('%s')-LENGTH(REPLACE('%s','/',''))) + 1 = (LENGTH(protocol_id)-LENGTH(REPLACE(protocol_id,'/',''))) " +
+                        "where protocol_id like CONCAT('%s','/%s') and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' and SUBSTRING(protocol_id, LENGTH(CONCAT('%s','/'))+1 )  NOT LIKE '%s/%s' " +
                         "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc) ",
                 queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getGranularity(),
-                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), '%', queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getParameters(), queryParam.getParameters(), queryParam.getGranularity());
+                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), '%', queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getParameters(), '%', '%', queryParam.getGranularity());
 
     }
 
