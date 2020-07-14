@@ -103,6 +103,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 return results;
             }
 
+            if (dateRangeList.size() >= 2) {
+                dateRangeList = dateRangeList.subList(1, dateRangeList.size() - 1);
+            }
+            if (dateRangeList.size() == 0) {
+                return results;
+            }
+
             int  maxSeriesNum =  engineConfigSource.getMaxCacheNum() / dateRangeList.size();
             if (maxSeriesNum == 0) {
                 log.warn("初始时间范围超出系统设置，无法进行补全[getMaxCacheNum:{} - dateRangeNum:{}],补全功能无效!", engineConfigSource.getMaxCacheNum(), dateRangeList.size());
