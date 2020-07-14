@@ -222,23 +222,20 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     private List<ProtocolTree> parserRawData(String jsonString) {
         List<ProtocolTree> lists = Lists.newArrayList();
         Map<String, Object> results = (Map<String, Object>) JsonMapper.fromJsonString(jsonString, Map.class);
-        List<String> protocolList = Lists.newArrayList(results.get("protocol_id").toString().split("/"));
         long sessions = Long.parseLong(results.get("sessions").toString());
         long sentBytes = Long.parseLong(results.get("c2s_byte_num").toString());
         long receivedBytes = Long.parseLong(results.get("s2c_byte_num").toString());
         long sentPackets = Long.parseLong(results.get("c2s_pkt_num").toString());
         long receivedPackets = Long.parseLong(results.get("s2c_pkt_num").toString());
-        String key = null;
-        for (String item : protocolList) {
-            key = Joiner.on("/").skipNulls().join(key, item);
-            ProtocolTree protocolTree = new ProtocolTree(key, item, null);
-            protocolTree.setSentBytes(sentBytes);
-            protocolTree.setReceivedBytes(receivedBytes);
-            protocolTree.getMetrics().put("sentPackets", sentPackets);
-            protocolTree.getMetrics().put("sessions", sessions);
-            protocolTree.getMetrics().put("receivedPackets", receivedPackets);
-            lists.add(protocolTree);
-        }
+        String protocolId = results.get("protocol_id").toString();
+        List<String> protocolList = Lists.newArrayList(protocolId.split("/"));
+        ProtocolTree protocolTree = new ProtocolTree(protocolId, protocolList.size() <= 0 ? null : protocolList.get(protocolList.size() - 1), null);
+        protocolTree.setSentBytes(sentBytes);
+        protocolTree.setReceivedBytes(receivedBytes);
+        protocolTree.getMetrics().put("sentPackets", sentPackets);
+        protocolTree.getMetrics().put("sessions", sessions);
+        protocolTree.getMetrics().put("receivedPackets", receivedPackets);
+        lists.add(protocolTree);
         return lists;
     }
 
