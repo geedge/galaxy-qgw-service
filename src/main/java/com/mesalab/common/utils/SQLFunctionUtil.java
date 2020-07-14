@@ -21,7 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author GouGe
+ * @author wangwei
  * @data 2019/8/1 10:13
  */
 public class SQLFunctionUtil {
