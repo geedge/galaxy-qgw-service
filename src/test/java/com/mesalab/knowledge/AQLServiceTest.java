@@ -4,14 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.google.common.collect.ImmutableList;
+import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.entity.Match;
+import com.mesalab.knowledge.entity.Range;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.util.Assert;
 
 import com.google.common.base.Joiner;
@@ -30,7 +32,7 @@ import com.zdjizhi.utils.StringUtil;
  * @create: 2020-07-06
  **/
 @EnableAutoConfiguration
-public class AQLServiceTest {
+public class AQLServiceTest extends GalaxyQGWApplicationTests {
 
     private static DSLObject.DSLQuery query = new DSLObject.DSLQuery();
     private static Parameters p = new Parameters();
@@ -39,38 +41,35 @@ public class AQLServiceTest {
 
         Match match = new Match();
         match.setFiledKey("FQDN_NAME");
-//        match.setFiledValues("baidu");
+        match.setFiledValues(ImmutableList.of(""));
         match.setType("substring");
         p.setMatches(Lists.newArrayList(match));
 
-//        Range range = new Range();
-//        range.setFiledKey("count");
-//        range.setFiledValue("2");
-//        range.setType("ge");
+        Range range = new Range();
+        range.setFiledKey("PROTOCOL");
+        range.setFiledValues(ImmutableList.of("HTTP"));
+        range.setType("ge");
+        Range range2 = new Range();
+        range2.setFiledKey("DEPTH");
+        range2.setFiledValues(ImmutableList.of("1..1"));
+        range2.setType("ge");
 //        range.setOperator("or");
-//        p.setRanges(Lists.newArrayList(range, range));
+        p.setRanges(Lists.newArrayList(range, range2));
 
-        p.setIntervals(Lists.newArrayList("2020-01-01 00:00:00/2020-01-02 00:00:00"));
-        p.setLimit("10");
+        p.setIntervals(Lists.newArrayList("2020-01-01 00:00:00/2020-07-16 15:59:52"));
+        p.setLimit("1");
 
-        query.setDatasource("FQDN");
+        query.setDatasource("IP_LEARNING_VIEW");
         query.setQueryType("FQDN");
         query.setParameters(p);
 
     }
 
     @Autowired
-    KnowledgeService aqlService;
-
-    @Test
-    public void aqlServiceTest() {
-//        Object fqdn = aqlService.getFqdn(query);
-//        System.out.println(fqdn);
-        System.err.println(1);
-    }
+    ArangoConfig arangoConfig;
 
     @Autowired
-    ArangoConfig arangoConfig;
+    KnowledgeService knowledgeService;
 
     @Test
     public void getJwt() {
@@ -86,9 +85,11 @@ public class AQLServiceTest {
         }
         Objects.requireNonNull(jwt);
     }
+
+
     @Test
-    public void inf(){
-        Header header = new BasicHeader(HttpHeaders.AUTHORIZATION, "jwt");
-        HttpClientUtils.httpPost("http://192.168.40.182:8529/_db/select_iplearn_index/_open/auth","ccc",header);
+    public void query() {
+        Object query = knowledgeService.query(AQLServiceTest.query);
+        Assert.notNull(query, "结果为空");
     }
 }

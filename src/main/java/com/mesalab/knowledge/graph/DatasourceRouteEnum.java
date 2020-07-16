@@ -15,22 +15,16 @@ public enum DatasourceRouteEnum {
      * 对应 Arangodb aql
      **/
     IP_LEARNING_VIEW("IP_LEARNING_VIEW", new FqdnAQLProviderImpl(), "let FQS = (" +
-            "for doc in FQDN\r\n" +
-
-                "filter (doc._key like \"@FQDN_NAME\" \r\n" +
-
-            "for fq2fq in @DEPTH outbound doc._id R_SAME_ORIGIN_FQDN2FQDN\r\n" +
-            "return distinct fq2fq)\r\n" +
-            ")\r\n" +
-            "for fq in FQS\r\n" +
-
-            "for v,e,p in 1..1 outbound fq._id graph 'FQDN_IP_GRAPH'\r\n" +
-
-                "filter e.LAST_FOUND_TIME >= @LAST_FOUND_TIME\r\n" +
-                "and count(e.DIST_CIP) >= 3\r\n" +
-                "and (e.HTTP_CNT_TOTAL >= 0 and e.TLS_CNT_TOTAL >= 0 or e.DNS_CNT_TOTAL >= 0)\r\n" +
-                "limit @limit\r\n" +
-
+            "for doc in FQDN " +
+            "filter (" +
+                "@likeFilter )" +
+            "for fq2fq in " +
+                "1..@depth " +
+            "outbound doc._id R_SAME_ORIGIN_FQDN2FQDN " +
+            "return distinct fq2fq) " +
+            "for fq in FQS " +
+            "for v,e,p in 1..1 outbound fq._id graph 'FQDN_IP_GRAPH' " +
+                " filter @filter " +
             "return distinct p"),
 
     IP_VIEW("IP_VIEW", new FqdnAQLProviderImpl(), "for doc in IP\n" +

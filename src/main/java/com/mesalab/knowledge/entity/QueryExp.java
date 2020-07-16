@@ -22,7 +22,7 @@ public class QueryExp {
 
 	protected String type;
 	protected String filedKey;
-	protected List<String> filedValues;
+	protected List<Object> filedValues;
 
 	protected String operator;
 
@@ -49,10 +49,4 @@ public class QueryExp {
 		return "";
 	}
 
-	public static void main(String[] args) {
-		List m = ImmutableList.of("1");
-
-		Object collect = m.stream().filter(mv -> mv!= null).collect(joining(" or doc._key like "," doc._key like ",""));
-		System.err.println(collect);
-	}
 }

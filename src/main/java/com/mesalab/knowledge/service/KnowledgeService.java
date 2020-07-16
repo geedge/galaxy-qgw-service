@@ -15,17 +15,14 @@ import com.mesalab.knowledge.common.config.ArangoConfig;
 @Service
 public class KnowledgeService extends BaseService{
 
-	@Autowired
-	ArangoConfig arangoConfig;
-
 
 	public Object query(DSLObject.DSLQuery dslQeruy) {
 		//1.登录
 		arangoConfig.setJwt(getJwt());
 		//2.查询
-		DatasourceRouteEnum.match(dslQeruy.getDatasource(), null).getRouter().query(dslQeruy, arangoConfig);
+		Object result = DatasourceRouteEnum.match(dslQeruy.getDatasource(), null).getRouter().query(dslQeruy, arangoConfig);
 		//3.过滤
-		return null;
+		return result;
 
 	}
 

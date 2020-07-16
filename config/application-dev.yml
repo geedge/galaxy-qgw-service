@@ -93,15 +93,15 @@ spring:
         max-wait: 10000ms
   ###############################################################################
   ## arango config
-  arango:
+arango:
     server: http://192.168.40.182:8529
-    database: select_iplearn_index
+    database: ip-learning-test
     username: root
     password: 111111
 
     ## http pool config
     ### max connection number
-  http:
+http:
     pool:
       connect:
         timeout: 30000

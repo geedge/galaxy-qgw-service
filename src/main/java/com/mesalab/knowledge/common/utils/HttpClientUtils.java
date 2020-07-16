@@ -259,7 +259,7 @@ public class HttpClientUtils {
             // 获取响应信息
             msg = EntityUtils.toString(entity, "UTF-8");
 
-            if (statusCode != HttpStatus.SC_OK) {
+            if (statusCode != HttpStatus.SC_OK&&statusCode!=HttpStatus.SC_CREATED) {
                 throw new BusinessException(msg);
             }
         } catch (URISyntaxException e) {

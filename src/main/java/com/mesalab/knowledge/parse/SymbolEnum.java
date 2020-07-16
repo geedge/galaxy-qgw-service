@@ -5,12 +5,12 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum SymbolEnum {
 
-    EQUAL("eq", "=", true),
-    NOT_EQUAL("ne", "<>", true),
-    LESS_THAN("lt", "<", false),
-    LESS_OR_EQUAL("le", "<=", false),
-    GREATER_THAN("gt", ">", false),
-    GREATER_OR_EQUAL("ge", ">=", false);
+    EQ("eq", "==", true),
+    NE("ne", "<>", true),
+    LT("lt", "<", false),
+    LE("le", "<=", false),
+    GT("gt", ">", false),
+    GE("ge", ">=", false);
 
     private final String type;
     private final String symbol;
@@ -35,33 +35,6 @@ public enum SymbolEnum {
         return symmetric;
     }
 
-    /**
-     * Returns a Jointype that would produce an equivalent predicate when
-     * the arguments to the type are applied swapped.
-     *
-     * @return a Jointype that would produce an equivalent predicate when
-     * the arguments to the type are applied swapped.
-     * @throws IllegalStateException if no such equivalent Jointype exists
-     */
-    public SymbolEnum swapEquivalent() {
-        switch (this) {
-            case EQUAL:
-                return EQUAL;
-            case NOT_EQUAL:
-                return NOT_EQUAL;
-            case LESS_THAN:
-                return GREATER_THAN;
-            case LESS_OR_EQUAL:
-                return GREATER_OR_EQUAL;
-            case GREATER_THAN:
-                return LESS_THAN;
-            case GREATER_OR_EQUAL:
-                return LESS_OR_EQUAL;
-        }
-        throw new IllegalStateException(
-                "There is no swap-equivalent " + SymbolEnum.class.getSimpleName() + " to " + this
-        );
-    }
 
     public static SymbolEnum match(String name, SymbolEnum defaultItem) {
         if (name != null) {
@@ -72,5 +45,15 @@ public enum SymbolEnum {
             }
         }
         return defaultItem;
+    }
+    public static SymbolEnum match(String name) {
+        if (name != null) {
+            for (SymbolEnum item : SymbolEnum.values()) {
+                if (item.type.equals(name)) {
+                    return item;
+                }
+            }
+        }
+        return null;
     }
 }

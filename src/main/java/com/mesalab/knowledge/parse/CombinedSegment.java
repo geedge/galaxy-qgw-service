@@ -1,3 +1,4 @@
+/*
 package com.mesalab.knowledge.parse;
 
 import java.util.List;
@@ -8,21 +9,25 @@ import com.google.common.base.Splitter;
 import com.mesalab.knowledge.entity.*;
 import com.zdjizhi.utils.DateUtils;
 
+*/
 /**
  * @description: 连接片段
  * @author: zhq
  * @create: 2020-07-03
- **/
+ **//*
+
 public class CombinedSegment {
 
 
-    /**
+    */
+/**
      * @return com.knowledge.query.ql.QLConditions
      * @Author zhq
      * @Description //TODO 将查询条件片段连接
      * @Date 2020\7\6 0006
      * @Param [parameters]
-     **/
+     **//*
+
     public static QLConditions getCondition(Parameters parameters) {
         StringBuffer sb = new StringBuffer();
         List<Match> matches = parameters.getMatches();
@@ -85,3 +90,4 @@ public class CombinedSegment {
         return QLConditions.builder().qlFilter(sb.toString()).build();
     }
 }
+*/

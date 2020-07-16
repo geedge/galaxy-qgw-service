@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/")
+@RequestMapping(value = "/knowledge")
 public class knowledgeController {
 
     @GetMapping("/")
