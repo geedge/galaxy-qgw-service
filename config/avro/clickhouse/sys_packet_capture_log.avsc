@@ -251,6 +251,12 @@
       "doc": "{\"allow_query\":\"true\"}"
     },
     {
+      "name": "common_link_info",
+      "label": "Link Info",
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
       "name": "nic_name",
       "label": "Nic Name",
       "type": "string"
