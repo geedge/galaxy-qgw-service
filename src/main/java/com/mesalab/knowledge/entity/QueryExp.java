@@ -1,14 +1,12 @@
 package com.mesalab.knowledge.entity;
 
-import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.mesalab.knowledge.parse.MatchEnum;
-import com.mesalab.knowledge.parse.SymbolEnum;
+import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.knowledge.enums.SymbolEnum;
 
 import lombok.Data;
 
@@ -21,8 +19,8 @@ import static java.util.stream.Collectors.joining;
 public class QueryExp {
 
 	protected String type;
-	protected String filedKey;
-	protected List<Object> filedValues;
+	protected String fieldKey;
+	protected List<Object> fieldValues;
 
 	protected String operator;
 
@@ -40,11 +38,11 @@ public class QueryExp {
 		if (this instanceof Match) {
 			MatchEnum match = MatchEnum.match(type, null);
 			Objects.requireNonNull(match, "match type error");
-			return Joiner.on(" or ").join(filedKey, "like", MessageFormat.format(match.matchExp(), filedValues));
+			return Joiner.on(" or ").join(fieldKey, "like", MessageFormat.format(match.matchExp(), fieldValues));
 		} else if (this instanceof Range) {
 			SymbolEnum range = SymbolEnum.match(type, null);
 			Objects.requireNonNull(range, "range type error");
-			return Joiner.on(" ").join(filedKey, range.symbol(), filedValues);
+			return Joiner.on(" ").join(fieldKey, range.symbol(), fieldValues);
 		}
 		return "";
 	}

@@ -16,13 +16,13 @@ import java.util.stream.Stream;
 @Data
 public class Parameters {
 
-    private List<Match> matches;
+    private List<Match> match;
 
-    private List<Range> ranges;
+    private List<Range> range;
 
     private List<String> intervals;
 
-    private List<Sort> sorts;
+    private List<Sort> sort;
 
     private String limit;
 

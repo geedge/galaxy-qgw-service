@@ -1,4 +1,4 @@
-package com.mesalab.knowledge.parse;
+package com.mesalab.knowledge.enums;
 
 import lombok.AllArgsConstructor;
 

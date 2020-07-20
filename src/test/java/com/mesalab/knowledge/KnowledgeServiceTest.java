@@ -1,27 +1,22 @@
 package com.mesalab.knowledge;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.knowledge.entity.DSLObject;
-import com.mesalab.knowledge.entity.Match;
-import com.mesalab.knowledge.entity.Range;
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
+import com.mesalab.knowledge.entity.*;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.util.Assert;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.HttpClientUtils;
 import com.mesalab.knowledge.common.utils.JwtCache;
-import com.mesalab.knowledge.entity.Parameters;
 import com.mesalab.knowledge.service.KnowledgeService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -32,7 +27,7 @@ import com.zdjizhi.utils.StringUtil;
  * @create: 2020-07-06
  **/
 @EnableAutoConfiguration
-public class AQLServiceTest extends GalaxyQGWApplicationTests {
+public class KnowledgeServiceTest extends GalaxyQGWApplicationTests {
 
     private static DSLObject.DSLQuery query = new DSLObject.DSLQuery();
     private static Parameters p = new Parameters();
@@ -40,26 +35,26 @@ public class AQLServiceTest extends GalaxyQGWApplicationTests {
     static {
 
         Match match = new Match();
-        match.setFiledKey("FQDN_NAME");
-        match.setFiledValues(ImmutableList.of(""));
+        match.setFieldKey("FQDN_NAME");
+        match.setFieldValues(ImmutableList.of(""));
         match.setType("substring");
-        p.setMatches(Lists.newArrayList(match));
+        p.setMatch(Lists.newArrayList(match));
 
         Range range = new Range();
-        range.setFiledKey("PROTOCOL");
-        range.setFiledValues(ImmutableList.of("HTTP"));
+        range.setFieldKey("PROTOCOL");
+        range.setFieldValues(ImmutableList.of("HTTP"));
         range.setType("ge");
         Range range2 = new Range();
-        range2.setFiledKey("DEPTH");
-        range2.setFiledValues(ImmutableList.of("1..1"));
+        range2.setFieldKey("DEPTH");
+        range2.setFieldValues(ImmutableList.of("1..1"));
         range2.setType("ge");
 //        range.setOperator("or");
-        p.setRanges(Lists.newArrayList(range, range2));
+        p.setRange(Lists.newArrayList(range, range2));
 
         p.setIntervals(Lists.newArrayList("2020-01-01 00:00:00/2020-07-16 15:59:52"));
         p.setLimit("1");
 
-        query.setDatasource("IP_LEARNING_VIEW");
+        query.setDataSource("IP_LEARNING_VIEW");
         query.setQueryType("FQDN");
         query.setParameters(p);
 
@@ -88,8 +83,33 @@ public class AQLServiceTest extends GalaxyQGWApplicationTests {
 
 
     @Test
-    public void query() {
-        Object query = knowledgeService.query(AQLServiceTest.query);
-        Assert.notNull(query, "结果为空");
+    public void queryIpelarning() {
+        DSLObject dslObject = new DSLObject();
+        dslObject.setQuery(query);
+        Object query = knowledgeService.query(dslObject);
+        Stream.of(query).forEach(x-> System.out.println(x));
+    }
+
+    @Test
+    public void sortTest(){
+        List<Sort> list = Lists.newArrayList();
+        Sort sort = new Sort();
+        sort.setFieldKey("BYTES_TOTAL");
+        sort.setType("desc");
+        Sort sort2 = new Sort();
+        sort2.setFieldKey("LAST_FOUND_TIME");
+        sort2.setType("asc");
+        list.add(sort);
+        list.add(sort2);
+
+        String collect = list.stream().map(x -> {
+            if ("BYTES_TOTAL".equals(x.getFieldKey())) {
+                return "(doc.CLIENT_BYTES_SUM+doc.SERVER_BYTES_SUM) " + x.getType();
+            } else if ("LAST_FOUND_TIME".equals(x.getFieldKey())) {
+                return "doc.LAST_FOUND_TIME " + x.getType();
+            }
+            return "";
+        }).collect(Collectors.joining(",", " sort ", " "));
+        Assert.assertEquals(collect," sort (doc.CLIENT_BYTES_SUM+doc.SERVER_BYTES_SUM) desc,doc.LAST_FOUND_TIME asc ");
     }
 }

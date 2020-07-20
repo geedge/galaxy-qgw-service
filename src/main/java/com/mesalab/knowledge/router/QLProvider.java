@@ -1,4 +1,4 @@
-package com.mesalab.knowledge.graph;
+package com.mesalab.knowledge.router;
 
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.entity.DSLObject;

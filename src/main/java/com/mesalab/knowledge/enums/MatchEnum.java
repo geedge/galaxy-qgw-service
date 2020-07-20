@@ -1,8 +1,6 @@
-package com.mesalab.knowledge.parse;
+package com.mesalab.knowledge.enums;
 
 import lombok.AllArgsConstructor;
-
-import java.text.MessageFormat;
 
 /**
  * @description: 匹配方式
@@ -39,8 +37,5 @@ public enum MatchEnum {
         return defaultItem;
     }
 
-    public static void main(String[] args) {
-        System.out.println(MessageFormat.format("\"%{0}%\"",""));
-    }
 
 }

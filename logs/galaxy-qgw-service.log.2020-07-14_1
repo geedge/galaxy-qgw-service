@@ -224,7 +224,7 @@ Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'ar
 	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:91) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:373) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	... 41 more
-[2020-07-14 17:23:36] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@464d5365] to prepare test instance [com.mesalab.knowledge.AQLServiceTest@38394dc3]
+[2020-07-14 17:23:36] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@464d5365] to prepare test instance [com.mesalab.knowledge.KnowledgeServiceTest@38394dc3]
 java.lang.IllegalStateException: Failed to load ApplicationContext
 	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:125) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:108) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
@@ -528,7 +528,7 @@ Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'ar
 	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:91) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:373) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	... 41 more
-[2020-07-14 17:26:01] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@3b7dd173] to prepare test instance [com.mesalab.knowledge.AQLServiceTest@7552f05b]
+[2020-07-14 17:26:01] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@3b7dd173] to prepare test instance [com.mesalab.knowledge.KnowledgeServiceTest@7552f05b]
 java.lang.IllegalStateException: Failed to load ApplicationContext
 	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:125) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:108) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
@@ -832,7 +832,7 @@ Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'ar
 	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:91) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:373) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	... 41 more
-[2020-07-14 17:27:40] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@40dc2ade] to prepare test instance [com.mesalab.knowledge.AQLServiceTest@51d76ad3]
+[2020-07-14 17:27:40] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@40dc2ade] to prepare test instance [com.mesalab.knowledge.KnowledgeServiceTest@51d76ad3]
 java.lang.IllegalStateException: Failed to load ApplicationContext
 	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:125) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:108) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
@@ -1136,7 +1136,7 @@ Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'ar
 	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:91) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:373) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	... 41 more
-[2020-07-14 17:29:48] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@77b01226] to prepare test instance [com.mesalab.knowledge.AQLServiceTest@386ea60f]
+[2020-07-14 17:29:48] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@77b01226] to prepare test instance [com.mesalab.knowledge.KnowledgeServiceTest@386ea60f]
 java.lang.IllegalStateException: Failed to load ApplicationContext
 	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:125) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:108) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
@@ -1440,7 +1440,7 @@ Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'ar
 	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:91) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:373) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	... 41 more
-[2020-07-14 17:31:07] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@7f41d979] to prepare test instance [com.mesalab.knowledge.AQLServiceTest@71d0b8a4]
+[2020-07-14 17:31:07] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@7f41d979] to prepare test instance [com.mesalab.knowledge.KnowledgeServiceTest@71d0b8a4]
 java.lang.IllegalStateException: Failed to load ApplicationContext
 	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:125) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:108) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
@@ -1744,7 +1744,7 @@ Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'ar
 	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:91) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:373) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	... 41 more
-[2020-07-14 17:33:04] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@de0c402] to prepare test instance [com.mesalab.knowledge.AQLServiceTest@24955144]
+[2020-07-14 17:33:04] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@de0c402] to prepare test instance [com.mesalab.knowledge.KnowledgeServiceTest@24955144]
 java.lang.IllegalStateException: Failed to load ApplicationContext
 	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:125) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:108) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
@@ -2256,7 +2256,7 @@ public java.lang.String com.mesalab.knowledge.controller.knowledgeController.inf
 	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:815) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:721) ~[spring-beans-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	... 43 more
-[2020-07-14 17:35:17] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@1d1fd2aa] to prepare test instance [com.mesalab.knowledge.AQLServiceTest@4c78e00c]
+[2020-07-14 17:35:17] [ERROR] [Thread:main] org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:250) [] - Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@1d1fd2aa] to prepare test instance [com.mesalab.knowledge.KnowledgeServiceTest@4c78e00c]
 java.lang.IllegalStateException: Failed to load ApplicationContext
 	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:125) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]
 	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:108) ~[spring-test-5.0.6.RELEASE.jar:5.0.6.RELEASE]

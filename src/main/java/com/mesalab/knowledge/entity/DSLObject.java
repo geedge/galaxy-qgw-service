@@ -14,7 +14,7 @@ public class DSLObject {
     public static class DSLQuery {
 
         public String queryType;
-        public String datasource;
+        public String dataSource;
         public Parameters parameters;
 
     }
