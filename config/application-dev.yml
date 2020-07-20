@@ -90,3 +90,24 @@ spring:
         min-idle: 0
         max-wait: 10000ms
   ###############################################################################
+  ## arango config
+arango:
+    server: http://192.168.40.182:8529
+    database: ip-learning-test
+    username: root
+    password: 111111
+
+    ## http pool config
+    ### max connection number
+http:
+    pool:
+      connect:
+        timeout: 30000
+      max:
+        connection: 500
+        per:
+          route: 200
+      request:
+        timeout: 10000
+      response:
+        timeout: 10000
