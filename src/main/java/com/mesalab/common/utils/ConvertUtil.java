@@ -258,7 +258,7 @@ public class ConvertUtil {
 
         TreeMap<String, Map<String, Object>> target = Maps.newTreeMap(sources);
 
-        boolean isTimestamp = isTimestamp(sources.firstKey());
+        boolean isTimestamp = StringUtil.isNumeric(sources.firstKey());
         for(Date date : dateList) {
 
             String timeKey;
@@ -305,29 +305,7 @@ public class ConvertUtil {
     }
 
 
-    private static boolean isTimestamp(String datetime) {
-        boolean isTimestamp = false;
 
-        try {
-
-            Long timestap = Long.parseLong(datetime);
-
-            Long firstTime = DateUtils.convertStringToTimestamp("1970-01-01 00:00:00", DateUtils.YYYY_MM_DD_HH24_MM_SS);
-
-            if (timestap - firstTime > 0) {
-                isTimestamp = true;
-            }
-
-
-        } catch (Exception e) {
-            isTimestamp = false;
-
-        }
-
-        return isTimestamp;
-
-
-    }
 
 
     private static Map<String, Object> getPositionElement(TreeMap<String, Map<String, Object>> target,
@@ -361,8 +339,6 @@ public class ConvertUtil {
 
         return element;
     }
-
-
 
 
 

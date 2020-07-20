@@ -3,13 +3,13 @@ package com.mesalab.common.enums;
 import lombok.Getter;
 
 /**
- * BaseResult的code编码枚举
+ * BaseResult的http状态编码枚举
  *
- * @author dazzlzy
+ * @author
  * @date 2018/3/21
  */
 @Getter
-public enum BaseResultEnum {
+public enum ResultStatusEnum {
     /**
      * SUCCESS: 200 成功
      * FAIL: 400 失败
@@ -26,7 +26,7 @@ public enum BaseResultEnum {
 
     private String message;
 
-    BaseResultEnum(int code, String message) {
+    ResultStatusEnum(int code, String message) {
         this.code = code;
     }
 

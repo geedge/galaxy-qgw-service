@@ -26,6 +26,13 @@ public interface Dialect {
      */
     Dialect executeQuery();
 
+
+    /**
+     * 执行数据库系统管理操作，包含 Show/Describe/Kill等
+     * @return
+     */
+    Dialect executeAdministrativeQuery();
+
     /**
      * 返回结果数据进行封装
      * @return

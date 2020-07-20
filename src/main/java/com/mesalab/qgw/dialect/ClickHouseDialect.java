@@ -4,9 +4,7 @@ package com.mesalab.qgw.dialect;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.BaseResultEnum;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -15,9 +13,9 @@ import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.mesalab.qgw.service.impl.MetadataServiceImpl;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
-import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.*;
@@ -25,7 +23,6 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.parser.SimpleNode;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
@@ -33,7 +30,6 @@ import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import tk.mybatis.mapper.mapperhelper.SqlHelper;
 
 
 import java.nio.charset.Charset;
@@ -42,21 +38,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-public class ClickhouseDialect extends  AbstractDataSourceDialect{
+public class ClickHouseDialect extends  AbstractDataSourceDialect{
     Pattern pGlobalIn = Pattern.compile("\\s+in\\s*\\(", Pattern.CASE_INSENSITIVE);
     Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
     Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
-    Pattern pLimit = Pattern.compile("limit\\s*(.*?)\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
 
 
-    public ClickhouseDialect(ApiParam param) {
+
+    public ClickHouseDialect(ApiParam param) {
         initialize(param);
     }
 
@@ -186,7 +182,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
 
           } catch (JSQLParserException e) {
               log.error("sqlParser error: ", e);
-              throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
+              throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "参数校验：SQL 解析错误", e);
 
           }
 
@@ -248,9 +244,8 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
        */
     public Optimizer generateQueryLimit() {
 
-        if(StringUtil.isEmpty(param.getEngineQuerySource())) {
-            setDefaultResultRows(param.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
-        }
+        setDefaultResultRows(StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
+
         setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
         return this;
     }
@@ -441,7 +436,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
               Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData.getData()));
               //判断三: where 条件列是否都在索引表中
               setValidityByWhereExpressionsInSchema(param.getDbQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
-              if (getSubIndexValidFlag() && tableIsAvaliableInDB(indexTableSchema.getFullName())) {
+              if (getSubIndexValidFlag() && isExist(indexTableSchema.getFullName())) {
                   indexTable = indexTableSchema.getFullName();
                   break;
               }
@@ -568,8 +563,8 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
        * @param tableName
        * @return
        */
-      private boolean tableIsAvaliableInDB(String tableName) {
-          Map<String, String> result = executeHttpGet(String.format("select 1 from %s limit 1", tableName), QueryFormatEnum.JSON.getValue());
+      private boolean isExist(String tableName) {
+          Map<String, String> result = executeHttpGet(String.format("select 1 from %s limit 1", tableName));
           if (result.get("status") == null || Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
               log.info("DB中不存在该表: {}", tableName);
               return false;
@@ -813,41 +808,36 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
 
     @Override
     public Dialect executeQuery() {
-
-        String sql = convertQuery(findBestQuery());
-
-        Map<String, String> results = executeHttpGet(sql, param.getFormat());
-
-        if (StringUtil.isEmpty(results)) {
-            baseResult = BaseResultGenerator.error();
-        } else {
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                        JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, param.getFormat());
-            } else {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                        results.get("result"), null, null, param.getFormat());
-            }
-
-        }
-
+        generateBaseResult(convertQuery(findBestQuery()));
         return this;
     }
 
-
+    @Override
+    public Dialect executeAdministrativeQuery() {
+        generateBaseResult(param.getQuery());
+        return this;
+    }
 
 
     @Override
     public Dialect executeSyntaxCheck() {
-        String query = getSyntaxCheckSql();
-        Map<String, String> results = executeHttpGet("select 1", param.getFormat());
-
-        baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), query,
-                JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, param.getFormat());
-        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
+        String sql = getSyntaxCheckSql();
+        generateBaseResult(sql);
+        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), sql);
         return this;
     }
 
+    private void generateBaseResult(String sql) {
+
+        Map<String, String> results = executeHttpGet(sql);
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), Encodes.urlDecode(sql),
+                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
+                    results.get("result"), null, null, param.getFormat());
+        }
+    }
 
 
     @Override
@@ -858,25 +848,23 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
             if (StringUtil.isBlank(baseResult.getMessage())) {
                 baseResult.setMessage("ok");
             }
-
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                Map<String, Object> resultMap = (Map<String, Object>) dataObject;
-                Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
-                Map<String, Object> statistics = Maps.newHashMap();
-                statistics.put("elapsed", String.format("%.2f", (double) statisticMap.get("elapsed")));
-                statistics.put("rows_read", statisticMap.get("rows_read"));
-                int resultSize = StringUtil.isEmpty(resultMap.get("data")) ? 0 : JsonMapper.toJsonString(resultMap.get("data")).getBytes().length;
-                statistics.put("result_size", resultSize);
-                baseResult.setData(resultMap.get("data"));
-                baseResult.setMeta(resultMap.get("meta"));
-                baseResult.setStatistics(statistics);
-            }
+            Map<String, Object> resultMap = (Map<String, Object>) dataObject;
+            Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
+            Map<String, Object> statistics = Maps.newLinkedHashMap();
+            statistics.put("elapsed", Math.round(Double.parseDouble(String.valueOf(statisticMap.get("elapsed"))) * 1000));
+            statistics.put("rows_read", statisticMap.get("rows_read"));
+            baseResult.setData(resultMap.get("data"));
+            baseResult.setMeta(resultMap.get("meta"));
+            baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,
+                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager" : String.valueOf(dataObject));
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager" : String.valueOf(dataObject));
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, dataObject.toString());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager " : String.valueOf(dataObject));
         }
         return baseResult;
     }
@@ -889,9 +877,7 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
      * @return
      */
     private String getSyntaxCheckSql() {
-        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
-        String query = convertQuery(sqlQuerySource.getSqlBody());
-        query = Encodes.urlDecode(query);
+        String query = convertQuery(findBestQuery());
         return query;
     }
 
@@ -902,29 +888,52 @@ public class ClickhouseDialect extends  AbstractDataSourceDialect{
     /**
      * ClickHouse Http Query Interface
      * @param sql SQL语句
-     * @param format 结果显示格式,JSON OR CSV
      * @return
      */
-    private Map<String, String> executeHttpGet(String sql, String format) {
+    private Map<String, String> executeHttpGet(String sql) {
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
 
-        StringBuilder queryparamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
-                .append("database=")
-                .append(clickHouseHttpSource.getDbname()).append("&")
-                .append("query=").append(sql)
-                .append(" FORMAT ").append(format.toUpperCase()).append(" ;");
+        String queryParameter = buildHttpQueryParameter(sql);
 
-        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
+        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), urlBuilder.toString() +
+                Encodes.urlDecode(queryParameter));
 
-        List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
+        List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, Charset.forName("UTF-8"));
 
         return httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
     }
 
+    private String buildHttpQueryParameter(String sql) {
+
+        StringBuilder queryParameterBuilder = new StringBuilder(1024);
+
+        String dbName = metadataService.getDBNameByTableName(param.getTableName());
+
+        if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
+            queryParameterBuilder.append("user=")
+                    .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
+                    .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
+                    .append("database=").append(dbName).append("&")  ;
+
+        }  else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+
+            queryParameterBuilder.append("user=")
+                    .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
+                    .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
+                    .append("database=").append(dbName).append("&")
+                    .append("query_id=").append(ReportCacheUtils.getQueryId(param.getResultId(), param.getQuery())).append("&");
+        } else {
+            queryParameterBuilder.append("user=")
+                    .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
+                    .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                    .append("database=").append(dbName).append("&");
+        }
 
 
+        queryParameterBuilder.append("query=").append(sql)
+                .append(" FORMAT ").append(QueryFormatEnum.JSON.getValue().toUpperCase()).append(" ;");
+        return queryParameterBuilder.toString();
+    }
 
 }

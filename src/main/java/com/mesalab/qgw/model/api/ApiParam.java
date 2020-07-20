@@ -1,9 +1,17 @@
 package com.mesalab.qgw.model.api;
 
+import com.zdjizhi.utils.StringUtil;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.nutz.json.JsonIgnore;
 
 import java.io.Serializable;
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ApiParam implements Serializable {
 
     private String query;
@@ -15,9 +23,20 @@ public class ApiParam implements Serializable {
     private String dialectDBType; //方言数据库类型，用于SQL格式解析校验
     private String reportId;//离线统计报告唯一ID
     private String resultId;//离线统计报告结果ID
+
     private String sql;//当前执行的SQL
+
     private SQLQuerySource engineQuerySource; //网关引擎处理SQL对象
+
     private SQLQuerySource dbQuerySource; //下沉数据源引擎的SQL对象
 
 
+    public String getResultId() {
+
+        return StringUtil.isNotBlank(reportId) ? reportId : resultId;
+    }
+
+    public void setResultId(String resultId) {
+        this.resultId = resultId;
+    }
 }

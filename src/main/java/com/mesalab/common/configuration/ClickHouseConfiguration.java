@@ -1,6 +1,5 @@
 package com.mesalab.common.configuration;
 
-import com.mesalab.common.utils.DruidPasswordUtil;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -25,28 +24,11 @@ public class ClickHouseConfiguration {
     public ClickHouseHttpSource clickhouseHttpSource() {
         ClickHouseHttpSource httpSource  = new ClickHouseHttpSource();
         httpSource.setUrl(StringUtil.substringAfter(clickhouseProperties.getUrl(), "//"));
-        httpSource.setDbname(clickhouseProperties.getDbname());
-        httpSource.setUsername(clickhouseProperties.getUsername());
-        httpSource.setPassword(clickhouseProperties.getPassword());
+        httpSource.setDbName(clickhouseProperties.getDbname());
+        httpSource.setRealTimeAccount(clickhouseProperties.getRealTimeAccount());
+        httpSource.setLongTermAccount(clickhouseProperties.getLongTermAccount());
 
         return httpSource;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

@@ -14,16 +14,15 @@ import com.alibaba.druid.stat.TableStat;
 import com.alibaba.druid.util.JdbcConstants;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.SchemaBase;
 import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.configuration.DruidIoProperties;
-import com.mesalab.common.configuration.SchemaProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.qgw.dialect.Dialect;
@@ -36,6 +35,7 @@ import com.mesalab.qgw.service.IAPIService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -56,8 +56,6 @@ import java.util.*;
 @Service("apiService")
 public class APIServiceImpl implements IAPIService {
 
-    @Autowired
-    private SchemaProperties schemaProperties;
     @Autowired
     private ClickHouseProperties clickHouseProperties;
     @Autowired
@@ -86,7 +84,7 @@ public class APIServiceImpl implements IAPIService {
         try {
             statement = CCJSqlParserUtil.parse(param.getQuery());
         } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e.getCause());
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e.getCause());
         }
 
         BaseResult baseResult;
@@ -99,7 +97,8 @@ public class APIServiceImpl implements IAPIService {
             ShowStatement showStatement = (ShowStatement) statement;
             baseResult = executeShowStatement(param, showStatement);
         } else {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,目前只支持SELECT、SHOW、DESCRIBE 操作", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                    "SQL Syntax Error: Only support statement operations for select, show and describe.", null);
         }
         return baseResult;
     }
@@ -110,37 +109,30 @@ public class APIServiceImpl implements IAPIService {
 
     private BaseResult executeSelectStatement(ApiParam param) {
 
-        Dialect dbDialect = parserSQL(param);
-
         BaseResult baseResult = null;
-        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            baseResult = dbDialect
-                    .executeSyntaxCheck()
-                    .build();
-        } else {
-
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                baseResult = dbDialect
-                        .executeQuery()
-                        .build();
+        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+            baseResult = ReportCacheUtils.get(param);
+            if (baseResult.isSuccess()) {
+                return baseResult;
             } else {
-                baseResult = dbDialect
-                        .executeQuery()
-                        .build();
+                log.warn("Long-Term Results not exist, execute real-time query: resultID-{}, sql-{}",
+                        param.getResultId(), StringUtil.strip(param.getQuery()) );
+
             }
 
-           baseResult = new FederationDialect(param, baseResult).executeQuery().build();
-
-
-
         }
 
-
+        Dialect dbDialect = parserSQL(param);
+        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
+            baseResult = dbDialect.executeSyntaxCheck().build();
+        } else {
+            baseResult = dbDialect.executeQuery().build();
+            baseResult = new FederationDialect(param, baseResult).executeQuery().build();
+        }
 
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(),baseResult.getMessage(), null);
+            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
         }
-
 
         return baseResult;
     }
@@ -151,51 +143,33 @@ public class APIServiceImpl implements IAPIService {
     }
 
 
-
-
     private Dialect parserAndGetDialect(ApiParam param) {
-
         Dialect dialect = null;
-
-        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {//离线查询无需解析sql
-            param.setDbType(DBTypeEnum.HBASE.getValue());
-            param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
+        String dbType = metadataService.getDBTypeByTableName(param.getTableName().toLowerCase());
+        if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(dbType)) {
+            param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
+        } else if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(dbType)) {
+            param.setDbType(DBTypeEnum.DRUID.getValue());
         } else {
-            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getClickhouse())
-                    .contains(param.getTableName().toLowerCase())) {
-                param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
-            } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(schemaProperties.getDruid())
-                    .contains(param.getTableName().toLowerCase())) {
-                param.setDbType(DBTypeEnum.DRUID.getValue());
-            } else {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
-            }
-
-            param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
-
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
         }
-
-        SQLQuerySource sqlQuerySource = parserSQLByAst(param.getQuery());
-
-        if (param.getDbType().equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
-            param.setDbQuerySource(sqlQuerySource);
-        } else {
-            convertQueryRecursive(param, sqlQuerySource);
-        }
+        param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
+        convertQueryRecursive(param, parserSQLByAst(param.getQuery()));
         dialect = getDialect(param);
-
         return dialect;
     }
 
     private Dialect getDialect(ApiParam param) {
         Dialect dialect;
         try {
-            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
+            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
+                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
+
             dialect = (Dialect) constructor.newInstance(param);
 
         } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode() , "方言转换实例异常！", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
         }
 
         return dialect;
@@ -210,45 +184,38 @@ public class APIServiceImpl implements IAPIService {
      * format：输出格式，默认为JSON
      * option：查询选项，默认为real-time
      */
-    private String  validateAndGetTableName(ApiParam param) {
+    private String validateAndGetTableName(ApiParam param) {
 
+        if (StringUtil.isBlank(param.getQuery())) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The SQL must be exists.", null);
+        }
 
-       if (StringUtil.isBlank(param.getQuery())) {
-           throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：query SQL 错误", null);
-       }
-
-       if (StringUtil.isNotBlank(param.getOption())) {
-
+        if (StringUtil.isNotBlank(param.getOption())) {
             if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.REAL_TIME.getValue()) &&
                     !param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue()) &&
                     !param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：option 参数错误", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The option must be real-time or long-term or syntax-check. ", null);
             }
-
             if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
                 if (StringUtil.isBlank(param.getReportId()) && StringUtil.isBlank(param.getResultId())) {
-                    throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：option=long-term,需指定reportId或resultId", null);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The option=long-term,must be reportId or resultId.", null);
                 }
             }
-
-       } else {
+        } else {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
-       }
+        }
 
 
         if (StringUtil.isNotBlank(param.getFormat())) {
-
             if (!param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())
-                && !param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：format 参数错误", null);
+                    && !param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error: The format must be json or csv.", null);
             }
-
         } else {
             param.setFormat(QueryFormatEnum.JSON.getValue());
         }
 
         return getTableName(param.getQuery());
-
     }
 
 
@@ -266,18 +233,18 @@ public class APIServiceImpl implements IAPIService {
                     int i = tableName.lastIndexOf(".");
                     tableName = i < 0 ? tableName : tableName.substring(i + 1);
                 } else {
-                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
+                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Get Table Name Error." );
                 }
 
 
             } else {
                 log.warn("Not support DML Parser");
-                throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,不支持SELECT 之外操作" );
+                throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error, Not support DML Parser." );
             }
 
         } catch (Exception e) {
 
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e.getCause());
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error: ", ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), e.getCause());
         }
 
         return  tableName;
@@ -307,7 +274,7 @@ public class APIServiceImpl implements IAPIService {
 
         } catch (Exception e) {
                 log.error("sqlParser error: ", e);
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
         }
         return  tableName;
     }
@@ -347,6 +314,7 @@ public class APIServiceImpl implements IAPIService {
             String replace = sqlQuerySource.getSqlBody().replace(indexUpSqlQuerySource.getSubSelect().toString(), tableName);
             engineQuerySource.setSqlBody(replace);
             engineQuerySource.setTableName(tableName);
+            engineQuerySource.setLimit(sqlQuerySource.getLimit());
         }
 
         param.setDbQuerySource(dbQuerySource);
@@ -383,7 +351,7 @@ public class APIServiceImpl implements IAPIService {
                     sqlQuerySource.setTableName(tableName);
                     sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
                 } else {
-                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,未能获取表名" );
+                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Can't find table name." );
                 }
 
 
@@ -450,7 +418,7 @@ public class APIServiceImpl implements IAPIService {
 
                     if (subItem instanceof SubSelect) {
                         SubSelect subSelect = (SubSelect) subItem;
-                        log.info("解析subSql: {}", subSelect);
+                        log.debug("存在子查询为: {}", subSelect);
                         sqlQuerySource.setSubSelect(subSelect);
                         sqlQuerySource.getSubSqlQuerySources().add(0, parserSQLByAst(String.valueOf(subSelect.getSelectBody())));
                     }
@@ -470,23 +438,33 @@ public class APIServiceImpl implements IAPIService {
 
 
                 } else if (body instanceof SetOperationList) { // 连接查询
+                    SetOperationList setOperationList = (SetOperationList) body;
+                    List<SelectBody> selects = setOperationList.getSelects();
+                    //暂时只解析第一个结构，不接受不相同的where
+                    if(StringUtil.isNotEmpty(selects)) {
+                        SQLQuerySource parseSql = parserSQLByAst(selects.get(0).toString());
+                        sqlQuerySource.setUdfSet(parseSql.getUdfSet());
+                        sqlQuerySource.setWhereExpression(parseSql.getWhereExpression());
+                        sqlQuerySource.setGroupByElement(parseSql.getGroupByElement());
+                        sqlQuerySource.setAliasFields(parseSql.getAliasFields());
+                    }
                     sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                 } else { //其它暂不支持
-                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
+                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
                 }
 
 
 
             } else {
                 log.warn("Not support DML Parser");
-                throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误,不支持SELECT 之外操作" );
+                throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Only support statement operation as select." );
             }
 
 
 
         } catch (Exception e) {
             log.error("sqlParser error: ", e);
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e);
 
         }
 
@@ -518,6 +496,12 @@ public class APIServiceImpl implements IAPIService {
             for (Expression expression : fun.getParameters().getExpressions()) {
                 parserExpressionForFun(udfSet, expression);
             }
+        } else if (expr instanceof BinaryExpression) {
+            BinaryExpression binary = (BinaryExpression) expr;
+            Expression leftExpression = binary.getLeftExpression();
+            parserExpressionForFun(udfSet, leftExpression);
+            Expression rightExpression = binary.getRightExpression();
+            parserExpressionForFun(udfSet, rightExpression);
         }
     }
 
@@ -536,7 +520,7 @@ public class APIServiceImpl implements IAPIService {
             UDFElements udfElements = new UDFElements(funName, expressions);
             udf = (UDF) constructor.newInstance(udfElements);
         } catch (Exception e) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "自定义函数转换实例异常！", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "自定义函数转换实例异常！", e);
         }
         return udf;
     }
@@ -622,7 +606,7 @@ public class APIServiceImpl implements IAPIService {
                         sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                     }
                 } else {
-                    throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持SELECT之外Statement操作");
+                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
                 }
 
 
@@ -630,7 +614,7 @@ public class APIServiceImpl implements IAPIService {
             }
         } catch (Exception e) {
             log.error("sqlParser error: ", e);
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：SQL 解析错误", e);
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
 
         }
 
@@ -644,7 +628,7 @@ public class APIServiceImpl implements IAPIService {
         if (subTable instanceof SQLExprTableSource) {
             return ((SQLExprTableSource) subTable).getName().getSimpleName();
         } else {
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：暂不支持多级嵌套子查询操作");
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Multi-level nested subqueries are not supported yet.");
         }
     }
 
@@ -659,11 +643,14 @@ public class APIServiceImpl implements IAPIService {
     private BaseResult executeDescStatement(ApiParam param, DescribeStatement statement) {
         String name = statement == null ? param.getTableName() : statement.getTable().getName();
         param.setTableName(name);
-        //查ck
+
+
         ApiParam temp = new ApiParam();
         temp.setSchema(clickHouseProperties.getDbname());
         temp.setTableName(name);
         temp.setQuery("show tables");
+
+
         BaseResult ckResult = executeShowStatement(temp, null);
         Map data = (Map) ckResult.getData();
         List symbols = (List) data.get("symbols");
@@ -677,10 +664,15 @@ public class APIServiceImpl implements IAPIService {
             param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + name + "'");
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
+
+        SQLQuerySource dbQuerySource = new SQLQuerySource();
+        dbQuerySource.setSqlBody(param.getQuery());
+        param.setDbQuerySource(dbQuerySource);
+
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeQuery().build();
+        BaseResult result = dialect.executeAdministrativeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "describe table error, please check tableName", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "describe table error, please check tableName", null);
         }
         BaseResult baseResult = dataEncapsulationOfSchema(result, param);
         return baseResult;
@@ -695,7 +687,7 @@ public class APIServiceImpl implements IAPIService {
     private BaseResult executeShowStatement(ApiParam param, ShowStatement showStatement) {
 
         if (showStatement != null && !"tables".equalsIgnoreCase(showStatement.getName())) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：不支持Show tables 之外的操作", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error：不支持Show tables 之外的操作", null);
         }
         if (clickHouseProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
@@ -708,13 +700,14 @@ public class APIServiceImpl implements IAPIService {
             BaseResult result = getAllTables();
             return result;
         } else {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema name error", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema name error", null);
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
+
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeQuery().build();
+        BaseResult result = dialect.executeAdministrativeQuery().build();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), result.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), result.getMessage(), null);
         }
         List tables = (ArrayList) result.getData();
         List<String> list = new ArrayList<>();
@@ -778,7 +771,7 @@ public class APIServiceImpl implements IAPIService {
             druid.setData(date);
             return druid;
         }else {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "查询所有tables异常", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "查询所有tables异常", null);
         }
     }
 

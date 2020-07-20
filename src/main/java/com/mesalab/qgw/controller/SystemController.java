@@ -2,7 +2,7 @@ package com.mesalab.qgw.controller;
 
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.service.SystemService;
@@ -53,17 +53,17 @@ public class SystemController {
         log.info("数据配额设置, 参数: params is {}", list);
 
         if (StringUtil.isEmpty(list)) {
-            return BaseResultGenerator.failure(BaseResultEnum.FAIL.getCode(), "未获取到参数");
+            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), "未获取到参数");
         }
         for (StorageDeletionInfo info : list) {
             if (StringUtil.isBlank(info.getLogType()) || StringUtil.isBlank(String.valueOf(info.getMaxDays()))) {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType 与 maxDays 需同时填写", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验: logType 与 maxDays 需同时填写", null);
             }
             if ("ALL".equalsIgnoreCase(info.getLogType()) && list.size() != 1) {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType存在ALL时, 不能与其它类型共存", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验: logType存在ALL时, 不能与其它类型共存", null);
             }
             if (!(info.getMaxDays() >= 0 && info.getMaxDays() <= 2000)) {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验: logType非All: maxDays 必须是数值且[0-2000]", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验: logType非All: maxDays 必须是数值且[0-2000]", null);
             }
         }
         return systemService.deleteStorage(list);
@@ -76,4 +76,15 @@ public class SystemController {
         log.info("数据配额设置状态, 参数: params is {}", storageDeletionInfo);
         return systemService.getDeleteStorageStatus(storageDeletionInfo.getLogType());
     }
+
+    @ApiOperation(value = "终止查询任务", httpMethod = "DELETE", notes = "基于查询唯一标识查询任务")
+    @DeleteMapping(value = "engine/tasks/{queryId}")
+    public BaseResult killQuery(@PathVariable String queryId) {
+        log.info("停止查询, 参数: queryId is {}", queryId);
+        if (StringUtil.isBlank(queryId)) {
+            return BaseResultGenerator.success4Message("ok");
+        }
+        return systemService.deleteQueryTask(queryId);
+    }
+
 }

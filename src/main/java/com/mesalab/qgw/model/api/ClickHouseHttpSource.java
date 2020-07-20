@@ -1,5 +1,6 @@
 package com.mesalab.qgw.model.api;
 
+import com.mesalab.common.configuration.ClickHouseProperties;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -8,34 +9,16 @@ public class ClickHouseHttpSource implements Serializable {
 
     private String url;
 
-    private String dbname;
+    private String dbName;
 
-    private String username;
+    private ClickHouseProperties.DBAccount realTimeAccount ;
 
-    private String password;
-
-    private long socketTimeout;
+    private ClickHouseProperties.DBAccount longTermAccount;
 
     private int enableHttpCompression = 1;
 
-    private String partitionKey;
+    private  String systemDBName = "system";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    private long socketTimeout;
 
 }

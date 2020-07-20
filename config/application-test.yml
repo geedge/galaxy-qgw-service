@@ -14,9 +14,12 @@ clickhouse:
   url: jdbc:clickhouse://192.168.40.186:8123
   driverClassName: ru.yandex.clickhouse.ClickHouseDriver
   dbname: tsg_galaxy_v3
-  username: tsg_query
-  password: ceiec2018
-  publicKey: XX
+  realTimeAccount:
+    username: tsg_query
+    password: ceiec2018
+  longTermAccount:
+    username: tsg_report
+    password: ceiec2019
 ###############################################################################
 ## Druid configuration
 druid:
@@ -46,15 +49,11 @@ engine:
 ## Httpclient configuration
 httpclient:
   connectTimeout: 1000
-  SocketTimeout: 600000
+  SocketTimeout: 21700000
   maxConnection: 50
   maxPerRoute: 10
 ###############################################################################
 ## Schema register
-schema:
-  clickhouse: security_event_log,proxy_event_log,connection_record_log,radius_record_log,radius_onff_log,sys_packet_capture_log,active_defence_event_log,proxy_ip_info,security_ip_info,security_website_domain_info
-  druid: traffic_metrics_log,top_internal_host_log,top_external_host_log,top_website_domain_log,top_urls_log,top_user_log,security_event_hits_log,proxy_event_hits_log,sys_storage_log,protocol_statistic_log,app_statistic_log,injection_metrics_log,policy_id_ip_num_log,source_country_ip_num_log,top_domain_recommend_daily_log,top_website_urls_daily_log
-###############################################################################
 ## Junit Test Configuration
 test:
   url: 192.168.40.186:9999

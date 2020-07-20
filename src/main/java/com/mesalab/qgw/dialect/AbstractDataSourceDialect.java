@@ -4,6 +4,7 @@ package com.mesalab.qgw.dialect;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.qgw.model.api.ApiParam;
+import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 
 @Data
@@ -14,9 +15,12 @@ public abstract class AbstractDataSourceDialect implements Dialect {
 
     public void initialize(ApiParam param) {
         this.param = param;
-        param.setSql(param.getDbQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
+            param.setSql(param.getDbQuerySource().getSqlBody());
+        } else {
+            param.setSql(param.getQuery());
+        }
         baseResult = BaseResultGenerator.success();
-
     }
 
     /**

@@ -1,118 +1,164 @@
 package com.mesalab.calcite;
 
+import com.google.common.base.Splitter;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
+import com.mesalab.common.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.schema.ScannableTable;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.sql.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class CalciteMemoryUtils {
 
-
-    public static List calciteQueryMemoryData(String tableName, List<Map<String, String>> meta, List<Map<String, Object>> data, String sql) throws Exception {
-        Class.forName("org.apache.calcite.jdbc.Driver");
-        Properties info = new Properties();
-        info.setProperty("lex", "MYSQL_ANSI");
-        String jsonModel = new File("").getCanonicalPath() + "/config/memorySchema.json";
-        Connection connection = DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
-        CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
-        ResultSet executeQueryResult = null;
-
-        if (data.isEmpty()) {
-            return data;
+    public static Map<String, Object> executeMemoryQuery(String tableName, List<Map<String, String>> meta,
+                                                                            List<Map<String, Object>> data, String sql) {
+        Map<String, Object> result = Maps.newHashMap();
+        if (meta.isEmpty() || data.isEmpty()) {
+            data.clear();
+            meta.clear();
+            result.put("meta", meta);
+            result.put("data", data);
+            return result;
         }
+        ResultSet resultSet = null;
+        java.sql.Statement statement = null;
+        Connection connection = null;
+        try {
+           Class.forName("org.apache.calcite.jdbc.Driver");
+           Properties info = new Properties();
+           info.setProperty("lex", "MYSQL_ANSI");
+           String jsonModel = new File("").getCanonicalPath() + "/config/memorySchema.json";
+           connection = DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
+           CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
 
-        log.info("执行导入内存数据库data.size()为: " + data.size());
-        //将数据存入缓存表
-        Storage.DummyTable table = addDummyTableMeta(meta, tableName);
-        table = addDummyTableRow(data, table);
-        InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
-        //将缓存表植入rootSchema
-        calciteConn.getRootSchema().add(tableName, inMemoryTable);
-        log.info("内存数据库 数据导入成功");
+           log.debug("Calcite: 加载数据的数量: " + data.size());
+           //将数据存入缓存表
+           Storage.DummyTable table = buildDummyTable(meta, tableName);
+           table = loadData(table, data);
+           InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
 
-        java.sql.Statement st = connection.createStatement();
-        executeQueryResult = st.executeQuery(sql);
-        ResultSetMetaData md = executeQueryResult.getMetaData();
-        int columnCount = md.getColumnCount();
-        List list = new ArrayList();
-        while (executeQueryResult.next()) {
-            Map<String, Object> rowData = new HashMap();
-            for (int i = 1; i <= columnCount; i++) {
-                rowData.put(md.getColumnLabel(i), executeQueryResult.getObject(i));
-            }
-            list.add(rowData);
-        }
-        return list;
-    }
+           //将缓存表植入rootSchema
+           calciteConn.getRootSchema().add(tableName, inMemoryTable);
+           statement = connection.createStatement();
+           resultSet = statement.executeQuery(sql);
+           ResultSetMetaData metaData = resultSet.getMetaData();
+           meta.clear();
+           data.clear();
 
-    /**
-     * 给虚拟表插入数据
-     *
-     * @param data
-     * @param table
-     * @return
-     */
-    private static Storage.DummyTable addDummyTableRow(List<Map<String, Object>> data, Storage.DummyTable table) {
-        List<Storage.DummyColumn> columns = table.getColumns();
-        for (int i = 0; i < data.size(); i++) {
-            List list = new ArrayList<>();
-            for (int j = 0; j < columns.size(); j++) {
-                list.add(null);
-            }
-            for (Map.Entry entry : data.get(i).entrySet()) {
-                int countColumn = 0;
-                Object key = entry.getKey();
-                for (Storage.DummyColumn column : columns) {
-                    if (column.getName().equals(String.valueOf(key))) {
-                        Storage.DummyColumn dummyColumn = columns.get(countColumn);
-                        String type = dummyColumn.getType();
-                        if (DataTypeMapping.BIGINT.equals(type)) {
-                            list.set(countColumn, Long.valueOf(String.valueOf(entry.getValue())));
-                        } else {
-                            list.set(countColumn, String.valueOf(entry.getValue()));
-                        }
-                    }
-                    ++countColumn;
+           for (int i = 1; i <= metaData.getColumnCount(); i++) {
+               Map<String, String> metaMap = Maps.newLinkedHashMap();
+               metaMap.put("name", metaData.getColumnLabel(i));
+               metaMap.put("type", metaData.getColumnTypeName(i));
+               meta.add(metaMap);
+           }
+
+           while (resultSet.next()) {
+               Map<String, Object> rowData = Maps.newLinkedHashMap();
+               for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                   rowData.put(metaData.getColumnLabel(i), resultSet.getObject(i));
+               }
+               data.add(rowData);
+           }
+
+           result.put("meta", meta);
+           result.put("data", data);
+
+       } catch (Exception e) {
+           e.printStackTrace();
+           throw new BusinessException("Engine execution SQL Error.", e);
+
+       } finally {
+           if (resultSet != null) {
+               try {
+                   resultSet.close();
+               } catch (SQLException throwables) {
+                   throwables.printStackTrace();
+               }
+           }
+
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
                 }
             }
-            //若可以最好直接以列的形式插入数据
+
+           if (connection != null) {
+               try {
+                   connection.close();
+               } catch (SQLException throwables) {
+                   throwables.printStackTrace();
+               }
+           }
+       }
+
+
+        return result;
+    }
+
+
+    /**
+     * 数据加载 ： MAP To List
+     * @param table 转换为table
+     * @param data 原始结果集合
+     * @return
+     */
+    private static Storage.DummyTable loadData(Storage.DummyTable table, List<Map<String, Object>> data) {
+        List<Storage.DummyColumn> columns = table.getColumns();
+
+        data.stream().forEach(item -> {
+            List list = Lists.newArrayList();
+            for (Storage.DummyColumn column : columns) {
+                if (DataTypeMapping.BIGINT.equals(column.getType())) {
+                    list.add(Long.valueOf(item.get(column.getName()).toString()));
+                } else {
+                    list.add(item.get(column.getName()).toString());
+                }
+
+            }
+
             table.addRow(list.toArray());
-        }
+
+        });
         return table;
     }
 
     /**
-     * 生成虚拟表元数据
-     *
-     * @param meta
-     * @param tableName
+     * 生成虚拟表
+     * @param meta schema 表结构字段
+     * @param tableName 表名
      * @return
      */
-    private static Storage.DummyTable addDummyTableMeta(List<Map<String, String>> meta, String tableName) {
+    private static Storage.DummyTable buildDummyTable(List<Map<String, String>> meta, String tableName) {
         Storage.DummyTable dummyTable = new Storage.DummyTable(tableName);
-        for (Map<String, String> columnInfo : meta) {
-            String originalName = columnInfo.get("name");
-            String originalType = columnInfo.get("type");
+        for (Map<String, String> column : meta) {
+            String fieldName = column.get("name");
+            String fieldType = column.get("type");
             String dummyColumnType;
-            if (intString.contains(originalType)) {
+            if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(intUnits).contains(fieldType)) {
                 dummyColumnType = DataTypeMapping.BIGINT;
+            } else if (Splitter.on(",").trimResults().omitEmptyStrings().splitToList(doubleUnits).contains(fieldType)) {
+                dummyColumnType = DataTypeMapping.DOUBLE;
             } else {
                 dummyColumnType = DataTypeMapping.VARCHAR;
             }
-            Storage.DummyColumn name = new Storage.DummyColumn(originalName, dummyColumnType);
+            Storage.DummyColumn name = new Storage.DummyColumn(fieldName, dummyColumnType);
             dummyTable.addColumn(name);
         }
         return dummyTable;
     }
 
-    private static String intString = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64";
+    private static String intUnits = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint";
+    private static String doubleUnits = "Float32,Float64,float,double";
 
 }

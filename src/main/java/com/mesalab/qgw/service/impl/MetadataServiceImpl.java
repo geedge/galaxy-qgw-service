@@ -4,18 +4,17 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.configuration.DruidIoProperties;
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SchemaCacheUtils;
-import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,68 +34,59 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Override
     public BaseResult getSchemaInfo(String type, String name) {
-
-        if("tables".equals(type)){//查询库中所有表
-            if(clickHouseProperties.getDbname().equals(name)){
-                return encapsulationTablesResult(new ArrayList<>(getSchemasOfCK().keySet()) , clickHouseProperties.getDbname());
-            }
-            if(druidIoProperties.getDbname().equals(name)){
-                return encapsulationTablesResult(new ArrayList<>(getSchemasOfDruid().keySet()) , druidIoProperties.getDbname());
-            }
-            throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "check DBName please", null);
-        }else if("fields".equals(type)){//查询表字段具体信息
-            return getSchemaResult(name);
-        }else {
-            throw new BusinessException(BaseResultEnum.NOT_FOUND.getCode(), "Not found, check url please", null);
+        if ("tables".equals(type)) {
+            List<String> tables = getTablesName(name);
+            return encapsulationTablesResult(tables, name);
+        } else if ("fields".equals(type)) {
+            return BaseResultGenerator.success("ok", parseAndGetSchemaMap(name));
+        } else {
+            return BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not found, check url please");
         }
     }
 
+    private List<String> getTablesName(String dbName) {
+        List<String> tables = new ArrayList<>();
+        Map<String, Schema> map = (Map<String, Schema>) SchemaCacheUtils.get(METADATA_SCHEMA_KEY);
+        map.values().forEach(schema -> {
+            Optional.ofNullable(schema).ifPresent(o -> {
+                if (dbName.equalsIgnoreCase(schema.getNamespace())) {
+                    tables.add(schema.getName());
+                }
+            });
+        });
+        return tables;
+    }
 
-
-    /**
-     * 获取schema信息
-     * @param tableName
-     * @return
-     */
-    public BaseResult getSchemaResult(String tableName) {
-        Map<String, JsonProperties> allSchema;
-        Object allSchemasInfo = SchemaCacheUtils.get(METADATA_SCHEMA_KEY);
-        if (StringUtil.isNotEmpty(allSchemasInfo)) {
-            allSchema = (Map<String, JsonProperties>)allSchemasInfo;
-        } else {
-            allSchema = getAllSchema();
+    private Map parseAndGetSchemaMap(String tableName) {
+        Schema schema = getSchemaByName(tableName);
+        if (StringUtil.isEmpty(schema)) {
+            throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Unregister In Schema: " + tableName, null);
         }
-        Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(allSchema.get(tableName)), Map.class);
-        if (resultMap == null) {
-            throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
-        }
-        Map schemaDoc = (Map) JsonMapper.fromJsonString(String.valueOf(resultMap.get("doc")), Map.class);
-        if(StringUtil.isEmpty(schemaDoc) && !StringUtil.isEmpty(resultMap.get("doc"))){
-            log.error("{}表该的 doc 为非JSON字符串{}，未转换", tableName, resultMap.get("doc"));
+        Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
+        Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        if (StringUtil.isEmpty(schemaDoc) && StringUtil.isNotEmpty(schema.getDoc())) {
+            log.error("{} schema's doc isn't jsonString and won't convert: {}", tableName, schema.getDoc());
         }
         if (StringUtil.isNotEmpty(schemaDoc)) {
             resultMap.put("doc", schemaDoc);
         }
         List<Map> fields = (List<Map>) resultMap.get("fields");
-        Map mapDoc = null;
+        Map mapDoc;
         for (Map next : fields) {
-            try {
-                mapDoc = (Map) JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
-            } catch (Exception ex) {
-                log.debug("该字段的 doc 为非JSON字符串，未转换");
-            }
-            if (mapDoc != null) {
+            mapDoc = (Map) JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
+            if (StringUtil.isNotEmpty(mapDoc)) {
                 next.put("doc", mapDoc);
             }
-            if(StringUtil.isEmpty(mapDoc) && !StringUtil.isEmpty(next.get("doc"))){
-                log.error("{}表该字段{}的 doc 为非JSON字符串，未转换", tableName, next.get("name"));
+            if (StringUtil.isEmpty(mapDoc) && !StringUtil.isEmpty(next.get("doc"))) {
+                log.error("{} field's doc isn't jsonString and won't convert: {}", next.get("name"), next.get("doc"));
             }
         }
-        BaseResult<Map> baseResult = BaseResultGenerator.success("ok", resultMap);
-        if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), baseResult.getMessage(), null);
-        }
-        return baseResult;
+        return resultMap;
+    }
+
+    private Schema getSchemaByName(String tableName) {
+        Map<String, Schema> schemas = (Map<String, Schema>) SchemaCacheUtils.get(METADATA_SCHEMA_KEY);
+        return schemas.get(tableName);
     }
 
     /**
@@ -116,123 +106,113 @@ public class MetadataServiceImpl implements MetadataService {
 
 
     /**
-     * 获取clickhouse Schema
+     * 读取fileDir目录下的文件(.avsc)
+     *
+     * @param fileDir
      * @return
      */
-    private Map<String, JsonProperties> getSchemasOfCK(){
-        Map<String, JsonProperties> ckSchemas = getSchemasByPath("/config/avro/clickhouse");
-        return ckSchemas;
-    }
-
-    /**
-     * 获取druid Schema
-     * @return
-     */
-    private Map<String, JsonProperties> getSchemasOfDruid(){
-        Map<String, JsonProperties> druidschemas = getSchemasByPath("/config/avro/druid");
-        return druidschemas;
-    }
-
-
-    /**
-     * 获取当前路径下的所有schema信息
-     * @param path
-     * @return
-     */
-    private Map<String, JsonProperties> getSchemasByPath(String path){
-        Map<String, JsonProperties> cKSchema = new HashMap<>();
-        String pathRoot= null;
-        try {
-            pathRoot = new File("").getCanonicalPath();
-            File file = new File(pathRoot + path);
-            File[] files = file.listFiles();
-            if(StringUtil.isEmpty(files)){
-                return cKSchema;
+    private Map<String, Schema> getSchemasByDirs(File fileDir) {
+        Map<String, Schema> result = new HashMap<>();
+        List<File> files = recurseDirs(fileDir, ".avsc");
+        for (File item : files) {
+            try {
+                Schema schema = new Schema.Parser().parse(item);
+                result.put(schema.getName(), schema);
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("File: {}, Schema Parser Error: {}", item.getPath(), e);
             }
-            for (File f : files) {
-                if(!f.getName().toLowerCase().endsWith(".avsc")){
-                    continue;
-                }
-                try {
-                    Schema ckSchema = new Schema.Parser().parse(new File(f.getPath()));
-                    cKSchema.put(ckSchema.getName(), ckSchema);
-                }catch (Exception ex){
-                    log.error("遍历{}路径下文件{}失败: {}", path, f.getName(), ex);
-                }
-            }
-        } catch (Exception e) {
-            log.error("获取 项目路径/{}失败", path);
         }
-        return cKSchema;
+        return result;
+    }
+
+
+    /**
+     * 遍历读取startDir文件夹目录下所有以regex结尾的文件
+     *
+     * @param startDir
+     * @param regex
+     * @return
+     */
+    private List<File> recurseDirs(File startDir, String regex) {
+        List<File> result = new ArrayList<>();
+        Optional.ofNullable(startDir.listFiles()).ifPresent(o -> {
+            for (File item : o) {
+                if (item.isDirectory()) {
+                    result.addAll(recurseDirs(item, regex));
+                } else {
+                    if (item.getName().endsWith(regex)) {
+                        result.add(item);
+                    }
+                }
+            }
+        });
+        return result;
     }
 
     @Override
-    public String getPartitionKey(String tableName){
-        String partitionKey = "";
+    public String getPartitionKey(String tableName) {
+        String partitionKey = StringUtil.EMPTY;
         try {
-            BaseResult schemaResult = getSchemaResult(tableName);
-            Map data = (Map)schemaResult.getData();
-            Map doc = (Map)data.get("doc");
-            if(StringUtil.isNotEmpty(doc)){
+            Schema schema = getSchemaByName(tableName);
+            Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+            if (StringUtil.isNotEmpty(doc)) {
                 Object partition_key = doc.get("partition_key");
-                partitionKey = StringUtil.isEmpty(partition_key) ? "" : partition_key.toString();
+                partitionKey = StringUtil.isEmpty(partition_key) ? StringUtil.EMPTY : partition_key.toString();
             }
-
-        }catch (Exception e){
-            log.error("获取 partition_key异常 ", e);
+        } catch (Exception e) {
+            log.error("Get Partition key Error ", e);
         }
-
-
         return partitionKey;
     }
 
     @Override
-    public String getValueByKeyInSchemaDoc(String tableName, String key){
-        BaseResult schemaResult = getSchemaResult(tableName);
-        Map data = (Map) schemaResult.getData();
-        Map doc = (Map) data.get("doc");
+    public String getValueByKeyInSchemaDoc(String tableName, String key) {
+        Schema schema = getSchemaByName(tableName);
+        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
         if (StringUtil.isNotEmpty(doc)) {
             Object value = doc.get(key);
             if (value instanceof Map) {
                 return JsonMapper.toJsonString(value);
             } else {
-                return StringUtil.isEmpty(value) ? "" : value.toString();
+                return StringUtil.isEmpty(value) ? StringUtil.EMPTY : value.toString();
             }
         }
-        return "";
+        return StringUtil.EMPTY;
     }
 
     @Override
     public String getDBTypeByTableName(String tableName) {
-        BaseResult tablesCK = getSchemaInfo("tables", clickHouseProperties.getDbname());
-        Map dataCK = (HashMap) tablesCK.getData();
-        List symbolsCK = (List) dataCK.get("symbols");
-        if (symbolsCK != null && symbolsCK.contains(tableName)) {
+        Schema schema = getSchemaByName(tableName);
+        if (StringUtil.isEmpty(schema)) {
+            return StringUtil.EMPTY;
+        }
+        if (clickHouseProperties.getDbname().equalsIgnoreCase(schema.getNamespace())
+                || "system".equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.CLICKHOUSE.getValue();
         }
-
-        BaseResult tablesDruid = getSchemaInfo("tables", druidIoProperties.getDbname());
-        Map dataDruid = (HashMap) tablesDruid.getData();
-        List symbolsDruid = (List) dataDruid.get("symbols");
-        if (symbolsDruid != null && symbolsDruid.contains(tableName)) {
+        if (druidIoProperties.getDbname().equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.DRUID.getValue();
         }
-        throw new BusinessException(BaseResultEnum.FAIL.getCode(), "获取数据库类型异常: " + tableName + " 表没有注册在Schema数据库中", null);
+        return StringUtil.EMPTY;
     }
 
     @Override
-    public Map<String, JsonProperties> getAllSchema() {
-        HashMap<String, JsonProperties> result = new HashMap<>();
-        Map<String, JsonProperties> schemasOfCK = getSchemasOfCK();
-        if(StringUtil.isNotEmpty(schemasOfCK)){
-            result.putAll(schemasOfCK);
-        }
-        Map<String, JsonProperties> schemasOfDruid = getSchemasOfDruid();
-        if(StringUtil.isNotEmpty(schemasOfDruid)){
-            result.putAll(schemasOfDruid);
-        }
-
-        return result;
+    public String getDBNameByTableName(String tableName) {
+        Schema schema = getSchemaByName(tableName);
+        return StringUtil.isNotEmpty(schema) ? schema.getNamespace() : clickHouseProperties.getDbname() ;
     }
 
+
+    @Override
+    public Map<String, Schema> getAllSchema() {
+        try {
+            String pathRoot = new File("").getCanonicalPath();
+            File fileDir = new File(pathRoot + "/config/avro");
+            return getSchemasByDirs(fileDir);
+        } catch (Exception e) {
+            log.error("Get Schema Error {}", e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "Get Schema Error:", e);
+        }
+    }
 }

@@ -1,28 +1,31 @@
 package com.mesalab.qgw.dialect;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.enums.BaseResultEnum;
-import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.zdjizhi.utils.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Nullable;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 联邦查询-基于Calcite支持多源联合查询
  */
+@Slf4j
 public class FederationDialect extends AbstractEngineDialect{
     private Stopwatch watch = Stopwatch.createUnstarted();
     public FederationDialect(ApiParam param, BaseResult result) {
@@ -39,45 +42,71 @@ public class FederationDialect extends AbstractEngineDialect{
         return this;
     }
 
+
+
     @Override
     public Dialect executeQuery() {
         try {
             watch.start();
-            executeUDF();
-            if (baseResult.isSuccess() && StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-                SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                List resultList = CalciteMemoryUtils.calciteQueryMemoryData(sqlQuerySource.getTableName(),
-                        (List<Map<String, String>>) baseResult.getMeta(),
-                        (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
-                baseResult.setData(resultList);
+
+            if (baseResult.isSuccess()) {
+
+                executeUDF();
+
+                if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
+                    SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
+                    Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableName(),
+                            (List<Map<String, String>>) baseResult.getMeta(),
+                            (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
+                    baseResult.setData(resultMap.get("data"));
+                    baseResult.setMeta(resultMap.get("meta"));
+                }
+
+                log.info("calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
             }
         } catch (Exception ex) {
-            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "Calcite execute query memory is error: ", ex);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                    ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute query memory is error.", ex.getCause());
         }
 
         return this;
     }
 
+    @Override
+    public Dialect executeAdministrativeQuery() {
+        return this;
+    }
 
 
     @Override
     public BaseResult build() {
-        if (baseResult.isSuccess()) {
-            Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
+
+        if (baseResult.isSuccess() ) {
+
+            long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
-            statisticMap.put("elapsed", String.format("%.2f", Double.valueOf(statisticMap.get("elapsed").toString()) + executeTime));
-            int resultSize = StringUtil.isEmpty(baseResult.getData()) ? 0 : JsonMapper.toJsonString(baseResult.getData()).getBytes().length;
-            statisticMap.put("result_size", resultSize);
+            statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
+            if (StringUtil.isEmpty(baseResult.getData())) {
+                statisticMap.put("result_size", 0);
+                statisticMap.put("result_rows", 0);
+            } else {
+                statisticMap.put("result_size", JsonMapper.toJsonString(baseResult.getData()).getBytes().length);
+                statisticMap.put("result_rows", ((List) baseResult.getData()).size());
+            }
+
+            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+                convertJsonToCSV();
+            }
+            baseResult.setFormatType(param.getFormat());
         }
-
-
+        log.debug("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
         return baseResult;
     }
 
 
     @Override
     public void executeUDF() {
-        if (baseResult.isSuccess()) {
+
             SQLQuerySource sqlQuerySource = param.getDbQuerySource();
             Set<UDF> udfSet = sqlQuerySource.getUdfSet();
             for (UDF udf : udfSet) {
@@ -85,8 +114,37 @@ public class FederationDialect extends AbstractEngineDialect{
                         (List<Object>) baseResult.getData());
                 baseResult.setData(targetResult);
             }
-        }
+
+
     }
+
+
+    private void convertJsonToCSV() {
+
+        List<String> results = Lists.transform( (List<Map<String, Object>>) baseResult.getData(), new Function<Map<String, Object>, String>() {
+
+            @Override
+            public String apply(@Nullable Map<String, Object> input) {
+                return Joiner.on(",").useForNull("").join(input.values());
+            }
+        });
+
+        List<Object> metas = Lists.transform((List<Map<String, Object>>) baseResult.getMeta(), new Function<Map<String, Object>, Object>() {
+
+            @Override
+            public Object apply(@Nullable Map<String, Object> input) {
+                return input.get("name");
+            }
+        });
+
+        baseResult.setData(Joiner.on("\n").useForNull("").join(results));
+        baseResult.setMeta(Joiner.on(",").useForNull("").join(metas));
+    }
+
+
+
+
+
 
 
 }

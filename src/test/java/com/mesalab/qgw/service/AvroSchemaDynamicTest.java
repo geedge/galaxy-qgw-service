@@ -2,47 +2,28 @@ package com.mesalab.qgw.service;
 
 import com.google.common.collect.Maps;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.SchemaBase;
 import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.configuration.DruidIoProperties;
-import com.mesalab.common.enums.BaseResultEnum;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SpringContextUtil;
-import com.mesalab.qgw.dialect.ClickhouseDialect;
-import com.mesalab.qgw.dialect.Dialect;
-import com.mesalab.qgw.dialect.DruidDialect;
-import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.service.impl.APIServiceImpl;
-import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
-import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.statement.DescribeStatement;
-import net.sf.jsqlparser.statement.ShowStatement;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.json.GsonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -81,10 +62,9 @@ public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
-                .append("database=")
-                .append(clickHouseHttpSource.getDbname()).append("&")
+                .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(query)
                 .append(" FORMAT JSON;");
 
@@ -140,7 +120,7 @@ public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
             String tableName = iterator.next();
             Map resultMap = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(druidSchemaInfo.get(tableName)), Map.class);
             if (resultMap == null) {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
             }
             //查数据库
             List resultSql = queryDruidDynamic("SELECT COLUMN_NAME as name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
@@ -180,7 +160,7 @@ public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
             String tableName = iterator.next();
             Map resultMap = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(ckSchemaInfo.get(tableName)), Map.class);
             if (resultMap == null) {
-                throw new BusinessException(BaseResultEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
             }
             //查数据库
             List resultSql = queryCKDynamic("describe " + tableName);

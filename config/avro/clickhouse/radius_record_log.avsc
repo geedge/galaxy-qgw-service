@@ -2,7 +2,7 @@
   "namespace": "tsg_galaxy_v3",
   "type": "record",
   "name": "radius_record_log",
-  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"schema_query\":{\"dimensions\":[\"radius_nas_ip\",\"radius_framed_ip\",\"common_subscriber_id\"],\"metrics\":[\"radius_framed_ip\",\"radius_event_timestamp\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\"],\"filters\":[\"radius_framed_ip\",\"common_subscriber_id\",\"radius_packet_type\",\"radius_acct_session_id\",\"radius_acct_multi_session_id\",\"radius_acct_status_type\"]},\"schema_type\":{\"RADIUS\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_encapsulation\",\"common_app_label\",\"common_app_id\",\"common_protocol_id\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"radius_packet_type\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_account\",\"radius_session_timeout\",\"radius_idle_timeout\",\"radius_acct_status_type\",\"radius_acct_terminate_cause\",\"radius_event_timestamp\",\"radius_nas_port\",\"radius_service_type\",\"radius_framed_protocol\",\"radius_callback_number\",\"radius_callback_id\",\"radius_termination_action\",\"radius_called_station_id\",\"radius_calling_station_id\",\"radius_acct_delay_time\",\"radius_acct_session_id\",\"radius_acct_multi_session_id\",\"radius_acct_input_octets\",\"radius_acct_output_octets\",\"radius_acct_input_packets\",\"radius_acct_output_packets\",\"radius_acct_session_time\",\"radius_acct_link_count\",\"radius_acct_interim_interval\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_acct_status_type\"]}},\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_acct_status_type\"]}",
+  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"schema_query\":{\"dimensions\":[\"radius_nas_ip\",\"radius_framed_ip\",\"common_subscriber_id\"],\"metrics\":[\"radius_framed_ip\",\"radius_event_timestamp\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\"],\"filters\":[\"radius_framed_ip\",\"common_subscriber_id\",\"radius_packet_type\",\"radius_acct_session_id\",\"radius_acct_multi_session_id\",\"radius_acct_status_type\"]},\"schema_type\":{\"RADIUS\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_encapsulation\",\"common_app_label\",\"common_protocol_label\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"radius_packet_type\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_account\",\"radius_session_timeout\",\"radius_idle_timeout\",\"radius_acct_status_type\",\"radius_acct_terminate_cause\",\"radius_event_timestamp\",\"radius_nas_port\",\"radius_service_type\",\"radius_framed_protocol\",\"radius_callback_number\",\"radius_callback_id\",\"radius_termination_action\",\"radius_called_station_id\",\"radius_calling_station_id\",\"radius_acct_delay_time\",\"radius_acct_session_id\",\"radius_acct_multi_session_id\",\"radius_acct_input_octets\",\"radius_acct_output_octets\",\"radius_acct_input_packets\",\"radius_acct_output_packets\",\"radius_acct_session_time\",\"radius_acct_link_count\",\"radius_acct_interim_interval\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_acct_status_type\"]}},\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_acct_status_type\"]}",
   "fields": [
     {
       "name": "common_recv_time",
@@ -194,16 +194,10 @@
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
-      "name": "common_app_id",
-      "type": "int",
-      "label": "Application ID",
-      "doc": "{\"visibility\":\"disabled\"}"
-    },
-    {
-      "name": "common_protocol_id",
-      "type": "int",
-      "label": "Protocol ID",
-      "doc": "{\"visibility\":\"disabled\"}"
+      "name": "common_protocol_label",
+      "type": "string",
+      "label": "Protocol Label",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_start_time",

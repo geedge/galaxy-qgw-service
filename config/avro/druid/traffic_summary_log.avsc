@@ -1,0 +1,44 @@
+{
+  "namespace": "druid",
+  "type": "record",
+  "name": "traffic_summary_log",
+  "doc": "{\"partition_key\":\"__time\"}",
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "isp",
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "type": "long"
+    },
+    {
+      "name": "ip_object",
+      "type": "string"
+    },
+    {
+      "name": "sessions",
+      "type": "long"
+    },
+    {
+      "name": "one_sided_connections",
+      "type": "long"
+    },
+    {
+      "name": "bytes",
+      "type": "long"
+    },
+    {
+      "name": "uncategorized_bytes",
+      "type": "long"
+    },
+    {
+      "name": "packets",
+      "type": "long"
+    }
+  ]
+}

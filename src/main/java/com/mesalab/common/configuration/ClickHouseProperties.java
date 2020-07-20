@@ -7,15 +7,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "clickhouse")
 public class ClickHouseProperties {
     private String url;
-
     private String driverClassName;
-
     private String dbname;
 
-    private String username;
+    private DBAccount realTimeAccount = new DBAccount();
 
-    private String password;
+    private DBAccount longTermAccount = new DBAccount();
 
-    private String publicKey;
+    @Data
+    public class DBAccount {
+        private String username;
+        private String password;
+    }
 
 }

@@ -3,10 +3,12 @@ package com.mesalab.qgw.service.impl;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.JobHandlerEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
@@ -18,12 +20,15 @@ import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
 import org.apache.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.*;
 
 @Slf4j
@@ -37,6 +42,8 @@ public class SystemServiceImpl implements SystemService {
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
     private HttpClientService httpClientService;
+    @Autowired
+    private ClickHouseHttpSource clickHouseHttpSource;
 
     private Map<String, String> headers = Maps.newHashMap();
 
@@ -70,7 +77,7 @@ public class SystemServiceImpl implements SystemService {
             param.setQuery(sql);
             return apiService.executeQuery(param);
         } else {
-            throw  new BusinessException(BaseResultEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
+            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
         }
     }
 
@@ -125,8 +132,31 @@ public class SystemServiceImpl implements SystemService {
         return BaseResultGenerator.success("ok", list);
     }
 
+    @Override
+    public BaseResult deleteQueryTask(String queryId) {
+        String executeSql = "kill query where query_id = '" + queryId + "'";
+        StringBuilder urlBuilder = new StringBuilder("http://")
+                .append(clickHouseHttpSource.getUrl()).append("/?");
+        StringBuilder queryParamBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
+                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
+                .append("query=").append(executeSql)
+                .append(" FORMAT ").append("JSON").append(" ;");
+
+        List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
+
+        Map<String, String> map = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
+        if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            return BaseResultGenerator.success4Message("ok");
+        } else {
+            return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
+        }
+    }
+
 
     private boolean logTypeIsAvaliable(List<StorageDeletionInfo> list) {
+
         List<LogType> logTypes = Arrays.asList(LogType.values());
         List<String> logType = new ArrayList<>();
         for (LogType type : logTypes) {
@@ -178,7 +208,7 @@ public class SystemServiceImpl implements SystemService {
         if (result.getStatus().equals(HttpStatus.SC_LOCKED)) {
             return true;
         } else if (!result.getStatus().equals(HttpStatus.SC_OK)) {
-            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "获取任务状态异常: " + result.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取任务状态异常: " + result.getMessage(), null);
         }
         return false;
     }
@@ -228,7 +258,7 @@ public class SystemServiceImpl implements SystemService {
             baseResult = executeTriggerAndUpdate(xxlJobInfo);
         }
         if (!baseResult.getStatus().equals(HttpStatus.SC_OK)) {
-            throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "调度任务数据配额设置任务执行失败", null);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务数据配额设置任务执行失败", null);
         }
         return baseResult;
     }
@@ -389,16 +419,16 @@ public class SystemServiceImpl implements SystemService {
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {
-                throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "获取或封装结果异常: " + resultPageList, null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取或封装结果异常: " + resultPageList, null);
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
                 return data.get(0);
             } else {
-                throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "调度任务无匹配executorHandler(" + handlerValue + ")的任务信息", null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务无匹配executorHandler(" + handlerValue + ")的任务信息", null);
             }
         }
-        throw new BusinessException(BaseResultEnum.SERVER_ERROR.getCode(), "获取调度任务异常: " + resultPageList, null);
+        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取调度任务异常: " + resultPageList, null);
     }
 
     /**
@@ -468,11 +498,9 @@ public class SystemServiceImpl implements SystemService {
     enum LogType {
         TRAFFIC_LOGS("Traffic Logs"), REPORT_AND_METRICS("Report and Metrics"), FILES("Files"), ALL("ALL");
         private final String value;
-
         LogType(String value) {
             this.value = value;
         }
-
         public String getValue() {
             return value;
         }

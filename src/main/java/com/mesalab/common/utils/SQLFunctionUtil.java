@@ -6,6 +6,7 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.zdjizhi.utils.Encodes;
 import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.NameValuePair;
@@ -20,7 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author GouGe
+ * @author wangwei
  * @data 2019/8/1 10:13
  */
 public class SQLFunctionUtil {
@@ -115,8 +116,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String getQueryValue(String query, String dbType) {
-        query = generateDateFunction("select " + query + " as actualValue", dbType);
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            query = generateDateFunction("select " + query + " as actualValue", dbType);
+            query = Encodes.urlEncode(query);
             Map<String, String> results = executeHttpGetOfCK(query);
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
             List<Map<String, Object>> dates = (List<Map<String, Object>>) maps.get("data");
@@ -124,6 +126,7 @@ public class SQLFunctionUtil {
             Object actualValue = data.get("actualValue");
             return actualValue.toString();
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            query = generateDateFunction("select TIME_FORMAT(" + query + ", 'yyyy-MM-dd HH:mm:ss') as actualValue", dbType);
             Map<String, String> results = executeHttpPostOfDruid(query);
             List<Object> maps = (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class);
             Map<String, Object> data = (Map<String, Object>) maps.get(0);
@@ -160,10 +163,9 @@ public class SQLFunctionUtil {
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
-                .append("database=")
-                .append(clickHouseHttpSource.getDbname()).append("&")
+                .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(sql)
                 .append(" FORMAT JSON;");
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
@@ -1131,17 +1133,17 @@ public class SQLFunctionUtil {
             String num = matcherPT.group(1);
             String unit = matcherPT.group(2);
             if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                String format = "toUnixTimestamp(intDiv(toUInt32(toDateTime(%s)), %s ) * %s)";
+                String format = null;
                 if ("S".equalsIgnoreCase(unit)) {
-                    num = num;
+                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s SECOND)))";
                 } else if ("M".equalsIgnoreCase(unit)) {
-                    num = num + " * 60 ";
+                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MINUTE)))";
                 } else if ("H".equalsIgnoreCase(unit)) {
-                    num = num + " * 3600 ";
+                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s HOUR)))";
                 }
-                return String.format(format, timestamp, num, num);
+                return String.format(format, timestamp, num);
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP( 1000 * (%s) ), %s))/1000";
+                String format = "TIMESTAMP_TO_MILLIS(time_floor(%s * 1000,%s))/1000";
                 return String.format(format, timestamp, period);
             }
         }
@@ -1152,36 +1154,18 @@ public class SQLFunctionUtil {
             String unit = matcherP.group(2);
             if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
                 String format = null;
-                if ("1".equals(num)) {
-                    if ("D".equalsIgnoreCase(unit)) {
-                        format = "toUnixTimestamp(toStartOfDay(toDateTime(%s)))";
-                    } else if ("W".equalsIgnoreCase(unit)) {
-                        format = "toUnixTimestamp(toDateTime(toMonday(toDateTime(%s))))";
-                    } else if ("M".equalsIgnoreCase(unit)) {
-                        format = "toUnixTimestamp(toDateTime(toStartOfMonth(toDateTime(%s))))";
-                    } else if ("Y".equalsIgnoreCase(unit)) {
-                        format = "toUnixTimestamp(toDateTime(toStartOfYear(toDateTime(%s))))";
-                    }
-                    System.out.println(String.format(format, timestamp));
-                    return String.format(format, timestamp);
-                } else {
-                    if ("D".equalsIgnoreCase(unit)) {
-                        format = "toUnixTimestamp(toStartOfDay(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s)))";
-                        num = num + " * 86400 ";
-                    } else if ("W".equalsIgnoreCase(unit)) {
-                        format = "toUnixTimestamp(toDateTime(toMonday(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
-                        num = num + " * 604800 ";
-                    } else if ("M".equalsIgnoreCase(unit)) {
-                        format = "toUnixTimestamp(toDateTime(toStartOfMonth(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
-                        num = num + " * 2592000 ";
-                    } else if ("Y".equalsIgnoreCase(unit)) {
-                        format = "toUnixTimestamp(toDateTime(toStartOfYear(toDateTime(intDiv(toUInt32(toDateTime(%s)), %s ) * %s))))";
-                        num = num + " * 31536000 ";
-                    }
-                    return String.format(format, timestamp, num, num);
+                if ("D".equalsIgnoreCase(unit)) {
+                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s DAY)))";
+                } else if ("W".equalsIgnoreCase(unit)) {
+                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s WEEK)))";
+                } else if ("M".equalsIgnoreCase(unit)) {
+                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MONTH)))";
+                } else if ("Y".equalsIgnoreCase(unit)) {
+                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s YEAR)))";
                 }
+                return String.format(format, timestamp, num);
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP( 1000 * (%s) ), %s))/1000";
+                String format = "TIMESTAMP_TO_MILLIS(time_floor(%s * 1000,%s))/1000";
                 return String.format(format, timestamp, period);
             }
         }

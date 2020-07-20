@@ -1,12 +1,13 @@
 package com.mesalab.qgw.dialect;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
+import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
@@ -16,25 +17,17 @@ import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.Limit;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectBody;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 public class DruidDialect extends  AbstractDataSourceDialect {
@@ -71,49 +64,58 @@ public class DruidDialect extends  AbstractDataSourceDialect {
     @Override
     public Dialect executeQuery() {
 
-        String sql = convertQuery(findBestQuery());
-
         watch.start();
-        StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
-        DruidDialect.DruidQueryParam druidQueryParam = new DruidDialect.DruidQueryParam();
-        druidQueryParam.setQuery(sql);
-        druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
-        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
-
-        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
-
-        if (param.getFormat().equals(QueryFormatEnum.JSON.getValue())) {
-            druidQueryParam.setResultFormat("object");
-        } else if (param.getFormat().equals(QueryFormatEnum.CSV.getValue())) {
-            druidQueryParam.setResultFormat("csv");
-        }
-
-        Map<String, String> results = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
-
-        if (!results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, results.get("result"));
-        } else {
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null,
-                        (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, param.getFormat());
-            } else {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), null, null,
-                        results.get("result"), null, param.getFormat());
-            }
-        }
+        generateBaseResult(convertQuery(findBestQuery()));
         return this;
 
     }
 
+    @Override
+    public Dialect executeAdministrativeQuery() {
+        generateBaseResult(param.getQuery());
+        return this;
+    }
+
+    private void generateBaseResult(String sql) {
+
+        Map<String, String> results = executeHttpPost(sql);
+
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(),  null,
+                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
+                    results.get("result"), null, null, param.getFormat());
+        }
+    }
+
+    /**
+     * Druid Http Query Interface
+     * @param sql SQL语句
+     * @return
+     */
+    private Map<String, String> executeHttpPost(String sql) {
+        StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
+        DruidQueryParam druidQueryParam = new DruidQueryParam();
+        druidQueryParam.setQuery(sql);
+        druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
+        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
+        druidQueryParam.setResultFormat("object");
+
+        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
+
+        return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
+    }
 
 
     @Override
     public Dialect executeSyntaxCheck() {
-        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
-        String sql = convertQuery(sqlQuerySource.getSqlBody());
-        param.getDbQuerySource().setSqlBody("select 1");
-        executeQuery();
-        baseResult.setMessage(sql);
+        String query = convertQuery(param.getDbQuerySource().getSqlBody());
+        Map<String, String> results = executeHttpPost("select 1");
+
+        baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),null, query,
+                (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, param.getFormat());
+        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
         return this;
     }
 
@@ -128,49 +130,53 @@ public class DruidDialect extends  AbstractDataSourceDialect {
             if (StringUtil.isBlank(baseResult.getMessage())) {
                 baseResult.setMessage("ok");
             }
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                String result = String.valueOf(dataObject);
-
-                String[] results = result.split("\n");
-
-                if (pageOffset > 0 && StringUtil.isNotEmpty(results)) {
-                    if (pageOffset >= results.length) {
-                        result = "";
-                    } else {
-                        String[] subResult = ArrayUtils.subarray(results, pageOffset, results.length);
-                        result = Joiner.on("\n").join(subResult).toString();
-                    }
+            List<Object> allResults = (List<Object>) dataObject;
+            if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
+                if (pageOffset >= allResults.size()) {
+                    allResults = new ArrayList<>();
+                } else {
+                    allResults = allResults.subList(pageOffset, allResults.size());
                 }
-                baseResult.setData(result);
-            } else if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())) {
-                List<Object> allResults = (List<Object>) dataObject;
-                if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
-                    if (pageOffset >= allResults.size()) {
-                        allResults = new ArrayList<>();
-                    } else {
-                        allResults = allResults.subList(pageOffset, allResults.size());
-                    }
-                }
-                Double executeTime = watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0;
-                Map<String, Object> statistics = Maps.newHashMap();
-                statistics.put("elapsed", String.format("%.2f", executeTime));
-                statistics.put("rows_read", allResults.size());
-
-                int resultSize = StringUtil.isEmpty(allResults) ? 0 : JsonMapper.toJsonString(allResults).getBytes().length;
-                statistics.put("result_size", resultSize);
-                baseResult.setData(allResults);
-                baseResult.setStatistics(statistics);
             }
+            Map<String, Object> statistics = Maps.newLinkedHashMap();
+            statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+            statistics.put("rows_read", allResults.size());
+            baseResult.setData(allResults);
+            baseResult.setMeta(getMeta(allResults));
+            baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, baseResult.getMessage());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " :String.valueOf(dataObject));
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " :String.valueOf(dataObject));
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, baseResult.getMessage());
+            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " :String.valueOf(dataObject));
         }
         return baseResult;
     }
 
+    private List getMeta(List<Object> results) {
+        List meta = new ArrayList<Map<String, String>>();
+        if (results.size() > 0) {
+            Map<String, Object> map = (Map) results.get(0);
+            for (String key : map.keySet()) {
+                Object value = map.get(key);
+                Map<String, String> temp = new HashMap<>();
+                temp.put("name", key);
+                if (value instanceof Integer) {
+                    temp.put("type", DataTypeMapping.BIGINT);
+                } else if (value instanceof Double) {
+                    temp.put("type", DataTypeMapping.DOUBLE);
+                } else {
+                    temp.put("type", DataTypeMapping.VARCHAR);
+                }
+                meta.add(temp);
+            }
+        }
+        return meta;
+    }
 
     class Converter {
         String sql = null;
@@ -223,9 +229,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
          */
         public Optimizer generateQueryLimit() {
 
-            if(StringUtil.isEmpty(param.getEngineQuerySource())) {
-                setDefaultResultRows(param.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
-            }
+            setDefaultResultRows(StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
 
             setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
 

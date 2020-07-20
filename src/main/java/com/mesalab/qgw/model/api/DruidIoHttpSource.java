@@ -9,7 +9,7 @@ public class DruidIoHttpSource implements Serializable {
     private  String url;
     private String dbname;
     private String sqlTimeZone;
-    private String skipEmptyBuckets = "false";//汇总结果包含0
+    private String skipEmptyBuckets = "true";
     private long  timeout = 600000;
 
 }

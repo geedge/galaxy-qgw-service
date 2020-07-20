@@ -164,8 +164,7 @@
     {
       "name": "common_device_id",
       "type": "string",
-      "label": "Device ID",
-      "doc": "{\"visibility\":\"disabled\"}"
+      "label": "Device ID"
     },
     {
       "name": "common_link_id",
@@ -192,16 +191,10 @@
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
-      "name": "common_app_id",
-      "type": "int",
-      "label": "Application ID",
-      "doc": "{\"visibility\":\"disabled\"}"
-    },
-    {
-      "name": "common_protocol_id",
-      "type": "int",
-      "label": "Protocol ID",
-      "doc": "{\"visibility\":\"disabled\"}"
+      "name": "common_protocol_label",
+      "type": "string",
+      "label": "Protocol Label",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_start_time",
@@ -276,6 +269,11 @@
       "name": "packet_url",
       "type": "string",
       "label": "Packet URL"
+    },
+    {
+      "name": "pcap_storage_task_id",
+      "type": "int",
+      "label": "Task ID"
     }
   ]
 }

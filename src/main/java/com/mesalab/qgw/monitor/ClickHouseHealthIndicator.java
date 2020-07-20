@@ -20,14 +20,13 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
-
+         clickHouseHttpSource.getRealTimeAccount();
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
         StringBuilder queryParamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getPassword()).append("&")
-                .append("database=")
-                .append(clickHouseHttpSource.getDbname()).append("&")
+                .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append("select version()")
                 .append(" FORMAT JSON ;");
         String url = urlBuilder.toString() + queryParamBuilder.toString();

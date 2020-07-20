@@ -1,7 +1,6 @@
 package com.mesalab.common.base;
 
-import com.google.common.collect.Maps;
-import com.mesalab.common.enums.BaseResultEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +24,8 @@ public class BaseResult<T> implements Serializable {
 
     private Integer status;
 
+    private String code;
+
     private boolean success;
 
     private String message;
@@ -45,7 +46,7 @@ public class BaseResult<T> implements Serializable {
      * @return 是否为成功结果
      */
     public boolean isSuccess() {
-        return BaseResultEnum.SUCCESS.getCode() == this.status;
+        return ResultStatusEnum.SUCCESS.getCode() == this.status;
     }
 
 }

@@ -1,5 +1,4 @@
 package com.mesalab.qgw.monitor;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.HBaseHttpSource;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;

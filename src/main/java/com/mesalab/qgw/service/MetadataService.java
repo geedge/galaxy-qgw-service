@@ -2,7 +2,7 @@ package com.mesalab.qgw.service;
 
 
 import com.mesalab.common.base.BaseResult;
-import org.apache.avro.JsonProperties;
+import org.apache.avro.Schema;
 
 import java.util.Map;
 
@@ -32,11 +32,26 @@ public interface MetadataService {
     String getValueByKeyInSchemaDoc(String tableName, String key);
 
     /**
-     * 通过表名获取在哪个数据库
+     * 通过数据源，获取所属数据库类型
      * @param tableName
      * @return
      */
     String getDBTypeByTableName(String tableName);
 
-    Map<String, JsonProperties> getAllSchema();
+
+    /**
+     * 通过数据源，获取所对应数据库名称
+     * @param tableName
+     * @return
+     */
+    String getDBNameByTableName(String tableName);
+
+
+
+    /**
+     * 获取所有已注册schema
+     * @return
+     */
+    Map<String, Schema> getAllSchema();
+
 }
