@@ -2,8 +2,21 @@ package com.mesalab.knowledge.enums;
 
 import lombok.AllArgsConstructor;
 
+/**
+ * 范围查询
+ * <p>
+ * type:["gt"|"lt"|"eq"|"ge"|"le"|"ne"]
+ * <p>
+ * gt: > 大于（greater than）
+ * lt: < 小于（less than）
+ * eq: = 等于（equal to）
+ * ge: >= 大于等于（greater than or equal）
+ * le: <= 小于等于（less than or equal）
+ * ne: != 不等于（not equal）
+ */
 @AllArgsConstructor
-public enum SymbolEnum {
+public enum RangeEnum {
+
 
     EQ("eq", "==", true),
     NE("ne", "<>", true),
@@ -35,20 +48,9 @@ public enum SymbolEnum {
         return symmetric;
     }
 
-
-    public static SymbolEnum match(String name, SymbolEnum defaultItem) {
+    public static RangeEnum match(String name) {
         if (name != null) {
-            for (SymbolEnum item : SymbolEnum.values()) {
-                if (item.type.equals(name)) {
-                    return item;
-                }
-            }
-        }
-        return defaultItem;
-    }
-    public static SymbolEnum match(String name) {
-        if (name != null) {
-            for (SymbolEnum item : SymbolEnum.values()) {
+            for (RangeEnum item : RangeEnum.values()) {
                 if (item.type.equals(name)) {
                     return item;
                 }

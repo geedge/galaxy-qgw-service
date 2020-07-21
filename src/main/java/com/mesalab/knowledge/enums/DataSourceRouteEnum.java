@@ -32,7 +32,7 @@ public enum DataSourceRouteEnum {
     }
 
 
-    public static DataSourceRouteEnum match(String name, DataSourceRouteEnum defaultItem) {
+    public static DataSourceRouteEnum match(String name) {
         if (name != null) {
             for (DataSourceRouteEnum item : DataSourceRouteEnum.values()) {
                 if (item.view.equals(name)) {
@@ -40,6 +40,6 @@ public enum DataSourceRouteEnum {
                 }
             }
         }
-        return defaultItem;
+        return null;
     }
 }

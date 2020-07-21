@@ -2,7 +2,6 @@ package com.mesalab.knowledge.router;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -13,7 +12,6 @@ import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.entity.Match;
 import com.mesalab.knowledge.entity.Parameters;
 import com.mesalab.knowledge.enums.DataSourceRouteEnum;
-import com.mesalab.knowledge.enums.MatchEnum;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
 import org.apache.http.Header;
@@ -21,10 +19,9 @@ import org.apache.http.message.BasicHeader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.ObjectUtils;
 
-import java.text.MessageFormat;
-import java.util.*;
-
-import static java.util.stream.Collectors.joining;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @description:
@@ -37,18 +34,13 @@ public class SubscriberIdAQLProviderImpl implements QLProvider {
     public Object query(DSLObject.DSLQuery dslQeruy, ArangoConfig arangoConfig) {
 
         String datasource = dslQeruy.getDataSource();
-        Parameters parameters = dslQeruy.getParameters();
 
         if (Objects.nonNull(DataSourceRouteEnum.valueOf(datasource))) {
             //1.构建查询语句 match like
             StringBuffer likeFilter = new StringBuffer();
+            Parameters parameters = dslQeruy.getParameters();
             List<Match> matches = parameters.getMatch();
-            matches.stream().filter(m -> m != null && "SUBSCRIBER_ID".equals(m.getFieldKey())&&!ObjectUtils.isEmpty(m.getFieldValues())).forEach(m -> {
-                MatchEnum match = MatchEnum.match(m.getType(), null);
-                likeFilter.append(m.getFieldValues().stream().filter(mv -> mv != null).map(mv -> {
-                    return MessageFormat.format(match.matchExp(), mv);
-                }).collect(joining(" or doc._key like ", " filter ( doc._key like ", ") ")));
-            });
+            likeFilter.append(Match.like(matches, (m) -> m != null && "SUBSCRIBER_ID".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues())));
 
             StringBuffer aqlsb = new StringBuffer("for doc in SUBSCRIBER ");
             aqlsb.append(ObjectUtils.isEmpty(likeFilter) ? "" : likeFilter);

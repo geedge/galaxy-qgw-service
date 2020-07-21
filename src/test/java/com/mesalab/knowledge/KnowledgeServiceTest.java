@@ -1,25 +1,18 @@
 package com.mesalab.knowledge;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.knowledge.entity.*;
+import com.mesalab.knowledge.service.KnowledgeService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.mesalab.knowledge.common.config.ArangoConfig;
-import com.mesalab.knowledge.common.utils.HttpClientUtils;
-import com.mesalab.knowledge.common.utils.JwtCache;
-import com.mesalab.knowledge.service.KnowledgeService;
-import com.zdjizhi.utils.JsonMapper;
-import com.zdjizhi.utils.StringUtil;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @description: for aql service test
@@ -31,20 +24,22 @@ public class KnowledgeServiceTest extends GalaxyQGWApplicationTests {
 
     private static DSLObject.DSLQuery query = new DSLObject.DSLQuery();
     private static Parameters p = new Parameters();
+    private static Match match = new Match();
+    private static Range range = new Range();
+    private static Range range2 = new Range();
+
 
     static {
 
-        Match match = new Match();
         match.setFieldKey("FQDN_NAME");
-        match.setFieldValues(ImmutableList.of(""));
+        match.setFieldValues(ImmutableList.of("", ""));
         match.setType("substring");
-        p.setMatch(Lists.newArrayList(match));
+        p.setMatch(Lists.newArrayList(match, match, match));
 
-        Range range = new Range();
         range.setFieldKey("PROTOCOL");
         range.setFieldValues(ImmutableList.of("HTTP"));
         range.setType("ge");
-        Range range2 = new Range();
+
         range2.setFieldKey("DEPTH");
         range2.setFieldValues(ImmutableList.of("1..1"));
         range2.setType("ge");
@@ -60,38 +55,27 @@ public class KnowledgeServiceTest extends GalaxyQGWApplicationTests {
 
     }
 
-    @Autowired
-    ArangoConfig arangoConfig;
 
     @Autowired
     KnowledgeService knowledgeService;
-
-    @Test
-    public void getJwt() {
-        Object jwt = JwtCache.get("jwt");
-        if (StringUtil.isEmpty(jwt)) {
-            Map<String, String> params = new HashMap<>();
-            params.put("username", arangoConfig.getUsername());
-            params.put("password", arangoConfig.getPassword());
-            String res = HttpClientUtils.httpPost(Joiner.on("").join(arangoConfig.getServer(), "/_db/", arangoConfig.getDatabase(), "/_open/auth"), JsonMapper.toJsonString(params));
-            Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
-            jwt = resMap.get("jwt") != null ? "bearer " + resMap.get("jwt") : null;
-            JwtCache.put("jwt", jwt);
-        }
-        Objects.requireNonNull(jwt);
-    }
-
 
     @Test
     public void queryIpelarning() {
         DSLObject dslObject = new DSLObject();
         dslObject.setQuery(query);
         Object query = knowledgeService.query(dslObject);
-        Stream.of(query).forEach(x-> System.out.println(x));
+        Stream.of(query).forEach(x -> System.out.println(x));
     }
 
     @Test
-    public void sortTest(){
+    public void matchTest() {
+        DSLObject dslObject = new DSLObject();
+        dslObject.setQuery(query);
+        Object query = knowledgeService.query(dslObject);
+    }
+
+    @Test
+    public void sortTest() {
         List<Sort> list = Lists.newArrayList();
         Sort sort = new Sort();
         sort.setFieldKey("BYTES_TOTAL");
@@ -110,6 +94,6 @@ public class KnowledgeServiceTest extends GalaxyQGWApplicationTests {
             }
             return "";
         }).collect(Collectors.joining(",", " sort ", " "));
-        Assert.assertEquals(collect," sort (doc.CLIENT_BYTES_SUM+doc.SERVER_BYTES_SUM) desc,doc.LAST_FOUND_TIME asc ");
+        Assert.assertEquals(collect, " sort (doc.CLIENT_BYTES_SUM+doc.SERVER_BYTES_SUM) desc,doc.LAST_FOUND_TIME asc ");
     }
 }

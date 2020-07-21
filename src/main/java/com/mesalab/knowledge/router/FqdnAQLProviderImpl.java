@@ -1,22 +1,22 @@
 package com.mesalab.knowledge.router;
 
-import java.text.MessageFormat;
-import java.util.*;
-import java.util.stream.Stream;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.HttpClientUtils;
-import com.mesalab.knowledge.entity.*;
+import com.mesalab.knowledge.entity.DSLObject;
+import com.mesalab.knowledge.entity.Match;
+import com.mesalab.knowledge.entity.Parameters;
 import com.mesalab.knowledge.entity.Range;
 import com.mesalab.knowledge.entity.arango.IpLearningPath;
 import com.mesalab.knowledge.enums.DataSourceRouteEnum;
-import com.mesalab.knowledge.enums.MatchEnum;
-import com.mesalab.knowledge.enums.SymbolEnum;
+import com.mesalab.knowledge.enums.RangeEnum;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
 import org.apache.http.Header;
@@ -24,35 +24,43 @@ import org.apache.http.message.BasicHeader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.ObjectUtils;
 
-import static java.util.stream.Collectors.joining;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * 根据fqdn查询ip的关系
  */
 public class FqdnAQLProviderImpl implements QLProvider {
-
+    public static void main(String[] args) {
+        System.out.println("1..1".matches("^\\d..\\d$"));
+    }
     @Override
-    public Object query(DSLObject.DSLQuery dslQeruy, ArangoConfig arangoConfig) {
-        String datasource = dslQeruy.getDataSource();
-        Parameters parameters = dslQeruy.getParameters();
+    public Object query(DSLObject.DSLQuery dslQuery, ArangoConfig arangoConfig) {
+        String datasource = dslQuery.getDataSource();
+        Parameters parameters = dslQuery.getParameters();
 
-        if (Objects.nonNull(DataSourceRouteEnum.valueOf(datasource))) {
-
-            //0.校验
+        if (nonNull(DataSourceRouteEnum.valueOf(datasource))) {
 
             //a.处理条件 b.需要的条件：fqdn_name 多个, depth, filter:last_found_time, dist_cip, http,tls,dns, limit
 
             //1.构建查询语句 match like
             StringBuffer likeFilter = new StringBuffer();
             List<Match> matches = parameters.getMatch();
-            matches.stream().filter(m -> m != null && "FQDN_NAME".equals(m.getFieldKey())&&!ObjectUtils.isEmpty(m.getFieldValues())).forEach(m -> {
-                MatchEnum match = MatchEnum.match(m.getType(), null);
-                likeFilter.append(m.getFieldValues().stream().filter(mv -> mv != null).map(mv -> {
-                    return MessageFormat.format(match.matchExp(), mv);
-                }).collect(joining(" or doc._key like ", " filter ( doc._key like ", ") ")));
-            });
+            //match.like
+            likeFilter.append(Match.like(matches, (m) -> m != null && "FQDN_NAME".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues())));
+
             //2.构建查询语句 intervals 时间
             List<String> intervals = parameters.getIntervals();
+
+            if(ObjectUtils.isEmpty(intervals)){
+                throw new BusinessException("intervals is empty");
+            }
             String[] times = intervals.get(0).split("/");
             StringBuffer intervalsb = new StringBuffer("filter e.FIRST_FOUND_TIME >= ").append(DateUtils.convertStringToTimestamp(times[0], DateUtils.YYYY_MM_DD_HH24_MM_SS)).append(" and ").append("e.LAST_FOUND_TIME <").append(DateUtils.convertStringToTimestamp(times[1], DateUtils.YYYY_MM_DD_HH24_MM_SS));
 
@@ -62,12 +70,21 @@ public class FqdnAQLProviderImpl implements QLProvider {
             StringBuffer protocolsb = new StringBuffer();
             StringBuffer distCiptsb = new StringBuffer();
             List<String> protocols = Lists.newArrayList();
+
+            requireNonNull(ranges,"range is null");
             for (Range r : ranges) {
                 //查询深度
                 if ("DEPTH".equals(r.getFieldKey())) {
-                    depth = r.getFieldValues().stream().findFirst().orElse("1..1");
+                    Object o = r.getFieldValues().get(0);
+                    if(ObjectUtils.isEmpty(r.getFieldValues())){
+                        throw new BusinessException("fieldValues of depth is null");
+                    }
+                    if (String.valueOf(r.getFieldValues().get(0)).matches("^\\d..\\d$")) {
+                        throw new BusinessException("fieldValues of depth is illegal, you should type in such as 1..1");
+                    }
+                    depth = r.getFieldValues().stream().findFirst().get();
                 } else if ("PROTOCOL".equals(r.getFieldKey())) {
-                    String symbol = SymbolEnum.match(r.getType()).symbol();
+                    String symbol = RangeEnum.match(r.getType()).symbol();
                     for (Object protocol : r.getFieldValues()) {
                         if ("HTTP".equals(protocol)) {
                             protocols.add("e.HTTP_CNT_TOTAL " + symbol + " 0");
@@ -81,7 +98,7 @@ public class FqdnAQLProviderImpl implements QLProvider {
                         protocolsb.append(Joiner.on("").skipNulls().join(" and (", Joiner.on(" or ").skipNulls().join(protocols), ")"));
                     }
                 } else if ("UNIQ_CIP".equals(r.getFieldKey())) {
-                    distCiptsb.append(" and count(e.DIST_CIP) ").append(SymbolEnum.match(r.getType()).symbol()).append(r.getFieldValues().stream().findFirst());
+                    distCiptsb.append(" and count(e.DIST_CIP) ").append(RangeEnum.match(r.getType()).symbol()).append(r.getFieldValues().stream().findFirst());
                 }
 
             }
@@ -114,6 +131,7 @@ public class FqdnAQLProviderImpl implements QLProvider {
         return null;
 
     }
+
 
     /**
      * @return java.lang.Object
@@ -149,7 +167,7 @@ public class FqdnAQLProviderImpl implements QLProvider {
 
                 //UNIQ_CIP按DIST_CIP_TS.size()计算，UNIQ_CIP_RECENT按最近24小时计算
                 map.put("UNIQ_CIP", edges.getDistCipTs().size());
-                map.put("UNIQ_CIP_RECENT", edges.getDistCipTs().stream().filter(t->t<=(DateUtils.getSomeHour(new Date(),-24).getTime()/1000)).count());
+                map.put("UNIQ_CIP_RECENT", edges.getDistCipTs().stream().filter(t -> t <= (DateUtils.getSomeHour(new Date(), -24).getTime() / 1000)).count());
 
                 list.add(map);
             }
