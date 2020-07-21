@@ -195,12 +195,11 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         "(" +
                         "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
-                        "where protocol_id like CONCAT('%s','/%s') and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' and LENGTH(protocol_id) - LENGTH(REPLACE(protocol_id,'/','')) = 1 + %s " +
+                        "where protocol_id like CONCAT('%s','/%s') and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' and SUBSTRING(protocol_id, LENGTH(CONCAT('%s','/'))+1 )  NOT LIKE '%s/%s' " +
                         "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc) ",
                 queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getGranularity(),
-                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), '%', queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
-                queryParam.getParameters().length() - queryParam.getParameters().replaceAll("/", "").length(), queryParam.getGranularity());
+                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), '%', queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getParameters(), '%', '%', queryParam.getGranularity());
 
     }
 
