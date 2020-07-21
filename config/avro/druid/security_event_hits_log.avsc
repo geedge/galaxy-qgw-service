@@ -29,16 +29,8 @@
       "type": "long"
     },
     {
-      "name": "intercept_state",
-      "type": "long"
-    },
-    {
       "name": "isp",
       "type": "string"
-    },
-    {
-      "name": "pinningst",
-      "type": "long"
     },
     {
       "name": "policy_id",

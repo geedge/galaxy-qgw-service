@@ -21,23 +21,11 @@
       "type": "string"
     },
     {
-      "name": "sessions",
-      "type": "long"
-    },
-    {
       "name": "one_sided_connections",
       "type": "long"
     },
     {
-      "name": "bytes",
-      "type": "long"
-    },
-    {
       "name": "uncategorized_bytes",
-      "type": "long"
-    },
-    {
-      "name": "packets",
       "type": "long"
     }
   ]
