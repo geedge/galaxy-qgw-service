@@ -16,15 +16,10 @@ import org.springframework.stereotype.Service;
 public class ArangoDBEngineServiceImpl implements ArangoDBEngineService {
 
 
-
     @Override
     public BaseResult commonQuery(DSLObject dslObject) throws BusinessException {
-
+        //TODO
         return null;
     }
 
-    @Override
-    public BaseResult queryFqdn(DSLObject dslObject) throws BusinessException {
-        return null;
-    }
 }

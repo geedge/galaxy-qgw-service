@@ -13,7 +13,7 @@ public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-                http.csrf().disable()
+                 http.csrf().disable()
                 .authorizeRequests()
                 .requestMatchers(EndpointRequest.to(ShutdownEndpoint.class))
                 .hasRole("MONITOR_ADMIN")
@@ -21,7 +21,8 @@ public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                 .permitAll()
-                .antMatchers("/", "/metadata/**", "/sys/**", "/test/**","/traffic/**","/knowledge/**")
+                .antMatchers("/", "/metadata/**", "/sys/**", "/test/**","/traffic/**"
+                        ,"/knowledge/**","/distribution/**","/recommend/**","/common/**")
                 .permitAll()
                 .antMatchers("/**")
                 .authenticated()

@@ -32,7 +32,7 @@ public class DSLRouter {
     //1.最好设计成Spring容器中的Bean
     //2.提示信息以BusinessException抛出
     public BaseResult executeRoute(DSLObject dslObject) throws BusinessException {
-        switch (dslObject.getDbType()){
+        switch (dslObject.getDataEngine()){
             case "ArangoDB"://用枚举实现
                 return arangoDBEngineService.commonQuery(dslObject);
             case "Druid":

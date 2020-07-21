@@ -14,9 +14,11 @@ import java.util.List;
 @Data
 public class DSLObject implements Serializable {
 
+    private static final long serialVersionUID = 4956257906217545258L;
+
     private String limit;//数据条数
-    private String dbType;//数据库类型
-    private String dataSource;//数据表
+    private String dataEngine;//数据引擎
+    private String dataSource;//数据来源
     private QueryBean query;//查询结构
 
     @Data
