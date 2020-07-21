@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
     public BaseResult handleBusinessException(BusinessException e, HttpServletRequest request, HttpServletResponse response) {
        response.setStatus(e.getErrorStatus());
        log.error("Execute Query Error: {}", e.getMessage()+ ";" + (e.getCause() != null ? e.getCause().getMessage() : ""));
-       return BaseResultGenerator.failure(e.getErrorStatus(), e.getErrorCode(), e.getMessage()+ "  " + (e.getCause() != null ? e.getCause().getMessage() : ""));//自己需要实现的异常处理
+       return BaseResultGenerator.failure(e.getErrorStatus(), e.getErrorCode(), e.getErrorMessage()+ "  " + (e.getCause() != null ? e.getCause().getMessage() : ""));//自己需要实现的异常处理
     }
 
 
