@@ -7,6 +7,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -17,7 +18,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QueryParam {
+public class QueryParam implements Serializable {
 
     @NotBlank
     private String queryType;
@@ -50,4 +51,13 @@ public class QueryParam {
         }
         this.intervals = new Interval(leftStr, rightStr);
     }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public class Interval implements Serializable {
+        private String startTime;
+        private String endTime;
+    }
+
 }

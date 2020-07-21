@@ -1,6 +1,5 @@
 package com.mesalab.network.service.impl;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -69,13 +68,12 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
             BaseResult baseResult;
 
-            sql = generateDataRateSql(param.getQuery());
+            sql = generateOverviewSummarySql(param.getQuery());
             Map<String, String> dataRateResult = executeQuery(sql);
+            String statSql = generateStatSql(param.getQuery());
+            Map<String, String> statResult = executeQuery(statSql);
 
-            String currentSessionSql = generateCurrentSessionSql(param.getQuery());
-            Map<String, String> currentSessionResult = executeQuery(currentSessionSql);
-
-            baseResult = buildNetworkOverviewResult(dataRateResult, currentSessionResult);
+            baseResult = buildNetworkOverviewResult(dataRateResult, statResult);
             return baseResult;
         }
         return BaseResultGenerator.failure("No match queryType");
@@ -85,18 +83,56 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         BaseResult baseResult;
         if (String.valueOf(HttpStatus.SC_OK).equals(currentSessionResult.get("status"))
                 && String.valueOf(HttpStatus.SC_OK).equals(dataRateResult.get("status"))) {
-            Map session = (Map) JsonMapper.fromJsonString(currentSessionResult.get("result"), Map.class);
-            List<Map> sessionData = (List<Map>) session.get("data");
+            Map statDataResult = (Map) JsonMapper.fromJsonString(currentSessionResult.get("result"), Map.class);
+            List<Map> statData = (List<Map>) statDataResult.get("data");
+            Map summaryDataResult = (Map) JsonMapper.fromJsonString(dataRateResult.get("result"), Map.class);
+            List<Map> summaryData = (List<Map>) summaryDataResult.get("data");
 
-            Map result = (Map) JsonMapper.fromJsonString(dataRateResult.get("result"), Map.class);
-            List<Map> resultData = (List<Map>) result.get("data");
-
-            for (int i = 0; i < resultData.size(); i++) {
-                resultData.get(i).put("current_sessions", sessionData.get(i).get("current_sessions") == null ? 0 : sessionData.get(i).get("current_sessions"));
+            Map<String, Object> data = new HashMap<>(16);
+            if (!statData.isEmpty()) {
+                data.putAll(statData.get(0));
             }
-            baseResult = BaseResultGenerator.success("ok", resultData, (Map) result.get("statistics"));
+            if (statData.size() >= 2) {
+                data.put("current_sessions", statData.get(1).get("total_bytes"));
+            }
+            if (!summaryData.isEmpty()) {
+                data.putAll(summaryData.get(0));
+            }
+            long uniqClientIp = Long.parseLong(String.valueOf(data.get("uniq_client_ip") == null ? 0 : data.get("uniq_client_ip")));
+            long totalSessions = Long.parseLong(String.valueOf(data.get("total_sessions") == null ? 0 : data.get("total_sessions")));
+            long currentSessions = Long.parseLong(String.valueOf(data.get("current_sessions") == null ? 0 : data.get("current_sessions")));
+            long dataRate = Long.parseLong(String.valueOf(data.get("data_rate") == null ? 0 : data.get("data_rate")));
+            long totalBytes = Long.parseLong(String.valueOf(data.get("total_bytes") == null ? 0 : data.get("total_bytes")));
+            long totalUncategorizedBytes = Long.parseLong(String.valueOf(data.get("total_uncategorized_bytes") == null ? 0 : data.get("total_uncategorized_bytes")));
+            double totalUncategorizedPercent = totalBytes == 0 ? 0 : totalUncategorizedBytes * 1.0 / totalBytes;
+            long oneSidedConnections = Long.parseLong(String.valueOf(data.get("one_sided_connections") == null ? 0 : data.get("one_sided_connections")));
+            double oneSidedPercent = totalBytes == 0 ? 0 : oneSidedConnections * 1.0 / totalSessions;
+
+            List result = new ArrayList<>();
+            Map resultMap = new LinkedHashMap<>();
+            resultMap.put("uniq_client_ip", uniqClientIp);
+            resultMap.put("total_sessions", totalSessions);
+            resultMap.put("current_sessions", currentSessions);
+            resultMap.put("data_rate", dataRate);
+            resultMap.put("total_bytes", totalBytes);
+            resultMap.put("total_uncategorized_bytes", totalUncategorizedBytes);
+            resultMap.put("total_uncategorized_percent", Double.parseDouble(String.format("%.4f", totalUncategorizedPercent)));
+            resultMap.put("one_sided_connections", oneSidedConnections);
+            resultMap.put("one_sided_percent", Double.parseDouble(String.format("%.4f", oneSidedPercent)));
+            result.add(resultMap);
+
+            Map statistics = (Map) summaryDataResult.get("statistics");
+            Map statStatistics = (Map) statDataResult.get("statistics");
+            for (Object key : statistics.keySet()) {
+                if ("result_rows".equals(key.toString())) {
+                    continue;
+                }
+                statistics.put(key, Long.parseLong(statistics.get(key).toString()) + Long.parseLong(statStatistics.get(key).toString()));
+            }
+
+            baseResult = BaseResultGenerator.success("ok", result, statistics);
         } else {
-            baseResult = BaseResultGenerator.error("dataRate result: " + dataRateResult.toString() + "; currentSession result is: " + currentSessionResult);
+            baseResult = BaseResultGenerator.error("dataRate result: " + dataRateResult.toString() + ";\n currentSession result is: " + currentSessionResult);
         }
         return baseResult;
     }
@@ -133,11 +169,18 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return baseResult;
     }
 
-    private String generateCurrentSessionSql(QueryParam queryParam) {
-        return String.format("SELECT SUM(sessions) AS current_sessions FROM %s " +
-                        "WHERE __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' " +
-                        "GROUP BY __time ORDER BY __time DESC limit 1 ",
-                queryParam.getDataSource(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
+    private String generateStatSql(QueryParam queryParam) {
+        return String.format("(SELECT SUM(c2s_byte_num + s2c_byte_num) as total_bytes, SUM(sessions) as total_sessions, SUM(c2s_byte_num + s2c_byte_num) * 8000/(TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')) AS data_rate " +
+                        "FROM traffic_protocol_stat_log " +
+                        "WHERE __time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s' " +
+                        "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) LIMIT 1) " +
+                        "UNION ALL " +
+                        "( SELECT SUM(sessions), 0, 0 " +
+                        "FROM traffic_protocol_stat_log " +
+                        "WHERE __time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s' " +
+                        "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) GROUP BY __time ORDER BY __time DESC LIMIT 1 )",
+                queryParam.getIntervals().getEndTime(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
+                queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
     }
 
     private String generateProtocolDataRateSql(QueryParam queryParam) {
@@ -152,27 +195,23 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         "(" +
                         "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
-                        "where protocol_id like CONCAT('%s','/%s') and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' and SUBSTRING(protocol_id, LENGTH(CONCAT('%s','/'))+1 )  NOT LIKE '%s/%s' " +
+                        "where protocol_id like CONCAT('%s','/%s') and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' and LENGTH(protocol_id) - LENGTH(REPLACE(protocol_id,'/','')) = 1 + %s " +
                         "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc) ",
                 queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getGranularity(),
-                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), '%', queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getParameters(), '%', '%', queryParam.getGranularity());
+                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), '%', queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
+                queryParam.getParameters().length() - queryParam.getParameters().replaceAll("/", "").length(), queryParam.getGranularity());
 
     }
 
-    private String generateDataRateSql(QueryParam queryParam) {
+    private String generateOverviewSummarySql(QueryParam queryParam) {
         return String.format("SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip, " +
-                        "SUM(sessions) AS total_sessions, " +
-                        "SUM(bytes) AS total_bytes, " +
-                        "(SUM(bytes) * 8 * 1000)/(TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')) AS data_rate, " +
                         "SUM(one_sided_connections) AS one_sided_connections, " +
-                        "SUM(uncategorized_bytes) AS total_uncategorized_bytes, " +
-                        "CASE SUM(sessions) WHEN 0 THEN 0 ELSE ROUND(SUM(one_sided_connections)*1.0/SUM(sessions),4) END AS one_sided_percent, " +
-                        "CASE SUM(bytes) WHEN 0 THEN 0 ELSE ROUND(SUM(uncategorized_bytes)*1.0/SUM(bytes),4) END AS total_uncategorized_percent " +
+                        "SUM(uncategorized_bytes) AS total_uncategorized_bytes " +
                         "FROM %s " +
                         "WHERE __time >= TIMESTAMP '%s' " +
                         "AND __time < TIMESTAMP '%s' LIMIT 1 ",
-                queryParam.getIntervals().getEndTime(), queryParam.getIntervals().getStartTime(), queryParam.getDataSource(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
+                queryParam.getDataSource(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
     }
 
     private String generateProtocolTreeSql(QueryParam queryParam) {
@@ -233,8 +272,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         protocolTree.setSentBytes(sentBytes);
         protocolTree.setReceivedBytes(receivedBytes);
         protocolTree.getMetrics().put("sentPackets", sentPackets);
-        protocolTree.getMetrics().put("sessions", sessions);
         protocolTree.getMetrics().put("receivedPackets", receivedPackets);
+        protocolTree.getMetrics().put("sessions", sessions);
         lists.add(protocolTree);
         return lists;
     }
@@ -255,7 +294,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         ProtocolTree firstProtocolTree = input.get(0);
                         ProtocolTree mergeProtocolTree = new ProtocolTree(firstProtocolTree.getId(), firstProtocolTree.getName(),
                                 firstProtocolTree.getParentId(), 0, 0);
-                        mergeProtocolTree.setMetrics(Maps.newHashMap());
+                        mergeProtocolTree.setMetrics(Maps.newLinkedHashMap());
 
                         for (ProtocolTree protocolTree : input) {
                             mergeProtocolTree.setSentBytes(mergeProtocolTree.getSentBytes() + protocolTree.getSentBytes());

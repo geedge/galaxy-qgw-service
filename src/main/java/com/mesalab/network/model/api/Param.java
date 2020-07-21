@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
+import java.io.Serializable;
 
 /**
  * @author wangwei
@@ -14,7 +15,7 @@ import javax.validation.Valid;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Param {
+public class Param implements Serializable {
 
     private String clientId;
     @Valid
