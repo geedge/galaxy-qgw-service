@@ -6,7 +6,7 @@ package com.mesalab.gateway.service;
  * @ClassName : DruidEngineService
  * @Description : Druid数据查询引擎接口
  */
-public interface DruidEngineService {
+public interface DruidEngineService extends BaseEngineService {
 
 
 }

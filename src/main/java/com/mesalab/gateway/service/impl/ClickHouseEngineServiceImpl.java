@@ -1,5 +1,8 @@
 package com.mesalab.gateway.service.impl;
 
+import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.exception.BusinessException;
+import com.mesalab.gateway.dsldefine.DSLObject;
 import com.mesalab.gateway.service.ClickHouseEngineService;
 import org.springframework.stereotype.Service;
 
@@ -11,4 +14,11 @@ import org.springframework.stereotype.Service;
  */
 @Service("ClickHouseEngineService")
 public class ClickHouseEngineServiceImpl implements ClickHouseEngineService {
+
+
+    @Override
+    public BaseResult commonQuery(DSLObject dslObject) throws BusinessException {
+        //TODO
+        return null;
+    }
 }

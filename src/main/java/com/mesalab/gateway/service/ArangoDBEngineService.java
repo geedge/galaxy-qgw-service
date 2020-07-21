@@ -6,5 +6,7 @@ package com.mesalab.gateway.service;
  * @ClassName : ArangoDBEngineService
  * @Description : ArangoDB数据查询引擎接口
  */
-public interface ArangoDBEngineService {
+public interface ArangoDBEngineService extends BaseEngineService{
+
+
 }

@@ -10,6 +10,7 @@ import com.mesalab.gateway.service.JwtAuthService;
  */
 public class JwtAuthServiceImpl implements JwtAuthService {
 
+
     @Override
     public String jwtLogin() {
         //TODO

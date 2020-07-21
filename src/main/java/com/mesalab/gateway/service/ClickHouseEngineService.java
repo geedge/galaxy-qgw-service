@@ -6,5 +6,5 @@ package com.mesalab.gateway.service;
  * @ClassName : ClickHouseEngineService
  * @Description : ClickHouse数据查询引擎接口
  */
-public interface ClickHouseEngineService {
+public interface ClickHouseEngineService extends BaseEngineService {
 }

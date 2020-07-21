@@ -1,6 +1,7 @@
 package com.mesalab.gateway.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @Date: 2020-07-20 10:09
@@ -9,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
  * @Description : 服务推荐业务API层
  */
 @Slf4j
+@RequestMapping("/recommend")
 public class RecommendController extends BaseController {
+
+
 
 }
