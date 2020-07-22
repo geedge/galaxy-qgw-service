@@ -13,7 +13,6 @@ import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.mesalab.qgw.service.impl.MetadataServiceImpl;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -821,9 +820,17 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
 
     @Override
     public Dialect executeSyntaxCheck() {
-        String sql = getSyntaxCheckSql();
-        generateBaseResult(sql);
+        String sql = convertQuery(getSyntaxCheckSql());
         log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), sql);
+
+        Map<String, String> results = executeHttpGet(sql);
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), Encodes.urlDecode(sql),
+                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
+                    results.get("result"), null, null, param.getFormat());
+        }
         return this;
     }
 
@@ -831,7 +838,7 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
 
         Map<String, String> results = executeHttpGet(sql);
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), Encodes.urlDecode(sql),
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
                     JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
@@ -877,13 +884,73 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
      * @return
      */
     private String getSyntaxCheckSql() {
-        String query = convertQuery(findBestQuery());
-        return query;
+        String sql = param.getDbQuerySource().getSqlBody();
+        try {
+            sql = String.valueOf(parserAndUpdateSql(sql));
+        } catch (Exception e) {
+            log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
+                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+            e.printStackTrace();
+        }
+        return sql;
     }
 
 
+    /**
+     * 做数据集限制: 将最内层sql的表名, 替换成(select * from tableName order by primaryKey DESC limit XXX) as alias
+     *
+     * @param sql
+     * @return
+     * @throws JSQLParserException
+     */
+    private SelectBody parserAndUpdateSql(String sql) throws JSQLParserException {
+        Statement parse = CCJSqlParserUtil.parse(sql);
+        if (parse instanceof Select) {
+            Select select = (Select) parse;
+            SelectBody selectBody = select.getSelectBody();
+            if (selectBody instanceof PlainSelect) {
+                PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+                FromItem fromItem = plainSelect.getFromItem();
+                if (fromItem instanceof SubSelect) {
+                    SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
+                    subSelect.setSelectBody(parserAndUpdateSql(subSelect.getSelectBody().toString()));
+                } else if (fromItem instanceof Table) {
+                    Table table = (Table) fromItem;
+                    plainSelect.setFromItem(generateDataSetSql(table.getName(), table.getAlias() != null ? table.getAlias().getName() : table.getName()));
+                    return plainSelect;
+                }
+                return plainSelect;
+            } else if (selectBody instanceof SetOperationList) {
+                SetOperationList setOperationList = (SetOperationList) selectBody;
+                List<SelectBody> selects = setOperationList.getSelects();
+                for (int i = 0; i < selects.size(); i++) {
+                    selects.set(i, parserAndUpdateSql(selects.get(i).toString()));
+                }
+                return setOperationList;
+            } else {
+                throw new BusinessException("Only support selectBody operation: PlainSelect or SetOperationList");
+            }
+        }
+        throw new BusinessException("Only support statement operation as select");
+    }
 
 
+    /**
+     * 生成数据集: 以FromItem对象形式的数据集表 sql,用来替换table
+     *
+     * @param tableName
+     * @param alias
+     * @return
+     * @throws JSQLParserException
+     */
+    private FromItem generateDataSetSql(String tableName, String alias) throws JSQLParserException {
+        String sql = String.format("SELECT 1 FROM (SELECT * FROM %s  LIMIT %s ) as %s ",
+                tableName, 10000, alias);
+        Statement parse = CCJSqlParserUtil.parse(sql);
+        Select select = (Select) parse;
+        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+        return plainSelect.getFromItem();
+    }
 
     /**
      * ClickHouse Http Query Interface

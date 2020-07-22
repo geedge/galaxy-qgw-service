@@ -8,6 +8,7 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
@@ -17,10 +18,15 @@ import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.*;
 import org.apache.http.HttpStatus;
 
 import java.util.ArrayList;
@@ -110,8 +116,8 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
     @Override
     public Dialect executeSyntaxCheck() {
-        String query = convertQuery(param.getDbQuerySource().getSqlBody());
-        Map<String, String> results = executeHttpPost("select 1");
+        String query = convertQuery(getSyntaxCheckSql());
+        Map<String, String> results = executeHttpPost(query);
 
         baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),null, query,
                 (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, param.getFormat());
@@ -155,6 +161,76 @@ public class DruidDialect extends  AbstractDataSourceDialect {
                     StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " :String.valueOf(dataObject));
         }
         return baseResult;
+    }
+
+
+    /**
+     * 获取语法检测sql
+     *
+     * @return
+     */
+    private String getSyntaxCheckSql() {
+        String sql = param.getDbQuerySource().getSqlBody();
+        try {
+            sql = String.valueOf(parserAndUpdateSql(sql));
+        } catch (Exception e) {
+            log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
+                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+            e.printStackTrace();
+        }
+        return sql;
+    }
+
+    /**
+     * 做时间范围条件过滤: 去除原有最内层条件, 重新添加时间范围
+     *
+     * @param sql
+     * @return
+     * @throws JSQLParserException
+     */
+    private SelectBody parserAndUpdateSql(String sql) throws JSQLParserException {
+        Statement parse = CCJSqlParserUtil.parse(sql);
+        if (parse instanceof Select) {
+            Select select = (Select) parse;
+            SelectBody selectBody = select.getSelectBody();
+            if (selectBody instanceof PlainSelect) {
+                PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+                FromItem fromItem = plainSelect.getFromItem();
+                if (fromItem instanceof SubSelect) {
+                    SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
+                    subSelect.setSelectBody(parserAndUpdateSql(subSelect.getSelectBody().toString()));
+                } else if (fromItem instanceof Table) {
+                    plainSelect.setWhere(generateDataSetSql());
+                    return plainSelect;
+                }
+                return plainSelect;
+            } else if (selectBody instanceof SetOperationList) {
+                SetOperationList setOperationList = (SetOperationList) selectBody;
+                List<SelectBody> selects = setOperationList.getSelects();
+                for (int i = 0; i < selects.size(); i++) {
+                    selects.set(i, parserAndUpdateSql(selects.get(i).toString()));
+                }
+                return setOperationList;
+            } else {
+                throw new BusinessException("Only support selectBody operation: PlainSelect or SetOperationList");
+            }
+        }
+        throw new BusinessException("Only support statement operation as select");
+    }
+
+
+    /**
+     * 生成where条件: 以Expression对象形式
+     *
+     * @return
+     * @throws JSQLParserException
+     */
+    private Expression generateDataSetSql() throws JSQLParserException {
+        String sql = String.format("SELECT * FROM tableName WHERE %s >= CURRENT_TIMESTAMP - INTERVAL '%s' HOUR ", param.getDbQuerySource().getPartitionKey(), 12);
+        Statement parse = CCJSqlParserUtil.parse(sql);
+        Select select = (Select) parse;
+        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+        return plainSelect.getWhere();
     }
 
     private List getMeta(List<Object> results) {

@@ -127,9 +127,8 @@ public class APIServiceImpl implements IAPIService {
             baseResult = dbDialect.executeSyntaxCheck().build();
         } else {
             baseResult = dbDialect.executeQuery().build();
-            baseResult = new FederationDialect(param, baseResult).executeQuery().build();
         }
-
+        baseResult = new FederationDialect(param, baseResult).executeQuery().build();
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
         }
