@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 public class GlobalExceptionHandler {
 
 
-    @ExceptionHandler()
+    @ExceptionHandler(Exception.class)
     public BaseResult handleException(Exception e) {
         return BaseResultGenerator.failure(e.getMessage()); //自己需要实现的异常处理
     }
@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
 
 
 
-    @ExceptionHandler({RuntimeException.class})
+    @ExceptionHandler({BusinessException.class})
     public BaseResult handleBusinessException(BusinessException e, HttpServletRequest request, HttpServletResponse response) {
        response.setStatus(e.getErrorStatus());
        log.error("Execute Query Error: {}", e.getMessage()+ ";" + (e.getCause() != null ? e.getCause().getMessage() : ""));
