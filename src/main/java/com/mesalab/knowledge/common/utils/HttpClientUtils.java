@@ -1,29 +1,9 @@
 package com.mesalab.knowledge.common.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
-
+import com.mesalab.common.exception.BusinessException;
+import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HeaderElementIterator;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NoHttpResponseException;
-import org.apache.http.ParseException;
+import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
@@ -45,8 +25,17 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mesalab.common.exception.BusinessException;
-import com.zdjizhi.utils.StringUtil;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class HttpClientUtils {
     /**
@@ -245,6 +234,7 @@ public class HttpClientUtils {
             if (StringUtil.isNotEmpty(headers)) {
                 for (Header h : headers) {
                     httpPost.addHeader(h);
+                    logger.info("request header : {}",h);
                 }
             }
 

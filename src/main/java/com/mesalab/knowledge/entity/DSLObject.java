@@ -3,10 +3,13 @@ package com.mesalab.knowledge.entity;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 
 @Data
-public class DSLObject {
+public class DSLObject implements Serializable {
 
+    private static final long serialVersionUID = 4506414702067122671L;
     private Integer clientId;
 
     private DSLQuery query;

@@ -1,14 +1,15 @@
 package com.mesalab.knowledge;
 
-import com.google.common.base.Joiner;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.knowledge.common.config.ArangoConfig;
+import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.HttpClientUtils;
 import com.mesalab.knowledge.common.utils.JwtCache;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.Objects;
  * @author: zhq
  * @create: 2020-07-20
  **/
+@EnableAutoConfiguration
 public class JwtTest extends GalaxyQGWApplicationTests {
 
     @Autowired
@@ -31,16 +33,17 @@ public class JwtTest extends GalaxyQGWApplicationTests {
      **/
     @Test
     public void getJwt() {
-        Object jwt = JwtCache.get("jwt");
+        Object jwt = JwtCache.get(Constant.ARANGO_CACHE_JWT);
         if (StringUtil.isEmpty(jwt)) {
             Map<String, String> params = new HashMap<>();
             params.put("username", arangoConfig.getUsername());
             params.put("password", arangoConfig.getPassword());
-            String res = HttpClientUtils.httpPost(Joiner.on("").join(arangoConfig.getServer(), "/_db/", arangoConfig.getDatabase(), "/_open/auth"), JsonMapper.toJsonString(params));
+            String res = HttpClientUtils.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(params));
             Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
-            jwt = resMap.get("jwt") != null ? "bearer " + resMap.get("jwt") : null;
-            JwtCache.put("jwt", jwt);
+            jwt = resMap.get(Constant.JWT) != null ? Constant.ARANGO_JWT_BEARER + resMap.get(Constant.JWT) : null;
+            JwtCache.put(Constant.ARANGO_CACHE_JWT, jwt);
         }
         Objects.requireNonNull(jwt);
     }
+
 }

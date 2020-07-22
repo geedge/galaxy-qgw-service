@@ -25,6 +25,15 @@ public class ArangoConfig {
     @Value("${arango.password}")
     private String password;
 
+    @Value("${arango.jwturl}")
+    private String jwturl;
+
+    @Value("${arango.queryurl}")
+    private String queryurl;
+
+    @Value("${arango.maxrows}")
+    private String maxrows;
+
     private String jwt;
 
 }

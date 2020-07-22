@@ -96,7 +96,9 @@ arango:
     database: ip-learning-test
     username: root
     password: 111111
-
+    jwturl: ${arango.server}/_db/${arango.database}/_open/auth
+    queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
+    maxrows: 10000
     ## http pool config
     ### max connection number
 http:
@@ -111,3 +113,5 @@ http:
         timeout: 10000
       response:
         timeout: 10000
+iplearning:
+    uniqciprecent: -24 #IPlearning 最近24小时的独立客户端ip 单位小时

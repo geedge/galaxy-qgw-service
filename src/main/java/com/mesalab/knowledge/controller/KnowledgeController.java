@@ -37,7 +37,7 @@ public class KnowledgeController {
             return knowledgeService.query(dSLObject);
         } else {
             log.error("服务推荐接口, 错误:queryString is {},params is {}", request.getQueryString(), dSLObject);
-            return BaseResultGenerator.failure("Support protocol Only , Now");
+            return BaseResultGenerator.failure("Not Support , Now");
         }
     }
 }

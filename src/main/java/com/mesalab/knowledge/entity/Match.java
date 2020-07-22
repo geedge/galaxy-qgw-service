@@ -2,6 +2,7 @@ package com.mesalab.knowledge.entity;
 
 import com.google.common.base.CharMatcher;
 import com.mesalab.knowledge.enums.MatchEnum;
+import lombok.Data;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -14,6 +15,7 @@ import static java.util.stream.Collectors.joining;
  * @author: zhq
  * @create: 2020-07-02
  **/
+@Data
 public class Match extends QueryExp {
 
 
@@ -42,7 +44,7 @@ public class Match extends QueryExp {
                         matchExp = MatchEnum.SUBSTRING.getMatchExp();
                     }
                 }
-                return MessageFormat.format(matchExp, mv);
+                return MessageFormat.format(matchExp, value);
             }).collect(joining(" or doc._key like ", "  ( doc._key like ", ") "));
 
         }).collect(joining(" and ", " filter ", " "));

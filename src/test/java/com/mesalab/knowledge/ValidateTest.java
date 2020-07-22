@@ -2,7 +2,7 @@ package com.mesalab.knowledge;
 
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.knowledge.entity.DSLObject;
-import com.mesalab.knowledge.enums.DataSourceRouteEnum;
+import com.mesalab.knowledge.enums.DataSourceEnum;
 import org.junit.Test;
 
 /**
@@ -16,7 +16,7 @@ public class ValidateTest extends GalaxyQGWApplicationTests {
     @Test
     public void queryDslTest(){
         String dataSource = query.getDataSource();
-        DataSourceRouteEnum dataSourceRouteEnum = DataSourceRouteEnum.valueOf(dataSource);
+        DataSourceEnum dataSourceRouteEnum = DataSourceEnum.valueOf(dataSource);
         System.out.println(dataSource);
 
 

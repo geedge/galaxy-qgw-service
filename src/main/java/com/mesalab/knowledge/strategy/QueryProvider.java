@@ -1,13 +1,12 @@
-package com.mesalab.knowledge.router;
+package com.mesalab.knowledge.strategy;
 
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.entity.DSLObject;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @Description: 提供查询语言
+ * @Description: 提供查询结果
  */
-public interface QLProvider {
+public interface QueryProvider {
 
     public Object query(DSLObject.DSLQuery dslQeruy, ArangoConfig arangoConfig);
 
