@@ -35,15 +35,18 @@ public class SubscriberIdProviderImpl implements QueryProvider {
 
         //1.构建查询语句 match like
         StringBuffer likeFilter = new StringBuffer();
+        String limit = arangoConfig.getMaxrows();
         Parameters parameters = dslQeruy.getParameters();
-        List<Match> matches = parameters.getMatch();
-        likeFilter.append(Match.like(matches, (m) -> m != null && "SUBSCRIBER_ID".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues())));
+        if(!ObjectUtils.isEmpty(parameters)){
+            likeFilter.append(Match.like(parameters.getMatch(), (m) -> m != null && "SUBSCRIBER_ID".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues())));
+            limit = ObjectUtils.isEmpty(parameters.getLimit()) ? arangoConfig.getMaxrows() : parameters.getLimit();
+        }
 
         StringBuffer aqlsb = new StringBuffer("for doc in SUBSCRIBER ");
         aqlsb.append(ObjectUtils.isEmpty(likeFilter) ? "" : likeFilter);
         aqlsb.append(" for v,e,p in 1..1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' ");
         aqlsb.append(" filter doc.LAST_FOUND_TIME == e.LAST_FOUND_TIME ");
-        aqlsb.append(" limit ").append(ObjectUtils.isEmpty(parameters.getLimit()) ? arangoConfig.getMaxrows() : parameters.getLimit());
+        aqlsb.append(" limit ").append(limit);
 
         aqlsb.append(" return p ");
         Map queryMap = ImmutableMap.of("query", aqlsb.toString());

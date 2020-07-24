@@ -21,7 +21,7 @@ public class Match extends QueryExp {
 
     public static String like(List<Match> matches, Predicate<Match> predicate) {
 
-        return matches.stream().filter(m -> predicate.test(m)).map(m -> {
+        return matches==null||matches.size()<1?"": matches.stream().filter(m -> predicate.test(m)).map(m -> {
 
             MatchEnum match = MatchEnum.match(m.getType());
             return m.getFieldValues().stream().filter(mv -> mv != null).map(mv -> {

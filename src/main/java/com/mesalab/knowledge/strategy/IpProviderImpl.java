@@ -35,23 +35,29 @@ public class IpProviderImpl implements QueryProvider {
     @Override
     public Object query(DSLObject.DSLQuery dslQeruy, ArangoConfig arangoConfig) {
         Parameters parameters = dslQeruy.getParameters();
-        //需要条件  时间，limit
-        List<Sort> sorts = parameters.getSort();
         StringBuffer aqlsb = new StringBuffer();
         String sortAql = "";
-        if (Objects.nonNull(sorts)) {
-            sortAql = sorts.stream().map(x -> {
-                if ("BYTES_TOTAL".equals(x.getFieldKey())) {
-                    return "(doc.CLIENT_BYTES_SUM+doc.SERVER_BYTES_SUM) " + x.getType();
-                } else if ("LAST_FOUND_TIME".equals(x.getFieldKey())) {
-                    return "doc.LAST_FOUND_TIME " + x.getType();
-                }
-                return null;
-            }).filter(x -> StringUtil.isNotBlank(x)).collect(Collectors.joining(",", " ", " "));
+        String limit = arangoConfig.getMaxrows();
+        //需要条件  时间，limit
+        if(!ObjectUtils.isEmpty(parameters)){
+            limit = ObjectUtils.isEmpty(parameters.getLimit()) ? arangoConfig.getMaxrows() : parameters.getLimit();
+
+            List<Sort> sorts = parameters.getSort();
+
+            if (Objects.nonNull(sorts)) {
+                sortAql = sorts.stream().map(x -> {
+                    if ("BYTES_TOTAL".equals(x.getFieldKey())) {
+                        return "(doc.CLIENT_BYTES_SUM+doc.SERVER_BYTES_SUM) " + x.getType();
+                    } else if ("LAST_FOUND_TIME".equals(x.getFieldKey())) {
+                        return "doc.LAST_FOUND_TIME " + x.getType();
+                    }
+                    return null;
+                }).filter(x -> StringUtil.isNotBlank(x)).collect(Collectors.joining(",", " ", " "));
+            }
         }
         aqlsb.append("for doc in IP ");
         aqlsb.append(StringUtil.isBlank(sortAql) ? "" : " sort " + sortAql);
-        aqlsb.append(" limit ").append(ObjectUtils.isEmpty(parameters.getLimit()) ? arangoConfig.getMaxrows() : parameters.getLimit());
+        aqlsb.append(" limit ").append(limit);
         aqlsb.append(" return doc");
         Map queryMap = ImmutableMap.of("query", aqlsb.toString());
         Header header = new BasicHeader(HttpHeaders.AUTHORIZATION, arangoConfig.getJwt());

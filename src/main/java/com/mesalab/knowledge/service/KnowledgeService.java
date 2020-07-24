@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
+import static java.util.Objects.*;
 
 /**
  * @description: for IP learning
@@ -61,7 +60,10 @@ public class KnowledgeService extends BaseService {
 
         requireNonNull(dslQuery.getDataSource(), "dataSource is null");
         requireNonNull(DataSourceEnum.match(dslQuery.getDataSource()), "dataSource no match");
-        requireNonNull(parameters, "parameters is null");
+
+        if(isNull(parameters)){
+            return;
+        }
 
         List<Match> matchs = parameters.getMatch();
         List<Range> ranges = parameters.getRange();
