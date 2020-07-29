@@ -98,8 +98,8 @@ public class APIServiceImpl implements IAPIService {
             baseResult = executeShowStatement(param, showStatement);
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
-                    "SQL Syntax Error: Only support statement operations for select, show and describe.", null);
-        }
+                            "SQL Syntax Error: Only support statement operations for select, show and describe.", null);
+                }
         return baseResult;
     }
 

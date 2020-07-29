@@ -80,6 +80,7 @@ public class KnowledgeService extends BaseService {
                 if (MatchEnum.REGEX.getType().equals(m.getType())) {
                     m.getFieldValues().forEach(mv -> {
                         Validate.isTrue(!(String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*")), "error in matching sign. begin with * and do not end with * for suffix matching, end with * and do not begin with $ or * for prefix matching, begin with $ and do not end with * for exactly matching, begin with * and end with * or no wildcard for substring matching");
+                        Validate.isTrue(String.valueOf(mv).length()< 65535,"the maximum length of  fieldValues is less than 65535");
                     });
                 }
             });
@@ -90,12 +91,19 @@ public class KnowledgeService extends BaseService {
                 requireNonNull(RangeEnum.match(r.getType()), "range type is illegal");
                 Validate.notBlank(r.getFieldKey(), "range fieldKey is null");
                 Validate.notEmpty(r.getFieldValues(), "range fieldValues is null");
+                r.getFieldValues().forEach(rv->{
+                   Validate.isTrue(String.valueOf(rv).length()< 65535,"the maximum length of  fieldValues is less than 65535");
+                });
+
             });
         }
         if (!ObjectUtils.isEmpty(sorts)) {
             sorts.forEach(s -> {
                 Validate.notBlank(s.getType(), "sort type is null");
                 Validate.notBlank(s.getFieldKey(), "sort fieldKey is null");
+                s.getFieldValues().forEach(sv->{
+                    Validate.isTrue(String.valueOf(sv).length()< 65535,"the maximum length of  fieldValues is less than 65535");
+                });
             });
         }
         if (!ObjectUtils.isEmpty(intervals)) {
@@ -111,6 +119,7 @@ public class KnowledgeService extends BaseService {
         if (nonNull(limit)) {
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
             Validate.notEmpty(limits, "limit is illegal");
+            Validate.isTrue(String.valueOf(limit).length()< 65535,"the maximum length of  string is less than 65535");
         }
     }
 

@@ -3,6 +3,7 @@ package com.mesalab.knowledge.entity;
 import com.google.common.base.CharMatcher;
 import com.mesalab.knowledge.enums.MatchEnum;
 import lombok.Data;
+import org.springframework.util.ObjectUtils;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -21,7 +22,7 @@ public class Match extends QueryExp {
 
     public static String like(List<Match> matches, Predicate<Match> predicate) {
 
-        return matches==null||matches.size()<1?"": matches.stream().filter(m -> predicate.test(m)).map(m -> {
+        return ObjectUtils.isEmpty(matches) ?"": matches.stream().filter(m -> predicate.test(m)).map(m -> {
 
             MatchEnum match = MatchEnum.match(m.getType());
             return m.getFieldValues().stream().filter(mv -> mv != null).map(mv -> {

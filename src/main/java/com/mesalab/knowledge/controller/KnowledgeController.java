@@ -1,7 +1,9 @@
 package com.mesalab.knowledge.controller;
 
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.enums.QueryTypeEnum;
 import com.mesalab.knowledge.service.KnowledgeService;
@@ -37,7 +39,7 @@ public class KnowledgeController {
             return knowledgeService.query(dSLObject);
         } else {
             log.error("服务推荐接口, 错误:queryString is {},params is {}", request.getQueryString(), dSLObject);
-            return BaseResultGenerator.failure("Not Support , Now");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
         }
     }
 }

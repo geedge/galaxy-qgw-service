@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -35,6 +36,8 @@ import java.util.stream.Stream;
 @Component("IP_LEARNING_VIEW")
 public class FqdnProviderImpl implements QueryProvider {
 
+    private  static final String depthregex = "^[1-9]\\d*$"; //depth 取值范围大于0
+
     @Value("${iplearning.uniqciprecent}")
     private Integer uniqCipRecent;//统计最近时间 单位小时
 
@@ -45,7 +48,7 @@ public class FqdnProviderImpl implements QueryProvider {
 
         //1.构建查询语句 match like
         StringBuffer likeFilter = new StringBuffer();
-        Object depth = "1..1";//数据库默认1度
+        Object depth = 1;//数据库默认1度
         StringBuffer intervalsb = new StringBuffer();
         StringBuffer protocolsb = new StringBuffer();
         StringBuffer distCiptsb = new StringBuffer();
@@ -72,7 +75,7 @@ public class FqdnProviderImpl implements QueryProvider {
                     //查询深度
                     if ("DEPTH".equals(r.getFieldKey())) {
                         Validate.notEmpty(r.getFieldValues(), "fieldValues of depth is null");
-                        Validate.matchesPattern(String.valueOf(r.getFieldValues().get(0)), "^\\d..\\d$", "fieldValues of depth is illegal, you should type in such as 1..1");
+                        Validate.matchesPattern(String.valueOf(r.getFieldValues().get(0)), depthregex, "fieldValues of depth is illegal, you should type in an integer greater than 0");
                         depth = r.getFieldValues().stream().findFirst().get();
                     } else if ("PROTOCOL".equals(r.getFieldKey())) {
                         List<String> protocols = Lists.newArrayList();
@@ -97,6 +100,8 @@ public class FqdnProviderImpl implements QueryProvider {
             }
         }
 
+        String fqdn2IpDepth = "1..1";//fqdn查询ip的深度
+        depth = "0.." + (Integer.valueOf(String.valueOf(depth)) - Integer.valueOf(Splitter.on("..").splitToList(fqdn2IpDepth).get(1)));
         StringBuffer aqlsb = new StringBuffer("let FQS = ( for doc in FQDN ");
         aqlsb.append(ObjectUtils.isEmpty(likeFilter) ? "" : likeFilter);
         aqlsb.append(" for fq2fq in ");
@@ -104,7 +109,7 @@ public class FqdnProviderImpl implements QueryProvider {
         aqlsb.append(" outbound doc._id R_SAME_ORIGIN_FQDN2FQDN ");
         aqlsb.append(" return distinct fq2fq ) ");
         aqlsb.append(" for fq in FQS ");
-        aqlsb.append(" for v,e,p in 1..1 outbound fq._id graph 'FQDN_IP_GRAPH' ");
+        aqlsb.append(" for v,e,p in ").append(fqdn2IpDepth).append(" outbound fq._id graph 'FQDN_IP_GRAPH' ");
         aqlsb.append(" filter 1==1 ");
         aqlsb.append(intervalsb);
         aqlsb.append(distCiptsb);
