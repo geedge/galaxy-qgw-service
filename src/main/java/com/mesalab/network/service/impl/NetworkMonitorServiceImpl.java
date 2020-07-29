@@ -6,6 +6,8 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
 import com.mesalab.network.model.api.Param;
@@ -53,10 +55,11 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     @Override
     public BaseResult getTrafficDistributedInfo(Param param) {
+        BaseResult baseResult;
         String sql = null;
         if (QueryType.PROTOCOL_TREE_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
             sql = generateProtocolTreeSql(param.getQuery());
-            return getResultProtocolTree(sql);
+            baseResult = getResultProtocolTree(sql);
         } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
             String parameters = param.getQuery().getParameters();
             Optional.ofNullable(parameters).ifPresent(o -> {
@@ -64,19 +67,20 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                 param.getQuery().setParameters(split[0].replaceFirst(PROTOCOL_NODE, ""));
             });
             sql = generateProtocolDataRateSql(param.getQuery());
-            return getProtocolDataRateSummary(sql);
+            baseResult = getProtocolDataRateSummary(sql);
         } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
-            BaseResult baseResult;
-
             sql = generateOverviewSummarySql(param.getQuery());
             Map<String, String> dataRateResult = executeQuery(sql);
             String statSql = generateStatSql(param.getQuery());
             Map<String, String> statResult = executeQuery(statSql);
-
             baseResult = buildNetworkOverviewResult(dataRateResult, statResult);
-            return baseResult;
+        } else {
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
         }
-        return BaseResultGenerator.failure("No match queryType");
+        if (!baseResult.isSuccess()) {
+            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
+        }
+        return baseResult;
     }
 
     private BaseResult buildNetworkOverviewResult(Map<String, String> dataRateResult, Map<String, String> currentSessionResult) {
@@ -163,8 +167,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             List<ProtocolTree> listProtocol = getListProtocol(getProtocolTrees((List<Map>) resultMap.get("data")));
             baseResult = BaseResultGenerator.success("ok", listProtocol, (Map) resultMap.get("statistics"));
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(result.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.get("message"),
-                    result.get("result"), null, null, null);
+            baseResult = BaseResultGenerator.error(result.get("result"));
         }
         return baseResult;
     }
