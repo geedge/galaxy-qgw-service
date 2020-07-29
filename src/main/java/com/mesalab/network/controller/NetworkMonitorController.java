@@ -1,7 +1,9 @@
 package com.mesalab.network.controller;
 
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.network.model.api.Param;
 import com.mesalab.network.service.NetworkMonitorService;
 import io.swagger.annotations.Api;
@@ -36,7 +38,7 @@ public class NetworkMonitorController {
             log.info("流量分布接口, 参数: queryString is {},params is {}", request.getQueryString(), param);
             return networkMonitorService.getTrafficDistributedInfo(param);
         } else {
-            return BaseResultGenerator.failure("Support protocol Only , Now");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Support protocol only", null);
         }
     }
 }
