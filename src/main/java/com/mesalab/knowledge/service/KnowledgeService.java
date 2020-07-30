@@ -101,9 +101,6 @@ public class KnowledgeService extends BaseService {
             sorts.forEach(s -> {
                 Validate.notBlank(s.getType(), "sort type is null");
                 Validate.notBlank(s.getFieldKey(), "sort fieldKey is null");
-                s.getFieldValues().forEach(sv->{
-                    Validate.isTrue(String.valueOf(sv).length()< 65535,"the maximum length of  fieldValues is less than 65535");
-                });
             });
         }
         if (!ObjectUtils.isEmpty(intervals)) {
