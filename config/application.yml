@@ -79,10 +79,6 @@ pagehelper:
 
 
 ###############################################################################
-info:
-  app:
-    name: GALAXY-QGW-SERVICE
-    verson: 3.0.20191115
 management:
   endpoint:
     health:
@@ -98,6 +94,6 @@ management:
     web:
       exposure:
         include: '*'
-        exclude: env,auditevents,beans,conditions
+        exclude: env,auditevents,beans,conditions,info
       base-path: /monitor
 
