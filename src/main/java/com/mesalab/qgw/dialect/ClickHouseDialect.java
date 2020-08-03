@@ -193,32 +193,36 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
        * 子查询别名处理
        * @param where
        */
-      private void setInSubqueryAlias(Expression where){
-          if(where instanceof InExpression){//where in 查询处理
+      private void setInSubqueryAlias(Expression where) {
+          if (where instanceof InExpression) {
               InExpression whereIn = (InExpression) where;
               ItemsList rightItemsList = whereIn.getRightItemsList();
-              if(rightItemsList instanceof SubSelect){
+              if (rightItemsList instanceof SubSelect) {
                   SubSelect sub = (SubSelect) rightItemsList;
                   SelectBody selectBody = sub.getSelectBody();
                   PlainSelect plainSelect = (PlainSelect) selectBody;
-                  Table table = (Table) plainSelect.getFromItem();
-                  if (StringUtil.isEmpty(table.getAlias())) {
-                      Alias alias = new Alias(table.getName());
-                      plainSelect.getFromItem().setAlias(alias);
+                  FromItem fromItem = plainSelect.getFromItem();
+                  if (fromItem instanceof Table) {
+                      Table table = (Table) fromItem;
+                      if (StringUtil.isEmpty(table.getAlias())) {
+                          Alias alias = new Alias(table.getName());
+                          plainSelect.getFromItem().setAlias(alias);
+                      }
+                  } else if (fromItem instanceof SubSelect) {
+                      SubSelect subSelect = (SubSelect) fromItem;
+                      generateSubqueryAlias(subSelect.getSelectBody().toString());
                   }
                   if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
                       setInSubqueryAlias(plainSelect.getWhere());
                   }
-
               }
-
-          }else if(where instanceof AndExpression){
+          } else if (where instanceof AndExpression) {
               AndExpression whereAnd = (AndExpression) where;
               Expression leftExpression = whereAnd.getLeftExpression();
               setInSubqueryAlias(leftExpression);
               Expression rightExpression = whereAnd.getRightExpression();
               setInSubqueryAlias(rightExpression);
-          }else if(where instanceof OrExpression){
+          } else if (where instanceof OrExpression) {
               OrExpression whereOr = (OrExpression) where;
               Expression leftExpression = whereOr.getLeftExpression();
               setInSubqueryAlias(leftExpression);
@@ -897,7 +901,8 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
 
 
     /**
-     * 做数据集限制: 将最内层sql的表名, 替换成(select * from tableName order by primaryKey DESC limit XXX) as alias
+     * 做数据集限制: 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
+     *   涉及from 和 where中存在子查询
      *
      * @param sql
      * @return
@@ -917,8 +922,8 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
                 } else if (fromItem instanceof Table) {
                     Table table = (Table) fromItem;
                     plainSelect.setFromItem(generateDataSetSql(table.getName(), table.getAlias() != null ? table.getAlias().getName() : table.getName()));
-                    return plainSelect;
                 }
+                parseWhereAndUpdate(plainSelect.getWhere());
                 return plainSelect;
             } else if (selectBody instanceof SetOperationList) {
                 SetOperationList setOperationList = (SetOperationList) selectBody;
@@ -934,6 +939,56 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
         throw new BusinessException("Only support statement operation as select");
     }
 
+    /**
+     * 将where中子查询语句表名更新为数据集形式,类同from中表的替换
+     *
+     * @param whereExpression
+     * @throws JSQLParserException
+     */
+    private void parseWhereAndUpdate(Expression whereExpression) throws JSQLParserException {
+        if (whereExpression instanceof ComparisonOperator) {
+            ComparisonOperator whereOperator = (ComparisonOperator) whereExpression;
+            Expression left = whereOperator.getLeftExpression();
+            setSelectBody(left);
+            Expression right = whereOperator.getRightExpression();
+            setSelectBody(right);
+        } else if (whereExpression instanceof InExpression) {
+            InExpression inExpression = (InExpression) whereExpression;
+            Expression leftExpression = inExpression.getLeftExpression();
+            setSelectBody(leftExpression);
+            ItemsList rightItemsList = inExpression.getRightItemsList();
+            if (rightItemsList instanceof SubSelect) {
+                SubSelect subSelect = (SubSelect) rightItemsList;
+                setSelectBody(subSelect);
+            }
+        } else if (whereExpression instanceof Between) {
+            Between whereBetween = (Between) whereExpression;
+            Expression betweenExpressionStart = whereBetween.getBetweenExpressionStart();
+            setSelectBody(betweenExpressionStart);
+            Expression betweenExpressionEnd = whereBetween.getBetweenExpressionEnd();
+            setSelectBody(betweenExpressionEnd);
+        } else if (whereExpression instanceof AndExpression) {
+            AndExpression whereAnd = (AndExpression) whereExpression;
+            parseWhereAndUpdate(whereAnd.getLeftExpression());
+            parseWhereAndUpdate(whereAnd.getRightExpression());
+        } else if (whereExpression instanceof OrExpression) {
+            OrExpression whereOr = (OrExpression) whereExpression;
+            parseWhereAndUpdate(whereOr.getLeftExpression());
+            parseWhereAndUpdate(whereOr.getRightExpression());
+        } else if (whereExpression instanceof Parenthesis) {
+            Parenthesis whereExpressionParenthesis = (Parenthesis) whereExpression;
+            Expression expression = whereExpressionParenthesis.getExpression();
+            parseWhereAndUpdate(expression);
+        }
+    }
+
+    private void setSelectBody(Expression expression) throws JSQLParserException {
+        if (expression instanceof SubSelect) {
+            SubSelect subSelect = (SubSelect) expression;
+            SelectBody selectBody = subSelect.getSelectBody();
+            subSelect.setSelectBody(parserAndUpdateSql(selectBody.toString()));
+        }
+    }
 
     /**
      * 生成数据集: 以FromItem对象形式的数据集表 sql,用来替换table
