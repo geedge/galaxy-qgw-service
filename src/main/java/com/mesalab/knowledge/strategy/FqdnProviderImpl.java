@@ -163,8 +163,6 @@ public class FqdnProviderImpl implements QueryProvider {
 
                 //UNIQ_CIP按DIST_CIP_TS.size()计算，UNIQ_CIP_RECENT按最近24小时计算
                 map.put("UNIQ_CIP", edges.getDistCipTs().size());
-                Properties property = System.getProperties();
-                Object o = property.get("iplearning.uniqciprecent");
                 map.put("UNIQ_CIP_RECENT", edges.getDistCipTs().stream().filter(t -> t <= (DateUtils.getSomeHour(new Date(), Integer.valueOf(uniqCipRecent)).getTime() / 1000)).count());
 
                 list.add(map);

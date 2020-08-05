@@ -41,7 +41,6 @@ public class IpProviderImpl implements QueryProvider {
         //需要条件  时间，limit
         if(!ObjectUtils.isEmpty(parameters)){
             limit = ObjectUtils.isEmpty(parameters.getLimit()) ? arangoConfig.getMaxrows() : parameters.getLimit();
-
             List<Sort> sorts = parameters.getSort();
 
             if (Objects.nonNull(sorts)) {
