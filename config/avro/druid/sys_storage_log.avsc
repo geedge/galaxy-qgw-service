@@ -17,10 +17,6 @@
       "type": "long"
     },
     {
-      "name": "stored_days",
-      "type": "long"
-    },
-    {
       "name": "used_size",
       "type": "long"
     },
@@ -29,7 +25,7 @@
       "type": "long"
     },
     {
-      "name": "first_storage",
+      "name": "last_storage",
       "type": "long"
     }
   ]

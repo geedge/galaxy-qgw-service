@@ -3,7 +3,6 @@ package com.mesalab.qgw.service.impl;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.JobHandlerEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -52,11 +51,11 @@ public class SystemServiceImpl implements SystemService {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         ApiParam param = new ApiParam();
-        param.setQuery("(select log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Report and Metrics' ORDER BY __time desc limit 1)\n" +
+        param.setQuery("(select log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * last_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Report and Metrics' ORDER BY __time desc limit 1)\n" +
                 "UNION ALL\n" +
-                "(select log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Files' ORDER BY __time desc limit 1)\n" +
+                "(select log_type, used_size, max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * last_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Files' ORDER BY __time desc limit 1)\n" +
                 "UNION ALL\n" +
-                "(select log_type, used_size, max_size,TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * first_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Traffic Logs' ORDER BY __time desc limit 1)");
+                "(select log_type, used_size, max_size,TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * last_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Traffic Logs' ORDER BY __time desc limit 1)");
         BaseResult result = apiService.executeQuery(param);
         return result;
     }
@@ -113,10 +112,8 @@ public class SystemServiceImpl implements SystemService {
             StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(LogType.REPORT_AND_METRICS.getValue(), JobHandlerEnum.DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER.getValue());
             list.add(reportInfo);
 
-            StorageDeletionInfo storageDeletionInfo = new StorageDeletionInfo();
-            storageDeletionInfo.setLogType(LogType.FILES.getValue());//伪代码
-            storageDeletionInfo.setMaxDays(365);
-            list.add(storageDeletionInfo);
+            StorageDeletionInfo fileInfo = getStorageDeletionInfoByHandler(LogType.FILES.getValue(), JobHandlerEnum.DELETE_FILES_JOB_HANDLER.getValue());
+            list.add(fileInfo);
         } else if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(logType)) {
             StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
             list.add(trafficInfo);
@@ -186,9 +183,6 @@ public class SystemServiceImpl implements SystemService {
         setCookie();
         for (StorageDeletionInfo info : list) {
 
-            if (LogType.FILES.getValue().equalsIgnoreCase(info.getLogType())) { //伪代码
-                continue;
-            }
             String handler = getDeletePartHandlerByLogType(info.getLogType());
             if (jobIsBusyByHandler(handler)) {
                 return true;
@@ -221,10 +215,6 @@ public class SystemServiceImpl implements SystemService {
      * @return
      */
     private BaseResult executeDeleteStorageJob(StorageDeletionInfo info) {
-
-        if (LogType.FILES.getValue().equalsIgnoreCase(info.getLogType())) { //伪代码
-            return BaseResultGenerator.failure(HttpStatus.SC_OK, "ok");
-        }
 
         BaseResult baseResult;
         String jobHandler;
