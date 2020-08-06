@@ -2,6 +2,7 @@ package com.mesalab.knowledge.strategy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -44,11 +45,12 @@ public class SubscriberIdProviderImpl implements QueryProvider {
 
         StringBuffer aqlsb = new StringBuffer("for doc in SUBSCRIBER ");
         aqlsb.append(ObjectUtils.isEmpty(likeFilter) ? "" : likeFilter);
+        aqlsb.append(" let maxTime = (let times = (for v,e,p in 1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' return e.LAST_FOUND_TIME) return max(times)) ");
         aqlsb.append(" for v,e,p in 1..1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' ");
-        aqlsb.append(" filter doc.LAST_FOUND_TIME == e.LAST_FOUND_TIME ");
+        aqlsb.append(" filter e.LAST_FOUND_TIME == maxTime[0] ");
         aqlsb.append(" limit ").append(limit);
-
         aqlsb.append(" return p ");
+
         Map queryMap = ImmutableMap.of("query", aqlsb.toString());
         Header header = new BasicHeader(HttpHeaders.AUTHORIZATION, arangoConfig.getJwt());
         String res = HttpClientUtils.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), header);
@@ -72,11 +74,11 @@ public class SubscriberIdProviderImpl implements QueryProvider {
             newMap.put("SUBSCRIBER_ID", subIdVertice.get("_key"));
             newMap.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(Long.valueOf(String.valueOf(subIdVertice.get("FIRST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
             newMap.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(Long.valueOf(String.valueOf(subIdVertice.get("LAST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
-            Map ipVertice = map.get("vertices").get(1);
-            if (Objects.isNull(ipVertice)) {
+            Map ipEdges = map.get("edges").get(0);
+            if (Objects.isNull(ipEdges)||Objects.isNull(ipEdges.get("_to"))) {
                 newMap.put("IP", "");
             } else {
-                newMap.put("IP", ipVertice.get("IP"));
+                newMap.put("IP", CharMatcher.anyOf("IP/").trimLeadingFrom(String.valueOf(ipEdges.get("_to"))));
             }
             list.add(newMap);
         }

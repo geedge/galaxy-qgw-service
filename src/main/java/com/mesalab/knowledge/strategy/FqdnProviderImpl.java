@@ -82,11 +82,11 @@ public class FqdnProviderImpl implements QueryProvider {
                         String symbol = RangeEnum.match(r.getType()).symbol();
                         for (Object protocol : r.getFieldValues()) {
                             if ("HTTP".equals(protocol)) {
-                                protocols.add("e.HTTP_CNT_TOTAL " + symbol + " 0");
+                                protocols.add("e.HTTP_CNT_TOTAL > 0");
                             } else if ("DNS".equals(protocol)) {
-                                protocols.add("e.DNS_CNT_TOTAL " + symbol + " 0");
+                                protocols.add("e.DNS_CNT_TOTAL > 0");
                             } else if ("TLS".equals(protocol)) {
-                                protocols.add("e.TLS_CNT_TOTAL " + symbol + " 0");
+                                protocols.add("e.TLS_CNT_TOTAL > 0");
                             }
                         }
                         if (protocols.size() > 0) {
@@ -163,7 +163,7 @@ public class FqdnProviderImpl implements QueryProvider {
 
                 //UNIQ_CIP按DIST_CIP_TS.size()计算，UNIQ_CIP_RECENT按最近24小时计算
                 map.put("UNIQ_CIP", edges.getDistCipTs().size());
-                map.put("UNIQ_CIP_RECENT", edges.getDistCipTs().stream().filter(t -> t <= (DateUtils.getSomeHour(new Date(), Integer.valueOf(uniqCipRecent)).getTime() / 1000)).count());
+                map.put("UNIQ_CIP_RECENT", edges.getDistCipTs().stream().filter(t -> t >= (DateUtils.getSomeHour(new Date(), Integer.valueOf(uniqCipRecent)).getTime() / 1000)).count());
 
                 list.add(map);
             }

@@ -101,9 +101,7 @@ public class KnowledgeService extends BaseService {
             sorts.forEach(s -> {
                 Validate.notBlank(s.getType(), "sort type is null");
                 Validate.notBlank(s.getFieldKey(), "sort fieldKey is null");
-                if(!"asc".equalsIgnoreCase(s.getType())&&!"desc".equalsIgnoreCase(s.getType())){
-                    Validate.isTrue(false,"sort type is illegal");
-                }
+                Validate.isTrue("asc".equalsIgnoreCase(s.getType())||"desc".equalsIgnoreCase(s.getType()),"sort type is illegal");
             });
         }
         if (!ObjectUtils.isEmpty(intervals)) {
@@ -120,10 +118,7 @@ public class KnowledgeService extends BaseService {
             Validate.isTrue(String.valueOf(limit).length() < 65535, "the maximum length of  string is less than 65535");
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
             Validate.notEmpty(limits, "limit is illegal");
-
-            if(limit.contains(",")&&limits.size()!=2){
-                Validate.isTrue(false, "limit is illegal");
-            }
+            Validate.isTrue(!(limit.contains(",")&&limits.size()!=2), "limit is illegal");
             for (String l : limits) {
                 Validate.isTrue(l.length()<=arangoConfig.getMaxrows().length()&&Integer.valueOf(arangoConfig.getMaxrows()) >= Integer.valueOf(l) && Integer.valueOf(l) > 0 , "limit is greater than 0 and less than " + arangoConfig.getMaxrows());
             }
