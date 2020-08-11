@@ -1,5 +1,12 @@
 package com.mesalab.knowledge.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jackson.JsonLoader;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ProcessingMessage;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.main.JsonSchema;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.common.base.Splitter;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -9,13 +16,16 @@ import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.knowledge.strategy.QueryProvider;
 import com.zdjizhi.utils.DateUtils;
+import com.zdjizhi.utils.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.io.IOException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,8 +44,10 @@ public class KnowledgeService extends BaseService {
     @Autowired
     Map<String, QueryProvider> provider = new ConcurrentHashMap<>();
 
-    public BaseResult query(DSLObject dSLObject) {
-        //0.校验
+    public BaseResult query(Object object) {
+        //0.结构校验
+        validateJson(JsonMapper.toJsonString(object));
+        DSLObject dSLObject = (DSLObject) JsonMapper.fromJsonString(JsonMapper.toJsonString(object), DSLObject.class);
         validate(dSLObject);
         DSLObject.DSLQuery dslQeruy = dSLObject.getQuery();
         //1.登录
@@ -101,7 +113,7 @@ public class KnowledgeService extends BaseService {
             sorts.forEach(s -> {
                 Validate.notBlank(s.getType(), "sort type is null");
                 Validate.notBlank(s.getFieldKey(), "sort fieldKey is null");
-                Validate.isTrue("asc".equalsIgnoreCase(s.getType())||"desc".equalsIgnoreCase(s.getType()),"sort type is illegal");
+                Validate.isTrue("asc".equalsIgnoreCase(s.getType()) || "desc".equalsIgnoreCase(s.getType()), "sort type is illegal");
             });
         }
         if (!ObjectUtils.isEmpty(intervals)) {
@@ -118,12 +130,46 @@ public class KnowledgeService extends BaseService {
             Validate.isTrue(String.valueOf(limit).length() < 65535, "the maximum length of  string is less than 65535");
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
             Validate.notEmpty(limits, "limit is illegal");
-            Validate.isTrue(!(limit.contains(",")&&limits.size()!=2), "limit is illegal");
+            Validate.isTrue(!(limit.contains(",") && limits.size() != 2), "limit is illegal");
             for (String l : limits) {
-                Validate.isTrue(l.length()<=arangoConfig.getMaxrows().length()&&Integer.valueOf(arangoConfig.getMaxrows()) >= Integer.valueOf(l) && Integer.valueOf(l) > 0 , "limit is greater than 0 and less than " + arangoConfig.getMaxrows());
+                Validate.isTrue(l.length() <= arangoConfig.getMaxrows().length() && Integer.valueOf(arangoConfig.getMaxrows()) >= Integer.valueOf(l) && Integer.valueOf(l) > 0, "limit is greater than 0 and less than " + arangoConfig.getMaxrows());
             }
         }
     }
 
+    private void validateJson(String jsonString) {
+        JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
+        //通过jsonschemaFactory获取jsonnode对象
+        try {
+
+            JsonNode schemaNode = JsonLoader.fromResource("/DSLObject.json");
+            //通过jsonstr字符串获取对应的jsonnode对象
+            JsonNode dataNode = JsonLoader.fromString(jsonString);
+            JsonSchema jsonSchema = factory.getJsonSchema(schemaNode);
+            //使用json-schema-validator中的jsonschema对象的validate方法对数据进行校验
+            //获取处理的报告信息
+            ProcessingReport processingReport = jsonSchema.validate(dataNode);
+            //获取完整的报告信息
+            Iterator<ProcessingMessage> iterator = processingReport.iterator();
+            StringBuffer sb = new StringBuffer();
+            while (iterator.hasNext()) {
+                ProcessingMessage next = iterator.next();
+                JsonNode jsonNode = next.asJson();
+                sb.append("pointer on ");
+                sb.append(jsonNode.get("instance").get("pointer"));
+                sb.append(", ");
+                sb.append(next.getMessage());
+                sb.append(". ");
+            }
+            //判断校验是否成功，如果为true成功
+            Validate.isTrue(processingReport.isSuccess(), sb.toString());
+        } catch (ProcessingException e) {
+            e.printStackTrace();
+            log.error(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error(e.getMessage());
+        }
+    }
 
 }

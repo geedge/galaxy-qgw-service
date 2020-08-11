@@ -4,7 +4,6 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.enums.QueryTypeEnum;
 import com.mesalab.knowledge.service.KnowledgeService;
 import lombok.extern.slf4j.Slf4j;
@@ -33,12 +32,12 @@ public class KnowledgeController {
      * @return com.mesalab.common.base.BaseResult
      **/
     @PostMapping(value = "/v1/", produces = "application/json")
-    public BaseResult knowledgeQuery(HttpServletRequest request,  @RequestBody DSLObject dSLObject) {
+    public BaseResult knowledgeQuery(HttpServletRequest request,  @RequestBody Object object) {
         if (QueryTypeEnum.match(request.getQueryString()) != null) {
-            log.info("服务推荐接口, 参数: queryString is {},params is {}", request.getQueryString(), dSLObject);
-            return knowledgeService.query(dSLObject);
+            log.info("服务推荐接口, 参数: queryString is {},params is {}", request.getQueryString(), object);
+            return knowledgeService.query(object);
         } else {
-            log.error("服务推荐接口, 错误:queryString is {},params is {}", request.getQueryString(), dSLObject);
+            log.error("服务推荐接口, 错误:queryString is {},params is {}", request.getQueryString(), object);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
         }
     }
