@@ -1,12 +1,14 @@
 package com.mesalab.knowledge.enums;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * @description: for queryType
  * @author: zhq
  * @create: 2020-07-16
  **/
+@Getter
 @AllArgsConstructor
 public enum QueryTypeEnum {
 
@@ -18,20 +20,4 @@ public enum QueryTypeEnum {
     
     private final String type;
 
-    public String getType() {
-        return type;
-    }
-
-
-
-    public static QueryTypeEnum match(String name) {
-        if (name != null) {
-            for (QueryTypeEnum item : QueryTypeEnum.values()) {
-                if (item.type.equals(name)) {
-                    return item;
-                }
-            }
-        }
-        return null;
-    }
 }

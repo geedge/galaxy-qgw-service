@@ -3,18 +3,13 @@ package com.mesalab.knowledge.strategy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import com.mesalab.knowledge.common.config.ArangoConfig;
-import com.mesalab.knowledge.common.utils.HttpClientUtils;
 import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.entity.Parameters;
 import com.mesalab.knowledge.entity.Sort;
 import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -31,16 +26,19 @@ import java.util.stream.Collectors;
 @Component("IP_VIEW")
 public class IpProviderImpl implements QueryProvider {
 
+    @Value("${arango.maxrows}")
+    private String limit;//查询最大条数
+    @Autowired
+    BaseQueryProvider baseQueryProvider;
 
     @Override
-    public Object query(DSLObject.DSLQuery dslQeruy, ArangoConfig arangoConfig) {
+    public Object query(DSLObject.DSLQuery dslQeruy) {
         Parameters parameters = dslQeruy.getParameters();
         StringBuffer aqlsb = new StringBuffer();
         String sortAql = "";
-        String limit = arangoConfig.getMaxrows();
         //需要条件  时间，limit
         if(!ObjectUtils.isEmpty(parameters)){
-            limit = ObjectUtils.isEmpty(parameters.getLimit()) ? arangoConfig.getMaxrows() : parameters.getLimit();
+            limit = ObjectUtils.isEmpty(parameters.getLimit()) ? limit : parameters.getLimit();
             List<Sort> sorts = parameters.getSort();
 
             if (Objects.nonNull(sorts)) {
@@ -58,12 +56,9 @@ public class IpProviderImpl implements QueryProvider {
         aqlsb.append(StringUtil.isBlank(sortAql) ? "" : " sort " + sortAql);
         aqlsb.append(" limit ").append(limit);
         aqlsb.append(" return doc");
-        Map queryMap = ImmutableMap.of("query", aqlsb.toString());
-        Header header = new BasicHeader(HttpHeaders.AUTHORIZATION, arangoConfig.getJwt());
-        String res = HttpClientUtils.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), header);
+        //1.查询
+        Object result = baseQueryProvider.queryArango(aqlsb.toString());
         //2.解析结果
-        Map jsonMap = (Map) JsonMapper.fromJsonString(res, Map.class);
-        Object result = jsonMap.get("result");
         List<Map> resultList = new ObjectMapper().convertValue(result, new TypeReference<List<Map>>() {
         });
         return parseResult(resultList);

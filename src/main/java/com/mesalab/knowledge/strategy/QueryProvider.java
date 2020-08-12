@@ -1,6 +1,5 @@
 package com.mesalab.knowledge.strategy;
 
-import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.entity.DSLObject;
 
 /**
@@ -8,6 +7,6 @@ import com.mesalab.knowledge.entity.DSLObject;
  */
 public interface QueryProvider {
 
-    public Object query(DSLObject.DSLQuery dslQeruy, ArangoConfig arangoConfig);
+    public Object query(DSLObject.DSLQuery dslQeruy);
 
 }

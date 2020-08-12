@@ -5,11 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mesalab.knowledge.common.config.ArangoConfig;
-import com.mesalab.knowledge.common.utils.HttpClientUtils;
 import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.entity.Match;
 import com.mesalab.knowledge.entity.Parameters;
@@ -17,16 +14,18 @@ import com.mesalab.knowledge.entity.Range;
 import com.mesalab.knowledge.entity.arango.IpLearningPath;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.JsonMapper;
+import com.zdjizhi.utils.StringUtil;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -41,22 +40,25 @@ public class FqdnProviderImpl implements QueryProvider {
     @Value("${iplearning.uniqciprecent}")
     private Integer uniqCipRecent;//统计最近时间 单位小时
 
+    @Value("${arango.maxrows}")
+    private String limit;//查询最大条数
+
+    @Autowired
+    BaseQueryProvider baseQueryProvider;
+
     @Override
-    public Object query(DSLObject.DSLQuery dslQuery, ArangoConfig arangoConfig) {
+    public Object query(DSLObject.DSLQuery dslQuery) {
         Parameters parameters = dslQuery.getParameters();
         //a.处理条件 b.需要的条件：fqdn_name 多个, depth, filter:last_found_time, dist_cip, http,tls,dns, limit
-
-        //1.构建查询语句 match like
         StringBuffer likeFilter = new StringBuffer();
         Object depth = 1;//数据库默认1度
         StringBuffer intervalsb = new StringBuffer();
         StringBuffer protocolsb = new StringBuffer();
         StringBuffer distCiptsb = new StringBuffer();
-        String limit = arangoConfig.getMaxrows();
         if(!ObjectUtils.isEmpty(parameters)){
-            limit = ObjectUtils.isEmpty(parameters.getLimit()) ? arangoConfig.getMaxrows() : parameters.getLimit();
+            limit = ObjectUtils.isEmpty(parameters.getLimit()) ? limit : parameters.getLimit();
             List<Match> matches = parameters.getMatch();
-            //match.like
+            //1.构建查询语句 match like
             likeFilter.append(Match.like(matches, (m) -> m != null && "FQDN_NAME".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues())));
 
             //2.构建查询语句 intervals 时间
@@ -79,7 +81,6 @@ public class FqdnProviderImpl implements QueryProvider {
                         depth = r.getFieldValues().stream().findFirst().get();
                     } else if ("PROTOCOL".equals(r.getFieldKey())) {
                         List<String> protocols = Lists.newArrayList();
-                        String symbol = RangeEnum.match(r.getType()).symbol();
                         for (Object protocol : r.getFieldValues()) {
                             if ("HTTP".equals(protocol)) {
                                 protocols.add("e.HTTP_CNT_TOTAL > 0");
@@ -93,7 +94,7 @@ public class FqdnProviderImpl implements QueryProvider {
                             protocolsb.append(Joiner.on("").skipNulls().join(" and (", Joiner.on(" or ").skipNulls().join(protocols), ")"));
                         }
                     } else if ("UNIQ_CIP".equals(r.getFieldKey())) {
-                        distCiptsb.append(" and count(e.DIST_CIP) ").append(RangeEnum.match(r.getType()).symbol()).append(r.getFieldValues().get(0));
+                        distCiptsb.append(" and count(e.DIST_CIP) ").append(EnumUtils.getEnum(RangeEnum.class, StringUtil.upperCase(r.getType())).getSymbol()).append(r.getFieldValues().get(0));
                     }
 
                 }
@@ -117,12 +118,8 @@ public class FqdnProviderImpl implements QueryProvider {
         aqlsb.append(" limit ").append(limit);
         aqlsb.append(" return distinct p ");
 
-        Map queryMap = ImmutableMap.of("query", aqlsb.toString());
-        Header header = new BasicHeader(HttpHeaders.AUTHORIZATION, arangoConfig.getJwt());
-        String res = HttpClientUtils.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), header);
+        Object result = baseQueryProvider.queryArango(aqlsb.toString());
         //2.解析结果
-        Map jsonMap = (Map) JsonMapper.fromJsonString(res, Map.class);
-        Object result = jsonMap.get("result");
         List IpPathList = new ObjectMapper().convertValue(result, new TypeReference<List<IpLearningPath>>() {
         });
         return parseResult(IpPathList);

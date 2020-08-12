@@ -6,7 +6,9 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.QueryTypeEnum;
 import com.mesalab.knowledge.service.KnowledgeService;
+import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +35,7 @@ public class KnowledgeController {
      **/
     @PostMapping(value = "/v1/", produces = "application/json")
     public BaseResult knowledgeQuery(HttpServletRequest request,  @RequestBody Object object) {
-        if (QueryTypeEnum.match(request.getQueryString()) != null) {
+        if (EnumUtils.isValidEnum(QueryTypeEnum.class,StringUtil.upperCase(request.getQueryString()))) {
             log.info("服务推荐接口, 参数: queryString is {},params is {}", request.getQueryString(), object);
             return knowledgeService.query(object);
         } else {

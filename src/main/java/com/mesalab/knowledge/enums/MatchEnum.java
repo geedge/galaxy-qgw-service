@@ -1,6 +1,7 @@
 package com.mesalab.knowledge.enums;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 匹配查询
@@ -28,6 +29,7 @@ import lombok.AllArgsConstructor;
  * 不以*或者$开头，不以*结尾，无论关键字其他位置是否包含表示匹配方式的字符*和$，即表示子串匹配，例如aaa*bbb$ccc*$
  * 以$开头，不以*结尾，无论关键字其他位置是否包含表示匹配方式的字符*和$，即表示完整匹配，例如$aaa*bbb$或者$aaa*$bbb
  */
+@Getter
 @AllArgsConstructor
 public enum MatchEnum {
 
@@ -39,26 +41,5 @@ public enum MatchEnum {
 
     private final String type;
     private final String matchExp;
-
-    public String getType() {
-        return type;
-    }
-
-    public String getMatchExp() {
-        return matchExp;
-    }
-
-
-    public static MatchEnum match(String name) {
-        if (name != null) {
-            for (MatchEnum item : MatchEnum.values()) {
-                if (item.type.equals(name)) {
-                    return item;
-                }
-            }
-        }
-        return null;
-    }
-
 
 }

@@ -1,6 +1,7 @@
 package com.mesalab.knowledge.enums;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 范围查询
@@ -14,6 +15,7 @@ import lombok.AllArgsConstructor;
  * le: <= 小于等于（less than or equal）
  * ne: != 不等于（not equal）
  */
+@Getter
 @AllArgsConstructor
 public enum RangeEnum {
 
@@ -29,13 +31,6 @@ public enum RangeEnum {
     private final String symbol;
     private final boolean symmetric;
 
-    public String type() {
-        return type;
-    }
-
-    public String symbol() {
-        return symbol;
-    }
 
     /**
      * Returns if this operation is symmetric with respect to its parameters.
@@ -48,14 +43,4 @@ public enum RangeEnum {
         return symmetric;
     }
 
-    public static RangeEnum match(String name) {
-        if (name != null) {
-            for (RangeEnum item : RangeEnum.values()) {
-                if (item.type.equals(name)) {
-                    return item;
-                }
-            }
-        }
-        return null;
-    }
 }

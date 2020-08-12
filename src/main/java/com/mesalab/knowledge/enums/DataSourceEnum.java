@@ -1,12 +1,14 @@
 package com.mesalab.knowledge.enums;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * @description: for datasource
  * @author: zhq
  * @create: 2020-07-06
  **/
+@Getter
 @AllArgsConstructor
 public enum DataSourceEnum {
 
@@ -19,18 +21,4 @@ public enum DataSourceEnum {
 
     private String view;
 
-    public String getView() {
-        return view;
-    }
-
-    public static DataSourceEnum match(String name) {
-        if (name != null) {
-            for (DataSourceEnum item : DataSourceEnum.values()) {
-                if (item.view.equals(name)) {
-                    return item;
-                }
-            }
-        }
-        return null;
-    }
 }

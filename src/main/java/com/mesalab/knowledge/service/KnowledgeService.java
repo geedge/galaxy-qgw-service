@@ -17,9 +17,12 @@ import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.knowledge.strategy.QueryProvider;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
+import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -39,7 +42,10 @@ import static java.util.Objects.*;
  **/
 @Slf4j
 @Service
-public class KnowledgeService extends BaseService {
+public class KnowledgeService {
+
+    @Value("${arango.maxrows}")
+    private String maxrows;//查询最大条数
 
     @Autowired
     Map<String, QueryProvider> provider = new ConcurrentHashMap<>();
@@ -50,10 +56,8 @@ public class KnowledgeService extends BaseService {
         DSLObject dSLObject = (DSLObject) JsonMapper.fromJsonString(JsonMapper.toJsonString(object), DSLObject.class);
         validate(dSLObject);
         DSLObject.DSLQuery dslQeruy = dSLObject.getQuery();
-        //1.登录
-        arangoConfig.setJwt(getJwt());
-        //2.查询
-        Object result = provider.get(dslQeruy.getDataSource()).query(dslQeruy, arangoConfig);
+        //1.查询
+        Object result = provider.get(dslQeruy.getDataSource()).query(dslQeruy);
         return BaseResultGenerator.success(result);
 
     }
@@ -71,7 +75,7 @@ public class KnowledgeService extends BaseService {
         Parameters parameters = dslQuery.getParameters();
 
         requireNonNull(dslQuery.getDataSource(), "dataSource is null");
-        requireNonNull(DataSourceEnum.match(dslQuery.getDataSource()), "dataSource no match");
+        requireNonNull(EnumUtils.getEnum(DataSourceEnum.class,StringUtil.upperCase(dslQuery.getDataSource())), "dataSource no match");
 
         if (isNull(parameters)) {
             return;
@@ -85,7 +89,7 @@ public class KnowledgeService extends BaseService {
         if (!ObjectUtils.isEmpty(matchs)) {
             matchs.forEach(m -> {
                 Validate.notBlank(m.getType(), "match type is null");
-                requireNonNull(MatchEnum.match(m.getType()), "match type is illegal");
+                Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(m.getType())), "match type is illegal");
                 Validate.notBlank(m.getFieldKey(), "match fieldKey is null");
                 Validate.notEmpty(m.getFieldValues(), "match fieldValues is empty");
                 //正则匹配方式 禁止 $xxx* 形式的value
@@ -100,7 +104,7 @@ public class KnowledgeService extends BaseService {
         if (!ObjectUtils.isEmpty(ranges)) {
             ranges.forEach(r -> {
                 Validate.notBlank(r.getType(), "range type is null");
-                requireNonNull(RangeEnum.match(r.getType()), "range type is illegal");
+                Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(r.getType())), "range type is illegal");
                 Validate.notBlank(r.getFieldKey(), "range fieldKey is null");
                 Validate.notEmpty(r.getFieldValues(), "range fieldValues is null");
                 r.getFieldValues().forEach(rv -> {
@@ -132,7 +136,7 @@ public class KnowledgeService extends BaseService {
             Validate.notEmpty(limits, "limit is illegal");
             Validate.isTrue(!(limit.contains(",") && limits.size() != 2), "limit is illegal");
             for (String l : limits) {
-                Validate.isTrue(l.length() <= arangoConfig.getMaxrows().length() && Integer.valueOf(arangoConfig.getMaxrows()) >= Integer.valueOf(l) && Integer.valueOf(l) > 0, "limit is greater than 0 and less than " + arangoConfig.getMaxrows());
+                Validate.isTrue(l.length() <= maxrows.length() && Integer.valueOf(maxrows) >= Integer.valueOf(l) && Integer.valueOf(l) > 0, "limit is greater than 0 and less than " + maxrows);
             }
         }
     }

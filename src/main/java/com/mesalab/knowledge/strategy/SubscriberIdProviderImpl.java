@@ -3,19 +3,14 @@ package com.mesalab.knowledge.strategy;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CharMatcher;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mesalab.knowledge.common.config.ArangoConfig;
-import com.mesalab.knowledge.common.utils.HttpClientUtils;
 import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.entity.Match;
 import com.mesalab.knowledge.entity.Parameters;
 import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.JsonMapper;
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -31,16 +26,21 @@ import java.util.Objects;
 @Component("SUBSCRIBER_ID_VIEW")
 public class SubscriberIdProviderImpl implements QueryProvider {
 
+    @Value("${arango.maxrows}")
+    private String limit;//查询最大条数
+
+    @Autowired
+    BaseQueryProvider baseQueryProvider;
+
     @Override
-    public Object query(DSLObject.DSLQuery dslQeruy, ArangoConfig arangoConfig) {
+    public Object query(DSLObject.DSLQuery dslQeruy) {
 
         //1.构建查询语句 match like
         StringBuffer likeFilter = new StringBuffer();
-        String limit = arangoConfig.getMaxrows();
         Parameters parameters = dslQeruy.getParameters();
         if(!ObjectUtils.isEmpty(parameters)){
             likeFilter.append(Match.like(parameters.getMatch(), (m) -> m != null && "SUBSCRIBER_ID".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues())));
-            limit = ObjectUtils.isEmpty(parameters.getLimit()) ? arangoConfig.getMaxrows() : parameters.getLimit();
+            limit = ObjectUtils.isEmpty(parameters.getLimit()) ? limit : parameters.getLimit();
         }
 
         StringBuffer aqlsb = new StringBuffer("for doc in SUBSCRIBER ");
@@ -51,12 +51,9 @@ public class SubscriberIdProviderImpl implements QueryProvider {
         aqlsb.append(" limit ").append(limit);
         aqlsb.append(" return p ");
 
-        Map queryMap = ImmutableMap.of("query", aqlsb.toString());
-        Header header = new BasicHeader(HttpHeaders.AUTHORIZATION, arangoConfig.getJwt());
-        String res = HttpClientUtils.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), header);
+        //1.查询
+        Object result = baseQueryProvider.queryArango(aqlsb.toString());
         //2.解析结果
-        Map jsonMap = (Map) JsonMapper.fromJsonString(res, Map.class);
-        Object result = jsonMap.get("result");
         List<Map> resultList = new ObjectMapper().convertValue(result, new TypeReference<List<Map>>() {
         });
         return parseResult(resultList);
