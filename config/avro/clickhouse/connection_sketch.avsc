@@ -115,22 +115,22 @@
     {
       "name": "common_c2s_pkt_num",
       "label": "Packets Sent",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "common_s2c_pkt_num",
       "label": "Packets Received",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "common_service",
