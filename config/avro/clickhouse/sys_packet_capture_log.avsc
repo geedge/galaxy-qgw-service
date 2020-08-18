@@ -251,8 +251,14 @@
       "doc": "{\"allow_query\":\"true\"}"
     },
     {
-      "name": "common_link_info",
-      "label": "Link Info",
+      "name": "common_link_info_c2s",
+      "label": "Link Info(c2s)",
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_link_info_s2c",
+      "label": "Link Info(s2c)",
       "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
