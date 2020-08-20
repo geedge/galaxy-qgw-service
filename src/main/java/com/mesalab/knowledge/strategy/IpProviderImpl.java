@@ -53,6 +53,7 @@ public class IpProviderImpl implements QueryProvider {
             }
         }
         aqlsb.append("for doc in IP ");
+        aqlsb.append(" filter doc.COMMON_LINK_INFO != '' ");
         aqlsb.append(StringUtil.isBlank(sortAql) ? "" : " sort " + sortAql);
         aqlsb.append(" limit ").append(limit);
         aqlsb.append(" return doc");

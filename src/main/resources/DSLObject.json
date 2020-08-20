@@ -100,6 +100,11 @@
               "type": "array",
               "items": {
                 "type": "object",
+                "required": [
+                  "type",
+                  "fieldKey",
+                  "fieldValues"
+                ],
                 "properties": {
                   "type": {
                     "description": "匹配符号",
@@ -128,6 +133,11 @@
               },
               "additionalItems": {
                 "type": "object",
+                "required": [
+                  "type",
+                  "fieldKey",
+                  "fieldValues"
+                ],
                 "properties": {
                   "type": {
                     "description": "匹配符号",
