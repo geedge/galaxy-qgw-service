@@ -479,7 +479,8 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
               log.warn("Get Partition Key is Null.Focus in tableName {} schema", param.getTableName());
               return sql;
           } else {
-              StringBuffer subQuery = getSubquerySql(partitionKey, param.getTableName());
+              StringBuffer subQuery = getSubquerySql(partitionKey,
+                      metadataService.getDBNameByTableName(param.getTableName()) + "." + param.getTableName());
               Matcher m = pWhere.matcher(sql);
               StringBuffer sb = new StringBuffer();
               while (m.find()) {
