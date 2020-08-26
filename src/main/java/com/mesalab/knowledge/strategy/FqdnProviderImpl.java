@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.knowledge.entity.DSLObject;
@@ -21,10 +22,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -104,18 +103,47 @@ public class FqdnProviderImpl implements QueryProvider {
         aqlsb.append(intervalsb);
         aqlsb.append(distCiptsb);
         aqlsb.append(protocolsb);
-        aqlsb.append(" limit ").append(limit);
-        aqlsb.append(" return distinct e ");
 
-        Object result = baseQueryProvider.queryArango(aqlsb.toString());
-        //2.解析结果
-        List ipEdgesList = new ObjectMapper().convertValue(result, new TypeReference<List<IpLearningPath.IplearningEdges>>() {
-        });
+        int pageRow = 0;
+        int offSet = 0;
+        int pageSize = 0;
+        List<String> limitList = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
+        if(limitList.size()<2){
+            pageSize= pageRow = Integer.valueOf(limitList.get(0));
+        } else {
+            pageRow = Integer.valueOf(limitList.get(0)) + Integer.valueOf(limitList.get(1));
+            offSet = Integer.valueOf(limitList.get(0));
+            pageSize = Integer.valueOf(limitList.get(1));
+        }
+
+        List<IpLearningPath.IplearningEdges> ipEdgesList = getDistinctList(aqlsb, pageRow, offSet, pageSize);
 
         return parseResult(ipEdgesList);
 
     }
-
+    //循环查询 ，目的为了数量达到limit , 结果数据是否为limit , 1.当查询数量小于limit停止 2.当结果数量=limit停止
+    private List<IpLearningPath.IplearningEdges> getDistinctList(StringBuffer aqlsb ,int pageRow,int offSet, int pageSize){
+        pageRow = pageRow + offSet + pageSize;//每次多查一点点，去重
+        StringBuffer sb  = new StringBuffer(aqlsb);
+        sb.append(" limit ").append(pageRow);
+        sb.append(" return distinct e ");
+        
+        Object result = baseQueryProvider.queryArango(sb.toString());
+        List ipEdgesList = new ObjectMapper().convertValue(result, new TypeReference<List<IpLearningPath.IplearningEdges>>() {
+        });
+        List<IpLearningPath.IplearningEdges> edgesList = (List<IpLearningPath.IplearningEdges>) ipEdgesList.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(IpLearningPath.IplearningEdges::getTo))), ArrayList::new));
+        if(ipEdgesList.size()<pageRow || edgesList.size()>= pageSize+offSet){
+            if(offSet > edgesList.size()){
+                return new ArrayList<>();
+            } else {
+                if(offSet + pageSize > edgesList.size()){
+                    return edgesList.subList(offSet, edgesList.size());
+                }
+                return edgesList.subList(offSet, offSet + pageSize);
+            }
+        }
+        return getDistinctList( aqlsb , pageRow, offSet, pageSize);
+    }
     /**
      * @return java.lang.Object
      * @Author zhq
