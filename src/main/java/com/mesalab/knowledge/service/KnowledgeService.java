@@ -51,12 +51,12 @@ public class KnowledgeService {
     Map<String, QueryProvider> provider = new ConcurrentHashMap<>();
 
     public BaseResult query(Object object) {
-        //0.结构校验
+        //1.结构校验
         validateJson(JsonMapper.toJsonString(object));
         DSLObject dSLObject = (DSLObject) JsonMapper.fromJsonString(JsonMapper.toJsonString(object), DSLObject.class);
         validate(dSLObject);
         DSLObject.DSLQuery dslQeruy = dSLObject.getQuery();
-        //1.查询
+        //2.查询
         Object result = provider.get(dslQeruy.getDataSource()).query(dslQeruy);
         return BaseResultGenerator.success(result);
 
@@ -88,35 +88,22 @@ public class KnowledgeService {
         String limit = parameters.getLimit();
         if (!ObjectUtils.isEmpty(matchs)) {
             matchs.forEach(m -> {
-                Validate.notBlank(m.getType(), "match type is null");
                 Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(m.getType())), "match type is illegal");
-                Validate.notBlank(m.getFieldKey(), "match fieldKey is null");
-                Validate.notEmpty(m.getFieldValues(), "match fieldValues is empty");
                 //正则匹配方式 禁止 $xxx* 形式的value
                 if (MatchEnum.REGEX.getType().equals(m.getType())) {
                     m.getFieldValues().forEach(mv -> {
                         Validate.isTrue(!(String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*")), "error in matching sign. begin with * and do not end with * for suffix matching, end with * and do not begin with $ or * for prefix matching, begin with $ and do not end with * for exactly matching, begin with * and end with * or no wildcard for substring matching");
-                        Validate.isTrue(String.valueOf(mv).length() < 65535, "the maximum length of  fieldValues is less than 65535");
                     });
                 }
             });
         }
         if (!ObjectUtils.isEmpty(ranges)) {
             ranges.forEach(r -> {
-                Validate.notBlank(r.getType(), "range type is null");
                 Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(r.getType())), "range type is illegal");
-                Validate.notBlank(r.getFieldKey(), "range fieldKey is null");
-                Validate.notEmpty(r.getFieldValues(), "range fieldValues is null");
-                r.getFieldValues().forEach(rv -> {
-                    Validate.isTrue(String.valueOf(rv).length() < 65535, "the maximum length of  fieldValues is less than 65535");
-                });
-
             });
         }
         if (!ObjectUtils.isEmpty(sorts)) {
             sorts.forEach(s -> {
-                Validate.notBlank(s.getType(), "sort type is null");
-                Validate.notBlank(s.getFieldKey(), "sort fieldKey is null");
                 Validate.isTrue("asc".equalsIgnoreCase(s.getType()) || "desc".equalsIgnoreCase(s.getType()), "sort type is illegal");
             });
         }
@@ -131,7 +118,6 @@ public class KnowledgeService {
             Validate.isTrue(start.before(end), "the end time must be after the start time");
         }
         if (nonNull(limit)) {
-            Validate.isTrue(String.valueOf(limit).length() < 65535, "the maximum length of  string is less than 65535");
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
             Validate.notEmpty(limits, "limit is illegal");
             Validate.isTrue(!(limit.contains(",") && limits.size() != 2), "limit is illegal");

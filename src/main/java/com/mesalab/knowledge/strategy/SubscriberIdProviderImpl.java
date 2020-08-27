@@ -49,7 +49,7 @@ public class SubscriberIdProviderImpl implements QueryProvider {
         aqlsb.append(" for v,e,p in 1..1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' ");
         aqlsb.append(" filter e.LAST_FOUND_TIME == maxTime[0] ");
         aqlsb.append(" limit ").append(limit);
-        aqlsb.append(" return p ");
+        aqlsb.append(" return distinct p ");
 
         //1.查询
         Object result = baseQueryProvider.queryArango(aqlsb.toString());

@@ -5,6 +5,7 @@ import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.HttpClientUtils;
 import com.mesalab.knowledge.common.utils.JwtCache;
+import com.mesalab.knowledge.strategy.BaseQueryProvider;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.junit.Test;
@@ -22,6 +23,9 @@ import java.util.Objects;
  **/
 @EnableAutoConfiguration
 public class JwtTest extends GalaxyQGWApplicationTests {
+
+    @Autowired
+    BaseQueryProvider baseQueryProvider;
 
     @Autowired
     ArangoConfig arangoConfig;
@@ -43,6 +47,12 @@ public class JwtTest extends GalaxyQGWApplicationTests {
             jwt = resMap.get(Constant.JWT) != null ? Constant.ARANGO_JWT_BEARER + resMap.get(Constant.JWT) : null;
             JwtCache.put(Constant.ARANGO_CACHE_JWT, jwt);
         }
+        Objects.requireNonNull(jwt);
+    }
+
+    @Test
+    public void jwtTest(){
+        String jwt = baseQueryProvider.getJwt();
         Objects.requireNonNull(jwt);
     }
 
