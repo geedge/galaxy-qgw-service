@@ -153,39 +153,39 @@
       "type": "long"
     },
     {
-      "name": "hijk_bytes",
+      "name": "hijack_bytes",
       "type": "long"
     },
     {
-      "name": "ins_bytes",
+      "name": "insert_bytes",
       "type": "long"
     },
     {
-      "name": "intcp_allow_num",
+      "name": "intercept_allow_conn_num",
       "type": "long"
     },
     {
-      "name": "intcp_deny_num",
+      "name": "intercept_deny_conn_num",
       "type": "long"
     },
     {
-      "name": "intcp_hijk_num",
+      "name": "intercept_hijack_conn_num",
       "type": "long"
     },
     {
-      "name": "intcp_ins_num",
+      "name": "intercept_insert_conn_num",
       "type": "long"
     },
     {
-      "name": "intcp_mon_num",
+      "name": "intercept_monitor_conn_num",
       "type": "long"
     },
     {
-      "name": "intcp_rdirt_conn",
+      "name": "intercept_redirect_conn_num",
       "type": "long"
     },
     {
-      "name": "intcp_repl_num",
+      "name": "intercept_replace_conn_num",
       "type": "long"
     },
     {
