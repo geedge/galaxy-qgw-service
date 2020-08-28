@@ -592,12 +592,16 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
                   if (orderField.startsWith("\"") && orderField.endsWith("\"")) {
                       orderField = orderField.substring(1, orderField.length() - 1);
                   }
-                  String originalField = aliasFields.get(orderField);
-                  if (StringUtil.isNotBlank(originalField) && !isFieldOfSchema(schema, originalField)) {
-                      return false;
-                  }
-                  if (StringUtil.isBlank(originalField) && !isFieldOfSchema(schema, orderField)) {
-                      return false;
+                  String originalField = StringUtil.isBlank(aliasFields.get(orderField)) ? orderField : aliasFields.get(orderField);
+                  Expression expression = parserException(originalField);
+                  if (expression instanceof Function) {
+                      if (!getValidityByFunctionParamsInSchema(schema, (Function) expression)) {
+                          return false;
+                      }
+                  } else {
+                      if (!isFieldOfSchema(schema, originalField)) {
+                          return false;
+                      }
                   }
               }
               return true;
@@ -672,9 +676,22 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
               if(!bool){
                   setSubIndexValidFlag(false);
               }
+          } else if (where instanceof Parenthesis) {
+              Parenthesis whereExpressionParenthesis = (Parenthesis) where;
+              Expression expression = whereExpressionParenthesis.getExpression();
+              setValidityByWhereExpressionsInSchema(expression, masterTableSchema, indexTableSchema);
           } else {
               setSubIndexValidFlag(false);
               return;
+          }
+      }
+
+      private Expression parserException(String originalField) {
+          try {
+              return CCJSqlParserUtil.parseExpression(originalField);
+          } catch (JSQLParserException e) {
+              e.printStackTrace();
+              throw new BusinessException("parseExpression error: " + originalField);
           }
       }
 
