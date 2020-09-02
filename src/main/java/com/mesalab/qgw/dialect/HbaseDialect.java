@@ -48,7 +48,7 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
 
 
     @Override
-    public Dialect executeQuery() {
+    public BaseResult executeQuery() {
         watch.start();
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(hBaseHttpSource.getUrl()).append("/");
@@ -59,25 +59,32 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
                     .append(getQueryId(queryId, param.getQuery())).append("/")
                     .append(hBaseHttpSource.getColumnFamily()).append(":").append(hBaseHttpSource.getColumnName());
 
-            Map<String, String> headers = Maps.newHashMap();
-            headers.put("Accept", "application/json");
 
-            Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers);
-
-            if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),ResultCodeEnum.EXECUTE_SUCCESS.getCode(),null,
-                        JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class), null, null, QueryFormatEnum.JSON.getValue());
-                getAndParserFormatSql();
-            } else {
-                baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
-                        results.get("result"), null, null, param.getFormat());
-            }
-            return this;
+            return generateBaseResult(urlBuilder.toString() + queryparamBuilder.toString(), Optional.of("OK")).build();
         }
 
-    @Override
-    public Dialect executeAdministrativeQuery() {
+
+    private HbaseDialect generateBaseResult(String requestURL, Optional<String> message) {
+
+        Map<String, String> headers = Maps.newHashMap();
+        headers.put("Accept", "application/json");
+        Map<String, String> results = httpClientService.httpGet(requestURL, headers);
+
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),ResultCodeEnum.EXECUTE_SUCCESS.getCode(),null,
+                    JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+            getAndParserFormatSql();
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
+                    results.get("result"), null, null, param.getFormat());
+        }
+
         return this;
+    }
+
+    @Override
+    public BaseResult executeAdministrativeQuery() {
+        return null;
     }
 
     private Map<String, String> getFormatSql() {
@@ -106,14 +113,14 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
 
 
         @Override
-        public Dialect executeSyntaxCheck() {
-            return this;
+        public BaseResult executeSyntaxCheck() {
+            return null;
         }
 
 
 
-        @Override
-        public BaseResult build() {
+
+        private BaseResult build() {
             Object dataObject = baseResult.getData();
 
             if (baseResult.isSuccess()) {

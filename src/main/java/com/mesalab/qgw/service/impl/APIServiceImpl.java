@@ -124,11 +124,11 @@ public class APIServiceImpl implements IAPIService {
 
         Dialect dbDialect = parserSQL(param);
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-            baseResult = dbDialect.executeSyntaxCheck().build();
+            baseResult = dbDialect.executeSyntaxCheck();
         } else {
-            baseResult = dbDialect.executeQuery().build();
+            baseResult = dbDialect.executeQuery();
         }
-        baseResult = new FederationDialect(param, baseResult).executeQuery().build();
+        baseResult = new FederationDialect(param, baseResult).executeQuery();
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
         }
@@ -669,7 +669,7 @@ public class APIServiceImpl implements IAPIService {
         param.setDbQuerySource(dbQuerySource);
 
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeAdministrativeQuery().build();
+        BaseResult result = dialect.executeAdministrativeQuery();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "describe table error, please check tableName", null);
         }
@@ -704,7 +704,7 @@ public class APIServiceImpl implements IAPIService {
         param.setFormat(QueryFormatEnum.JSON.getValue());
 
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeAdministrativeQuery().build();
+        BaseResult result = dialect.executeAdministrativeQuery();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), result.getMessage(), null);
         }

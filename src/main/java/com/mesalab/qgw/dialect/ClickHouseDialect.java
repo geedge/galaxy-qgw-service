@@ -828,27 +828,44 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
 
 
     @Override
-    public Dialect executeQuery() {
-        generateBaseResult(convertQuery(findBestQuery()));
-        return this;
+    public BaseResult executeQuery() {
+        return generateBaseResult(convertQuery(findBestQuery()), Optional.of("OK")).build();
     }
 
     @Override
-    public Dialect executeAdministrativeQuery() {
-        generateBaseResult(param.getQuery());
-        return this;
+    public BaseResult executeAdministrativeQuery() {
+        return generateBaseResult(param.getQuery(), Optional.of("OK")).build();
     }
 
 
     @Override
-    public Dialect executeSyntaxCheck() {
+    public BaseResult executeSyntaxCheck() {
         String sql = convertQuery(getSyntaxCheckSql());
         log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), sql);
+        return generateBaseResult(sql, Optional.of(Encodes.urlDecode(sql))).build();
+    }
+
+    /**
+     * 执行SQL获取查询结果，此数据为数据库返回的原始结果。
+     * 主要目标统一封装BaseResult对象，便于后续对结果进行业务模型构建。
+     * @param sql
+     * @param message 携带消息
+     * @return
+     */
+    private ClickHouseDialect generateBaseResult(String sql, Optional<String> message) {
 
         Map<String, String> results = executeHttpGet(sql);
+
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), Encodes.urlDecode(sql),
-                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+
+            baseResult = BaseResultGenerator.generate(
+                    Integer.valueOf(results.get("status")),
+                    ResultCodeEnum.EXECUTE_SUCCESS.getCode(),
+                    message.get(),
+                    JsonMapper.fromJsonString(results.get("result"), Map.class),
+                    null,
+                    null,
+                    QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
                     results.get("result"), null, null, param.getFormat());
@@ -856,21 +873,9 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
         return this;
     }
 
-    private void generateBaseResult(String sql) {
-
-        Map<String, String> results = executeHttpGet(sql);
-        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
-                    JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
-        } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, param.getFormat());
-        }
-    }
 
 
-    @Override
-    public BaseResult build() {
+    private BaseResult build() {
 
         Object dataObject = baseResult.getData();
         if (baseResult.isSuccess()) {

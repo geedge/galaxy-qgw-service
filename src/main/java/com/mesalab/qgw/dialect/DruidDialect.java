@@ -29,10 +29,7 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import org.apache.http.HttpStatus;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -68,32 +65,29 @@ public class DruidDialect extends  AbstractDataSourceDialect {
     }
 
     @Override
-    public Dialect executeQuery() {
+    public BaseResult executeQuery() {
 
         watch.start();
-        generateBaseResult(convertQuery(findBestQuery()));
-        return this;
+        return generateBaseResult(convertQuery(findBestQuery()), Optional.of("OK")).build();
 
     }
 
     @Override
-    public Dialect executeAdministrativeQuery() {
-        generateBaseResult(param.getQuery());
-        return this;
+    public BaseResult executeAdministrativeQuery() {
+       return  generateBaseResult(param.getQuery(), Optional.of("OK")).build();
     }
 
-    private void generateBaseResult(String sql) {
+    @Override
+    public BaseResult executeSyntaxCheck() {
+        String query = convertQuery(getSyntaxCheckSql());
 
-        Map<String, String> results = executeHttpPost(sql);
+        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
 
-        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(),  null,
-                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
-        } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, param.getFormat());
-        }
+        return  generateBaseResult(query, Optional.of(query)).build();
+
     }
+
+
 
     /**
      * Druid Http Query Interface
@@ -114,21 +108,27 @@ public class DruidDialect extends  AbstractDataSourceDialect {
     }
 
 
-    @Override
-    public Dialect executeSyntaxCheck() {
-        String query = convertQuery(getSyntaxCheckSql());
-        Map<String, String> results = executeHttpPost(query);
 
-        baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),null, query,
-                (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, param.getFormat());
-        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
+
+    private DruidDialect generateBaseResult(String sql, Optional<String> message) {
+
+        Map<String, String> results = executeHttpPost(sql);
+
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(),  message.get(),
+                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
+                    results.get("result"), null, null, param.getFormat());
+        }
+
         return this;
     }
 
 
 
-    @Override
-    public BaseResult build() {
+
+    private BaseResult build() {
 
         Object dataObject = baseResult.getData();
 
