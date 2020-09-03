@@ -48,22 +48,18 @@ public class HttpClientService {
             log.error("协议错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } catch (ParseException e) {
             log.error("解析错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } catch (IOException e) {
             log.error("IO错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } catch (Exception e) {
             log.error("其它错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } finally {
             if (null != response) {
                 try {
@@ -71,7 +67,6 @@ public class HttpClientService {
                     response.close();
                 } catch (IOException e) {
                     log.error("释放链接错误: {}", e.getMessage());
-                    e.printStackTrace();
                 }
             }
         }
@@ -104,22 +99,18 @@ public class HttpClientService {
             log.error("协议错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } catch (ParseException e) {
             log.error("解析错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } catch (IOException e) {
             log.error("IO错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } catch (Exception e) {
             log.error("其它错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } finally {
             if (null != response) {
                 try {
@@ -127,7 +118,6 @@ public class HttpClientService {
                     response.close();
                 } catch (IOException e) {
                     log.error("释放链接错误: {}", e.getMessage());
-                    e.printStackTrace();
                 }
             }
         }
@@ -154,22 +144,18 @@ public class HttpClientService {
             log.error("协议错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } catch (ParseException e) {
             log.error("解析错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } catch (IOException e) {
             log.error("IO错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } catch (Exception e) {
             log.error("其它错误: {}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
             resultMap.put("message", e.getMessage());
-            e.printStackTrace();
         } finally {
             if (null != response) {
                 try {
@@ -177,7 +163,6 @@ public class HttpClientService {
                     response.close();
                 } catch (IOException e) {
                     log.error("释放链接错误: {}", e.getMessage());
-                    e.printStackTrace();
                 }
             }
         }
@@ -200,13 +185,10 @@ public class HttpClientService {
             }
         } catch (ClientProtocolException e) {
             log.error("协议错误: {}", e.getMessage());
-            e.printStackTrace();
         } catch (ParseException e) {
             log.error("解析错误: {}", e.getMessage());
-            e.printStackTrace();
         } catch (IOException e) {
             log.error("IO错误: {}", e.getMessage());
-            e.printStackTrace();
         } finally {
             if (null != response) {
                 try {
@@ -214,7 +196,6 @@ public class HttpClientService {
                     response.close();
                 } catch (IOException e) {
                     log.error("释放链接错误: {}", e.getMessage());
-                    e.printStackTrace();
                 }
             }
         }

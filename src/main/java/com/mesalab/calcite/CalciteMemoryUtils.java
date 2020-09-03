@@ -73,7 +73,6 @@ public class CalciteMemoryUtils {
            result.put("data", data);
 
        } catch (Exception e) {
-           e.printStackTrace();
            throw new BusinessException("Engine execution SQL Error.", e);
 
        } finally {

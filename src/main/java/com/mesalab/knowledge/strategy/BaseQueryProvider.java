@@ -69,7 +69,6 @@ public class BaseQueryProvider {
         try {
             res = HttpClientUtils.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), header);
         } catch (BusinessException e) {
-            e.printStackTrace();
             if(e.getErrorMessage()!=null&&e.getErrorMessage().contains("not authorized to execute this request")){
                 //刷新jwt
                 JwtCache.remove(Constant.ARANGO_CACHE_JWT);

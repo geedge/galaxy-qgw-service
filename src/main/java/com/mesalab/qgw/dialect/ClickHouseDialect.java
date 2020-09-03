@@ -690,7 +690,6 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
           try {
               return CCJSqlParserUtil.parseExpression(originalField);
           } catch (JSQLParserException e) {
-              e.printStackTrace();
               throw new BusinessException("parseExpression error: " + originalField);
           }
       }
@@ -917,7 +916,6 @@ public class ClickHouseDialect extends  AbstractDataSourceDialect{
         } catch (Exception e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
-            e.printStackTrace();
         }
         return sql;
     }

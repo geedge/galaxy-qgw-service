@@ -37,7 +37,7 @@ public class MonitorController {
             reader.close();
             jsonStr = sb.toString();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("get file error: ", e);
         }
         return jsonStr;
     }

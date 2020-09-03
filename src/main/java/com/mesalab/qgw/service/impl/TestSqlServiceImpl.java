@@ -73,7 +73,6 @@ public class TestSqlServiceImpl {
                 sql = sql.replaceAll("\\$end_time", "'" + format2.format(date) + "'");
                 sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+","%20");
             } catch (Exception e) {
-                e.printStackTrace();
                 log.error("测试用例sql编码错误", e);
             }
             resultTemp = httpClientService.httpGet("http://127.0.0.1:9999/?query=" + sql);
@@ -84,7 +83,6 @@ public class TestSqlServiceImpl {
                 try {
                     resultTemp.put("query", URLDecoder.decode(sql, "UTF-8"));
                 } catch (Exception e) {
-                    e.printStackTrace();
                     log.error("sql查询结果处理异常", e);
                 }
             }

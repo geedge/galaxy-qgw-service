@@ -147,7 +147,6 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
 
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Parser function : TIME_FLOOR_WITH_FILL error : " + e);
         }
 

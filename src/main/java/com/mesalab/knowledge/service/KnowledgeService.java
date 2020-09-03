@@ -154,10 +154,8 @@ public class KnowledgeService {
             //判断校验是否成功，如果为true成功
             Validate.isTrue(processingReport.isSuccess(), sb.toString());
         } catch (ProcessingException e) {
-            e.printStackTrace();
             log.error(e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
             log.error(e.getMessage());
         }
     }
