@@ -344,6 +344,7 @@
     </dependencies>
 
     <build>
+        <finalName>galaxy-qgw-service</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -364,7 +365,8 @@
                     <!--是否向镜像registry(harbor)中推送镜像,如果为false则需要在mvn命令时添加-DpushImage参数-->
                     <pushImage>true</pushImage>
 
-                    <imageName>${docker.registry}:${docker.registry.port}/${docker.image.prefix}/${project.artifactId}</imageName>
+                    <imageName>${docker.registry}:${docker.registry.port}/${docker.image.prefix}/${project.artifactId}
+                    </imageName>
                     <forceTags>true</forceTags>
 
                     <!--远程docker构建，供dockerfile使用-->
@@ -394,7 +396,6 @@
                         </resource>
 
 
-
                     </resources>
 
                 </configuration>
@@ -414,12 +415,8 @@
             </plugin>
 
 
-
-
         </plugins>
     </build>
-
-
 
 
 </project>
