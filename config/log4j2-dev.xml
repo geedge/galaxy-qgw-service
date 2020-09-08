@@ -34,7 +34,7 @@
             <DefaultRolloverStrategy max="8">
                 <Delete basePath="${BAK_HOME}/" maxDepth="1">
                     <IfFileName glob="*info-*.log.gz" />
-                    <IfLastModified age="3d"/>
+                    <IfLastModified age="30d"/>
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingRandomAccessFile>
