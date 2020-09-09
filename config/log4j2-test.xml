@@ -44,7 +44,7 @@
         </Console>
 
 
-        <!-- 这个输出控制台的配置，这里输出error级别的信息到System.err，在eclipse控制台上看到的是红色文字 -->
+        <!-- 这个输出控制台的配置，这里输出error级别的信息到System.err -->
         <Console name="consoleSystemErrAppender" target="SYSTEM_ERR">
             <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="${LOG_PATTERN}"/>
@@ -135,6 +135,19 @@
                 <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
             </Filters>
         </RollingFile>
+
+        <!-- ALL级别日志 -->
+        <RollingFile name="rollingFileAllAppender" immediateFlush="true" fileName="${LOG_PATH}/galaxy-qgw-service.log"
+                     filePattern="${LOG_PATH}/all/$${date:yyyy-MM-dd}/all-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <Filters>
+                <ThresholdFilter level="all" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
     </appenders>
     <loggers>
         <!-- 配置日志的根节点 -->
@@ -147,6 +160,7 @@
             <appender-ref ref="rollingFileInfoAppender"/>
             <appender-ref ref="rollingFileWarnAppender"/>
             <appender-ref ref="rollingFileErrorAppender"/>
+            <appender-ref ref="rollingFileAllAppender"/>
         </root>
         <!-- 第三方日志系统 -->
         <logger name="org.jboss.netty" level="warn"/>
