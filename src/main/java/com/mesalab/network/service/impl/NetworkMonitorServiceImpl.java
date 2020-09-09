@@ -95,14 +95,18 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             if (!statData.isEmpty()) {
                 data.putAll(statData.get(0));
             }
-            if (statData.size() >= 2) {
+            if (statData.size() >= 4) {
                 data.put("current_sessions", statData.get(1).get("total_bytes"));
+                data.put("totalBytesTcp", statData.get(2).get("total_bytes"));
+                data.put("totalPackageTcpUdp", statData.get(3).get("total_bytes"));
             }
             if (!summaryData.isEmpty()) {
                 data.putAll(summaryData.get(0));
             }
             long uniqClientIp = Long.parseLong(String.valueOf(data.get("uniq_client_ip") == null ? 0 : data.get("uniq_client_ip")));
             long totalSessions = Long.parseLong(String.valueOf(data.get("total_sessions") == null ? 0 : data.get("total_sessions")));
+            long totalBytesTcp = Long.parseLong(String.valueOf(data.get("totalBytesTcp") == null ? 0 : data.get("totalBytesTcp")));
+            long totalPackageTcpUdp = Long.parseLong(String.valueOf(data.get("totalPackageTcpUdp") == null ? 0 : data.get("totalPackageTcpUdp")));
             long currentSessions = Long.parseLong(String.valueOf(data.get("current_sessions") == null ? 0 : data.get("current_sessions")));
             long dataRate = Long.parseLong(String.valueOf(data.get("data_rate") == null ? 0 : data.get("data_rate")));
             long totalBytes = Long.parseLong(String.valueOf(data.get("total_bytes") == null ? 0 : data.get("total_bytes")));
@@ -110,6 +114,10 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             double totalUncategorizedPercent = totalBytes == 0 ? 0 : totalUncategorizedBytes * 1.0 / totalBytes;
             long oneSidedConnections = Long.parseLong(String.valueOf(data.get("one_sided_connections") == null ? 0 : data.get("one_sided_connections")));
             double oneSidedPercent = totalBytes == 0 ? 0 : oneSidedConnections * 1.0 / totalSessions;
+            long sequenceGapLossBytes = Long.parseLong(String.valueOf(data.get("sequence_gap_loss_bytes") == null ? 0 : data.get("sequence_gap_loss_bytes")));
+            double sequenceGapLossBytesPercent = totalBytesTcp == 0 ? 0 : sequenceGapLossBytes * 1.0 / totalBytesTcp;
+            long fragmentationPackets = Long.parseLong(String.valueOf(data.get("fragmentation_packets") == null ? 0 : data.get("fragmentation_packets")));
+            double fragmentationPacketsPercent = totalPackageTcpUdp == 0 ? 0 : fragmentationPackets * 1.0 / totalPackageTcpUdp;
 
             List result = new ArrayList<>();
             Map resultMap = new LinkedHashMap<>();
@@ -122,6 +130,10 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             resultMap.put("total_uncategorized_percent", Double.parseDouble(String.format("%.4f", totalUncategorizedPercent)));
             resultMap.put("one_sided_connections", oneSidedConnections);
             resultMap.put("one_sided_percent", Double.parseDouble(String.format("%.4f", oneSidedPercent)));
+            resultMap.put("sequence_gap_loss_bytes", sequenceGapLossBytes);
+            resultMap.put("sequence_gap_loss_percent", Double.parseDouble(String.format("%.4f", sequenceGapLossBytesPercent)));
+            resultMap.put("fragmentation_packets", fragmentationPackets);
+            resultMap.put("fragmentation_percent", Double.parseDouble(String.format("%.4f", fragmentationPacketsPercent)));
             result.add(resultMap);
 
             Map statistics = (Map) summaryDataResult.get("statistics");
@@ -180,8 +192,14 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         "( SELECT SUM(sessions), 0, 0 " +
                         "FROM traffic_protocol_stat_log " +
                         "WHERE __time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s' " +
-                        "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) GROUP BY __time ORDER BY __time DESC LIMIT 1 )",
+                        "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) GROUP BY __time ORDER BY __time DESC LIMIT 1 ) " +
+                        "UNION ALL " +
+                        "( SELECT SUM(c2s_byte_num + s2c_byte_num),0 ,0 FROM traffic_protocol_stat_log WHERE (__time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s') AND (protocol_id = 'ETHERNET/IPv4/TCP' OR protocol_id = 'ETHERNET/IPv6/TCP') LIMIT 1) " +
+                        "UNION ALL " +
+                        "( SELECT SUM(c2s_pkt_num + s2c_pkt_num),0 ,0 FROM traffic_protocol_stat_log WHERE (__time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s') AND (protocol_id = 'ETHERNET/IPv4/TCP' OR protocol_id = 'ETHERNET/IPv6/TCP' OR protocol_id = 'ETHERNET/IPv4/UDP' OR protocol_id = 'ETHERNET/IPv6/UDP') LIMIT 1) ",
                 queryParam.getIntervals().getEndTime(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
+                queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
+                queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
                 queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
     }
 
@@ -209,7 +227,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     private String generateOverviewSummarySql(QueryParam queryParam) {
         return String.format("SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip, " +
                         "SUM(one_sided_connections) AS one_sided_connections, " +
-                        "SUM(uncategorized_bytes) AS total_uncategorized_bytes " +
+                        "SUM(uncategorized_bytes) AS total_uncategorized_bytes, " +
+                        "SUM(fragmentation_packets) AS fragmentation_packets, " +
+                        "SUM(sequence_gap_loss) AS sequence_gap_loss_bytes " +
                         "FROM %s " +
                         "WHERE __time >= TIMESTAMP '%s' " +
                         "AND __time < TIMESTAMP '%s' LIMIT 1 ",
