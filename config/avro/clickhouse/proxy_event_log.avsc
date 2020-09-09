@@ -436,17 +436,20 @@
     {
       "name": "doh_content_length",
       "label": "DoH.Content Length",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "doh_content_type",
       "label": "DoH.Content Type",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "doh_set_cookie",
       "label": "DoH.Set Cookie",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "doh_version",
