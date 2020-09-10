@@ -179,6 +179,11 @@
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
+      "name": "common_data_center",
+      "label": "Data Center",
+      "type": "string"
+    },
+    {
       "name": "common_encapsulation",
       "type": "int",
       "label": "Encapsulation",
