@@ -350,12 +350,12 @@ public class SystemServiceImpl implements SystemService {
                 if (result.get("code").equals(HttpStatus.SC_OK)) {
                     baseResult = BaseResultGenerator.success("ok", null);
                 } else if (result.get("code").equals(HttpStatus.SC_LOCKED)) {
-                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "资源被锁定: " + result.get("msg"));
+                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "Clear Task is Running.");
                 } else {
                     baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(result.get("msg")));
                 }
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultMap.get("msg"));
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Clear Task Failed.");
             }
         }
         return baseResult;
