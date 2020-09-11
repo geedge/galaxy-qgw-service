@@ -196,12 +196,30 @@
       "name": "common_app_label",
       "type": "string",
       "label": "Application Label",
-      "doc": "{\"visibility\":\"disabled\"}"
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_protocol_label",
       "type": "string",
       "label": "Protocol Label",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_app_id",
+      "label": "Application ID",
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_surrogate_id",
+      "label": "Surrogate ID",
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_basic_protocol",
+      "label": "Basic Protocol",
+      "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
@@ -273,37 +291,37 @@
     {
       "name": "common_c2s_ipfrag_num",
       "label": "Fragmentation Packets(c2s)",
-      "type": "int",
+      "type": "long",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_s2c_ipfrag_num",
       "label": "Fragmentation Packets(s2c)",
-      "type": "int",
+      "type": "long",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_c2s_tcp_lostlen",
       "label": "Sequence Gap Loss(c2s)",
-      "type": "int",
+      "type": "long",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_s2c_tcp_lostlen",
       "label": "Sequence Gap Loss(s2c)",
-      "type": "int",
+      "type": "long",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_c2s_tcp_unorder_num",
       "label": "Unorder Packets(c2s)",
-      "type": "int",
+      "type": "long",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_s2c_tcp_unorder_num",
       "label": "Unorder Packets(s2c)",
-      "type": "int",
+      "type": "long",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
