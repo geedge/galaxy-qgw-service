@@ -17,6 +17,10 @@
       "type": "long"
     },
     {
+      "name": "data_center",
+      "type": "string"
+    },
+    {
       "name": "ip_object",
       "type": "string"
     },
@@ -26,6 +30,18 @@
     },
     {
       "name": "uncategorized_bytes",
+      "type": "long"
+    },
+    {
+      "name": "fragmentation_packets",
+      "type": "long"
+    },
+    {
+      "name": "sequence_gap_loss",
+      "type": "long"
+    },
+    {
+      "name": "unorder_packets",
       "type": "long"
     }
   ]
