@@ -179,6 +179,12 @@
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
+      "name": "common_device_tag",
+      "type": "string",
+      "label": "Device Tag",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
       "name": "common_data_center",
       "label": "Data Center",
       "type": "string"
