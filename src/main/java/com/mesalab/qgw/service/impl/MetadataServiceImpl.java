@@ -70,6 +70,10 @@ public class MetadataServiceImpl implements MetadataService {
         if (StringUtil.isNotEmpty(schemaDoc)) {
             resultMap.put("doc", schemaDoc);
         }
+        String data;
+        if (StringUtil.isNotEmpty(data = schema.getProp("data"))) {
+            resultMap.put("data", JsonMapper.fromJsonString(data, Map.class));
+        }
         List<Map> fields = (List<Map>) resultMap.get("fields");
         Map mapDoc;
         for (Map next : fields) {
