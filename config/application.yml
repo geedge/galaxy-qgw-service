@@ -80,6 +80,10 @@ pagehelper:
 
 ###############################################################################
 management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      module: ${spring.application.name}
   endpoint:
     health:
       show-details: always
