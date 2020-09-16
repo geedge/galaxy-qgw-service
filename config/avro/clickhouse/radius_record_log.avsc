@@ -185,7 +185,7 @@
       "name": "common_device_tag",
       "type": "string",
       "label": "Device Tag",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "doc": "{\"visibility\":\"hidden\",\"format\":{\"functions\":\"flattenSpec(\\\"data_center\\\",\\\"path\\\",\\\"$.tags[?(@.tag == $['data_center'])].value\\\")\",\"appendTo\":\"common_data_center\"}}"
     },
     {
       "name": "common_data_center",
