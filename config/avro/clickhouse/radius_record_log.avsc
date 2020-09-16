@@ -224,7 +224,7 @@
     },
     {
       "name": "common_l7_protocol",
-      "label": "l7 Protocol",
+      "label": "L7 Protocol",
       "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
