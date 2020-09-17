@@ -7,7 +7,7 @@
     <artifactId>galaxy-qgw-service</artifactId>
     <version>3.0</version>
     <packaging>jar</packaging>
-    <name>${project.artifactId</name>
+    <name>galaxy-qgw-service</name>
 
     <repositories>
         <repository>
@@ -268,7 +268,9 @@
                         <JDK_IMAGE>192.168.40.153:9080/common/jdk:1.8.0_73</JDK_IMAGE>
                         <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
                     </buildArgs>
-
+                    <imageTags>
+                        <imageTag>v3.2.200917</imageTag>
+                    </imageTags>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
