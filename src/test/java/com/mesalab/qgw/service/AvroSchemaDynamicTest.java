@@ -7,7 +7,7 @@ import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.service.impl.APIServiceImpl;
+import com.mesalab.qgw.service.impl.ApiServiceImpl;
 import com.zdjizhi.utils.Encodes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.JsonProperties;
@@ -36,7 +36,7 @@ public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
     @Autowired
     public TestRestTemplate restTemplate;
     @Autowired
-    public APIServiceImpl apiServiceImpl;
+    public ApiServiceImpl apiServiceImpl;
     @Autowired
     public ClickHouseProperties clickHouseProperties;
     @Autowired

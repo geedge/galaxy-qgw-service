@@ -16,14 +16,6 @@ server:
 spring:
   profiles:
     active: dev
-  devtools:
-    restart:
-      enabled: true
-  security:
-    user:
-      name: galaxy
-      password: 111111
-      roles: MONITOR_ADMIN
 ###############################################################################
 ## 项目参数，从maven中读取
 project:

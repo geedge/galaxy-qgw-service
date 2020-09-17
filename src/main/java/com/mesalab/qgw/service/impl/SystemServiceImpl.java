@@ -13,7 +13,7 @@ import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
-import com.mesalab.qgw.service.IAPIService;
+import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.SystemService;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
@@ -36,7 +36,7 @@ public class SystemServiceImpl implements SystemService {
 
 
     @Autowired
-    private IAPIService apiService;
+    private ApiService apiService;
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired

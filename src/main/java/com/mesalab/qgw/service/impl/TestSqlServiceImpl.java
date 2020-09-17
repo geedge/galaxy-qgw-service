@@ -41,7 +41,7 @@ public class TestSqlServiceImpl {
     @Autowired
     private ClickHouseProperties clickHouseProperties;
     @Autowired
-    public APIServiceImpl apiServiceImpl;
+    public ApiServiceImpl apiServiceImpl;
     @Autowired
     public DruidIoProperties druidIoProperties;
     @Autowired

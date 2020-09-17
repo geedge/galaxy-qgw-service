@@ -15,6 +15,9 @@ import com.alibaba.druid.util.JdbcConstants;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import com.google.gson.Gson;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.SchemaBase;
@@ -31,7 +34,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.model.api.udf.UDFElements;
-import com.mesalab.qgw.service.IAPIService;
+import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +57,7 @@ import java.util.*;
 
 @Slf4j
 @Service("apiService")
-public class APIServiceImpl implements IAPIService {
+public class ApiServiceImpl implements ApiService {
 
     @Autowired
     private ClickHouseProperties clickHouseProperties;
@@ -102,9 +105,6 @@ public class APIServiceImpl implements IAPIService {
                 }
         return baseResult;
     }
-
-
-
 
 
     private BaseResult executeSelectStatement(ApiParam param) {
@@ -820,5 +820,17 @@ public class APIServiceImpl implements IAPIService {
         BaseResult<Map> baseResult = BaseResultGenerator.success("ok", null);
         baseResult.setData(date);
         return baseResult;
+    }
+
+    /**
+     * @Description: APP-ID字典列表
+     * @Author: liuyongqiang
+     * @Date: 2020/9/17 15:31
+     * @return: com.mesalab.common.base.BaseResult
+     **/
+    @Override
+    public BaseResult appIdDicList() {
+        List<?> list = Db.query(Db.getSql("appIdDicList"));
+        return BaseResultGenerator.success(list);
     }
 }

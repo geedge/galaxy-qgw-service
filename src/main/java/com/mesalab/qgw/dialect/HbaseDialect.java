@@ -10,7 +10,7 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseHttpSource;
-import com.mesalab.qgw.service.impl.APIServiceImpl;
+import com.mesalab.qgw.service.impl.ApiServiceImpl;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -161,7 +161,7 @@ public class HbaseDialect extends  AbstractDataSourceDialect {
             Map<String, String> formatSql = getFormatSql();
             String sql = formatSql.get("result");
             log.info("从离线报表获取formatSql，解析并重制SQLQuerySource对象: " + sql);
-            APIServiceImpl.convertQueryRecursive(param, APIServiceImpl.parserSQLByAst(sql));
+            ApiServiceImpl.convertQueryRecursive(param, ApiServiceImpl.parserSQLByAst(sql));
             param.setQuery(param.getDbQuerySource().getSqlBody());
         }
     }
