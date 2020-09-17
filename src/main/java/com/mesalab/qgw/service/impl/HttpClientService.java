@@ -27,6 +27,13 @@ public class HttpClientService {
     @Resource(name="httpClientManagerFactory")
     private CloseableHttpClient httpClient;
 
+    //TODO
+    //1.把HttpClientUtils中的getHttpClient、httpGet、httpPost移到这个类中
+    //2.httpGet和Post方法加入可变参数(设置SocketTimeOut)
+    //3.取消此类中的httpClient，用getHttpClient代替
+    //4.将之前的跟http相关的配置统一改为一份
+    //5.在配置文件中设置每个数据库的最大等待时常
+
 
     public  Map<String, String> httpGet(String url) {
 
