@@ -132,7 +132,7 @@ public class KnowledgeService {
         //通过jsonschemaFactory获取jsonnode对象
         try {
 
-            JsonNode schemaNode = JsonLoader.fromResource("/DSLObject.json");
+            JsonNode schemaNode = JsonLoader.fromResource("/dsl-validation.json");
             //通过jsonstr字符串获取对应的jsonnode对象
             JsonNode dataNode = JsonLoader.fromString(jsonString);
             JsonSchema jsonSchema = factory.getJsonSchema(schemaNode);

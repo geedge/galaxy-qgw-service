@@ -75,7 +75,7 @@ public class JsonSchemaTest extends GalaxyQGWApplicationTests {
         try {
             JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
             //通过jsonschemaFactory获取jsonnode对象
-            JsonNode schemaNode = JsonLoader.fromResource("/DSLObject.json");
+            JsonNode schemaNode = JsonLoader.fromResource("/dsl-validation.json");
             //通过jsonstr字符串获取对应的jsonnode对象
             JsonNode dataNode = JsonLoader.fromString(jsonStr);
             JsonSchema jsonSchema = factory.getJsonSchema(schemaNode);

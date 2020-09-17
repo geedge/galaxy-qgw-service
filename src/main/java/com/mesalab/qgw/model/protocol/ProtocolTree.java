@@ -20,7 +20,9 @@ public class ProtocolTree {
     private String id;
     private String name;
     private String parentId;
+    @Builder.Default
     private List<ProtocolTree> childrens = Lists.newArrayList();
+    @Builder.Default
     private Map<String, Object> metrics = Maps.newLinkedHashMap();
     private long sentBytes;
     private long receivedBytes;

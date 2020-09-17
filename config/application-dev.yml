@@ -1,17 +1,19 @@
 ###############################################################################
-## Development Environment
+## Dev Environment
 ###############################################################################
 ## Log configuration Path
 logging:
   config: ./config/log4j2-dev.xml
-###############################################################################
-## swagger API configuration
-swagger:
-  enable: true
-###############################################################################
+#MySql configuration
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.44.3:3306/tsg-bifang?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: 111111
 ## ClickhHouse configuration
 clickhouse:
-  url: jdbc:clickhouse://192.168.40.224:8123
+  url: jdbc:clickhouse://192.168.44.12:8123
   driverClassName: ru.yandex.clickhouse.ClickHouseDriver
   dbname: tsg_galaxy_v3
   realTimeAccount:
@@ -23,21 +25,20 @@ clickhouse:
 ###############################################################################
 ## Druid configuration
 druid:
-  url: 192.168.40.224:8082/druid/v2/sql
+  url: 192.168.44.12:8082/druid/v2/sql
   dbname: druid
   sqlTimeZone: Asia/Shanghai
-  ##Asia/Almaty
 ###############################################################################
 ## Hbase configuration
 hbase:
-  url: 192.168.40.224:8084
+  url: 192.168.44.12:8084
   dbname: tsg
   tableName: report_result
   columnFamily: response
   columnName: result
 ## xxl-job-admin configuration
 xxl-job-admin:
-  url: http://192.168.40.224:8181/xxl-job-admin
+  url: http://192.168.44.12:8181/xxl-job-admin
   userName: admin
   password: 123456
 ###############################################################################
@@ -50,68 +51,36 @@ engine:
 httpclient:
   connectTimeout: 1000
   SocketTimeout: 21700000
-  maxConnection: 500
-  maxPerRoute: 500
+  maxConnection: 50
+  maxPerRoute: 10
 ###############################################################################
 ## Junit Test Configuration
 test:
-  url: 127.0.0.1:9999
-  timeRange: last month
+  url: 192.168.40.186:9999
+  timeRange: last 5 minutes
   executeTime: 2019-07-22 00:00:00
-###############################################################################
-## Mysql Database configuration (Reserved，for Authentication)
-spring:
-  datasource:
-    url: jdbc:mysql://127.0.0.1:3306/boot?useUnicode=true&characterEncoding=utf-8&useSSL=false
-    username: root
-    password: KCE17cHefBHz8Uf/KI7t67KNd+H6JdC+wflLMYgD7meejUTTIOJWYCtGFxvEA42IMPFd+zKKgZ4FvVJZJVE8lw==
-    publicKey: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIv8AxODdgy3Fz4KY3BzdHOfLexBXoNQxik4W6LE4oOXAfWsmOkuvRDHzvbIXd3HIbFK1kyKGnu/QSzqouGmGgMCAwEAAQ==
-    initialSize: 1
-    minIdle: 1
-    maxActive: 20
-    maxWait: 60000
-    timeBetweenEvictionRunsMillis: 60000
-    minEvictableIdleTimeMillis: 300000
-    poolPreparedStatements: true
-    maxPoolPreparedStatementPerConnectionSize: 20
-    validationQuery: SELECT 1
-    filters: stat,log4j,wall,config
-  ###############################################################################
-  ## Redis configuration(Reserved, for Caching)
-  redis:
-    host: 127.0.0.1
-    port: 6379
-    password: 123456
-    timeout: 10000ms
-    jedis:
-      pool:
-        max-active: 50
-        max-idle: 5
-        min-idle: 0
-        max-wait: 10000ms
-  ###############################################################################
-  ## arango config
+## ArangoDB configuration
 arango:
-    server: http://192.168.40.182:8529
-    database: ip-learning-test
-    username: root
-    password: 111111
-    jwturl: ${arango.server}/_db/${arango.database}/_open/auth
-    queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
-    maxrows: 10000
-    ## http pool config
-    ### max connection number
+  server: http://192.168.44.12:8529
+  database: tsg_galaxy_v3
+  username: query
+  password: ceiec2018
+  jwturl: ${arango.server}/_db/${arango.database}/_open/auth
+  queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
+  maxrows: 10000
+## http pool config
 http:
-    pool:
-      connect:
-        timeout: 30000
-      max:
-        connection: 500
-        per:
-          route: 200
-      request:
-        timeout: 10000
-      response:
-        timeout: 10000
+  pool:
+    connect:
+      timeout: 30000
+    max:
+      connection: 500
+      per:
+        route: 200
+    request:
+      timeout: 10000
+    response:
+      timeout: 10000
+## IPlearning Config
 iplearning:
-    uniqciprecent: -24 #IPlearning 最近24小时的独立客户端ip 单位小时
+  uniqciprecent: -24

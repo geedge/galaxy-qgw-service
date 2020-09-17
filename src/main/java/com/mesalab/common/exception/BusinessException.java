@@ -20,8 +20,10 @@ public class BusinessException extends RuntimeException {
     /**
      * 异常代码
      */
+    @Builder.Default
     private int errorStatus = ResultStatusEnum.SERVER_ERROR.getCode();
 
+    @Builder.Default
     private String errorCode = ResultCodeEnum.UNKNOW_ERROR.getCode();
 
 
@@ -39,12 +41,11 @@ public class BusinessException extends RuntimeException {
         super(errorMessage, e);
     }
 
-    public BusinessException(int errorStatus, String errorCode,  String errorMessage, Throwable e) {
+    public BusinessException(int errorStatus, String errorCode, String errorMessage, Throwable e) {
         super(errorMessage, e);
         this.errorStatus = errorStatus;
         this.errorCode = errorCode;
     }
-
 
 
 }
