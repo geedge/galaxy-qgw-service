@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mesalab</groupId>
     <artifactId>galaxy-qgw-service</artifactId>
     <version>3.0</version>
     <packaging>jar</packaging>
-    <name>${artifactId}</name>
-    <description>统一数据查询网关入口API</description>
+    <name>${project.artifactId</name>
 
     <repositories>
         <repository>
@@ -25,13 +25,14 @@
     </parent>
 
     <properties>
+
         <project.author.name>darnell</project.author.name>
-        <project.author.url></project.author.url>
         <project.author.email>abc@gmail.com</project.author.email>
         <project.package.core>com.mesalab.common</project.package.core>
         <project.package.service>com.mesalab.qgw</project.package.service>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
         <java.version>1.8</java.version>
         <starter.druid.version>1.1.23</starter.druid.version>
         <mysql-connector-java.version>8.0.18</mysql-connector-java.version>
@@ -48,16 +49,21 @@
         <log4j.version>2.10.0</log4j.version>
         <httpclient.version>4.5.6</httpclient.version>
         <avro.version>1.9.1</avro.version>
+        <active.record.version>4.9.01</active.record.version>
+        <json.schema.version>2.2.10</json.schema.version>
+        <zdjizhi.version>1.0.4</zdjizhi.version>
+        <apache.calcite.version>1.22.0</apache.calcite.version>
+        <jsqlparser.version>3.0</jsqlparser.version>
+
         <docker.build>192.168.40.153</docker.build>
         <docker.build.port>2375</docker.build.port>
         <docker.registry>192.168.40.153</docker.registry>
         <docker.registry.port>9080</docker.registry.port>
         <docker.image.prefix>tsg/galaxy</docker.image.prefix>
-        <skipTests>true</skipTests>
+
     </properties>
 
     <dependencies>
-        <!-- aop -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -68,7 +74,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -96,7 +101,6 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql-connector-java.version}</version>
         </dependency>
-        <!-- Micrometer Prometheus registry  -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
@@ -110,20 +114,11 @@
             <artifactId>druid-spring-boot-starter</artifactId>
             <version>${starter.druid.version}</version>
         </dependency>
-        <!-- configuration: 用于自动识别ConfigurationProperties，可以从被@ConfigurationProperties注解的节点轻松的产生自己的配置元数据文件；
-             在springboot1.5版本之后，ConfigurationProperties去除了localhost属性，在没指定路径的情况下，默认从resource下的applications.properties(yml)中查找，默认返回null/0/false -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-        <!--
-            log4j2： SpringBoot默认使用的是Logback日志框架
-            log4j2是一个性能比Logback更高的日志框架，如果要在SpringBoot中使用log4j2，需要将spring-boot-starter-logging排除掉，否则会有冲突
-            spring-boot-starter-log4j2: 包含log4j-core、log4j-slf4j-impl、jul-to-slf4j三个包
-            log4j-1.2-api: 作为log4j与log4j2的桥梁，让log4j的代码可以兼容到log4j2，避免一些jar包冲突
-            log4j-web: log4j2与servlet的集成
-        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-log4j2</artifactId>
@@ -148,7 +143,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!--commons Jar-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -195,7 +189,6 @@
             <artifactId>commons-logging</artifactId>
             <version>${commons.logging.version}</version>
         </dependency>
-        <!--tools Jar-->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -214,7 +207,7 @@
         <dependency>
             <groupId>com.github.jsqlparser</groupId>
             <artifactId>jsqlparser</artifactId>
-            <version>3.0</version>
+            <version>${jsqlparser.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
@@ -224,12 +217,12 @@
         <dependency>
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-core</artifactId>
-            <version>1.22.0</version>
+            <version>${apache.calcite.version}</version>
         </dependency>
         <dependency>
             <groupId>com.zdjizhi</groupId>
             <artifactId>galaxy</artifactId>
-            <version>1.0.4</version>
+            <version>${zdjizhi.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -240,18 +233,22 @@
         <dependency>
             <groupId>com.github.java-json-tools</groupId>
             <artifactId>json-schema-validator</artifactId>
-            <version>2.2.10</version>
+            <version>${json.schema.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jfinal</groupId>
+            <artifactId>activerecord</artifactId>
+            <version>${active.record.version}</version>
         </dependency>
     </dependencies>
 
     <build>
-        <finalName>${artifactId}</finalName>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -259,14 +256,10 @@
                 <configuration>
                     <serverId>153-docker-repo</serverId>
                     <registryUrl>${docker.registry}:${docker.registry.port}</registryUrl>
-                    <!--是否向镜像registry(harbor)中推送镜像,如果为false则需要在mvn命令时添加-DpushImage参数-->
                     <pushImage>true</pushImage>
-
+                    <forceTags>true</forceTags>
                     <imageName>${docker.registry}:${docker.registry.port}/${docker.image.prefix}/${project.artifactId}
                     </imageName>
-                    <forceTags>true</forceTags>
-
-                    <!--远程docker构建，供dockerfile使用-->
                     <dockerHost>http://192.168.40.153:2375</dockerHost>
                     <dockerDirectory>docker</dockerDirectory>
                     <buildArgs>
@@ -274,15 +267,12 @@
                         <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
                     </buildArgs>
 
-
-                    <!--将构建jar拷贝到/target/docker 目录下与dockerfile一起-->
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
                             <directory>${project.build.directory}</directory>
                             <include>${project.build.finalName}.jar</include>
                         </resource>
-
                         <resource>
                             <targetPath>/config</targetPath>
                             <directory>config</directory>
@@ -292,7 +282,6 @@
                             <directory>dat</directory>
                         </resource>
                     </resources>
-
                 </configuration>
             </plugin>
 
@@ -300,11 +289,6 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <configuration>
                     <encoding>utf-8</encoding>
-                    <!--
-                        由于${}方式会被maven处理。如果你pom继承了spring-boot-starter-parent，Spring
-                        Boot已经将maven-resources-plugins默认的${}方式改为了@@方式，如@name@
-                        useDefaultDelimiter为true则使用默认的${}方式读取maven的设置
-                    -->
                     <useDefaultDelimiters>true</useDefaultDelimiters>
                 </configuration>
             </plugin>
