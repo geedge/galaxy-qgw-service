@@ -822,15 +822,4 @@ public class ApiServiceImpl implements ApiService {
         return baseResult;
     }
 
-    /**
-     * @Description: APP-ID字典列表
-     * @Author: liuyongqiang
-     * @Date: 2020/9/17 15:31
-     * @return: com.mesalab.common.base.BaseResult
-     **/
-    @Override
-    public BaseResult appIdDicList() {
-        List<?> list = Db.query(Db.getSql("appIdDicList"));
-        return BaseResultGenerator.success(list);
-    }
 }
