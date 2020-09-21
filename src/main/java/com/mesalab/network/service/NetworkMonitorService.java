@@ -1,7 +1,7 @@
 package com.mesalab.network.service;
 
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.network.model.api.Param;
+import com.mesalab.network.dsl.DSLObject;
 
 /**
  * @author wangwei
@@ -12,6 +12,6 @@ import com.mesalab.network.model.api.Param;
 
 public interface NetworkMonitorService {
 
-    BaseResult getTrafficDistributedInfo(Param param);
+    BaseResult getTrafficDistributedInfo(DSLObject dslObject);
 
 }

@@ -10,8 +10,8 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
-import com.mesalab.network.model.api.Param;
-import com.mesalab.network.model.api.QueryParam;
+import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.qgw.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.network.service.NetworkMonitorService;
@@ -21,6 +21,7 @@ import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.UnsupportedEncodingException;
@@ -53,24 +54,19 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     }
 
     @Override
-    public BaseResult getTrafficDistributedInfo(Param param) {
+    public BaseResult getTrafficDistributedInfo(DSLObject dslObject) {
         BaseResult baseResult;
-        String sql = null;
-        if (QueryType.PROTOCOL_TREE_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
-            sql = generateProtocolTreeSql(param.getQuery());
+        String sql;
+        if (QueryType.PROTOCOL_TREE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            sql = generateProtocolTreeSql(dslObject.getQuery());
             baseResult = getResultProtocolTree(sql);
-        } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
-            String parameters = param.getQuery().getParameters();
-            Optional.ofNullable(parameters).ifPresent(o -> {
-                String[] split = parameters.split(",");
-                param.getQuery().setParameters(split[0].replaceFirst(PROTOCOL_NODE, ""));
-            });
-            sql = generateProtocolDataRateSql(param.getQuery());
+        } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            sql = generateProtocolDataRateSql(dslObject.getQuery());
             baseResult = getProtocolDataRateSummary(sql);
-        } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
-            sql = generateOverviewSummarySql(param.getQuery());
+        } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            sql = generateOverviewSummarySql(dslObject.getQuery());
             Map<String, String> dataRateResult = executeQuery(sql);
-            String statSql = generateStatSql(param.getQuery());
+            String statSql = generateStatSql(dslObject.getQuery());
             Map<String, String> statResult = executeQuery(statSql);
             baseResult = buildNetworkOverviewResult(dataRateResult, statResult);
         } else {
@@ -183,31 +179,46 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return baseResult;
     }
 
-    private String generateStatSql(QueryParam queryParam) {
+    private String generateStatSql(DSLObject.QueryBean queryParam) {
+        String whereOfTime = getWhereOfTime(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
+        String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
         return String.format("(SELECT SUM(c2s_byte_num + s2c_byte_num) as total_bytes, SUM(sessions) as total_sessions, SUM(c2s_byte_num + s2c_byte_num) * 8000/(TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')) AS data_rate " +
                         "FROM traffic_protocol_stat_log " +
-                        "WHERE __time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s' " +
+                        "WHERE %s %s" +
                         "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) LIMIT 1) " +
                         "UNION ALL " +
                         "( SELECT SUM(sessions), 0, 0 " +
                         "FROM traffic_protocol_stat_log " +
-                        "WHERE __time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s' " +
+                        "WHERE %s %s" +
                         "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) GROUP BY __time ORDER BY __time DESC LIMIT 1 ) " +
                         "UNION ALL " +
-                        "( SELECT SUM(c2s_byte_num + s2c_byte_num),0 ,0 FROM traffic_protocol_stat_log WHERE (__time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s') AND (protocol_id = 'ETHERNET/IPv4/TCP' OR protocol_id = 'ETHERNET/IPv6/TCP') LIMIT 1) " +
+                        "( SELECT SUM(c2s_byte_num + s2c_byte_num),0 ,0 FROM traffic_protocol_stat_log WHERE (%s %s) AND (protocol_id = 'ETHERNET/IPv4/TCP' OR protocol_id = 'ETHERNET/IPv6/TCP') LIMIT 1) " +
                         "UNION ALL " +
-                        "( SELECT SUM(c2s_pkt_num + s2c_pkt_num),0 ,0 FROM traffic_protocol_stat_log WHERE (__time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s') AND (protocol_id = 'ETHERNET/IPv4/TCP' OR protocol_id = 'ETHERNET/IPv6/TCP' OR protocol_id = 'ETHERNET/IPv4/UDP' OR protocol_id = 'ETHERNET/IPv6/UDP') LIMIT 1) ",
-                queryParam.getIntervals().getEndTime(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
-                queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
-                queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
-                queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
+                        "( SELECT SUM(c2s_pkt_num + s2c_pkt_num),0 ,0 FROM traffic_protocol_stat_log WHERE (%s %s) AND (protocol_id = 'ETHERNET/IPv4/TCP' OR protocol_id = 'ETHERNET/IPv6/TCP' OR protocol_id = 'ETHERNET/IPv4/UDP' OR protocol_id = 'ETHERNET/IPv6/UDP') LIMIT 1) ",
+                intervals[1], intervals[0], whereOfTime, whereOfExactly,
+                whereOfTime, whereOfExactly,
+                whereOfTime, whereOfExactly,
+                whereOfTime, whereOfExactly);
     }
 
-    private String generateProtocolDataRateSql(QueryParam queryParam) {
+    private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam) {
+        String whereOfTime = getWhereOfTime(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
+        String protocolStr = null;
+        List<DSLObject.QueryBean.Parameters.MatchBean> match = queryParam.getParameters().getMatch();
+        for (DSLObject.QueryBean.Parameters.MatchBean item : match) {
+            if (MatchEnum.PREFIX.getType().equals(item.getType())) {
+                String[] split = item.getFieldValues().get(0).split(",");
+                protocolStr = split[0].replaceFirst(PROTOCOL_NODE, "");
+            }
+        }
         return String.format("(" +
                         "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
-                        "where protocol_id = '%s' and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' " +
+                        "where %s %s and protocol_id = '%s' " +
                         "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc" +
                         ") " +
@@ -215,33 +226,71 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         "(" +
                         "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
-                        "where protocol_id like CONCAT('%s','/%s') and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) + 1 + %s " +
+                        "where %s %s and protocol_id like CONCAT('%s','/%s') and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) + 1 + %s " +
                         "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc) ",
-                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getGranularity(),
-                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), '%', queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
-                queryParam.getParameters().length() - queryParam.getParameters().replaceAll("/", "").length(), queryParam.getGranularity());
+                queryParam.getParameters().getGranularity(), queryParam.getDataSource(), whereOfTime, whereOfExactly, protocolStr, queryParam.getParameters().getGranularity(),
+                queryParam.getParameters().getGranularity(), queryParam.getDataSource(), whereOfTime, whereOfExactly, protocolStr, "%",
+                protocolStr.length() - protocolStr.replaceAll("/", "").length(), queryParam.getParameters().getGranularity());
 
     }
 
-    private String generateOverviewSummarySql(QueryParam queryParam) {
+    private String generateOverviewSummarySql(DSLObject.QueryBean queryParam) {
+        String whereOfTime = getWhereOfTime(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+
         return String.format("SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip, " +
                         "SUM(one_sided_connections) AS one_sided_connections, " +
                         "SUM(uncategorized_bytes) AS total_uncategorized_bytes, " +
                         "SUM(fragmentation_packets) AS fragmentation_packets, " +
                         "SUM(sequence_gap_loss) AS sequence_gap_loss_bytes " +
                         "FROM %s " +
-                        "WHERE __time >= TIMESTAMP '%s' " +
-                        "AND __time < TIMESTAMP '%s' LIMIT 1 ",
-                queryParam.getDataSource(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
+                        "WHERE %s" +
+                        " %s LIMIT 1 ",
+                queryParam.getDataSource(), whereOfTime, StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly);
     }
 
-    private String generateProtocolTreeSql(QueryParam queryParam) {
+    private String getWhereOfTime(DSLObject.QueryBean.Parameters parameters) {
+        if (CollectionUtils.isEmpty(parameters.getIntervals())) {
+            return StringUtil.EMPTY;
+        }
+        StringBuffer whereOfTime = new StringBuffer();
+        String[] intervals = getIntervals(parameters.getIntervals());
+        whereOfTime.append("__time >= TIMESTAMP '").append(intervals[0]).append("' AND __time < TIMESTAMP '").append(intervals[1]).append("'");
+        return whereOfTime.toString();
+    }
+
+    private String[] getIntervals(List<String> intervals) {
+        return intervals.get(0).split("/");
+    }
+
+    private String getWhereOfExactly(DSLObject.QueryBean.Parameters parameters) {
+        if (CollectionUtils.isEmpty(parameters.getMatch())) {
+            return StringUtil.EMPTY;
+        }
+        StringBuffer whereOfExactly = new StringBuffer();
+        List<DSLObject.QueryBean.Parameters.MatchBean> match = parameters.getMatch();
+        for (DSLObject.QueryBean.Parameters.MatchBean item : match) {
+            if (MatchEnum.EXACTLY.getType().equals(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
+                whereOfExactly.append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+            }
+        }
+        return whereOfExactly.toString();
+    }
+
+    private String[] getTimeIntervals(DSLObject.QueryBean queryParam) {
+        return queryParam.getParameters().getIntervals().get(0).split("/");
+    }
+
+    private String generateProtocolTreeSql(DSLObject.QueryBean queryParam) {
+        String whereOfTime = getWhereOfTime(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
         return String.format("SELECT protocol_id, SUM(sessions) as sessions,SUM(c2s_byte_num) as c2s_byte_num, SUM(c2s_pkt_num) as c2s_pkt_num, SUM(s2c_byte_num) as s2c_byte_num, SUM(s2c_pkt_num) as s2c_pkt_num " +
                         "FROM %s " +
-                        "WHERE __time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s' " +
+                        "WHERE %s %s" +
                         "GROUP BY protocol_id ",
-                queryParam.getDataSource(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
+                queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
 
     private List<ProtocolTree> getProtocolTrees(List<Map> data) {
