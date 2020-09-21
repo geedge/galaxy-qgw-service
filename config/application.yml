@@ -35,8 +35,7 @@ project:
 management:
   metrics:
     tags:
-      application: ${spring.application.name}
-      module: ${spring.application.name}
+      application: ${project.name}
   endpoint:
     health:
       show-details: always
