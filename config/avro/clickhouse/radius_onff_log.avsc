@@ -5,7 +5,7 @@
   "fields": [
     {
       "name": "event_timestamp",
-      "type": "int",
+      "type": "long",
       "label": "Event Time"
     },
     {
