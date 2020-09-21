@@ -10,11 +10,11 @@
     },
     {
       "name": "common_recv_time",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "common_policy_id",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "common_action",

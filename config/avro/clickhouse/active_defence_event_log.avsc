@@ -7,7 +7,7 @@
     {
       "name": "common_recv_time",
       "label": "Receive Time",
-      "type": "int",
+      "type": "long",
       "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}}"
     },
     {
@@ -19,7 +19,7 @@
     {
       "name": "common_policy_id",
       "label": "Policy ID",
-      "type": "int",
+      "type": "long",
       "doc": "{\"allow_query\":\"true\"}"
     },
     {

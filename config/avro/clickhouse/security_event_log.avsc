@@ -6,7 +6,7 @@
   "fields": [
     {
       "name": "common_recv_time",
-      "type": "int",
+      "type": "long",
       "label": "Receive Time",
       "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}}"
     },
@@ -18,7 +18,7 @@
     },
     {
       "name": "common_policy_id",
-      "type": "int",
+      "type": "long",
       "label": "Policy ID",
       "doc": "{\"allow_query\":\"true\"}"
     },
@@ -108,7 +108,7 @@
     },
     {
       "name": "common_sessions",
-      "type": "int",
+      "type": "long",
       "label": "Sessions",
       "doc": "{\"visibility\":\"hidden\"}"
     },
@@ -182,7 +182,7 @@
       "name": "common_device_tag",
       "type": "string",
       "label": "Device Tag",
-      "doc": "{\"visibility\":\"hidden\",\"format\":{\"functions\":\"flattenSpec(\\\"data_center\\\",\\\"path\\\",\\\"$.tags[?(@.tag == $['data_center'])].value\\\")\",\"appendTo\":\"common_data_center\"}}"
+      "doc": "{\"visibility\":\"hidden\",\"format\":{\"functions\":\"flattenSpec(\\\"data_center\\\",\\\"path\\\",\\\"$.tag_sets[?(@.tag == $['data_center'])].value\\\")\",\"appendTo\":\"common_data_center\"}}"
     },
     {
       "name": "common_data_center",
@@ -222,13 +222,13 @@
     },
     {
       "name": "common_start_time",
-      "type": "int",
+      "type": "long",
       "label": "Start Time",
       "doc": "{\"constraints\":{\"type\":\"timestamp\"}}"
     },
     {
       "name": "common_end_time",
-      "type": "int",
+      "type": "long",
       "label": "End Time",
       "doc": "{\"constraints\":{\"type\":\"timestamp\"}}"
     },

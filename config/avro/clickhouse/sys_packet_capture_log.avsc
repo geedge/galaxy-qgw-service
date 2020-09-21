@@ -6,7 +6,7 @@
   "fields": [
     {
       "name": "common_recv_time",
-      "type": "int",
+      "type": "long",
       "label": "Receive Time",
       "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}}"
     },
@@ -18,7 +18,7 @@
     },
     {
       "name": "common_policy_id",
-      "type": "int",
+      "type": "long",
       "label": "Policy ID",
       "doc": "{\"visibility\":\"hidden\"}"
     },
@@ -108,7 +108,7 @@
     },
     {
       "name": "common_sessions",
-      "type": "int",
+      "type": "long",
       "label": "Sessions"
     },
     {
@@ -209,13 +209,13 @@
     },
     {
       "name": "common_start_time",
-      "type": "int",
+      "type": "long",
       "label": "Start Time",
       "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_end_time",
-      "type": "int",
+      "type": "long",
       "label": "End Time",
       "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
     },
