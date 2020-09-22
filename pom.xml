@@ -269,7 +269,7 @@
                         <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
                     </buildArgs>
                     <imageTags>
-                        <imageTag>v3.2.200917</imageTag>
+                        <imageTag>v3.2.200922</imageTag>
                     </imageTags>
                     <resources>
                         <resource>

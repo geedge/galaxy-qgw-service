@@ -22,6 +22,8 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.nutz.http.Http;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -40,6 +42,8 @@ import java.util.Map;
 @Service
 public class HttpClientService {
 
+    @Autowired
+    HttpConfig httpConfig;
 
     //全局连接池对象
     private PoolingHttpClientConnectionManager connectionManager;
@@ -52,9 +56,9 @@ public class HttpClientService {
         if (connectionManager == null) {
             connectionManager = new PoolingHttpClientConnectionManager();
             // 整个连接池最大连接数
-            connectionManager.setMaxTotal(HttpConfig.maxConnectionNum);
+            connectionManager.setMaxTotal(httpConfig.getMaxConnectionNum());
             // 每路由最大连接数，默认值是2
-            connectionManager.setDefaultMaxPerRoute(HttpConfig.maxPerRoute);
+            connectionManager.setDefaultMaxPerRoute(httpConfig.getMaxPerRoute());
         }
         log.info("Initializing PoolingHttpClientConnectionManager Complete");
     }
@@ -69,9 +73,9 @@ public class HttpClientService {
         // 创建Http请求配置参数
         RequestConfig requestConfig = RequestConfig.custom()
                 // 获取连接超时时间
-                .setConnectionRequestTimeout(HttpConfig.serverRequestTimeOut)
+                .setConnectionRequestTimeout(httpConfig.getServerRequestTimeOut())
                 // 请求超时时间
-                .setConnectTimeout(HttpConfig.serverConnectTimeOut)
+                .setConnectTimeout(httpConfig.getServerConnectTimeOut())
                 // 响应超时时间
                 .setSocketTimeout(socketTimeOut)
                 .build();
@@ -328,7 +332,7 @@ public class HttpClientService {
     public String httpGet(String url) {
         String msg = "-1";
         // 获取客户端连接对象
-        CloseableHttpClient httpClient = getHttpClient(HttpConfig.arangoResponseTimeOut);
+        CloseableHttpClient httpClient = getHttpClient(httpConfig.getArangoResponseTimeOut());
         CloseableHttpResponse response = null;
         try {
             URL ul = new URL(url);
@@ -375,7 +379,7 @@ public class HttpClientService {
     public String httpPost(String url, String requestBody, Header... headers) {
         String msg = "-1";
         // 获取客户端连接对象
-        CloseableHttpClient httpClient = getHttpClient(HttpConfig.arangoResponseTimeOut);
+        CloseableHttpClient httpClient = getHttpClient(httpConfig.getArangoResponseTimeOut());
         // 创建POST请求对象
         CloseableHttpResponse response = null;
         try {

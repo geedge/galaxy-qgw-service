@@ -1,105 +1,64 @@
 package com.mesalab.knowledge.common.utils;
 
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-
+@Data
 @Component
 public class HttpConfig {
     /**
      * 最大连接数400
      */
-    public static int maxConnectionNum;
+    @Value("${http.pool.max.connection}")
+    private int maxConnectionNum;
 
     /**
      * 单路由最大连接数80
      */
-
-    public static int maxPerRoute;
+    @Value("${http.pool.max.per.route}")
+    private int maxPerRoute;
 
     /**
      * 向服务端请求超时时间设置(单位:毫秒)
      */
-
-    public static int serverRequestTimeOut;
-
+    @Value("${http.pool.request.timeout}")
+    private int serverRequestTimeOut;
 
     /**
      * 向服务端连接超时时间设置(单位:毫秒)
      */
-
-    public static int serverConnectTimeOut;
+    @Value("${http.pool.connect.timeout}")
+    private int serverConnectTimeOut;
 
     /**
      * 服务端响应超时时间设置(单位:毫秒)
      */
-
-    public static int serverResponseTimeOut;
+    @Value("${http.pool.response.timeout}")
+    private int serverResponseTimeOut;
 
     /**
      * Druid查询请求响应时间
      */
-    public static int druidResponseTimeOut;
+    @Value("${http.pool.druid.timeout}")
+    private int druidResponseTimeOut;
 
     /**
      * Arango查询请求响应时间
      */
-    public static int arangoResponseTimeOut;
+    @Value("${http.pool.arango.timeout}")
+    private int arangoResponseTimeOut;
 
     /**
      * ClickHouse长查询请求响应时间
      */
-    public static int clickHouseLongTermResponseTimeOut;
+    @Value("${http.pool.clickHouseLongTerm.timeout}")
+    private int clickHouseLongTermResponseTimeOut;
 
     /**
      * ClickHouse实时查询请求响应时间
      */
-    public static int clickHouseRealTimeResponseTimeOut;
-
-
-    @Value("${http.pool.max.connection}")
-    public void setMaxConnectionNum(int mcn) {
-        maxConnectionNum = mcn;
-    }
-
-    @Value("${http.pool.max.per.route}")
-    public void setMaxPerRoute(int mpr) {
-        maxPerRoute = mpr;
-    }
-
-    @Value("${http.pool.request.timeout}")
-    public void setServerRequestTimeOut(int sreq) {
-        serverRequestTimeOut = sreq;
-    }
-
-    @Value("${http.pool.connect.timeout}")
-    public void setServerConnectTimeOut(int srco) {
-        serverConnectTimeOut = srco;
-    }
-
-    @Value("${http.pool.response.timeout}")
-    public void setServerResponseTimeOut(int sres) {
-        serverResponseTimeOut = sres;
-    }
-
-    @Value("${http.pool.druid.timeout}")
-    public static void setDruidResponseTimeOut(int druidResponseTimeOut) {
-        HttpConfig.druidResponseTimeOut = druidResponseTimeOut;
-    }
-
-    @Value("${http.pool.arango.timeout}")
-    public static void setArangoResponseTimeOut(int arangoResponseTimeOut) {
-        HttpConfig.arangoResponseTimeOut = arangoResponseTimeOut;
-    }
-
     @Value("${http.pool.clickHouseRealTime.timeout}")
-    public static void setClickHouseRealTimeResponseTimeOut(int clickHouseRealTimeResponseTimeOut) {
-        HttpConfig.clickHouseRealTimeResponseTimeOut = clickHouseRealTimeResponseTimeOut;
-    }
-
-    @Value("${http.pool.clickHouseLongTerm.timeout}")
-    public static void setClickHouseLongTermResponseTimeOut(int clickHouseLongTermResponseTimeOut) {
-        HttpConfig.clickHouseLongTermResponseTimeOut = clickHouseLongTermResponseTimeOut;
-    }
+    private int clickHouseRealTimeResponseTimeOut;
 
 }

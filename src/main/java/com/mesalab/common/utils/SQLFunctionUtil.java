@@ -34,6 +34,7 @@ public class SQLFunctionUtil {
     private static DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private static ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private static HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
+    private static HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
 
     /**
      * 自定义函数
@@ -155,7 +156,7 @@ public class SQLFunctionUtil {
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
-        int socketTimeOut = HttpConfig.druidResponseTimeOut;
+        int socketTimeOut = httpConfig.getDruidResponseTimeOut();
         Map<String, String> stringStringMap = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
         return stringStringMap;
 
@@ -177,7 +178,7 @@ public class SQLFunctionUtil {
                 .append("query=").append(sql)
                 .append(" FORMAT JSON;");
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
-        int socketTimeOut = HttpConfig.clickHouseRealTimeResponseTimeOut;
+        int socketTimeOut = httpConfig.getClickHouseRealTimeResponseTimeOut();
         Map<String, String> stringStringMap = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
         return stringStringMap;
     }

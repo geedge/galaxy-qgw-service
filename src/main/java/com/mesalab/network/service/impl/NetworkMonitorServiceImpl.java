@@ -42,6 +42,8 @@ import java.util.stream.Collectors;
 public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     @Autowired
     HttpClientService httpClientService;
+    @Autowired
+    HttpConfig httpConfig;
     @Value("${server.port}")
     private int serverPort;
     private static String hostAddress;
@@ -327,7 +329,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             log.error("sql Encode error: ", e);
         }
         String url = "http://" + hostAddress + ":" + serverPort + "/?query=";
-        return httpClientService.httpGet(url + sql, HttpConfig.serverResponseTimeOut);
+        int socketTimeOut = httpConfig.getServerResponseTimeOut();
+        return httpClientService.httpGet(url + sql, socketTimeOut);
     }
 
 

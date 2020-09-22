@@ -44,6 +44,8 @@ public class SystemServiceImpl implements SystemService {
     private HttpClientService httpClientService;
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
+    @Autowired
+    HttpConfig httpConfig;
 
     private Map<String, String> headers = Maps.newHashMap();
 
@@ -327,7 +329,7 @@ public class SystemServiceImpl implements SystemService {
     private BaseResult queryJobStatusByJobId(int jobId) {
         BaseResult baseResult = null;
         StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).append("/jobinfo/jobBeat?jobId=").append(jobId);
-        Map<String, String> resultMap = httpClientService.httpGet(url.toString(), headers, HttpConfig.serverResponseTimeOut);
+        Map<String, String> resultMap = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
         log.info("请求调度任务jobBeat接口" + url);
         baseResult = resultEncapsulationOfJob(resultMap);
         return baseResult;
@@ -372,7 +374,7 @@ public class SystemServiceImpl implements SystemService {
         BaseResult baseResult = null;
         String params = getUrlParamsByMap(getObjectToMap(xxlJobInfo));
         String url = String.format("%s/jobinfo/%s/?%s", jobAdminHttpSource.getUrl(), executeType, params);
-        Map<String, String> resultMap = httpClientService.httpGet(url, headers, HttpConfig.serverResponseTimeOut);
+        Map<String, String> resultMap = httpClientService.httpGet(url, headers, httpConfig.getServerResponseTimeOut());
         log.info("请求调度任务" + executeType + "接口" + url);
         baseResult = resultEncapsulationOfJob(resultMap);
         return baseResult;
@@ -388,7 +390,8 @@ public class SystemServiceImpl implements SystemService {
         StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl());
         headers.put("Content-Type", "application/json");
         String urlParamsByMap = getUrlParamsByMap(getObjectToMap(jobAdminHttpSource));
-        Map httpPostResponseHeads = httpClientService.getHttpPostResponseHeads(url + "/login?" + urlParamsByMap, headers, HttpConfig.serverResponseTimeOut);
+        int socketTimeOut = httpConfig.getServerResponseTimeOut();
+        Map httpPostResponseHeads = httpClientService.getHttpPostResponseHeads(url + "/login?" + urlParamsByMap, headers, socketTimeOut);
         String cookie = String.valueOf(httpPostResponseHeads.get("SET-COOKIE"));
         headers.put("Cookie", cookie);
     }
@@ -403,7 +406,7 @@ public class SystemServiceImpl implements SystemService {
         StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).
                 append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
                 append(handlerValue);
-        Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers, HttpConfig.serverResponseTimeOut);
+        Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
         log.info("请求调度任务pageList接口 " + url);
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);

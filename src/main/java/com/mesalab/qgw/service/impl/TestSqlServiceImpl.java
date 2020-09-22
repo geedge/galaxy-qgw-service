@@ -47,15 +47,17 @@ public class TestSqlServiceImpl {
     public DruidIoProperties druidIoProperties;
     @Autowired
     public ClickHouseHttpSource clickHouseHttpSource;
-
+    @Autowired
+    HttpConfig httpConfig;
     private List errorDate;
 
 
     /**
      * 运行测试用例
+     *
      * @return
      */
-    public BaseResult runSql(){
+    public BaseResult runSql() {
         long start = System.currentTimeMillis();
         List list = ckSql();
         List listDruid = druidSql();
@@ -67,20 +69,20 @@ public class TestSqlServiceImpl {
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:00:00");
         SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date(System.currentTimeMillis());
-        for (int i = 0; i < list.size(); i++){
+        for (int i = 0; i < list.size(); i++) {
             String sql = String.valueOf(list.get(i));
             try {
                 sql = sql.replaceAll("\\$start_time", "'" + format1.format(date) + "'");
                 sql = sql.replaceAll("\\$end_time", "'" + format2.format(date) + "'");
-                sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+","%20");
+                sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
             } catch (Exception e) {
                 log.error("测试用例sql编码错误", e);
             }
-            resultTemp = httpClientService.httpGet("http://127.0.0.1:9999/?query=" + sql, HttpConfig.serverResponseTimeOut);
-            if(resultTemp.get("status").equals(String.valueOf(HttpStatus.SC_OK))){
+            resultTemp = httpClientService.httpGet("http://127.0.0.1:9999/?query=" + sql, httpConfig.getServerResponseTimeOut());
+            if (resultTemp.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
                 resultTemp.remove("result");
                 countSuccess++;
-            }else {
+            } else {
                 try {
                     resultTemp.put("query", URLDecoder.decode(sql, "UTF-8"));
                 } catch (Exception e) {
@@ -95,25 +97,26 @@ public class TestSqlServiceImpl {
             @Override
             public int compare(Object o1, Object o2) {
                 Map<String, Object> oneMap = (Map<String, Object>) o1;
-                Map<String, Object>  twoMap = (Map<String, Object>) o2;
+                Map<String, Object> twoMap = (Map<String, Object>) o2;
                 return Integer.valueOf(twoMap.get("status").toString()).compareTo(Integer.valueOf(oneMap.get("status").toString()));
             }
         });
         long cost = System.currentTimeMillis() - start;
         HashMap<String, Object> statistics = new HashMap<>();
-        statistics.put("elapsed",String.format("%.2f", (double)cost/1000));
+        statistics.put("elapsed", String.format("%.2f", (double) cost / 1000));
         statistics.put("total", list.size());
         statistics.put("success", countSuccess);
-        String message = countSuccess==list.size() ? "ok" : "error";
+        String message = countSuccess == list.size() ? "ok" : "error";
         result = BaseResultGenerator.success(message, data, statistics);
         return result;
     }
 
     /**
      * 运行schema校验
+     *
      * @return
      */
-    public BaseResult runSchema(){
+    public BaseResult runSchema() {
         SchemaCacheUtils.removeAll();
         long start = System.currentTimeMillis();
         errorDate = new ArrayList();
@@ -123,16 +126,13 @@ public class TestSqlServiceImpl {
         checkSchema("/config/avro/druid");
         long cost = System.currentTimeMillis() - start;
         HashMap<String, Object> statistics = new HashMap<>();
-        statistics.put("elapsed",String.format("%.2f", (double)cost/1000));
-        String message = errorDate.size()==0 ? "ok" : "error";
+        statistics.put("elapsed", String.format("%.2f", (double) cost / 1000));
+        String message = errorDate.size() == 0 ? "ok" : "error";
         return BaseResultGenerator.success(message, errorDate, statistics);
     }
 
 
-
-
-
-    public List ckSql(){
+    public List ckSql() {
         List<String> list = new ArrayList<>();
         list.add("select toDateTime(common_recv_time) as common_recv_time,common_subscriber_id, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port, ssl_sni, ssl_version from security_event_log where common_recv_time >= toDateTime($start_time) and common_recv_time< toDateTime($end_time) and common_client_ip like '49.7%' order by common_recv_time desc limit 0,20");
         list.add("select FROM_UNIXTIME(common_recv_time) as common_recv_time,common_subscriber_id, common_address_type, common_l4_protocol, common_client_ip, common_server_ip, common_server_port, ssl_sni, ssl_version from security_event_log where common_recv_time >= UNIX_TIMESTAMP($start_time) and common_recv_time< UNIX_TIMESTAMP($end_time) and common_client_ip like '49.7%' order by common_recv_time desc limit 0,20");
@@ -146,7 +146,7 @@ public class TestSqlServiceImpl {
 
         list.add("select count(1) from connection_record_log");
         list.add("select count(*) from connection_record_log");
-        list.add("select * from "+clickHouseProperties.getDbname() +".connection_record_log limit 1");
+        list.add("select * from " + clickHouseProperties.getDbname() + ".connection_record_log limit 1");
 
         //Radius 用户分析
         //1. radius账户申请客户端IP变化
@@ -194,7 +194,7 @@ public class TestSqlServiceImpl {
         return list;
     }
 
-    public List druidSql(){
+    public List druidSql() {
         List<String> list = new ArrayList<>();
         //安全策略命中统计
         //1. 某策略命中计数
@@ -255,10 +255,10 @@ public class TestSqlServiceImpl {
                 "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_out_bytes' as type, sum(total_out_bytes) as bytes from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
         //Packets
         list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_in_packets' as type, sum(total_in_packets) as packets from traffic_metrics_log where  __time >=TIMESTAMP $start_time and __time <TIMESTAMP  $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')\n" +
-                "union all\n"+
+                "union all\n" +
                 "select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_out_packets' as type, sum(total_out_packets) as packets from traffic_metrics_log where __time >=TIMESTAMP  $start_time and __time <TIMESTAMP  $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')");
         list.add("select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_in_packets' as type, sum(total_in_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')\n" +
-                "union all\n"+
+                "union all\n" +
                 "select DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s') as stat_time, 'traffic_out_packets' as type, sum(total_out_packets) as packets from traffic_metrics_log where __time >= $start_time and __time < $end_time group by DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(__time)/30)*30),'%Y-%m-%d %H:%i:%s')");
         //Packets
         list.add("select TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss') as stat_time, 'traffic_in_packets' as type, sum(total_in_packets) as packets from traffic_metrics_log where  __time >= $start_time and __time < $end_time group by TIME_FORMAT(time_floor(__time,'PT30S'),'yyyy-MM-dd HH:mm:ss')\n" +
@@ -381,13 +381,13 @@ public class TestSqlServiceImpl {
     }
 
 
-
     /**
      * 查询clickhouse数据库
+     *
      * @param query
      * @return
      */
-    private List queryCKDynamic(String query){
+    private List queryCKDynamic(String query) {
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(clickHouseHttpSource.getUrl()).append("/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
@@ -398,17 +398,17 @@ public class TestSqlServiceImpl {
                 .append("query=").append(query)
                 .append(" FORMAT JSON;");
 
-        log.info("Query Session and Events Query : {}" , urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
+        log.info("Query Session and Events Query : {}", urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
         String s = urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8");
-        Map<String, String> resultMap = httpClientService.httpGet(s,HttpConfig.clickHouseRealTimeResponseTimeOut);
+        Map<String, String> resultMap = httpClientService.httpGet(s, httpConfig.getClickHouseRealTimeResponseTimeOut());
         List result = new ArrayList<>();
-        if(resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))){
-            Map<String, Object> maps =(Map<String, Object>) JsonMapper.fromJsonString(resultMap.get("result"),  Map.class);
-            List data = (List)maps.get("data");
+        if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultMap.get("result"), Map.class);
+            List data = (List) maps.get("data");
             Iterator iterator = data.iterator();
-            while (iterator.hasNext()){
-                Map next = (Map)iterator.next();
+            while (iterator.hasNext()) {
+                Map next = (Map) iterator.next();
                 result.add(String.valueOf(next.get("name")));
             }
             return result;
@@ -420,24 +420,26 @@ public class TestSqlServiceImpl {
 
     /**
      * 查询druid数据库
+     *
      * @param query
      * @return
      */
-    private List queryDruidDynamic(String query){
+    private List queryDruidDynamic(String query) {
         //headers
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.APPLICATION_JSON);
         //body
         Map<String, Object> params = Maps.newHashMap();
         params.put("query", query);
-        Map<String, String> resultMap = httpClientService.httpPost("http://" + druidIoProperties.getUrl(), JsonMapper.toJsonString(params),HttpConfig.druidResponseTimeOut);
-        if(resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))){
+        int socketTimeOut = httpConfig.getDruidResponseTimeOut();
+        Map<String, String> resultMap = httpClientService.httpPost("http://" + druidIoProperties.getUrl(), JsonMapper.toJsonString(params), socketTimeOut);
+        if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             List<String> list = new ArrayList<>();
             String result = resultMap.get("result");
-            List body = (List)Json.parseJson(result);
+            List body = (List) Json.parseJson(result);
             Iterator iterator = body.iterator();
-            while (iterator.hasNext()){
-                Map next = (Map)iterator.next();
+            while (iterator.hasNext()) {
+                Map next = (Map) iterator.next();
                 String name = String.valueOf(next.get("name"));
                 list.add(name);
             }
@@ -447,11 +449,11 @@ public class TestSqlServiceImpl {
     }
 
 
-    private void checkDruidSchema(String path){
+    private void checkDruidSchema(String path) {
         Map<String, JsonProperties> druidSchemaInfo = getSchemaInfo(path);
         Set<String> name = druidSchemaInfo.keySet();
         Iterator<String> iterator = name.iterator();
-        while (iterator.hasNext()){//遍历表,以Avro为基础
+        while (iterator.hasNext()) {//遍历表,以Avro为基础
             String tableName = iterator.next();
             Map resultMap = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(druidSchemaInfo.get(tableName)), Map.class);
             if (resultMap == null) {
@@ -469,7 +471,7 @@ public class TestSqlServiceImpl {
                 Map next = fieldsAvro.next();
                 resultAvro.add(String.valueOf(next.get("name")));
                 boolean b = resultSql.contains(next.get("name"));
-                if(!b){
+                if (!b) {
                     String str = String.format("%s.avro中注册多余:%s", tableName, next.get("name"));
                     errorDate.add(str);
                 }
@@ -477,10 +479,10 @@ public class TestSqlServiceImpl {
 
             //Schema为基础
             Iterator iteratorSql = resultSql.iterator();
-            while (iteratorSql.hasNext()){
+            while (iteratorSql.hasNext()) {
                 String next = String.valueOf(iteratorSql.next());
                 boolean b = resultAvro.contains(next);
-                if(!b){
+                if (!b) {
                     String str = String.format("%s.avro中注册缺少:%s", tableName, next);
                     errorDate.add(str);
                 }
@@ -489,11 +491,11 @@ public class TestSqlServiceImpl {
     }
 
 
-    private void checkCKSchema(String path){
+    private void checkCKSchema(String path) {
         Map<String, JsonProperties> ckSchemaInfo = getSchemaInfo(path);
         Set<String> name = ckSchemaInfo.keySet();
         Iterator<String> iterator = name.iterator();
-        while (iterator.hasNext()){//遍历表,以Avro为基础
+        while (iterator.hasNext()) {//遍历表,以Avro为基础
             String tableName = iterator.next();
             Map resultMap = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(ckSchemaInfo.get(tableName)), Map.class);
             if (resultMap == null) {
@@ -501,7 +503,7 @@ public class TestSqlServiceImpl {
             }
             //查数据库
             List resultSql = queryCKDynamic("describe " + tableName);
-            if(StringUtil.isEmpty(resultSql)){
+            if (StringUtil.isEmpty(resultSql)) {
                 String str = String.format("avro中注册多余:%s.avsc", tableName);
                 errorDate.add(str);
                 continue;
@@ -516,7 +518,7 @@ public class TestSqlServiceImpl {
                 Map next = fieldsAvro.next();
                 resultAvro.add(String.valueOf(next.get("name")));
                 boolean b = resultSql.contains(next.get("name"));
-                if(!b){
+                if (!b) {
                     String str = String.format("%s.avro中注册多余:%s", tableName, next.get("name"));
                     errorDate.add(str);
                 }
@@ -524,10 +526,10 @@ public class TestSqlServiceImpl {
 
             //db为基础
             Iterator iteratorSql = resultSql.iterator();
-            while (iteratorSql.hasNext()){
+            while (iteratorSql.hasNext()) {
                 String next = String.valueOf(iteratorSql.next());
                 boolean b = resultAvro.contains(next);
-                if(!b){
+                if (!b) {
                     String str = String.format("%s.avro中注册缺少:%s", tableName, next);
                     errorDate.add(str);
                 }
@@ -538,25 +540,26 @@ public class TestSqlServiceImpl {
 
     /**
      * 获取avro文件
+     *
      * @param path
      * @return
      */
-    private Map<String, JsonProperties> getSchemaInfo(String path){
+    private Map<String, JsonProperties> getSchemaInfo(String path) {
         Map<String, JsonProperties> schema = new HashMap<>();
-        String pathRoot= null;
+        String pathRoot = null;
         try {
             pathRoot = new File("").getCanonicalPath();
             File file = new File(pathRoot + path);
             File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    if(!f.getName().toLowerCase().endsWith(".avsc")){
+                    if (!f.getName().toLowerCase().endsWith(".avsc")) {
                         continue;
                     }
                     try {
                         Schema ckSchema = new Schema.Parser().parse(new File(f.getPath()));
                         schema.put(ckSchema.getName(), ckSchema);
-                    }catch (Exception ex){
+                    } catch (Exception ex) {
                         log.error("遍历" + path + "路径下文件失败: " + f.getName(), ex);
                         String str = String.format("%s读取文件失败:%s", path, f.getName());
                         errorDate.add(str);

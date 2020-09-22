@@ -50,7 +50,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
-
+    private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
 
     public ClickHouseDialect(ApiParam param) {
         initialize(param);
@@ -1073,20 +1073,20 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         String dbName = metadataService.getDBNameByTableName(param.getTableName());
 
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
-            clickHouseHttpQuery.setSocketTimeOut(HttpConfig.clickHouseLongTermResponseTimeOut);
+            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getClickHouseLongTermResponseTimeOut());
             queryParameterBuilder.append("user=")
                     .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
                     .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
                     .append("database=").append(dbName).append("&");
         } else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-            clickHouseHttpQuery.setSocketTimeOut(HttpConfig.clickHouseLongTermResponseTimeOut);
+            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getClickHouseLongTermResponseTimeOut());
             queryParameterBuilder.append("user=")
                     .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
                     .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
                     .append("database=").append(dbName).append("&")
                     .append("query_id=").append(ReportCacheUtils.getQueryId(param.getResultId(), param.getQuery())).append("&");
         } else {
-            clickHouseHttpQuery.setSocketTimeOut(HttpConfig.clickHouseRealTimeResponseTimeOut);
+            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getClickHouseRealTimeResponseTimeOut());
             queryParameterBuilder.append("user=")
                     .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
                     .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")

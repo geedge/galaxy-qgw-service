@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class HbaseDialect extends AbstractDataSourceDialect {
     private HBaseHttpSource hBaseHttpSource = (HBaseHttpSource) SpringContextUtil.getBean("hBaseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
+    private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private Stopwatch watch = Stopwatch.createUnstarted();
 
     public HbaseDialect(ApiParam param) {
@@ -69,7 +70,8 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put("Accept", "application/json");
-        Map<String, String> results = httpClientService.httpGet(requestURL, headers, HttpConfig.serverResponseTimeOut);
+        int socketTimeOut = httpConfig.getServerResponseTimeOut();
+        Map<String, String> results = httpClientService.httpGet(requestURL, headers, socketTimeOut);
 
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), null,
@@ -101,8 +103,8 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         Map<String, String> headers = Maps.newHashMap();
 
         headers.put("Accept", "application/json");
-
-        Map<String, String> formatSql = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers, HttpConfig.serverResponseTimeOut);
+        int socketTimeOut = httpConfig.getServerResponseTimeOut();
+        Map<String, String> formatSql = httpClientService.httpGet(urlBuilder.toString() + queryparamBuilder.toString(), headers, socketTimeOut);
         if (formatSql.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             formatSql.put("result", decryptHbaseResult(formatSql.get("result")));
         }

@@ -30,6 +30,7 @@ public class ReportCacheUtils {
 
     private static HBaseHttpSource hBaseHttpSource = (HBaseHttpSource) SpringContextUtil.getBean("hBaseHttpSource");
     private static HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
+    private static HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
 
     public static BaseResult<Object> get(ApiParam param) {
         BaseResult<Object> baseResult;
@@ -43,8 +44,8 @@ public class ReportCacheUtils {
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put("Accept", "application/json");
-
-        Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryParamBuilder.toString(), headers, HttpConfig.serverResponseTimeOut);
+        int socketTimeOut = httpConfig.getServerResponseTimeOut();
+        Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryParamBuilder.toString(), headers, socketTimeOut);
 
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map result = (Map) JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class);
