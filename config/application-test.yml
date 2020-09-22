@@ -81,6 +81,3 @@ http:
       timeout: 10000
     response:
       timeout: 10000
-## IPlearning Config
-iplearning:
-  uniqciprecent: -24
