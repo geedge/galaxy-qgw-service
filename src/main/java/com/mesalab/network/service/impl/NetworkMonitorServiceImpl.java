@@ -10,11 +10,12 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
+import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.network.dsl.DSLObject;
+import com.mesalab.network.service.NetworkMonitorService;
 import com.mesalab.qgw.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.mesalab.network.service.NetworkMonitorService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -25,7 +26,9 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.UnsupportedEncodingException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -324,7 +327,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             log.error("sql Encode error: ", e);
         }
         String url = "http://" + hostAddress + ":" + serverPort + "/?query=";
-        return httpClientService.httpGet(url + sql);
+        return httpClientService.httpGet(url + sql, HttpConfig.serverResponseTimeOut);
     }
 
 

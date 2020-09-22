@@ -13,6 +13,7 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
@@ -104,7 +105,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
         log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
 
-        return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
+        return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam), HttpConfig.druidResponseTimeOut);
     }
 
 

@@ -3,9 +3,9 @@ package com.mesalab.knowledge;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.Constant;
-import com.mesalab.knowledge.common.utils.HttpClientUtils;
 import com.mesalab.knowledge.common.utils.JwtCache;
 import com.mesalab.knowledge.strategy.BaseQueryProvider;
+import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.junit.Test;
@@ -30,6 +30,9 @@ public class JwtTest extends GalaxyQGWApplicationTests {
     @Autowired
     ArangoConfig arangoConfig;
 
+    @Autowired
+    HttpClientService httpClientService;
+
     /**
      * @Author zhq
      * @Description //TODO arangodb jwt test
@@ -42,7 +45,7 @@ public class JwtTest extends GalaxyQGWApplicationTests {
             Map<String, String> params = new HashMap<>();
             params.put("username", arangoConfig.getUsername());
             params.put("password", arangoConfig.getPassword());
-            String res = HttpClientUtils.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(params));
+            String res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(params));
             Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
             jwt = resMap.get(Constant.JWT) != null ? Constant.ARANGO_JWT_BEARER + resMap.get(Constant.JWT) : null;
             JwtCache.put(Constant.ARANGO_CACHE_JWT, jwt);
