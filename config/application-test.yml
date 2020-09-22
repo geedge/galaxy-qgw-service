@@ -82,6 +82,3 @@ http:
       timeout: 10000
     clickHouseLongTerm:
       timeout: 21700000
-## IPlearning Config
-iplearning:
-  uniqciprecent: -24
