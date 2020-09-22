@@ -156,7 +156,7 @@ public class SQLFunctionUtil {
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
-        int socketTimeOut = httpConfig.getDruidResponseTimeOut();
+        int socketTimeOut = httpConfig.getDruidSocketTimeOut();
         Map<String, String> stringStringMap = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
         return stringStringMap;
 
@@ -178,7 +178,7 @@ public class SQLFunctionUtil {
                 .append("query=").append(sql)
                 .append(" FORMAT JSON;");
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
-        int socketTimeOut = httpConfig.getClickHouseRealTimeResponseTimeOut();
+        int socketTimeOut = httpConfig.getCkRealTimeAccountSocketTimeOut();
         Map<String, String> stringStringMap = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
         return stringStringMap;
     }

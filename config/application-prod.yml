@@ -19,15 +19,18 @@ clickhouse:
   realTimeAccount:
     username: tsg_query
     password: ceiec2018
+    socketTimeOut: 10000
   longTermAccount:
     username: tsg_report
     password: ceiec2019
+    socketTimeOut: 21700000
 ###############################################################################
 ## Druid configuration
 druid:
   url: 192.168.44.12:8082/druid/v2/sql
   dbname: druid
   sqlTimeZone: Asia/Shanghai
+  socketTimeOut: 10000
 ###############################################################################
 ## Hbase configuration
 hbase:
@@ -61,6 +64,7 @@ arango:
   jwturl: ${arango.server}/_db/${arango.database}/_open/auth
   queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
   maxrows: 10000
+  socketTimeOut: 10000
 ## http pool config
 http:
   pool:
@@ -74,11 +78,3 @@ http:
       timeout: 10000
     response:
       timeout: 10000
-    druid:
-      timeout: 10000
-    arango:
-      timeout: 10000
-    clickHouseRealTime:
-      timeout: 10000
-    clickHouseLongTerm:
-      timeout: 21700000

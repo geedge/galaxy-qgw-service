@@ -40,25 +40,25 @@ public class HttpConfig {
     /**
      * Druid查询请求响应时间
      */
-    @Value("${http.pool.druid.timeout}")
-    private int druidResponseTimeOut;
+    @Value("${druid.socketTimeOut}")
+    private int druidSocketTimeOut;
 
     /**
      * Arango查询请求响应时间
      */
-    @Value("${http.pool.arango.timeout}")
-    private int arangoResponseTimeOut;
+    @Value("${arango.socketTimeOut}")
+    private int arangoSocketTimeOut;
 
     /**
      * ClickHouse长查询请求响应时间
      */
-    @Value("${http.pool.clickHouseLongTerm.timeout}")
-    private int clickHouseLongTermResponseTimeOut;
+    @Value("${clickhouse.longTermAccount.socketTimeOut}")
+    private int ckLongTermAccountSocketTimeOut;
 
     /**
      * ClickHouse实时查询请求响应时间
      */
-    @Value("${http.pool.clickHouseRealTime.timeout}")
-    private int clickHouseRealTimeResponseTimeOut;
+    @Value("${clickhouse.realTimeAccount.socketTimeOut}")
+    private int ckRealTimeAccountSocketTimeOut;
 
 }

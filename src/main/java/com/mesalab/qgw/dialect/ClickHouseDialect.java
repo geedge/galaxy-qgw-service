@@ -1073,20 +1073,20 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         String dbName = metadataService.getDBNameByTableName(param.getTableName());
 
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
-            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getClickHouseLongTermResponseTimeOut());
+            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append("user=")
                     .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
                     .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
                     .append("database=").append(dbName).append("&");
         } else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getClickHouseLongTermResponseTimeOut());
+            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append("user=")
                     .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
                     .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
                     .append("database=").append(dbName).append("&")
                     .append("query_id=").append(ReportCacheUtils.getQueryId(param.getResultId(), param.getQuery())).append("&");
         } else {
-            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getClickHouseRealTimeResponseTimeOut());
+            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
             queryParameterBuilder.append("user=")
                     .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
                     .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")

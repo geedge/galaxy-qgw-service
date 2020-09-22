@@ -105,7 +105,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         druidQueryParam.setResultFormat("object");
 
         log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
-        int socketTimeOut = httpConfig.getDruidResponseTimeOut();
+        int socketTimeOut = httpConfig.getDruidSocketTimeOut();
         return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
     }
 

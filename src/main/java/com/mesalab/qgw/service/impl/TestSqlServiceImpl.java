@@ -401,7 +401,7 @@ public class TestSqlServiceImpl {
         log.info("Query Session and Events Query : {}", urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
         String s = urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8");
-        Map<String, String> resultMap = httpClientService.httpGet(s, httpConfig.getClickHouseRealTimeResponseTimeOut());
+        Map<String, String> resultMap = httpClientService.httpGet(s, httpConfig.getCkRealTimeAccountSocketTimeOut());
         List result = new ArrayList<>();
         if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultMap.get("result"), Map.class);
@@ -431,7 +431,7 @@ public class TestSqlServiceImpl {
         //body
         Map<String, Object> params = Maps.newHashMap();
         params.put("query", query);
-        int socketTimeOut = httpConfig.getDruidResponseTimeOut();
+        int socketTimeOut = httpConfig.getDruidSocketTimeOut();
         Map<String, String> resultMap = httpClientService.httpPost("http://" + druidIoProperties.getUrl(), JsonMapper.toJsonString(params), socketTimeOut);
         if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             List<String> list = new ArrayList<>();

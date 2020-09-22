@@ -22,7 +22,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.nutz.http.Http;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -332,7 +331,7 @@ public class HttpClientService {
     public String httpGet(String url) {
         String msg = "-1";
         // 获取客户端连接对象
-        CloseableHttpClient httpClient = getHttpClient(httpConfig.getArangoResponseTimeOut());
+        CloseableHttpClient httpClient = getHttpClient(httpConfig.getArangoSocketTimeOut());
         CloseableHttpResponse response = null;
         try {
             URL ul = new URL(url);
@@ -379,7 +378,7 @@ public class HttpClientService {
     public String httpPost(String url, String requestBody, Header... headers) {
         String msg = "-1";
         // 获取客户端连接对象
-        CloseableHttpClient httpClient = getHttpClient(httpConfig.getArangoResponseTimeOut());
+        CloseableHttpClient httpClient = getHttpClient(httpConfig.getArangoSocketTimeOut());
         // 创建POST请求对象
         CloseableHttpResponse response = null;
         try {
