@@ -1,7 +1,7 @@
-package com.mesalab.bridgeable.service.impl;
+package com.mesalab.openapi.service.impl;
 
 import com.jfinal.plugin.activerecord.Db;
-import com.mesalab.bridgeable.service.BridgeableService;
+import com.mesalab.openapi.service.OpenApiService;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import org.springframework.stereotype.Service;
@@ -11,14 +11,14 @@ import java.util.List;
 /**
  * @Date: 2020-09-18 11:00
  * @Author : liuyongqiang
- * @ClassName : BridgeableServiceImpl
- * @Description : BridgeableServiceImpl
+ * @ClassName : OpenApiServiceImpl
+ * @Description : OpenApiServiceImpl
  */
-@Service("bridgeableService")
-public class BridgeableServiceImpl implements BridgeableService {
+@Service("openApiService")
+public class OpenApiServiceImpl implements OpenApiService {
 
     /**
-     * @Description: APP-ID字典列表
+     * @Description: APP字典列表
      * @Author: liuyongqiang
      * @Date: 2020/9/17 15:31
      * @return: com.mesalab.common.base.BaseResult

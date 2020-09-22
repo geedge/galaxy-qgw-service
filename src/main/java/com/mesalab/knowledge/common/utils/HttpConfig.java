@@ -36,6 +36,25 @@ public class HttpConfig {
 
     public static int serverResponseTimeOut;
 
+    /**
+     * Druid查询请求响应时间
+     */
+    public static int druidResponseTimeOut;
+
+    /**
+     * Arango查询请求响应时间
+     */
+    public static int arangoResponseTimeOut;
+
+    /**
+     * ClickHouse长查询请求响应时间
+     */
+    public static int clickHouseLongTermResponseTimeOut;
+
+    /**
+     * ClickHouse实时查询请求响应时间
+     */
+    public static int clickHouseRealTimeResponseTimeOut;
 
 
     @Value("${http.pool.max.connection}")
@@ -54,16 +73,33 @@ public class HttpConfig {
     }
 
     @Value("${http.pool.connect.timeout}")
-    public void setServerConnectTimeOut(int srco) {serverConnectTimeOut = srco;}
-
-
+    public void setServerConnectTimeOut(int srco) {
+        serverConnectTimeOut = srco;
+    }
 
     @Value("${http.pool.response.timeout}")
     public void setServerResponseTimeOut(int sres) {
         serverResponseTimeOut = sres;
     }
 
+    @Value("${http.pool.druid.timeout}")
+    public static void setDruidResponseTimeOut(int druidResponseTimeOut) {
+        HttpConfig.druidResponseTimeOut = druidResponseTimeOut;
+    }
 
+    @Value("${http.pool.arango.timeout}")
+    public static void setArangoResponseTimeOut(int arangoResponseTimeOut) {
+        HttpConfig.arangoResponseTimeOut = arangoResponseTimeOut;
+    }
 
+    @Value("${http.pool.clickHouseRealTime.timeout}")
+    public static void setClickHouseRealTimeResponseTimeOut(int clickHouseRealTimeResponseTimeOut) {
+        HttpConfig.clickHouseRealTimeResponseTimeOut = clickHouseRealTimeResponseTimeOut;
+    }
+
+    @Value("${http.pool.clickHouseLongTerm.timeout}")
+    public static void setClickHouseLongTermResponseTimeOut(int clickHouseLongTermResponseTimeOut) {
+        HttpConfig.clickHouseLongTermResponseTimeOut = clickHouseLongTermResponseTimeOut;
+    }
 
 }

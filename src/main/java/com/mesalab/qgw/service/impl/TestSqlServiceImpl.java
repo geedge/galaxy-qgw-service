@@ -10,6 +10,7 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SchemaCacheUtils;
+import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
@@ -75,7 +76,7 @@ public class TestSqlServiceImpl {
             } catch (Exception e) {
                 log.error("测试用例sql编码错误", e);
             }
-            resultTemp = httpClientService.httpGet("http://127.0.0.1:9999/?query=" + sql);
+            resultTemp = httpClientService.httpGet("http://127.0.0.1:9999/?query=" + sql, HttpConfig.serverResponseTimeOut);
             if(resultTemp.get("status").equals(String.valueOf(HttpStatus.SC_OK))){
                 resultTemp.remove("result");
                 countSuccess++;
@@ -400,7 +401,7 @@ public class TestSqlServiceImpl {
         log.info("Query Session and Events Query : {}" , urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
         String s = urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8");
-        Map<String, String> resultMap = httpClientService.httpGet(s);
+        Map<String, String> resultMap = httpClientService.httpGet(s,HttpConfig.clickHouseRealTimeResponseTimeOut);
         List result = new ArrayList<>();
         if(resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))){
             Map<String, Object> maps =(Map<String, Object>) JsonMapper.fromJsonString(resultMap.get("result"),  Map.class);
@@ -429,7 +430,7 @@ public class TestSqlServiceImpl {
         //body
         Map<String, Object> params = Maps.newHashMap();
         params.put("query", query);
-        Map<String, String> resultMap = httpClientService.httpPost("http://" + druidIoProperties.getUrl(), JsonMapper.toJsonString(params));
+        Map<String, String> resultMap = httpClientService.httpPost("http://" + druidIoProperties.getUrl(), JsonMapper.toJsonString(params),HttpConfig.druidResponseTimeOut);
         if(resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))){
             List<String> list = new ArrayList<>();
             String result = resultMap.get("result");

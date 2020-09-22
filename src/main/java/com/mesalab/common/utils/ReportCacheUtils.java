@@ -5,6 +5,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
@@ -43,7 +44,7 @@ public class ReportCacheUtils {
         Map<String, String> headers = Maps.newHashMap();
         headers.put("Accept", "application/json");
 
-        Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryParamBuilder.toString(), headers);
+        Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryParamBuilder.toString(), headers, HttpConfig.serverResponseTimeOut);
 
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map result = (Map) JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class);

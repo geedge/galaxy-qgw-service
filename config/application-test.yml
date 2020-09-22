@@ -47,13 +47,6 @@ engine:
   maxCacheNum: 1048576
   defaultResultNum: 200
 ###############################################################################
-## Httpclient configuration
-httpclient:
-  connectTimeout: 1000
-  SocketTimeout: 21700000
-  maxConnection: 50
-  maxPerRoute: 10
-###############################################################################
 ## Junit Test Configuration
 test:
   url: 192.168.44.12:9999
@@ -81,6 +74,11 @@ http:
       timeout: 10000
     response:
       timeout: 10000
-## IPlearning Config
-iplearning:
-  uniqciprecent: -24
+    druid:
+      timeout: 10000
+    arango:
+      timeout: 10000
+    clickHouseRealTime:
+      timeout: 10000
+    clickHouseLongTerm:
+      timeout: 21700000
