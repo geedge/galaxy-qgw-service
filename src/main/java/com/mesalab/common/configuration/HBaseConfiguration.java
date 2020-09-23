@@ -22,8 +22,11 @@ public class HBaseConfiguration {
 
     @Bean(name="hBaseHttpSource")
     public HBaseHttpSource hBaseHttpSource() {
-        HBaseHttpSource httpSource  = new HBaseHttpSource();
-        httpSource.setUrl(hBaseProperties.getUrl());
+        HBaseHttpSource httpSource = new HBaseHttpSource();
+        httpSource.setZookeeperQuorum(hBaseProperties.getZookeeperQuorum());
+        httpSource.setZookeeperPropertyClientPort(hBaseProperties.getZookeeperPropertyClientPort());
+        httpSource.setClientRetriesNumber(hBaseProperties.getClientRetriesNumber());
+        httpSource.setRpcTimeout(hBaseProperties.getRpcTimeout());
         httpSource.setDbName(hBaseProperties.getDbName());
         httpSource.setTableName(hBaseProperties.getTableName());
         httpSource.setColumnFamily(hBaseProperties.getColumnFamily());

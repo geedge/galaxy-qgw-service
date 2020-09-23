@@ -1,14 +1,16 @@
 package com.mesalab.qgw.monitor;
-import com.mesalab.qgw.model.api.HBaseHttpSource;
-import org.apache.http.HttpStatus;
+
+import com.mesalab.common.configuration.HBaseProperties;
+import com.mesalab.common.utils.ReportCacheUtils;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.Connection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
 
 @Component
 public class HbaseHealthIndicator extends AbstractHealthIndicator {
@@ -16,27 +18,26 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
 
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
-    private HBaseHttpSource hBaseHttpSource;
+    private HBaseProperties hBaseProperties;
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
 
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(hBaseHttpSource.getUrl()).append("/");
-        String url = urlBuilder.toString();
-
         try {
-            ResponseEntity responseEntity  = restTemplate.getForEntity(url, Map.class);
+            Connection connection = ReportCacheUtils.createConnection();
+            boolean connectionSuccess;
+            Admin admin = connection.getAdmin();
+            connectionSuccess = admin.tableExists(TableName.valueOf((hBaseProperties.getDbName() + ":" + hBaseProperties.getTableName())));
 
-            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
+            if (connectionSuccess) {
                 builder.up()
                         .withDetail("app", "Hbase")
-                        .withDetail("url", hBaseHttpSource.getUrl())
+                        .withDetail("url", hBaseProperties.getZookeeperQuorum() + ":" + hBaseProperties.getZookeeperPropertyClientPort())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
                         .withDetail("app", "Hbase")
-                        .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
+                        .withDetail("message", "error");
 
 
             }
@@ -44,10 +45,7 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
             builder.down()
                     .withDetail("app", "Hbase")
                     .withDetail("message", e.getMessage());
-
         }
 
     }
-
-
 }

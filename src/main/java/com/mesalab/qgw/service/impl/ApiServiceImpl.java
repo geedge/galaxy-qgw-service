@@ -111,7 +111,7 @@ public class ApiServiceImpl implements ApiService {
 
         BaseResult baseResult = null;
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-            baseResult = ReportCacheUtils.get(param);
+            baseResult = ReportCacheUtils.get(param.getResultId(), param.getQuery());
             if (baseResult.isSuccess()) {
                 return baseResult;
             } else {

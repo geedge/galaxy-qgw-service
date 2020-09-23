@@ -34,11 +34,14 @@ druid:
 ###############################################################################
 ## Hbase configuration
 hbase:
-  url: 192.168.44.12:8084
+  zookeeperQuorum: 192.168.44.12
+  zookeeperPropertyClientPort: 2181
   dbname: tsg
   tableName: report_result
   columnFamily: response
   columnName: result
+  clientRetriesNumber: 3
+  rpcTimeout: 10000
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
