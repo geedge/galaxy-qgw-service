@@ -1,37 +1,37 @@
 {
-  "namespace": "tsg_galaxy_v3",
   "type": "record",
   "name": "radius_onff_log",
+  "namespace": "tsg_galaxy_v3",
   "fields": [
     {
       "name": "event_timestamp",
-      "type": "long",
-      "label": "Event Time"
+      "label": "Event Time",
+      "type": "long"
     },
     {
       "name": "account",
-      "type": "string",
-      "label": "Account"
+      "label": "Account",
+      "type": "string"
     },
     {
       "name": "framed_ip",
-      "type": "string",
-      "label": "Framed IP"
+      "label": "Framed IP",
+      "type": "string"
     },
     {
       "name": "acct_session_id",
-      "type": "string",
-      "label": "Acct Session ID"
+      "label": "Acct Session ID",
+      "type": "string"
     },
     {
       "name": "acct_status_type",
-      "type": "int",
-      "label": "Acct Status Type"
+      "label": "Acct Status Type",
+      "type": "int"
     },
     {
       "name": "acct_session_time",
-      "type": "int",
-      "label": "Acct Session Time"
+      "label": "Acct Session Time",
+      "type": "int"
     }
   ]
 }

@@ -1,213 +1,226 @@
 {
-  "namespace": "tsg_galaxy_v3",
   "type": "record",
   "name": "radius_record_log",
-  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"schema_query\":{\"dimensions\":[\"radius_nas_ip\",\"radius_framed_ip\",\"common_subscriber_id\"],\"metrics\":[\"radius_framed_ip\",\"radius_event_timestamp\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\"],\"filters\":[\"radius_framed_ip\",\"common_subscriber_id\",\"radius_packet_type\",\"radius_acct_session_id\",\"radius_acct_multi_session_id\",\"radius_acct_status_type\"]},\"schema_type\":{\"RADIUS\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_device_tag\",\"common_data_center\",\"common_encapsulation\",\"common_app_label\",\"common_protocol_label\",\"common_app_id\",\"common_app_surrogate_id\",\"common_l7_protocol\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"common_link_info_c2s\",\"common_link_info_s2c\",\"common_c2s_ipfrag_num\",\"common_s2c_ipfrag_num\",\"common_c2s_tcp_lostlen\",\"common_s2c_tcp_lostlen\",\"common_c2s_tcp_unorder_num\",\"common_s2c_tcp_unorder_num\",\"radius_packet_type\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_account\",\"radius_session_timeout\",\"radius_idle_timeout\",\"radius_acct_status_type\",\"radius_acct_terminate_cause\",\"radius_event_timestamp\",\"radius_nas_port\",\"radius_service_type\",\"radius_framed_protocol\",\"radius_callback_number\",\"radius_callback_id\",\"radius_termination_action\",\"radius_called_station_id\",\"radius_calling_station_id\",\"radius_acct_delay_time\",\"radius_acct_session_id\",\"radius_acct_multi_session_id\",\"radius_acct_input_octets\",\"radius_acct_output_octets\",\"radius_acct_input_packets\",\"radius_acct_output_packets\",\"radius_acct_session_time\",\"radius_acct_link_count\",\"radius_acct_interim_interval\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_acct_status_type\"]}},\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_acct_status_type\"]}",
+  "namespace": "tsg_galaxy_v3",
+  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"schema_query\":{\"dimensions\":[\"radius_nas_ip\",\"radius_framed_ip\",\"common_subscriber_id\"],\"metrics\":[\"radius_framed_ip\",\"radius_event_timestamp\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\"],\"filters\":[\"radius_framed_ip\",\"common_subscriber_id\",\"radius_packet_type\",\"radius_acct_session_id\",\"radius_acct_multi_session_id\",\"radius_acct_status_type\"]},\"schema_type\":{\"RADIUS\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_internal_ip\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_external_ip\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_device_tag\",\"common_data_center\",\"common_encapsulation\",\"common_app_label\",\"common_protocol_label\",\"common_app_id\",\"common_app_surrogate_id\",\"common_l7_protocol\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"common_link_info_c2s\",\"common_link_info_s2c\",\"common_c2s_ipfrag_num\",\"common_s2c_ipfrag_num\",\"common_c2s_tcp_lostlen\",\"common_s2c_tcp_lostlen\",\"common_c2s_tcp_unorder_num\",\"common_s2c_tcp_unorder_num\",\"radius_packet_type\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_account\",\"radius_session_timeout\",\"radius_idle_timeout\",\"radius_acct_status_type\",\"radius_acct_terminate_cause\",\"radius_event_timestamp\",\"radius_nas_port\",\"radius_service_type\",\"radius_framed_protocol\",\"radius_callback_number\",\"radius_callback_id\",\"radius_termination_action\",\"radius_called_station_id\",\"radius_calling_station_id\",\"radius_acct_delay_time\",\"radius_acct_session_id\",\"radius_acct_multi_session_id\",\"radius_acct_input_octets\",\"radius_acct_output_octets\",\"radius_acct_input_packets\",\"radius_acct_output_packets\",\"radius_acct_session_time\",\"radius_acct_link_count\",\"radius_acct_interim_interval\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_acct_status_type\"]}},\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"radius_nas_ip\",\"radius_framed_ip\",\"radius_acct_status_type\"]}",
   "fields": [
     {
       "name": "common_recv_time",
-      "type": "long",
       "label": "Receive Time",
-      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}}"
+      "type": "long",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}"
     },
     {
       "name": "common_log_id",
-      "type": "long",
       "label": "Log ID",
+      "type": "long",
       "doc": "{\"allow_query\":\"true\",\"format\":{\"functions\":\"snowflake_id\"}}"
     },
     {
       "name": "common_policy_id",
-      "type": "long",
       "label": "Policy ID",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "type": "long",
+      "doc":"{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_subscriber_id",
-      "type": "string",
       "label": "Subscriber ID",
+      "type": "string",
       "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_client_ip",
-      "type": "string",
       "label": "Client IP",
+      "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_client_port",
-      "type": "int",
       "label": "Client Port",
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_internal_ip",
+      "label": "Internal IP",
+      "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_l4_protocol",
-      "type": "string",
-      "label": "L4 Protocol"
+      "label": "L4 Protocol",
+      "type": "string"
     },
     {
       "name": "common_address_type",
-      "type": "int",
       "label": "Address Type",
+      "type": "int",
       "doc": "{\"data\":[{\"code\":\"4\",\"value\":\"ipv4\"},{\"code\":\"6\",\"value\":\"ipv6\"}]}"
     },
     {
       "name": "common_server_ip",
-      "type": "string",
       "label": "Server IP",
-      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_country,geo_asn\", \"appendTo\":\"common_server_location,common_server_asn\"}}"
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_country,geo_asn\",\"appendTo\":\"common_server_location,common_server_asn\"}}"
     },
     {
       "name": "common_server_port",
-      "type": "int",
       "label": "Server Port",
+      "type": "int",
       "doc": "{\"allow_query\":\"true\"}"
     },
     {
+      "name": "common_external_ip",
+      "label": "External IP",
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
       "name": "common_action",
-      "type": "int",
       "label": "Action",
-      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"None\"},{\"code\":\"1\",\"value\":\"Monitor\"},{\"code\":\"2\",\"value\":\"Intercept\"},{\"code\":\"16\",\"value\":\"Deny\"},{\"code\":\"48\",\"value\":\"Manipulation\"},{\"code\":\"128\",\"value\":\"Allow\"}],\"visibility\":\"hidden\"}"
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\",\"data\":[{\"code\":\"0\",\"value\":\"None\"},{\"code\":\"1\",\"value\":\"Monitor\"},{\"code\":\"2\",\"value\":\"Intercept\"},{\"code\":\"16\",\"value\":\"Deny\"},{\"code\":\"48\",\"value\":\"Manipulation\"},{\"code\":\"128\",\"value\":\"Allow\"}]}"
     },
     {
       "name": "common_direction",
-      "type": "int",
       "label": "Direction",
+      "type": "int",
       "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"outbound\"},{\"code\":\"1\",\"value\":\"inbound\"}]}"
     },
     {
       "name": "common_entrance_id",
-      "type": "int",
       "label": "Entrance ID",
+      "type": "int",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_sled_ip",
-      "type": "string",
       "label": "Sled IP",
+      "type": "string",
       "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"}}"
     },
     {
       "name": "common_client_location",
-      "type": "string",
-      "label": "Client Location"
+      "label": "Client Location",
+      "type": "string"
     },
     {
       "name": "common_client_asn",
-      "type": "string",
-      "label": "Client ASN"
+      "label": "Client ASN",
+      "type": "string"
     },
     {
       "name": "common_server_location",
-      "type": "string",
-      "label": "Server Location"
+      "label": "Server Location",
+      "type": "string"
     },
     {
       "name": "common_server_asn",
-      "type": "string",
-      "label": "Server ASN"
+      "label": "Server ASN",
+      "type": "string"
     },
     {
       "name": "common_sessions",
-      "type": "long",
       "label": "Sessions",
+      "type": "long",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_c2s_pkt_num",
-      "type": "long",
-      "label": "Packets Sent"
+      "label": "Packets Sent",
+      "type": "long"
     },
     {
       "name": "common_s2c_pkt_num",
-      "type": "long",
-      "label": "Packets Received"
+      "label": "Packets Received",
+      "type": "long"
     },
     {
       "name": "common_c2s_byte_num",
-      "type": "long",
-      "label": "Bytes Sent"
+      "label": "Bytes Sent",
+      "type": "long"
     },
     {
       "name": "common_s2c_byte_num",
-      "type": "long",
-      "label": "Bytes Received"
+      "label": "Bytes Received",
+      "type": "long"
     },
     {
       "name": "common_service",
-      "type": "int",
       "label": "Service",
+      "type": "int",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_schema_type",
-      "type": "string",
       "label": "Schema Type",
+      "type": "string",
       "doc": "{\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"}],\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_user_tags",
-      "type": "string",
       "label": "User Tags",
+      "type": "string",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_sub_action",
-      "type": "string",
       "label": "Sub Action",
+      "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_user_region",
-      "type": "string",
       "label": "User Region",
+      "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_device_id",
-      "type": "string",
       "label": "Device ID",
+      "type": "string",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_link_id",
-      "type": "int",
       "label": "Link ID",
+      "type": "int",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_isp",
-      "type": "string",
       "label": "ISP",
+      "type": "string",
       "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_device_tag",
-      "type": "string",
       "label": "Device Tag",
-      "doc": "{\"visibility\":\"hidden\",\"format\":{\"functions\":\"flattenSpec(\\\"data_center\\\",\\\"path\\\",\\\"$.tag_sets[?(@.tag == $['data_center'])].value\\\")\",\"appendTo\":\"common_data_center\"}}"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_data_center",
       "label": "Data Center",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"data\":[{\"code\":\"Nur-sultan\",\"value\":\"Nur-sultan\"},{\"code\":\"Aktau\",\"value\":\"Aktau\"},{\"code\":\"Aktubinsk\",\"value\":\"Aktubinsk\"},{\"code\":\"Almaty\",\"value\":\"Almaty\"},{\"code\":\"Atyrau\",\"value\":\"Atyrau\"},{\"code\":\"Karaganda\",\"value\":\"Karaganda\"},{\"code\":\"Kokshetau\",\"value\":\"Kokshetau\"},{\"code\":\"Kostanay\",\"value\":\"Kostanay\"},{\"code\":\"Kyzylorda\",\"value\":\"Kyzylorda\"},{\"code\":\"Pavlodar\",\"value\":\"Pavlodar\"},{\"code\":\"Petropavl\",\"value\":\"Petropavl\"},{\"code\":\"Semey\",\"value\":\"Semey\"},{\"code\":\"Shymkent\",\"value\":\"Shymkent\"},{\"code\":\"Taldykurgan\",\"value\":\"Taldykurgan\"},{\"code\":\"Taraz\",\"value\":\"Taraz\"},{\"code\":\"Uralsk\",\"value\":\"Uralsk\"},{\"code\":\"Ust-Kamenogorsk\",\"value\":\"Ust-Kamenogorsk\"},{\"code\":\"Zhezkazgan\",\"value\":\"Zhezkazgan\"}],\"allow_query\":\"true\"}"
     },
     {
       "name": "common_encapsulation",
-      "type": "int",
       "label": "Encapsulation",
+      "type": "int",
       "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"CiscoHDLC\"}],\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_app_label",
-      "type": "string",
       "label": "Application Label",
+      "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_protocol_label",
-      "type": "string",
       "label": "Protocol Label",
+      "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
@@ -230,56 +243,56 @@
     },
     {
       "name": "common_start_time",
-      "type": "long",
       "label": "Start Time",
+      "type": "long",
       "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_end_time",
-      "type": "long",
       "label": "End Time",
+      "type": "long",
       "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_establish_latency_ms",
-      "type": "int",
       "label": "Establish Latency(ms)",
+      "type": "int",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_con_duration_ms",
-      "type": "int",
       "label": "Duration(ms)",
+      "type": "int",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_stream_dir",
-      "type": "int",
       "label": "Stream Direction",
+      "type": "int",
       "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"c2s\"},{\"code\":\"2\",\"value\":\"s2c\"},{\"code\":\"3\",\"value\":\"double\"}]}"
     },
     {
       "name": "common_address_list",
-      "type": "string",
       "label": "Address List",
+      "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_has_dup_traffic",
-      "type": "int",
       "label": "Duplication Traffic",
+      "type": "int",
       "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"No\"},{\"code\":\"1\",\"value\":\"Yes\"}],\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_stream_error",
-      "type": "string",
       "label": "Stream Error",
+      "type": "string",
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_stream_trace_id",
-      "type": "long",
       "label": "Session ID",
+      "type": "long",
       "doc": "{\"allow_query\":\"true\"}"
     },
     {
@@ -332,143 +345,143 @@
     },
     {
       "name": "radius_packet_type",
-      "type": "int",
       "label": "Packet Type",
-      "doc": "{\"data\":[{\"code\":\"1\",\"value\": \"Access-Request\"},{\"code\": \"2\",\"value\": \"Access-Accept\"},{\"code\": \"3\",\"value\": \"Access-Reject\"},{\"code\": \"4\",\"value\": \"Accounting-Request\"},{\"code\": \"5\",\"value\": \"Accounting-Response\"},{\"code\": \"11\",\"value\": \"Access-Challenge\"}]}"
+      "type": "int",
+      "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"Access-Request\"},{\"code\":\"2\",\"value\":\"Access-Accept\"},{\"code\":\"3\",\"value\":\"Access-Reject\"},{\"code\":\"4\",\"value\":\"Accounting-Request\"},{\"code\":\"5\",\"value\":\"Accounting-Response\"},{\"code\":\"11\",\"value\":\"Access-Challenge\"}]}"
     },
     {
       "name": "radius_account",
-      "type": "string",
       "label": "Account",
+      "type": "string",
       "doc": "{\"format\":{\"functions\":\"get_value\",\"appendTo\":\"common_subscriber_id\"}}"
     },
     {
       "name": "radius_nas_ip",
-      "type": "string",
-      "label": "Nas IP"
+      "label": "Nas IP",
+      "type": "string"
     },
     {
       "name": "radius_framed_ip",
-      "type": "string",
       "label": "Framed IP",
-      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_detail,geo_asn\", \"appendTo\":\"common_client_location,common_client_asn\"}}"
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_detail,geo_asn\",\"appendTo\":\"common_client_location,common_client_asn\"}}"
     },
     {
       "name": "radius_session_timeout",
-      "type": "int",
-      "label": "Session Timeout"
+      "label": "Session Timeout",
+      "type": "int"
     },
     {
       "name": "radius_idle_timeout",
-      "type": "int",
-      "label": "Idle Timeout"
+      "label": "Idle Timeout",
+      "type": "int"
     },
     {
       "name": "radius_acct_status_type",
-      "type": "int",
       "label": "ACC Status Type",
+      "type": "int",
       "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"Start\"},{\"code\":\"2\",\"value\":\"Stop\"},{\"code\":\"3\",\"value\":\"Interim-Update\"},{\"code\":\"7\",\"value\":\"Accounting-On\"},{\"code\":\"8\",\"value\":\"Accounting-Off\"}]}"
     },
     {
       "name": "radius_acct_terminate_cause",
-      "type": "int",
       "label": "Acct Terminate Cause",
+      "type": "int",
       "doc": "{\"data\":[{\"code\":\"1\",\"value\":\"User Request\"},{\"code\":\"2\",\"value\":\"Lost Carrier\"},{\"code\":\"3\",\"value\":\"Lost Service\"},{\"code\":\"4\",\"value\":\"Idle Timeout\"},{\"code\":\"5\",\"value\":\"Session Timeout\"},{\"code\":\"6\",\"value\":\"Admin Reset\"},{\"code\":\"7\",\"value\":\"Admin Reboot\"},{\"code\":\"8\",\"value\":\"Port Error\"},{\"code\":\"9\",\"value\":\"NAS Error\"},{\"code\":\"10\",\"value\":\"NAS Request\"},{\"code\":\"11\",\"value\":\"NAS Reboot\"},{\"code\":\"12\",\"value\":\"Port Unneeded\"},{\"code\":\"13\",\"value\":\"Port Preempted\"},{\"code\":\"14\",\"value\":\"Port Suspended\"},{\"code\":\"15\",\"value\":\"Service Unavailable\"},{\"code\":\"16\",\"value\":\"Callback\"},{\"code\":\"17\",\"value\":\"User Error\"},{\"code\":\"18\",\"value\":\"Host Request\"}]}"
     },
     {
       "name": "radius_event_timestamp",
-      "type": "int",
-      "label": "Event Timestamp"
+      "label": "Event Timestamp",
+      "type": "int"
     },
     {
       "name": "radius_service_type",
-      "type": "int",
-      "label": "Service Type"
+      "label": "Service Type",
+      "type": "int"
     },
     {
       "name": "radius_nas_port",
-      "type": "int",
-      "label": "Nas Port"
+      "label": "Nas Port",
+      "type": "int"
     },
     {
       "name": "radius_framed_protocol",
-      "type": "int",
-      "label": "Framed Protocol"
+      "label": "Framed Protocol",
+      "type": "int"
     },
     {
       "name": "radius_callback_number",
-      "type": "string",
-      "label": "Callback Number"
+      "label": "Callback Number",
+      "type": "string"
     },
     {
       "name": "radius_callback_id",
-      "type": "string",
-      "label": "Callback ID"
+      "label": "Callback ID",
+      "type": "string"
     },
     {
       "name": "radius_termination_action",
-      "type": "int",
-      "label": "Termination Action"
+      "label": "Termination Action",
+      "type": "int"
     },
     {
       "name": "radius_called_station_id",
-      "type": "string",
-      "label": "Called Station Id"
+      "label": "Called Station Id",
+      "type": "string"
     },
     {
       "name": "radius_calling_station_id",
-      "type": "string",
-      "label": "Calling Station Id"
+      "label": "Calling Station Id",
+      "type": "string"
     },
     {
       "name": "radius_acct_delay_time",
-      "type": "int",
-      "label": "Acct Delay Time"
+      "label": "Acct Delay Time",
+      "type": "int"
     },
     {
       "name": "radius_acct_session_id",
-      "type": "string",
-      "label": "Acct Session ID"
+      "label": "Acct Session ID",
+      "type": "string"
     },
     {
       "name": "radius_acct_multi_session_id",
-      "type": "string",
-      "label": "Acct Multi Session ID"
+      "label": "Acct Multi Session ID",
+      "type": "string"
     },
     {
       "name": "radius_acct_input_octets",
-      "type": "int",
-      "label": "Acct Input Octets"
+      "label": "Acct Input Octets",
+      "type": "int"
     },
     {
       "name": "radius_acct_output_octets",
-      "type": "int",
-      "label": "Acct Output Octets"
+      "label": "Acct Output Octets",
+      "type": "int"
     },
     {
       "name": "radius_acct_input_packets",
-      "type": "int",
-      "label": "Acct Input Packets"
+      "label": "Acct Input Packets",
+      "type": "int"
     },
     {
       "name": "radius_acct_output_packets",
-      "type": "int",
-      "label": "Acct Output Packets"
+      "label": "Acct Output Packets",
+      "type": "int"
     },
     {
       "name": "radius_acct_session_time",
-      "type": "int",
-      "label": "Acct Session Time"
+      "label": "Acct Session Time",
+      "type": "int"
     },
     {
       "name": "radius_acct_link_count",
-      "type": "int",
-      "label": "Acct Link Count"
+      "label": "Acct Link Count",
+      "type": "int"
     },
     {
       "name": "radius_acct_interim_interval",
-      "type": "int",
-      "label": "Acct Interim Interval"
+      "label": "Acct Interim Interval",
+      "type": "int"
     }
   ]
 }
