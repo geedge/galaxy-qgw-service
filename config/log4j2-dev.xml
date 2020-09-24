@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
+    <!--日志打印相关参数配置-->
     <Properties>
-        <!--保存日志文件个数-->
-        <property name="LOG_NUMS">
-            10
-        </property>
         <!--每50M压缩日志文件-->
-        <property name="LOG_SIZE">
-            50M
-        </property>
+        <property name="LOG_SIZE">50M</property>
+        <!--最多产生10个压缩文件-->
+        <property name="LOG_NUMS">10</property>
+        <!--日志打印等级-->
+        <property name="LOG_LEVEL">info</property>
         <!--日志文件路径-->
-        <property name="LOG_PATH">
-            logs
-        </property>
+        <property name="LOG_PATH">logs</property>
         <!--日志文件名称-->
-        <property name="LOG_FILE_NAME">
-            galaxy-qgw-service
-        </property>
+        <property name="LOG_FILE_NAME">galaxy-qgw-service</property>
         <!--日志打印格式-->
-        <property name="LOG_PATTERN">
-            [%d{yyyy-MM-dd HH:mm:ss}] [%p] [Thread:%t] %l %x - %m%n
-        </property>
+        <property name="LOG_PATTERN">[%d{yyyy-MM-dd HH:mm:ss}] [%p] [Thread:%t] %l %x - %m%n</property>
     </Properties>
+
     <appenders>
         <Console name="consoleSystemOutAppender" target="SYSTEM_OUT">
             <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
@@ -43,7 +38,7 @@
         </RollingFile>
     </appenders>
     <loggers>
-        <root level="INFO">
+        <root level="${LOG_LEVEL}">
             <appender-ref ref="consoleSystemOutAppender"/>
             <appender-ref ref="rollingFileAllAppender"/>
         </root>
