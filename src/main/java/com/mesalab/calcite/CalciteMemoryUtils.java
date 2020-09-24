@@ -1,7 +1,6 @@
 package com.mesalab.calcite;
 
 import com.google.common.base.Splitter;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
@@ -9,12 +8,10 @@ import com.mesalab.calcite.storage.Storage;
 import com.mesalab.common.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
-import org.apache.calcite.schema.ScannableTable;
 
 import java.io.File;
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class CalciteMemoryUtils {
@@ -114,15 +111,19 @@ public class CalciteMemoryUtils {
      */
     private static Storage.DummyTable loadData(Storage.DummyTable table, List<Map<String, Object>> data) {
         List<Storage.DummyColumn> columns = table.getColumns();
-
         data.stream().forEach(item -> {
+
             List list = Lists.newArrayList();
             for (Storage.DummyColumn column : columns) {
+
                 if (DataTypeMapping.BIGINT.equals(column.getType())) {
                     list.add(Long.valueOf(item.get(column.getName()).toString()));
+                } else if (DataTypeMapping.DOUBLE.equals(column.getType())) {
+                    list.add(Double.valueOf(item.get(column.getName()).toString()));
                 } else {
                     list.add(item.get(column.getName()).toString());
                 }
+
 
             }
 
