@@ -1,144 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- status:这个用于设置log4j2自身内部的信息输出,可以不设置,当设置成trace时,会看到log4j2内部各种详细输出 ; monitorInterval : Log4j能够自动检测修改配置文件和重新配置本身,设置间隔秒数。
-注：本配置文件的目标是将不同级别的日志输出到不同文件，最大10MB一个文件， 文件数据达到最大值时，旧数据会被压缩并放进指定文件夹 -->
-<configuration status="WARN" monitorInterval="600">
+<configuration>
     <Properties>
-        <!-- 配置日志文件输出目录(${sys:catalina.home}表示linux中环境变量中的tomcat根目录 ) -->
+        <!--保存日志文件个数-->
+        <property name="LOG_NUMS">
+            10
+        </property>
+        <!--每50M压缩日志文件-->
+        <property name="LOG_SIZE">
+            50M
+        </property>
+        <!--日志文件路径-->
         <property name="LOG_PATH">
             logs
         </property>
-        <!-- 配置日志文件输出格式 -->
-        <!-- %d{yyyy-MM-dd HH:mm:ss.SSS}==> 日志生产时间 -->
-        <!-- %p ==> 日志输出格式 -->
-        <!-- %c ==> logger的名称 -->
-        <!-- %m ==> 日志内容，即 logger.info("message") -->
-        <!-- %n ==> 换行符 -->
-        <!-- %l ==> 输出语句所在的行数, 包括类名、方法名、文件名、行数 -->
-        <!-- %t 输出当前线程名称 -->
-        <!-- %C ==> Java类名 -->
-        <!-- %F ==> 输出所在的类文件名，如Client.java -->
-        <!-- %L ==> 日志输出所在行数 -->
-        <!-- %M ==> 日志输出所在方法名 -->
-        <!-- hostName ==> 本地机器名 -->
-        <!-- hostAddress ==> 本地ip地址 -->
-        <!-- %-5level ==> 输出日志级别，-5表示左对齐并且固定输出5个字符，如果不足在右边补0 -->
-        <!-- %logger 输出logger名称，因为Root Logger没有名称，所以没有输出 -->
-        <!-- %msg ==> 日志文本 -->
-        <property name="LOG_PATTERN">
-            %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} [%F:%L] - %msg%n
+        <!--日志文件名称-->
+        <property name="LOG_FILE_NAME">
+            galaxy-qgw-service
         </property>
-        <!-- 日志文件大小范围不超100M -->
-        <property name="LOG_SIZE">
-            100M
+        <!--日志打印格式-->
+        <property name="LOG_PATTERN">
+            [%d{yyyy-MM-dd HH:mm:ss}] [%p] [Thread:%t] %l %x - %m%n
         </property>
     </Properties>
     <appenders>
-        <!-- 优先级从高到低分别是 OFF、FATAL、ERROR、WARN、INFO、DEBUG、ALL -->
-        <!-- 单词解释： Match：匹配 DENY：拒绝 Mismatch：不匹配 ACCEPT：接受 -->
-        <!-- DENY，日志将立即被抛弃不再经过其他过滤器； NEUTRAL，有序列表里的下个过滤器过接着处理日志； ACCEPT，日志会被立即处理，不再经过剩余过滤器。 -->
-        <!--这个输出控制台的配置，这里输出除了warn和error级别的信息到System.out -->
         <Console name="consoleSystemOutAppender" target="SYSTEM_OUT">
-            <!-- 控制台只输出level及以上级别的信息(onMatch),其他的直接拒绝(onMismatch) . -->
             <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="${LOG_PATTERN}"/>
         </Console>
 
-
-        <!-- 这个输出控制台的配置，这里输出error级别的信息到System.err -->
-        <Console name="consoleSystemErrAppender" target="SYSTEM_ERR">
-            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-        </Console>
-
-
-        <!-- TRACE级别日志 ; 设置日志格式并配置日志压缩格式，压缩文件独立放在一个文件夹内， 日期格式不能为冒号，否则无法生成，因为文件名不允许有冒号，此appender只输出trace级别的数据到trace.log -->
-        <RollingFile name="rollingFileTraceAppender" immediateFlush="true" fileName="${LOG_PATH}/trace.log"
-                     filePattern="${LOG_PATH}/trace/$${date:yyyy-MM-dd}/trace-%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-            <Policies>
-                <!-- 每个日志文件最大100MB -->
-                <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
-                <!-- 如果启用此配置，则日志会按文件名生成新压缩文件， 即如果filePattern配置的日期格式为 %d{yyyy-MM-dd HH} ，则每小时生成一个压缩文件， 如果filePattern配置的日期格式为
-                %d{yyyy-MM-dd} ，则按天天生成一个压缩文件 -->
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
-                <!-- 限制每天文件个数 -->
-                <DefaultRolloverStrategy compressionLevel="0" max="10"/>
-            </Policies>
-            <!-- 此Filter意思是，只输出TRACE级别的数据 DENY，日志将立即被抛弃不再经过其他过滤器； NEUTRAL，有序列表里的下个过滤器过接着处理日志； ACCEPT，日志会被立即处理，不再经过剩余过滤器。 -->
-            <Filters>
-                <ThresholdFilter level="debug" onMatch="DENY" onMismatch="NEUTRAL"/>
-                <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
-            </Filters>
-        </RollingFile>
-
-
-        <!-- DEBUG级别日志 设置日志格式并配置日志压缩格式，压缩文件独立放在一个文件夹内， 日期格式不能为冒号，否则无法生成，因为文件名不允许有冒号，此appender只输出debug级别的数据到debug.log; -->
-        <RollingFile name="rollingFileDebugAppender" immediateFlush="true" fileName="${LOG_PATH}/debug.log"
-                     filePattern="${LOG_PATH}/debug/$${date:yyyy-MM-dd}/debug-%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-            <Policies>
-                <!-- 每个日志文件最大100MB -->
-                <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
-                <!-- 如果启用此配置，则日志会按文件名生成新压缩文件， 即如果filePattern配置的日期格式为 %d{yyyy-MM-dd HH} ，则每小时生成一个压缩文件， 如果filePattern配置的日期格式为
-                %d{yyyy-MM-dd} ，则按天天生成一个压缩文件 -->
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
-                <!-- 限制每天文件个数 -->
-                <DefaultRolloverStrategy compressionLevel="0" max="10"/>
-            </Policies>
-            <!-- 此Filter意思是，只输出debug级别的数据 -->
-            <Filters>
-                <ThresholdFilter level="info" onMatch="DENY" onMismatch="NEUTRAL"/>
-                <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
-            </Filters>
-        </RollingFile>
-
-
-        <!-- INFO级别日志 -->
-        <RollingFile name="rollingFileInfoAppender" immediateFlush="true" fileName="${LOG_PATH}/info.log"
-                     filePattern="${LOG_PATH}/info/$${date:yyyy-MM-dd}/info-%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-            <Policies>
-                <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
-            </Policies>
-            <Filters>
-                <ThresholdFilter level="warn" onMatch="DENY" onMismatch="NEUTRAL"/>
-                <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
-            </Filters>
-        </RollingFile>
-
-
-        <!-- WARN级别日志 -->
-        <RollingFile name="rollingFileWarnAppender" immediateFlush="true" fileName="${LOG_PATH}/warn.log"
-                     filePattern="${LOG_PATH}/warn/$${date:yyyy-MM-dd}/warn-%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-            <Policies>
-                <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
-            </Policies>
-            <Filters>
-                <ThresholdFilter level="error" onMatch="DENY" onMismatch="NEUTRAL"/>
-                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
-            </Filters>
-        </RollingFile>
-
-
-        <!-- ERROR级别日志 -->
-        <RollingFile name="rollingFileErrorAppender" immediateFlush="true" fileName="${LOG_PATH}/error.log"
-                     filePattern="${LOG_PATH}/error/$${date:yyyy-MM-dd}/error-%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-            <Policies>
-                <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
-            </Policies>
-            <Filters>
-                <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
-            </Filters>
-        </RollingFile>
-
-        <!-- ALL级别日志 -->
-        <RollingFile name="rollingFileAllAppender" immediateFlush="true" fileName="${LOG_PATH}/galaxy-qgw-service.log"
-                     filePattern="${LOG_PATH}/all/$${date:yyyy-MM-dd}/all-%d{yyyy-MM-dd}-%i.log.gz">
+        <RollingFile name="rollingFileAllAppender"
+                     fileName="${LOG_PATH}/${LOG_FILE_NAME}.log"
+                     filePattern="${LOG_PATH}/history/$${date:yyyy-MM-dd}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="${LOG_PATTERN}"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
@@ -147,25 +39,13 @@
             <Filters>
                 <ThresholdFilter level="all" onMatch="ACCEPT" onMismatch="DENY"/>
             </Filters>
+            <DefaultRolloverStrategy max="${LOG_NUMS}"/>
         </RollingFile>
     </appenders>
     <loggers>
-        <!-- 配置日志的根节点 -->
-        <!-- 定义logger，只有定义了logger并引入了appender，appender才会生效 -->
-        <root level="trace">
+        <root level="INFO">
             <appender-ref ref="consoleSystemOutAppender"/>
-            <appender-ref ref="consoleSystemErrAppender"/>
-            <appender-ref ref="rollingFileTraceAppender"/>
-            <appender-ref ref="rollingFileDebugAppender"/>
-            <appender-ref ref="rollingFileInfoAppender"/>
-            <appender-ref ref="rollingFileWarnAppender"/>
-            <appender-ref ref="rollingFileErrorAppender"/>
             <appender-ref ref="rollingFileAllAppender"/>
         </root>
-        <!-- 第三方日志系统 -->
-        <logger name="org.jboss.netty" level="warn"/>
-        <logger name="org.apache.http" level="warn"/>
-        <logger name="org.springframework" level="warn"/>
-        <logger name="com.alibaba.druid" level="warn"/>
     </loggers>
 </configuration>
