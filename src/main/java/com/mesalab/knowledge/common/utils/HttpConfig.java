@@ -43,6 +43,12 @@ public class HttpConfig {
     @Value("${druid.socketTimeOut}")
     private int druidSocketTimeOut;
 
+   /**
+     * Druid查询请求响应时间
+     */
+    @Value("${hbase.socketTimeOut}")
+    private int hbaseDruidSocketTimeOut;
+
     /**
      * Arango查询请求响应时间
      */

@@ -1,41 +1,42 @@
 package com.mesalab.qgw.monitor;
-
-import com.mesalab.common.configuration.HBaseProperties;
-import com.mesalab.common.utils.ReportCacheUtils;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Connection;
+import com.mesalab.qgw.model.api.HBaseHttpSource;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
 
 @Component
 public class HbaseHealthIndicator extends AbstractHealthIndicator {
 
 
+    public RestTemplate restTemplate = new RestTemplate();
     @Autowired
-    private HBaseProperties hBaseProperties;
+    private HBaseHttpSource hBaseHttpSource;
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
 
-        try {
-            Connection connection = ReportCacheUtils.createConnection();
-            boolean connectionSuccess;
-            Admin admin = connection.getAdmin();
-            connectionSuccess = admin.tableExists(TableName.valueOf((hBaseProperties.getDbName() + ":" + hBaseProperties.getTableName())));
+        StringBuilder urlBuilder = new StringBuilder("http://")
+                .append(hBaseHttpSource.getUrl()).append("/");
+        String url = urlBuilder.toString();
 
-            if (connectionSuccess) {
+        try {
+            ResponseEntity responseEntity  = restTemplate.getForEntity(url, Map.class);
+
+            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()
                         .withDetail("app", "Hbase")
-                        .withDetail("url", hBaseProperties.getZookeeperQuorum() + ":" + hBaseProperties.getZookeeperPropertyClientPort())
+                        .withDetail("url", hBaseHttpSource.getUrl())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
                         .withDetail("app", "Hbase")
-                        .withDetail("message", "error");
+                        .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
 
 
             }
