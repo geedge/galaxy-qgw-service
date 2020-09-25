@@ -1,17 +1,25 @@
 package com.mesalab.calcite;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
 import com.mesalab.common.exception.BusinessException;
+import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static com.zdjizhi.utils.StringUtil.setDefaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 @Slf4j
 public class CalciteMemoryUtils {
@@ -70,30 +78,30 @@ public class CalciteMemoryUtils {
            result.put("data", data);
 
        } catch (Exception e) {
-           throw new BusinessException("Engine execution SQL Error.", e);
+           throw new BusinessException("Engine execution SQL Error - ", e);
 
        } finally {
            if (resultSet != null) {
                try {
                    resultSet.close();
-               } catch (SQLException throwables) {
-                   throwables.printStackTrace();
+               } catch (SQLException sqlException) {
+                   sqlException.printStackTrace();
                }
            }
 
             if (statement != null) {
                 try {
                     statement.close();
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
+                } catch (SQLException sqlException) {
+                    sqlException.printStackTrace();
                 }
             }
 
            if (connection != null) {
                try {
                    connection.close();
-               } catch (SQLException throwables) {
-                   throwables.printStackTrace();
+               } catch (SQLException sqlException) {
+                   sqlException.printStackTrace();
                }
            }
        }
@@ -112,16 +120,14 @@ public class CalciteMemoryUtils {
     private static Storage.DummyTable loadData(Storage.DummyTable table, List<Map<String, Object>> data) {
         List<Storage.DummyColumn> columns = table.getColumns();
         data.stream().forEach(item -> {
-
             List list = Lists.newArrayList();
             for (Storage.DummyColumn column : columns) {
-
                 if (DataTypeMapping.BIGINT.equals(column.getType())) {
-                    list.add(Long.valueOf(item.get(column.getName()).toString()));
+                    list.add(Long.valueOf(setDefaultIfEmpty(item.get(column.getName()), "0").toString()));
                 } else if (DataTypeMapping.DOUBLE.equals(column.getType())) {
-                    list.add(Double.valueOf(item.get(column.getName()).toString()));
+                    list.add(Double.valueOf(setDefaultIfEmpty(item.get(column.getName()), "0").toString()));
                 } else {
-                    list.add(item.get(column.getName()).toString());
+                    list.add(setDefaultIfEmpty(item.get(column.getName()), "").toString());
                 }
 
 
