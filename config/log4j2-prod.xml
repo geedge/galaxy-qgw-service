@@ -3,9 +3,9 @@
 
     <!--日志打印相关参数配置-->
     <Properties>
-        <!--每50M压缩日志文件-->
+        <!--每100M压缩日志文件-->
         <property name="LOG_SIZE">100M</property>
-        <!--最多产生10个压缩文件-->
+        <!--最多产生20个压缩文件-->
         <property name="LOG_NUMS">20</property>
         <!--日志打印等级-->
         <property name="LOG_LEVEL">info</property>
