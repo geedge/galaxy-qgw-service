@@ -21,8 +21,32 @@
       "type": "string"
     },
     {
+      "name": "schema_type",
+      "type": "string"
+    },
+    {
       "name": "ip_object",
       "type": "string"
+    },
+    {
+      "name": "sessions",
+      "type": "long"
+    },
+    {
+      "name": "c2s_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
     },
     {
       "name": "one_sided_connections",
