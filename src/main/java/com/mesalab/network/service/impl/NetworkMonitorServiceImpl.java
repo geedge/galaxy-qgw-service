@@ -283,10 +283,6 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return whereOfExactly.toString();
     }
 
-    private String[] getTimeIntervals(DSLObject.QueryBean queryParam) {
-        return queryParam.getParameters().getIntervals().get(0).split("/");
-    }
-
     private String generateProtocolTreeSql(DSLObject.QueryBean queryParam) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());

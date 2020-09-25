@@ -147,6 +147,8 @@ public class TestSqlServiceImpl {
         list.add("select count(1) from connection_record_log");
         list.add("select count(*) from connection_record_log");
         list.add("select * from " + clickHouseProperties.getDbname() + ".connection_record_log limit 1");
+        //二次查询
+        list.add("select * from (select FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(common_recv_time,'PT5M','zero')) as stat_time from connection_record_log where common_recv_time >= toDateTime($start_time) and common_recv_time< toDateTime($end_time) group by stat_time order by stat_time asc)");
 
         //Radius 用户分析
         //1. radius账户申请客户端IP变化
