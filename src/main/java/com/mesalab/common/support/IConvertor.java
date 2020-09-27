@@ -1,5 +1,6 @@
 package com.mesalab.common.support;
 
+
 /**
  * 转换器接口，可以将Source转换为Target
  *

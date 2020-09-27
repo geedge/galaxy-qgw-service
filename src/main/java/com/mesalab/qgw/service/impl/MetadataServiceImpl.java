@@ -119,7 +119,6 @@ public class MetadataServiceImpl implements MetadataService {
                 Schema schema = new Schema.Parser().parse(item);
                 result.put(schema.getName(), schema);
             } catch (Exception e) {
-                e.printStackTrace();
                 log.error("File: {}, Schema Parser Error: {}", item.getPath(), e);
             }
         }

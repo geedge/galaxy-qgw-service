@@ -181,7 +181,7 @@
       "type": "long"
     },
     {
-      "name": "intcp_rdirt_conn",
+      "name": "intcp_rdirt_num",
       "type": "long"
     },
     {

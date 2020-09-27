@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.Constant;
-import com.mesalab.knowledge.common.utils.HttpClientUtils;
 import com.mesalab.knowledge.common.utils.JwtCache;
+import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
@@ -30,10 +30,13 @@ public class BaseQueryProvider {
     @Autowired
     ArangoConfig arangoConfig;
 
+    @Autowired
+    HttpClientService httpClientService;
+
     /**
      * @return java.lang.String
      * @Author zhq
-     * @Description //TODO 获取jwt
+     * @Description 获取ArangoJwt
      * @Date 2020\7\7 0007
      **/
     public String getJwt() {
@@ -44,7 +47,7 @@ public class BaseQueryProvider {
         Map<String, String> params = new HashMap<>();
         params.put("username", arangoConfig.getUsername());
         params.put("password", arangoConfig.getPassword());
-        String res = HttpClientUtils.httpPost(arangoConfig.getJwturl(), JsonMapper.toJsonString(params));
+        String res = httpClientService.httpPost(arangoConfig.getJwturl(), JsonMapper.toJsonString(params));
         Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
         if (Objects.isNull(resMap.get(Constant.JWT))) {
             throw new BusinessException("获取Arango jwt 失败");
@@ -53,6 +56,7 @@ public class BaseQueryProvider {
         JwtCache.put(Constant.ARANGO_CACHE_JWT, jwt);
         return String.valueOf(jwt);
     }
+
     /***
      * @Author zhq
      * @Description //TODO
@@ -61,26 +65,22 @@ public class BaseQueryProvider {
      * @return java.lang.Object
      **/
     public Object queryArango(String aql) {
-
         Map queryMap = ImmutableMap.of("query", aql);
         Header header = new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt());
-
         String res = "";
         try {
-            res = HttpClientUtils.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), header);
+            res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), header);
         } catch (BusinessException e) {
-            e.printStackTrace();
-            if(e.getErrorMessage()!=null&&e.getErrorMessage().contains("not authorized to execute this request")){
+            if (e.getErrorMessage() != null && e.getErrorMessage().contains("not authorized to execute this request")) {
                 //刷新jwt
                 JwtCache.remove(Constant.ARANGO_CACHE_JWT);
                 log.warn("arango jwt 失效后重置");
-                res = HttpClientUtils.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt()));
+                res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt()));
             } else {
                 log.error(e.getErrorMessage());
                 throw e;
             }
         }
-
         Map jsonMap = (Map) JsonMapper.fromJsonString(res, Map.class);
         Object result = jsonMap.get("result");
         return result;

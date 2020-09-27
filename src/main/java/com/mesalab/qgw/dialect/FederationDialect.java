@@ -38,71 +38,73 @@ public class FederationDialect extends AbstractEngineDialect{
     }
 
     @Override
-    public Dialect executeSyntaxCheck() {
-        return this;
+    public BaseResult executeSyntaxCheck() {
+        return null;
     }
 
 
 
     @Override
-    public Dialect executeQuery() {
+    public BaseResult executeQuery() {
         try {
             watch.start();
-
             if (baseResult.isSuccess()) {
-
                 executeUDF();
-
-                if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-                    SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                    Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableName(),
-                            (List<Map<String, String>>) baseResult.getMeta(),
-                            (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
-                    baseResult.setData(resultMap.get("data"));
-                    baseResult.setMeta(resultMap.get("meta"));
-                }
-
-                log.info("calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
+                return generateBaseResult().build();
             }
         } catch (Exception ex) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute query memory is error.", ex.getCause());
+                    ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute memory-query error：", ex);
         }
 
-        return this;
-    }
-
-    @Override
-    public Dialect executeAdministrativeQuery() {
-        return this;
-    }
-
-
-    @Override
-    public BaseResult build() {
-
-        if (baseResult.isSuccess() ) {
-
-            long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
-            Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
-            statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
-            if (StringUtil.isEmpty(baseResult.getData())) {
-                statisticMap.put("result_size", 0);
-                statisticMap.put("result_rows", 0);
-            } else {
-                statisticMap.put("result_size", JsonMapper.toJsonString(baseResult.getData()).getBytes().length);
-                statisticMap.put("result_rows", ((List) baseResult.getData()).size());
-            }
-
-            if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                convertJsonToCSV();
-            }
-            baseResult.setFormatType(param.getFormat());
-        }
-        log.debug("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
         return baseResult;
     }
 
+    private FederationDialect generateBaseResult() {
+
+        if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
+            SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
+            Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableName(),
+                    (List<Map<String, String>>) baseResult.getMeta(),
+                    (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
+            baseResult.setData(resultMap.get("data"));
+            baseResult.setMeta(resultMap.get("meta"));
+        }
+
+        log.info("Calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
+        return  this;
+    }
+
+
+
+    @Override
+    public BaseResult executeAdministrativeQuery() {
+        return null;
+    }
+
+
+
+    private BaseResult build() {
+
+        long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
+        Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
+        statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
+        if (StringUtil.isEmpty(baseResult.getData())) {
+            statisticMap.put("result_size", 0);
+            statisticMap.put("result_rows", 0);
+        } else {
+            statisticMap.put("result_size", JsonMapper.toJsonString(baseResult.getData()).getBytes().length);
+            statisticMap.put("result_rows", ((List) baseResult.getData()).size());
+        }
+
+        if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+            convertJsonToCSV();
+        }
+        baseResult.setFormatType(param.getFormat());
+
+        log.debug("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
+        return baseResult;
+    }
 
     @Override
     public void executeUDF() {
@@ -114,6 +116,7 @@ public class FederationDialect extends AbstractEngineDialect{
                         (List<Object>) baseResult.getData());
                 baseResult.setData(targetResult);
             }
+
 
 
     }

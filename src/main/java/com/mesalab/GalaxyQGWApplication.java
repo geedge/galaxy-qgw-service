@@ -1,17 +1,15 @@
 package com.mesalab;
 
 import com.mesalab.qgw.interceptor.QuerySubmitInterceptor;
-import org.apache.catalina.connector.Connector;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import tk.mybatis.spring.annotation.MapperScan;
 
 /**
  * spring-boot-seed启动主程序
@@ -25,9 +23,7 @@ import tk.mybatis.spring.annotation.MapperScan;
  * @author darnell
  * @date 2019/06/10
  */
-@SpringBootApplication
-@MapperScan(basePackages = {"com.mesalab.qgw.dao"})
-@EnableCaching
+@SpringBootApplication(exclude={DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 public class GalaxyQGWApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {
@@ -36,26 +32,14 @@ public class GalaxyQGWApplication implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // addPathPatterns - 用于添加拦截规则
-        // excludePathPatterns - 用户排除拦截
-       registry.addInterceptor(new QuerySubmitInterceptor()).addPathPatterns("/**");
-
-                //.excludePathPatterns("/index.html", "/", "/user/login");
+        registry.addInterceptor(new QuerySubmitInterceptor()).addPathPatterns("/**");
     }
 
     @Bean
     public ServletWebServerFactory webServerFactory() {
         TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
-        factory.addConnectorCustomizers(new TomcatConnectorCustomizer() {
-            @Override
-            public void customize(Connector connector) {
-                connector.setProperty("relaxedPathChars", "\"<>[\\]^`{|}");
-            }
-
-        });
+        factory.addConnectorCustomizers(connector -> connector.setProperty("relaxedPathChars", "\"<>[\\]^`{|}"));
         return factory;
     }
-
-
 
 }

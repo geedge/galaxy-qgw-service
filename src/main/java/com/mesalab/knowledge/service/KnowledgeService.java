@@ -132,7 +132,7 @@ public class KnowledgeService {
         //通过jsonschemaFactory获取jsonnode对象
         try {
 
-            JsonNode schemaNode = JsonLoader.fromResource("/DSLObject.json");
+            JsonNode schemaNode = JsonLoader.fromResource("/dsl-validation.json");
             //通过jsonstr字符串获取对应的jsonnode对象
             JsonNode dataNode = JsonLoader.fromString(jsonString);
             JsonSchema jsonSchema = factory.getJsonSchema(schemaNode);
@@ -154,10 +154,8 @@ public class KnowledgeService {
             //判断校验是否成功，如果为true成功
             Validate.isTrue(processingReport.isSuccess(), sb.toString());
         } catch (ProcessingException e) {
-            e.printStackTrace();
             log.error(e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
             log.error(e.getMessage());
         }
     }

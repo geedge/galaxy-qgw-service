@@ -2,18 +2,16 @@ package com.mesalab.common.utils;
 
 import com.alibaba.druid.util.JdbcConstants;
 import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.qgw.dialect.Dialect;
-import com.mesalab.qgw.model.api.SQLQuerySource;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 @Slf4j
 public class SQLHelper {
 
@@ -30,6 +28,7 @@ public class SQLHelper {
         int beginPos = qlString.toLowerCase().indexOf("from");
         return qlString.substring(beginPos);
     }
+
     /**
      * 去除orderBy子句。
      *
@@ -47,11 +46,11 @@ public class SQLHelper {
     }
 
 
-
     /**
      * 为当前SQL最外层增加Limit限制
-     * @param sql 原始SQL语句
-     * @param offset 开始条数
+     *
+     * @param sql      原始SQL语句
+     * @param offset   开始条数
      * @param rowCount 每页显示多少纪录条数
      * @return limit限制后SQL语句
      */
@@ -67,7 +66,6 @@ public class SQLHelper {
             select.setLimit(limit);
             sql = String.valueOf(selectStatement.getSelectBody());
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Set limit error, SQL is:{} , Error Message is :{} ", sql, e);
         }
 
@@ -77,6 +75,7 @@ public class SQLHelper {
 
     /**
      * 获取当前数据库预定义的方言
+     *
      * @param dbType
      * @return
      */
@@ -84,17 +83,13 @@ public class SQLHelper {
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
             return JdbcConstants.MYSQL;
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-           return JdbcConstants.HIVE;
+            return JdbcConstants.HIVE;
         } else if (DBTypeEnum.HBASE.getValue().equals(dbType)) {
-           return JdbcConstants.MYSQL;
+            return JdbcConstants.MYSQL;
         } else {
             return null;
         }
 
     }
-
-
-
-
 
 }

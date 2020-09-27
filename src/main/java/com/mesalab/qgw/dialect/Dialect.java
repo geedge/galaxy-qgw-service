@@ -18,26 +18,23 @@ public interface Dialect {
      * 执行SQL语法检查
      * @return
      */
-    Dialect executeSyntaxCheck();
+    BaseResult executeSyntaxCheck();
 
     /**
      * 执行查询操作
      * @return
      */
-    Dialect executeQuery();
+    BaseResult executeQuery();
 
 
     /**
      * 执行数据库系统管理操作，包含 Show/Describe/Kill等
      * @return
      */
-    Dialect executeAdministrativeQuery();
 
-    /**
-     * 返回结果数据进行封装
-     * @return
-     */
-    BaseResult build();
+    BaseResult executeAdministrativeQuery();
+
+
 
 
 

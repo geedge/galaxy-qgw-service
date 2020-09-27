@@ -13,9 +13,10 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
+import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
@@ -29,18 +30,16 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import org.apache.http.HttpStatus;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class DruidDialect extends  AbstractDataSourceDialect {
+public class DruidDialect extends AbstractDataSourceDialect {
 
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
+    private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private int pageOffset;
     private Stopwatch watch = Stopwatch.createUnstarted();
 
@@ -68,40 +67,37 @@ public class DruidDialect extends  AbstractDataSourceDialect {
     }
 
     @Override
-    public Dialect executeQuery() {
+    public BaseResult executeQuery() {
 
         watch.start();
-        generateBaseResult(convertQuery(findBestQuery()));
-        return this;
+        return generateBaseResult(convertQuery(findBestQuery()), Optional.of("OK")).build();
 
     }
 
     @Override
-    public Dialect executeAdministrativeQuery() {
-        generateBaseResult(param.getQuery());
-        return this;
+    public BaseResult executeAdministrativeQuery() {
+        return generateBaseResult(param.getQuery(), Optional.of("OK")).build();
     }
 
-    private void generateBaseResult(String sql) {
+    @Override
+    public BaseResult executeSyntaxCheck() {
+        String query = convertQuery(getSyntaxCheckSql());
 
-        Map<String, String> results = executeHttpPost(sql);
+        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
 
-        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(),  null,
-                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
-        } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, param.getFormat());
-        }
+        return generateBaseResult(query, Optional.of(query)).build();
+
     }
+
 
     /**
      * Druid Http Query Interface
+     *
      * @param sql SQL语句
      * @return
      */
     private Map<String, String> executeHttpPost(String sql) {
-        StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
+        StringBuilder urlBuilder = new StringBuilder("http://").append(druidIoHttpSource.getUrl());
         DruidQueryParam druidQueryParam = new DruidQueryParam();
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
@@ -109,26 +105,28 @@ public class DruidDialect extends  AbstractDataSourceDialect {
         druidQueryParam.setResultFormat("object");
 
         log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
-
-        return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam));
+        int socketTimeOut = httpConfig.getDruidSocketTimeOut();
+        return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
     }
 
 
-    @Override
-    public Dialect executeSyntaxCheck() {
-        String query = convertQuery(getSyntaxCheckSql());
-        Map<String, String> results = executeHttpPost(query);
+    private DruidDialect generateBaseResult(String sql, Optional<String> message) {
 
-        baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")),null, query,
-                (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, param.getFormat());
-        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
+        Map<String, String> results = executeHttpPost(sql);
+
+        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
+                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
+                    results.get("result"), null, null, param.getFormat());
+        }
+
         return this;
     }
 
 
-
-    @Override
-    public BaseResult build() {
+    private BaseResult build() {
 
         Object dataObject = baseResult.getData();
 
@@ -152,13 +150,13 @@ public class DruidDialect extends  AbstractDataSourceDialect {
             baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " :String.valueOf(dataObject));
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " : String.valueOf(dataObject));
         } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " :String.valueOf(dataObject));
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " : String.valueOf(dataObject));
         } else {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " :String.valueOf(dataObject));
+                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " : String.valueOf(dataObject));
         }
         return baseResult;
     }
@@ -176,7 +174,6 @@ public class DruidDialect extends  AbstractDataSourceDialect {
         } catch (Exception e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
-            e.printStackTrace();
         }
         return sql;
     }
@@ -264,18 +261,19 @@ public class DruidDialect extends  AbstractDataSourceDialect {
         /**
          * SQL转换为DRUID语法格式
          * 1. 不支持limit offset,rows 转为 limit rows
+         *
          * @return
          */
-        public Converter generateStandard(){
+        public Converter generateStandard() {
             SQLQuerySource dbQuerySource = param.getDbQuerySource();
             if (StringUtil.isNotBlank(dbQuerySource.getLimit()) &&
-                    dbQuerySource.getLimit().split(",").length >= 2 ) {
+                    dbQuerySource.getLimit().split(",").length >= 2) {
 
                 String[] limits = dbQuerySource.getLimit().trim().split(",");
                 int offset = Integer.valueOf(limits[0].trim());
                 int rowNum = Integer.valueOf(limits[1].trim());
                 pageOffset = offset;
-                sql = SQLHelper.getLimitString(dbQuerySource.getSqlBody(),0, (offset + rowNum));
+                sql = SQLHelper.getLimitString(dbQuerySource.getSqlBody(), 0, (offset + rowNum));
             }
             return this;
         }
@@ -287,8 +285,6 @@ public class DruidDialect extends  AbstractDataSourceDialect {
         }
 
 
-
-
         public String build() {
             return sql;
         }
@@ -297,6 +293,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
     class Optimizer {
         String sql = null;
+
         /**
          * 对SQL最内层的结果数据集进行限制
          * 参见查询网关系统参数：engine.maxCacheNum
@@ -314,7 +311,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
         }
 
 
-        private  void setDefaultResultRows(SQLQuerySource sqlQuerySource, int defaultResultRows) {
+        private void setDefaultResultRows(SQLQuerySource sqlQuerySource, int defaultResultRows) {
             if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
                 sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody() + " limit " + defaultResultRows);
                 sqlQuerySource.setLimit(String.valueOf(defaultResultRows));
@@ -324,6 +321,7 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
         /**
          * 设置最大缓存数据集
+         *
          * @param sqlQuerySource
          * @return
          */
@@ -344,13 +342,13 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
                 String[] limits = innerSqlQuerySource.getLimit().split(",");
 
-                if (Integer.valueOf(limits[limits.length-1]) > maxCacheResultRows) {
-                    limits[limits.length-1] = String.valueOf(maxCacheResultRows);
+                if (Integer.valueOf(limits[limits.length - 1]) > maxCacheResultRows) {
+                    limits[limits.length - 1] = String.valueOf(maxCacheResultRows);
 
-                    if (limits.length == 2 ) {
+                    if (limits.length == 2) {
                         limitInnerSql = SQLHelper.getLimitString(limitInnerSql, Integer.valueOf(limits[0]), Integer.valueOf(limits[1]));
                     } else {
-                        limitInnerSql = SQLHelper.getLimitString(limitInnerSql,0, Integer.valueOf(limits[0]));
+                        limitInnerSql = SQLHelper.getLimitString(limitInnerSql, 0, Integer.valueOf(limits[0]));
                     }
 
                     innerSqlQuerySource.setLimit(String.join(",", limits).toString());
@@ -383,8 +381,6 @@ public class DruidDialect extends  AbstractDataSourceDialect {
 
 
     }
-
-
 
 
     @Data

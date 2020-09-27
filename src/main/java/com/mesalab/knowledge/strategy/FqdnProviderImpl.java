@@ -35,8 +35,7 @@ public class FqdnProviderImpl implements QueryProvider {
 
     private  static final String depthregex = "^[1-9]\\d*$"; //depth 取值范围大于0
 
-    @Value("${iplearning.uniqciprecent}")
-    private Integer uniqCipRecent;//统计最近时间 单位小时
+    private static final Integer uniqCipRecent = -24;//统计最近时间 单位小时 DIST_CIP
 
     @Value("${arango.maxrows}")
     private String limit;//查询最大条数
@@ -127,7 +126,7 @@ public class FqdnProviderImpl implements QueryProvider {
         StringBuffer sb  = new StringBuffer(aqlsb);
         sb.append(" limit ").append(pageRow);
         sb.append(" return distinct e ");
-        
+
         Object result = baseQueryProvider.queryArango(sb.toString());
         List ipEdgesList = new ObjectMapper().convertValue(result, new TypeReference<List<IpLearningPath.IplearningEdges>>() {
         });

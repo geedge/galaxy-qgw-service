@@ -21,6 +21,10 @@
       "type": "long"
     },
     {
+      "name": "data_center",
+      "type": "string"
+    },
+    {
       "name": "sessions",
       "type": "long"
     },
@@ -38,6 +42,30 @@
     },
     {
       "name": "s2c_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_ipfrag_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_ipfrag_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_lostlen",
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_lostlen",
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_unorder_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_unorder_num",
       "type": "long"
     }
   ]

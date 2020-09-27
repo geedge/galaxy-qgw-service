@@ -55,7 +55,6 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
 
 
         } catch (Exception e) {
-            e.printStackTrace();
             builder.down()
                     .withDetail("app", "Druid")
                     .withDetail("message", e.getMessage());

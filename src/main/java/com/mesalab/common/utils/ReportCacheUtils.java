@@ -5,7 +5,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.qgw.model.api.ApiParam;
+import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.HBaseHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
@@ -29,21 +29,21 @@ public class ReportCacheUtils {
 
     private static HBaseHttpSource hBaseHttpSource = (HBaseHttpSource) SpringContextUtil.getBean("hBaseHttpSource");
     private static HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
+    private static HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
 
-    public static BaseResult<Object> get(ApiParam param) {
+    public static BaseResult<Object> get(String id, String sql) {
         BaseResult<Object> baseResult;
         StringBuilder urlBuilder = new StringBuilder("http://")
                 .append(hBaseHttpSource.getUrl()).append("/");
 
         StringBuilder queryParamBuilder = new StringBuilder(hBaseHttpSource.getDbName())
                 .append(":").append(hBaseHttpSource.getTableName()).append("/")
-                .append(getQueryId(param.getResultId(), param.getQuery())).append("/")
+                .append(getQueryId(id, sql)).append("/")
                 .append(hBaseHttpSource.getColumnFamily()).append(":").append(hBaseHttpSource.getColumnName());
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put("Accept", "application/json");
-
-        Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryParamBuilder.toString(), headers);
+        Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryParamBuilder.toString(), headers, httpConfig.getHbaseDruidSocketTimeOut());
 
         if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map result = (Map) JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class);
@@ -51,7 +51,7 @@ public class ReportCacheUtils {
                     result.get("data"), result.get("meta"), (Map<String, Object>) (result.get("statistics")), QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
-                    results.get("result"), null, null, param.getFormat());
+                    results.get("result"), null, null, null);
         }
         return baseResult;
     }

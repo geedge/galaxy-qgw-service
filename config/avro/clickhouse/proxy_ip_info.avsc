@@ -9,7 +9,7 @@
     },
     {
       "name": "policy_id",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "ip_list",

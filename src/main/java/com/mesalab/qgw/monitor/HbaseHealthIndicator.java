@@ -44,10 +44,7 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
             builder.down()
                     .withDetail("app", "Hbase")
                     .withDetail("message", e.getMessage());
-
         }
 
     }
-
-
 }

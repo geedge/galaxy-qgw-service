@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mesalab.qgw.model.api.udf.UDF;
-import com.mesalab.qgw.service.impl.APIServiceImpl;
+import com.mesalab.qgw.service.impl.ApiServiceImpl;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.expression.Expression;
@@ -40,7 +40,7 @@ public class SQLQuerySource {
 
 
     public boolean isEnableLimit() {
-        if (StringUtil.isNotBlank(limit) && limit.equalsIgnoreCase(APIServiceImpl.UNVALID_LIMIT_DESC)) {
+        if (StringUtil.isNotBlank(limit) && limit.equalsIgnoreCase(ApiServiceImpl.UNVALID_LIMIT_DESC)) {
             return false;
         } else {
             return true;

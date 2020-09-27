@@ -3,27 +3,28 @@ package com.mesalab.qgw.service.impl;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.JobHandlerEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import com.mesalab.qgw.model.api.JobAdminHttpSource;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.JobAdminHttpSource;
-import com.mesalab.qgw.service.IAPIService;
+import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.SystemService;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
-import org.apache.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
@@ -36,13 +37,15 @@ public class SystemServiceImpl implements SystemService {
 
 
     @Autowired
-    private IAPIService apiService;
+    private ApiService apiService;
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
     private HttpClientService httpClientService;
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
+    @Autowired
+    HttpConfig httpConfig;
 
     private Map<String, String> headers = Maps.newHashMap();
 
@@ -72,11 +75,11 @@ public class SystemServiceImpl implements SystemService {
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
             ApiParam param = new ApiParam();
-            String sql  = String.format("select TIME_FORMAT(__time,'YYYY-MM-dd') as stat_time,log_type as type, sum(aggregate_size) as used_size from sys_storage_log where __time >= '%s' and __time < '%s' group by TIME_FORMAT(__time,'YYYY-MM-dd'), log_type", searchStartTime, searchEndTime);
+            String sql = String.format("select TIME_FORMAT(__time,'YYYY-MM-dd') as stat_time,log_type as type, sum(aggregate_size) as used_size from sys_storage_log where __time >= '%s' and __time < '%s' group by TIME_FORMAT(__time,'YYYY-MM-dd'), log_type", searchStartTime, searchEndTime);
             param.setQuery(sql);
             return apiService.executeQuery(param);
         } else {
-            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
         }
     }
 
@@ -143,7 +146,7 @@ public class SystemServiceImpl implements SystemService {
 
         List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
 
-        Map<String, String> map = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"));
+        Map<String, String> map = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"), 0);
         if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             return BaseResultGenerator.success4Message("ok");
         } else {
@@ -325,10 +328,8 @@ public class SystemServiceImpl implements SystemService {
      */
     private BaseResult queryJobStatusByJobId(int jobId) {
         BaseResult baseResult = null;
-        StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).
-                append("/jobinfo/jobBeat?jobId=").
-                append(jobId);
-        Map<String, String> resultMap = httpClientService.httpGet(url.toString(), headers);
+        StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).append("/jobinfo/jobBeat?jobId=").append(jobId);
+        Map<String, String> resultMap = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
         log.info("请求调度任务jobBeat接口" + url);
         baseResult = resultEncapsulationOfJob(resultMap);
         return baseResult;
@@ -350,12 +351,12 @@ public class SystemServiceImpl implements SystemService {
                 if (result.get("code").equals(HttpStatus.SC_OK)) {
                     baseResult = BaseResultGenerator.success("ok", null);
                 } else if (result.get("code").equals(HttpStatus.SC_LOCKED)) {
-                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "资源被锁定: " + result.get("msg"));
+                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "Clear Task is Running.");
                 } else {
                     baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(result.get("msg")));
                 }
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, resultMap.get("msg"));
+                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Clear Task Failed.");
             }
         }
         return baseResult;
@@ -373,7 +374,7 @@ public class SystemServiceImpl implements SystemService {
         BaseResult baseResult = null;
         String params = getUrlParamsByMap(getObjectToMap(xxlJobInfo));
         String url = String.format("%s/jobinfo/%s/?%s", jobAdminHttpSource.getUrl(), executeType, params);
-        Map<String, String> resultMap = httpClientService.httpGet(url, headers);
+        Map<String, String> resultMap = httpClientService.httpGet(url, headers, httpConfig.getServerResponseTimeOut());
         log.info("请求调度任务" + executeType + "接口" + url);
         baseResult = resultEncapsulationOfJob(resultMap);
         return baseResult;
@@ -389,7 +390,8 @@ public class SystemServiceImpl implements SystemService {
         StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl());
         headers.put("Content-Type", "application/json");
         String urlParamsByMap = getUrlParamsByMap(getObjectToMap(jobAdminHttpSource));
-        Map httpPostResponseHeads = httpClientService.getHttpPostResponseHeads(url + "/login?" + urlParamsByMap, headers);
+        int socketTimeOut = httpConfig.getServerResponseTimeOut();
+        Map httpPostResponseHeads = httpClientService.getHttpPostResponseHeads(url + "/login?" + urlParamsByMap, headers, socketTimeOut);
         String cookie = String.valueOf(httpPostResponseHeads.get("SET-COOKIE"));
         headers.put("Cookie", cookie);
     }
@@ -404,7 +406,7 @@ public class SystemServiceImpl implements SystemService {
         StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).
                 append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
                 append(handlerValue);
-        Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers);
+        Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
         log.info("请求调度任务pageList接口 " + url);
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
@@ -455,9 +457,9 @@ public class SystemServiceImpl implements SystemService {
         try {
             bean = clazz.newInstance();
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            log.error("Instantiation Exception: ", e);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            log.error("Illegal Access Exception: ", e);
         }
         BeanMap beanMap = BeanMap.create(bean);
         beanMap.putAll(map);
@@ -474,7 +476,7 @@ public class SystemServiceImpl implements SystemService {
             try {
                 value = field.get(obj);
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                log.error("Illegal Access Exception: ", e);
             }
             if (value == null) {
                 value = "";
@@ -488,9 +490,11 @@ public class SystemServiceImpl implements SystemService {
     enum LogType {
         TRAFFIC_LOGS("Traffic Logs"), REPORT_AND_METRICS("Report and Metrics"), FILES("Files"), ALL("ALL");
         private final String value;
+
         LogType(String value) {
             this.value = value;
         }
+
         public String getValue() {
             return value;
         }

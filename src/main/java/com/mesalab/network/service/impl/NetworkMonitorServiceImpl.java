@@ -10,21 +10,25 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
-import com.mesalab.network.model.api.Param;
-import com.mesalab.network.model.api.QueryParam;
+import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.network.dsl.DSLObject;
+import com.mesalab.network.service.NetworkMonitorService;
 import com.mesalab.qgw.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.mesalab.network.service.NetworkMonitorService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.UnsupportedEncodingException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,6 +42,8 @@ import java.util.stream.Collectors;
 public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     @Autowired
     HttpClientService httpClientService;
+    @Autowired
+    HttpConfig httpConfig;
     @Value("${server.port}")
     private int serverPort;
     private static String hostAddress;
@@ -48,30 +54,24 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         try {
             hostAddress = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
             log.error("get LocalHost error: ", e);
         }
     }
 
     @Override
-    public BaseResult getTrafficDistributedInfo(Param param) {
+    public BaseResult getTrafficDistributedInfo(DSLObject dslObject) {
         BaseResult baseResult;
-        String sql = null;
-        if (QueryType.PROTOCOL_TREE_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
-            sql = generateProtocolTreeSql(param.getQuery());
+        String sql;
+        if (QueryType.PROTOCOL_TREE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            sql = generateProtocolTreeSql(dslObject.getQuery());
             baseResult = getResultProtocolTree(sql);
-        } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
-            String parameters = param.getQuery().getParameters();
-            Optional.ofNullable(parameters).ifPresent(o -> {
-                String[] split = parameters.split(",");
-                param.getQuery().setParameters(split[0].replaceFirst(PROTOCOL_NODE, ""));
-            });
-            sql = generateProtocolDataRateSql(param.getQuery());
+        } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            sql = generateProtocolDataRateSql(dslObject.getQuery());
             baseResult = getProtocolDataRateSummary(sql);
-        } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(param.getQuery().getQueryType())) {
-            sql = generateOverviewSummarySql(param.getQuery());
+        } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            sql = generateOverviewSummarySql(dslObject.getQuery());
             Map<String, String> dataRateResult = executeQuery(sql);
-            String statSql = generateStatSql(param.getQuery());
+            String statSql = generateStatSql(dslObject.getQuery());
             Map<String, String> statResult = executeQuery(statSql);
             baseResult = buildNetworkOverviewResult(dataRateResult, statResult);
         } else {
@@ -96,14 +96,18 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             if (!statData.isEmpty()) {
                 data.putAll(statData.get(0));
             }
-            if (statData.size() >= 2) {
+            if (statData.size() >= 4) {
                 data.put("current_sessions", statData.get(1).get("total_bytes"));
+                data.put("totalBytesTcp", statData.get(2).get("total_bytes"));
+                data.put("totalPackageTcpUdp", statData.get(3).get("total_bytes"));
             }
             if (!summaryData.isEmpty()) {
                 data.putAll(summaryData.get(0));
             }
             long uniqClientIp = Long.parseLong(String.valueOf(data.get("uniq_client_ip") == null ? 0 : data.get("uniq_client_ip")));
             long totalSessions = Long.parseLong(String.valueOf(data.get("total_sessions") == null ? 0 : data.get("total_sessions")));
+            long totalBytesTcp = Long.parseLong(String.valueOf(data.get("totalBytesTcp") == null ? 0 : data.get("totalBytesTcp")));
+            long totalPackageTcpUdp = Long.parseLong(String.valueOf(data.get("totalPackageTcpUdp") == null ? 0 : data.get("totalPackageTcpUdp")));
             long currentSessions = Long.parseLong(String.valueOf(data.get("current_sessions") == null ? 0 : data.get("current_sessions")));
             long dataRate = Long.parseLong(String.valueOf(data.get("data_rate") == null ? 0 : data.get("data_rate")));
             long totalBytes = Long.parseLong(String.valueOf(data.get("total_bytes") == null ? 0 : data.get("total_bytes")));
@@ -111,6 +115,10 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             double totalUncategorizedPercent = totalBytes == 0 ? 0 : totalUncategorizedBytes * 1.0 / totalBytes;
             long oneSidedConnections = Long.parseLong(String.valueOf(data.get("one_sided_connections") == null ? 0 : data.get("one_sided_connections")));
             double oneSidedPercent = totalBytes == 0 ? 0 : oneSidedConnections * 1.0 / totalSessions;
+            long sequenceGapLossBytes = Long.parseLong(String.valueOf(data.get("sequence_gap_loss_bytes") == null ? 0 : data.get("sequence_gap_loss_bytes")));
+            double sequenceGapLossBytesPercent = totalBytesTcp == 0 ? 0 : sequenceGapLossBytes * 1.0 / totalBytesTcp;
+            long fragmentationPackets = Long.parseLong(String.valueOf(data.get("fragmentation_packets") == null ? 0 : data.get("fragmentation_packets")));
+            double fragmentationPacketsPercent = totalPackageTcpUdp == 0 ? 0 : fragmentationPackets * 1.0 / totalPackageTcpUdp;
 
             List result = new ArrayList<>();
             Map resultMap = new LinkedHashMap<>();
@@ -123,6 +131,10 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             resultMap.put("total_uncategorized_percent", Double.parseDouble(String.format("%.4f", totalUncategorizedPercent)));
             resultMap.put("one_sided_connections", oneSidedConnections);
             resultMap.put("one_sided_percent", Double.parseDouble(String.format("%.4f", oneSidedPercent)));
+            resultMap.put("sequence_gap_loss_bytes", sequenceGapLossBytes);
+            resultMap.put("sequence_gap_loss_percent", Double.parseDouble(String.format("%.4f", sequenceGapLossBytesPercent)));
+            resultMap.put("fragmentation_packets", fragmentationPackets);
+            resultMap.put("fragmentation_percent", Double.parseDouble(String.format("%.4f", fragmentationPacketsPercent)));
             result.add(resultMap);
 
             Map statistics = (Map) summaryDataResult.get("statistics");
@@ -172,25 +184,46 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return baseResult;
     }
 
-    private String generateStatSql(QueryParam queryParam) {
+    private String generateStatSql(DSLObject.QueryBean queryParam) {
+        String whereOfTime = getWhereOfTime(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
+        String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
         return String.format("(SELECT SUM(c2s_byte_num + s2c_byte_num) as total_bytes, SUM(sessions) as total_sessions, SUM(c2s_byte_num + s2c_byte_num) * 8000/(TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')) AS data_rate " +
                         "FROM traffic_protocol_stat_log " +
-                        "WHERE __time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s' " +
+                        "WHERE %s %s" +
                         "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) LIMIT 1) " +
                         "UNION ALL " +
                         "( SELECT SUM(sessions), 0, 0 " +
                         "FROM traffic_protocol_stat_log " +
-                        "WHERE __time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s' " +
-                        "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) GROUP BY __time ORDER BY __time DESC LIMIT 1 )",
-                queryParam.getIntervals().getEndTime(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
-                queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
+                        "WHERE %s %s" +
+                        "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) GROUP BY __time ORDER BY __time DESC LIMIT 1 ) " +
+                        "UNION ALL " +
+                        "( SELECT SUM(c2s_byte_num + s2c_byte_num),0 ,0 FROM traffic_protocol_stat_log WHERE (%s %s) AND (protocol_id = 'ETHERNET/IPv4/TCP' OR protocol_id = 'ETHERNET/IPv6/TCP') LIMIT 1) " +
+                        "UNION ALL " +
+                        "( SELECT SUM(c2s_pkt_num + s2c_pkt_num),0 ,0 FROM traffic_protocol_stat_log WHERE (%s %s) AND (protocol_id = 'ETHERNET/IPv4/TCP' OR protocol_id = 'ETHERNET/IPv6/TCP' OR protocol_id = 'ETHERNET/IPv4/UDP' OR protocol_id = 'ETHERNET/IPv6/UDP') LIMIT 1) ",
+                intervals[1], intervals[0], whereOfTime, whereOfExactly,
+                whereOfTime, whereOfExactly,
+                whereOfTime, whereOfExactly,
+                whereOfTime, whereOfExactly);
     }
 
-    private String generateProtocolDataRateSql(QueryParam queryParam) {
+    private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam) {
+        String whereOfTime = getWhereOfTime(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
+        String protocolStr = null;
+        List<DSLObject.QueryBean.Parameters.MatchBean> match = queryParam.getParameters().getMatch();
+        for (DSLObject.QueryBean.Parameters.MatchBean item : match) {
+            if (MatchEnum.PREFIX.getType().equals(item.getType())) {
+                String[] split = item.getFieldValues().get(0).split(",");
+                protocolStr = split[0].replaceFirst(PROTOCOL_NODE, "");
+            }
+        }
         return String.format("(" +
                         "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
-                        "where protocol_id = '%s' and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' " +
+                        "where %s %s and protocol_id = '%s' " +
                         "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc" +
                         ") " +
@@ -198,31 +231,67 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         "(" +
                         "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
-                        "where protocol_id like CONCAT('%s','/%s') and __time >= TIMESTAMP '%s' and __time < TIMESTAMP '%s' and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) + 1 + %s " +
+                        "where %s %s and protocol_id like CONCAT('%s','/%s') and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) + 1 + %s " +
                         "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc) ",
-                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(), queryParam.getGranularity(),
-                queryParam.getGranularity(), queryParam.getDataSource(), queryParam.getParameters(), '%', queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime(),
-                queryParam.getParameters().length() - queryParam.getParameters().replaceAll("/", "").length(), queryParam.getGranularity());
+                queryParam.getParameters().getGranularity(), queryParam.getDataSource(), whereOfTime, whereOfExactly, protocolStr, queryParam.getParameters().getGranularity(),
+                queryParam.getParameters().getGranularity(), queryParam.getDataSource(), whereOfTime, whereOfExactly, protocolStr, "%",
+                protocolStr.length() - protocolStr.replaceAll("/", "").length(), queryParam.getParameters().getGranularity());
 
     }
 
-    private String generateOverviewSummarySql(QueryParam queryParam) {
+    private String generateOverviewSummarySql(DSLObject.QueryBean queryParam) {
+        String whereOfTime = getWhereOfTime(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+
         return String.format("SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip, " +
                         "SUM(one_sided_connections) AS one_sided_connections, " +
-                        "SUM(uncategorized_bytes) AS total_uncategorized_bytes " +
+                        "SUM(uncategorized_bytes) AS total_uncategorized_bytes, " +
+                        "SUM(fragmentation_packets) AS fragmentation_packets, " +
+                        "SUM(sequence_gap_loss) AS sequence_gap_loss_bytes " +
                         "FROM %s " +
-                        "WHERE __time >= TIMESTAMP '%s' " +
-                        "AND __time < TIMESTAMP '%s' LIMIT 1 ",
-                queryParam.getDataSource(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
+                        "WHERE %s" +
+                        " %s LIMIT 1 ",
+                queryParam.getDataSource(), whereOfTime, StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly);
     }
 
-    private String generateProtocolTreeSql(QueryParam queryParam) {
+    private String getWhereOfTime(DSLObject.QueryBean.Parameters parameters) {
+        if (CollectionUtils.isEmpty(parameters.getIntervals())) {
+            return StringUtil.EMPTY;
+        }
+        StringBuffer whereOfTime = new StringBuffer();
+        String[] intervals = getIntervals(parameters.getIntervals());
+        whereOfTime.append("__time >= TIMESTAMP '").append(intervals[0]).append("' AND __time < TIMESTAMP '").append(intervals[1]).append("'");
+        return whereOfTime.toString();
+    }
+
+    private String[] getIntervals(List<String> intervals) {
+        return intervals.get(0).split("/");
+    }
+
+    private String getWhereOfExactly(DSLObject.QueryBean.Parameters parameters) {
+        if (CollectionUtils.isEmpty(parameters.getMatch())) {
+            return StringUtil.EMPTY;
+        }
+        StringBuffer whereOfExactly = new StringBuffer();
+        List<DSLObject.QueryBean.Parameters.MatchBean> match = parameters.getMatch();
+        for (DSLObject.QueryBean.Parameters.MatchBean item : match) {
+            if (MatchEnum.EXACTLY.getType().equals(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
+                whereOfExactly.append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+            }
+        }
+        return whereOfExactly.toString();
+    }
+
+    private String generateProtocolTreeSql(DSLObject.QueryBean queryParam) {
+        String whereOfTime = getWhereOfTime(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
         return String.format("SELECT protocol_id, SUM(sessions) as sessions,SUM(c2s_byte_num) as c2s_byte_num, SUM(c2s_pkt_num) as c2s_pkt_num, SUM(s2c_byte_num) as s2c_byte_num, SUM(s2c_pkt_num) as s2c_pkt_num " +
                         "FROM %s " +
-                        "WHERE __time >= TIMESTAMP '%s' AND __time < TIMESTAMP '%s' " +
+                        "WHERE %s %s" +
                         "GROUP BY protocol_id ",
-                queryParam.getDataSource(), queryParam.getIntervals().getStartTime(), queryParam.getIntervals().getEndTime());
+                queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
 
     private List<ProtocolTree> getProtocolTrees(List<Map> data) {
@@ -252,12 +321,12 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         try {
             sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
             hostAddress = "127.0.0.1";
             log.error("sql Encode error: ", e);
         }
         String url = "http://" + hostAddress + ":" + serverPort + "/?query=";
-        return httpClientService.httpGet(url + sql);
+        int socketTimeOut = httpConfig.getServerResponseTimeOut();
+        return httpClientService.httpGet(url + sql, socketTimeOut);
     }
 
 

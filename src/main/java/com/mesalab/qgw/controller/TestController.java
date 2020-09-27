@@ -3,26 +3,15 @@ package com.mesalab.qgw.controller;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ProjectProperties;
-import com.mesalab.common.utils.SpringContextUtil;
-import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.qgw.service.impl.TestSqlServiceImpl;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Arrays;
 
 /**
  * 测试Controller
@@ -32,7 +21,6 @@ import java.util.*;
  * @date 2019/5/13
  */
 @Slf4j
-@Api(value = "/test", tags = "测试接口模块")
 @RestController
 @RequestMapping(value = "test")
 public class TestController {
@@ -56,7 +44,6 @@ public class TestController {
      *
      * @return BaseResult
      */
-    @ApiOperation(value = "项目配置", notes = "获取项目配置参数")
     @GetMapping(value = "projectProperties")
     public BaseResult projectProperties() {
         log.info("Project Properties: {}", projectProperties);
@@ -70,7 +57,6 @@ public class TestController {
      *
      * @return 返回当前项目的环境值
      */
-    @ApiOperation(value = "项目环境值", notes = "获取当前项目运行时环境值，取Environment对象中的activeProfiles, 项目运行时的值")
     @GetMapping(value = "activeProfiles")
     public BaseResult activeProfiles() {
         String[] activeProfiles = environment.getActiveProfiles();
@@ -83,7 +69,6 @@ public class TestController {
      *
      * @return 返回当前项目的运行环境
      */
-    @ApiOperation(value = "项目环境值", notes = "获取当前项目运行环境，取ProjectProperties.env的值，应该和activeProfiles一致")
     @GetMapping(value = "env")
     public BaseResult env() {
         String[] env = projectProperties.getEnv();
@@ -96,7 +81,6 @@ public class TestController {
      *
      * @return 返回当前项目的运行环境
      */
-    @ApiOperation(value = "是否生产环境", notes = "检查是否是生产环境")
     @GetMapping(value = "isProduct")
     public BaseResult isProduct() {
         boolean isProduct = projectProperties.isProduct();
@@ -110,7 +94,6 @@ public class TestController {
      *
      * @return 检查授权
      */
-    @ApiOperation(value = "检查授权", notes = "检查授权，如果授权成功：返回success，否则跳转/login")
     @GetMapping(value = "checkAuthc")
     public BaseResult checkAuthc() {
         return BaseResultGenerator.success();
@@ -119,11 +102,11 @@ public class TestController {
 
     /**
      * 运行测试用例
+     *
      * @return
      */
-    @ApiOperation(value = "测试用例", notes = "运行测试用例")
     @GetMapping(value = "runSql")
-    public BaseResult runSql(){
+    public BaseResult runSql() {
         BaseResult result = testSqlService.runSql();
         return result;
     }
@@ -133,7 +116,6 @@ public class TestController {
      *
      * @return
      */
-    @ApiOperation(value = "校验schema", notes = "运行校验schema")
     @GetMapping(value = "runSchema")
     public BaseResult runSchema() {
         BaseResult result = testSqlService.runSchema();

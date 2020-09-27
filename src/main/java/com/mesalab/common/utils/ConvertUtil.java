@@ -241,7 +241,7 @@ public class ConvertUtil {
 
         if (fill.equalsIgnoreCase(Fill.ZERO.name())){
             for(String key: defaultElement.keySet()){
-                defaultElement.put(key, Fill.ZERO.getValue());
+                defaultElement.put(key, Integer.valueOf(Fill.ZERO.getValue()));
             }
 
         } else if (fill.equalsIgnoreCase(Fill.NULL.name())){
