@@ -98,7 +98,7 @@ public class AuditLogAspect {
 
         if(result instanceof BaseResult){
             BaseResult baseResult = (BaseResult) result;
-            baseResult.setQueryId(logAfter.getQueryKey());
+            baseResult.setQueryKey(logAfter.getQueryKey());
         }
 
         Long exeTime = System.currentTimeMillis() - startTime.get();
