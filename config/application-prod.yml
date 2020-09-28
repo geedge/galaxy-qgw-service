@@ -38,6 +38,7 @@ hbase:
   tableName: report_result
   columnFamily: response
   columnName: result
+  socketTimeOut: 10000
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
