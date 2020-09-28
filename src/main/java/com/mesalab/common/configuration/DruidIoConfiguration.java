@@ -25,7 +25,6 @@ public class DruidIoConfiguration {
         DruidIoHttpSource httpSource  = new DruidIoHttpSource();
         httpSource.setUrl(druidIoProperties.getUrl());
         httpSource.setDbname(druidIoProperties.getDbname());
-        httpSource.setSqlTimeZone(druidIoProperties.getSqlTimeZone());
         return httpSource;
     }
 

@@ -29,7 +29,6 @@ clickhouse:
 druid:
   url: 192.168.44.12:8082/druid/v2/sql
   dbname: druid
-  sqlTimeZone: Asia/Shanghai
   socketTimeOut: 10000
 ###############################################################################
 ## Hbase configuration

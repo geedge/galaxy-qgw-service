@@ -31,7 +31,6 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
         DruidHealthIndicator.DruidQueryParam druidQueryParam = new DruidHealthIndicator.DruidQueryParam();
 
         druidQueryParam.setQuery("select count(*) from sys.servers ");
-        druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
         try {

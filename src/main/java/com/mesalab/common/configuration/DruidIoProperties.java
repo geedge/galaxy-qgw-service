@@ -8,6 +8,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class DruidIoProperties {
     private  String url;
     private String dbname;
-    private String sqlTimeZone;
 
 }

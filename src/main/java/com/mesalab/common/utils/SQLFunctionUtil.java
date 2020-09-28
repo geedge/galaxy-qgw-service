@@ -153,7 +153,6 @@ public class SQLFunctionUtil {
         StringBuilder urlBuilder = new StringBuilder("http://").append(druidIoHttpSource.getUrl());
         DruidQueryParam druidQueryParam = new DruidQueryParam();
         druidQueryParam.setQuery(query);
-        druidQueryParam.getContext().put("sqlTimeZone", druidIoHttpSource.getSqlTimeZone());
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
