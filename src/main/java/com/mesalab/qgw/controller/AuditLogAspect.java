@@ -1,5 +1,6 @@
 package com.mesalab.qgw.controller;
 
+import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.IPUtil;
 import com.mesalab.common.utils.JsonMapper;
@@ -93,6 +94,11 @@ public class AuditLogAspect {
         AuditServiceLog logAfter =  log.get();
         if (StringUtil.isNotEmpty(result) ) {
             QueryCacheUtils.put(logAfter.getQueryKey(), result);
+        }
+
+        if(result instanceof BaseResult){
+            BaseResult baseResult = (BaseResult) result;
+            baseResult.setQueryId(logAfter.getQueryKey());
         }
 
         Long exeTime = System.currentTimeMillis() - startTime.get();

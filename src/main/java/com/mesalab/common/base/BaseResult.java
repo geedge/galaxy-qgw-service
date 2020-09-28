@@ -26,6 +26,8 @@ public class BaseResult<T> implements Serializable {
 
     private String code;
 
+    private String queryId;
+
     private boolean success;
 
     private String message;
