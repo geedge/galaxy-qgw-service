@@ -27,7 +27,7 @@ public class ApiController {
     @CachedSubmitCheck
     public BaseResult querey(ApiParam apiParam) {
 
-        log.debug("Quest Params:{}", new Gson().toJson(apiParam));
+        log.info("Quest Params:{}", new Gson().toJson(apiParam));
 
         if (StringUtil.isBlank(apiParam.getQuery()))
             return BaseResultGenerator.success4Message("ok");

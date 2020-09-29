@@ -1,22 +1,20 @@
 package com.mesalab.common.utils;
 
-import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.knowledge.common.utils.HttpConfig;
-import com.mesalab.qgw.model.api.HBaseHttpSource;
-import com.mesalab.qgw.service.impl.HttpClientService;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.http.HttpStatus;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -27,54 +25,36 @@ import java.util.Map;
 @Slf4j
 public class ReportCacheUtils {
 
-    private static HBaseHttpSource hBaseHttpSource = (HBaseHttpSource) SpringContextUtil.getBean("hBaseHttpSource");
-    private static HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private static HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
+    private static HBaseAPISource hBaseAPISource = (HBaseAPISource) SpringContextUtil.getBean("hBaseAPISource");
+    private static Connection hbaseConnection = (Connection) SpringContextUtil.getBean("hbaseConnection");
 
-    public static BaseResult<Object> get(String id, String sql) {
-        BaseResult<Object> baseResult;
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(hBaseHttpSource.getUrl()).append("/");
-
-        StringBuilder queryParamBuilder = new StringBuilder(hBaseHttpSource.getDbName())
-                .append(":").append(hBaseHttpSource.getTableName()).append("/")
-                .append(getQueryId(id, sql)).append("/")
-                .append(hBaseHttpSource.getColumnFamily()).append(":").append(hBaseHttpSource.getColumnName());
-
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put("Accept", "application/json");
-        Map<String, String> results = httpClientService.httpGet(urlBuilder.toString() + queryParamBuilder.toString(), headers, httpConfig.getHbaseDruidSocketTimeOut());
-
-        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            Map result = (Map) JsonMapper.fromJsonString(decryptHbaseResult(results.get("result")), Map.class);
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), String.valueOf(result.get("message")),
-                    result.get("data"), result.get("meta"), (Map<String, Object>) (result.get("statistics")), QueryFormatEnum.JSON.getValue());
+    public static BaseResult<Object> get(String id, String query) {
+        Result result = query(id, query);
+        byte[] value = result.getValue(Bytes.toBytes(hBaseAPISource.getColumnFamily()), Bytes.toBytes(hBaseAPISource.getColumnName()));
+        Map map = (Map) JsonMapper.fromJsonString(Bytes.toString(value), Map.class);
+        BaseResult baseResult;
+        if (StringUtil.isEmpty(map)) {
+            baseResult = BaseResultGenerator.failure("Results not exist");
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
-                    results.get("result"), null, null, null);
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), String.valueOf(map.get("message")),
+                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), QueryFormatEnum.JSON.getValue());
         }
         return baseResult;
     }
 
-
-    /**
-     * 解析json并将结果进行base64解密
-     *
-     * @param hbaseResult
-     * @return
-     */
-    private static String decryptHbaseResult(String hbaseResult) {
-        String result = StringUtil.EMPTY;
+    private static Result query(String id, String query) {
+        Table table = null;
+        Result result;
         try {
-            Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(hbaseResult, Map.class);
-            List<Object> rowList = (ArrayList) maps.get("Row");
-            if (StringUtil.isNotEmpty(rowList)) {
-                Map<String, Object> keyMap = (Map<String, Object>) rowList.get(0);
-                String encryptResult = ((Map<String, Object>) ((ArrayList) keyMap.get("Cell")).get(0)).get("$").toString();
-                result = new String(Base64.getDecoder().decode(encryptResult), StandardCharsets.UTF_8);
-            }
+            table = hbaseConnection.getTable(TableName.valueOf((hBaseAPISource.getDbName() + ":" + hBaseAPISource.getTableName())));
+            Get get = new Get(Bytes.toBytes(getQueryId(id, query)));
+            get.addColumn(Bytes.toBytes(hBaseAPISource.getColumnFamily()), Bytes.toBytes(hBaseAPISource.getColumnName()));
+            result = table.get(get);
         } catch (Exception e) {
-            log.error("Parser HBase Result error: {}", e.getMessage());
+            log.error("get hbase error: ", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Get Hbase Error：", e);
+        } finally {
+            closeTable(table);
         }
         return result;
     }
@@ -88,5 +68,16 @@ public class ReportCacheUtils {
      */
     public static String getQueryId(String resultId, String sql) {
         return DigestUtils.md5Hex(resultId + sql.trim());
+    }
+
+
+    private static void closeTable(Table table) {
+        try {
+            if (table != null) {
+                table.close();
+            }
+        } catch (IOException e) {
+            log.error("hbase table close error: ", e);
+        }
     }
 }
