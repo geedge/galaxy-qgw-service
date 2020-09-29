@@ -40,7 +40,7 @@ hbase:
   tableName: report_result
   columnFamily: response
   columnName: result
-  rpcTimeout: 10000
+  rpcTimeout: 60000
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
