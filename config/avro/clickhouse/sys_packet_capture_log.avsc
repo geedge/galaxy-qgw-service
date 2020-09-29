@@ -241,7 +241,7 @@
       "name": "common_address_list",
       "label": "Address List",
       "type": "string",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_has_dup_traffic",

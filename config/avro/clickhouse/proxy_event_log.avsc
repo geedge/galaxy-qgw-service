@@ -273,7 +273,7 @@
       "name": "common_address_list",
       "label": "Address List",
       "type": "string",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "common_has_dup_traffic",
@@ -362,13 +362,13 @@
       "name": "http_request_line",
       "label": "Http.Request Line",
       "type": "string",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "http_response_line",
       "label": "Http.Response Line",
       "type": "string",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "doc": "{\"visibility\":\"disabled\"}"
     },
     {
       "name": "http_request_header",
@@ -386,13 +386,13 @@
       "name": "http_request_body",
       "label": "Http.Request Body",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"file\"}}"
+      "doc": "{\"constraints\":{\"type\":\"file\"},\"visibility\":\"disabled\"}"
     },
     {
       "name": "http_response_body",
       "label": "Http.Response Body",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"file\"}}"
+      "doc": "{\"constraints\":{\"type\":\"file\"},\"visibility\":\"disabled\"}"
     },
     {
       "name": "http_request_body_key",
