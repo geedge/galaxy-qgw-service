@@ -281,7 +281,7 @@
                         <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
                     </buildArgs>
                     <imageTags>
-                        <imageTag>v3.2.200924</imageTag>
+                        <imageTag>v3.3.200928</imageTag>
                     </imageTags>
                     <resources>
                         <resource>

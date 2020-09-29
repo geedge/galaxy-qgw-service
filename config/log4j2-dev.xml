@@ -5,8 +5,8 @@
     <Properties>
         <!--每5M压缩日志文件-->
         <property name="LOG_SIZE">5M</property>
-        <!--最多产生5个压缩文件-->
-        <property name="LOG_NUMS">5</property>
+        <!--最多产生10个压缩文件-->
+        <property name="LOG_NUMS">10</property>
         <!--日志打印等级-->
         <property name="LOG_LEVEL">info</property>
         <!--日志文件路径-->
@@ -34,7 +34,17 @@
             <Filters>
                 <ThresholdFilter level="all" onMatch="ACCEPT" onMismatch="DENY"/>
             </Filters>
-            <DefaultRolloverStrategy max="${LOG_NUMS}"/>
+            <DefaultRolloverStrategy max="${LOG_NUMS}">
+                <Delete basePath="${LOG_PATH}/history" maxDepth="1">
+                    <IfFileName glob="*.log.gz">
+                        <IfLastModified age="90d">
+                            <IfAny>
+                                <IfAccumulatedFileSize exceeds="200 GB" />
+                            </IfAny>
+                        </IfLastModified>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
         </RollingFile>
     </appenders>
     <loggers>

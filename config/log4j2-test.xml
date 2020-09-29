@@ -34,7 +34,17 @@
             <Filters>
                 <ThresholdFilter level="all" onMatch="ACCEPT" onMismatch="DENY"/>
             </Filters>
-            <DefaultRolloverStrategy max="${LOG_NUMS}"/>
+            <DefaultRolloverStrategy max="${LOG_NUMS}">
+                <Delete basePath="${LOG_PATH}/history" maxDepth="1">
+                    <IfFileName glob="*.log.gz">
+                        <IfLastModified age="90d">
+                            <IfAny>
+                                <IfAccumulatedFileSize exceeds="200 GB" />
+                            </IfAny>
+                        </IfLastModified>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
         </RollingFile>
     </appenders>
     <loggers>

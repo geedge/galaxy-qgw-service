@@ -50,11 +50,6 @@ engine:
   maxCacheNum: 1048576
   defaultResultNum: 200
 ###############################################################################
-## Junit Test Configuration
-test:
-  url: 192.168.40.186:9999
-  timeRange: last 5 minutes
-  executeTime: 2019-07-22 00:00:00
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.12:8529
