@@ -22,13 +22,16 @@ import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -49,6 +52,8 @@ public class TestSqlServiceImpl {
     public ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     HttpConfig httpConfig;
+    @Value("${server.port}")
+    private int serverPort;
     private List errorDate;
 
 
@@ -69,6 +74,14 @@ public class TestSqlServiceImpl {
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:00:00");
         SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date(System.currentTimeMillis());
+        String hostAddress = null;
+        try {
+            hostAddress = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            hostAddress = "127.0.0.1";
+            log.error("获取服务器IP异常", e);
+            e.printStackTrace();
+        }
         for (int i = 0; i < list.size(); i++) {
             String sql = String.valueOf(list.get(i));
             try {
@@ -78,7 +91,7 @@ public class TestSqlServiceImpl {
             } catch (Exception e) {
                 log.error("测试用例sql编码错误", e);
             }
-            resultTemp = httpClientService.httpGet("http://127.0.0.1:9999/?query=" + sql, httpConfig.getServerResponseTimeOut());
+            resultTemp = httpClientService.httpGet("http://" + hostAddress + ":" + serverPort + "/?query=" + sql, httpConfig.getServerResponseTimeOut());
             if (resultTemp.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
                 resultTemp.remove("result");
                 countSuccess++;
