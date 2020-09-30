@@ -37,7 +37,7 @@
             <DefaultRolloverStrategy max="${LOG_NUMS}">
                 <Delete basePath="${LOG_PATH}/history" maxDepth="1">
                     <IfFileName glob="*.log.gz">
-                        <IfLastModified age="90d">
+                        <IfLastModified age="180d">
                             <IfAny>
                                 <IfAccumulatedFileSize exceeds="200 GB" />
                             </IfAny>
