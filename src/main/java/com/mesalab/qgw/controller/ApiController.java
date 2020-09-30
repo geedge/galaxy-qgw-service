@@ -7,6 +7,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
 import com.mesalab.qgw.service.ApiService;
+import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class ApiController {
     @CachedSubmitCheck
     public BaseResult querey(ApiParam apiParam) {
 
-        log.info("Quest Params:{}", new GsonBuilder().disableHtmlEscaping().create().toJson(apiParam));
+        log.info("Quest Params:{}", JsonMapper.toJsonString(apiParam));
 
         if (StringUtil.isBlank(apiParam.getQuery()))
             return BaseResultGenerator.success4Message("ok");
