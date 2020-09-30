@@ -1,6 +1,6 @@
 package com.mesalab.qgw.controller;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -27,7 +27,7 @@ public class ApiController {
     @CachedSubmitCheck
     public BaseResult querey(ApiParam apiParam) {
 
-        log.info("Quest Params:{}", new Gson().toJson(apiParam));
+        log.info("Quest Params:{}", new GsonBuilder().disableHtmlEscaping().create().toJson(apiParam));
 
         if (StringUtil.isBlank(apiParam.getQuery()))
             return BaseResultGenerator.success4Message("ok");
