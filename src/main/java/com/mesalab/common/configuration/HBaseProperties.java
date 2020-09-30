@@ -13,5 +13,6 @@ public class HBaseProperties {
     private String tableName;
     private String columnFamily;
     private String columnName;
+    private String clientIpcPoolSize;
     private String rpcTimeout;
 }
