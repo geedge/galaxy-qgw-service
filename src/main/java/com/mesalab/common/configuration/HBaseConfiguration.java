@@ -28,6 +28,7 @@ public class HBaseConfiguration {
         apiSource.setZookeeperQuorum(hBaseProperties.getZookeeperQuorum());
         apiSource.setZookeeperPropertyClientPort(hBaseProperties.getZookeeperPropertyClientPort());
         apiSource.setZookeeperParent(hBaseProperties.getZookeeperZnodeParent());
+        apiSource.setClientIpcPoolSize(hBaseProperties.getClientIpcPoolSize());
         apiSource.setRpcTimeout(hBaseProperties.getRpcTimeout());
         apiSource.setDbName(hBaseProperties.getDbName());
         apiSource.setTableName(hBaseProperties.getTableName());
@@ -45,9 +46,11 @@ public class HBaseConfiguration {
             conf.set("hbase.zookeeper.quorum", hBaseProperties.getZookeeperQuorum());
             conf.set("hbase.zookeeper.property.clientPort", hBaseProperties.getZookeeperPropertyClientPort());
             conf.set("hbase.zookeeper.znode.parent", hBaseProperties.getZookeeperZnodeParent());
-            conf.set("zookeeper.recovery.retry", "3");
-            conf.set("zookeeper.recovery.retry.intervalmill", "200");
             conf.set("hbase.rpc.timeout", hBaseProperties.getRpcTimeout());
+            conf.set("hbase.client.ipc.pool.size", hBaseProperties.getClientIpcPoolSize());
+            conf.set("hbase.client.ipc.pool.type", "ThreadLocalPool");
+            conf.set("zookeeper.recovery.retry.intervalmill", "200");
+            conf.set("zookeeper.recovery.retry", "3");
             conf.set("hbase.client.retries.number", "3");
         }
         try {
