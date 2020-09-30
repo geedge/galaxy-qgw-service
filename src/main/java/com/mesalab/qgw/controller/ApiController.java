@@ -1,6 +1,5 @@
 package com.mesalab.qgw.controller;
 
-import com.google.gson.GsonBuilder;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.qgw.model.api.ApiParam;
