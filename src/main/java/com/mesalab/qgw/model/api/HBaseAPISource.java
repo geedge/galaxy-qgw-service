@@ -14,6 +14,7 @@ public class HBaseAPISource implements Serializable {
     private String columnFamily;
     private String columnName;
     private String clientRetriesNumber;
+    private String clientIpcPoolSize;
     private String rpcTimeout;
 
 }
