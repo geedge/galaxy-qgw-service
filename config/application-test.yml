@@ -62,7 +62,7 @@ arango:
   jwturl: ${arango.server}/_db/${arango.database}/_open/auth
   queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
   maxrows: 10000
-  socketTimeOut: 10000
+  socketTimeOut: 300000
 ## http pool config
 http:
   pool:
