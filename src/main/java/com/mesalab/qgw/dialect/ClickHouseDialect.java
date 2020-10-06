@@ -51,9 +51,22 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
+    public ApiParam param;
+    public BaseResult baseResult;
 
     public ClickHouseDialect(ApiParam param) {
-        initialize(param);
+        this.param = param;
+    }
+
+
+    @Override
+    public void init() {
+        if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
+            param.setSql(param.getDbQuerySource().getSqlBody());
+        } else {
+            param.setSql(param.getQuery());
+        }
+        baseResult = BaseResultGenerator.success();
     }
 
     @Override
@@ -69,9 +82,31 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public String findBestQuery() {
+    public String getBestQuery() {
         return new Optimizer().generateQueryLimit().
                 generateSQL().generateUniq().generateSubquery().build();
+    }
+
+    @Override
+    public String getOriginQuery() {
+        return param.getQuery();
+    }
+
+    /**
+     * 获取语法检测sql
+     *
+     * @return
+     */
+    @Override
+    public String getSyntaxCheckQuery() {
+        String sql = param.getDbQuerySource().getSqlBody();
+        try {
+            sql = String.valueOf(parserAndUpdateSql(sql));
+        } catch (Exception e) {
+            log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
+                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+        }
+        return sql;
     }
 
 
@@ -99,7 +134,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         public Converter generateDateFunction() {
-            sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.CLICKHOUSE.getValue());
+            try {
+                sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.CLICKHOUSE.getValue());
+            } catch (Exception ex) {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "参数校验：SQL 日期函数解析错误", ex);
+            }
 
             return this;
         }
@@ -846,24 +885,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
 
-    @Override
-    public BaseResult executeQuery() {
-        return generateBaseResult(convertQuery(findBestQuery()), Optional.of("OK")).build();
-    }
-
-    @Override
-    public BaseResult executeAdministrativeQuery() {
-        return generateBaseResult(param.getQuery(), Optional.of("OK")).build();
-    }
-
-
-    @Override
-    public BaseResult executeSyntaxCheck() {
-        String sql = convertQuery(getSyntaxCheckSql());
-        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), sql);
-        return generateBaseResult(sql, Optional.of(Encodes.urlDecode(sql))).build();
-    }
-
     /**
      * 执行SQL获取查询结果，此数据为数据库返回的原始结果。
      * 主要目标统一封装BaseResult对象，便于后续对结果进行业务模型构建。
@@ -872,7 +893,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @param message 携带消息
      * @return
      */
-    private ClickHouseDialect generateBaseResult(String sql, Optional<String> message) {
+    @Override
+    public BaseResult generateBaseResult(String sql, Optional<String> message) {
 
         Map<String, String> results = executeHttpGet(sql);
 
@@ -890,7 +912,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
                     results.get("result"), null, null, param.getFormat());
         }
-        return this;
+        return build();
     }
 
 
@@ -923,21 +945,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
 
-    /**
-     * 获取语法检测sql
-     *
-     * @return
-     */
-    private String getSyntaxCheckSql() {
-        String sql = param.getDbQuerySource().getSqlBody();
-        try {
-            sql = String.valueOf(parserAndUpdateSql(sql));
-        } catch (Exception e) {
-            log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
-        }
-        return sql;
-    }
+
 
 
     /**

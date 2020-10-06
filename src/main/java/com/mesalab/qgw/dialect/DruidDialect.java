@@ -8,6 +8,7 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SQLFunctionUtil;
@@ -42,10 +43,24 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private int pageOffset;
     private Stopwatch watch = Stopwatch.createUnstarted();
+    public ApiParam param;
+    public BaseResult baseResult;
 
     public DruidDialect(ApiParam param) {
-        initialize(param);
+        this.param = param;
     }
+
+    @Override
+    void init() {
+        if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
+            param.setSql(param.getDbQuerySource().getSqlBody());
+        } else {
+            param.setSql(param.getQuery());
+        }
+        baseResult = BaseResultGenerator.success();
+    }
+
+
 
     @Override
     public boolean supportsLimit() {
@@ -60,13 +75,37 @@ public class DruidDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public String findBestQuery() {
+    public String getBestQuery() {
 
         return new Optimizer().generateQueryLimit().generateSQL().build();
 
     }
 
     @Override
+    public String getOriginQuery() {
+        return param.getQuery();
+    }
+
+    /**
+     * 获取语法检测sql
+     *
+     * @return
+     */
+    @Override
+    public String getSyntaxCheckQuery() {
+        String sql = param.getDbQuerySource().getSqlBody();
+        try {
+            sql = String.valueOf(parserAndUpdateSql(sql));
+        } catch (Exception e) {
+            log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
+                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+        }
+        return sql;
+    }
+
+
+
+    /*@Override
     public BaseResult executeQuery() {
 
         watch.start();
@@ -87,7 +126,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
         return generateBaseResult(query, Optional.of(query)).build();
 
-    }
+    }*/
 
 
     /**
@@ -108,8 +147,9 @@ public class DruidDialect extends AbstractDataSourceDialect {
         return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
     }
 
-
-    private DruidDialect generateBaseResult(String sql, Optional<String> message) {
+    @Override
+    public BaseResult generateBaseResult(String sql, Optional<String> message) {
+        watch.start();
 
         Map<String, String> results = executeHttpPost(sql);
 
@@ -121,7 +161,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
                     results.get("result"), null, null, param.getFormat());
         }
 
-        return this;
+        return build();
     }
 
 
@@ -161,21 +201,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     }
 
 
-    /**
-     * 获取语法检测sql
-     *
-     * @return
-     */
-    private String getSyntaxCheckSql() {
-        String sql = param.getDbQuerySource().getSqlBody();
-        try {
-            sql = String.valueOf(parserAndUpdateSql(sql));
-        } catch (Exception e) {
-            log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
-        }
-        return sql;
-    }
+
 
     /**
      * 做时间范围条件过滤: 去除原有最内层条件, 重新添加时间范围
@@ -279,7 +305,13 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
 
         public Converter generateDateFunction() {
-            sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.DRUID.getValue());
+
+            try {
+                sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.DRUID.getValue());
+            } catch (Exception ex) {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "参数校验：SQL 日期函数解析错误", ex);
+            }
+
             return this;
         }
 

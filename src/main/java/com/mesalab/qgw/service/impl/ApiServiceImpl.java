@@ -637,40 +637,31 @@ public class ApiServiceImpl implements ApiService {
      * @return
      */
     private BaseResult executeDescStatement(ApiParam param, DescribeStatement statement) {
-        String name = statement == null ? param.getTableName() : statement.getTable().getName();
-        param.setTableName(name);
+        String tableName = statement == null ? param.getTableName() : statement.getTable().getName();
+        param.setTableName(tableName);
+        String dbType = metadataService.getDBTypeByTableName(param.getTableName().toLowerCase());
 
-
-        ApiParam temp = new ApiParam();
-        temp.setSchema(clickHouseProperties.getDbname());
-        temp.setTableName(name);
-        temp.setQuery("show tables");
-
-
-        BaseResult ckResult = executeShowStatement(temp, null);
-        Map data = (Map) ckResult.getData();
-        List symbols = (List) data.get("symbols");
-        if (symbols.contains(param.getTableName())) {
-            //表在ck中
+        if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(dbType)) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
             param.setDialectDBType(DBTypeEnum.CLICKHOUSE.getValue());
-        } else {//走druid去查
+        } else if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(dbType)) {
             param.setDbType(DBTypeEnum.DRUID.getValue());
             param.setDialectDBType(DBTypeEnum.DRUID.getValue());
-            param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + name + "'");
+            param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
+        } else {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
         }
-        param.setFormat(QueryFormatEnum.JSON.getValue());
 
+        param.setFormat(QueryFormatEnum.JSON.getValue());
         SQLQuerySource dbQuerySource = new SQLQuerySource();
         dbQuerySource.setSqlBody(param.getQuery());
         param.setDbQuerySource(dbQuerySource);
-
         Dialect dialect = getDialect(param);
-        BaseResult result = dialect.executeAdministrativeQuery();
-        if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
+        BaseResult baseResult = dataEncapsulationOfSchema(dialect.executeAdministrativeQuery(), param);
+
+        if (!baseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "describe table error, please check tableName", null);
         }
-        BaseResult baseResult = dataEncapsulationOfSchema(result, param);
         return baseResult;
     }
 

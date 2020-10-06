@@ -28,58 +28,53 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class FederationDialect extends AbstractEngineDialect{
     private Stopwatch watch = Stopwatch.createUnstarted();
+    public ApiParam param;
+    public BaseResult baseResult;
+
     public FederationDialect(ApiParam param, BaseResult result) {
-        initialize(param, result);
+        this.param = param;
+        this.baseResult = result;
     }
+    @Override
+    public void init() {
+        if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
+            param.setQuery(param.getEngineQuerySource().getSqlBody());
+        }
+    }
+
 
     @Override
     public boolean supportsLimit() {
         return false;
     }
 
+
+
     @Override
-    public BaseResult executeSyntaxCheck() {
-        return null;
+    public boolean isExecuteUDF() {
+        return baseResult.isSuccess() ? true : false ;
     }
 
 
-
     @Override
-    public BaseResult executeQuery() {
+    public BaseResult generateBaseResult() {
         try {
             watch.start();
-            if (baseResult.isSuccess()) {
-                executeUDF();
-                return generateBaseResult().build();
+            if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
+                SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
+                Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableName(),
+                        (List<Map<String, String>>) baseResult.getMeta(),
+                        (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
+                baseResult.setData(resultMap.get("data"));
+                baseResult.setMeta(resultMap.get("meta"));
             }
+
+            log.debug("Calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
         } catch (Exception ex) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                     ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute memory-query error：", ex);
         }
-
-        return baseResult;
-    }
-
-    private FederationDialect generateBaseResult() {
-
-        if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-            SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-            Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableName(),
-                    (List<Map<String, String>>) baseResult.getMeta(),
-                    (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
-            baseResult.setData(resultMap.get("data"));
-            baseResult.setMeta(resultMap.get("meta"));
-        }
-
-        log.info("Calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
-        return  this;
-    }
-
-
-
-    @Override
-    public BaseResult executeAdministrativeQuery() {
-        return null;
+        return  build();
     }
 
 

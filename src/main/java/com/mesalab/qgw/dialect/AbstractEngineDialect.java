@@ -5,22 +5,49 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 
+import java.util.Optional;
+
 @Data
 public abstract class AbstractEngineDialect implements Dialect {
     public ApiParam param;
     public BaseResult baseResult;
 
+    abstract  void init();
+
+    public boolean isExecuteUDF() {
+        return false;
+    }
+
     abstract void executeUDF();
 
-    public void initialize(ApiParam param, BaseResult baseResult) {
-        this.param = param;
-        if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-            param.setQuery(param.getEngineQuerySource().getSqlBody());
+    /**
+     * 解析并生成最终结果
+     * @return
+     */
+    abstract  BaseResult generateBaseResult();
+
+
+    @Override
+    final public BaseResult executeQuery() {
+        init();
+        if (isExecuteUDF()) {
+            executeUDF();
         }
-
-        this.baseResult = baseResult;
-
+        return generateBaseResult();
     }
+
+
+    @Override
+    final public BaseResult executeSyntaxCheck() {
+        return  null;
+    }
+
+    @Override
+    final public BaseResult executeAdministrativeQuery() {
+        return  null;
+    }
+
+
 
 
 }

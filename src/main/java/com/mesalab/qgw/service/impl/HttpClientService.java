@@ -384,13 +384,12 @@ public class HttpClientService {
         try {
             URL ul = new URL(url);
             URI uri = new URI(ul.getProtocol(), null, ul.getHost(), ul.getPort(), ul.getPath(), ul.getQuery(), null);
-            log.info("http post uri:{}， http post body:{}", uri, requestBody);
+            log.debug("http post uri:{}， http post body:{}", uri, requestBody);
             HttpPost httpPost = new HttpPost(uri);
             httpPost.setHeader("Content-Type", "application/json");
             if (StringUtil.isNotEmpty(headers)) {
                 for (Header h : headers) {
                     httpPost.addHeader(h);
-                    log.info("request header : {}", h);
                 }
             }
             if (StringUtil.isNotBlank(requestBody)) {
