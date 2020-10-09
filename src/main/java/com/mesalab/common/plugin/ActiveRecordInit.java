@@ -1,6 +1,5 @@
 package com.mesalab.common.plugin;
 
-import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.plugin.druid.DruidPlugin;
 import com.mesalab.common.configuration.BifangMysqlConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -17,15 +16,15 @@ import javax.annotation.PostConstruct;
  */
 @Slf4j
 @Component
-public class ActiveRecord {
+public class ActiveRecordInit {
 
     @Autowired
     BifangMysqlConfiguration bmc;
 
     @PostConstruct
-    public void initDialect(){
-        DruidPlugin dp = new DruidPlugin(bmc.getUrl(),bmc.getUserName(),bmc.getPassWord());
-        ActiveRecordPlugin arp = new ActiveRecordPlugin(dp);
+    public void initDialect() {
+        DruidPlugin dp = new DruidPlugin(bmc.getUrl(), bmc.getUserName(), bmc.getPassWord());
+        ArpStartPlugin arp = new ArpStartPlugin(dp);
         arp.addSqlTemplate("sql-temelate.sql");
         dp.start();
         arp.start();

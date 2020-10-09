@@ -23,7 +23,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @author darnell
  * @date 2019/06/10
  */
-@SpringBootApplication(exclude={DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@SpringBootApplication
 public class GalaxyQGWApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {
