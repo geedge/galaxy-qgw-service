@@ -11,8 +11,8 @@ import javax.annotation.PostConstruct;
 /**
  * @Date: 2020-09-17 15:24
  * @Author : liuyongqiang
- * @ClassName : ActiveRecord
- * @Description : ActiveRecord
+ * @ClassName : ActiveRecordInit
+ * @Description : ActiveRecordInit
  */
 @Slf4j
 @Component
