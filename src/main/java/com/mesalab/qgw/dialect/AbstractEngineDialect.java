@@ -9,12 +9,10 @@ import java.util.Optional;
 
 @Data
 public abstract class AbstractEngineDialect implements Dialect {
-    public ApiParam param;
-    public BaseResult baseResult;
 
     abstract  void init();
 
-    public boolean isExecuteUDF() {
+    public boolean isExecute() {
         return false;
     }
 
@@ -30,9 +28,7 @@ public abstract class AbstractEngineDialect implements Dialect {
     @Override
     final public BaseResult executeQuery() {
         init();
-        if (isExecuteUDF()) {
-            executeUDF();
-        }
+        executeUDF();
         return generateBaseResult();
     }
 

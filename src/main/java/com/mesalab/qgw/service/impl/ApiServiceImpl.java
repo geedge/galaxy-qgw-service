@@ -107,6 +107,7 @@ public class ApiServiceImpl implements ApiService {
     private BaseResult executeSelectStatement(ApiParam param) {
 
         BaseResult baseResult = null;
+
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
             baseResult = ReportCacheUtils.get(param.getResultId(), param.getQuery());
             if (baseResult.isSuccess()) {
@@ -120,6 +121,7 @@ public class ApiServiceImpl implements ApiService {
         }
 
         Dialect dbDialect = parserSQL(param);
+
         if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
             baseResult = dbDialect.executeSyntaxCheck();
         } else {

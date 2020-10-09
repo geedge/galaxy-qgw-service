@@ -51,7 +51,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
 
     @Override
-    public boolean isExecuteUDF() {
+    public boolean isExecute() {
         return baseResult.isSuccess() ? true : false ;
     }
 
@@ -59,6 +59,10 @@ public class FederationDialect extends AbstractEngineDialect{
     @Override
     public BaseResult generateBaseResult() {
         try {
+           if (!isExecute()) {
+               return baseResult;
+           }
+
             watch.start();
             if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
@@ -68,8 +72,8 @@ public class FederationDialect extends AbstractEngineDialect{
                 baseResult.setData(resultMap.get("data"));
                 baseResult.setMeta(resultMap.get("meta"));
             }
-
             log.debug("Calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
+
         } catch (Exception ex) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                     ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute memory-query error：", ex);
@@ -103,7 +107,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public void executeUDF() {
-
+        if (isExecute()) {
             SQLQuerySource sqlQuerySource = param.getDbQuerySource();
             Set<UDF> udfSet = sqlQuerySource.getUdfSet();
             for (UDF udf : udfSet) {
@@ -111,8 +115,7 @@ public class FederationDialect extends AbstractEngineDialect{
                         (List<Object>) baseResult.getData());
                 baseResult.setData(targetResult);
             }
-
-
+        }
 
     }
 

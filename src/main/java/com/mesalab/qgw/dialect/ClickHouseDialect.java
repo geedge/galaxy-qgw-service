@@ -909,7 +909,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     null,
                     QueryFormatEnum.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), message.get(),
                     results.get("result"), null, null, param.getFormat());
         }
         return build();
