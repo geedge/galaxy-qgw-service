@@ -19,7 +19,7 @@ clickhouse:
   realTimeAccount:
     username: tsg_query
     password: ceiec2018
-    socketTimeOut: 10000
+    socketTimeOut: 60000
   longTermAccount:
     username: tsg_report
     password: ceiec2019
@@ -29,7 +29,7 @@ clickhouse:
 druid:
   url: 192.168.44.12:8082/druid/v2/sql
   dbname: druid
-  socketTimeOut: 10000
+  socketTimeOut: 60000
 ###############################################################################
 ## Hbase configuration
 hbase:
@@ -51,7 +51,7 @@ xxl-job-admin:
 ## Engine configuration
 engine:
   maxCacheNum: 1048576
-  defaultResultNum: 200
+  defaultResultNum: 100000
 ###############################################################################
 ## ArangoDB configuration
 arango:
