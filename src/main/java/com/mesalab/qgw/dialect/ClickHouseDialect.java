@@ -11,11 +11,11 @@ import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.mesalab.common.utils.TableFinder;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.Parenthesis;
@@ -119,16 +119,22 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         /**
          * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
-         * 1.子查询必须加表别名
+         * 1.集群模式子查询必须加库名、别名 (解决方法: 对sql统一处理添加库名、别名)
          * 2.不支持 count(1) 需转为count(*)
          *
          * @return
          */
         public Converter generateStandard() {
             sql = generateCount(sql);
-            SelectBody body = generateSubqueryAlias(sql);
-            if (StringUtil.isNotEmpty(body)) {
-                sql = body.toString();
+            try {
+                TableFinder tableFinder = new TableFinder();
+                Statement parse = CCJSqlParserUtil.parse(sql);
+                tableFinder.setDefaultAlias(true);
+                tableFinder.addSchemaName(parse);
+                sql = String.valueOf(parse);
+            } catch (JSQLParserException e) {
+                log.error("添加库名、别名异常: ", e);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "添加库名、别名异常", e);
             }
             return this;
         }
@@ -173,107 +179,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             m.appendTail(sb);
             return sb.toString();
         }
-
-        /**
-         * clickhouse 集群模式下针对GLOBAL IN subquery 默认需要增加别名
-         *
-         * @param sql
-         * @return
-         */
-        private SelectBody generateSubqueryAlias(String sql) {
-
-            SelectBody resultSelectBody = null;
-            try {
-                Statement statement = CCJSqlParserUtil.parse(sql);
-
-                if (statement instanceof Select) {
-
-                    Select selectStatement = (Select) statement;
-
-                    SelectBody body = selectStatement.getSelectBody();
-
-                    if (body instanceof PlainSelect) {
-
-                        PlainSelect plainSelect = (PlainSelect) body;
-
-                        //子查询处理
-                        Expression where = plainSelect.getWhere();
-                        if (where != null) {
-                            setInSubqueryAlias(where);
-                        }
-
-                        resultSelectBody = plainSelect;
-
-                    } else if (body instanceof SetOperationList) {//连接查询
-                        SetOperationList setOperationList = (SetOperationList) body;
-                        List<SelectBody> selectsList = setOperationList.getSelects();
-                        for (int i = 0; i < selectsList.size(); i++) {
-                            if (selectsList.get(i) instanceof PlainSelect) {
-                                SelectBody selectBody = generateSubqueryAlias(selectsList.get(i).toString());
-                                setOperationList.getSelects().set(i, selectBody);
-                            }
-
-                        }
-
-                        resultSelectBody = setOperationList;
-
-                    }
-                }
-
-            } catch (JSQLParserException e) {
-                log.error("sqlParser error: ", e);
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "参数校验：SQL 解析错误", e);
-
-            }
-
-            return resultSelectBody;
-
-        }
-
-        /**
-         * 子查询别名处理
-         *
-         * @param where
-         */
-        private void setInSubqueryAlias(Expression where) {
-            if (where instanceof InExpression) {
-                InExpression whereIn = (InExpression) where;
-                ItemsList rightItemsList = whereIn.getRightItemsList();
-                if (rightItemsList instanceof SubSelect) {
-                    SubSelect sub = (SubSelect) rightItemsList;
-                    SelectBody selectBody = sub.getSelectBody();
-                    PlainSelect plainSelect = (PlainSelect) selectBody;
-                    FromItem fromItem = plainSelect.getFromItem();
-                    if (fromItem instanceof Table) {
-                        Table table = (Table) fromItem;
-                        if (StringUtil.isEmpty(table.getAlias())) {
-                            Alias alias = new Alias(table.getName());
-                            plainSelect.getFromItem().setAlias(alias);
-                        }
-                    } else if (fromItem instanceof SubSelect) {
-                        SubSelect subSelect = (SubSelect) fromItem;
-                        generateSubqueryAlias(subSelect.getSelectBody().toString());
-                    }
-                    if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
-                        setInSubqueryAlias(plainSelect.getWhere());
-                    }
-                }
-            } else if (where instanceof AndExpression) {
-                AndExpression whereAnd = (AndExpression) where;
-                Expression leftExpression = whereAnd.getLeftExpression();
-                setInSubqueryAlias(leftExpression);
-                Expression rightExpression = whereAnd.getRightExpression();
-                setInSubqueryAlias(rightExpression);
-            } else if (where instanceof OrExpression) {
-                OrExpression whereOr = (OrExpression) where;
-                Expression leftExpression = whereOr.getLeftExpression();
-                setInSubqueryAlias(leftExpression);
-                Expression rightExpression = whereOr.getRightExpression();
-                setInSubqueryAlias(rightExpression);
-            }
-        }
-
-
     }
 
 
@@ -488,7 +393,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 //判断三: where 条件列是否都在索引表中
                 setValidityByWhereExpressionsInSchema(param.getDbQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
                 if (getSubIndexValidFlag() && isExist(indexTableSchema.getFullName())) {
-                    indexTable = indexTableSchema.getFullName();
+                    System.out.println(indexTableSchema.getFullName());
+                    indexTable = indexTableSchema.getName();
                     break;
                 }
             }
@@ -529,8 +435,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 log.warn("Get Partition Key is Null.Focus in tableName {} schema", param.getTableName());
                 return sql;
             } else {
-                StringBuffer subQuery = getSubquerySql(partitionKey,
-                        metadataService.getDBNameByTableName(param.getTableName()) + "." + param.getTableName());
+                StringBuffer subQuery = getSubquerySql(partitionKey, param.getTableName());
                 Matcher m = pWhere.matcher(sql);
                 StringBuffer sb = new StringBuffer();
                 while (m.find()) {
