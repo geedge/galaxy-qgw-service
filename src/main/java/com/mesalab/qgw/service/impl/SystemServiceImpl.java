@@ -227,22 +227,11 @@ public class SystemServiceImpl implements SystemService {
             jobHandler = getDeleteAllHandlerByLogType(logType);
             Map dataByHandler = getDataByHandler(jobHandler);
 
-            if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(logType)) {
-                executorParam.setMaxdays(30);
-            } else if (LogType.REPORT_AND_METRICS.getValue().equalsIgnoreCase(logType)) {
-                executorParam.setMaxdays(365);
-            } else if (LogType.FILES.getValue().equalsIgnoreCase(logType)) {
-                executorParam.setMaxdays(365);
-            }
+            StorageDeletionInfo storageDeletionInfoByHandler = getStorageDeletionInfoByHandler(logType, jobHandler);
+            executorParam.setMaxdays(storageDeletionInfoByHandler.getMaxDays());
+
             XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
             baseResult = executeTriggerAndUpdate(xxlJobInfo);
-
-            if (baseResult.getStatus().equals(HttpStatus.SC_OK)) {
-                String deletePartHandler = getDeletePartHandlerByLogType(info.getLogType());
-                Map date = getDataByHandler(deletePartHandler);
-                XxlJobInfo xxlJobInfoOfUpdate = setXxlJobInfoParam(date, executorParam);
-                baseResult = executeManageJob("update", xxlJobInfoOfUpdate);
-            }
         } else {
             jobHandler = getDeletePartHandlerByLogType(info.getLogType());
             executorParam.setMaxdays(info.getMaxDays());
