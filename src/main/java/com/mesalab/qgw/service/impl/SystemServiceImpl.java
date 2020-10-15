@@ -227,7 +227,7 @@ public class SystemServiceImpl implements SystemService {
             jobHandler = getDeleteAllHandlerByLogType(logType);
             Map dataByHandler = getDataByHandler(jobHandler);
 
-            StorageDeletionInfo storageDeletionInfoByHandler = getStorageDeletionInfoByHandler(logType, jobHandler);
+            StorageDeletionInfo storageDeletionInfoByHandler = getStorageDeletionInfoByHandler(logType, getDeletePartHandlerByLogType(logType));
             executorParam.setMaxdays(storageDeletionInfoByHandler.getMaxDays());
 
             XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
