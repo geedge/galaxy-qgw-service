@@ -18,5 +18,12 @@ public interface OpenApiService {
      **/
     BaseResult appDicList();
 
-
+    /**
+     * @param id: 报告ID
+     * @Description: 查询报告结果
+     * @Author: liuyongqiang
+     * @Date: 2020/10/16 17:45
+     * @return: com.mesalab.common.base.BaseResult
+     **/
+    BaseResult reportResults(Integer id);
 }
