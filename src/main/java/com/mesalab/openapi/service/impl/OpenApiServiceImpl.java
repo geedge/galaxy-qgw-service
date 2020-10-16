@@ -48,11 +48,14 @@ public class OpenApiServiceImpl implements OpenApiService {
         List<Record> list = Db.find(sql, id);
         if (CollectionUtils.isEmpty(list)) return BaseResultGenerator.success();
 
-        list.stream().forEach(record -> results.add(record.getColumns()));
-        String queryKey = ReportCacheUtils.getQueryId(String.valueOf(id), sql);
-        BaseResult baseResult = BaseResultGenerator.success(results);
-        baseResult.setQueryKey(queryKey);
+        list.stream().forEach(record -> {
+            String querySql = record.get("query_sql");
+            int resultId = record.getInt("result_id");
+            String queryId = ReportCacheUtils.getQueryId(String.valueOf(resultId), querySql);
+            record.set("query_id", queryId);
+            results.add(record.getColumns());
+        });
 
-        return baseResult;
+        return BaseResultGenerator.success(results);
     }
 }
