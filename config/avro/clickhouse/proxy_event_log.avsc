@@ -373,26 +373,24 @@
     {
       "name": "http_request_header",
       "label": "Http.Request Header",
-      "type": "string",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "type": "string"
     },
     {
       "name": "http_response_header",
       "label": "Http.Response Header",
-      "type": "string",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "type": "string"
     },
     {
       "name": "http_request_body",
       "label": "Http.Request Body",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"file\"},\"visibility\":\"disabled\"}"
+      "doc": "{\"constraints\":{\"type\":\"file\"}}"
     },
     {
       "name": "http_response_body",
       "label": "Http.Response Body",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"file\"},\"visibility\":\"disabled\"}"
+      "doc": "{\"constraints\":{\"type\":\"file\"}}"
     },
     {
       "name": "http_request_body_key",
