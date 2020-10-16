@@ -5,8 +5,8 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.openapi.service.OpenApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Objects;
@@ -42,9 +42,8 @@ public class OpenApiController {
      * @Date: 2020/10/16 17:46
      * @return: com.mesalab.common.base.BaseResult
      **/
-    @GetMapping("reportResults")
-    public BaseResult reportResults(@RequestParam(name = "id") Integer id) {
-        if (Objects.isNull(id)) return BaseResultGenerator.failure("id不能为空");
+    @GetMapping("reportResults/{id}")
+    public BaseResult reportResults(@PathVariable(name = "id") Integer id) {
         return openApiService.reportResults(id);
     }
 }
