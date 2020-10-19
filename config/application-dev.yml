@@ -45,8 +45,8 @@ hbase:
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
-  userName: admin
-  password: 123456
+  userName: query
+  password: ceiec2018
 ###############################################################################
 ## Engine configuration
 engine:
