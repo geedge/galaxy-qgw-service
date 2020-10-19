@@ -53,7 +53,6 @@ public class OpenApiServiceImpl implements OpenApiService {
             int resultId = record.getInt("result_id");
             String queryId = ReportCacheUtils.getQueryId(String.valueOf(resultId), querySql);
             record.set("query_id", queryId);
-            record.set("query_sql", querySql.replaceAll("\"", ""));
             results.add(record.getColumns());
         });
 
