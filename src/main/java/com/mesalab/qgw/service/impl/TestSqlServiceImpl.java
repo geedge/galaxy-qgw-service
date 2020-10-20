@@ -197,13 +197,8 @@ public class TestSqlServiceImpl {
         list.add("select distinct(framed_ip) as framed_ip from radius_onff_log where account='000iS' and event_timestamp >= $start_time and event_timestamp < $end_time");
         //RADIUS账户访问详情
         list.add("select max(if(acct_status_type=1,event_timestamp,0)) as start_time,max(if(acct_status_type=2,event_timestamp,0)) as end_time, any(framed_ip) as ip,max(acct_session_time) as online_duration  from radius_onff_log where account='000jS' and event_timestamp >= $start_time and event_timestamp < $end_time  group by acct_session_id  order by start_time desc limit 200");
-        //目标资源分析
-        list.add("SELECT  domain, groupUniqArrayMerge(ip_list) as ip_list, groupUniqArrayMerge(cdn_list) as cdn_list, groupUniqArrayMerge(protocol_type_list) as protocol_type_list, groupUniqArrayMerge(port_list) as port_list  FROM security_website_domain_info where  stat_time >= $start_time and stat_time < $end_time and policy_id=0 group by domain");
-        //某IP的关联域名关系
-        list.add("SELECT  ip, FROM_UNIXTIME(max(stat_time)) as last_time, FROM_UNIXTIME(min(stat_time)) as first_time, groupUniqArrayMerge(domain_list) as domain_list, groupUniqArrayMerge(port_list) as port_list  FROM security_ip_info where  stat_time >= $start_time and stat_time < $end_time and ip='192.168.50.70' group by ip");
         //自定义函数测试
         list.add("SELECT policy_id, APPROX_COUNT_DISTINCT_DS_HLL(isp) as num  FROM proxy_event_hits_log where  __time >= '2020-04-05 00:00:00' and __time < '2020-05-05 00:00:00' and policy_id=0 group by policy_id");
-        list.add("SELECT ip, IP_TO_CITY(ip) as location, IP_TO_GEO(ip) as geo from (SELECT policy_id, arrayJoin(groupUniqArrayMerge(ip_list)) as ip FROM proxy_ip_info where  stat_time >= $start_time and stat_time < $end_time and policy_id=0 group by policy_id)");
         list.add("select TIME_FLOOR_WITH_FILL(common_recv_time,'PT5M','previous') as stat_time from connection_record_log where  common_recv_time > $start_time and common_recv_time < $end_time  group by stat_time");
 
         return list;
@@ -389,8 +384,6 @@ public class TestSqlServiceImpl {
         list.add("SELECT url, content_length, ip_num, session_num  FROM top_website_urls_daily_log where __time = now()");
         //劫持客户端数量
         list.add("SELECT policy_id, APPROX_COUNT_DISTINCT_DS_HLL(isp) as num  FROM proxy_event_hits_log where  __time >= $start_time and __time < $end_time and policy_id=0 group by policy_id");
-        //劫持客户端IP地域分布
-        list.add("select ip, IP_TO_CITY(ip) as location, IP_TO_GEO(ip) as geo from (SELECT policy_id, arrayJoin(groupUniqArrayMerge(ip_list)) as ip FROM proxy_ip_info where  stat_time >= $start_time and stat_time < $end_time and policy_id=0 group by policy_id)");
 
         return list;
     }
