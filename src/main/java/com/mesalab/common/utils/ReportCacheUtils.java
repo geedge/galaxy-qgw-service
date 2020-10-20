@@ -51,8 +51,8 @@ public class ReportCacheUtils {
             get.addColumn(Bytes.toBytes(hBaseAPISource.getColumnFamily()), Bytes.toBytes(hBaseAPISource.getColumnName()));
             result = table.get(get);
         } catch (Exception e) {
-            log.error("get hbase error: ", e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Get Hbase Error：", e);
+            log.error("get hbase error: {}", e);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "Get Hbase Error: ", e);
         } finally {
             closeTable(table);
         }
