@@ -376,12 +376,6 @@ public class TestSqlServiceImpl {
         list.add("select url,sum(session_num) as hits  from top_urls_log where __time >=TIMESTAMP $start_time and __time <TIMESTAMP $end_time  group by url order by hits desc limit 100");
         list.add("select url,sum(session_num) as hits  from top_urls_log where __time >= $start_time and __time < $end_time  group by url order by hits desc limit 100");
 
-        //国家客户端数量
-        list.add("SELECT country, APPROX_COUNT_DISTINCT_DS_HLL(ip_object) as num FROM source_country_ip_num_log group by country order by num desc limit 200");
-        //域名推荐
-        list.add("SELECT domain, protocol_type, ip_num, session_num  FROM top_domain_recommend_daily_log where __time = now()");
-        //推荐URL
-        list.add("SELECT url, content_length, ip_num, session_num  FROM top_website_urls_daily_log where __time = now()");
         //劫持客户端数量
         list.add("SELECT policy_id, APPROX_COUNT_DISTINCT_DS_HLL(isp) as num  FROM proxy_event_hits_log where  __time >= $start_time and __time < $end_time and policy_id=0 group by policy_id");
 
