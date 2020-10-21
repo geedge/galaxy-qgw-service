@@ -38,7 +38,7 @@
       "name": "common_internal_ip",
       "label": "Internal IP",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=0,$.common_client_ip,$.common_server_ip\"}}"
+      "doc": "{\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=69,$.common_client_ip,$.common_server_ip\"}}"
     },
     {
       "name": "common_client_port",
@@ -72,7 +72,7 @@
       "name": "common_external_ip",
       "label": "External IP",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=1,$.common_client_ip,$.common_server_ip\"}}"
+      "doc": "{\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=73,$.common_client_ip,$.common_server_ip\"}}"
     },
     {
       "name": "common_action",
@@ -84,7 +84,7 @@
       "name": "common_direction",
       "label": "Direction",
       "type": "int",
-      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"outbound\"},{\"code\":\"1\",\"value\":\"inbound\"}]}"
+      "doc": "{\"data\":[{\"code\":\"69\",\"value\":\"outbound\"},{\"code\":\"73\",\"value\":\"inbound\"}]}"
     },
     {
       "name": "common_entrance_id",

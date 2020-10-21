@@ -72,7 +72,7 @@
       "name": "common_direction",
       "label": "Direction",
       "type": "int",
-      "doc": "{\"data\":[{\"code\":\"0\",\"value\":\"outbound\"},{\"code\":\"1\",\"value\":\"inbound\"}]}"
+      "doc": "{\"data\":[{\"code\":\"69\",\"value\":\"outbound\"},{\"code\":\"73\",\"value\":\"inbound\"}]}"
     },
     {
       "name": "common_entrance_id",
