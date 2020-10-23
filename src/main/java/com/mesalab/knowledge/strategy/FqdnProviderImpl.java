@@ -35,8 +35,6 @@ public class FqdnProviderImpl implements QueryProvider {
 
     private  static final String depthregex = "^[1-9]\\d*$"; //depth 取值范围大于0
 
-    private static final Integer uniqCipRecent = -24;//统计最近时间 单位小时 DIST_CIP
-
     @Value("${arango.maxrows}")
     private String limit;//查询最大条数
 
@@ -175,9 +173,9 @@ public class FqdnProviderImpl implements QueryProvider {
                     map.put("SESSION_TOTAL", edges.getHttpCntTotal() + edges.getTlsCntTotal() + edges.getDnsCntTotal());
                     map.put("SESSION_RECENT", Stream.of(edges.getHttpCntRecent(), edges.getTlsCntRecent(), edges.getDnsCntRecent()).flatMap(Collection::stream).mapToLong(x -> x).sum());
 
-                    //UNIQ_CIP按DIST_CIP_TS.size()计算，UNIQ_CIP_RECENT按最近24小时计算
-                    map.put("UNIQ_CIP", edges.getDistCipTs().size());
-                    map.put("UNIQ_CIP_RECENT", edges.getDistCipTs().stream().filter(t -> t >= (DateUtils.getSomeHour(new Date(), Integer.valueOf(uniqCipRecent)).getTime() / 1000)).count());
+                    //UNIQ_CIP_RECENT与UNIQ_CIP相同
+                    map.put("UNIQ_CIP", edges.getDistCip()==null?0:edges.getDistCip().size());
+                    map.put("UNIQ_CIP_RECENT", edges.getDistCip()==null?0:edges.getDistCip().size());
 
                     list.add(map);
                 }
