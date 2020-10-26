@@ -16,7 +16,7 @@ public enum ResultCodeEnum {
     SQL_SYNTAX_ERROR("400010", "SQL语句检查异常"),
     SQL_EXECUTION_ERROR("500001", "SQL 执行异常"),
     ENGINE_STATISTICS_ERROR("500010", "引擎计算异常"),
-    UNKNOW_ERROR("500999", "执行失败");
+    UNKNOW_ERROR("555999", "执行失败");
 
 
 
