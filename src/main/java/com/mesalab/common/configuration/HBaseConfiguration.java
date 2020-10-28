@@ -57,7 +57,6 @@ public class HBaseConfiguration {
             con = ConnectionFactory.createConnection(conf);
         } catch (Exception e) {
             log.error("create connection error: ", e);
-            e.printStackTrace();
         }
         return con;
     }

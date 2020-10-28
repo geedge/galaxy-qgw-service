@@ -161,6 +161,7 @@ public class MetadataServiceImpl implements MetadataService {
             }
         } catch (Exception e) {
             log.error("Get Partition key Error ", e);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "Get Partition key Error: " + e.getMessage());
         }
         return partitionKey;
     }

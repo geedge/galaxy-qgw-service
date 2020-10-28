@@ -143,7 +143,7 @@ public class ApiServiceImpl implements ApiService {
 
     private Dialect parserAndGetDialect(ApiParam param) {
         Dialect dialect = null;
-        String dbType = metadataService.getDBTypeByTableName(param.getTableName().toLowerCase());
+        String dbType = metadataService.getDBTypeByTableName(param.getTableName());
         if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(dbType)) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
         } else if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(dbType)) {
@@ -641,7 +641,7 @@ public class ApiServiceImpl implements ApiService {
     private BaseResult executeDescStatement(ApiParam param, DescribeStatement statement) {
         String tableName = statement == null ? param.getTableName() : statement.getTable().getName();
         param.setTableName(tableName);
-        String dbType = metadataService.getDBTypeByTableName(param.getTableName().toLowerCase());
+        String dbType = metadataService.getDBTypeByTableName(param.getTableName());
 
         if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(dbType)) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());

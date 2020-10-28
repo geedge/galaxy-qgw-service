@@ -80,7 +80,6 @@ public class TestSqlServiceImpl {
         } catch (UnknownHostException e) {
             hostAddress = "127.0.0.1";
             log.error("获取服务器IP异常", e);
-            e.printStackTrace();
         }
         for (int i = 0; i < list.size(); i++) {
             String sql = String.valueOf(list.get(i));
