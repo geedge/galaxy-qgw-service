@@ -149,10 +149,6 @@
       "type": "long"
     },
     {
-      "name": "flood_bytes",
-      "type": "long"
-    },
-    {
       "name": "hijk_bytes",
       "type": "long"
     },
@@ -198,10 +194,6 @@
     },
     {
       "name": "pinning_num",
-      "type": "long"
-    },
-    {
-      "name": "reflection_bytes",
       "type": "long"
     },
     {
