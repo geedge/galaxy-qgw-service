@@ -33,7 +33,11 @@ import java.util.stream.Stream;
 @Component("IP_LEARNING_VIEW")
 public class FqdnProviderImpl implements QueryProvider {
 
-    private  static final String depthregex = "^[1-9]\\d*$"; //depth 取值范围大于0
+    private static final String depthregex = "^[1-9]\\d*$"; //depth 取值范围大于0
+    private static final String SSL = "SSL";
+    private static final String TLS = "TLS";
+    private static final String HTTP = "HTTP";
+    private static final String DNS = "DNS";
 
     @Value("${arango.maxrows}")
     private String limit;//查询最大条数
@@ -44,7 +48,7 @@ public class FqdnProviderImpl implements QueryProvider {
     @Override
     public Object query(DSLObject.DSLQuery dslQuery) {
         Parameters parameters = dslQuery.getParameters();
-        //a.处理条件 b.需要的条件：fqdn_name 多个, depth, filter:last_found_time, dist_cip, http,tls,dns, limit
+        //a.处理条件 b.需要的条件：fqdn_name 多个, depth, filter:last_found_time, dist_cip, http,ssl/tls,dns, limit
         StringBuffer likeFilter = new StringBuffer();
         StringBuffer intervalsb = new StringBuffer();
         StringBuffer protocolsb = new StringBuffer();
@@ -75,11 +79,11 @@ public class FqdnProviderImpl implements QueryProvider {
                     } else if ("PROTOCOL".equals(r.getFieldKey())) {
                         List<String> protocols = Lists.newArrayList();
                         for (Object protocol : r.getFieldValues()) {
-                            if ("HTTP".equals(protocol)) {
+                            if (HTTP.equals(protocol)) {
                                 protocols.add("e.HTTP_CNT_TOTAL > 0");
-                            } else if ("DNS".equals(protocol)) {
+                            } else if (DNS.equals(protocol)) {
                                 protocols.add("e.DNS_CNT_TOTAL > 0");
-                            } else if ("TLS".equals(protocol)) {
+                            } else if (SSL.equals(protocol)||TLS.equals(protocol)) {
                                 protocols.add("e.TLS_CNT_TOTAL > 0");
                             }
                         }
@@ -161,13 +165,13 @@ public class FqdnProviderImpl implements QueryProvider {
                     map.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(edges.getLastFoundTime(), DateUtils.YYYY_MM_DD_HH24_MM_SS));
                     //协议 按 TLS_CNT_TOTAL>0,SESSION_RECENT按 *_CNT_RECENT和，SESSION_TOTAL按 *_CNT_TOTAL和
                     if (edges.getHttpCntTotal() > 0) {
-                        protocolsList.add("HTTP");
+                        protocolsList.add(HTTP);
                     }
                     if (edges.getTlsCntTotal() > 0) {
-                        protocolsList.add("TLS");
+                        protocolsList.add(SSL);
                     }
                     if (edges.getDnsCntTotal() > 0) {
-                        protocolsList.add("DNS");
+                        protocolsList.add(DNS);
                     }
                     map.put("PROTOCOL", Joiner.on(",").join(protocolsList));
                     map.put("SESSION_TOTAL", edges.getHttpCntTotal() + edges.getTlsCntTotal() + edges.getDnsCntTotal());
