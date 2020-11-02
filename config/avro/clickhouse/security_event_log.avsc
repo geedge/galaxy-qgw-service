@@ -519,7 +519,7 @@
       "name": "mail_subject_charset",
       "label": "Mail.Subject Charset",
       "type": "string",
-      "doc": "{\"visibility\":\"disabled\"}"
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "mail_content",
