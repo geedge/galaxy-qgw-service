@@ -32,7 +32,7 @@
       "name": "common_client_ip",
       "label": "Client IP",
       "type": "string",
-      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_detail,geo_asn,radius_match\",\"appendTo\":\"common_client_location,common_client_asn,common_subscriber_id\"}}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_asn,radius_match\",\"appendTo\":\"common_client_asn,common_subscriber_id\"}}"
     },
     {
       "name": "common_internal_ip",
@@ -60,7 +60,7 @@
       "name": "common_server_ip",
       "label": "Server IP",
       "type": "string",
-      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_country,geo_asn\",\"appendTo\":\"common_server_location,common_server_asn\"}}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_asn\",\"appendTo\":\"common_server_asn\"}}"
     },
     {
       "name": "common_server_port",

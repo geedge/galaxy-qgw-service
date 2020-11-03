@@ -61,7 +61,7 @@
       "name": "common_server_ip",
       "label": "Server IP",
       "type": "string",
-      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_country,geo_asn\",\"appendTo\":\"common_server_location,common_server_asn\"}}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_asn\",\"appendTo\":\"common_server_asn\"}}"
     },
     {
       "name": "common_server_port",
