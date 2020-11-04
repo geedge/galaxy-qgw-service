@@ -276,8 +276,7 @@
     {
       "name": "common_stream_error",
       "label": "Stream Error",
-      "type": "string",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "type": "string"
     },
     {
       "name": "common_stream_trace_id",
