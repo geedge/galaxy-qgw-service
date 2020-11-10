@@ -114,12 +114,14 @@
     {
       "name": "common_server_location",
       "label": "Server Location",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_server_asn",
       "label": "Server ASN",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_sessions",
