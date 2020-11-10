@@ -364,7 +364,7 @@
       "name": "radius_framed_ip",
       "label": "Framed IP",
       "type": "string",
-      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_ip_detail,geo_asn\",\"appendTo\":\"common_client_location,common_client_asn\"}}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_asn\",\"appendTo\":\"common_client_asn\"}}"
     },
     {
       "name": "radius_session_timeout",
@@ -451,22 +451,22 @@
     {
       "name": "radius_acct_input_octets",
       "label": "Acct Input Octets",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "radius_acct_output_octets",
       "label": "Acct Output Octets",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "radius_acct_input_packets",
       "label": "Acct Input Packets",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "radius_acct_output_packets",
       "label": "Acct Output Packets",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "radius_acct_session_time",
