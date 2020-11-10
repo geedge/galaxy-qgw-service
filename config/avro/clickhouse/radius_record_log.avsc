@@ -102,12 +102,14 @@
     {
       "name": "common_client_location",
       "label": "Client Location",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_client_asn",
       "label": "Client ASN",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_server_location",
@@ -364,7 +366,7 @@
       "name": "radius_framed_ip",
       "label": "Framed IP",
       "type": "string",
-      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_asn\",\"appendTo\":\"common_client_asn\"}}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"}}"
     },
     {
       "name": "radius_session_timeout",
