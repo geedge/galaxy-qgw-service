@@ -393,7 +393,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 //判断三: where 条件列是否都在索引表中
                 setValidityByWhereExpressionsInSchema(param.getDbQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
                 if (getSubIndexValidFlag() && isExist(indexTableSchema.getFullName())) {
-                    System.out.println(indexTableSchema.getFullName());
                     indexTable = indexTableSchema.getName();
                     break;
                 }
@@ -414,6 +413,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             StringBuffer subQuery = getSubquerySql(primaryKey, indexTable);
             StringBuffer sb = new StringBuffer();
             sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(primaryKey).append(" in ( ").append(subQuery).append(")");
+            if (StringUtil.isNotBlank(param.getDbQuerySource().getExpr())) {
+                sb.append(" and (").append(param.getDbQuerySource().getExpr()).append(")");
+            }
             if (StringUtil.isNotBlank(param.getDbQuerySource().getOrderBy())) {
                 sb.append(" order by ").append(param.getDbQuerySource().getOrderBy());
             }
