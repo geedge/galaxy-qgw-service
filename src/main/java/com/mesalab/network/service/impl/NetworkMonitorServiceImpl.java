@@ -189,7 +189,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
         whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
-        return String.format("(SELECT SUM(c2s_byte_num + s2c_byte_num) as total_bytes, SUM(sessions) as total_sessions, SUM(c2s_byte_num + s2c_byte_num) * 8000/(TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')) AS data_rate " +
+        return String.format("(SELECT SUM(c2s_byte_num + s2c_byte_num) as total_bytes, SUM(sessions) as total_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/((TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s'))/1000) AS data_rate " +
                         "FROM traffic_protocol_stat_log " +
                         "WHERE %s %s" +
                         "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) LIMIT 1) " +
