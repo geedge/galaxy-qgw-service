@@ -38,7 +38,7 @@
       "name": "common_internal_ip",
       "label": "Internal IP",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=69,$.common_client_ip,$.common_server_ip\"}}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=69,$.common_client_ip,$.common_server_ip\"}}"
     },
     {
       "name": "common_client_port",
@@ -72,7 +72,7 @@
       "name": "common_external_ip",
       "label": "External IP",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=73,$.common_client_ip,$.common_server_ip\"}}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=73,$.common_client_ip,$.common_server_ip\"}}"
     },
     {
       "name": "common_action",
@@ -350,7 +350,8 @@
     {
       "name": "http_url",
       "label": "Http.URL",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "http_host",
