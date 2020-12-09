@@ -35,6 +35,12 @@
       "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"}}"
     },
     {
+      "name": "common_internal_ip",
+      "label": "Internal IP",
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"}}"
+    },
+    {
       "name": "common_client_port",
       "label": "Client Port",
       "type": "int"
@@ -61,6 +67,12 @@
       "label": "Server Port",
       "type": "int",
       "doc": "{\"allow_query\":\"true\"}"
+    },
+    {
+      "name": "common_external_ip",
+      "label": "External IP",
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"}}"
     },
     {
       "name": "common_action",
@@ -208,6 +220,21 @@
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
+      "name": "common_app_id",
+      "label": "Application ID",
+      "type": "int"
+    },
+    {
+      "name": "common_app_surrogate_id",
+      "label": "Surrogate ID",
+      "type": "int"
+    },
+    {
+      "name": "common_l7_protocol",
+      "label": "L7 Protocol",
+      "type": "string"
+    },
+    {
       "name": "common_start_time",
       "label": "Start Time",
       "type": "long",
@@ -308,6 +335,12 @@
       "label": "Unorder Packets(s2c)",
       "type": "long",
       "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_processing_time",
+      "label": "Processing Time",
+      "type": "long",
+      "doc": "{\"constraints\":{\"type\":\"timestamp\"}}"
     },
     {
       "name": "nic_name",
