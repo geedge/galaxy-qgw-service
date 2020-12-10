@@ -54,11 +54,14 @@ public class SystemServiceImpl implements SystemService {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         ApiParam param = new ApiParam();
-        param.setQuery("(select log_type, used_size, coalesce(max_size,0) * 7/10 as max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * last_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Report and Metrics' ORDER BY __time desc limit 1)\n" +
-                "UNION ALL\n" +
-                "(select log_type, used_size, coalesce(max_size,0) * 7/10 as max_size, TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * last_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Files' ORDER BY __time desc limit 1)\n" +
-                "UNION ALL\n" +
-                "(select log_type, used_size, coalesce(max_size,0) * 7/10 as max_size,TIME_FORMAT(MILLIS_TO_TIMESTAMP(1000 * last_storage),'YYYY-MM-dd') as first_storage from sys_storage_log where log_type = 'Traffic Logs' ORDER BY __time desc limit 1)");
+        param.setQuery("SELECT log_type, SUM(used_size) as used_size, SUM(max_size) * 7/10 as max_size, TIME_FORMAT(LATEST(last_storage) * 1000,'YYYY-MM-dd') as first_storage \n" +
+                "FROM ( \n" +
+                "  SELECT log_type, LATEST(used_size) as used_size, LATEST(max_size) as max_size, LATEST(last_storage) as last_storage\n" +
+                "  FROM sys_storage_log\n" +
+                "  WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '10' MINUTE\n" +
+                "  GROUP BY data_center,log_type\n" +
+                ")\n" +
+                "GROUP BY log_type");
         BaseResult result = apiService.executeQuery(param);
         return result;
     }
