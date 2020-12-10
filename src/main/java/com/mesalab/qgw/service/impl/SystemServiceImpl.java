@@ -58,7 +58,7 @@ public class SystemServiceImpl implements SystemService {
                 "FROM ( \n" +
                 "  SELECT log_type, LATEST(used_size) as used_size, LATEST(max_size) as max_size, LATEST(last_storage) as last_storage\n" +
                 "  FROM sys_storage_log\n" +
-                "  WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '1' HOUR\n" +
+                "  WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '1' HOUR AND data_center != '' \n" +
                 "  GROUP BY data_center,log_type\n" +
                 ")\n" +
                 "GROUP BY log_type");
