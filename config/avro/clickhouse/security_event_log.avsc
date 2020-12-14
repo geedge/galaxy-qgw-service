@@ -43,7 +43,8 @@
     {
       "name": "common_client_port",
       "label": "Client Port",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_l4_protocol",
