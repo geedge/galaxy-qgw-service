@@ -115,7 +115,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             long oneSidedConnections = Long.parseLong(String.valueOf(data.get("one_sided_connections") == null ? 0 : data.get("one_sided_connections")));
             double oneSidedPercent = summaryTotalSessions == 0 ? 0 : oneSidedConnections * 1.0 / summaryTotalSessions;
             long sequenceGapLossBytes = Long.parseLong(String.valueOf(data.get("sequence_gap_loss_bytes") == null ? 0 : data.get("sequence_gap_loss_bytes")));
-            double sequenceGapLossBytesPercent = summaryTotalBytes == 0 ? 0 : sequenceGapLossBytes * 1.0 / summaryTotalBytes;
+            double sequenceGapLossBytesPercent = sequenceGapLossBytes == 0 ? 0 : sequenceGapLossBytes * 1.0 / (summaryTotalBytes + sequenceGapLossBytes);
             long fragmentationPackets = Long.parseLong(String.valueOf(data.get("fragmentation_packets") == null ? 0 : data.get("fragmentation_packets")));
             double fragmentationPacketsPercent = summaryTotalPackets == 0 ? 0 : fragmentationPackets * 1.0 / summaryTotalPackets;
 
