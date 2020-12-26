@@ -1,5 +1,7 @@
 package com.mesalab.common.utils;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
@@ -12,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SchemaCacheUtils {
 
-    private static final Logger log = LoggerFactory.getLogger(QueryCacheUtils.class);
+    private static final Log log = LogFactory.get();
     private static final  MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
 
     private static LoadingCache<String, Object> loadingCache = CacheBuilder.newBuilder()

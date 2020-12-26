@@ -1,9 +1,10 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLLimit;
-import com.alibaba.druid.sql.ast.SQLOrderBy;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.SQLBinaryOpExpr;
 import com.alibaba.druid.sql.ast.expr.SQLBinaryOperator;
@@ -35,7 +36,6 @@ import com.mesalab.qgw.model.api.udf.UDFElements;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
@@ -53,10 +53,9 @@ import javax.annotation.PostConstruct;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
-@Slf4j
 @Service("apiService")
 public class ApiServiceImpl implements ApiService {
-
+    private static final Log log = LogFactory.get();
     @Autowired
     private ClickHouseProperties clickHouseProperties;
     @Autowired

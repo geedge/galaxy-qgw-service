@@ -1,4 +1,5 @@
 package com.mesalab.qgw.monitor;
+import cn.hutool.core.util.URLUtil;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +22,16 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
     @Override
     protected void doHealthCheck(Health.Builder builder) {
          clickHouseHttpSource.getRealTimeAccount();
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(clickHouseHttpSource.getUrl()).append("/?");
+
+        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
+
         StringBuilder queryParamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append("select version()")
                 .append(" FORMAT JSON ;");
-        String url = urlBuilder.toString() + queryParamBuilder.toString();
+        String url = queryURL + queryParamBuilder.toString();
 
         try {
             ResponseEntity responseEntity  = restTemplate.getForEntity(url, Map.class);

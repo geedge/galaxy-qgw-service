@@ -1,5 +1,7 @@
 package com.mesalab.qgw.model.api.udf;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -32,12 +34,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
-@Slf4j
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class TIME_FLOOR_WITH_FILL implements UDF{
-
+    private static final Log log = LogFactory.get();
     @Autowired
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
@@ -82,7 +83,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             Date benchmarkDate = getBenchmarkDate((Map<String,Object>) results.get(0), timeGranLabel);
 
 
-            List<Date> dateRangeList = Lists.newArrayList();
+            List<Date> dateRangeList = null;
 
             if (StringUtil.isNotBlank(whereTimeRange.getStart())) {
 
@@ -103,12 +104,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 return results;
             }
 
-            if (dateRangeList.size() >= 2) {
+            if (StringUtil.isNotEmpty(dateRangeList) &&
+                    dateRangeList.size() >= 2 ) {
                 dateRangeList = dateRangeList.subList(1, dateRangeList.size() - 1);
-            }
-            if (dateRangeList.size() == 0) {
+            } else {
                 return results;
             }
+
 
             int  maxSeriesNum =  engineConfigSource.getMaxCacheNum() / dateRangeList.size();
             if (maxSeriesNum == 0) {
@@ -147,7 +149,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
 
         } catch (Exception e) {
-            log.error("Parser function : TIME_FLOOR_WITH_FILL error : " + e);
+            log.error("Parser function : TIME_FLOOR_WITH_FILL error :{} ", e.toString());
         }
 
         return targetResult;
@@ -264,12 +266,26 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         }
     }
 
-    @Data
+
     private class WhereTimeRange {
         private String start;
         private String end;
 
+        public String getStart() {
+            return start;
+        }
 
+        public void setStart(String start) {
+            this.start = start;
+        }
+
+        public String getEnd() {
+            return end;
+        }
+
+        public void setEnd(String end) {
+            this.end = end;
+        }
     }
 
 

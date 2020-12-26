@@ -1,5 +1,7 @@
 package com.mesalab.qgw.controller;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -14,37 +16,29 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping(value = "/sys")
 public class SystemController {
-
+    private static final Log log = LogFactory.get();
     @Autowired
     private SystemService systemService;
 
 
     @RequestMapping("/storage/quota")
     public BaseResult storageQuota() {
-        log.debug("获取系统存储配额信息");
         return systemService.getStorageQuota();
     }
 
     @RequestMapping("storage/daily-trend")
     public BaseResult dailyTrendOfStorage(@RequestParam Map<String, Object> param) {
-        log.debug("获取系统存储配额信息");
-
-
         String searchStartTime = StringUtil.stripToEmpty((String) param.get("start_time"));
         String searchEndTime = StringUtil.stripToEmpty((String) param.get("end_time"));
-
-
         return systemService.dailyTrendOfStorage(searchStartTime, searchEndTime);
     }
 
     @PostMapping(value = "storage/deletion")
     public BaseResult storageDeletion(@RequestBody List<StorageDeletionInfo> list) {
-        log.info("数据配额设置, 参数: params is {}", list);
-
+        log.warn("数据配额设置, 参数: params is {}", list);
         if (StringUtil.isEmpty(list)) {
             return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), "未获取到参数");
         }
@@ -65,13 +59,13 @@ public class SystemController {
     @GetMapping(value = "storage/deletion")
     public BaseResult storageDeletionStatus(StorageDeletionInfo storageDeletionInfo) {
 
-        log.info("数据配额设置状态, 参数: params is {}", storageDeletionInfo);
+        log.warn("数据配额设置状态, 参数: params is {}", storageDeletionInfo);
         return systemService.getDeleteStorageStatus(storageDeletionInfo.getLogType());
     }
 
     @DeleteMapping(value = "engine/tasks/{queryId}")
     public BaseResult killQuery(@PathVariable String queryId) {
-        log.info("停止查询, 参数: queryId is {}", queryId);
+        log.warn("停止查询, 参数: queryId is {}", queryId);
         if (StringUtil.isBlank(queryId)) {
             return BaseResultGenerator.success4Message("ok");
         }

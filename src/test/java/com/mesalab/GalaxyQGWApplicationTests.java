@@ -1,7 +1,7 @@
 package com.mesalab;
 
-import com.mesalab.common.utils.JsonMapper;
-import lombok.extern.slf4j.Slf4j;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,13 +12,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Map;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {GalaxyQGWApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Slf4j
 @EnableAutoConfiguration
 public class GalaxyQGWApplicationTests {
+    private static final Log log = LogFactory.get();
     @Autowired
     public TestRestTemplate restTemplate;
 
@@ -29,7 +27,7 @@ public class GalaxyQGWApplicationTests {
 
     @Test
     public void contextLoads() {
-        System.out.println("test");
+        log.info("GALAXY QUERY GATEWAY CONTEXT LOAD");
     }
 
     @After

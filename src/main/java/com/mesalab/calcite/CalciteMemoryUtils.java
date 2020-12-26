@@ -1,29 +1,23 @@
 package com.mesalab.calcite;
 
-import com.google.common.base.Optional;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.base.Splitter;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
 import com.mesalab.common.exception.BusinessException;
-import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static com.zdjizhi.utils.StringUtil.setDefaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
-@Slf4j
+
 public class CalciteMemoryUtils {
-
+    private static final Log log = LogFactory.get();
     public static Map<String, Object> executeMemoryQuery(String tableName, List<Map<String, String>> meta,
                                                                             List<Map<String, Object>> data, String sql) {
         Map<String, Object> result = Maps.newHashMap();
@@ -44,9 +38,6 @@ public class CalciteMemoryUtils {
            String jsonModel = new File("").getCanonicalPath() + "/config/memorySchema.json";
            connection = DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
            CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
-
-           log.debug("Calcite: 加载数据的数量: " + data.size());
-           //将数据存入缓存表
            Storage.DummyTable table = buildDummyTable(meta, tableName);
            table = loadData(table, data);
            InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
@@ -85,7 +76,7 @@ public class CalciteMemoryUtils {
                try {
                    resultSet.close();
                } catch (SQLException sqlException) {
-                   sqlException.printStackTrace();
+                   log.error("ResultSet close error : " , sqlException.getMessage());
                }
            }
 
@@ -93,7 +84,7 @@ public class CalciteMemoryUtils {
                 try {
                     statement.close();
                 } catch (SQLException sqlException) {
-                    sqlException.printStackTrace();
+                    log.error("Statement close error : " , sqlException.getMessage());
                 }
             }
 
@@ -101,7 +92,7 @@ public class CalciteMemoryUtils {
                try {
                    connection.close();
                } catch (SQLException sqlException) {
-                   sqlException.printStackTrace();
+                   log.error("Connection close error : " , sqlException.getMessage());
                }
            }
        }

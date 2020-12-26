@@ -1,5 +1,8 @@
 package com.mesalab.network.service.impl;
 
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -17,7 +20,6 @@ import com.mesalab.network.service.NetworkMonitorService;
 import com.mesalab.qgw.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,9 +39,9 @@ import java.util.stream.Collectors;
  * @version 1.0
  * @date 2020/6/30 4:24 下午
  */
-@Slf4j
 @Service("networkMonitorService")
 public class NetworkMonitorServiceImpl implements NetworkMonitorService {
+    private static final Log log = LogFactory.get();
     @Autowired
     HttpClientService httpClientService;
     @Autowired
@@ -317,12 +319,11 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         try {
             sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
         } catch (UnsupportedEncodingException e) {
-            hostAddress = "127.0.0.1";
             log.error("sql Encode error: ", e);
         }
-        String url = "http://" + hostAddress + ":" + serverPort + "/?query=";
+        String queryURL = URLUtil.normalize(hostAddress + ":" + serverPort + "/?query=");
         int socketTimeOut = httpConfig.getServerResponseTimeOut();
-        return httpClientService.httpGet(url + sql, socketTimeOut);
+        return httpClientService.httpGet(queryURL + sql, socketTimeOut);
     }
 
 

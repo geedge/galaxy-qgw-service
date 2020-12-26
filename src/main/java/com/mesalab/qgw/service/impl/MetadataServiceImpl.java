@@ -1,5 +1,7 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ClickHouseProperties;
@@ -12,7 +14,6 @@ import com.mesalab.common.utils.SchemaCacheUtils;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +22,11 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.util.*;
 
-@Slf4j
 @Service("metadataService")
 public class MetadataServiceImpl implements MetadataService {
-
+    private static final Log log = LogFactory.get();
     private static final String METADATA_SCHEMA_KEY = "metadata:schema";
+    private static final String SCHEMA_PATH = "config" + File.separator + "avro";
 
     @Autowired
     ClickHouseProperties clickHouseProperties;
@@ -64,7 +65,8 @@ public class MetadataServiceImpl implements MetadataService {
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
         Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
-        if (StringUtil.isEmpty(schemaDoc) && StringUtil.isNotEmpty(schema.getDoc())) {
+        if (StringUtil.isEmpty(schemaDoc) &&
+                StringUtil.isNotEmpty(schema.getDoc())) {
             log.error("{} schema's doc isn't jsonString and won't convert: {}", tableName, schema.getDoc());
         }
         if (StringUtil.isNotEmpty(schemaDoc)) {
@@ -208,7 +210,7 @@ public class MetadataServiceImpl implements MetadataService {
     public Map<String, Schema> getAllSchema() {
         try {
             String pathRoot = new File("").getCanonicalPath();
-            File fileDir = new File(pathRoot + "/config/avro");
+            File fileDir = new File(pathRoot + File.separator + SCHEMA_PATH);
             return getSchemasByDirs(fileDir);
         } catch (Exception e) {
             log.error("Get Schema Error {}", e.getMessage());

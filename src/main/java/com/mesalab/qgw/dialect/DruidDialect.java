@@ -1,5 +1,8 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
@@ -22,7 +25,6 @@ import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -34,9 +36,8 @@ import org.apache.http.HttpStatus;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
 public class DruidDialect extends AbstractDataSourceDialect {
-
+    private static final Log log = LogFactory.get();
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
@@ -136,7 +137,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @return
      */
     private Map<String, String> executeHttpPost(String sql) {
-        StringBuilder urlBuilder = new StringBuilder("http://").append(druidIoHttpSource.getUrl());
+        String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidQueryParam druidQueryParam = new DruidQueryParam();
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
@@ -144,7 +145,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
         log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
-        return httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
+        return httpClientService.httpPost(queryURL, JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
     }
 
     @Override

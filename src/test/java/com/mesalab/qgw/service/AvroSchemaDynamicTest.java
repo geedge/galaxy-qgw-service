@@ -1,5 +1,8 @@
 package com.mesalab.qgw.service;
 
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.configuration.ClickHouseProperties;
@@ -9,9 +12,9 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.service.impl.ApiServiceImpl;
 import com.zdjizhi.utils.Encodes;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.After;
@@ -29,10 +32,13 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.*;
 
-@Slf4j
 @EnableAutoConfiguration
 public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
-
+    private static final Log log = LogFactory.get();
+    private static final String CK_SCHEMA_DIR = File.separator + "config"
+            + File.separator + "avro" +  File.separator + "clickhouse";
+    private static final String DRUID_SCHEMA_DIR = File.separator + "config"
+            + File.separator + "avro" +  File.separator + "druid";
     @Autowired
     public TestRestTemplate restTemplate;
     @Autowired
@@ -47,30 +53,29 @@ public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void testCKSchema(){
-        checkCKSchema("/config/avro/clickhouse");
-        System.out.println("clickhouse schema dynamic 检测完成");
+        checkCKSchema(CK_SCHEMA_DIR);
+        log.info("clickhouse schema dynamic 检测完成");
     }
 
 
     @Test
     public void testDruidSchema(){
-        checkDruidSchema("/config/avro/druid");
-        System.out.println("druid schema dynamic 检测完成");
+        checkDruidSchema(DRUID_SCHEMA_DIR);
+        log.info("druid schema dynamic 检测完成");
     }
 
     public List queryCKDynamic(String query){
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(clickHouseHttpSource.getUrl()).append("/?");
+        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(query)
                 .append(" FORMAT JSON;");
 
-        log.info("Query Session and Events Query : {}" , urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
+        log.info("Query Session and Events Query : {}" , queryURL + Encodes.urlDecode(queryparamBuilder.toString()));
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
-        String s = urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8");
+        String s =queryURL + URLEncodedUtils.format(values, "utf-8");
         ResponseEntity<Map> forEntity = restTemplate.getForEntity(s, Map.class);
         List result = new ArrayList<>();
         if(forEntity.getStatusCodeValue() == 200){
@@ -96,7 +101,8 @@ public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
         Map<String, Object> params = Maps.newHashMap();
         params.put("query", query);
         HttpEntity<Map> requestEntity = new HttpEntity<Map>(params, requestHeaders);
-        ResponseEntity<List> result = restTemplate.postForEntity("http://" + druidIoProperties.getUrl(), requestEntity, List.class);
+        String queryURL = URLUtil.normalize(druidIoProperties.getUrl());
+        ResponseEntity<List> result = restTemplate.postForEntity(queryURL, requestEntity, List.class);
         if(result.getStatusCodeValue() == 200){
             List<String> list = new ArrayList<>();
             List body = result.getBody();
@@ -206,7 +212,7 @@ public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
             File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    if(!f.getName().toLowerCase().endsWith(".avsc")){
+                    if(!StringUtils.lowerCase(f.getName()).endsWith(".avsc")){
                         continue;
                     }
                     try {

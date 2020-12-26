@@ -1,5 +1,6 @@
 package com.mesalab.common.utils;
 
+import cn.hutool.core.util.URLUtil;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -9,7 +10,7 @@ import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
 import lombok.Data;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
@@ -17,6 +18,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -147,13 +149,13 @@ public class SQLFunctionUtil {
      * @return
      */
     public static Map<String, String> executeHttpPostOfDruid(String query) {
-        StringBuilder urlBuilder = new StringBuilder("http://").append(druidIoHttpSource.getUrl());
+        String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidQueryParam druidQueryParam = new DruidQueryParam();
         druidQueryParam.setQuery(query);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
-        Map<String, String> stringStringMap = httpClientService.httpPost(urlBuilder.toString(), JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
+        Map<String, String> stringStringMap = httpClientService.httpPost(queryURL, JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
         return stringStringMap;
 
     }
@@ -165,17 +167,16 @@ public class SQLFunctionUtil {
      * @return
      */
     private static Map<String, String> executeHttpGetOfCK(String sql) {
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(clickHouseHttpSource.getUrl()).append("/?");
+        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(sql)
                 .append(" FORMAT JSON;");
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
         int socketTimeOut = httpConfig.getCkRealTimeAccountSocketTimeOut();
-        Map<String, String> stringStringMap = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
+        Map<String, String> stringStringMap = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
         return stringStringMap;
     }
 
@@ -593,7 +594,7 @@ public class SQLFunctionUtil {
      */
     private static String lastDayRealize(String unit, String param, String dbType) {
         String replaceValue = null;
-        if ("LAST_DAY".equals(unit.toUpperCase())) {
+        if ("LAST_DAY".equals(StringUtils.upperCase(unit))) {
             if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
                 replaceValue = "addDays#[addMonths#[toStartOfMonth#[toDateTime#[" + param + "]],1],-1]";
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
@@ -634,10 +635,10 @@ public class SQLFunctionUtil {
     private static String markDateRealize(String func, String expr, String dbType) {
         String replaceValue = null;
         List<String> params = diviParam(expr, ",");
-        if ("MAKEDATE".equals(func.toUpperCase()) && params.size() == 2) {
+        if ("MAKEDATE".equals(StringUtils.upperCase(func)) && params.size() == 2) {
             Pattern pYearFunNum = Pattern.compile("(YEAR)\\s*\\(", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pYearFunNum.matcher(expr);
-            if (matcher.find() && "YEAR".equals(matcher.group(1).toUpperCase())) {
+            if (matcher.find() && "YEAR".equals(StringUtils.upperCase(matcher.group(1)))) {
                 String temp = expr.substring(matcher.start());
                 int[] bracketsMatch = StringUtil.getBracketsMatch(temp, "(", false);
                 if (bracketsMatch[0] >= 1) {
@@ -705,7 +706,7 @@ public class SQLFunctionUtil {
      */
     private static String unitFuncGetNumRealize(String unit, String expr, String dbType) {
         String replaceValue = null;
-        unit = unit.toUpperCase();
+        unit = StringUtils.upperCase(unit);
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
             switch (unit) {
                 case "YEAR":
@@ -790,7 +791,7 @@ public class SQLFunctionUtil {
      */
     private static String dateRelative(List<String> params, Boolean sign, String dbType) {
         String replaceValue = "";
-        if (params.size() == 2 && params.get(1).toUpperCase().contains("INTERVAL")) {
+        if (params.size() == 2 && StringUtils.upperCase(params.get(1)).contains("INTERVAL")) {
             String param1 = params.get(0);
             String param2 = params.get(1);
             Matcher matcher = pIntervalNumUnit.matcher(param2);
@@ -800,7 +801,7 @@ public class SQLFunctionUtil {
                     param2 = "-  #[" + param2 + "]";
                 }
                 if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                    switch (matcher.group(2).toUpperCase()) {
+                    switch (StringUtils.upperCase(matcher.group(2))) {
                         case "SECOND":
                             replaceValue = "toDateTime#[" + param1 + "]" + param2;
                             break;
@@ -830,7 +831,7 @@ public class SQLFunctionUtil {
                             break;
                     }
                 } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                    switch (matcher.group(2).toUpperCase()) {
+                    switch (StringUtils.upperCase(matcher.group(2))) {
                         case "SECOND":
                             replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'PT1S'," + param2 + "]";
                             break;
@@ -889,7 +890,7 @@ public class SQLFunctionUtil {
         List<String> params = diviParam(param, ",");
         String param1 = params.get(0);
         String replaceValue = null;
-        if ("FROM_UNIXTIME".equals(func.toUpperCase()) && params.size() == 1) {
+        if ("FROM_UNIXTIME".equals(StringUtils.upperCase(func)) && params.size() == 1) {
             if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
                 replaceValue = "toDateTime#[" + param + "]";
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType) && !bool) {
@@ -1144,7 +1145,7 @@ public class SQLFunctionUtil {
         String innerValue = "";
         StringBuffer sb = new StringBuffer();
         if (matcherParse.find()) {
-            Boolean sign = matcherParse.group(1).toUpperCase().contains("ADD");
+            Boolean sign = StringUtils.upperCase(matcherParse.group(1)).contains("ADD");
             if (StringUtil.getBracketsMatch(matcherParse.group(2), null, false)[0] >= 0) {
                 List<String> params = diviParam(matcherParse.group(2), ",");
                 innerValue = dateRelative(params, sign, dbType);
