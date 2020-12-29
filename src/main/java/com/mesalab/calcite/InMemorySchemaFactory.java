@@ -14,6 +14,7 @@ public class InMemorySchemaFactory implements SchemaFactory {
     @Override
     public Schema create(SchemaPlus parentSchema, String name, Map<String, Object> operand) {
         parentSchema.add("FROM_UNIXTIME", ScalarFunctionImpl.create(DateFunction.class, "fromUnixTimeToDateTime24"));
+        parentSchema.add("DATE_FORMAT", ScalarFunctionImpl.create(DateFunction.class, "dateFormat"));
         return new InMemorySchema(name, operand);
     }
 }
