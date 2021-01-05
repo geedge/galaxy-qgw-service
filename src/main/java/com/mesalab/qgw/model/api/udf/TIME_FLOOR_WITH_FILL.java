@@ -13,6 +13,7 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.impl.ApiServiceImpl;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
@@ -145,7 +146,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
 
             targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
-            if (targetResult.size() > Integer.parseInt(sqlQuerySource.getLimit())) {
+            if (StringUtil.isNotBlank(sqlQuerySource.getLimit())
+                    && !sqlQuerySource.getLimit().equalsIgnoreCase(ApiServiceImpl.UNVALID_LIMIT_DESC)
+                    && targetResult.size() > Integer.parseInt(sqlQuerySource.getLimit())) {
                 targetResult = targetResult.subList(0, Integer.parseInt(sqlQuerySource.getLimit()));
             }
 
