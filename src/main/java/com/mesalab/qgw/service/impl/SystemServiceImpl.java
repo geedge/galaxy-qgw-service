@@ -19,6 +19,8 @@ import com.mesalab.qgw.service.SystemService;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -63,7 +65,7 @@ public class SystemServiceImpl implements SystemService {
                 ")\n" +
                 "GROUP BY log_type");
         BaseResult result = apiService.executeQuery(param);
-        return result;
+        return resetBaseResult(result, "log_type");
     }
 
     @Override
@@ -80,16 +82,26 @@ public class SystemServiceImpl implements SystemService {
             ApiParam param = new ApiParam();
             String sql = String.format("select TIME_FORMAT(__time,'YYYY-MM-dd') as stat_time,log_type as type, sum(aggregate_size) as used_size from sys_storage_log where __time >= '%s' and __time < '%s' group by TIME_FORMAT(__time,'YYYY-MM-dd'), log_type", searchStartTime, searchEndTime);
             param.setQuery(sql);
-            return apiService.executeQuery(param);
+            BaseResult result = apiService.executeQuery(param);
+            return resetBaseResult(result, "type");
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
         }
     }
 
+    private BaseResult resetBaseResult(BaseResult result, String alias) {
+        if (!result.isSuccess()) {
+            return result;
+        }
+        List<Map> data = (List<Map>) result.getData();
+        data.forEach(o -> o.put(alias, LogType.getLabelByValue(String.valueOf(o.get(alias)))));
+        return result;
+    }
+
     @Override
     public BaseResult deleteStorage(List<StorageDeletionInfo> list) {
 
-        if (!logTypeIsAvaliable(list)) {
+        if (!logTypeValid(list)) {
             return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "匹配失败, 请检查日志类型!");
         }
 
@@ -109,7 +121,7 @@ public class SystemServiceImpl implements SystemService {
     @Override
     public BaseResult getDeleteStorageStatus(String logType) {
         setCookie();
-        List list = new ArrayList<>();
+        List<StorageDeletionInfo> list = new ArrayList<>();
         if (StringUtil.isBlank(logType)) {
 
             StorageDeletionInfo trafficInfo = getStorageDeletionInfoByHandler(LogType.TRAFFIC_LOGS.getValue(), JobHandlerEnum.DELETE_TRAFFIC_DATA_JOB_HANDLER.getValue());
@@ -132,6 +144,7 @@ public class SystemServiceImpl implements SystemService {
         } else {
             return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的日志类型: " + logType);
         }
+        list.forEach(o->o.setLogType(LogType.getLabelByValue(o.getLogType())));
         return BaseResultGenerator.success("ok", list);
     }
 
@@ -158,21 +171,24 @@ public class SystemServiceImpl implements SystemService {
     }
 
 
-    private boolean logTypeIsAvaliable(List<StorageDeletionInfo> list) {
 
-        List<LogType> logTypes = Arrays.asList(LogType.values());
-        List<String> logType = new ArrayList<>();
-        for (LogType type : logTypes) {
-            logType.add(type.getValue().toUpperCase());
-        }
+    private boolean logTypeValid(List<StorageDeletionInfo> list) {
         for (StorageDeletionInfo info : list) {
-            if (!logType.contains(info.getLogType().toUpperCase())) {
+            String value = LogType.getValueByLabel(info.getLogType());
+            if (StringUtil.isEmpty(value)) {
                 return false;
             }
         }
         return true;
     }
 
+    /**
+     * @Description 涉及对ALL、LogType(value，label)处理
+     * @Param list:
+     * @return: java.util.List<com.mesalab.qgw.model.job.StorageDeletionInfo>
+     * @Date: 2021/1/4 11:36 上午
+     * @Created by wWei
+     */
     private List<StorageDeletionInfo> preProcessOfLogType(List<StorageDeletionInfo> list) {
         if (list.size() == 1 && LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getLogType())) {
             Integer maxDays = list.get(0).getMaxDays();
@@ -181,7 +197,9 @@ public class SystemServiceImpl implements SystemService {
             list.add(new StorageDeletionInfo(LogType.TRAFFIC_LOGS.getValue(), maxDays));
             list.add(new StorageDeletionInfo(LogType.REPORT_AND_METRICS.getValue(), maxDays));
             list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays));
+            return list;
         }
+        list.forEach(o -> o.setLogType(LogType.getValueByLabel(o.getLogType())));
         return list;
     }
 
@@ -479,16 +497,33 @@ public class SystemServiceImpl implements SystemService {
     }
 
 
+    @Getter
+    @AllArgsConstructor
     enum LogType {
-        TRAFFIC_LOGS("Traffic Logs"), REPORT_AND_METRICS("Report and Metrics"), FILES("Files"), ALL("ALL");
+        TRAFFIC_LOGS("Traffic Logs", "Traffic Logs"),
+        REPORT_AND_METRICS("Report and Metrics", "Metrics"),
+        FILES("Files", "Files"),
+        ALL("ALL", "ALL");
         private final String value;
+        private final String label;
 
-        LogType(String value) {
-            this.value = value;
+
+        public static String getValueByLabel(String label) {
+            for (LogType enums : LogType.values()) {
+                if (enums.getLabel().equals(label)) {
+                    return enums.getValue();
+                }
+            }
+            return "";
         }
 
-        public String getValue() {
-            return value;
+        public static String getLabelByValue(String value) {
+            for (LogType enums : LogType.values()) {
+                if (enums.getValue().equals(value)) {
+                    return enums.getLabel();
+                }
+            }
+            return "";
         }
     }
 }
