@@ -337,6 +337,12 @@
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
+      "name": "common_first_ttl",
+      "label": "First TTL",
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
       "name": "common_processing_time",
       "label": "Processing Time",
       "type": "long",

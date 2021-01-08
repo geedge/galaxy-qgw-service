@@ -334,6 +334,12 @@
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
+      "name": "common_first_ttl",
+      "label": "First TTL",
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
       "name": "common_processing_time",
       "label": "Processing Time",
       "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}",
@@ -747,6 +753,16 @@
       "label": "SSL.JA3 hash",
       "type": "string",
       "doc": "{\"allow_query\":\"true\"}"
+    },
+    {
+      "name": "ssl_cert_issuer",
+      "label": "SSL.Issuer",
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_subject",
+      "label": "SSL.Subject",
+      "type": "string"
     },
     {
       "name": "quic_version",

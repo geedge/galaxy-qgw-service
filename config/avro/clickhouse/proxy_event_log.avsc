@@ -343,6 +343,12 @@
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
+      "name": "common_first_ttl",
+      "label": "First TTL",
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
       "name": "common_processing_time",
       "label": "Processing Time",
       "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}",
