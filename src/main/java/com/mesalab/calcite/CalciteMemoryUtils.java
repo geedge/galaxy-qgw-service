@@ -18,6 +18,15 @@ import static com.zdjizhi.utils.StringUtil.setDefaultIfEmpty;
 
 public class CalciteMemoryUtils {
     private static final Log log = LogFactory.get();
+
+    static {
+        try {
+            Class.forName("org.apache.calcite.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            log.error("Calcite load driver error : {}", e);
+        }
+    }
+
     public static Map<String, Object> executeMemoryQuery(String tableName, List<Map<String, String>> meta,
                                                                             List<Map<String, Object>> data, String sql) {
         Map<String, Object> result = Maps.newHashMap();
@@ -29,23 +38,21 @@ public class CalciteMemoryUtils {
             return result;
         }
         ResultSet resultSet = null;
-        java.sql.Statement statement = null;
-        Connection connection = null;
+        PreparedStatement statement = null;
+        CalciteConnection connection = null;
         try {
-           Class.forName("org.apache.calcite.jdbc.Driver");
            Properties info = new Properties();
            info.setProperty("lex", "MYSQL_ANSI");
            String jsonModel = new File("").getCanonicalPath() + "/config/memorySchema.json";
-           connection = DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
-           CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
+           connection = (CalciteConnection) DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
            Storage.DummyTable table = buildDummyTable(meta, tableName);
            table = loadData(table, data);
            InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
 
            //将缓存表植入rootSchema
-           calciteConn.getRootSchema().add(tableName, inMemoryTable);
-           statement = connection.createStatement();
-           resultSet = statement.executeQuery(sql);
+           connection.getRootSchema().add(tableName, inMemoryTable);
+           statement = connection.prepareStatement(sql);
+           resultSet = statement.executeQuery();
            ResultSetMetaData metaData = resultSet.getMetaData();
            meta.clear();
            data.clear();
@@ -70,36 +77,41 @@ public class CalciteMemoryUtils {
 
        } catch (Exception e) {
            throw new BusinessException("Engine execution SQL Error - ", e);
-
        } finally {
-           if (resultSet != null) {
-               try {
-                   resultSet.close();
-               } catch (SQLException sqlException) {
-                   log.error("ResultSet close error : " , sqlException.getMessage());
-               }
-           }
-
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException sqlException) {
-                    log.error("Statement close error : " , sqlException.getMessage());
-                }
-            }
-
-           if (connection != null) {
-               try {
-                   connection.close();
-               } catch (SQLException sqlException) {
-                   log.error("Connection close error : " , sqlException.getMessage());
-               }
-           }
+          close(resultSet, statement, connection);
        }
 
 
         return result;
     }
+
+    private static void close(ResultSet rs, PreparedStatement pst, Connection conn) {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                log.error("ResultSet close error : " , e.getMessage());
+            }
+            rs = null;
+        }
+        if (pst != null) {
+            try {
+                pst.close();
+            } catch (SQLException e) {
+                log.error("Statement close error : " , e.getMessage());
+            }
+            pst = null;
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                log.error("Connection close error : " , e.getMessage());
+            }
+            conn = null;
+        }
+}
+
 
 
     /**

@@ -1,5 +1,8 @@
 package com.mesalab.qgw.interceptor;
 
+import cn.hutool.core.util.EscapeUtil;
+import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.cache.CacheStats;
@@ -35,19 +38,17 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
             }
 
             String clientId = this.getClientId();
-            String queryKey = DigestUtils.md5Hex(request.getQueryString());
-
-
-            log.debug("Query Submit Check,ClientId:{}, QueryKey:{}", clientId, DigestUtils.md5Hex(queryKey));
+            String queryKey = DigestUtil.md5Hex(request.getQueryString());
+            log.debug("Query Submit Check,ClientId:{}, QueryKey:{}", clientId, queryKey);
             Object result = QueryCacheUtils.get(queryKey);
             if (StringUtil.isNotEmpty(result)) {
-                String resultString = JsonMapper.toJsonString(result);
                 CacheStats stats = QueryCacheUtils.getStats();
                 log.info(" Query Repeat Submit Stat,QEQ_count:{},HIT_count:{},HIT_rate:{}, MISS_count:{}",
                         stats.requestCount(), stats.hitCount(), stats.hitRate(), stats.missCount());
                 response.setCharacterEncoding("UTF-8");
                 response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write(resultString);
+                response.setHeader("X-Content-Type-Options", "nosniff");
+                response.getWriter().write(JsonMapper.toJsonString(result));
                 return false;
 
             }
@@ -76,7 +77,7 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
 
         @Override
         public String toString() {
-            return DigestUtils.md5Hex(clientId + queryString);
+            return DigestUtil.md5Hex(clientId + queryString);
         }
     }
 

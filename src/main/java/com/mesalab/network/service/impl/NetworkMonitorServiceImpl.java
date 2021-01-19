@@ -1,5 +1,6 @@
 package com.mesalab.network.service.impl;
 
+import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -48,16 +49,12 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     HttpConfig httpConfig;
     @Value("${server.port}")
     private int serverPort;
-    private static String hostAddress;
+    private static String localHostAddress;
 
     private static final String PROTOCOL_NODE = "Protocols/";
 
     static {
-        try {
-            hostAddress = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            log.error("get LocalHost error: ", e);
-        }
+        localHostAddress = NetUtil.getLocalhostStr();
     }
 
     @Override
@@ -321,7 +318,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         } catch (UnsupportedEncodingException e) {
             log.error("sql Encode error: ", e);
         }
-        String queryURL = URLUtil.normalize(hostAddress + ":" + serverPort + "/?query=");
+        String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");
         int socketTimeOut = httpConfig.getServerResponseTimeOut();
         return httpClientService.httpGet(queryURL + sql, socketTimeOut);
     }

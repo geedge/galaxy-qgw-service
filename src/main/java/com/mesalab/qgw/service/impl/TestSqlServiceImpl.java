@@ -1,6 +1,7 @@
 package com.mesalab.qgw.service.impl;
 
 
+import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -82,13 +83,8 @@ public class TestSqlServiceImpl {
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:00:00");
         SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date(System.currentTimeMillis());
-        String hostAddress = null;
-        try {
-            hostAddress = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            hostAddress = "127.0.0.1";
-            log.error("获取服务器IP异常", e);
-        }
+        String localHostAddress = NetUtil.getLocalhostStr();
+
         for (int i = 0; i < list.size(); i++) {
             String sql = String.valueOf(list.get(i));
             try {
@@ -98,7 +94,7 @@ public class TestSqlServiceImpl {
             } catch (Exception e) {
                 log.error("测试用例sql编码错误", e);
             }
-            String queryURL = URLUtil.normalize(hostAddress + ":" + serverPort + "/?query=");
+            String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");
             resultTemp = httpClientService.httpGet(queryURL + sql, httpConfig.getServerResponseTimeOut());
 
 

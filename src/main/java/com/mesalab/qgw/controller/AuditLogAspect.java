@@ -1,5 +1,6 @@
 package com.mesalab.qgw.controller;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
@@ -74,7 +75,7 @@ public class AuditLogAspect {
             auditServiceLog.setParam(param);
         }
         auditServiceLog.setAnnotation(annotation.value());
-        auditServiceLog.setQueryKey(DigestUtils.md5Hex(StringUtil.isNotBlank(request.getQueryString()) ? request.getQueryString() : ""));
+        auditServiceLog.setQueryKey(DigestUtil.md5Hex(StringUtil.isNotBlank(request.getQueryString()) ? request.getQueryString() : ""));
 
         auditLog.set(auditServiceLog);
     }

@@ -3,6 +3,7 @@ package com.mesalab.qgw.service;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.GalaxyQGWApplicationTests;
+import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.qgw.service.impl.TestSqlServiceImpl;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
@@ -43,7 +44,6 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
     @Test
     public void parseSqlOfCK() {
         List list = testSqlService.ckSql();
-
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:00:00");
         SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date(System.currentTimeMillis());

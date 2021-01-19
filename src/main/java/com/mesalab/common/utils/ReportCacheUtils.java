@@ -1,5 +1,6 @@
 package com.mesalab.common.utils;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
@@ -10,7 +11,6 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -67,7 +67,7 @@ public class ReportCacheUtils {
      * @return
      */
     public static String getQueryId(String resultId, String sql) {
-        return DigestUtils.md5Hex(resultId + sql.trim());
+        return DigestUtil.md5Hex(resultId + sql.trim());
     }
 
 
