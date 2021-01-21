@@ -9,7 +9,7 @@ import java.util.*;
  */
 public class Storage {
 
-    public static Hashtable<String, DummyTable> _bag = new Hashtable<>();
+    private static final Hashtable<String, DummyTable> _bag = new Hashtable<>();
 
     public static Collection<DummyTable> getTables() {
         return _bag.values();

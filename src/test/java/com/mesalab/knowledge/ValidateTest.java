@@ -3,6 +3,7 @@ package com.mesalab.knowledge;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.enums.DataSourceEnum;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
@@ -19,8 +20,7 @@ public class ValidateTest extends GalaxyQGWApplicationTests {
     public void queryDslTest(){
         String dataSource = query.getDataSource();
         DataSourceEnum dataSourceRouteEnum = DataSourceEnum.valueOf(dataSource);
-        System.out.println(dataSource);
-
+        Assert.assertNotNull(dataSourceRouteEnum);
 
     }
 

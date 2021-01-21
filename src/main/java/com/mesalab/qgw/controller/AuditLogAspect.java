@@ -1,5 +1,8 @@
 package com.mesalab.qgw.controller;
 
+import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.IPUtil;
@@ -26,10 +29,13 @@ import java.util.Arrays;
 @Aspect
 @Component
 public class AuditLogAspect {
-
+    private static final String UNKNOWN_IPV4_ADDRESS = "0.0.0.0";
+    private static final String LOCAL_IPV6_ADDRESS = "0:0:0:0:0:0:0:1";
+    private static final String LOCALHOST_IPV4_ADDRESS = "127.0.0.1";
+    private static final String LOCALHOST_NAME = "localhost";
     ThreadLocal<Long> startTime = new ThreadLocal<>();
-    ThreadLocal<AuditServiceLog> log = new ThreadLocal<>();
-    private static final Logger logger= LoggerFactory.getLogger(AuditLogAspect.class);
+    ThreadLocal<AuditServiceLog> auditLog = new ThreadLocal<>();
+    private static final Log log = LogFactory.get();
 
 
     @Pointcut("@annotation(com.mesalab.qgw.model.api.AuditLog)")
@@ -46,7 +52,10 @@ public class AuditLogAspect {
         String remoteAddr = request.getRemoteAddr();
         String clientIp = IPUtil.parseIP(request);
 
-        if("0.0.0.0".equals(clientIp) || "0:0:0:0:0:0:0:1".equals(clientIp) || "localhost".equals(clientIp) || "127.0.0.1".equals(clientIp)){
+        if(UNKNOWN_IPV4_ADDRESS.equals(clientIp)
+                || LOCAL_IPV6_ADDRESS.equals(clientIp)
+                || LOCALHOST_NAME.equals(clientIp)
+                || LOCALHOST_IPV4_ADDRESS.equals(clientIp)){
             clientIp = "127.0.0.1";
         }
         String class_method = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
@@ -62,18 +71,18 @@ public class AuditLogAspect {
         auditServiceLog.setRemoteAddr(remoteAddr);
         auditServiceLog.setClientIp(clientIp);
         auditServiceLog.setClassMethod(class_method);
-        if (logger.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             auditServiceLog.setParam(param);
         }
         auditServiceLog.setAnnotation(annotation.value());
-        auditServiceLog.setQueryKey(DigestUtils.md5Hex(StringUtil.isNotBlank(request.getQueryString()) ? request.getQueryString() : ""));
+        auditServiceLog.setQueryKey(DigestUtil.md5Hex(StringUtil.isNotBlank(request.getQueryString()) ? request.getQueryString() : ""));
 
-        log.set(auditServiceLog);
+        auditLog.set(auditServiceLog);
     }
 
     @AfterThrowing(value = "annotationPointCut()", throwing = "exception")
     public void doAfterThrowingAdvice(JoinPoint joinPoint,Throwable exception){
-        logger.error("Audit log [error]:" + joinPoint.getSignature().getName() + exception);
+        log.error("Audit log [error]:" + joinPoint.getSignature().getName() + exception);
 
     }
 
@@ -81,7 +90,7 @@ public class AuditLogAspect {
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
         ApiParam param = (ApiParam) joinPoint.getArgs()[0];
-        log.get().setDbType(param.getDbType());
+        auditLog.get().setDbType(param.getDbType());
 
     }
 
@@ -91,7 +100,7 @@ public class AuditLogAspect {
     @AfterReturning(returning = "result", pointcut = "annotationPointCut()")
     public void doAfterReturning(Object result) throws Throwable {
 
-        AuditServiceLog logAfter =  log.get();
+        AuditServiceLog logAfter =  auditLog.get();
         if (StringUtil.isNotEmpty(result) ) {
             QueryCacheUtils.put(logAfter.getQueryKey(), result);
         }
@@ -104,7 +113,7 @@ public class AuditLogAspect {
         Long exeTime = System.currentTimeMillis() - startTime.get();
         logAfter.setExeTime(exeTime);
 
-        logger.info("Audit Log [completed]：" + JsonMapper.toJsonString(logAfter));
+        log.info("Audit Log [completed]：" + JsonMapper.toJsonString(logAfter));
 
     }
 

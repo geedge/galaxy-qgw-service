@@ -1,5 +1,7 @@
 package com.mesalab.knowledge;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -22,7 +24,7 @@ import java.util.Iterator;
  **/
 @EnableAutoConfiguration
 public class JsonSchemaTest extends GalaxyQGWApplicationTests {
-
+    private static final Log log = LogFactory.get();
 
     @Test
     public void jsonTest() {
@@ -82,7 +84,6 @@ public class JsonSchemaTest extends GalaxyQGWApplicationTests {
             //使用json-schema-validator中的jsonschema对象的validate方法对数据进行校验
             //获取处理的报告信息
             ProcessingReport processingReport = jsonSchema.validate(dataNode);
-            System.err.println(processingReport);
             //获取完整的报告信息
             Iterator<ProcessingMessage> iterator = processingReport.iterator();
             StringBuffer sb = new StringBuffer();
@@ -98,11 +99,11 @@ public class JsonSchemaTest extends GalaxyQGWApplicationTests {
             //判断校验是否成功，如果为true成功
             Validate.isTrue(processingReport.isSuccess(), sb.toString());
         } catch (ProcessingException e) {
-            e.printStackTrace();
+            log.error("ProcessingException information: ", e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("IOException information: ", e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Other Exception information: ", e.getMessage());
         }
     }
 }

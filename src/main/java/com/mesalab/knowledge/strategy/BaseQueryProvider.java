@@ -1,5 +1,7 @@
 package com.mesalab.knowledge.strategy;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.ImmutableMap;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.config.ArangoConfig;
@@ -23,10 +25,9 @@ import java.util.Objects;
  * @author: zhq
  * @create: 2020-07-13
  **/
-@Slf4j
 @Component
 public class BaseQueryProvider {
-
+    private static final Log log = LogFactory.get();
     @Autowired
     ArangoConfig arangoConfig;
 
@@ -74,7 +75,7 @@ public class BaseQueryProvider {
             if (e.getErrorMessage() != null && e.getErrorMessage().contains("not authorized to execute this request")) {
                 //刷新jwt
                 JwtCache.remove(Constant.ARANGO_CACHE_JWT);
-                log.warn("arango jwt 失效后重置");
+                log.warn("Arango jwt 失效后重置");
                 res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt()));
             } else {
                 log.error(e.getErrorMessage());

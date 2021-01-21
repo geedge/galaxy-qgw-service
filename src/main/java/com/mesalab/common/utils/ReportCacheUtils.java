@@ -1,5 +1,8 @@
 package com.mesalab.common.utils;
 
+import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
@@ -8,8 +11,6 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -22,9 +23,8 @@ import java.util.Map;
  * @version 1.0
  * @date 2020/6/5 2:04 下午
  */
-@Slf4j
 public class ReportCacheUtils {
-
+    private static final Log log = LogFactory.get();
     private static HBaseAPISource hBaseAPISource = (HBaseAPISource) SpringContextUtil.getBean("hBaseAPISource");
     private static Connection hbaseConnection = (Connection) SpringContextUtil.getBean("hbaseConnection");
 
@@ -51,7 +51,7 @@ public class ReportCacheUtils {
             get.addColumn(Bytes.toBytes(hBaseAPISource.getColumnFamily()), Bytes.toBytes(hBaseAPISource.getColumnName()));
             result = table.get(get);
         } catch (Exception e) {
-            log.error("get hbase error: {}", e);
+            log.error("Query Hbase error: {}", e);
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "Get Hbase Error: ", e);
         } finally {
             closeTable(table);
@@ -67,7 +67,7 @@ public class ReportCacheUtils {
      * @return
      */
     public static String getQueryId(String resultId, String sql) {
-        return DigestUtils.md5Hex(resultId + sql.trim());
+        return DigestUtil.md5Hex(resultId + sql.trim());
     }
 
 
@@ -77,7 +77,7 @@ public class ReportCacheUtils {
                 table.close();
             }
         } catch (IOException e) {
-            log.error("hbase table close error: ", e);
+            log.error("Table close error: ", e);
         }
     }
 }

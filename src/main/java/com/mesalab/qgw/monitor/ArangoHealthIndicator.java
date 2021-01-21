@@ -57,7 +57,8 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
                     JwtCache.put(Constant.ARANGO_CACHE_JWT, jwt);
                 }
             }
-            String result = httpClientService.httpPost(arangoConfig.getServer() + "/_db/" + arangoConfig.getDatabase() + "/_api/version", null, new BasicHeader(HttpHeaders.AUTHORIZATION, String.valueOf(jwt)));
+            String result = httpClientService.httpPost(arangoConfig.getServer() + "/_db/" + arangoConfig.getDatabase() + "/_api/version",
+                                            StringUtil.EMPTY, new BasicHeader(HttpHeaders.AUTHORIZATION, String.valueOf(jwt)));
             Map map = (Map) JsonMapper.fromJsonString(result, Map.class);
             if (StringUtil.isEmpty(map) || StringUtil.isEmpty(map.get("version"))) {
                 builder.down()

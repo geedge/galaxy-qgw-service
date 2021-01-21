@@ -1,12 +1,10 @@
 package com.mesalab.qgw.service;
 
-import com.google.common.base.CharMatcher;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.configuration.ClickHouseProperties;
-import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.qgw.service.impl.TestSqlServiceImpl;
-import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import org.junit.After;
@@ -25,9 +23,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
 @EnableAutoConfiguration
 public class ClickHouseTest extends GalaxyQGWApplicationTests {
+    private static final Log log = LogFactory.get();
     @Autowired
     public TestRestTemplate restTemplate;
 
@@ -46,7 +44,6 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
     @Test
     public void parseSqlOfCK() {
         List list = testSqlService.ckSql();
-
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:00:00");
         SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date(System.currentTimeMillis());
@@ -56,6 +53,7 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
                 s = s.replaceAll("\\$start_time", "'" + format1.format(date) + "'");
                 s = s.replaceAll("\\$end_time", "'" + format2.format(date) + "'");
                 Statement parse = CCJSqlParserUtil.parse(s);
+                log.info(parse.toString());
             } catch (Exception e) {
                 log.error("解析异常:{}", s);
                 throw new RuntimeException(e);

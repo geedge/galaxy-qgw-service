@@ -1,5 +1,7 @@
 package com.mesalab.knowledge;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mesalab.GalaxyQGWApplicationTests;
@@ -21,6 +23,7 @@ import java.util.stream.Stream;
  **/
 @EnableAutoConfiguration
 public class KnowledgeServiceTest extends GalaxyQGWApplicationTests {
+    private static final Log log = LogFactory.get();
 
     private static DSLObject.DSLQuery query = new DSLObject.DSLQuery();
     private static Parameters p = new Parameters();
@@ -64,7 +67,7 @@ public class KnowledgeServiceTest extends GalaxyQGWApplicationTests {
         DSLObject dslObject = new DSLObject();
         dslObject.setQuery(query);
         Object query = knowledgeService.query(dslObject);
-        Stream.of(query).forEach(x -> System.out.println(x));
+        Stream.of(query).forEach(x -> log.info(x.toString()));
     }
 
     @Test
@@ -72,6 +75,7 @@ public class KnowledgeServiceTest extends GalaxyQGWApplicationTests {
         DSLObject dslObject = new DSLObject();
         dslObject.setQuery(query);
         Object query = knowledgeService.query(dslObject);
+        log.info(query.toString());
     }
 
     @Test

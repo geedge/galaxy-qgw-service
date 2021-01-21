@@ -18,11 +18,11 @@ clickhouse:
   dbname: tsg_galaxy_v3
   realTimeAccount:
     username: tsg_query
-    password: ceiec2018
+    userKey: ceiec2018
     socketTimeOut: 60000
   longTermAccount:
     username: tsg_report
-    password: ceiec2019
+    userKey: ceiec2019
     socketTimeOut: 21700000
 ###############################################################################
 ## Druid configuration

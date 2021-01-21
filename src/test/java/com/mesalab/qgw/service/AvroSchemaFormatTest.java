@@ -1,13 +1,15 @@
 package com.mesalab.qgw.service;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,9 +18,13 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import java.io.File;
 import java.util.*;
 
-@Slf4j
 @EnableAutoConfiguration
 public class AvroSchemaFormatTest extends GalaxyQGWApplicationTests {
+    private static final Log log = LogFactory.get();
+    private static final String CK_SCHEMA_DIR = File.separator + "config"
+            + File.separator + "avro" +  File.separator + "clickhouse";
+    private static final String DRUID_SCHEMA_DIR = File.separator + "config"
+            + File.separator + "avro" +  File.separator + "druid";
     @Before
     public void testBefore() {
         log.info("=================================================SCHEMA TEST BEGIN=================================================");
@@ -34,8 +40,8 @@ public class AvroSchemaFormatTest extends GalaxyQGWApplicationTests {
      */
     @Test
     public void checkDruidSchema() {
-        checkSchema("/config/avro/druid");
-        System.out.println("druid schema format 检测完成");
+        checkSchema(DRUID_SCHEMA_DIR);
+        log.info("druid schema format 检测完成");
     }
 
     /**
@@ -43,8 +49,8 @@ public class AvroSchemaFormatTest extends GalaxyQGWApplicationTests {
      */
     @Test
     public void checkCkSchema() {
-        checkSchema("/config/avro/clickhouse");
-        System.out.println("clickhouse schema format 检测完成");
+        checkSchema(CK_SCHEMA_DIR);
+        log.info("clickhouse schema format 检测完成");
     }
 
     /**
@@ -98,7 +104,7 @@ public class AvroSchemaFormatTest extends GalaxyQGWApplicationTests {
             File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    if(!f.getName().toLowerCase().endsWith(".avsc")){
+                    if(!StringUtils.lowerCase(f.getName()).endsWith(".avsc")){
                         continue;
                     }
                     try {

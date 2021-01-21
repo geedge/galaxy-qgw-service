@@ -1,6 +1,7 @@
 package com.mesalab.common.configuration;
 
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
@@ -14,10 +15,25 @@ public class ClickHouseProperties {
 
     private DBAccount longTermAccount = new DBAccount();
 
-    @Data
     public class DBAccount {
         private String username;
-        private String password;
+        private String userKey;
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getUserKey() {
+            return userKey;
+        }
+
+        public void setUserKey(String userKey) {
+            this.userKey = userKey;
+        }
     }
 
 }

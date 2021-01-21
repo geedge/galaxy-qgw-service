@@ -3,6 +3,8 @@
  */
 package com.mesalab.common.utils;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser.Feature;
@@ -31,8 +33,7 @@ import java.util.TimeZone;
 public class JsonMapper extends ObjectMapper {
 
 	private static final long serialVersionUID = 1L;
-
-	private static Logger logger = LoggerFactory.getLogger(JsonMapper.class);
+	private static final Log log = LogFactory.get();
 
 	private static JsonMapper mapper;
 
@@ -98,7 +99,7 @@ public class JsonMapper extends ObjectMapper {
 		try {
 			return this.writeValueAsString(object);
 		} catch (IOException e) {
-			logger.warn("write to json string error:" + object, e);
+			log.error("write to json string error:" , e);
 			return null;
 		}
 	}
@@ -119,7 +120,7 @@ public class JsonMapper extends ObjectMapper {
 		try {
 			return this.readValue(jsonString, clazz);
 		} catch (IOException e) {
-			logger.warn("parse json string error:" + jsonString, e);
+			log.error("parse json string error:" , e);
 			return null;
 		}
 	}
@@ -137,7 +138,7 @@ public class JsonMapper extends ObjectMapper {
 		try {
 			return (T) this.readValue(jsonString, javaType);
 		} catch (IOException e) {
-			logger.warn("parse json string error:" + jsonString, e);
+			log.error("parse json string error:" , e);
 			return null;
 		}
 	}
@@ -159,9 +160,9 @@ public class JsonMapper extends ObjectMapper {
 		try {
 			return (T) this.readerForUpdating(object).readValue(jsonString);
 		} catch (JsonProcessingException e) {
-			logger.warn("update json string:" + jsonString + " to object:" + object + " error.", e);
+			log.error("update json string:" + jsonString + " to object:" + object + " error.", e);
 		} catch (IOException e) {
-			logger.warn("update json string:" + jsonString + " to object:" + object + " error.", e);
+			log.error("update json string:" + jsonString + " to object:" + object + " error.", e);
 		}
 		return null;
 	}

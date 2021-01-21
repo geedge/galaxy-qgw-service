@@ -1,10 +1,11 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
@@ -37,10 +38,9 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
 @Service
 public class HttpClientService {
-
+    private static final Log log = LogFactory.get();
     @Autowired
     HttpConfig httpConfig;
 
@@ -382,6 +382,7 @@ public class HttpClientService {
         // 创建POST请求对象
         CloseableHttpResponse response = null;
         try {
+
             URL ul = new URL(url);
             URI uri = new URI(ul.getProtocol(), null, ul.getHost(), ul.getPort(), ul.getPath(), ul.getQuery(), null);
             log.debug("http post uri:{}， http post body:{}", uri, requestBody);

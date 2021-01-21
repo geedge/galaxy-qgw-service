@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public class DataTypeMapping {
 
-    public static Table<String, SqlTypeName, Class> TYPEMAPPING = HashBasedTable.create();
+    public static final Table<String, SqlTypeName, Class> TYPE_MAPPING = HashBasedTable.create();
     public static final String CHAR = "char";
     public static final String VARCHAR = "varchar";
     public static final String BOOLEAN = "boolean";
@@ -34,30 +34,30 @@ public class DataTypeMapping {
     public static final String ANY = "any";
 
     static {
-        TYPEMAPPING.put(DataTypeMapping.CHAR, SqlTypeName.CHAR, Character.class);
-        TYPEMAPPING.put(DataTypeMapping.VARCHAR, SqlTypeName.VARCHAR, String.class);
-        TYPEMAPPING.put(DataTypeMapping.BOOLEAN, SqlTypeName.BOOLEAN, Boolean.class);
-        TYPEMAPPING.put(DataTypeMapping.DATE, SqlTypeName.DATE, Date.class);
-        TYPEMAPPING.put(DataTypeMapping.INTEGER, SqlTypeName.INTEGER, Integer.class);
-        TYPEMAPPING.put(DataTypeMapping.INT, SqlTypeName.TIMESTAMP, String.class);
-        TYPEMAPPING.put(DataTypeMapping.TINYINT, SqlTypeName.TINYINT, Integer.class);
-        TYPEMAPPING.put(DataTypeMapping.SMALLINT, SqlTypeName.SMALLINT, Integer.class);
-        TYPEMAPPING.put(DataTypeMapping.BIGINT, SqlTypeName.BIGINT, Long.class);
-        TYPEMAPPING.put(DataTypeMapping.DECIMAL, SqlTypeName.DECIMAL, BigDecimal.class);
-        TYPEMAPPING.put(DataTypeMapping.NUMERIC, SqlTypeName.DECIMAL, Long.class);
-        TYPEMAPPING.put(DataTypeMapping.FLOAT, SqlTypeName.FLOAT, Float.class);
-        TYPEMAPPING.put(DataTypeMapping.REAL, SqlTypeName.REAL, Double.class);
-        TYPEMAPPING.put(DataTypeMapping.DOUBLE, SqlTypeName.DOUBLE, Double.class);
-        TYPEMAPPING.put(DataTypeMapping.TIME, SqlTypeName.TIME, Date.class);
-        TYPEMAPPING.put(DataTypeMapping.TIMESTAMP, SqlTypeName.TIMESTAMP, Long.class);
-        TYPEMAPPING.put(DataTypeMapping.ANY, SqlTypeName.ANY, String.class);
+        TYPE_MAPPING.put(DataTypeMapping.CHAR, SqlTypeName.CHAR, Character.class);
+        TYPE_MAPPING.put(DataTypeMapping.VARCHAR, SqlTypeName.VARCHAR, String.class);
+        TYPE_MAPPING.put(DataTypeMapping.BOOLEAN, SqlTypeName.BOOLEAN, Boolean.class);
+        TYPE_MAPPING.put(DataTypeMapping.DATE, SqlTypeName.DATE, Date.class);
+        TYPE_MAPPING.put(DataTypeMapping.INTEGER, SqlTypeName.INTEGER, Integer.class);
+        TYPE_MAPPING.put(DataTypeMapping.INT, SqlTypeName.TIMESTAMP, String.class);
+        TYPE_MAPPING.put(DataTypeMapping.TINYINT, SqlTypeName.TINYINT, Integer.class);
+        TYPE_MAPPING.put(DataTypeMapping.SMALLINT, SqlTypeName.SMALLINT, Integer.class);
+        TYPE_MAPPING.put(DataTypeMapping.BIGINT, SqlTypeName.BIGINT, Long.class);
+        TYPE_MAPPING.put(DataTypeMapping.DECIMAL, SqlTypeName.DECIMAL, BigDecimal.class);
+        TYPE_MAPPING.put(DataTypeMapping.NUMERIC, SqlTypeName.DECIMAL, Long.class);
+        TYPE_MAPPING.put(DataTypeMapping.FLOAT, SqlTypeName.FLOAT, Float.class);
+        TYPE_MAPPING.put(DataTypeMapping.REAL, SqlTypeName.REAL, Double.class);
+        TYPE_MAPPING.put(DataTypeMapping.DOUBLE, SqlTypeName.DOUBLE, Double.class);
+        TYPE_MAPPING.put(DataTypeMapping.TIME, SqlTypeName.TIME, Date.class);
+        TYPE_MAPPING.put(DataTypeMapping.TIMESTAMP, SqlTypeName.TIMESTAMP, Long.class);
+        TYPE_MAPPING.put(DataTypeMapping.ANY, SqlTypeName.ANY, String.class);
     }
 
     /**
      * 根据名字获取，对应的java类型
      */
     public static Class getJavaClassByName(String name) {
-        Set<Table.Cell<String, SqlTypeName, Class>> table = TYPEMAPPING.cellSet();
+        Set<Table.Cell<String, SqlTypeName, Class>> table = TYPE_MAPPING.cellSet();
         for (Table.Cell<String, SqlTypeName, Class> it : table) {
             if (it.getRowKey().equals(name)) {
                 return it.getValue();
@@ -67,7 +67,7 @@ public class DataTypeMapping {
     }
 
     public static SqlTypeName getSqlTypeByName(String name) {
-        for (Table.Cell<String, SqlTypeName, Class> it : TYPEMAPPING.cellSet()) {
+        for (Table.Cell<String, SqlTypeName, Class> it : TYPE_MAPPING.cellSet()) {
             if (it.getRowKey().equals(name)) {
                 return it.getColumnKey();
             }

@@ -1,5 +1,7 @@
 package com.mesalab.knowledge.service;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -18,7 +20,6 @@ import com.mesalab.knowledge.strategy.QueryProvider;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +41,9 @@ import static java.util.Objects.*;
  * @author: zhq
  * @create: 2020-07-06
  **/
-@Slf4j
 @Service
 public class KnowledgeService {
-
+    private static final Log log = LogFactory.get();
     @Value("${arango.maxrows}")
     private String maxrows;//查询最大条数
 

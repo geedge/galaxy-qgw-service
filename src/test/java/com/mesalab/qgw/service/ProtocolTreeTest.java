@@ -1,5 +1,7 @@
 package com.mesalab.qgw.service;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -20,10 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Slf4j
 @EnableAutoConfiguration
 public class ProtocolTreeTest extends GalaxyQGWApplicationTests {
-
+    private static final Log log = LogFactory.get();
     @Test
     public void testTreeOutput() {
 
@@ -42,11 +43,7 @@ public class ProtocolTreeTest extends GalaxyQGWApplicationTests {
         nodes = parserRawData(jsonString);
         concatResult =  Iterables.concat(concatResult, nodes);
 
-
-
-
         List<ProtocolTree> listNodes = Lists.newArrayList(concatResult);
-
 
         ProtocolTree root = new ProtocolTree("Protocols", "Protocols", null);
         List<ProtocolTree> roots = listNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
@@ -105,11 +102,8 @@ public class ProtocolTreeTest extends GalaxyQGWApplicationTests {
         List<ProtocolTree> mergeNodes = new ArrayList(mergeResultMap.values());
 
 
-
-
         List<ProtocolTree> treeNodes = TreeUtils.mergeTree(mergeNodes, ProtocolTree::getId, ProtocolTree::getParentId, ProtocolTree::setChildrens);
-        System.out.println(JsonMapper.toJsonString(treeNodes));
-
+        log.info(JsonMapper.toJsonString(treeNodes));
 
 
 

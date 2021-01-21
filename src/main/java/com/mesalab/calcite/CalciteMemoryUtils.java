@@ -1,28 +1,31 @@
 package com.mesalab.calcite;
 
-import com.google.common.base.Optional;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.base.Splitter;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
 import com.mesalab.common.exception.BusinessException;
-import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static com.zdjizhi.utils.StringUtil.setDefaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
-@Slf4j
+
 public class CalciteMemoryUtils {
+    private static final Log log = LogFactory.get();
+
+    static {
+        try {
+            Class.forName("org.apache.calcite.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            log.error("Calcite load driver error : {}", e);
+        }
+    }
 
     public static Map<String, Object> executeMemoryQuery(String tableName, List<Map<String, String>> meta,
                                                                             List<Map<String, Object>> data, String sql) {
@@ -35,26 +38,21 @@ public class CalciteMemoryUtils {
             return result;
         }
         ResultSet resultSet = null;
-        java.sql.Statement statement = null;
-        Connection connection = null;
+        PreparedStatement statement = null;
+        CalciteConnection connection = null;
         try {
-           Class.forName("org.apache.calcite.jdbc.Driver");
            Properties info = new Properties();
            info.setProperty("lex", "MYSQL_ANSI");
            String jsonModel = new File("").getCanonicalPath() + "/config/memorySchema.json";
-           connection = DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
-           CalciteConnection calciteConn = connection.unwrap(CalciteConnection.class);
-
-           log.debug("Calcite: 加载数据的数量: " + data.size());
-           //将数据存入缓存表
+           connection = (CalciteConnection) DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
            Storage.DummyTable table = buildDummyTable(meta, tableName);
            table = loadData(table, data);
            InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
 
            //将缓存表植入rootSchema
-           calciteConn.getRootSchema().add(tableName, inMemoryTable);
-           statement = connection.createStatement();
-           resultSet = statement.executeQuery(sql);
+           connection.getRootSchema().add(tableName, inMemoryTable);
+           statement = connection.prepareStatement(sql);
+           resultSet = statement.executeQuery();
            ResultSetMetaData metaData = resultSet.getMetaData();
            meta.clear();
            data.clear();
@@ -79,36 +77,41 @@ public class CalciteMemoryUtils {
 
        } catch (Exception e) {
            throw new BusinessException("Engine execution SQL Error - ", e);
-
        } finally {
-           if (resultSet != null) {
-               try {
-                   resultSet.close();
-               } catch (SQLException sqlException) {
-                   sqlException.printStackTrace();
-               }
-           }
-
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException sqlException) {
-                    sqlException.printStackTrace();
-                }
-            }
-
-           if (connection != null) {
-               try {
-                   connection.close();
-               } catch (SQLException sqlException) {
-                   sqlException.printStackTrace();
-               }
-           }
+          close(resultSet, statement, connection);
        }
 
 
         return result;
     }
+
+    private static void close(ResultSet rs, PreparedStatement pst, Connection conn) {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                log.error("ResultSet close error : " , e.getMessage());
+            }
+            rs = null;
+        }
+        if (pst != null) {
+            try {
+                pst.close();
+            } catch (SQLException e) {
+                log.error("Statement close error : " , e.getMessage());
+            }
+            pst = null;
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                log.error("Connection close error : " , e.getMessage());
+            }
+            conn = null;
+        }
+}
+
 
 
     /**
