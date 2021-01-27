@@ -1,9 +1,10 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLLimit;
-import com.alibaba.druid.sql.ast.SQLOrderBy;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.SQLBinaryOpExpr;
 import com.alibaba.druid.sql.ast.expr.SQLBinaryOperator;
@@ -15,6 +16,7 @@ import com.alibaba.druid.util.JdbcConstants;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.SchemaBase;
@@ -34,7 +36,6 @@ import com.mesalab.qgw.model.api.udf.UDFElements;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
@@ -52,10 +53,9 @@ import javax.annotation.PostConstruct;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
-@Slf4j
 @Service("apiService")
 public class ApiServiceImpl implements ApiService {
-
+    private static final Log log = LogFactory.get();
     @Autowired
     private ClickHouseProperties clickHouseProperties;
     @Autowired
@@ -574,16 +574,9 @@ public class ApiServiceImpl implements ApiService {
                             sqlQuerySource.setExpr(left.toString() + operator.name() + right.toString());
                             // 如果是子查询
                         } else if (where instanceof SQLInSubQueryExpr) {
-                            SQLInSubQueryExpr sqlInSubQueryExpr = (SQLInSubQueryExpr) where;
+                            log.warn("UNSupport Parser sub Where!");
 
                         }
-
-
-                        // 获取分组
-                        SQLSelectGroupByClause groupBy = sqlSelectQueryBlock.getGroupBy();
-
-                        // 获取排序
-                        SQLOrderBy orderBy = sqlSelectQueryBlock.getOrderBy();
 
                         // 获取分页
                         SQLLimit limit = sqlSelectQueryBlock.getLimit();
@@ -595,7 +588,6 @@ public class ApiServiceImpl implements ApiService {
                                 sqlQuerySource.setLimit(String.valueOf(limit.getRowCount()));
                             }
                         }
-
 
                         // union的查询语句
                     } else if (sqlSelectQuery instanceof SQLUnionQuery) {
@@ -776,15 +768,12 @@ public class ApiServiceImpl implements ApiService {
         SchemaBase schema = new SchemaBase();
         schema.setName(param.getTableName());
         List<Map> fields = new ArrayList<>();
-        HashMap<String, Object> map = new HashMap<>();
         List<Map> list = (List<Map>) result.getData();
-        Iterator iterator = list.iterator();
-        while (iterator.hasNext()) {
-            Map<String, String> next = (Map) iterator.next();
-            map = new HashMap<>();
-            map.put("name", next.get("name"));
-            map.put("type", next.get("type"));
-            fields.add(map);
+        for (Map resultMap : list) {
+            Map schemaMap = Maps.newHashMap();
+            schemaMap.put("name", resultMap.get("name"));
+            schemaMap.put("type", resultMap.get("type"));
+            fields.add(schemaMap);
         }
         schema.setFields(fields);
         result.setData(schema);

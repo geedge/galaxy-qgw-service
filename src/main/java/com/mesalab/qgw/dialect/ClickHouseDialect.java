@@ -1,6 +1,9 @@
 package com.mesalab.qgw.dialect;
 
 
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -14,7 +17,6 @@ import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.common.utils.TableFinder;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
@@ -30,6 +32,7 @@ import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.nio.charset.Charset;
 import java.util.List;
@@ -38,19 +41,20 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
 public class ClickHouseDialect extends AbstractDataSourceDialect {
-    Pattern pGlobalIn = Pattern.compile("\\s+in\\s*\\(", Pattern.CASE_INSENSITIVE);
-    Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
-    Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
-    Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
-    Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
-    Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
+    private static final Log log = LogFactory.get();
+    private static final Pattern pGlobalIn = Pattern.compile("\\s+in\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
+
     public ApiParam param;
     public BaseResult baseResult;
 
@@ -133,8 +137,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 tableFinder.addSchemaName(parse);
                 sql = String.valueOf(parse);
             } catch (JSQLParserException e) {
-                log.error("添加库名、别名异常: ", e);
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "添加库名、别名异常", e);
+                log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Rewrite add tableName and Alias Error", e);
             }
             return this;
         }
@@ -434,7 +438,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         private String getSubqueryByPartitionKey(String sql) {
             String partitionKey = getPartitionKey(param.getTableName());
             if (StringUtil.isBlank(partitionKey)) {
-                log.warn("Get Partition Key is Null.Focus in tableName {} schema", param.getTableName());
+                log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getTableName());
                 return sql;
             } else {
                 StringBuffer subQuery = getSubquerySql(partitionKey, param.getTableName());
@@ -530,7 +534,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         private boolean isExist(String tableName) {
             Map<String, String> result = executeHttpGet(String.format("select 1 from %s limit 1", tableName));
             if (result.get("status") == null || Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
-                log.info("DB中不存在该表: {}", tableName);
+                log.warn("The table does not exist: {}", tableName);
                 return false;
             }
             return true;
@@ -969,17 +973,16 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @return
      */
     private Map<String, String> executeHttpGet(String sql) {
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(clickHouseHttpSource.getUrl()).append("/?");
+        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
 
         ClickHouseHttpQuery clickHouseHttpQuery = buildHttpQueryParameter(sql);
 
-        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), urlBuilder.toString() +
+        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
                 Encodes.urlDecode(clickHouseHttpQuery.getQueryParameter()));
 
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
 
-        return httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());
+        return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());
     }
 
     private ClickHouseHttpQuery buildHttpQueryParameter(String sql) {
@@ -991,20 +994,20 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append("user=")
                     .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
-                    .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
+                    .append("password=").append(clickHouseHttpSource.getLongTermAccount().getUserKey()).append("&")
                     .append("database=").append(dbName).append("&");
         } else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append("user=")
                     .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
-                    .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
+                    .append("password=").append(clickHouseHttpSource.getLongTermAccount().getUserKey()).append("&")
                     .append("database=").append(dbName).append("&")
                     .append("query_id=").append(ReportCacheUtils.getQueryId(param.getResultId(), param.getQuery())).append("&");
         } else {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
             queryParameterBuilder.append("user=")
                     .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                    .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                    .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).append("&")
                     .append("database=").append(dbName).append("&");
         }
 

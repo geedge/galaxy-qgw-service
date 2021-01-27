@@ -1,28 +1,36 @@
 package com.mesalab.qgw.interceptor;
 
+import cn.hutool.core.util.EscapeUtil;
+import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.http.HtmlUtil;
+import cn.hutool.json.JSON;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.cache.CacheStats;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Component
-@Slf4j
 public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
 
-
+    private static final Log log = LogFactory.get();
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception
+    {
 
         if (handler instanceof HandlerMethod) {
 
@@ -33,15 +41,15 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
             if (submitCheck == null || StringUtil.isBlank(request.getQueryString())) {
                 return true;
             }
-
             String clientId = this.getClientId();
-            String queryKey = DigestUtils.md5Hex(request.getQueryString());
-
-
-            log.debug("Query Submit Check,ClientId:{}, QueryKey:{}", clientId, DigestUtils.md5Hex(queryKey));
+            String queryStr = StringEscapeUtils.escapeHtml4(request.getQueryString());
+            String queryKey = DigestUtil.md5Hex(queryStr);
+            log.info("Source compare to EscapeHtml4 SQL {}" ,
+                    DigestUtil.md5Hex(queryStr).equals(DigestUtil.md5Hex(request.getQueryString())));
+            log.debug("Query Submit Check,ClientId:{}, QueryKey:{}", clientId, queryKey);
             Object result = QueryCacheUtils.get(queryKey);
-            if (StringUtil.isNotEmpty(result)) {
 
+            if (StringUtil.isNotEmpty(result)) {
                 CacheStats stats = QueryCacheUtils.getStats();
                 log.info(" Query Repeat Submit Stat,QEQ_count:{},HIT_count:{},HIT_rate:{}, MISS_count:{}",
                         stats.requestCount(), stats.hitCount(), stats.hitRate(), stats.missCount());
@@ -51,6 +59,7 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
                 return false;
 
             }
+
         }
         return true;
     }
@@ -66,13 +75,8 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
     }
 
     private String getClientId() {
-
         return RequestContextHolder.getRequestAttributes().getSessionId();
-
     }
-
-
-
 
     @Data
     private static class UserMethodKey {
@@ -81,7 +85,7 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
 
         @Override
         public String toString() {
-            return DigestUtils.md5Hex(clientId + queryString);
+            return DigestUtil.md5Hex(clientId + queryString);
         }
     }
 

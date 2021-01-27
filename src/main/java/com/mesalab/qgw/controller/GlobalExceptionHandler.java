@@ -1,9 +1,10 @@
 package com.mesalab.qgw.controller;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.exception.BusinessException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -11,9 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RestControllerAdvice
-@Slf4j
 public class GlobalExceptionHandler {
-
+    private static final Log log = LogFactory.get();
 
     @ExceptionHandler(Exception.class)
     public BaseResult handleException(Exception e) {

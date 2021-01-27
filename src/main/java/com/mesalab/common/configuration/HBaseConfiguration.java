@@ -1,7 +1,8 @@
 package com.mesalab.common.configuration;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.qgw.model.api.HBaseAPISource;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +11,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
-@Slf4j
+
 @Configuration
 @EnableConfigurationProperties(HBaseProperties.class)
 public class HBaseConfiguration {
-
+    private static final Log log = LogFactory.get();
     private final HBaseProperties hBaseProperties;
 
     @Autowired
@@ -41,22 +42,22 @@ public class HBaseConfiguration {
     public Connection getConnection() {
         org.apache.hadoop.conf.Configuration conf = null;
         Connection con = null;
-        if (conf == null) {
-            conf = org.apache.hadoop.hbase.HBaseConfiguration.create();
-            conf.set("hbase.zookeeper.quorum", hBaseProperties.getZookeeperQuorum());
-            conf.set("hbase.zookeeper.property.clientPort", hBaseProperties.getZookeeperPropertyClientPort());
-            conf.set("hbase.zookeeper.znode.parent", hBaseProperties.getZookeeperZnodeParent());
-            conf.set("hbase.rpc.timeout", hBaseProperties.getRpcTimeout());
-            conf.set("hbase.client.ipc.pool.size", hBaseProperties.getClientIpcPoolSize());
-            conf.set("hbase.client.ipc.pool.type", "ThreadLocalPool");
-            conf.set("zookeeper.recovery.retry.intervalmill", "200");
-            conf.set("zookeeper.recovery.retry", "3");
-            conf.set("hbase.client.retries.number", "3");
-        }
         try {
+            if (conf == null) {
+                conf = org.apache.hadoop.hbase.HBaseConfiguration.create();
+                conf.set("hbase.zookeeper.quorum", hBaseProperties.getZookeeperQuorum());
+                conf.set("hbase.zookeeper.property.clientPort", hBaseProperties.getZookeeperPropertyClientPort());
+                conf.set("hbase.zookeeper.znode.parent", hBaseProperties.getZookeeperZnodeParent());
+                conf.set("hbase.rpc.timeout", hBaseProperties.getRpcTimeout());
+                conf.set("hbase.client.ipc.pool.size", hBaseProperties.getClientIpcPoolSize());
+                conf.set("hbase.client.ipc.pool.type", "ThreadLocalPool");
+                conf.set("zookeeper.recovery.retry.intervalmill", "200");
+                conf.set("zookeeper.recovery.retry", "3");
+                conf.set("hbase.client.retries.number", "3");
+            }
             con = ConnectionFactory.createConnection(conf);
         } catch (Exception e) {
-            log.error("create connection error: ", e);
+           log.error("create connection error: ", e);
         }
         return con;
     }

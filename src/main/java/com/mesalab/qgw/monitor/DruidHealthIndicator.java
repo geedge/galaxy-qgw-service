@@ -1,4 +1,5 @@
 package com.mesalab.qgw.monitor;
+import cn.hutool.core.util.URLUtil;
 import com.google.common.collect.Maps;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
@@ -26,8 +27,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
-
-        StringBuilder urlBuilder = new StringBuilder("http://") .append(druidIoHttpSource.getUrl());
+        String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidHealthIndicator.DruidQueryParam druidQueryParam = new DruidHealthIndicator.DruidQueryParam();
 
         druidQueryParam.setQuery("select count(*) from sys.servers ");
@@ -37,7 +37,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity request = new HttpEntity(JsonMapper.toJsonString(druidQueryParam), headers);
-            ResponseEntity responseEntity  = restTemplate.postForEntity(urlBuilder.toString(), request, Object.class);
+            ResponseEntity responseEntity  = restTemplate.postForEntity(queryURL, request, Object.class);
 
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()

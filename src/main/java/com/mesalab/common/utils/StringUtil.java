@@ -1,9 +1,7 @@
 package com.mesalab.common.utils;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
-import javax.management.RuntimeErrorException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

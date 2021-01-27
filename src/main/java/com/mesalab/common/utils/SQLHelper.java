@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class SQLHelper {
 
-    public static Pattern pOrder = Pattern.compile("order\\s*by[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pOrder = Pattern.compile("order\\s*by[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
 
 
     /**

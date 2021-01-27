@@ -1,5 +1,7 @@
 package com.mesalab.knowledge.controller;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -14,11 +16,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Slf4j
 @RestController
 @RequestMapping(value = "/knowledge")
 public class KnowledgeController {
-
+    private static final Log log = LogFactory.get();
     @Autowired
     KnowledgeService knowledgeService;
 
@@ -36,10 +37,10 @@ public class KnowledgeController {
     @PostMapping(value = "/v1/", produces = "application/json")
     public BaseResult knowledgeQuery(HttpServletRequest request,  @RequestBody Object object) {
         if (EnumUtils.isValidEnum(QueryTypeEnum.class,StringUtil.upperCase(request.getQueryString()))) {
-            log.info("服务推荐接口, 参数: queryString is {},params is {}", request.getQueryString(), object);
+            log.debug("服务推荐接口, 参数: queryString is {},params is {}", request.getQueryString(), object);
             return knowledgeService.query(object);
         } else {
-            log.error("服务推荐接口, 错误:queryString is {},params is {}", request.getQueryString(), object);
+            log.warn("服务推荐接口, 错误:queryString is {},params is {}", request.getQueryString(), object);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
         }
     }

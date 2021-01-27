@@ -1,5 +1,8 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -33,11 +36,9 @@ import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.*;
 
-@Slf4j
 @Service("systemService")
 public class SystemServiceImpl implements SystemService {
-
-
+    private static final Log log = LogFactory.get();
     @Autowired
     private ApiService apiService;
     @Autowired
@@ -151,18 +152,18 @@ public class SystemServiceImpl implements SystemService {
     @Override
     public BaseResult deleteQueryTask(String queryId) {
         String executeSql = "kill query where query_id = '" + queryId + "'";
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(clickHouseHttpSource.getUrl()).append("/?");
+        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
+
         StringBuilder queryParamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPassword()).append("&")
+                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getUserKey()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(executeSql)
                 .append(" FORMAT ").append("JSON").append(" ;");
 
         List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
 
-        Map<String, String> map = httpClientService.httpGet(urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8"), 0);
+        Map<String, String> map = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), 0);
         if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             return BaseResultGenerator.success4Message("ok");
         } else {
@@ -340,7 +341,6 @@ public class SystemServiceImpl implements SystemService {
         BaseResult baseResult = null;
         StringBuilder url = new StringBuilder(jobAdminHttpSource.getUrl()).append("/jobinfo/jobBeat?jobId=").append(jobId);
         Map<String, String> resultMap = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
-        log.info("请求调度任务jobBeat接口" + url);
         baseResult = resultEncapsulationOfJob(resultMap);
         return baseResult;
     }
@@ -385,7 +385,7 @@ public class SystemServiceImpl implements SystemService {
         String params = getUrlParamsByMap(getObjectToMap(xxlJobInfo));
         String url = String.format("%s/jobinfo/%s/?%s", jobAdminHttpSource.getUrl(), executeType, params);
         Map<String, String> resultMap = httpClientService.httpGet(url, headers, httpConfig.getServerResponseTimeOut());
-        log.info("请求调度任务" + executeType + "接口" + url);
+        log.warn("请求调度任务" + executeType + "接口" + url);
         baseResult = resultEncapsulationOfJob(resultMap);
         return baseResult;
     }
@@ -417,7 +417,6 @@ public class SystemServiceImpl implements SystemService {
                 append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
                 append(handlerValue);
         Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
-        log.info("请求调度任务pageList接口 " + url);
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {

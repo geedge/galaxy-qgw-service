@@ -1,12 +1,15 @@
 package com.mesalab.qgw.controller;
 
+import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
-import com.mesalab.common.utils.IPUtil;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.AuditServiceLog;
+import com.zdjizhi.utils.IPUtil;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.aspectj.lang.JoinPoint;
@@ -28,8 +31,8 @@ import java.util.Arrays;
 public class AuditLogAspect {
 
     ThreadLocal<Long> startTime = new ThreadLocal<>();
-    ThreadLocal<AuditServiceLog> log = new ThreadLocal<>();
-    private static final Logger logger= LoggerFactory.getLogger(AuditLogAspect.class);
+    ThreadLocal<AuditServiceLog> auditLog = new ThreadLocal<>();
+    private static final Log log = LogFactory.get();
 
 
     @Pointcut("@annotation(com.mesalab.qgw.model.api.AuditLog)")
@@ -37,18 +40,14 @@ public class AuditLogAspect {
 
     @Before("annotationPointCut()")
     public void doBefore(JoinPoint joinPoint) throws Throwable {
-        // 接收到请求，记录请求内容
+
         startTime.set(System.currentTimeMillis());
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
         String url = request.getRequestURL().toString();
         String method = request.getMethod();
         String remoteAddr = request.getRemoteAddr();
-        String clientIp = IPUtil.parseIP(request);
-
-        if("0.0.0.0".equals(clientIp) || "0:0:0:0:0:0:0:1".equals(clientIp) || "localhost".equals(clientIp) || "127.0.0.1".equals(clientIp)){
-            clientIp = "127.0.0.1";
-        }
+        String clientIp = IPUtil.getIpAddr(request);
         String class_method = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
         String param = Arrays.toString(joinPoint.getArgs());
 
@@ -62,18 +61,18 @@ public class AuditLogAspect {
         auditServiceLog.setRemoteAddr(remoteAddr);
         auditServiceLog.setClientIp(clientIp);
         auditServiceLog.setClassMethod(class_method);
-        if (logger.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             auditServiceLog.setParam(param);
         }
         auditServiceLog.setAnnotation(annotation.value());
-        auditServiceLog.setQueryKey(DigestUtils.md5Hex(StringUtil.isNotBlank(request.getQueryString()) ? request.getQueryString() : ""));
+        auditServiceLog.setQueryKey(DigestUtil.md5Hex(StringUtil.isNotBlank(request.getQueryString()) ? request.getQueryString() : ""));
 
-        log.set(auditServiceLog);
+        auditLog.set(auditServiceLog);
     }
 
     @AfterThrowing(value = "annotationPointCut()", throwing = "exception")
     public void doAfterThrowingAdvice(JoinPoint joinPoint,Throwable exception){
-        logger.error("Audit log [error]:" + joinPoint.getSignature().getName() + exception);
+        log.error("Audit log [error]:" + joinPoint.getSignature().getName() + exception);
 
     }
 
@@ -81,7 +80,7 @@ public class AuditLogAspect {
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
         ApiParam param = (ApiParam) joinPoint.getArgs()[0];
-        log.get().setDbType(param.getDbType());
+        auditLog.get().setDbType(param.getDbType());
 
     }
 
@@ -91,7 +90,7 @@ public class AuditLogAspect {
     @AfterReturning(returning = "result", pointcut = "annotationPointCut()")
     public void doAfterReturning(Object result) throws Throwable {
 
-        AuditServiceLog logAfter =  log.get();
+        AuditServiceLog logAfter =  auditLog.get();
         if (StringUtil.isNotEmpty(result) ) {
             QueryCacheUtils.put(logAfter.getQueryKey(), result);
         }
@@ -104,7 +103,7 @@ public class AuditLogAspect {
         Long exeTime = System.currentTimeMillis() - startTime.get();
         logAfter.setExeTime(exeTime);
 
-        logger.info("Audit Log [completed]：" + JsonMapper.toJsonString(logAfter));
+        log.info("Audit Log [completed]：" + JsonMapper.toJsonString(logAfter));
 
     }
 

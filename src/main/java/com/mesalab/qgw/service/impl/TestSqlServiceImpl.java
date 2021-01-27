@@ -1,6 +1,10 @@
 package com.mesalab.qgw.service.impl;
 
 
+import cn.hutool.core.net.NetUtil;
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -14,10 +18,10 @@ import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
 import org.apache.avro.data.Json;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -26,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import sun.swing.FilePane;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -36,9 +41,13 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-@Slf4j
 @Service
 public class TestSqlServiceImpl {
+    private static final Log log = LogFactory.get();
+    private static final String CK_SCHEMA_DIR = File.separator + "config"
+            + File.separator + "avro" +  File.separator + "clickhouse";
+    private static final String DRUID_SCHEMA_DIR = File.separator + "config"
+            + File.separator + "avro" +  File.separator + "druid";
 
     @Autowired
     HttpClientService httpClientService;
@@ -74,13 +83,8 @@ public class TestSqlServiceImpl {
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:00:00");
         SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date(System.currentTimeMillis());
-        String hostAddress = null;
-        try {
-            hostAddress = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            hostAddress = "127.0.0.1";
-            log.error("获取服务器IP异常", e);
-        }
+        String localHostAddress = NetUtil.getLocalhostStr();
+
         for (int i = 0; i < list.size(); i++) {
             String sql = String.valueOf(list.get(i));
             try {
@@ -90,7 +94,10 @@ public class TestSqlServiceImpl {
             } catch (Exception e) {
                 log.error("测试用例sql编码错误", e);
             }
-            resultTemp = httpClientService.httpGet("http://" + hostAddress + ":" + serverPort + "/?query=" + sql, httpConfig.getServerResponseTimeOut());
+            String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");
+            resultTemp = httpClientService.httpGet(queryURL + sql, httpConfig.getServerResponseTimeOut());
+
+
             if (resultTemp.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
                 resultTemp.remove("result");
                 countSuccess++;
@@ -132,10 +139,10 @@ public class TestSqlServiceImpl {
         SchemaCacheUtils.removeAll();
         long start = System.currentTimeMillis();
         errorDate = new ArrayList();
-        checkCKSchema("/config/avro/clickhouse");
-        checkDruidSchema("/config/avro/druid");
-        checkSchema("/config/avro/clickhouse");
-        checkSchema("/config/avro/druid");
+        checkCKSchema(CK_SCHEMA_DIR);
+        checkDruidSchema(DRUID_SCHEMA_DIR);
+        checkSchema(CK_SCHEMA_DIR);
+        checkSchema(DRUID_SCHEMA_DIR);
         long cost = System.currentTimeMillis() - start;
         HashMap<String, Object> statistics = new HashMap<>();
         statistics.put("elapsed", String.format("%.2f", (double) cost / 1000));
@@ -389,19 +396,19 @@ public class TestSqlServiceImpl {
      * @return
      */
     private List queryCKDynamic(String query) {
-        StringBuilder urlBuilder = new StringBuilder("http://")
-                .append(clickHouseHttpSource.getUrl()).append("/?");
+
+        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPassword()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).append("&")
                 .append("database=")
                 .append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(query)
                 .append(" FORMAT JSON;");
 
-        log.info("Query Session and Events Query : {}", urlBuilder.toString() + Encodes.urlDecode(queryparamBuilder.toString()));
+        log.info("Query Session and Events Query : {}", queryURL + Encodes.urlDecode(queryparamBuilder.toString()));
         List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
-        String s = urlBuilder.toString() + URLEncodedUtils.format(values, "utf-8");
+        String s = queryURL + URLEncodedUtils.format(values, "utf-8");
         Map<String, String> resultMap = httpClientService.httpGet(s, httpConfig.getCkRealTimeAccountSocketTimeOut());
         List result = new ArrayList<>();
         if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
@@ -433,7 +440,8 @@ public class TestSqlServiceImpl {
         Map<String, Object> params = Maps.newHashMap();
         params.put("query", query);
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
-        Map<String, String> resultMap = httpClientService.httpPost("http://" + druidIoProperties.getUrl(), JsonMapper.toJsonString(params), socketTimeOut);
+        String queryURL = URLUtil.normalize(druidIoProperties.getUrl());
+        Map<String, String> resultMap = httpClientService.httpPost(queryURL, JsonMapper.toJsonString(params), socketTimeOut);
         if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             List<String> list = new ArrayList<>();
             String result = resultMap.get("result");
@@ -554,7 +562,8 @@ public class TestSqlServiceImpl {
             File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    if (!f.getName().toLowerCase().endsWith(".avsc")) {
+
+                    if (!StringUtils.lowerCase(f.getName()).endsWith(".avsc")) {
                         continue;
                     }
                     try {

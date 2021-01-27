@@ -1,5 +1,7 @@
 package com.mesalab.common.plugin;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.plugin.activerecord.IDataSourceProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +12,8 @@ import lombok.extern.slf4j.Slf4j;
  * @ClassName : ArpStartPlugin
  * @Description : ArpStartPlugin
  */
-@Slf4j
 public class ArpStartPlugin extends ActiveRecordPlugin {
-
+    private static final Log log = LogFactory.get();
     public ArpStartPlugin(IDataSourceProvider dataSourceProvider) {
         super(dataSourceProvider);
     }
