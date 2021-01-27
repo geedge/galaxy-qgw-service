@@ -1,25 +1,35 @@
 package com.mesalab.benchmark.clickhouse;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.zdjizhi.utils.DateUtils;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.Statement;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 //clickhouse-benchmark  -i 93  --host 127.0.0.1 --port 9001 --user default --password "ceiec2019" --database tsg_galaxy_v3 < /root/session_record_queries_20210113203103.sql@EnableAutoConfiguration
 @EnableAutoConfiguration
-public class SQLWriterStatementTest extends GalaxyQGWApplicationTests {
+public class ClickhouseWriterStatementTest extends GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
     private static final String TITLE_PREFIX = "--Q";
     private static final String LABEL_COMMON_FILTER = "\\$common_filter";
@@ -93,14 +103,10 @@ public class SQLWriterStatementTest extends GalaxyQGWApplicationTests {
 
                 }
 
-
-
-
-
-
             });
             writer.appendLines(resultLines);
             resultLines.clear();
+
         } catch (IOException e) {
             log.error("Not found file {}", "sample.sql");
         }
@@ -108,13 +114,43 @@ public class SQLWriterStatementTest extends GalaxyQGWApplicationTests {
 
     @Before
     public void testBefore() {
-        log.info("======  Begin SQL Writer Statement Test  ======  ");
+        log.info("======  Begin Clickhouse Writer Statement Test  ======  ");
     }
 
     @Test
-    public void testExecuteSql() {
+    public void testSqlParser() throws IOException {
         buildQuery();
-        log.info("Benchmark execute sql completed!");
+        log.info("Clickhouse parse SQL  beginning!");
+        Optional<File> ckTestFile =  FileUtil.loopFiles(new File("").getCanonicalPath()
+                + File.separator + "benchmark").stream()
+                .sorted(Comparator.comparing(File::lastModified).reversed()).findFirst();
+
+        if (ckTestFile.isPresent()) {
+            if (!ckTestFile.get().isFile()) {
+                log.warn("UnKnow File " + ckTestFile.get());
+                return;
+            }
+
+            List<String> rawLines = new FileReader(ckTestFile.get()).readLines();
+            rawLines.stream().forEach(line -> {
+                if (Strings.isNullOrEmpty(line)) {
+                    return;
+                }
+                Statement parse = null;
+                try {
+                    parse = CCJSqlParserUtil.parse(line);
+                } catch (JSQLParserException e) {
+                    log.error("Parse SQL ERROR : {}, SQL is {} " , e, line);
+                }
+
+                Assert.notNull(parse);
+            });
+
+            FileUtil.del(ckTestFile.get());
+
+        }
+
+        log.info("Clickhouse parse SQL completed!");
     }
 
 
