@@ -337,6 +337,18 @@
       "doc": "{\"visibility\":\"hidden\"}"
     },
     {
+      "name": "common_tcp_client_isn",
+      "label": "TCP Client ISN",
+      "type": "long",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_tcp_server_isn",
+      "label": "TCP Server ISN",
+      "type": "long",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
       "name": "common_first_ttl",
       "label": "First TTL",
       "type": "int",
