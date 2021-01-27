@@ -20,12 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ApiController {
 
     @Autowired
-    ApiService apiService;
+    private ApiService apiService;
 
     @RequestMapping("/")
     @AuditLog("QGW QUERY SERVICE")
     @CachedSubmitCheck
-    public BaseResult querey(ApiParam apiParam) {
+    public BaseResult query(ApiParam apiParam) {
 
         log.info("Quest Params:{}", JsonMapper.toJsonString(apiParam));
 

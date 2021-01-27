@@ -5,11 +5,11 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
-import com.mesalab.common.utils.IPUtil;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.AuditServiceLog;
+import com.zdjizhi.utils.IPUtil;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.aspectj.lang.JoinPoint;
@@ -29,10 +29,7 @@ import java.util.Arrays;
 @Aspect
 @Component
 public class AuditLogAspect {
-    private static final String UNKNOWN_IPV4_ADDRESS = "0.0.0.0";
-    private static final String LOCAL_IPV6_ADDRESS = "0:0:0:0:0:0:0:1";
-    private static final String LOCALHOST_IPV4_ADDRESS = "127.0.0.1";
-    private static final String LOCALHOST_NAME = "localhost";
+
     ThreadLocal<Long> startTime = new ThreadLocal<>();
     ThreadLocal<AuditServiceLog> auditLog = new ThreadLocal<>();
     private static final Log log = LogFactory.get();
@@ -43,21 +40,14 @@ public class AuditLogAspect {
 
     @Before("annotationPointCut()")
     public void doBefore(JoinPoint joinPoint) throws Throwable {
-        // 接收到请求，记录请求内容
+
         startTime.set(System.currentTimeMillis());
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
         String url = request.getRequestURL().toString();
         String method = request.getMethod();
         String remoteAddr = request.getRemoteAddr();
-        String clientIp = IPUtil.parseIP(request);
-
-        if(UNKNOWN_IPV4_ADDRESS.equals(clientIp)
-                || LOCAL_IPV6_ADDRESS.equals(clientIp)
-                || LOCALHOST_NAME.equals(clientIp)
-                || LOCALHOST_IPV4_ADDRESS.equals(clientIp)){
-            clientIp = "127.0.0.1";
-        }
+        String clientIp = IPUtil.getIpAddr(request);
         String class_method = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
         String param = Arrays.toString(joinPoint.getArgs());
 
