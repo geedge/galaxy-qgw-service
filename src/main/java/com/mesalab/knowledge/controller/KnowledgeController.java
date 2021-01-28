@@ -25,11 +25,11 @@ public class KnowledgeController {
 
     @GetMapping("/info")
     public String info() {
-        return "You Konow, For Graph Search!";
+        return "You Know, For Graph Search!";
     }
 
     /***
-     * @Description //TODO
+     *
      * @Date 2020\7\16
      * @Param [request, dSLObject]
      * @return com.mesalab.common.base.BaseResult
@@ -40,8 +40,9 @@ public class KnowledgeController {
             log.debug("服务推荐接口, 参数: queryString is {},params is {}", request.getQueryString(), object);
             return knowledgeService.query(object);
         } else {
-            log.warn("服务推荐接口, 错误:queryString is {},params is {}", request.getQueryString(), object);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
+            log.error("服务推荐接口, 错误:queryString is {}, params is {}", request.getQueryString(), object);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
         }
     }
 }

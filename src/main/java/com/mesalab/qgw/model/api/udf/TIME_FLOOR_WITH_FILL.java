@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class TIME_FLOOR_WITH_FILL implements UDF{
@@ -47,6 +46,38 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     private String timestamp;
     private String period;
     private String fill;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getPeriod() {
+        return period;
+    }
+
+    public void setPeriod(String period) {
+        this.period = period;
+    }
+
+    public String getFill() {
+        return fill;
+    }
+
+    public void setFill(String fill) {
+        this.fill = fill;
+    }
 
     public TIME_FLOOR_WITH_FILL(UDFElements udfElements) {
         this.name = udfElements.getName();
