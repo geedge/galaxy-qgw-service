@@ -1,5 +1,6 @@
 package com.mesalab.qgw.controller;
 
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -30,8 +31,8 @@ import java.util.Arrays;
 @Component
 public class AuditLogAspect {
 
-    ThreadLocal<Long> startTime = new ThreadLocal<>();
-    ThreadLocal<AuditServiceLog> auditLog = new ThreadLocal<>();
+    private ThreadLocal<Long> startTime = ThreadUtil.createThreadLocal(false);
+    private ThreadLocal<AuditServiceLog> auditLog = ThreadUtil.createThreadLocal(false);
     private static final Log log = LogFactory.get();
 
 
