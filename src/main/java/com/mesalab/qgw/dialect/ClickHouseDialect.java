@@ -13,6 +13,7 @@ import com.mesalab.common.utils.*;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.SystemService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.common.utils.TableFinder;
 import com.zdjizhi.utils.Encodes;
@@ -32,7 +33,6 @@ import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.nio.charset.Charset;
 import java.util.List;
@@ -54,7 +54,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
-
+    private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     public ApiParam param;
     public BaseResult baseResult;
 
@@ -1003,7 +1003,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
                     .append("password=").append(clickHouseHttpSource.getLongTermAccount().getUserKey()).append("&")
                     .append("database=").append(dbName).append("&")
-                    .append("query_id=").append(ReportCacheUtils.getQueryId(param.getResultId(), param.getQuery())).append("&");
+                    .append("query_id=").append(systemService.getQueryId(param.getResultId(), param.getQuery())).append("&");
         } else {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
             queryParameterBuilder.append("user=")

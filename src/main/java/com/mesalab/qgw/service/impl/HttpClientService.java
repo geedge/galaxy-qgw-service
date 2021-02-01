@@ -11,6 +11,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -142,6 +143,56 @@ public class HttpClientService {
                 .build();
     }
 
+    /**
+     * Desc: 发起http delete请求
+     *
+     * @param url
+     * @param socketTimeout
+     * @return {@link Map< String, String>}
+     * @created by wWei
+     * @date 2021/1/8 3:29 下午
+     */
+    public Map<String, String> httpDelete(String url, int socketTimeout) {
+        Map<String, String> resultMap = Maps.newHashMap();
+        // 创建GET请求对象
+        CloseableHttpResponse response = null;
+        try {
+            HttpDelete httpDelete = new HttpDelete(url);
+            // 执行请求
+            response = getHttpClient(socketTimeout).execute(httpDelete);
+            // 获取响应实体
+            HttpEntity entity = response.getEntity();
+            // 获取响应信息
+            resultMap.put("status", String.valueOf(response.getStatusLine().getStatusCode()));
+            resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
+        } catch (ClientProtocolException e) {
+            log.error("协议错误: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            resultMap.put("message", e.getMessage());
+        } catch (ParseException e) {
+            log.error("解析错误: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            resultMap.put("message", e.getMessage());
+        } catch (IOException e) {
+            log.error("IO错误: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
+            resultMap.put("message", e.getMessage());
+        } catch (Exception e) {
+            log.error("其它错误: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+            resultMap.put("message", e.getMessage());
+        } finally {
+            if (null != response) {
+                try {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("释放链接错误: {}", e.getMessage());
+                }
+            }
+        }
+        return resultMap;
+    }
 
     /**
      * @param url:请求地址

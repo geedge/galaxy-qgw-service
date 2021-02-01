@@ -4,9 +4,10 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.openapi.service.OpenApiService;
+import com.mesalab.qgw.service.SystemService;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,6 +22,9 @@ import java.util.Map;
  */
 @Service("openApiService")
 public class OpenApiServiceImpl implements OpenApiService {
+
+    @Autowired
+    SystemService systemService;
 
     /**
      * @Description: APP字典列表
@@ -51,7 +55,7 @@ public class OpenApiServiceImpl implements OpenApiService {
         list.stream().forEach(record -> {
             String querySql = record.get("query_sql");
             int resultId = record.getInt("result_id");
-            String queryId = ReportCacheUtils.getQueryId(String.valueOf(resultId), querySql);
+            String queryId = systemService.getQueryId(String.valueOf(resultId), querySql);
             record.set("query_id", queryId);
             results.add(record.getColumns());
         });

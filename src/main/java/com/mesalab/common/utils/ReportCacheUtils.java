@@ -10,6 +10,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.HBaseAPISource;
+import com.mesalab.qgw.service.SystemService;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -27,6 +28,7 @@ public class ReportCacheUtils {
     private static final Log log = LogFactory.get();
     private static HBaseAPISource hBaseAPISource = (HBaseAPISource) SpringContextUtil.getBean("hBaseAPISource");
     private static Connection hbaseConnection = (Connection) SpringContextUtil.getBean("hbaseConnection");
+    private static SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
 
     public static BaseResult<Object> get(String id, String query) {
         Result result = query(id, query);
@@ -47,7 +49,7 @@ public class ReportCacheUtils {
         Result result;
         try {
             table = hbaseConnection.getTable(TableName.valueOf((hBaseAPISource.getDbName() + ":" + hBaseAPISource.getTableName())));
-            Get get = new Get(Bytes.toBytes(getQueryId(id, query)));
+            Get get = new Get(Bytes.toBytes(systemService.getQueryId(id, query)));
             get.addColumn(Bytes.toBytes(hBaseAPISource.getColumnFamily()), Bytes.toBytes(hBaseAPISource.getColumnName()));
             result = table.get(get);
 

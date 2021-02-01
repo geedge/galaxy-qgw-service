@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -70,6 +72,29 @@ public class SystemController {
             return BaseResultGenerator.success4Message("ok");
         }
         return systemService.deleteQueryTask(queryId);
+    }
+
+    @GetMapping(value = "engine/processes/{queryId}")
+    public BaseResult getQueryId(@PathVariable String queryId) {
+        log.info("查询SQL任务执行状态, 参数: queryId is {}", queryId);
+        return systemService.getProcessesByQueryId(queryId);
+    }
+
+    @RequestMapping(value = "engine/queryIds")
+    public BaseResult getQueryId(@RequestParam Map<String, Object> param) {
+        log.info("获获取当前SQL Query ID, 参数: {}", param);
+        Object resultId, query;
+        if (StringUtil.isEmpty(resultId = param.get("resultId"))
+                || StringUtil.isEmpty(query = param.get("query"))) {
+            return BaseResultGenerator.failure("resultId or query cannot be empty");
+        }
+        String queryId = systemService.getQueryId(resultId.toString(), query.toString());
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>(16);
+        map.put("queryId", queryId);
+        result.add(map);
+        return BaseResultGenerator.success(result);
     }
 
 }

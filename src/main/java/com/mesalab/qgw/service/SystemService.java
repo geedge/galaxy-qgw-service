@@ -41,4 +41,25 @@ public interface SystemService {
      * @return
      */
     BaseResult deleteQueryTask(String queryId);
+
+    /**
+     * Desc: 获取queryId
+     *
+     * @param resultId
+     * @param query
+     * @return {@link String}
+     * @created by wWei
+     * @date 2021/1/7 6:48 下午
+     */
+    String getQueryId(String resultId, String query);
+
+    /**
+     * Desc: 通过queryId查询SQL任务执行状态
+     *
+     * @param queryId
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2021/1/7 6:49 下午
+     */
+    BaseResult getProcessesByQueryId(String queryId);
 }

@@ -8,20 +8,15 @@ import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SQLFunctionUtil;
-import com.mesalab.common.utils.SQLHelper;
-import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.*;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.service.SystemService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
@@ -42,6 +37,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
+    private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     private int pageOffset;
     private Stopwatch watch = Stopwatch.createUnstarted();
     public ApiParam param;
@@ -138,14 +134,21 @@ public class DruidDialect extends AbstractDataSourceDialect {
      */
     private Map<String, String> executeHttpPost(String sql) {
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
-        DruidQueryParam druidQueryParam = new DruidQueryParam();
-        druidQueryParam.setQuery(sql);
-        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
-        druidQueryParam.setResultFormat("object");
-
+        DruidQueryParam druidQueryParam = getDruidQueryParam(sql);
         log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
         return httpClientService.httpPost(queryURL, JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
+    }
+
+    private DruidQueryParam getDruidQueryParam(String sql) {
+        DruidQueryParam druidQueryParam = new DruidQueryParam();
+        druidQueryParam.setQuery(sql);
+        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
+        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+            druidQueryParam.getContext().put("sqlQueryId", systemService.getQueryId(param.getResultId(), param.getQuery()));
+        }
+        druidQueryParam.setResultFormat("object");
+        return druidQueryParam;
     }
 
     @Override
