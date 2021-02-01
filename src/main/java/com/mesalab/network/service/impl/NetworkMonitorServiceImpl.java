@@ -52,6 +52,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     private static String localHostAddress;
 
     private static final String PROTOCOL_NODE = "Protocols/";
+    private static final String PROTOCOL_ROOT_NODE = "ETHERNET";
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
@@ -175,6 +176,16 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
             List<ProtocolTree> listProtocol = getListProtocol(getProtocolTrees((List<Map>) resultMap.get("data")));
+            for (ProtocolTree protocolTree : listProtocol) {
+                List<ProtocolTree> ethernetCollect = protocolTree.getChildrens().stream().filter(
+                        p -> p.getName().equals(PROTOCOL_ROOT_NODE)).collect(Collectors.toList());
+                if (protocolTree.getChildrens().size() != ethernetCollect.size()) {
+                    protocolTree.setChildrens(ethernetCollect);
+                    protocolTree.setReceivedBytes(StringUtil.isEmpty(ethernetCollect.get(0)) ? 0 : ethernetCollect.get(0).getReceivedBytes());
+                    protocolTree.setSentBytes(StringUtil.isEmpty(ethernetCollect.get(0)) ? 0 : ethernetCollect.get(0).getSentBytes());
+                    log.warn("Protocol-Tree warn Exceptional data occurs and non-{} protocols are filtered out: {}", PROTOCOL_ROOT_NODE, protocolTree.getChildrens());
+                }
+            }
             baseResult = BaseResultGenerator.success("ok", listProtocol, (Map) resultMap.get("statistics"));
         } else {
             baseResult = BaseResultGenerator.error(result.get("result"));
@@ -190,14 +201,14 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return String.format("(SELECT SUM(c2s_byte_num + s2c_byte_num) as total_bytes, SUM(sessions) as total_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/((TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s'))/1000) AS data_rate " +
                         "FROM traffic_protocol_stat_log " +
                         "WHERE %s %s" +
-                        "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) LIMIT 1) " +
+                        "AND protocol_id = '%s' LIMIT 1) " +
                         "UNION ALL " +
                         "( SELECT SUM(sessions), 0, 0 " +
                         "FROM traffic_protocol_stat_log " +
                         "WHERE %s %s" +
-                        "AND LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) GROUP BY __time ORDER BY __time DESC LIMIT 1 ) ",
-                intervals[1], intervals[0], whereOfTime, whereOfExactly,
-                whereOfTime, whereOfExactly);
+                        "AND protocol_id = '%s' GROUP BY __time ORDER BY __time DESC LIMIT 1 ) ",
+                intervals[1], intervals[0], whereOfTime, whereOfExactly, PROTOCOL_ROOT_NODE,
+                whereOfTime, whereOfExactly, PROTOCOL_ROOT_NODE);
     }
 
     private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam) {
