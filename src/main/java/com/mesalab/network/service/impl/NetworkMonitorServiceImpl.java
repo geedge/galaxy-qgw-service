@@ -178,7 +178,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             List<ProtocolTree> listProtocol = getListProtocol(getProtocolTrees((List<Map>) resultMap.get("data")));
             for (ProtocolTree protocolTree : listProtocol) {
                 List<ProtocolTree> ethernetCollect = protocolTree.getChildrens().stream().filter(
-                        p -> p.getName().equals(PROTOCOL_ROOT_NODE)).collect(Collectors.toList());
+                        p -> PROTOCOL_ROOT_NODE.equals(p.getName())).collect(Collectors.toList());
                 if (protocolTree.getChildrens().size() != ethernetCollect.size()) {
                     protocolTree.setChildrens(ethernetCollect);
                     protocolTree.setReceivedBytes(StringUtil.isEmpty(ethernetCollect.get(0)) ? 0 : ethernetCollect.get(0).getReceivedBytes());
