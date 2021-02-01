@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
 
 
 @Configuration
@@ -56,8 +57,8 @@ public class HBaseConfiguration {
                 conf.set("hbase.client.retries.number", "3");
             }
             con = ConnectionFactory.createConnection(conf);
-        } catch (Exception e) {
-           log.error("create connection error: ", e);
+        } catch (IOException e) {
+            log.error("create connection error: ", e);
         }
         return con;
     }

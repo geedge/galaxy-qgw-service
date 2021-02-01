@@ -10,6 +10,7 @@ import com.mesalab.qgw.service.MetadataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class SchemaCacheUtils {
@@ -33,8 +34,8 @@ public class SchemaCacheUtils {
     public static Object get(String key) {
         try {
            return loadingCache.get(key);
-        } catch(Exception e) {
-            log.error(" Schema Cache ,get key error ", e);
+        } catch (ExecutionException e) {
+            log.error(" Schema Cache ,get key error: {}", e);
             return null;
         }
     }

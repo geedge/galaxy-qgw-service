@@ -97,7 +97,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         String sql = param.getDbQuerySource().getSqlBody();
         try {
             sql = String.valueOf(parserAndUpdateSql(sql));
-        } catch (Exception e) {
+        } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }

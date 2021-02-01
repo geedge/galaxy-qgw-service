@@ -3,6 +3,7 @@ package com.mesalab.common.utils;
 import com.alibaba.druid.util.JdbcConstants;
 import com.mesalab.common.enums.DBTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.Limit;
@@ -65,7 +66,7 @@ public class SQLHelper {
             limit.setRowCount(new LongValue(rowCount));
             select.setLimit(limit);
             sql = String.valueOf(selectStatement.getSelectBody());
-        } catch (Exception e) {
+        } catch (JSQLParserException e) {
             log.error("Set limit error, SQL is:{} , Error Message is :{} ", sql, e);
         }
 

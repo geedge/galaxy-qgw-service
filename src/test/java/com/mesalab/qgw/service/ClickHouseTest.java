@@ -5,6 +5,7 @@ import cn.hutool.log.LogFactory;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.qgw.service.impl.TestSqlServiceImpl;
+import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import org.junit.After;
@@ -54,9 +55,8 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
                 s = s.replaceAll("\\$end_time", "'" + format2.format(date) + "'");
                 Statement parse = CCJSqlParserUtil.parse(s);
                 log.info(parse.toString());
-            } catch (Exception e) {
+            } catch (JSQLParserException e) {
                 log.error("解析异常:{}", s);
-                throw new RuntimeException(e);
             }
         }
     }

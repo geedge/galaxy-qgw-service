@@ -106,7 +106,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         String sql = param.getDbQuerySource().getSqlBody();
         try {
             sql = String.valueOf(parserAndUpdateSql(sql));
-        } catch (Exception e) {
+        } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
@@ -147,7 +147,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             try {
                 sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.CLICKHOUSE.getValue());
             } catch (Exception ex) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "参数校验：SQL 日期函数解析错误", ex);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+                            ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "参数校验：SQL 日期函数解析错误", ex);
             }
 
             return this;

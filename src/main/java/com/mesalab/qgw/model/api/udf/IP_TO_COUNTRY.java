@@ -17,7 +17,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class IP_TO_COUNTRY implements  UDF{
+public class IP_TO_COUNTRY implements  UDF {
     private String name;
     private String address;
 
@@ -31,25 +31,20 @@ public class IP_TO_COUNTRY implements  UDF{
     public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
         List<Map<String, Object>>  targetResult = Lists.newArrayList();
         String addressLabel = StringUtil.EMPTY;
-        try {
-            for (String alias : sqlQuerySource.getAliasFields().keySet()) {
-                if (sqlQuerySource.getAliasFields().get(alias).contains(address) &&
-                        sqlQuerySource.getAliasFields().get(alias).contains(name) ) {
-                    addressLabel = alias;
-                    break;
-                }
+        for (String alias : sqlQuerySource.getAliasFields().keySet()) {
+            if (sqlQuerySource.getAliasFields().get(alias).contains(address) &&
+                    sqlQuerySource.getAliasFields().get(alias).contains(name) ) {
+                addressLabel = alias;
+                break;
             }
-             for (Object source: results) {
-                 Map<String, Object> sourceMap = ((Map<String, Object>) source);
-                 if (sourceMap.containsKey(addressLabel)) {
-                     sourceMap.put(addressLabel, IPUtil.getCountry(sourceMap.get(addressLabel).toString()));
-                 }
-                   targetResult.add(sourceMap);
-             }
-
-        } catch (Exception e) {
-            log.error("execute IP_TO_COUNTRY ERROR: " + e);
         }
+         for (Object source: results) {
+             Map<String, Object> sourceMap = ((Map<String, Object>) source);
+             if (sourceMap.containsKey(addressLabel)) {
+                 sourceMap.put(addressLabel, IPUtil.getCountry(sourceMap.get(addressLabel).toString()));
+             }
+               targetResult.add(sourceMap);
+         }
 
         return targetResult;
     }

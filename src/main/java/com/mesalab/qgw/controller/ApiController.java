@@ -27,7 +27,7 @@ public class ApiController {
     @CachedSubmitCheck
     public BaseResult query(ApiParam apiParam) {
 
-        log.info("Quest Params:{}", JsonMapper.toJsonString(apiParam));
+        log.debug("Quest Params:{}", JsonMapper.toJsonString(apiParam));
 
         if (StringUtil.isBlank(apiParam.getQuery()))
             return BaseResultGenerator.success4Message("ok");

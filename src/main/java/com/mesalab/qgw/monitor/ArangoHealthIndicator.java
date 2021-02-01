@@ -38,11 +38,10 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
-
+        Map<String, String> params = new HashMap<>();
         try {
             Object jwt = JwtCache.get(Constant.ARANGO_CACHE_JWT);
             if (StringUtil.isEmpty(jwt)) {
-                Map<String, String> params = new HashMap<>();
                 params.put("username", arangoConfig.getUsername());
                 params.put("password", arangoConfig.getPassword());
                 String res = httpClientService.httpPost(arangoConfig.getJwturl(), JsonMapper.toJsonString(params));

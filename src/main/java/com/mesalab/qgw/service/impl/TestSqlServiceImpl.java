@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import sun.swing.FilePane;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -576,7 +577,7 @@ public class TestSqlServiceImpl {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("获取 项目路径/{}失败", path);
             String str = String.format("获取项目路径%s失败", path);
             errorDate.add(str);

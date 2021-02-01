@@ -201,18 +201,14 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
      */
     private Date getBenchmarkDate(Map<String, Object> firstElement, String timeGranLabel) {
         Date benchmarkDate = null;
-        try {
-            Object benchmarkDateObject = firstElement.get(timeGranLabel);
+        Object benchmarkDateObject = firstElement.get(timeGranLabel);
 
-            if (StringUtil.isNumeric(benchmarkDateObject.toString())) {
-                benchmarkDate = new DateTime(Long.valueOf(benchmarkDateObject.toString())*1000).toDate();
-            } else {
-                benchmarkDate = DateUtils.convertStringToDate(benchmarkDateObject.toString(), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-            }
-        } catch (Exception ex) {
-            log.error("Get BenchmarkDate Error ", ex);
-
+        if (StringUtil.isNumeric(benchmarkDateObject.toString())) {
+            benchmarkDate = new DateTime(Long.valueOf(benchmarkDateObject.toString())*1000).toDate();
+        } else {
+            benchmarkDate = DateUtils.convertStringToDate(benchmarkDateObject.toString(), DateUtils.YYYY_MM_DD_HH24_MM_SS);
         }
+
 
         return benchmarkDate;
     }

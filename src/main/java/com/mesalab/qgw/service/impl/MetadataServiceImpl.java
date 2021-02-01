@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @Service("metadataService")
@@ -120,7 +121,7 @@ public class MetadataServiceImpl implements MetadataService {
             try {
                 Schema schema = new Schema.Parser().parse(item);
                 result.put(schema.getName(), schema);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.error("File: {}, Schema Parser Error: {}", item.getPath(), e);
             }
         }
@@ -212,9 +213,10 @@ public class MetadataServiceImpl implements MetadataService {
             String pathRoot = new File("").getCanonicalPath();
             File fileDir = new File(pathRoot + File.separator + SCHEMA_PATH);
             return getSchemasByDirs(fileDir);
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("Get Schema Error {}", e.getMessage());
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "Get Schema Error:", e);
         }
+
     }
 }

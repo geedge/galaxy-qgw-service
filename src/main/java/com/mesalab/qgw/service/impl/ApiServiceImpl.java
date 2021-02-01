@@ -36,6 +36,7 @@ import com.mesalab.qgw.model.api.udf.UDFElements;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
+import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
@@ -83,9 +84,10 @@ public class ApiServiceImpl implements ApiService {
         Statement statement;
         try {
             statement = CCJSqlParserUtil.parse(param.getQuery());
-        } catch (Exception e) {
+        } catch (JSQLParserException e) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e.getCause());
         }
+
 
         BaseResult baseResult;
         if (statement instanceof Select) {
@@ -240,10 +242,10 @@ public class ApiServiceImpl implements ApiService {
                 throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error, Not support DML Parser." );
             }
 
-        } catch (Exception e) {
-
+        } catch (JSQLParserException e) {
             throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error: ", ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), e.getCause());
         }
+
 
         return  tableName;
     }

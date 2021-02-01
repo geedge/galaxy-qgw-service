@@ -121,11 +121,7 @@ public class StringUtil {
         if (null == object) {
             return defaultValue;
         }
-        try {
-            return object.toString();
-        } catch (Exception e) {
-            return defaultValue;
-        }
+        return object.toString();
     }
 
     /**

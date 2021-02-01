@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @EnableAutoConfiguration
@@ -58,7 +59,7 @@ public class AvroSchemaFormatTest extends GalaxyQGWApplicationTests {
      *
      * @param path 路径
      */
-    public void checkSchema(String path) {
+    private void checkSchema(String path) {
         Map<String, JsonProperties> ckSchemaInfo = getSchemaInfo(path);
         Set<String> name = ckSchemaInfo.keySet();
         Iterator<String> iterator = name.iterator();
@@ -95,7 +96,7 @@ public class AvroSchemaFormatTest extends GalaxyQGWApplicationTests {
      * @param path
      * @return
      */
-    public static Map<String, JsonProperties> getSchemaInfo(String path) {
+    private static Map<String, JsonProperties> getSchemaInfo(String path) {
         Map<String, JsonProperties> cKSchema = new HashMap<>();
         String pathRoot = null;
         try {
@@ -116,9 +117,8 @@ public class AvroSchemaFormatTest extends GalaxyQGWApplicationTests {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("获取 项目路径下文件失败", path);
-            throw new RuntimeException(String.format("遍历%s 路径下文件失败", path));
         }
         return cKSchema;
     }

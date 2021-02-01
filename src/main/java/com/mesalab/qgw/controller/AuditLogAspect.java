@@ -40,7 +40,7 @@ public class AuditLogAspect {
     public void annotationPointCut(){}
 
     @Before("annotationPointCut()")
-    public void doBefore(JoinPoint joinPoint) throws Throwable {
+    public void doBefore(JoinPoint joinPoint) {
 
         startTime.set(System.currentTimeMillis());
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -89,7 +89,7 @@ public class AuditLogAspect {
 
 
     @AfterReturning(returning = "result", pointcut = "annotationPointCut()")
-    public void doAfterReturning(Object result) throws Throwable {
+    public void doAfterReturning(Object result) {
 
         AuditServiceLog logAfter =  auditLog.get();
         if (StringUtil.isNotEmpty(result) ) {
