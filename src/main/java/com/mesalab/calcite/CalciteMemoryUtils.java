@@ -3,13 +3,19 @@ package com.mesalab.calcite;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
 import com.mesalab.common.exception.BusinessException;
+import com.zdjizhi.utils.StringUtil;
 import org.apache.calcite.jdbc.CalciteConnection;
+
+import javax.naming.InitialContext;
+import javax.sql.DataSource;
 import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
@@ -18,6 +24,9 @@ import static com.zdjizhi.utils.StringUtil.setDefaultIfEmpty;
 
 public class CalciteMemoryUtils {
     private static final Log log = LogFactory.get();
+    private static final String URL_PREFIX  = "jdbc:calcite:model=";
+    private static final String URL_SUFFIX  = "config" + File.separator + "memorySchema.json";
+
 
     static {
         try {
@@ -41,10 +50,7 @@ public class CalciteMemoryUtils {
         PreparedStatement statement = null;
         CalciteConnection connection = null;
         try {
-           Properties info = new Properties();
-           info.setProperty("lex", "MYSQL_ANSI");
-           String jsonModel = new File("").getCanonicalPath() + "/config/memorySchema.json";
-           connection = (CalciteConnection) DriverManager.getConnection("jdbc:calcite:model=" + jsonModel, info);
+           connection = getConnection().unwrap(CalciteConnection.class);
            Storage.DummyTable table = buildDummyTable(meta, tableName);
            table = loadData(table, data);
            InMemoryTable inMemoryTable = new InMemoryTable(tableName, table);
@@ -75,15 +81,29 @@ public class CalciteMemoryUtils {
            result.put("meta", meta);
            result.put("data", data);
 
-       } catch (Exception e) {
-           throw new BusinessException("Engine execution SQL Error - ", e);
-       } finally {
-          close(resultSet, statement, connection);
-       }
+       } catch (SQLException | IOException e ) {
+            throw new BusinessException("Engine create connection Error - ", e);
+        } finally {
+            close(resultSet, statement, connection);
+        }
+
 
 
         return result;
     }
+
+
+    private static  Connection getConnection() throws IOException, SQLException {
+        String url = URL_PREFIX + new File("").getCanonicalPath() + File.separator + URL_SUFFIX;
+        Properties info = new Properties();
+        info.setProperty("lex", "MYSQL_ANSI");
+        Connection dbConnection = DriverManager.getConnection(url, info);
+        return dbConnection;
+    }
+
+
+
+
 
     private static void close(ResultSet rs, PreparedStatement pst, Connection conn) {
         if (rs != null) {
@@ -92,7 +112,7 @@ public class CalciteMemoryUtils {
             } catch (SQLException e) {
                 log.error("ResultSet close error : " , e.getMessage());
             }
-            rs = null;
+
         }
         if (pst != null) {
             try {
@@ -100,7 +120,7 @@ public class CalciteMemoryUtils {
             } catch (SQLException e) {
                 log.error("Statement close error : " , e.getMessage());
             }
-            pst = null;
+
         }
         if (conn != null) {
             try {
@@ -108,7 +128,7 @@ public class CalciteMemoryUtils {
             } catch (SQLException e) {
                 log.error("Connection close error : " , e.getMessage());
             }
-            conn = null;
+
         }
 }
 
