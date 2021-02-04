@@ -1,6 +1,7 @@
 package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
@@ -34,7 +35,6 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.util.TablesNamesFinder;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -184,7 +184,7 @@ public class SystemServiceImpl implements SystemService {
         String queryId;
         String tableName = getTableName(query);
         String dbType = metadataService.getDBTypeByTableName(tableName);
-        String md5Hex = DigestUtils.md5Hex(resultId + query.trim());
+        String md5Hex = DigestUtil.md5Hex(resultId + query.trim());
         if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(dbType)) {
             queryId = String.format("%s:%s", dbType, md5Hex);
         } else {
