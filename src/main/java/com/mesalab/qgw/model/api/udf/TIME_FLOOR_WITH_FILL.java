@@ -137,7 +137,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
 
             if (StringUtil.isNotEmpty(dateRangeList) &&
-                    dateRangeList.size() >= 2 ) {
+                    dateRangeList.size() > 2) {
                 dateRangeList = dateRangeList.subList(1, dateRangeList.size() - 1);
             } else {
                 return results;
