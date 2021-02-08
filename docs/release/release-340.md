@@ -5,4 +5,4 @@
  * 修复代码可满足EAL4检测评分并合并到主分支。(TSG-5467)
  * 重命名系统配置文件属性，将ClickHouse 配置文件 password 改为 userKey。 
  * 新增系统接口：终止查询、SQL任务进度和查询SQL Query ID 功能，与离线报告任务解耦。
- * 支持CK 基于SQL样例集，自动构建sql进行单元测试。
+ * 新增CK的SQL样例集，可自动构建sql进行单元测试。
