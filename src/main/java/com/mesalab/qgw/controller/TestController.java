@@ -3,6 +3,7 @@ package com.mesalab.qgw.controller;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ProjectProperties;
+import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.impl.TestSqlServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,10 @@ public class TestController {
     private final Environment environment;
 
     @Autowired
-    TestSqlServiceImpl testSqlService;
+    private TestSqlServiceImpl testSqlService;
+
+    @Autowired
+    private DiagnosisService diagnosisService;
 
     @Autowired
     public TestController(ProjectProperties projectProperties, Environment environment) {
@@ -85,7 +89,6 @@ public class TestController {
     public BaseResult isProduct() {
         boolean isProduct = projectProperties.isProduct();
         String msg = "Current Environment is" + (isProduct ? "" : " not") + " product";
-        log.info(msg);
         return BaseResultGenerator.success(msg);
     }
 
@@ -118,7 +121,7 @@ public class TestController {
      */
     @GetMapping(value = "runSchema")
     public BaseResult runSchema() {
-        BaseResult result = testSqlService.runSchema();
+        BaseResult result = diagnosisService.validateSchema();
         return result;
     }
 

@@ -43,7 +43,7 @@ import java.util.Map;
 public class HttpClientService {
     private static final Log log = LogFactory.get();
     @Autowired
-    HttpConfig httpConfig;
+    private HttpConfig httpConfig;
 
     //全局连接池对象
     private PoolingHttpClientConnectionManager connectionManager;
