@@ -106,16 +106,3 @@ SELECT "Internal IP" AS "Internal IP", "External IP" AS "External IP", "Sled IP"
 SELECT "Client ASN" AS "Client ASN", "Server ASN" AS "Server ASN", sum(coalesce("Sessions", 0)) AS "Sessions" FROM (SELECT common_server_asn AS "Server ASN", common_client_asn AS "Client ASN", sum(coalesce(common_sessions, 0)) AS "Sessions" FROM connection_record_log AS connection_record_log WHERE ( ( common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) ) ) AND ( common_stream_dir != 3 ) GROUP BY "Server ASN", "Client ASN" LIMIT 1048576) GROUP BY "Client ASN", "Server ASN" ORDER BY "Sessions" DESC LIMIT 500
 --Q54.Top handshake latency by Website and Client IPs
 SELECT "SSL.SNI" AS "SSL.SNI", "Client IP" AS "Client IP", avg(coalesce("Establish Latency(ms)", 0)) AS "Establish Latency(ms)" FROM (SELECT common_client_ip AS "Client IP", ssl_sni AS "SSL.SNI", avg(coalesce(common_establish_latency_ms, 0)) AS "Establish Latency(ms)" FROM connection_record_log AS connection_record_log WHERE ( ( common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) ) ) GROUP BY "Client IP", "SSL.SNI" LIMIT 1048576) GROUP BY "SSL.SNI", "Client IP" ORDER BY "Establish Latency(ms)" DESC LIMIT 500
-
-
-
-
-
-
-
-
-
-
-
-
-

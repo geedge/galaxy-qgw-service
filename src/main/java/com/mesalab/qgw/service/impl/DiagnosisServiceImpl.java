@@ -1,10 +1,16 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.file.FileReader;
+import cn.hutool.core.io.file.FileWriter;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.net.NetUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -14,6 +20,7 @@ import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -29,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,7 +44,6 @@ import java.util.stream.Stream;
 @Service("diagnosisService")
 public class DiagnosisServiceImpl implements DiagnosisService {
     private static final Log log = LogFactory.get();
-    private Stopwatch watch = Stopwatch.createUnstarted();
     private static final String CK_SCHEMA_DIR = File.separator + "config"
             + File.separator + "avro" +  File.separator + "clickhouse";
     private static final String DRUID_SCHEMA_DIR = File.separator + "config"
@@ -49,9 +56,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     HttpClientService httpClientService;
     @Autowired
     HttpConfig httpConfig;
+
     @Value("${server.port}")
     private int serverPort;
-    private static String localHostAddress;
+
+    private ClickhouseWriter clickhouseWriter = ClickhouseWriter.builder();
+
+    private static final String localHostAddress;
     static {
         localHostAddress = NetUtil.getLocalhostStr();
     }
@@ -64,7 +75,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     public BaseResult validateSchema() {
         BaseResult result = null;
         try {
-            watch.start();
+            Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
             Map<String, Map<String, String>> clickhouseResult = parseSchemaByDatasource(CK_SCHEMA_DIR);
             Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(DRUID_SCHEMA_DIR);
@@ -72,7 +83,6 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
-            watch.reset();
             statistics.put("elapsed", executeTime);
             result = BaseResultGenerator.success("Avro Schema Validation Success.", mergeResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
@@ -93,7 +103,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     public BaseResult validateMetadata() {
         BaseResult result = null;
         try {
-            watch.start();
+            Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
             Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(CK_SCHEMA_DIR);
             Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(DRUID_SCHEMA_DIR);
@@ -106,21 +116,125 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         } catch (Exception e) {
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Metadata Validation Fail:" , e);
-        } finally {
-            watch.reset();
         }
         return result;
     }
 
 
 
+    @Override
+    public BaseResult runPocSQL(boolean isSaved) {
+        BaseResult result = null;
+        Map<String, Object> statistics = Maps.newLinkedHashMap();
+        Map<String, Map<String, String>> clickhouseResult = Maps.newHashMap();
+        try {
+            Stopwatch watch = Stopwatch.createStarted();
+            Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
+            if (ckTestFile.isPresent()) {
+                if (!ckTestFile.get().isFile()) {
+                    log.warn("UnKnow File " + ckTestFile.get());
+                    return null;
+                }
+                clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved);
+            }
+
+            statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+            result = BaseResultGenerator.success("SQL Queries Success.", clickhouseResult, statistics);
+            result.setFormatType(QueryFormatEnum.JSON.getValue());
+        } catch (Exception e) {
+            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:" , e);
+        }
+        return result;
+    }
+
+    @Override
+    public BaseResult getPocSQL(int queryNo) {
+
+        BaseResult result = null;
+        Map<String, Object> statistics = Maps.newLinkedHashMap();
+        Map<String, String> clickhouseResult = Maps.newHashMap();
+        try {
+            Stopwatch watch = Stopwatch.createStarted();
+            Optional<File> ckTestFile  = Optional.of(new File(clickhouseWriter.buildPocSQL()));
+            if (ckTestFile.isPresent()) {
+                if (!ckTestFile.get().isFile()) {
+                    log.warn("UnKnow File " + ckTestFile.get());
+                    return null;
+                }
+                clickhouseResult = getPocSqlByDatasource(ckTestFile, queryNo);
+            }
+
+            statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+            result = BaseResultGenerator.success("Get SQL Success.", clickhouseResult, statistics);
+            result.setFormatType(QueryFormatEnum.JSON.getValue());
+        } catch (Exception e) {
+            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Get Poc SQL Fail:" , e);
+        }
+        return result;
+    }
+
+
+    /**
+     * 执行POC SQL测试集，并返回执行结果
+     * @param file sql 查询语句列表
+     * @param isSaved 是否保存查询结果
+     * @return
+     */
+    private Map<String, Map<String, String>> executePocSqlByDatasource(Optional<File> file, boolean isSaved) {
+        Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
+        Map<String, String> infoMap = Maps.newLinkedHashMap();
+        List<String> rawLines = new FileReader(file.get()).readLines();
+        FileWriter writer = null;
+        int index = 0;
+        if (isSaved) {
+            writer = new FileWriter( file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat" );
+        }
+        for (String line : rawLines) {
+            index ++;
+            if (Strings.isNullOrEmpty(line)) {
+                continue;
+            }
+            Map<String, String> queryResult = executeQuery(line, Optional.of(QueryFormatEnum.CSV));
+            int statusCode = Integer.valueOf(queryResult.get("status").trim());
+            if (statusCode != HttpStatus.SC_OK) {
+                throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Query" + index + " : " + JsonPath.read(queryResult.get("result"), "$.message" ), null);
+            }
+            if (writer != null) {
+                writer.append("--Query" + index + " Results --" + "\n");
+                writer.append(JsonPath.read(queryResult.get("result"), "$.meta" ) + "\n");
+                writer.append(JsonPath.read(queryResult.get("result"), "$.data" ) + "\n");
+            }
+            infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed" ) + "");
+        }
+
+        resultMap.put(file.get().getName(), infoMap);
+
+        return resultMap;
+    }
+
+
+    private  Map<String, String> getPocSqlByDatasource(Optional<File> file, int queryNo) {
+        Map<String, String> infoMap = Maps.newLinkedHashMap();
+        List<String> rawLines = new FileReader(file.get()).readLines();
+        infoMap.put("Query" + queryNo, rawLines.get(queryNo-1));
+        return infoMap;
+    }
+
+
+    /**
+     * 对指定目录下的schema 与数据库的字段进行对比检查
+     * @param path schema 列表
+     * @return
+     */
     private Map<String, Map<String, String>> checkMetadataByDatasource(String path) {
         Map<String, Schema>  schemas = getSchemasByDatasource(path);
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : schemas.keySet()) {
 
-            Map<String, String> result = executeQuery("describe " + tableName);
+            Map<String, String> result = executeQuery("describe " + tableName, Optional.empty());
             List<Map<String,Object>> dbFields = JsonPath.read(result.get("result"),"$.data.fields.*");
 
             Map<String, Object> dbFieldMap = Maps.newHashMap();
@@ -157,13 +271,14 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     }
 
 
-    private Map<String, String> executeQuery(String sql) {
+    private Map<String, String> executeQuery(String sql, Optional<QueryFormatEnum> formatEnum) {
         Map<String, String> resultMap = Maps.newHashMap();
         try{
+            QueryFormatEnum  format = formatEnum.orElse(QueryFormatEnum.JSON);
             sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
             String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");
             int socketTimeOut = httpConfig.getServerResponseTimeOut();
-            resultMap = httpClientService.httpGet(queryURL + sql, socketTimeOut);
+            resultMap = httpClientService.httpGet(queryURL + sql + "&format=" + format, socketTimeOut);
         } catch (UnsupportedEncodingException e) {
             log.error("sql Encode error: ", e);
         }

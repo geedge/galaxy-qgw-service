@@ -46,10 +46,6 @@ import java.util.*;
 @Service
 public class TestSqlServiceImpl {
     private static final Log log = LogFactory.get();
-    private static final String CK_SCHEMA_DIR = File.separator + "config"
-            + File.separator + "avro" +  File.separator + "clickhouse";
-    private static final String DRUID_SCHEMA_DIR = File.separator + "config"
-            + File.separator + "avro" +  File.separator + "druid";
 
     @Autowired
     HttpClientService httpClientService;
