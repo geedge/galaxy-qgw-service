@@ -109,6 +109,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "runSql")
+    @Deprecated
     public BaseResult runSql() {
         BaseResult result = testSqlService.runSql();
         return result;
@@ -120,6 +121,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "runSchema")
+    @Deprecated
     public BaseResult runSchema() {
         BaseResult result = diagnosisService.validateSchema();
         return result;

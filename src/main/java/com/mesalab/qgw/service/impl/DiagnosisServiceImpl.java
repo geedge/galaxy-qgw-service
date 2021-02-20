@@ -149,7 +149,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     }
 
     @Override
-    public BaseResult getPocSQL(int queryNo) {
+    public BaseResult getPocSQL(Integer queryNo) {
 
         BaseResult result = null;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
@@ -215,10 +215,18 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     }
 
 
-    private  Map<String, String> getPocSqlByDatasource(Optional<File> file, int queryNo) {
+    private  Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {
         Map<String, String> infoMap = Maps.newLinkedHashMap();
         List<String> rawLines = new FileReader(file.get()).readLines();
-        infoMap.put("Query" + queryNo, rawLines.get(queryNo-1));
+        if (StringUtil.isEmpty(queryNo)) {
+            int index = 0;
+            for (String line : rawLines) {
+                index ++ ;
+                infoMap.put("Query" + index, line);
+            }
+        } else {
+            infoMap.put("Query" + queryNo, rawLines.get(queryNo-1));
+        }
         return infoMap;
     }
 

@@ -10,7 +10,7 @@ public interface DiagnosisService {
 
     BaseResult runPocSQL(boolean isSaveResult);
 
-    BaseResult getPocSQL(int queryNo);
+    BaseResult getPocSQL(Integer queryNo);
 
 
 

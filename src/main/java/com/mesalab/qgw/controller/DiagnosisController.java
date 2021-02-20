@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/diagnosis")
 public class DiagnosisController {
+
     @Autowired
    private DiagnosisService diagnosisService;
 
@@ -31,11 +32,6 @@ public class DiagnosisController {
         return diagnosisService.validateMetadata();
     }
 
-    @RequestMapping(value = "/sql/{queryNo}")
-    public BaseResult getPocSql(@PathVariable int queryNo) {
-        return diagnosisService.getPocSQL(queryNo);
-    }
-
     @RequestMapping(value = "/runSql")
     public BaseResult executePocSql(String isSaved) {
         if (StringUtil.isNotBlank(isSaved)) {
@@ -45,6 +41,11 @@ public class DiagnosisController {
         }
 
 
+    }
+
+    @RequestMapping({"/sql", "/sql/{queryNo}"})
+    public BaseResult getPocSql(@PathVariable(required = false) Integer queryNo) {
+        return diagnosisService.getPocSQL(queryNo);
     }
 
 }
