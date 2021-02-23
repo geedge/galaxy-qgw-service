@@ -16,6 +16,7 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.SchemaCacheUtils;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import com.mesalab.qgw.service.DiagnosisService;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.JsonProperties;
@@ -45,10 +46,6 @@ import java.util.*;
 @Service
 public class TestSqlServiceImpl {
     private static final Log log = LogFactory.get();
-    private static final String CK_SCHEMA_DIR = File.separator + "config"
-            + File.separator + "avro" +  File.separator + "clickhouse";
-    private static final String DRUID_SCHEMA_DIR = File.separator + "config"
-            + File.separator + "avro" +  File.separator + "druid";
 
     @Autowired
     HttpClientService httpClientService;
@@ -60,6 +57,9 @@ public class TestSqlServiceImpl {
     public DruidIoProperties druidIoProperties;
     @Autowired
     public ClickHouseHttpSource clickHouseHttpSource;
+
+
+
     @Autowired
     HttpConfig httpConfig;
     @Value("${server.port}")
@@ -129,26 +129,6 @@ public class TestSqlServiceImpl {
         String message = countSuccess == list.size() ? "ok" : "error";
         result = BaseResultGenerator.success(message, data, statistics);
         return result;
-    }
-
-    /**
-     * 运行schema校验
-     *
-     * @return
-     */
-    public BaseResult runSchema() {
-        SchemaCacheUtils.removeAll();
-        long start = System.currentTimeMillis();
-        errorDate = new ArrayList();
-        checkCKSchema(CK_SCHEMA_DIR);
-        checkDruidSchema(DRUID_SCHEMA_DIR);
-        checkSchema(CK_SCHEMA_DIR);
-        checkSchema(DRUID_SCHEMA_DIR);
-        long cost = System.currentTimeMillis() - start;
-        HashMap<String, Object> statistics = new HashMap<>();
-        statistics.put("elapsed", String.format("%.2f", (double) cost / 1000));
-        String message = errorDate.size() == 0 ? "ok" : "error";
-        return BaseResultGenerator.success(message, errorDate, statistics);
     }
 
 
@@ -458,170 +438,4 @@ public class TestSqlServiceImpl {
         return null;
     }
 
-
-    private void checkDruidSchema(String path) {
-        Map<String, JsonProperties> druidSchemaInfo = getSchemaInfo(path);
-        Set<String> name = druidSchemaInfo.keySet();
-        Iterator<String> iterator = name.iterator();
-        while (iterator.hasNext()) {//遍历表,以Avro为基础
-            String tableName = iterator.next();
-            Map resultMap = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(druidSchemaInfo.get(tableName)), Map.class);
-            if (resultMap == null) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
-            }
-            //查数据库
-            List resultSql = queryDruidDynamic("SELECT COLUMN_NAME as name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
-
-            List resultAvro = new ArrayList();
-
-            //schema为基础
-            List<Map> fields = (List<Map>) resultMap.get("fields");//遍历列
-            Iterator<Map> fieldsAvro = fields.iterator();
-            while (fieldsAvro.hasNext()) {
-                Map next = fieldsAvro.next();
-                resultAvro.add(String.valueOf(next.get("name")));
-                boolean b = resultSql.contains(next.get("name"));
-                if (!b) {
-                    String str = String.format("%s.avro中注册多余:%s", tableName, next.get("name"));
-                    errorDate.add(str);
-                }
-            }
-
-            //Schema为基础
-            Iterator iteratorSql = resultSql.iterator();
-            while (iteratorSql.hasNext()) {
-                String next = String.valueOf(iteratorSql.next());
-                boolean b = resultAvro.contains(next);
-                if (!b) {
-                    String str = String.format("%s.avro中注册缺少:%s", tableName, next);
-                    errorDate.add(str);
-                }
-            }
-        }
-    }
-
-
-    private void checkCKSchema(String path) {
-        Map<String, JsonProperties> ckSchemaInfo = getSchemaInfo(path);
-        Set<String> name = ckSchemaInfo.keySet();
-        Iterator<String> iterator = name.iterator();
-        while (iterator.hasNext()) {//遍历表,以Avro为基础
-            String tableName = iterator.next();
-            Map resultMap = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(ckSchemaInfo.get(tableName)), Map.class);
-            if (resultMap == null) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
-            }
-            //查数据库
-            List resultSql = queryCKDynamic("describe " + tableName);
-            if (StringUtil.isEmpty(resultSql)) {
-                String str = String.format("avro中注册多余:%s.avsc", tableName);
-                errorDate.add(str);
-                continue;
-            }
-
-            List resultAvro = new ArrayList();
-
-            //avro为基础
-            List<Map> fields = (List<Map>) resultMap.get("fields");//遍历列
-            Iterator<Map> fieldsAvro = fields.iterator();
-            while (fieldsAvro.hasNext()) {
-                Map next = fieldsAvro.next();
-                resultAvro.add(String.valueOf(next.get("name")));
-                boolean b = resultSql.contains(next.get("name"));
-                if (!b) {
-                    String str = String.format("%s.avro中注册多余:%s", tableName, next.get("name"));
-                    errorDate.add(str);
-                }
-            }
-
-            //db为基础
-            Iterator iteratorSql = resultSql.iterator();
-            while (iteratorSql.hasNext()) {
-                String next = String.valueOf(iteratorSql.next());
-                boolean b = resultAvro.contains(next);
-                if (!b) {
-                    String str = String.format("%s.avro中注册缺少:%s", tableName, next);
-                    errorDate.add(str);
-                }
-            }
-        }
-    }
-
-
-    /**
-     * 获取avro文件
-     *
-     * @param path
-     * @return
-     */
-    private Map<String, JsonProperties> getSchemaInfo(String path) {
-        Map<String, JsonProperties> schema = new HashMap<>();
-        String pathRoot = null;
-        try {
-            pathRoot = new File("").getCanonicalPath();
-            File file = new File(pathRoot + path);
-            File[] files = file.listFiles();
-            if (files != null) {
-                for (File f : files) {
-
-                    if (!StringUtils.lowerCase(f.getName()).endsWith(".avsc")) {
-                        continue;
-                    }
-                    try {
-                        Schema ckSchema = new Schema.Parser().parse(new File(f.getPath()));
-                        schema.put(ckSchema.getName(), ckSchema);
-                    } catch (Exception ex) {
-                        log.error("遍历" + path + "路径下文件失败: " + f.getName(), ex);
-                        String str = String.format("%s读取文件失败:%s", path, f.getName());
-                        errorDate.add(str);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            log.error("获取 项目路径/{}失败", path);
-            String str = String.format("获取项目路径%s失败", path);
-            errorDate.add(str);
-        }
-        return schema;
-    }
-
-
-    /**
-     * 核对avro文件
-     *
-     * @param path 路径
-     */
-    private void checkSchema(String path) {
-        Map<String, JsonProperties> ckeckSchemaInfo = getSchemaInfo(path);
-        Set<String> name = ckeckSchemaInfo.keySet();
-        Iterator<String> iterator = name.iterator();
-        while (iterator.hasNext()) {//遍历表
-            String tableName = iterator.next();
-            Map resultMap = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(ckeckSchemaInfo.get(tableName)), Map.class);
-            if (resultMap == null) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema未注册此表: " + tableName, null);
-            }
-            List<Map> fields = (List<Map>) resultMap.get("fields");//遍历列
-            Iterator<Map> fieldsIterator = fields.iterator();
-            Map mapDoc = null;
-            while (fieldsIterator.hasNext()) {
-                Map next = fieldsIterator.next();
-                try {
-                    mapDoc = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
-                } catch (Exception ex) {
-                    log.error("该字段的 doc 为非JSON字符串，不需类型转换");
-                    String str = String.format("%s.avro中doc非json格式字段%s", tableName, next.get("name"));
-                    errorDate.add(str);
-                }
-                if (mapDoc != null) {
-                    next.put("doc", mapDoc);
-                }
-                if (StringUtil.isEmpty(mapDoc) && !StringUtil.isEmpty(next.get("doc"))) {
-                    log.error("该字段的 doc 为非JSON字符串，不需类型转换");
-                    String str = String.format("%s.avro中doc非json格式字段%s", tableName, next.get("name"));
-                    errorDate.add(str);
-                }
-            }
-        }
-    }
 }
