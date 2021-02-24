@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "name": "connection_record_log",
-  "namespace": "tsg_galaxy_v3",
+  "namespace": "Clickhouse",
   "filters": [
     {
       "name":"@start",

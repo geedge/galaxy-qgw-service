@@ -21,6 +21,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
+import com.mesalab.qgw.benchmark.engine.EngineWriter;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -60,8 +61,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     @Value("${server.port}")
     private int serverPort;
 
-    private ClickhouseWriter clickhouseWriter = ClickhouseWriter.builder();
-
+    private ClickhouseWriter clickhouseWriter = new ClickhouseWriter();
+    private EngineWriter engineWriter = new EngineWriter();
     private static final String localHostAddress;
     static {
         localHostAddress = NetUtil.getLocalhostStr();
@@ -126,9 +127,12 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     public BaseResult runPocSQL(boolean isSaved) {
         BaseResult result = null;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
+        Map<String, Map<String, String>> mergeResult;
+        Map<String, Map<String, String>> engineResult = Maps.newHashMap();
         Map<String, Map<String, String>> clickhouseResult = Maps.newHashMap();
         try {
             Stopwatch watch = Stopwatch.createStarted();
+
             Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
             if (ckTestFile.isPresent()) {
                 if (!ckTestFile.get().isFile()) {
@@ -138,8 +142,22 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                 clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved);
             }
 
+            Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
+            if (engineTestFile.isPresent()) {
+                if (!engineTestFile.get().isFile()) {
+                    log.warn("UnKnow File " + engineTestFile.get());
+                    return null;
+                }
+                engineResult = executePocSqlByDatasource(engineTestFile, isSaved);
+            }
+
+
+           mergeResult = Stream
+                    .concat(clickhouseResult.entrySet().stream(), engineResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            result = BaseResultGenerator.success("SQL Queries Success.", clickhouseResult, statistics);
+            result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (Exception e) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
@@ -202,7 +220,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                 throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Query" + index + " : " + JsonPath.read(queryResult.get("result"), "$.message" ), null);
             }
             if (writer != null) {
-                writer.append("--Query" + index + " Results --" + "\n");
+                writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed" ) + "\n");
                 writer.append(JsonPath.read(queryResult.get("result"), "$.meta" ) + "\n");
                 writer.append(JsonPath.read(queryResult.get("result"), "$.data" ) + "\n");
             }
