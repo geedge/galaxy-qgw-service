@@ -28,27 +28,30 @@ public interface Dialect {
 
 
     /**
-     * 执行数据库系统管理操作，包含 Show/Describe/Kill等
+     * 执行数据库系统管理操作，包含 Show/Describe等
      * @return
      */
-
     BaseResult executeAdministrativeQuery();
 
 
+    /**
+     * Desc: 取消查询
+     *
+     * @param
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2021/2/24 11:18 上午
+     */
+    BaseResult executeKillQuery();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * Desc: 获取查询进度
+     *
+     * @param
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2021/2/24 5:01 下午
+     */
+    BaseResult getProcesses();
 
 }

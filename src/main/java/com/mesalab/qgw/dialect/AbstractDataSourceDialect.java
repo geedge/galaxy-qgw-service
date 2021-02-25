@@ -42,6 +42,25 @@ public abstract class AbstractDataSourceDialect implements Dialect {
     abstract  String getSyntaxCheckQuery();
 
     /**
+     * Desc: 取消查询
+     *
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2021/2/24 10:34 上午
+     */
+    abstract BaseResult killQuery();
+
+    /**
+     * Desc: 获取查询进度
+     *
+     * @param
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2021/2/24 5:04 下午
+     */
+    abstract BaseResult getQueryProcesses();
+
+    /**
      * 解析并生成最终结果
      * @param sql
      * @param message
@@ -72,9 +91,13 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         return generateBaseResult(sql, Optional.of("OK"));
     }
 
+    @Override
+    final public BaseResult executeKillQuery() {
+        return killQuery();
+    }
 
-
-
-
-
+    @Override
+    final public BaseResult getProcesses(){
+        return getQueryProcesses();
+    }
 }

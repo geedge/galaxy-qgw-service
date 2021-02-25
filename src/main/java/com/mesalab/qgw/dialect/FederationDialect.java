@@ -48,7 +48,15 @@ public class FederationDialect extends AbstractEngineDialect{
         return false;
     }
 
+    @Override
+    final public BaseResult executeKillQuery() {
+        return null;
+    }
 
+    @Override
+    final public BaseResult getProcesses(){
+        return null;
+    }
 
     @Override
     public boolean isExecute() {

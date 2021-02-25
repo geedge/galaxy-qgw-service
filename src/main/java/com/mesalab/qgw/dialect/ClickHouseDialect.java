@@ -4,6 +4,7 @@ package com.mesalab.qgw.dialect;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -33,8 +34,10 @@ import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,6 +60,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     public ApiParam param;
     public BaseResult baseResult;
+
+    private final static double PERCENT_UP_LINE = 0.98;
+    private final static double PERCENT_DOWN_LINE = 0.01;
 
     public ClickHouseDialect(ApiParam param) {
         this.param = param;
@@ -111,6 +117,58 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sql;
+    }
+
+    @Override
+    BaseResult killQuery() {
+        String killSql = String.format("kill query where query_id ='%s'", param.getQueryId());
+        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
+        StringBuilder queryParamBuilder = new StringBuilder(getLongTermAccount()).append("&")
+                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
+                .append("query=").append(killSql)
+                .append(" FORMAT ").append(QueryFormatEnum.JSON.getValue().toUpperCase()).append(" ;");
+        List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
+
+        Map<String, String> map = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), 0);
+        if (String.valueOf(HttpStatus.SC_OK).equals(map.get("status"))) {
+            return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null);
+        } else {
+            return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
+        }
+    }
+
+    @Override
+    BaseResult getQueryProcesses() {
+        String sql = String.format("select elapsed,total_rows_approx,read_rows from `system`.processes where query_id='%s'", param.getQueryId());
+        param.setQuery(sql);
+        BaseResult baseResult = generateBaseResult(sql, Optional.of("ok"));
+        Map<String, Object> result = new HashMap<>(16);
+        if (!baseResult.isSuccess()) {
+            return baseResult;
+        }
+        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+        if (CollectionUtils.isEmpty(data)) {
+            return BaseResultGenerator.success(data);
+        }
+        Map<String, Object> map = data.get(0);
+        long totalRowsApprox = Long.parseLong(map.get("total_rows_approx").toString());
+        long readRows = Long.parseLong(map.get("read_rows").toString());
+        long elapsed = Math.round(Double.parseDouble(map.get("elapsed").toString()) * 1000);
+        double percent;
+        if (readRows == 0
+                || totalRowsApprox == 0
+                || (percent = Double.parseDouble(String.format("%.2f", (readRows * 1.00 / totalRowsApprox)))) < PERCENT_DOWN_LINE) {
+            percent = PERCENT_DOWN_LINE;
+        }
+        if (percent > PERCENT_UP_LINE) {
+            percent = PERCENT_UP_LINE;
+        }
+        result.put("elapsed", elapsed);
+        result.put("rows_read", readRows);
+        result.put("percent", percent);
+        List<Object> list = Lists.newArrayList();
+        list.add(result);
+        return BaseResultGenerator.success(list);
     }
 
 
@@ -861,7 +919,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
 
     /**
-     * 做数据集限制: 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
+     * 做数据集限制:
+     *  1. 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
+     *  2. 对where添加：OR 1=1
      * 涉及from 和 where中存在子查询
      *
      * @param sql
@@ -882,6 +942,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 } else if (fromItem instanceof Table) {
                     Table table = (Table) fromItem;
                     plainSelect.setFromItem(generateDataSetSql(table.getName(), table.getAlias() != null ? table.getAlias().getName() : table.getName()));
+                }
+                if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
+                    plainSelect.setWhere(generateDateSetWhere(plainSelect.getWhere().toString()));
                 }
                 parseWhereAndUpdate(plainSelect.getWhere());
                 return plainSelect;
@@ -967,6 +1030,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         return plainSelect.getFromItem();
     }
 
+    private Expression generateDateSetWhere(String where) throws JSQLParserException {
+        String sql = String.format("SELECT * FROM tableName WHERE  %s %s ",
+                where, "OR 1=1");
+        Statement parse = CCJSqlParserUtil.parse(sql);
+        Select select = (Select) parse;
+        PlainSelect selectBody = (PlainSelect) select.getSelectBody();
+        return selectBody.getWhere();
+    }
+
     /**
      * ClickHouse Http Query Interface
      *
@@ -993,28 +1065,32 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
-            queryParameterBuilder.append("user=")
-                    .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
-                    .append("password=").append(clickHouseHttpSource.getLongTermAccount().getUserKey()).append("&")
+            queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName).append("&");
         } else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
-            queryParameterBuilder.append("user=")
-                    .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
-                    .append("password=").append(clickHouseHttpSource.getLongTermAccount().getUserKey()).append("&")
+            queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName).append("&")
-                    .append("query_id=").append(systemService.getQueryId(param.getResultId(), param.getQuery())).append("&");
+                    .append("query_id=").append(systemService.getQueryIdOfInternal(param.getResultId(), param.getQuery())).append("&");
         } else {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
-            queryParameterBuilder.append("user=")
-                    .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                    .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).append("&")
+            queryParameterBuilder.append(getRealTimeAccount()).append("&")
                     .append("database=").append(dbName).append("&");
         }
 
         queryParameterBuilder.append("query=").append(sql).append(" FORMAT ").append(QueryFormatEnum.JSON.getValue().toUpperCase()).append(" ;");
         clickHouseHttpQuery.setQueryParameter(queryParameterBuilder.toString());
         return clickHouseHttpQuery;
+    }
+
+    private String getRealTimeAccount() {
+        return new StringBuilder("user=").append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).toString();
+    }
+
+    private String getLongTermAccount() {
+        return new StringBuilder("user=").append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getUserKey()).toString();
     }
 
 }

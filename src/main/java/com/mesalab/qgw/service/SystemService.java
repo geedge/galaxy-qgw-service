@@ -43,7 +43,7 @@ public interface SystemService {
     BaseResult deleteQueryTask(String queryId);
 
     /**
-     * Desc: 获取queryId
+     * Desc: 获取queryId(对外暴露)
      *
      * @param resultId
      * @param query
@@ -51,7 +51,18 @@ public interface SystemService {
      * @created by wWei
      * @date 2021/1/7 6:48 下午
      */
-    String getQueryId(String resultId, String query);
+    String getQueryIdOfExternal(String resultId, String query);
+
+    /**
+     * Desc: 获取queryId(数据库中实际使用的)
+     *
+     * @param resultId
+     * @param query
+     * @return {@link String}
+     * @created by wWei
+     * @date 2021/2/24 7:23 下午
+     */
+    String getQueryIdOfInternal(String resultId, String query);
 
     /**
      * Desc: 通过queryId查询SQL任务执行状态
