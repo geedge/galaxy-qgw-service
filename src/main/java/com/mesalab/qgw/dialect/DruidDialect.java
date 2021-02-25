@@ -100,31 +100,24 @@ public class DruidDialect extends AbstractDataSourceDialect {
         return sql;
     }
 
-
-
-    /*@Override
-    public BaseResult executeQuery() {
-
-        watch.start();
-        return generateBaseResult(convertQuery(findBestQuery()), Optional.of("OK")).build();
-
+    @Override
+    BaseResult killQuery() {
+        String url = druidIoHttpSource.getUrl();
+        url = url.substring(0, url.indexOf("/"));
+        String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(param.getQueryId());
+        Map<String, String> map = httpClientService.httpDelete(deleteUrl, 1000);
+        if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))
+                || map.get("status").equals(String.valueOf(HttpStatus.SC_ACCEPTED))) {
+            return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null);
+        } else {
+            return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
+        }
     }
 
     @Override
-    public BaseResult executeAdministrativeQuery() {
-        return generateBaseResult(param.getQuery(), Optional.of("OK")).build();
+    BaseResult getQueryProcesses() {
+        return BaseResultGenerator.success4Message("ok");
     }
-
-    @Override
-    public BaseResult executeSyntaxCheck() {
-        String query = convertQuery(getSyntaxCheckSql());
-
-        log.info("option=syntax-check:  original sql: {}, after transformation(return message) info: {}", param.getQuery(), query);
-
-        return generateBaseResult(query, Optional.of(query)).build();
-
-    }*/
-
 
     /**
      * Druid Http Query Interface
@@ -145,7 +138,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-            druidQueryParam.getContext().put("sqlQueryId", systemService.getQueryId(param.getResultId(), param.getQuery()));
+            druidQueryParam.getContext().put("sqlQueryId", systemService.getQueryIdOfInternal(param.getResultId(), param.getQuery()));
         }
         druidQueryParam.setResultFormat("object");
         return druidQueryParam;

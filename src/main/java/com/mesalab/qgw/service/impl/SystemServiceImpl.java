@@ -1,10 +1,9 @@
 package com.mesalab.qgw.service.impl;
 
-import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.collect.Lists;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -14,10 +13,10 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
@@ -30,23 +29,14 @@ import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service("systemService")
 public class SystemServiceImpl implements SystemService {
@@ -58,16 +48,11 @@ public class SystemServiceImpl implements SystemService {
     @Autowired
     private HttpClientService httpClientService;
     @Autowired
-    private ClickHouseHttpSource clickHouseHttpSource;
-    @Autowired
-    private DruidIoHttpSource druidIoHttpSource;
-    @Autowired
     private MetadataService metadataService;
     @Autowired
     HttpConfig httpConfig;
 
-    private final static double PERCENT_UP_LINE = 0.98;
-    private final static double PERCENT_DOWN_LINE = 0.01;
+    public final static String queryIdSeparator = ":";
 
     private Map<String, String> headers = Maps.newHashMap();
 
@@ -170,124 +155,64 @@ public class SystemServiceImpl implements SystemService {
 
     @Override
     public BaseResult deleteQueryTask(String queryId) {
-        BaseResult baseResult;
-        if (queryId.startsWith(DBTypeEnum.DRUID.getValue().concat(":"))) {
-            baseResult = killQueryOfDruid(queryId);
-        } else {
-            baseResult = killQueryOfCK(queryId);
-        }
-        return baseResult;
+        Dialect dialect = buildAndGetDialect(queryId);
+        return dialect.executeKillQuery();
     }
 
     @Override
-    public String getQueryId(String resultId, String query) {
-        String queryId;
-        String tableName = getTableName(query);
+    public String getQueryIdOfExternal(String resultId, String query) {
+        String tableName = SQLHelper.getTableName(query);
         String dbType = metadataService.getDBTypeByTableName(tableName);
-        String md5Hex = DigestUtil.md5Hex(resultId + query.trim());
-        if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(dbType)) {
-            queryId = String.format("%s:%s", dbType, md5Hex);
-        } else {
-            //为兼容旧版queryId，固对ck的queryId不做标记
-            queryId = md5Hex;
-        }
+        return DigestUtil.md5Hex(dbType) +
+                queryIdSeparator +
+                DigestUtil.md5Hex(resultId + query.trim());
+    }
+
+    @Override
+    public String getQueryIdOfInternal(String resultId, String query) {
+        String queryId = getQueryIdOfExternal(resultId, query);
+        queryId = queryId.substring(queryId.indexOf(SystemServiceImpl.queryIdSeparator) + 1);
         return queryId;
     }
 
     @Override
     public BaseResult getProcessesByQueryId(String queryId) {
-        if (queryId.startsWith(DBTypeEnum.DRUID.getValue() + ":")) {
-            // 暂未实现druid查询进度功能
-            return BaseResultGenerator.success(Lists.newArrayList());
-        } else {
-            return getProcessesCK(queryId);
-        }
+        Dialect dialect = buildAndGetDialect(queryId);
+        return dialect.getProcesses();
     }
 
-    private BaseResult killQueryOfDruid(String queryId) {
-        String url = druidIoHttpSource.getUrl();
-        url = url.substring(0, url.indexOf("/"));
-        String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(queryId);
-        Map<String, String> map = httpClientService.httpDelete(deleteUrl, 1000);
-        if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))
-                || map.get("status").equals(String.valueOf(HttpStatus.SC_ACCEPTED))) {
-            return BaseResultGenerator.success4Message("ok");
-        } else {
-            return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
-        }
-    }
-
-    private BaseResult<Object> killQueryOfCK(String queryId) {
-        String executeSql = "kill query where query_id = '" + queryId + "'";
-        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
-
-        StringBuilder queryParamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getUserKey()).append("&")
-                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
-                .append("query=").append(executeSql)
-                .append(" FORMAT ").append("JSON").append(" ;");
-
-        List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
-
-        Map<String, String> map = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), 0);
-        if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
-            return BaseResultGenerator.success4Message("ok");
-        } else {
-            return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
-        }
-    }
-
-    private String getTableName(String query) {
-        try {
-            Statement statement = CCJSqlParserUtil.parse(query);
-            if (statement instanceof Select) {
-                Select selectStatement = (Select) statement;
-                TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-                List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
-                if (!CollectionUtils.isEmpty(tableList)) {
-                    return tableList.get(0);
-                }
-            }
-        } catch (JSQLParserException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Get SQL TableName Error", e);
-        }
-        return StringUtil.EMPTY;
-    }
-
-    private BaseResult getProcessesCK(String queryId) {
+    public Dialect buildAndGetDialect(String queryId) {
         ApiParam apiParam = new ApiParam();
-        String sql = String.format("select elapsed,total_rows_approx,read_rows from `system`.processes where query_id='%s'", queryId);
-        apiParam.setQuery(sql);
-        BaseResult baseResult = apiService.executeQuery(apiParam);
-        Map<String, Object> result = new HashMap<>(16);
-        if (!baseResult.isSuccess()) {
-            return baseResult;
-        }
-        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-        if (CollectionUtils.isEmpty(data)) {
-            return BaseResultGenerator.success(data);
-        }
-        Map<String, Object> map = data.get(0);
-        long totalRowsApprox = Long.parseLong(map.get("total_rows_approx").toString());
-        long readRows = Long.parseLong(map.get("read_rows").toString());
-        long elapsed = Math.round(Double.parseDouble(map.get("elapsed").toString()) * 1000);
-        double percent;
-        if (readRows == 0
-                || totalRowsApprox == 0
-                || (percent = Double.parseDouble(String.format("%.2f", (readRows * 1.00 / totalRowsApprox)))) < PERCENT_DOWN_LINE) {
-            percent = PERCENT_DOWN_LINE;
-        }
-        if (percent > PERCENT_UP_LINE) {
-            percent = PERCENT_UP_LINE;
-        }
-        result.put("elapsed", elapsed);
-        result.put("rows_read", readRows);
-        result.put("percent", percent);
-        List<Object> list = Lists.newArrayList();
-        list.add(result);
-        return BaseResultGenerator.success(list);
+        apiParam.setDbType(parseDBType(queryId));
+        apiParam.setQueryId(queryId.substring(queryId.indexOf(queryIdSeparator) + 1));
+        return getDialect(apiParam);
     }
+
+    public static Dialect getDialect(ApiParam apiParam) {
+        Dialect dialect;
+        try {
+            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
+                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, apiParam.getDbType()) + "Dialect");
+            Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
+            dialect = (Dialect) constructor.newInstance(apiParam);
+        } catch (Exception e) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
+        }
+        return dialect;
+    }
+
+    private String parseDBType(String queryId) {
+        for (DBTypeEnum dbTypeEnum : DBTypeEnum.values()) {
+            if (queryId.startsWith(DigestUtil.md5Hex(dbTypeEnum.getValue()).concat(queryIdSeparator))) {
+                return dbTypeEnum.getValue();
+            }
+        }
+        if (queryId.contains(queryIdSeparator)) {
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "queryId 不在支持范围", null);
+        }
+        return DBTypeEnum.CLICKHOUSE.getValue();
+    }
+
 
 
     private boolean logTypeValid(List<StorageDeletionInfo> list) {

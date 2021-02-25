@@ -49,7 +49,7 @@ public class ReportCacheUtils {
         Result result;
         try {
             table = hbaseConnection.getTable(TableName.valueOf((hBaseAPISource.getDbName() + ":" + hBaseAPISource.getTableName())));
-            Get get = new Get(Bytes.toBytes(systemService.getQueryId(id, query)));
+            Get get = new Get(Bytes.toBytes(systemService.getQueryIdOfInternal(id, query)));
             get.addColumn(Bytes.toBytes(hBaseAPISource.getColumnFamily()), Bytes.toBytes(hBaseAPISource.getColumnName()));
             result = table.get(get);
 
