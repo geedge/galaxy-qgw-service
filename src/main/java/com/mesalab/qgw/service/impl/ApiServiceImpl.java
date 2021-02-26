@@ -187,69 +187,34 @@ public class ApiServiceImpl implements ApiService {
     private String validateAndGetTableName(ApiParam param) {
 
         if (StringUtil.isBlank(param.getQuery())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The SQL must be exists.", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The SQL must be exists.", null);
         }
 
-        if (StringUtil.isNotBlank(param.getOption())) {
-            if (!param.getOption().equalsIgnoreCase(QueryOptionEnum.REAL_TIME.getValue()) &&
-                    !param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue()) &&
-                    !param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The option must be real-time or long-term or syntax-check. ", null);
-            }
-            if (param.getOption().equalsIgnoreCase(QueryOptionEnum.LONG_TERM.getValue())) {
-                if (StringUtil.isBlank(param.getReportId()) && StringUtil.isBlank(param.getResultId())) {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error：The option=long-term,must be reportId or resultId.", null);
-                }
-            }
-        } else {
+        if (StringUtil.isBlank(param.getOption())) {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
         }
+        if (Arrays.stream(QueryOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getOption()))) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The option must be real-time or long-term or syntax-validation. ", null);
+        }
+        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())
+                && StringUtil.isBlank(param.getReportId())
+                && StringUtil.isBlank(param.getResultId())) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The option=long-term, must be reportId or resultId.", null);
+        }
 
-
-        if (StringUtil.isNotBlank(param.getFormat())) {
-            if (!param.getFormat().equalsIgnoreCase(QueryFormatEnum.JSON.getValue())
-                    && !param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Param Syntax Error: The format must be json or csv.", null);
-            }
-        } else {
+        if (StringUtil.isBlank(param.getFormat())) {
             param.setFormat(QueryFormatEnum.JSON.getValue());
         }
-
-        return getTableName(param.getQuery());
-    }
-
-
-    private String  getTableName(String sql) {
-
-        String tableName = "";
-        try {
-            Statement statement = CCJSqlParserUtil.parse(sql);
-            if (statement instanceof Select) {
-                Select selectStatement = (Select) statement;
-                TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-                List<String> tableList =  tablesNamesFinder.getTableList(selectStatement);
-                if (StringUtil.isNotEmpty(tableList)) {
-                    tableName = tableList.get(0);
-                    int i = tableName.lastIndexOf(".");
-                    tableName = i < 0 ? tableName : tableName.substring(i + 1);
-                } else {
-                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Get Table Name Error." );
-                }
-
-
-            } else {
-                log.warn("Not support DML Parser");
-                throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error, Not support DML Parser." );
-            }
-
-        } catch (JSQLParserException e) {
-            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error: ", ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), e.getCause());
+        if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The format must be json or csv.", null);
         }
 
-
-        return  tableName;
+        return SQLHelper.getTableName(param.getQuery());
     }
-
 
 
     /**

@@ -2,14 +2,21 @@ package com.mesalab.common.utils;
 
 import com.alibaba.druid.util.JdbcConstants;
 import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
+import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.util.TablesNamesFinder;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,6 +98,39 @@ public class SQLHelper {
             return null;
         }
 
+    }
+
+    /**
+     * Desc: 获取当前sql的表名
+     *
+     * @param sql
+     * @return {@link String}
+     * @created by wWei
+     * @date 2021/2/24 4:39 下午
+     */
+    public static String getTableName(String sql) {
+        try {
+            Statement statement = CCJSqlParserUtil.parse(sql);
+            if (statement instanceof Select) {
+                Select selectStatement = (Select) statement;
+                TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
+                List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
+                if (StringUtil.isNotEmpty(tableList)) {
+                    String tableName = tableList.get(0);
+                    int i = tableName.lastIndexOf(".");
+                    return i < 0 ? tableName : tableName.substring(i + 1);
+                } else {
+                    log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}", sql);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Get Table Name Error.");
+                }
+            } else {
+                log.warn("Not support DML Parser");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error, Not support DML Parser.");
+            }
+        } catch (JSQLParserException e) {
+            log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error: ", ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), e.getCause());
+        }
     }
 
 }
