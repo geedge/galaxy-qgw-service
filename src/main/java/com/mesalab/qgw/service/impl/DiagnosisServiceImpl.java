@@ -22,6 +22,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
+import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import com.mesalab.qgw.benchmark.engine.EngineWriter;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.zdjizhi.utils.JsonMapper;
@@ -64,6 +65,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
     private ClickhouseWriter clickhouseWriter = new ClickhouseWriter();
     private EngineWriter engineWriter = new EngineWriter();
+    private DruidWriter druidWriter = new DruidWriter();
     private static final String localHostAddress;
     static {
         localHostAddress = NetUtil.getLocalhostStr();
@@ -129,32 +131,26 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         BaseResult result = null;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
         Map<String, Map<String, String>> mergeResult;
-        Map<String, Map<String, String>> engineResult = Maps.newHashMap();
-        Map<String, Map<String, String>> clickhouseResult = Maps.newHashMap();
+        Map<String, Map<String, String>> engineResult;
+        Map<String, Map<String, String>> clickhouseResult;
+        Map<String, Map<String, String>> druidResult;
         try {
             Stopwatch watch = Stopwatch.createStarted();
 
+            Optional<File> druidTestFile = Optional.of(new File(druidWriter.buildPocSQL()));
+            druidResult = executePocSqlByDatasource(druidTestFile, isSaved);
+
             Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
-            if (ckTestFile.isPresent()) {
-                if (!ckTestFile.get().isFile()) {
-                    log.warn("UnKnow File " + ckTestFile.get());
-                    return null;
-                }
-                clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved);
-            }
+            clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved);
 
             Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
-            if (engineTestFile.isPresent()) {
-                if (!engineTestFile.get().isFile()) {
-                    log.warn("UnKnow File " + engineTestFile.get());
-                    return null;
-                }
-                engineResult = executePocSqlByDatasource(engineTestFile, isSaved);
-            }
+            engineResult = executePocSqlByDatasource(engineTestFile, isSaved);
 
 
-           mergeResult = Stream
-                    .concat(clickhouseResult.entrySet().stream(), engineResult.entrySet().stream())
+            mergeResult = Stream
+                    .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
@@ -178,6 +174,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             testFile  = Optional.of(new File(clickhouseWriter.buildPocSQL()));
         } else if (dialect.equalsIgnoreCase(DBTypeEnum.ENGINE.getValue())) {
             testFile  = Optional.of(new File(engineWriter.buildPocSQL()));
+        } else if (dialect.equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
+            testFile  = Optional.of(new File(druidWriter.buildPocSQL()));
         } else {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Illegal value about dialect.");
@@ -221,28 +219,37 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         List<String> rawLines = new FileReader(file.get()).readLines();
         FileWriter writer = null;
         int index = 0;
-        if (isSaved) {
-            writer = new FileWriter( file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat" );
-        }
-        for (String line : rawLines) {
-            index ++;
-            if (Strings.isNullOrEmpty(line)) {
-                continue;
+
+        if (file.isPresent() && file.get().isFile()) {
+            if (isSaved) {
+                writer = new FileWriter( file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat" );
             }
-            Map<String, String> queryResult = executeQuery(line, Optional.of(QueryFormatEnum.CSV));
-            int statusCode = Integer.valueOf(queryResult.get("status").trim());
-            if (statusCode != HttpStatus.SC_OK) {
-                throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Query" + index + " : " + JsonPath.read(queryResult.get("result"), "$.message" ), null);
+            for (String line : rawLines) {
+                index ++;
+                if (Strings.isNullOrEmpty(line)) {
+                    continue;
+                }
+                Map<String, String> queryResult = executeQuery(line, Optional.of(QueryFormatEnum.CSV));
+                int statusCode = Integer.valueOf(queryResult.get("status").trim());
+                if (statusCode != HttpStatus.SC_OK) {
+                    throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Query" + index + " : " + JsonPath.read(queryResult.get("result"), "$.message" ), null);
+                }
+                if (writer != null) {
+                    writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed" ) + "\n");
+                    writer.append(JsonPath.read(queryResult.get("result"), "$.meta" ) + "\n");
+                    writer.append(JsonPath.read(queryResult.get("result"), "$.data" ) + "\n");
+                }
+                infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed" ) + "");
             }
-            if (writer != null) {
-                writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed" ) + "\n");
-                writer.append(JsonPath.read(queryResult.get("result"), "$.meta" ) + "\n");
-                writer.append(JsonPath.read(queryResult.get("result"), "$.data" ) + "\n");
-            }
-            infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed" ) + "");
+
+            resultMap.put(file.get().getName(), infoMap);
+
+        } else {
+            log.error("File is not exist or is directory." );
         }
 
-        resultMap.put(file.get().getName(), infoMap);
+
+
 
         return resultMap;
     }
