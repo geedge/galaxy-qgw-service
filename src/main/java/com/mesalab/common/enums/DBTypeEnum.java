@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum DBTypeEnum {
+    ENGINE("engine"),
     CLICKHOUSE("clickHouse"),
     DRUID("druid"),
     HBASE("hbase"),;

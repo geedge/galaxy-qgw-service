@@ -16,6 +16,13 @@
             <url>http://192.168.40.125:8099/content/groups/public</url>
         </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>nexus</id>
+            <name>Team Nexus Repository</name>
+            <url>http://192.168.40.125:8099/content/groups/public</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -462,6 +469,47 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.2.6.RELEASE</version>
+            </plugin>
+            <plugin>
+                <groupId>io.github.zlika</groupId>
+                <artifactId>reproducible-build-maven-plugin</artifactId>
+                <version>0.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>strip-jar</goal>
+                        </goals>
+                        <phase>install</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 代码加密-->
+            <plugin>
+                <groupId>com.mesalab.xjar-maven-plugin</groupId>
+                <artifactId>mesalab-xjar-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                        <!-- <phase>package</phase>-->
+                        <phase>install</phase>
+                        <configuration>
+                            <password>ceiec</password>
+                            <excludes>
+                                <exclude>
+                                    resources/**
+                                </exclude>
+                                <exclude>
+                                    META-INF/resources/**
+                                </exclude>
+                            </excludes>
+                        </configuration>
+
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -519,8 +567,8 @@
                     <dockerHost>http://192.168.40.153:2375</dockerHost>
                     <dockerDirectory>docker</dockerDirectory>
                     <buildArgs>
-                        <JDK_IMAGE>192.168.40.153:9080/common/jdk:1.8.0_73</JDK_IMAGE>
-                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+                        <JDK_IMAGE>192.168.40.153:9080/common/jdk:1.8.0_73-go</JDK_IMAGE>
+                        <JAR_FILE>${project.build.finalName}.xjar</JAR_FILE>
                     </buildArgs>
                     <imageTags>
                         <imageTag>v3.3.200928</imageTag>
@@ -529,7 +577,8 @@
                         <resource>
                             <targetPath>/</targetPath>
                             <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.jar</include>
+                            <include>${project.build.finalName}.xjar</include>
+                            <include>xjar.go</include>
                         </resource>
                         <resource>
                             <targetPath>/config</targetPath>
@@ -538,6 +587,14 @@
                         <resource>
                             <targetPath>/dat</targetPath>
                             <directory>dat</directory>
+                        </resource>
+                        <resource>
+                            <targetPath>/benchmark</targetPath>
+                            <directory>benchmark</directory>
+                        </resource>
+                        <resource>
+                            <targetPath>/docs</targetPath>
+                            <directory>docs</directory>
                         </resource>
                     </resources>
                 </configuration>

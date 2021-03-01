@@ -16,6 +16,7 @@ import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -167,24 +168,38 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     }
 
     @Override
-    public BaseResult getPocSQL(Integer queryNo) {
-
-        BaseResult result = null;
+    public BaseResult getPocSQL(String dialect, Integer queryNo) {
+        BaseResult result;
+        Optional<File> testFile;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
-        Map<String, String> clickhouseResult = Maps.newHashMap();
+        Map<String, String> dialectResult = Maps.newHashMap();
+
+        if (dialect.equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
+            testFile  = Optional.of(new File(clickhouseWriter.buildPocSQL()));
+        } else if (dialect.equalsIgnoreCase(DBTypeEnum.ENGINE.getValue())) {
+            testFile  = Optional.of(new File(engineWriter.buildPocSQL()));
+        } else {
+            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Illegal value about dialect.");
+        }
+
+
+
         try {
             Stopwatch watch = Stopwatch.createStarted();
-            Optional<File> ckTestFile  = Optional.of(new File(clickhouseWriter.buildPocSQL()));
-            if (ckTestFile.isPresent()) {
-                if (!ckTestFile.get().isFile()) {
-                    log.warn("UnKnow File " + ckTestFile.get());
+
+
+
+            if (testFile.isPresent()) {
+                if (!testFile.get().isFile()) {
+                    log.warn("UnKnow File " + testFile.get());
                     return null;
                 }
-                clickhouseResult = getPocSqlByDatasource(ckTestFile, queryNo);
+                dialectResult = getPocSqlByDatasource(testFile, queryNo);
             }
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            result = BaseResultGenerator.success("Get SQL Success.", clickhouseResult, statistics);
+            result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (Exception e) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,

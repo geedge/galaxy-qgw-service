@@ -2,6 +2,7 @@ package com.mesalab.qgw.controller;
 
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.impl.DiagnosisServiceImpl;
 import com.zdjizhi.utils.StringUtil;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -43,9 +45,9 @@ public class DiagnosisController {
 
     }
 
-    @RequestMapping({"/sql", "/sql/{queryNo}"})
-    public BaseResult getPocSql(@PathVariable(required = false) Integer queryNo) {
-        return diagnosisService.getPocSQL(queryNo);
+    @RequestMapping({"/sql", "/sql/{dialect}/{queryNo}"})
+    public BaseResult getPocSql(@PathVariable String dialect, @PathVariable(required = false) Integer queryNo) {
+        return diagnosisService.getPocSQL(dialect, queryNo);
     }
 
 }
