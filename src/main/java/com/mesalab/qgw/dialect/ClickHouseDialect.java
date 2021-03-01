@@ -126,7 +126,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    BaseResult killQuery() {
+    public BaseResult executeKillQuery() {
         String killSql = String.format("kill query where query_id ='%s'", param.getQueryId());
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryParamBuilder = new StringBuilder(getLongTermAccount()).append("&")
@@ -144,7 +144,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    BaseResult getQueryProcesses() {
+   public BaseResult getProcesses() {
         String sql = String.format("select elapsed,total_rows_approx,read_rows from `system`.processes where query_id='%s'", param.getQueryId());
         param.setQuery(sql);
         BaseResult baseResult = generateBaseResult(sql, Optional.of("ok"));
