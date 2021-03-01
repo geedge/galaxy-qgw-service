@@ -101,7 +101,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    BaseResult killQuery() {
+    public BaseResult executeKillQuery() {
         String url = druidIoHttpSource.getUrl();
         url = url.substring(0, url.indexOf("/"));
         String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(param.getQueryId());
@@ -115,7 +115,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    BaseResult getQueryProcesses() {
+    public BaseResult getProcesses() {
         return BaseResultGenerator.success4Message("ok");
     }
 
