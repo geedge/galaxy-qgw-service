@@ -46,10 +46,16 @@ import java.util.regex.Pattern;
 
 public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
-    private static final Pattern pGlobalIn = Pattern.compile("\\s+in\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pSUM = Pattern.compile("\\bsum\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pAvg = Pattern.compile("\\bavg\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pMax = Pattern.compile("\\bmax\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pMin = Pattern.compile("\\bmin\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pIn = Pattern.compile("(?<!\\bnot)\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pNotIn = Pattern.compile("\\bnot\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pGroupBy = Pattern.compile("\\bgroup\\s+by\\s+", Pattern.CASE_INSENSITIVE);
     private static final Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
@@ -183,22 +189,65 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
          * 1.集群模式子查询必须加库名、别名 (解决方法: 对sql统一处理添加库名、别名)
          * 2.不支持 count(1) 需转为count(*)
-         *
+         * 3.针对非聚合SQL，非分组sql in/not in 替换为 Global in/not
          * @return
          */
         public Converter generateStandard() {
+            sql = addTableName(sql);
             sql = generateCount(sql);
+            sql = generateGlobalIn(sql);
+            return this;
+        }
+
+        /**
+         * Desc:
+         *  IN 转换为 集群 Global IN 模式(针对聚合、分组sql除外)
+         *
+         * @param sql
+         * @return {@link String}
+         * @created by wWei
+         * @date 2021/3/1 11:47 上午
+         */
+        public String generateGlobalIn(String sql) {
+            if (containAggregateFunction(sql) || containGroupBy(sql)) {
+                sql = generateIn(sql);
+                sql = generateNotIn(sql);
+            }
+            return sql;
+        }
+
+        private String generateIn(String sql) {
+            Matcher m = pIn.matcher(sql);
+            StringBuffer sb = new StringBuffer();
+            while (m.find()) {
+                m.appendReplacement(sb, " global in ( select ");
+            }
+            m.appendTail(sb);
+            return sb.toString();
+        }
+
+        private String generateNotIn(String sql) {
+            Matcher m = pNotIn.matcher(sql);
+            StringBuffer sb = new StringBuffer();
+
+            while (m.find()) {
+                m.appendReplacement(sb, " global not in ( select ");
+            }
+            m.appendTail(sb);
+            return sb.toString();
+        }
+
+        private String addTableName(String sql) {
             try {
                 TableFinder tableFinder = new TableFinder();
                 Statement parse = CCJSqlParserUtil.parse(sql);
                 tableFinder.setDefaultAlias(true);
                 tableFinder.addSchemaName(parse);
-                sql = String.valueOf(parse);
+                return String.valueOf(parse);
             } catch (JSQLParserException e) {
                 log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Rewrite add tableName and Alias Error", e);
             }
-            return this;
         }
 
         public Converter generateDateFunction() {
@@ -349,23 +398,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         /**
-         * IN 转换为 集群 Global IN 模式
-         *
-         * @return
-         */
-        public Optimizer generateGlobalIn() {
-            Matcher m = pGlobalIn.matcher(sql);
-            StringBuffer sb = new StringBuffer();
-            while (m.find()) {
-                m.appendReplacement(sb, " global in (");
-            }
-
-            m.appendTail(sb);
-            sql = sb.toString();
-            return this;
-        }
-
-        /**
          * count(distinct())转为uniqCombined函数
          *
          * @return
@@ -405,12 +437,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (StringUtil.isBlank(param.getDbQuerySource().getExpr())) {
                 return this;
             }
-
-            if (StringUtil.isNotEmpty(param.getDbQuerySource().getGroupByElement())) {
-                return this;
-            }
-
-            if (pCount.matcher(param.getDbQuerySource().getSelectItems()).find()) {
+            if (containAggregateFunction(sql) || containGroupBy(sql)) {
                 return this;
             }
 
@@ -914,7 +941,17 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         return baseResult;
     }
 
+    private boolean containAggregateFunction(String sql) {
+        return (pCount.matcher(sql).find()
+                || pMax.matcher(sql).find()
+                || pSUM.matcher(sql).find()
+                || pMin.matcher(sql).find()
+                || pAvg.matcher(sql).find());
+    }
 
+    private boolean containGroupBy(String sql) {
+        return pGroupBy.matcher(sql).find();
+    }
 
 
 
