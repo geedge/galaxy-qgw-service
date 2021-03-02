@@ -1,54 +1,65 @@
 package com.mesalab.qgw.service;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.file.FileReader;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.google.common.base.Strings;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.qgw.service.impl.TestSqlServiceImpl;
+import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 @EnableAutoConfiguration
 public class DruidTest extends GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
 
-    @Autowired
-    private TestSqlServiceImpl testSqlService;
+    private DruidWriter writer = new DruidWriter();
 
-    /**
-     * ck相关测试
-     */
+
+
     @Test
-    public void parseSqlOfDruid() {
-        List list = testSqlService.druidSql();
-
-        SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:00:00");
-        SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = new Date(System.currentTimeMillis());
-        for (Object sql : list) {
-            String s = String.valueOf(sql);
-            try {
-                s = s.replaceAll("\\$start_time", "'" + format1.format(date) + "'");
-                s = s.replaceAll("\\$end_time", "'" + format2.format(date) + "'");
-                Statement parse = CCJSqlParserUtil.parse(s);
-                log.info(parse.toString());
-            } catch (JSQLParserException e) {
-                log.error("解析异常:{}", s);
+    public void testSqlParser() throws IOException {
+        String pocFile = writer.buildPocSQL();
+        Optional<File> ckTestFile =  Optional.of(new File(pocFile));
+        if (ckTestFile.isPresent()) {
+            if (!ckTestFile.get().isFile()) {
+                log.warn("UnKnow File " + ckTestFile.get());
+                return;
             }
+
+            List<String> rawLines = new FileReader(ckTestFile.get()).readLines();
+            rawLines.stream().forEach(line -> {
+                if (Strings.isNullOrEmpty(line)) {
+                    return;
+                }
+                Statement parse = null;
+                try {
+                    parse = CCJSqlParserUtil.parse(line);
+                } catch (JSQLParserException e) {
+                    log.error("Parse SQL ERROR : {}, SQL is {} " , e, line);
+                }
+
+                Assert.notNull(parse);
+            });
+
+            FileUtil.del(ckTestFile.get());
+
         }
     }
+
+
 
     @Before
     public void testBefore() {

@@ -4,7 +4,6 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ProjectProperties;
 import com.mesalab.qgw.service.DiagnosisService;
-import com.mesalab.qgw.service.impl.TestSqlServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -29,9 +28,6 @@ public class TestController {
     private final ProjectProperties projectProperties;
 
     private final Environment environment;
-
-    @Autowired
-    private TestSqlServiceImpl testSqlService;
 
     @Autowired
     private DiagnosisService diagnosisService;
@@ -111,7 +107,7 @@ public class TestController {
     @GetMapping(value = "runSql")
     @Deprecated
     public BaseResult runSql() {
-        BaseResult result = testSqlService.runSql();
+        BaseResult result = diagnosisService.runPocSQL(false);
         return result;
     }
 
