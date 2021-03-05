@@ -27,6 +27,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
+import com.mesalab.common.utils.SQLSyntaxParserUtil;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.dialect.FederationDialect;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -110,6 +111,10 @@ public class ApiServiceImpl implements ApiService {
 
         BaseResult baseResult = null;
 
+        if (QueryOptionEnum.SYNTAX_PARSE.getValue().equalsIgnoreCase(param.getOption())) {
+            return BaseResultGenerator.success(SQLSyntaxParserUtil.syntaxParse(param.getQuery()));
+        }
+
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
             baseResult = ReportCacheUtils.get(param.getResultId(), param.getQuery());
             if (baseResult.isSuccess()) {
@@ -124,7 +129,7 @@ public class ApiServiceImpl implements ApiService {
 
         Dialect dbDialect = parserSQL(param);
 
-        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_CHECK.getValue())) {
+        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_VALIDATION.getValue())) {
             baseResult = dbDialect.executeSyntaxCheck();
         } else {
             baseResult = dbDialect.executeQuery();
