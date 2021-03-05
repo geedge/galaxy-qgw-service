@@ -6,9 +6,9 @@ import lombok.Getter;
 public enum QueryOptionEnum {
     REAL_TIME("real-time"),
     LONG_TERM("long-term"),
-    SYNTAX_CHECK("syntax-check");
+    SYNTAX_VALIDATION("syntax-validation"),
+    SYNTAX_PARSE("syntax-parse");
     private String value;
     QueryOptionEnum(String value) {this.value = value;}
-
 
 }

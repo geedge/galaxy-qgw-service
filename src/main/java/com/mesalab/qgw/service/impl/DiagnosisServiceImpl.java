@@ -54,15 +54,14 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private static final String AVRO_SUFFIX = ".avsc";
     private static final String METADATA_PREFIX = "Metadata";
     private static final String SCHEMA_PREFIX = "Schema";
+    private static final int DEFAULT_SERVER_PORT = 9999;
 
     @Autowired
-    HttpClientService httpClientService;
+    private HttpClientService httpClientService;
     @Autowired
-    HttpConfig httpConfig;
-
+    private HttpConfig httpConfig;
     @Value("${server.port}")
     private int serverPort;
-
     private ClickhouseWriter clickhouseWriter = new ClickhouseWriter();
     private EngineWriter engineWriter = new EngineWriter();
     private DruidWriter druidWriter = new DruidWriter();
@@ -306,10 +305,12 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft , null);
 
             }
-
             Map<String, Object> entriesOnlyOnRight = difference.entriesOnlyOnRight();
-            log.warn("键只存在于右边Map的映射项:" + entriesOnlyOnRight);
-            infoMap.put(tableName, entriesOnlyOnRight.toString());
+            if (entriesOnlyOnRight.size() > 0) {
+                log.warn("键只存在于右边Map的映射项:" + entriesOnlyOnRight);
+                infoMap.put(tableName, entriesOnlyOnRight.toString());
+            }
+
         }
 
 
@@ -322,6 +323,11 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private Map<String, String> executeQuery(String sql, Optional<QueryFormatEnum> formatEnum) {
         Map<String, String> resultMap = Maps.newHashMap();
         try{
+
+            if (serverPort == 0) {
+
+                serverPort = DEFAULT_SERVER_PORT;
+            }
             QueryFormatEnum  format = formatEnum.orElse(QueryFormatEnum.JSON);
             sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
             String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");

@@ -3,9 +3,12 @@ package com.mesalab.qgw.benchmark;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.zdjizhi.utils.CommonUtil;
+import com.zdjizhi.utils.StringUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,8 +36,12 @@ public abstract class Writer
             environment.put(LABEL_TIME_END, endTime);
             List<List<String>> commonFilter = JsonPath.read(jsonString, "$.filters[?(@.name=='@common_filter')].value");
             List<List<String>> indexFilter = JsonPath.read(jsonString, "$.filters[?(@.name=='@index_filter')].value");
-            environment.put(LABEL_COMMON_FILTER, commonFilter.stream().findFirst().get());
-            environment.put(LABEL_INDEX_FILTER, indexFilter.stream().findFirst().get());
+            if (StringUtil.isNotEmpty(commonFilter)) {
+                environment.put(LABEL_COMMON_FILTER, commonFilter.stream().findFirst().get());
+            }
+            if (StringUtil.isNotEmpty(indexFilter)) {
+                environment.put(LABEL_INDEX_FILTER, indexFilter.stream().findFirst().get());
+            }
         } catch (Exception e) {
             log.error(" Poc SQL is not found {} ", e);
         }
