@@ -17,8 +17,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @EnableAutoConfiguration
 public class GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
-    @Autowired
-    public TestRestTemplate restTemplate;
 
     @Before
     public void testBefore() {
