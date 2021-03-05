@@ -3,17 +3,13 @@ package com.mesalab.calcite;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
 import com.mesalab.common.exception.BusinessException;
-import com.zdjizhi.utils.StringUtil;
 import org.apache.calcite.jdbc.CalciteConnection;
 
-import javax.naming.InitialContext;
-import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
@@ -187,7 +183,7 @@ public class CalciteMemoryUtils {
         return dummyTable;
     }
 
-    private static String intUnits = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint";
-    private static String doubleUnits = "Float32,Float64,float,double";
+    private static final String intUnits = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint";
+    private static final String doubleUnits = "Float32,Float64,float,double";
 
 }
