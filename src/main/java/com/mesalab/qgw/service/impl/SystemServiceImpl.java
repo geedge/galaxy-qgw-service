@@ -188,7 +188,7 @@ public class SystemServiceImpl implements SystemService {
         return getDialect(apiParam);
     }
 
-    public static Dialect getDialect(ApiParam apiParam) {
+    private Dialect getDialect(ApiParam apiParam) {
         Dialect dialect;
         try {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
