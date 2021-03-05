@@ -1,5 +1,7 @@
 package com.mesalab.cn.service.impl;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.cn.common.pojo.*;
 import com.mesalab.cn.service.CNService;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -12,7 +14,6 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.exception.BusinessException;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -27,9 +28,9 @@ import java.util.stream.Collectors;
  * @ClassName : CNServiceImpl
  * @Description : Druid数据查询引擎实现
  */
-@Slf4j
 @Service("druidEngineService")
 public class CNServiceImpl implements CNService {
+    private static final Log log = LogFactory.get();
 
     @Autowired
     CNParser cnParser;

@@ -1,18 +1,13 @@
 package com.mesalab.cn.common.pojo;
 
-import com.google.common.base.Joiner;
 import com.mesalab.cn.common.constant.SqlKeywords;
 import com.mesalab.cn.common.enums.MatchTypeEnum;
-import com.mesalab.cn.common.enums.RangeTypeEnum;
 import com.mesalab.cn.service.CNService;
-import com.mesalab.common.exception.BusinessException;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.text.MessageFormat;
 import java.util.*;
 
 /**
@@ -21,7 +16,6 @@ import java.util.*;
  * @ClassName : DslParser
  * @Description : DSLParse解析抽象类
  */
-@Slf4j
 @Component
 public abstract class DSLParser {
 

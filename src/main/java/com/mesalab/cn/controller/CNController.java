@@ -1,11 +1,12 @@
 package com.mesalab.cn.controller;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.mesalab.cn.common.pojo.DSLObject;
 import com.mesalab.cn.component.CNRouter;
 import com.mesalab.cn.component.DslValidate;
 import com.mesalab.common.base.BaseResult;
 import com.zdjizhi.utils.JsonMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,10 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
  * @Date: 2020-08-17 10:55
  * @Author : wWei
  */
-@Slf4j
 @RestController
 @RequestMapping("/cn")
 public class CNController {
+
+    private static final Log log = LogFactory.get();
 
     @Autowired
     protected CNRouter cnRouter;

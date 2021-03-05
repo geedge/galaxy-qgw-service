@@ -1,12 +1,13 @@
 package com.mesalab.cn.common.pojo;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.base.Joiner;
 import com.mesalab.cn.common.constant.SqlKeywords;
 import com.mesalab.cn.common.enums.RangeTypeEnum;
 import com.mesalab.cn.service.CNService;
 import com.mesalab.common.exception.BusinessException;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -25,10 +26,10 @@ import java.util.Objects;
  * @Description :  CNParser
  */
 
-@Slf4j
 @Component
 public class CNParser extends DSLParser {
 
+    private static final Log log = LogFactory.get();
 
     public final static String UA_FILTER = "osList,browserCnt,deviceCnt,osCnt,terminalCatCnt,deviceList,terminalCatList,terminalList,terminalCnt,browserList";
     @Autowired
