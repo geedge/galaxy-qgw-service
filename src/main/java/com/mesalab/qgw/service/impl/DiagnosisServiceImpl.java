@@ -67,7 +67,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private DruidWriter druidWriter = new DruidWriter();
     private static final String localHostAddress;
     static {
-        localHostAddress = NetUtil.getLocalhost().getHostAddress();
+        localHostAddress = NetUtil.getLocalhostStr();
     }
 
     /**
