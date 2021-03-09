@@ -154,7 +154,7 @@
       "name": "common_schema_type",
       "label": "Schema Type",
       "type": "string",
-      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"SIP\",\"value\":\"SIP\"},{\"code\":\"RTP\",\"value\":\"RTP\"},{\"code\":\"APP\",\"value\":\"APP\"}],\"allow_query\":\"true\"}"
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"BASE\",\"value\":\"BASE\"},{\"code\":\"MAIL\",\"value\":\"MAIL\"},{\"code\":\"DNS\",\"value\":\"DNS\"},{\"code\":\"HTTP\",\"value\":\"HTTP\"},{\"code\":\"SSL\",\"value\":\"SSL\"},{\"code\":\"FTP\",\"value\":\"FTP\"},{\"code\":\"SIP\",\"value\":\"SIP\"},{\"code\":\"RTP\",\"value\":\"RTP\"},{\"code\":\"APP\",\"value\":\"APP\"}],\"allow_query\":\"true\"}"
     },
     {
       "name": "common_user_tags",
