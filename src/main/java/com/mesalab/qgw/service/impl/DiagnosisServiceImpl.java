@@ -3,7 +3,6 @@ package com.mesalab.qgw.service.impl;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
-import cn.hutool.core.lang.Assert;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.URLUtil;
@@ -65,10 +64,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private ClickhouseWriter clickhouseWriter = new ClickhouseWriter();
     private EngineWriter engineWriter = new EngineWriter();
     private DruidWriter druidWriter = new DruidWriter();
-    private static final String localHostAddress;
-    static {
-        localHostAddress = NetUtil.getLocalhostStr();
-    }
+    private static final String localHostAddress = NetUtil.getLocalhostStr();
 
     /**
      * 验证Schema格式是否正确
@@ -371,7 +367,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, Schema> schemas = Maps.newLinkedHashMap();
         try {
             File schemaDir = new File(new File("").getCanonicalPath() + path);
-            if (schemaDir.exists() && schemaDir.isDirectory()) {
+            if (FileUtil.isNotEmpty(schemaDir) && FileUtil.isDirectory(schemaDir)) {
                 for (File file : schemaDir.listFiles()) {
                    try {
                        if (StringUtil.lowerCase(file.getName()).endsWith(AVRO_SUFFIX)) {
