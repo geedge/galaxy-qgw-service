@@ -170,13 +170,10 @@ public class ApiServiceImpl implements ApiService {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
                     CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
-
             dialect = (Dialect) constructor.newInstance(param);
-
         } catch (Exception e) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
         }
-
         return dialect;
     }
 

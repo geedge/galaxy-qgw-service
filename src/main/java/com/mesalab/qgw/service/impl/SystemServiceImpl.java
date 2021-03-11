@@ -523,8 +523,9 @@ public class SystemServiceImpl implements SystemService {
     public static Map<String, Object> getObjectToMap(Object obj) {
         Map<String, Object> map = new LinkedHashMap<String, Object>();
         Class<?> clazz = obj.getClass();
-        AccessibleObject.setAccessible(clazz.getDeclaredFields(), true);
-        for (Field field : clazz.getDeclaredFields()) {
+        Field[] declaredFields = clazz.getDeclaredFields();
+        AccessibleObject.setAccessible(declaredFields, true);
+        for (Field field : declaredFields) {
             String fieldName = field.getName();
             Object value = null;
             try {

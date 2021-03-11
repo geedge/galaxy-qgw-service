@@ -155,16 +155,11 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public String getPartitionKey(String tableName) {
         String partitionKey = StringUtil.EMPTY;
-        try {
-            Schema schema = getSchemaByName(tableName);
-            Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
-            if (StringUtil.isNotEmpty(doc)) {
-                Object partition_key = doc.get("partition_key");
-                partitionKey = StringUtil.isEmpty(partition_key) ? StringUtil.EMPTY : partition_key.toString();
-            }
-        } catch (Exception e) {
-            log.error("Get Partition key Error ", e);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "Get Partition key Error: " + e.getMessage());
+        Schema schema = getSchemaByName(tableName);
+        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        if (StringUtil.isNotEmpty(doc)) {
+            Object partition_key = doc.get("partition_key");
+            partitionKey = StringUtil.isEmpty(partition_key) ? StringUtil.EMPTY : partition_key.toString();
         }
         return partitionKey;
     }

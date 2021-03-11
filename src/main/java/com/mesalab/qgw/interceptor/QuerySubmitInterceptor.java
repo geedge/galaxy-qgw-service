@@ -1,9 +1,6 @@
 package com.mesalab.qgw.interceptor;
 
-import cn.hutool.core.util.EscapeUtil;
 import cn.hutool.crypto.digest.DigestUtil;
-import cn.hutool.http.HtmlUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.cache.CacheStats;
@@ -12,13 +9,11 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,7 +39,7 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
             String clientId = this.getClientId();
             String queryStr = StringEscapeUtils.escapeHtml4(request.getQueryString());
             String queryKey = DigestUtil.md5Hex(queryStr);
-            log.info("Source compare to EscapeHtml4 SQL {}" ,
+            log.debug("Source compare to EscapeHtml4 SQL {}" ,
                     DigestUtil.md5Hex(queryStr).equals(DigestUtil.md5Hex(request.getQueryString())));
             log.debug("Query Submit Check,ClientId:{}, QueryKey:{}", clientId, queryKey);
             Object result = QueryCacheUtils.get(queryKey);
