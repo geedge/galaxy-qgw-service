@@ -102,8 +102,6 @@ public class JsonSchemaTest extends GalaxyQGWApplicationTests {
             log.error("ProcessingException information: ", e.getMessage());
         } catch (IOException e) {
             log.error("IOException information: ", e.getMessage());
-        } catch (Exception e) {
-            log.error("Other Exception information: ", e.getMessage());
         }
     }
 }

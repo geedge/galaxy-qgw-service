@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
 public class ActiveRecordInit {
 
     @Autowired
-    BifangMysqlConfiguration bmc;
+    private BifangMysqlConfiguration bmc;
 
     @PostConstruct
     public void initDialect() {

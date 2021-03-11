@@ -368,6 +368,10 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         try {
             File schemaDir = new File(new File("").getCanonicalPath() + path);
             if (FileUtil.isNotEmpty(schemaDir) && FileUtil.isDirectory(schemaDir)) {
+                if (StringUtil.isEmpty(schemaDir.listFiles())) {
+                    throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                            ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "The Directory is null: " + path) ;
+                }
                 for (File file : schemaDir.listFiles()) {
                    try {
                        if (StringUtil.lowerCase(file.getName()).endsWith(AVRO_SUFFIX)) {

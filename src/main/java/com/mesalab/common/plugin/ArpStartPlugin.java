@@ -13,18 +13,13 @@ import lombok.extern.slf4j.Slf4j;
  * @Description : ArpStartPlugin
  */
 public class ArpStartPlugin extends ActiveRecordPlugin {
-    private static final Log log = LogFactory.get();
     public ArpStartPlugin(IDataSourceProvider dataSourceProvider) {
         super(dataSourceProvider);
     }
 
     @Override
     public boolean start() {
-        try {
-            super.start();
-        } catch (Exception e) {
-            log.error("ArpStartPlugin init error:{}", e.getMessage());
-        }
+        super.start();
         return true;
     }
 }

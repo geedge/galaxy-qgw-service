@@ -136,7 +136,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
 
         Map<String, String> map = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), 0);
-        if (String.valueOf(HttpStatus.SC_OK).equals(map.get("status"))) {
+        if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
             return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));

@@ -223,12 +223,8 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         Expression whereExpression = sqlQuerySource.getWhereExpression();
         String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableName());
         WhereTimeRange whereTimeRange = new WhereTimeRange();
-        try {
-            parserWhereExpressionForWhereTimeRange(whereTimeRange, whereExpression, partitionKey, dbType);
-        } catch (Exception e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "解析where表达式，获取数据的时间范围异常", e);
-        }
+        parserWhereExpressionForWhereTimeRange(whereTimeRange, whereExpression, partitionKey, dbType);
+
         return whereTimeRange;
     }
 
@@ -239,7 +235,8 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
      * @param partitionKey
      * @param dbType
      */
-    private void parserWhereExpressionForWhereTimeRange(WhereTimeRange whereTimeRange, Expression whereExpression, String partitionKey, String dbType) {
+    private void parserWhereExpressionForWhereTimeRange(WhereTimeRange whereTimeRange, Expression whereExpression,
+                                                                String partitionKey, String dbType) {
         if (StringUtil.isEmpty(whereExpression) || StringUtil.isBlank(partitionKey)) {
             return;
         }
