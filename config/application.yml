@@ -1,55 +1,22 @@
-###############################################################################
-## springboot的配置文件顺序：
-## 1. @TestPropertySource 注解
-## 2. 命令行参数
-## 3. Java系统属性（System.getProperties()）
-## 4. 操作系统环境变量
-## 5. 只有在random.*里包含的属性会产生一个RandomValuePropertySource
-## 6. 在打包的jar外的应用程序配置文件（application.properties，包含YML和profile变量）
-## 7. 在打包的jar内的应用程序配置文件（application.properties，包含YML和profile变量）
-## 8. 在@Configuration类上的@PropertySource注解
-## 9. 默认属性（使用SpringApplication.setDefaultProperties指定）
-###############################################################################
-## 服务配置
-server:
-  port: 9999
+nacos:
+  config:
+    type: yaml #配置集的配置格式
+    server-addr: 192.168.44.12:8848 #配置中心地址
+    namespace: nacos-namespace-galaxy #命名空间
+    data-id: galaxy-qgw-service # 数据集ID
+    auto-refresh: true #开启自动刷新
+    group: DEFAULT_GROUP  #配置对应的分组
+    username: galaxy #Nacos认证用户
+    password: galaxy #Nacos认证密码
+    bootstrap:
+      enable: true #开启配置预加载功能
+      log:
+        enable: true #开启Nacos支持日志级别的加载时机
 spring:
   profiles:
     active: dev
-###############################################################################
-## 项目参数，从maven中读取
-project:
-  name: galaxy-qgw-service
-  description: 统一数据查询网关
-  version: 1.1
-  groupId: com.mesalab
-  artifactId: galaxy-qgw-service
-  basedir:
-  core-package: com.mesalab.common
-  service-package: com.mesalab.qgw
-  author:
-    name: darnell
-    url:
-    email:
-###############################################################################
-management:
-  metrics:
-    tags:
-      application: ${project.name}
-  endpoint:
-    health:
-      show-details: always
-    shutdown:
-      enabled: true
-  health:
-    redis:
-      enabled: false
-    db:
-      enabled: false
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-        exclude: env,auditevents,beans,conditions,info
-      base-path: /monitor
+logging:
+  config: ./config/log4j2.xml
+
+
 

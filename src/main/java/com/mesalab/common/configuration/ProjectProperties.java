@@ -1,15 +1,16 @@
 package com.mesalab.common.configuration;
 
+import com.alibaba.nacos.api.config.ConfigType;
+import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
 import com.mesalab.common.enums.EnvironmentEnum;
 import com.mesalab.common.enums.EnvironmentGroupEnum;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 项目配置
@@ -18,8 +19,8 @@ import java.util.List;
  * @date 2018/5/26
  */
 @Data
-@Repository
-@ConfigurationProperties("project")
+@Component
+@NacosConfigurationProperties(prefix = "project", dataId = "galaxy-qgw-service", type = ConfigType.YAML, autoRefreshed = true)
 public class ProjectProperties {
 
     /**
@@ -63,45 +64,9 @@ public class ProjectProperties {
     private String servicePackage;
 
     /**
-     * 当前环境值
-     */
-    private String[] env;
-
-    /**
      * 项目作者
      */
-    private ProjectAuthorProperties author;
+    private Map author;
 
-    /**
-     * 注入的spring环境上下文
-     */
-    private final Environment environment;
-
-    @Autowired
-    public ProjectProperties(Environment environment) {
-        this.environment = environment;
-        this.env = environment.getActiveProfiles();
-    }
-
-    /**
-     * 是否是生产环境
-     * 从运行环境中读取最后一个是否为生产环境
-     *
-     * @return boolean 是否为生产环境
-     */
-    public boolean isProduct() {
-        List<String> runtimeEnvs = new ArrayList<>();
-        for (String s : this.env) {
-            if (EnvironmentGroupEnum.isRuntime(s)) {
-                runtimeEnvs.add(s);
-            }
-        }
-        if (runtimeEnvs.size() == 0) {
-            return false;
-        }
-        //最后一个运行环境, 如果spring.profiles.active=dev, prod, mysql  则运行环境为dev, prod, 最后一个运行环境为prod，是生产环境
-        String env = runtimeEnvs.get(runtimeEnvs.size() - 1);
-        return EnvironmentEnum.PROD.getName().equals(env);
-    }
 
 }

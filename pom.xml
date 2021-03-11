@@ -71,7 +71,7 @@
         <docker.registry>192.168.40.153</docker.registry>
         <docker.registry.port>9080</docker.registry.port>
         <docker.image.prefix>tsg/galaxy</docker.image.prefix>
-
+        <nacos.config.version>0.2.7</nacos.config.version>
     </properties>
 
     <dependencies>
@@ -242,19 +242,16 @@
             <artifactId>hutool-all</artifactId>
             <version>5.5.4</version>
         </dependency>
-
         <dependency>
             <groupId>com.github.java-json-tools</groupId>
             <artifactId>json-schema-validator</artifactId>
             <version>${json.schema.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
             <version>${json.path.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.jfinal</groupId>
             <artifactId>activerecord</artifactId>
@@ -271,8 +268,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-
+        <dependency>
+            <groupId>com.alibaba.boot</groupId>
+            <artifactId>nacos-config-spring-boot-starter</artifactId>
+            <version>${nacos.config.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -540,10 +540,6 @@
                     </exclusionPatterns>
                 </configuration>
             </plugin>
-
-
-
-
 
 
             <plugin>

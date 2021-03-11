@@ -3,6 +3,7 @@ package com.mesalab.qgw.controller;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ProjectProperties;
+import com.mesalab.common.enums.EnvironmentEnum;
 import com.mesalab.qgw.service.DiagnosisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,18 +26,12 @@ import java.util.Arrays;
 @RequestMapping(value = "test")
 public class TestController {
 
-    private final ProjectProperties projectProperties;
-
-    private final Environment environment;
-
+    @Autowired
+    private Environment environment;
     @Autowired
     private DiagnosisService diagnosisService;
-
     @Autowired
-    public TestController(ProjectProperties projectProperties, Environment environment) {
-        this.projectProperties = projectProperties;
-        this.environment = environment;
-    }
+    private ProjectProperties projectProperties;
 
     /**
      * 测试
@@ -47,9 +42,7 @@ public class TestController {
     @GetMapping(value = "projectProperties")
     public BaseResult projectProperties() {
         log.info("Project Properties: {}", projectProperties);
-        //此处本意是将projectProperties返回至前端，但是projectProperties对象是由spring注入而来，其中包含过多的动态代理数据，
-        //使用lombok的@Data注解处理BaseResult时，数据过大，返回报错，因此只返回success
-        return BaseResultGenerator.success();
+        return BaseResultGenerator.success("ok", projectProperties);
     }
 
     /**
@@ -71,9 +64,7 @@ public class TestController {
      */
     @GetMapping(value = "env")
     public BaseResult env() {
-        String[] env = projectProperties.getEnv();
-        log.info("Project env: {}", Arrays.toString(env));
-        return BaseResultGenerator.success(env);
+        return BaseResultGenerator.success(environment.getActiveProfiles());
     }
 
     /**
@@ -83,7 +74,7 @@ public class TestController {
      */
     @GetMapping(value = "isProduct")
     public BaseResult isProduct() {
-        boolean isProduct = projectProperties.isProduct();
+        boolean isProduct = environment.acceptsProfiles(EnvironmentEnum.PROD.getName());
         String msg = "Current Environment is" + (isProduct ? "" : " not") + " product";
         return BaseResultGenerator.success(msg);
     }
