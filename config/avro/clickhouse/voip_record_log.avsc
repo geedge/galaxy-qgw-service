@@ -1,0 +1,455 @@
+{
+  "type": "record",
+  "name": "voip_record_log",
+  "namespace": "tsg_galaxy_v3",
+  "doc": "{\"primary_key\":\"common_log_id\",\"partition_key\":\"common_recv_time\",\"functions\":{\"aggregation\":[{\"name\":\"COUNT\",\"function\":\"count(expr)\"},{\"name\":\"COUNT_DISTINCT\",\"function\":\"count(distinct expr)\"},{\"name\":\"AVG\",\"function\":\"avg(expr)\"},{\"name\":\"SUM\",\"function\":\"sum(expr)\"},{\"name\":\"MAX\",\"function\":\"max(expr)\"},{\"name\":\"MIN\",\"function\":\"min(expr)\"}],\"operator\":[{\"name\":\"=\",\"function\":\"expr = value\"},{\"name\":\"!=\",\"function\":\"expr != value\"},{\"name\":\">\",\"function\":\"expr > value\"},{\"name\":\"<\",\"function\":\"expr < value\"},{\"name\":\">=\",\"function\":\"expr >= value\"},{\"name\":\"<=\",\"function\":\"expr <= value\"},{\"name\":\"in\",\"function\":\"expr in (values)\"},{\"name\":\"not in\",\"function\":\"expr not in (values)\"},{\"name\":\"like\",\"function\":\"expr like value\"},{\"name\":\"not like\",\"function\":\"expr not like value\"},{\"name\":\"not empty\",\"function\":\"notEmpty(expr)\"},{\"name\":\"empty\",\"function\":\"empty(expr)\"}]},\"schema_query\":{\"dimensions\":[\"common_server_ip\",\"common_client_ip\",\"common_internal_ip\",\"common_external_ip\",\"common_sled_ip\",\"common_device_id\",\"common_client_location\",\"common_server_location\",\"common_subscriber_id\",\"common_client_port\",\"common_server_port\",\"common_schema_type\",\"common_l4_protocol\",\"common_l7_protocol\",\"common_data_center\",\"common_client_asn\",\"common_server_asn\",\"common_start_time\",\"common_end_time\",\"sip_call_id\",\"sip_from\",\"sip_to\",\"sip_user_agent\",\"sip_server\",\"sip_duration\",\"sip_bye\",\"rtp_payload_type_c2s\",\"rtp_payload_type_s2c\",\"rtp_from_direction\"],\"metrics\":[\"common_server_ip\",\"common_client_ip\",\"common_internal_ip\",\"common_external_ip\",\"common_subscriber_id\",\"common_sled_ip\",\"common_device_id\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_sessions\",\"common_con_duration_ms\",\"common_establish_latency_ms\",\"common_c2s_ipfrag_num\",\"common_s2c_ipfrag_num\",\"common_c2s_tcp_lostlen\",\"common_s2c_tcp_lostlen\",\"common_c2s_tcp_unorder_num\",\"common_s2c_tcp_unorder_num\",\"sip_call_id\",\"sip_from\",\"sip_to\",\"sip_user_agent\",\"sip_server\",\"sip_duration\"],\"filters\":[\"common_address_type\",\"common_server_ip\",\"common_client_ip\",\"common_internal_ip\",\"common_external_ip\",\"common_client_port\",\"common_server_port\",\"common_client_location\",\"common_server_location\",\"common_subscriber_id\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_c2s_ipfrag_num\",\"common_s2c_ipfrag_num\",\"common_c2s_tcp_lostlen\",\"common_s2c_tcp_lostlen\",\"common_c2s_tcp_unorder_num\",\"common_s2c_tcp_unorder_num\",\"common_l4_protocol\",\"common_l7_protocol\",\"common_stream_dir\",\"common_direction\",\"common_data_center\",\"common_sled_ip\",\"common_device_id\",\"common_schema_type\",\"common_client_asn\",\"common_server_asn\",\"common_start_time\",\"common_end_time\",\"common_con_duration_ms\",\"common_establish_latency_ms\",\"sip_call_id\",\"sip_from\",\"sip_to\",\"sip_user_agent\",\"sip_server\",\"sip_duration\",\"sip_bye\",\"rtp_payload_type_c2s\",\"rtp_payload_type_s2c\",\"rtp_from_direction\"],\"references\":{\"aggregation\":[{\"type\":\"int\",\"functions\":\"COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN\"},{\"type\":\"long\",\"functions\":\"COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN\"},{\"type\":\"float\",\"functions\":\"COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN\"},{\"type\":\"double\",\"functions\":\"COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN\"},{\"type\":\"string\",\"functions\":\"COUNT,COUNT_DISTINCT\"},{\"type\":\"date\",\"functions\":\"COUNT,COUNT_DISTINCT,MAX,MIN\"},{\"type\":\"timestamp\",\"functions\":\"COUNT,COUNT_DISTINCT,MAX,MIN\"}],\"operator\":[{\"type\":\"int\",\"functions\":\"=,!=,>,<,>=,<=,in,not in\"},{\"type\":\"long\",\"functions\":\"=,!=,>,<,>=,<=,in,not in\"},{\"type\":\"float\",\"functions\":\"=,!=,>,<,>=,<=\"},{\"type\":\"double\",\"functions\":\"=,!=,>,<,>=,<=\"},{\"type\":\"string\",\"functions\":\"=,!=,in,not in,like,not like,not empty,empty\"},{\"type\":\"date\",\"functions\":\"=,!=,>,<,>=,<=\"},{\"type\":\"timestamp\",\"functions\":\"=,!=,>,<,>=,<=\"}]},\"details\":{\"general\":[\"common_recv_time\",\"common_log_id\",\"common_stream_trace_id\",\"common_direction\",\"common_stream_dir\",\"common_start_time\",\"common_end_time\",\"common_con_duration_ms\",\"common_establish_latency_ms\",\"common_processing_time\"],\"action\":[\"common_action\",\"common_sub_action\",\"common_policy_id\",\"common_user_tags\",\"common_user_region\"],\"source\":[\"common_client_ip\",\"common_internal_ip\",\"common_client_port\",\"common_client_location\",\"common_client_asn\",\"common_entrance_id\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_data_center\",\"common_sled_ip\",\"common_tcp_client_isn\",\"common_subscriber_id\"],\"destination\":[\"common_server_ip\",\"common_external_ip\",\"common_server_port\",\"common_server_location\",\"common_server_asn\",\"common_tcp_server_isn\"],\"application\":[\"common_app_id\",\"common_app_label\",\"common_app_surrogate_id\",\"common_l7_protocol\",\"common_protocol_label\",\"common_service\",\"common_l4_protocol\"],\"data\":[\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_c2s_ipfrag_num\",\"common_s2c_ipfrag_num\",\"common_c2s_tcp_lostlen\",\"common_s2c_tcp_lostlen\",\"common_c2s_tcp_unorder_num\",\"common_s2c_tcp_unorder_num\",\"common_first_ttl\"]}},\"schema_type\":{\"SIP\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_internal_ip\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_external_ip\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_device_tag\",\"common_data_center\",\"common_encapsulation\",\"common_app_label\",\"common_protocol_label\",\"common_app_id\",\"common_app_surrogate_id\",\"common_l7_protocol\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"common_link_info_c2s\",\"common_link_info_s2c\",\"common_c2s_ipfrag_num\",\"common_s2c_ipfrag_num\",\"common_c2s_tcp_lostlen\",\"common_s2c_tcp_lostlen\",\"common_c2s_tcp_unorder_num\",\"common_s2c_tcp_unorder_num\",\"common_tcp_client_isn\",\"common_tcp_server_isn\",\"common_first_ttl\",\"common_processing_time\",\"sip_call_id\",\"sip_from\",\"sip_to\",\"sip_user_agent\",\"sip_server\",\"sip_from_sdp_connect_ip\",\"sip_from_sdp_media_port\",\"sip_from_sdp_media_type\",\"sip_from_sdp_content\",\"sip_to_sdp_connect_ip\",\"sip_to_sdp_media_port\",\"sip_to_sdp_media_type\",\"sip_to_sdp_content\",\"sip_duration\",\"sip_bye\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"common_client_ip\",\"sip_from\",\"sip_to\",\"sip_call_id\",\"common_server_ip\",\"common_server_port\"]},\"RTP\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_internal_ip\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_external_ip\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_device_tag\",\"common_data_center\",\"common_encapsulation\",\"common_app_label\",\"common_protocol_label\",\"common_app_id\",\"common_app_surrogate_id\",\"common_l7_protocol\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"common_link_info_c2s\",\"common_link_info_s2c\",\"common_c2s_ipfrag_num\",\"common_s2c_ipfrag_num\",\"common_c2s_tcp_lostlen\",\"common_s2c_tcp_lostlen\",\"common_c2s_tcp_unorder_num\",\"common_s2c_tcp_unorder_num\",\"common_tcp_client_isn\",\"common_tcp_server_isn\",\"common_first_ttl\",\"common_processing_time\",\"rtp_payload_type_c2s\",\"rtp_payload_type_s2c\",\"rtp_pcap_dir_c2s\",\"rtp_pcap_dir_s2c\",\"rtp_from_direction\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_server_ip\",\"common_server_port\",\"rtp_pcap_dir_c2s\",\"rtp_pcap_dir_s2c\",\"rtp_from_direction\"]},\"VoIP\":{\"columns\":[\"common_recv_time\",\"common_log_id\",\"common_policy_id\",\"common_subscriber_id\",\"common_client_ip\",\"common_client_port\",\"common_internal_ip\",\"common_l4_protocol\",\"common_address_type\",\"common_server_ip\",\"common_server_port\",\"common_external_ip\",\"common_action\",\"common_direction\",\"common_entrance_id\",\"common_sled_ip\",\"common_client_location\",\"common_client_asn\",\"common_server_location\",\"common_server_asn\",\"common_sessions\",\"common_c2s_pkt_num\",\"common_s2c_pkt_num\",\"common_c2s_byte_num\",\"common_s2c_byte_num\",\"common_service\",\"common_schema_type\",\"common_user_tags\",\"common_sub_action\",\"common_user_region\",\"common_device_id\",\"common_link_id\",\"common_isp\",\"common_device_tag\",\"common_data_center\",\"common_encapsulation\",\"common_app_label\",\"common_protocol_label\",\"common_app_id\",\"common_app_surrogate_id\",\"common_l7_protocol\",\"common_start_time\",\"common_end_time\",\"common_establish_latency_ms\",\"common_con_duration_ms\",\"common_stream_dir\",\"common_address_list\",\"common_has_dup_traffic\",\"common_stream_error\",\"common_stream_trace_id\",\"common_link_info_c2s\",\"common_link_info_s2c\",\"common_c2s_ipfrag_num\",\"common_s2c_ipfrag_num\",\"common_c2s_tcp_lostlen\",\"common_s2c_tcp_lostlen\",\"common_c2s_tcp_unorder_num\",\"common_s2c_tcp_unorder_num\",\"common_tcp_client_isn\",\"common_tcp_server_isn\",\"common_first_ttl\",\"common_processing_time\",\"sip_call_id\",\"sip_from\",\"sip_to\",\"sip_user_agent\",\"sip_server\",\"sip_from_sdp_connect_ip\",\"sip_from_sdp_media_port\",\"sip_from_sdp_media_type\",\"sip_from_sdp_content\",\"sip_to_sdp_connect_ip\",\"sip_to_sdp_media_port\",\"sip_to_sdp_media_type\",\"sip_to_sdp_content\",\"sip_duration\",\"sip_bye\",\"rtp_payload_type_c2s\",\"rtp_payload_type_s2c\",\"rtp_pcap_dir_c2s\",\"rtp_pcap_dir_s2c\",\"rtp_from_direction\"],\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"common_client_ip\",\"sip_from\",\"sip_to\",\"sip_call_id\",\"common_server_ip\",\"common_server_port\",\"rtp_pcap_dir_c2s\",\"rtp_pcap_dir_s2c\",\"rtp_from_direction\"]}},\"default_columns\":[\"common_recv_time\",\"common_log_id\",\"common_subscriber_id\",\"common_client_ip\",\"sip_from\",\"sip_to\",\"sip_call_id\",\"common_server_ip\",\"common_server_port\",\"rtp_pcap_dir_c2s\",\"rtp_pcap_dir_s2c\",\"rtp_from_direction\"]}",
+  "fields": [
+    {
+      "name": "common_recv_time",
+      "label": "Receive Time",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"timestamp\"}}",
+      "type": "long"
+    },
+    {
+      "name": "common_log_id",
+      "label": "Log ID",
+      "doc": "{\"allow_query\":\"true\",\"format\":{\"functions\":\"snowflake_id\"}}",
+      "type": "long"
+    },
+    {
+      "name": "common_policy_id",
+      "label": "Policy ID",
+      "doc": "{\"visibility\":\"hidden\"}",
+      "type": "long"
+    },
+    {
+      "name": "common_subscriber_id",
+      "label": "Subscriber ID",
+      "doc": "{\"allow_query\":\"true\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_client_ip",
+      "label": "Client IP",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_asn,radius_match\",\"appendTo\":\"common_client_asn,common_subscriber_id\"}}",
+      "type": "string"
+    },
+    {
+      "name": "common_internal_ip",
+      "label": "Internal IP",
+      "doc": "{\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=69,$.common_client_ip,$.common_server_ip\"},\"allow_query\":\"true\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_client_port",
+      "label": "Client Port",
+      "doc": "{\"allow_query\":\"true\"}",
+      "type": "int"
+    },
+    {
+      "name": "common_l4_protocol",
+      "label": "L4 Protocol",
+      "type": "string"
+    },
+    {
+      "name": "common_address_type",
+      "label": "Address Type",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"4\",\"value\":\"ipv4\"},{\"code\":\"6\",\"value\":\"ipv6\"}]}",
+      "type": "int"
+    },
+    {
+      "name": "common_server_ip",
+      "label": "Server IP",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"geo_asn\",\"appendTo\":\"common_server_asn\"}}",
+      "type": "string"
+    },
+    {
+      "name": "common_server_port",
+      "label": "Server Port",
+      "doc": "{\"allow_query\":\"true\"}",
+      "type": "int"
+    },
+    {
+      "name": "common_external_ip",
+      "label": "External IP",
+      "doc": "{\"constraints\":{\"type\":\"ip\"},\"format\":{\"functions\":\"if\",\"param\":\"$.common_direction=73,$.common_client_ip,$.common_server_ip\"},\"allow_query\":\"true\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_action",
+      "label": "Action",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"0\",\"value\":\"None\"},{\"code\":\"1\",\"value\":\"Monitor\"},{\"code\":\"2\",\"value\":\"Intercept\"},{\"code\":\"16\",\"value\":\"Deny\"},{\"code\":\"128\",\"value\":\"Allow\"}]}",
+      "type": "int"
+    },
+    {
+      "name": "common_direction",
+      "label": "Direction",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"69\",\"value\":\"outbound\"},{\"code\":\"73\",\"value\":\"inbound\"}]}",
+      "type": "int"
+    },
+    {
+      "name": "common_entrance_id",
+      "label": "Entrance ID",
+      "doc": "{\"visibility\":\"disabled\"}",
+      "type": "int"
+    },
+    {
+      "name": "common_sled_ip",
+      "label": "Sled IP",
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"ip\"}}",
+      "type": "string"
+    },
+    {
+      "name": "common_client_location",
+      "label": "Client Location",
+      "type": "string"
+    },
+    {
+      "name": "common_client_asn",
+      "label": "Client ASN",
+      "type": "string"
+    },
+    {
+      "name": "common_server_location",
+      "label": "Server Location",
+      "type": "string"
+    },
+    {
+      "name": "common_server_asn",
+      "label": "Server ASN",
+      "type": "string"
+    },
+    {
+      "name": "common_sessions",
+      "label": "Sessions",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_pkt_num",
+      "label": "Packets Sent",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_pkt_num",
+      "label": "Packets Received",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_byte_num",
+      "label": "Bytes Sent",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_byte_num",
+      "label": "Bytes Received",
+      "type": "long"
+    },
+    {
+      "name": "common_service",
+      "label": "Service",
+      "doc": "{\"visibility\":\"disabled\"}",
+      "type": "int"
+    },
+    {
+      "name": "common_schema_type",
+      "label": "Schema Type",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"VoIP\",\"value\":\"VoIP\"},{\"code\":\"SIP\",\"value\":\"SIP\"},{\"code\":\"RTP\",\"value\":\"RTP\"}],\"allow_query\":\"true\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_user_tags",
+      "label": "User Tags",
+      "doc": "{\"visibility\":\"disabled\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_sub_action",
+      "label": "Sub Action",
+      "type": "string"
+    },
+    {
+      "name": "common_user_region",
+      "label": "User Region",
+      "doc": "{\"visibility\":\"hidden\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_device_id",
+      "label": "Device ID",
+      "type": "string"
+    },
+    {
+      "name": "common_link_id",
+      "label": "Link ID",
+      "doc": "{\"visibility\":\"disabled\"}",
+      "type": "int"
+    },
+    {
+      "name": "common_isp",
+      "label": "ISP",
+      "doc": "{\"visibility\":\"disabled\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_device_tag",
+      "label": "Device Tag",
+      "doc": "{\"visibility\":\"hidden\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_data_center",
+      "label": "Data Center",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"Nur-sultan\",\"value\":\"Nur-sultan\"},{\"code\":\"Aktau\",\"value\":\"Aktau\"},{\"code\":\"Aktubinsk\",\"value\":\"Aktubinsk\"},{\"code\":\"Almaty\",\"value\":\"Almaty\"},{\"code\":\"Atyrau\",\"value\":\"Atyrau\"},{\"code\":\"Karaganda\",\"value\":\"Karaganda\"},{\"code\":\"Kokshetau\",\"value\":\"Kokshetau\"},{\"code\":\"Kostanay\",\"value\":\"Kostanay\"},{\"code\":\"Kyzylorda\",\"value\":\"Kyzylorda\"},{\"code\":\"Pavlodar\",\"value\":\"Pavlodar\"},{\"code\":\"Petropavl\",\"value\":\"Petropavl\"},{\"code\":\"Semey\",\"value\":\"Semey\"},{\"code\":\"Shymkent\",\"value\":\"Shymkent\"},{\"code\":\"Taldykurgan\",\"value\":\"Taldykurgan\"},{\"code\":\"Taraz\",\"value\":\"Taraz\"},{\"code\":\"Uralsk\",\"value\":\"Uralsk\"},{\"code\":\"Ust-Kamenogorsk\",\"value\":\"Ust-Kamenogorsk\"},{\"code\":\"Zhezkazgan\",\"value\":\"Zhezkazgan\"}],\"allow_query\":\"true\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_encapsulation",
+      "label": "Encapsulation",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"0\",\"value\":\"Ethernet\"},{\"code\":\"8\",\"value\":\"PPP\"},{\"code\":\"12\",\"value\":\"CiscoHDLC\"}],\"visibility\":\"hidden\"}",
+      "type": "int"
+    },
+    {
+      "name": "common_app_label",
+      "label": "Application Label",
+      "type": "string"
+    },
+    {
+      "name": "common_protocol_label",
+      "label": "Protocol Label",
+      "type": "string"
+    },
+    {
+      "name": "common_app_id",
+      "label": "Application ID",
+      "type": "int"
+    },
+    {
+      "name": "common_app_surrogate_id",
+      "label": "Surrogate ID",
+      "type": "int"
+    },
+    {
+      "name": "common_l7_protocol",
+      "label": "L7 Protocol",
+      "type": "string"
+    },
+    {
+      "name": "common_start_time",
+      "label": "Start Time",
+      "doc": "{\"constraints\":{\"type\":\"timestamp\"}}",
+      "type": "long"
+    },
+    {
+      "name": "common_end_time",
+      "label": "End Time",
+      "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"get_value\",\"appendTo\":\"common_recv_time\"}}",
+      "type": "long"
+    },
+    {
+      "name": "common_establish_latency_ms",
+      "label": "Establish Latency(ms)",
+      "type": "int"
+    },
+    {
+      "name": "common_con_duration_ms",
+      "label": "Duration(ms)",
+      "type": "int"
+    },
+    {
+      "name": "common_stream_dir",
+      "label": "Stream Direction",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"1\",\"value\":\"c2s\"},{\"code\":\"2\",\"value\":\"s2c\"},{\"code\":\"3\",\"value\":\"double\"}],\"allow_query\":\"true\"}",
+      "type": "int"
+    },
+    {
+      "name": "common_address_list",
+      "label": "Address List",
+      "doc": "{\"visibility\":\"disabled\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_has_dup_traffic",
+      "label": "Duplication Traffic",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"0\",\"value\":\"No\"},{\"code\":\"1\",\"value\":\"Yes\"}],\"visibility\":\"hidden\"}",
+      "type": "int"
+    },
+    {
+      "name": "common_stream_error",
+      "label": "Stream Error",
+      "doc": "{\"visibility\":\"hidden\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_stream_trace_id",
+      "label": "Session ID",
+      "doc": "{\"allow_query\":\"true\"}",
+      "type": "long"
+    },
+    {
+      "name": "common_link_info_c2s",
+      "label": "Link Info(c2s)",
+      "doc": "{\"visibility\":\"hidden\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_link_info_s2c",
+      "label": "Link Info(s2c)",
+      "doc": "{\"visibility\":\"hidden\"}",
+      "type": "string"
+    },
+    {
+      "name": "common_c2s_ipfrag_num",
+      "label": "Fragmentation Packets(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_ipfrag_num",
+      "label": "Fragmentation Packets(s2c)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_tcp_lostlen",
+      "label": "Sequence Gap Loss(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_tcp_lostlen",
+      "label": "Sequence Gap Loss(s2c)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_tcp_unorder_num",
+      "label": "Unorder Packets(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_tcp_unorder_num",
+      "label": "Unorder Packets(s2c)",
+      "type": "long"
+    },
+    {
+      "name": "common_tcp_client_isn",
+      "label": "TCP Client ISN",
+      "doc": "{\"allow_query\":\"true\"}",
+      "type": "long"
+    },
+    {
+      "name": "common_tcp_server_isn",
+      "label": "TCP Server ISN",
+      "doc": "{\"allow_query\":\"true\"}",
+      "type": "long"
+    },
+    {
+      "name": "common_first_ttl",
+      "label": "First TTL",
+      "doc": "{\"visibility\":\"hidden\"}",
+      "type": "int"
+    },
+    {
+      "name": "common_processing_time",
+      "label": "Processing Time",
+      "doc": "{\"constraints\":{\"type\":\"timestamp\"},\"format\":{\"functions\":\"current_timestamp\"}}",
+      "type": "long"
+    },
+    {
+      "name": "sip_from",
+      "label": "SIP.From",
+      "type": "string"
+    },
+    {
+      "name": "sip_to",
+      "label": "SIP.To",
+      "type": "string"
+    },
+    {
+      "name": "sip_user_agent",
+      "label": "SIP.User-Agent",
+      "type": "string"
+    },
+    {
+      "name": "sip_server",
+      "label": "SIP.Server",
+      "type": "string"
+    },
+    {
+      "name": "sip_from_sdp_connect_ip",
+      "label": "SIP.From Connect IP",
+      "type": "string"
+    },
+    {
+      "name": "sip_from_sdp_media_port",
+      "label": "SIP.From Media Port",
+      "type": "int"
+    },
+    {
+      "name": "sip_from_sdp_media_type",
+      "label": "SIP.From Media Type",
+      "type": "string"
+    },
+    {
+      "name": "sip_from_sdp_content",
+      "label": "SIP.From SDP Content",
+      "type": "string"
+    },
+    {
+      "name": "sip_to_sdp_connect_ip",
+      "label": "SIP.To Connect IP",
+      "type": "string"
+    },
+    {
+      "name": "sip_to_sdp_media_port",
+      "label": "SIP.To Media Port",
+      "type": "int"
+    },
+    {
+      "name": "sip_to_sdp_media_type",
+      "label": "SIP.To Media Type",
+      "type": "string"
+    },
+    {
+      "name": "sip_to_sdp_content",
+      "label": "SIP.To SDP Content",
+      "type": "string"
+    },
+    {
+      "name": "sip_duration",
+      "label": "SIP.Duration",
+      "type": "int"
+    },
+    {
+      "name": "sip_bye",
+      "label": "SIP.Bye",
+      "type": "string"
+    },
+    {
+      "name": "rtp_payload_type_c2s",
+      "label": "RTP.Payload(c2s)",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"0\",\"value\":\"PCMU\"},{\"code\":\"1\",\"value\":\"1016\"},{\"code\":\"2\",\"value\":\"G721\"},{\"code\":\"3\",\"value\":\"GSM\"},{\"code\":\"4\",\"value\":\"G723\"},{\"code\":\"5\",\"value\":\"DVI4_8000\"},{\"code\":\"6\",\"value\":\"DVI4_16000\"},{\"code\":\"7\",\"value\":\"LPC\"},{\"code\":\"8\",\"value\":\"PCMA\"},{\"code\":\"9\",\"value\":\"G722\"},{\"code\":\"10\",\"value\":\"L16_STEREO\"},{\"code\":\"11\",\"value\":\"L16_MONO\"},{\"code\":\"12\",\"value\":\"QCELP\"},{\"code\":\"13\",\"value\":\"CN\"},{\"code\":\"14\",\"value\":\"MPA\"},{\"code\":\"15\",\"value\":\"G728\"},{\"code\":\"16\",\"value\":\"DVI4_11025\"},{\"code\":\"17\",\"value\":\"DVI4_22050\"},{\"code\":\"18\",\"value\":\"G729\"},{\"code\":\"19\",\"value\":\"CN_OLD\"},{\"code\":\"25\",\"value\":\"CELB\"},{\"code\":\"26\",\"value\":\"JPEG\"},{\"code\":\"28\",\"value\":\"NV\"},{\"code\":\"31\",\"value\":\"H261\"},{\"code\":\"32\",\"value\":\"MPV\"},{\"code\":\"33\",\"value\":\"MP2T\"},{\"code\":\"34\",\"value\":\"H263\"}]}",
+      "type": "int"
+    },
+    {
+      "name": "rtp_payload_type_s2c",
+      "label": "RTP.Payload(s2c)",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"0\",\"value\":\"PCMU\"},{\"code\":\"1\",\"value\":\"1016\"},{\"code\":\"2\",\"value\":\"G721\"},{\"code\":\"3\",\"value\":\"GSM\"},{\"code\":\"4\",\"value\":\"G723\"},{\"code\":\"5\",\"value\":\"DVI4_8000\"},{\"code\":\"6\",\"value\":\"DVI4_16000\"},{\"code\":\"7\",\"value\":\"LPC\"},{\"code\":\"8\",\"value\":\"PCMA\"},{\"code\":\"9\",\"value\":\"G722\"},{\"code\":\"10\",\"value\":\"L16_STEREO\"},{\"code\":\"11\",\"value\":\"L16_MONO\"},{\"code\":\"12\",\"value\":\"QCELP\"},{\"code\":\"13\",\"value\":\"CN\"},{\"code\":\"14\",\"value\":\"MPA\"},{\"code\":\"15\",\"value\":\"G728\"},{\"code\":\"16\",\"value\":\"DVI4_11025\"},{\"code\":\"17\",\"value\":\"DVI4_22050\"},{\"code\":\"18\",\"value\":\"G729\"},{\"code\":\"19\",\"value\":\"CN_OLD\"},{\"code\":\"25\",\"value\":\"CELB\"},{\"code\":\"26\",\"value\":\"JPEG\"},{\"code\":\"28\",\"value\":\"NV\"},{\"code\":\"31\",\"value\":\"H261\"},{\"code\":\"32\",\"value\":\"MPV\"},{\"code\":\"33\",\"value\":\"MP2T\"},{\"code\":\"34\",\"value\":\"H263\"}]}",
+      "type": "int"
+    },
+    {
+      "name": "rtp_pcap_dir_c2s",
+      "label": "RTP.PCAP(c2s)",
+      "doc": "{\"constraints\":{\"type\":\"file\"}}",
+      "type": "string"
+    },
+    {
+      "name": "rtp_pcap_dir_s2c",
+      "label": "RTP.PCAP(s2c)",
+      "doc": "{\"constraints\":{\"type\":\"file\"}}",
+      "type": "string"
+    },
+    {
+      "name": "rtp_from_direction",
+      "label": "Direction",
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"0\",\"value\":\"unknown\"},{\"code\":\"1\",\"value\":\"c2s\"},{\"code\":\"2\",\"value\":\"s2c\"}]}",
+      "type": "int"
+    }
+  ]
+}
