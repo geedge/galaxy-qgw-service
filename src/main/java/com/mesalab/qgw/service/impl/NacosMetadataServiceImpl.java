@@ -7,11 +7,11 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.nacos.NacosClientConfig;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.service.MetadataService;
@@ -38,7 +38,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
     @Autowired
     private NacosClientConfig nacosClientConfig;
     @Autowired
-    private ClickHouseProperties clickHouseProperties;
+    private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
 
@@ -91,7 +91,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
         if (StringUtil.isEmpty(schema)) {
             return StringUtil.EMPTY;
         }
-        if (clickHouseProperties.getDbname().equalsIgnoreCase(schema.getNamespace())
+        if (clickHouseHttpSource.getDbName().equalsIgnoreCase(schema.getNamespace())
                 || "system".equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.CLICKHOUSE.getValue();
         }
@@ -104,7 +104,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
     @Override
     public String getDBNameByTableName(String tableName) {
         Schema schema = getSchemaByName(tableName);
-        return StringUtil.isNotEmpty(schema) ? schema.getNamespace() : clickHouseProperties.getDbname();
+        return StringUtil.isNotEmpty(schema) ? schema.getNamespace() : clickHouseHttpSource.getDbName();
     }
 
     @Override

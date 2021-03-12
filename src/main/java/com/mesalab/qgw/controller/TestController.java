@@ -4,6 +4,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ProjectProperties;
 import com.mesalab.common.enums.EnvironmentEnum;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
 import com.mesalab.qgw.service.DiagnosisService;
@@ -38,6 +39,8 @@ public class TestController {
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
+    @Autowired
+    private ClickHouseHttpSource clickHouseHttpSource;
 
     /**
      * 测试
@@ -140,5 +143,9 @@ public class TestController {
         return BaseResultGenerator.success("ok", druidIoHttpSource);
     }
 
+    @GetMapping(value = "clickHouseHttpSource")
+    public BaseResult clickHouseHttpSource(){
+        return BaseResultGenerator.success("ok", clickHouseHttpSource);
+    }
 
 }

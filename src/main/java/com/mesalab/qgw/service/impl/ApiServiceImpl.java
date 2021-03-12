@@ -20,7 +20,6 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.SchemaBase;
-import com.mesalab.common.configuration.ClickHouseProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ReportCacheUtils;
@@ -30,6 +29,7 @@ import com.mesalab.common.utils.SQLSyntaxParserUtil;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.dialect.FederationDialect;
 import com.mesalab.qgw.model.api.ApiParam;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
@@ -60,7 +60,7 @@ import java.util.*;
 public class ApiServiceImpl implements ApiService {
     private static final Log log = LogFactory.get();
     @Autowired
-    private ClickHouseProperties clickHouseProperties;
+    private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
     @Resource(name = "nacosMetadataService")
@@ -635,7 +635,7 @@ public class ApiServiceImpl implements ApiService {
         if (showStatement != null && !"tables".equalsIgnoreCase(showStatement.getName())) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error：不支持Show tables 之外的操作", null);
         }
-        if (clickHouseProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
+        if (clickHouseHttpSource.getDbName().equalsIgnoreCase(param.getSchema())) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
             param.setDialectDBType(DBTypeEnum.CLICKHOUSE.getValue());
         } else if (druidIoHttpSource.getDbname().equalsIgnoreCase(param.getSchema())) {
@@ -674,7 +674,7 @@ public class ApiServiceImpl implements ApiService {
         //查ck
         ApiParam temp = new ApiParam();
         temp.setQuery("show tables");
-        temp.setSchema(clickHouseProperties.getDbname());
+        temp.setSchema(clickHouseHttpSource.getDbName());
         BaseResult ck = new BaseResult();
         try {
             ck = executeShowStatement(temp, null);
