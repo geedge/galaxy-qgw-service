@@ -52,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
@@ -62,7 +63,7 @@ public class ApiServiceImpl implements ApiService {
     private ClickHouseProperties clickHouseProperties;
     @Autowired
     private DruidIoProperties druidIoProperties;
-    @Autowired
+    @Resource(name = "nacosMetadataService")
     private MetadataService metadataServiceTemp;
 
     private static MetadataService metadataService;

@@ -60,7 +60,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("nacosMetadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
