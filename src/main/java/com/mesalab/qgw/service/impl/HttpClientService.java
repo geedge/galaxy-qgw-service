@@ -144,8 +144,7 @@ public class HttpClientService {
     }
 
     /**
-     * Desc: 发起http delete请求
-     *
+     * Desc: 发起http delete请求，返回status code与response body
      * @param url
      * @param socketTimeout
      * @return {@link Map< String, String>}
@@ -195,8 +194,10 @@ public class HttpClientService {
     }
 
     /**
-     * @param url:请求地址
+     *  返回status code与response body
+     *  @param url:请求地址
      * @param socketTimeout: 响应超时时间
+     *
      **/
     public Map<String, String> httpGet(String url, int socketTimeout) {
         Map<String, String> resultMap = Maps.newHashMap();
@@ -241,6 +242,7 @@ public class HttpClientService {
     }
 
     /**
+     * 返回status code与response body
      * @param url:请求地址
      * @param headers:       Headers
      * @param socketTimeOut: 响应超时时间
@@ -292,6 +294,7 @@ public class HttpClientService {
     }
 
     /**
+     * 返回status code与response body
      * @param url:请求地址
      * @param jsonString:请求参数
      * @param socketTimeOut:响应超时时间
@@ -340,6 +343,7 @@ public class HttpClientService {
     }
 
     /**
+     * 返回status code与response body
      * @param url:请求地址
      * @param headers:       Headers
      * @param socketTimeOut: 响应超时时间
