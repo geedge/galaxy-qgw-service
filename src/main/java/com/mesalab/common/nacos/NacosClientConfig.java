@@ -1,4 +1,4 @@
-package com.mesalab.common.ncaos;
+package com.mesalab.common.nacos;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
