@@ -1,31 +1,20 @@
 package com.mesalab.qgw.monitor;
 
-import com.mesalab.common.configuration.HBaseProperties;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.JwtCache;
-import com.mesalab.knowledge.strategy.QueryProvider;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.http.HttpStatus;
 import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 @Component
@@ -57,7 +46,7 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
                 }
             }
             String result = httpClientService.httpPost(arangoConfig.getServer() + "/_db/" + arangoConfig.getDatabase() + "/_api/version",
-                                            StringUtil.EMPTY, new BasicHeader(HttpHeaders.AUTHORIZATION, String.valueOf(jwt)));
+                    StringUtil.EMPTY, new BasicHeader(HttpHeaders.AUTHORIZATION, String.valueOf(jwt)));
             Map map = (Map) JsonMapper.fromJsonString(result, Map.class);
             if (StringUtil.isEmpty(map) || StringUtil.isEmpty(map.get("version"))) {
                 builder.down()
