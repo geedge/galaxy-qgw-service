@@ -1060,7 +1060,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      */
     private FromItem generateDataSetSql(String tableName, String alias) throws JSQLParserException {
         String sql = String.format("SELECT 1 FROM (SELECT * FROM %s  LIMIT %s ) as %s ",
-                tableName, 10000, alias);
+                tableName, 200, alias);
         Statement parse = CCJSqlParserUtil.parse(sql);
         Select select = (Select) parse;
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
