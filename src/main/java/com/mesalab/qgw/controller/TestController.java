@@ -4,10 +4,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ProjectProperties;
 import com.mesalab.common.enums.EnvironmentEnum;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
-import com.mesalab.qgw.model.api.HBaseAPISource;
-import com.mesalab.qgw.model.api.JobAdminHttpSource;
+import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.DiagnosisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +41,8 @@ public class TestController {
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private HBaseAPISource hBaseAPISource;
+    @Autowired
+    private EngineConfigSource engineConfigSource;
 
     /**
      * 测试
@@ -142,7 +141,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "druidIoHttpSource")
-    public BaseResult druidIoHttpSource(){
+    public BaseResult druidIoHttpSource() {
         return BaseResultGenerator.success("ok", druidIoHttpSource);
     }
 
@@ -152,7 +151,7 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "clickHouseHttpSource")
-    public BaseResult clickHouseHttpSource(){
+    public BaseResult clickHouseHttpSource() {
         return BaseResultGenerator.success("ok", clickHouseHttpSource);
     }
 
@@ -162,8 +161,18 @@ public class TestController {
      * @return
      */
     @GetMapping(value = "hBaseAPISource")
-    public BaseResult hBaseAPISource(){
+    public BaseResult hBaseAPISource() {
         return BaseResultGenerator.success("ok", hBaseAPISource);
+    }
+
+    /**
+     * 检查engineConfigSource动态连接配置
+     *
+     * @return
+     */
+    @GetMapping(value = "engineConfigSource")
+    public BaseResult engineConfigSource() {
+        return BaseResultGenerator.success("ok", engineConfigSource);
     }
 
 }
