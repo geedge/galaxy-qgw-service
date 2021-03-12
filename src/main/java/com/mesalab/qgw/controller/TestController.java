@@ -4,6 +4,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ProjectProperties;
 import com.mesalab.common.enums.EnvironmentEnum;
+import com.mesalab.qgw.model.api.JobAdminHttpSource;
 import com.mesalab.qgw.service.DiagnosisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,8 @@ public class TestController {
     private DiagnosisService diagnosisService;
     @Autowired
     private ProjectProperties projectProperties;
+    @Autowired
+    private JobAdminHttpSource jobAdminHttpSource;
 
     /**
      * 测试
@@ -112,6 +115,16 @@ public class TestController {
     public BaseResult runSchema() {
         BaseResult result = diagnosisService.validateSchema();
         return result;
+    }
+
+    /**
+     * 检查job连接信息
+     *
+     * @return
+     */
+    @GetMapping(value = "jobAdminHttpSource")
+    public BaseResult jobAdminHttpSource() {
+        return BaseResultGenerator.success("ok", jobAdminHttpSource);
     }
 
 }
