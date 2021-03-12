@@ -3,6 +3,7 @@ package com.mesalab.qgw.controller;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.knowledge.common.config.ArangoConfig;
+import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ProjectInfo;
 import com.mesalab.common.enums.EnvironmentEnum;
 import com.mesalab.qgw.model.api.*;
@@ -46,6 +47,8 @@ public class TestController {
     private EngineConfigSource engineConfigSource;
     @Autowired
     private ArangoConfig arangoConfig;
+    @Autowired
+    private HttpConfig httpConfig;
 
     /**
      * 测试
@@ -179,13 +182,23 @@ public class TestController {
     }
 
     /**
-     * 检查engine动态连接配置
+     * 检查arango动态连接配置
      *
      * @return
      */
     @GetMapping(value = "arangoConfig")
     public BaseResult arangoConfig() {
         return BaseResultGenerator.success("ok", arangoConfig);
+    }
+
+    /**
+     * 检查httpConfig动态连接配置
+     *
+     * @return
+     */
+    @GetMapping(value = "httpConfig")
+    public BaseResult httpConfig() {
+        return BaseResultGenerator.success("ok", httpConfig);
     }
 
 }
