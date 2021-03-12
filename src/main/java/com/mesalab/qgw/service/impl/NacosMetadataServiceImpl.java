@@ -8,11 +8,11 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ClickHouseProperties;
-import com.mesalab.common.configuration.DruidIoProperties;
-import com.mesalab.common.nacos.NacosClientConfig;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.nacos.NacosClientConfig;
+import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
@@ -40,7 +40,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
     @Autowired
     private ClickHouseProperties clickHouseProperties;
     @Autowired
-    private DruidIoProperties druidIoProperties;
+    private DruidIoHttpSource druidIoHttpSource;
 
     private final String NAMESPACE_AVRO = "nacos-namespace-avro";
 
@@ -95,7 +95,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
                 || "system".equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.CLICKHOUSE.getValue();
         }
-        if (druidIoProperties.getDbname().equalsIgnoreCase(schema.getNamespace())) {
+        if (druidIoHttpSource.getDbname().equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.DRUID.getValue();
         }
         return StringUtil.EMPTY;
@@ -104,7 +104,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
     @Override
     public String getDBNameByTableName(String tableName) {
         Schema schema = getSchemaByName(tableName);
-        return StringUtil.isNotEmpty(schema) ? schema.getNamespace() : clickHouseProperties.getDbname() ;
+        return StringUtil.isNotEmpty(schema) ? schema.getNamespace() : clickHouseProperties.getDbname();
     }
 
     @Override

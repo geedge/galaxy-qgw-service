@@ -5,12 +5,12 @@ import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ClickHouseProperties;
-import com.mesalab.common.configuration.DruidIoProperties;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SchemaCacheUtils;
+import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -32,7 +32,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Autowired
     ClickHouseProperties clickHouseProperties;
     @Autowired
-    DruidIoProperties druidIoProperties;
+    DruidIoHttpSource druidIoHttpSource;
 
     @Override
     public BaseResult getSchemaInfo(String type, String name) {
@@ -189,7 +189,7 @@ public class MetadataServiceImpl implements MetadataService {
                 || "system".equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.CLICKHOUSE.getValue();
         }
-        if (druidIoProperties.getDbname().equalsIgnoreCase(schema.getNamespace())) {
+        if (druidIoHttpSource.getDbname().equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.DRUID.getValue();
         }
         return StringUtil.EMPTY;
@@ -198,7 +198,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public String getDBNameByTableName(String tableName) {
         Schema schema = getSchemaByName(tableName);
-        return StringUtil.isNotEmpty(schema) ? schema.getNamespace() : clickHouseProperties.getDbname() ;
+        return StringUtil.isNotEmpty(schema) ? schema.getNamespace() : clickHouseProperties.getDbname();
     }
 
 

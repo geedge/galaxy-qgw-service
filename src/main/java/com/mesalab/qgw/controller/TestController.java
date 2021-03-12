@@ -4,6 +4,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.configuration.ProjectProperties;
 import com.mesalab.common.enums.EnvironmentEnum;
+import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
 import com.mesalab.qgw.service.DiagnosisService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,8 @@ public class TestController {
     private ProjectProperties projectProperties;
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
+    @Autowired
+    private DruidIoHttpSource druidIoHttpSource;
 
     /**
      * 测试
@@ -118,7 +121,7 @@ public class TestController {
     }
 
     /**
-     * 检查job连接信息
+     * 检查job动态连接配置
      *
      * @return
      */
@@ -126,5 +129,16 @@ public class TestController {
     public BaseResult jobAdminHttpSource() {
         return BaseResultGenerator.success("ok", jobAdminHttpSource);
     }
+
+    /**
+     * 检查druid动态连接配置
+     *
+     * @return
+     */
+    @GetMapping(value = "druidIoHttpSource")
+    public BaseResult druidIoHttpSource(){
+        return BaseResultGenerator.success("ok", druidIoHttpSource);
+    }
+
 
 }

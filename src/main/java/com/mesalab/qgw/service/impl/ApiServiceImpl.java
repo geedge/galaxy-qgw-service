@@ -21,7 +21,6 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.SchemaBase;
 import com.mesalab.common.configuration.ClickHouseProperties;
-import com.mesalab.common.configuration.DruidIoProperties;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ReportCacheUtils;
@@ -31,6 +30,7 @@ import com.mesalab.common.utils.SQLSyntaxParserUtil;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.dialect.FederationDialect;
 import com.mesalab.qgw.model.api.ApiParam;
+import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.model.api.udf.UDFElements;
@@ -62,7 +62,7 @@ public class ApiServiceImpl implements ApiService {
     @Autowired
     private ClickHouseProperties clickHouseProperties;
     @Autowired
-    private DruidIoProperties druidIoProperties;
+    private DruidIoHttpSource druidIoHttpSource;
     @Resource(name = "nacosMetadataService")
     private MetadataService metadataServiceTemp;
 
@@ -102,8 +102,8 @@ public class ApiServiceImpl implements ApiService {
             baseResult = executeShowStatement(param, showStatement);
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
-                            "SQL Syntax Error: Only support statement operations for select, show and describe.", null);
-                }
+                    "SQL Syntax Error: Only support statement operations for select, show and describe.", null);
+        }
         return baseResult;
     }
 
@@ -122,7 +122,7 @@ public class ApiServiceImpl implements ApiService {
                 return baseResult;
             } else {
                 log.warn("Long-Term Results not exist, execute real-time query: resultID-{}, sql-{}",
-                        param.getResultId(), StringUtil.strip(param.getQuery()) );
+                        param.getResultId(), StringUtil.strip(param.getQuery()));
 
             }
 
@@ -169,7 +169,7 @@ public class ApiServiceImpl implements ApiService {
         Dialect dialect;
         try {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
-                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType())+"Dialect");
+                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType()) + "Dialect");
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
             dialect = (Dialect) constructor.newInstance(param);
         } catch (Exception e) {
@@ -179,13 +179,12 @@ public class ApiServiceImpl implements ApiService {
     }
 
 
-
     /**
      * 对请求参数进行验证
-     * @param param
-     * query:查询语句，统一小写
-     * format：输出格式，默认为JSON
-     * option：查询选项，默认为real-time
+     *
+     * @param param query:查询语句，统一小写
+     *              format：输出格式，默认为JSON
+     *              option：查询选项，默认为real-time
      */
     private String validateAndGetTableName(ApiParam param) {
 
@@ -222,12 +221,13 @@ public class ApiServiceImpl implements ApiService {
 
     /**
      * Visitor 模式解析SQL
+     *
      * @param sql
      */
     @Deprecated
     private String getTableNameFromDruid(String sql) {
         String tableName = "";
-       try {
+        try {
 
             List<SQLStatement> statementList = SQLUtils.parseStatements(sql, JdbcConstants.MYSQL);
             SchemaStatVisitor statVisitor = SQLUtils.createSchemaStatVisitor(JdbcConstants.MYSQL);
@@ -236,19 +236,20 @@ public class ApiServiceImpl implements ApiService {
             Map<TableStat.Name, TableStat> tables = statVisitor.getTables();
 
             if (tables.keySet().size() > 0) {
-                TableStat.Name name =  Iterables.getFirst(tables.keySet(), null);
+                TableStat.Name name = Iterables.getFirst(tables.keySet(), null);
                 tableName = name.getName();
             }
 
         } catch (Exception e) {
-                log.error("sqlParser error: ", e);
-            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
+            log.error("sqlParser error: ", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
         }
-        return  tableName;
+        return tableName;
     }
 
     /**
      * 递归解析SQLQuerySource ，拆分为数据库执行SQL与引擎执行的SQL source
+     *
      * @param sqlQuerySource SQL解析对象
      */
     public static void convertQueryRecursive(ApiParam param, SQLQuerySource sqlQuerySource) {
@@ -290,12 +291,9 @@ public class ApiServiceImpl implements ApiService {
     }
 
 
-
-
-
     /**
-     *
      * 解析SQL
+     *
      * @param sql
      * @return
      */
@@ -310,7 +308,7 @@ public class ApiServiceImpl implements ApiService {
                 Select selectStatement = (Select) statement;
                 sqlQuerySource.setSqlBody(String.valueOf(selectStatement.getSelectBody()));
                 TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-                List<String> tableList =  tablesNamesFinder.getTableList(selectStatement);
+                List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
 
                 if (StringUtil.isNotEmpty(tableList)) {
                     String tableName = tableList.get(0);
@@ -319,15 +317,14 @@ public class ApiServiceImpl implements ApiService {
                     sqlQuerySource.setTableName(tableName);
                     sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
                 } else {
-                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Can't find table name." );
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Can't find table name.");
                 }
-
 
 
                 SelectBody body = selectStatement.getSelectBody();
 
 
-                if (body instanceof  PlainSelect)  { //单条查询
+                if (body instanceof PlainSelect) { //单条查询
 
                     PlainSelect select = (PlainSelect) body;
 
@@ -346,14 +343,14 @@ public class ApiServiceImpl implements ApiService {
                     List<SelectItem> selectItemsList = select.getSelectItems();
 
                     if (StringUtil.isNotEmpty(selectItemsList)) {
-                        String selectItemsString =  Joiner.on(",").join(selectItemsList);
+                        String selectItemsString = Joiner.on(",").join(selectItemsList);
                         sqlQuerySource.setSelectItems(selectItemsString);
 
                     }
 
-                    for (SelectItem item: selectItemsList) {
-                        if (item instanceof  SelectExpressionItem) {
-                            SelectExpressionItem expressionItem =  ((SelectExpressionItem)item);
+                    for (SelectItem item : selectItemsList) {
+                        if (item instanceof SelectExpressionItem) {
+                            SelectExpressionItem expressionItem = ((SelectExpressionItem) item);
                             if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
                                 String aliasName = expressionItem.getAlias().getName();
                                 if (aliasName.startsWith("\"") && aliasName.endsWith("\"")) {
@@ -375,11 +372,10 @@ public class ApiServiceImpl implements ApiService {
 
                     List<OrderByElement> orderByList = select.getOrderByElements();
                     if (StringUtil.isNotEmpty(orderByList)) {
-                        String orderByString =  Joiner.on(",").join(orderByList);
+                        String orderByString = Joiner.on(",").join(orderByList);
                         sqlQuerySource.setOrderBy(orderByString);
                         sqlQuerySource.setListOrderElement(orderByList);
                     }
-
 
 
                     FromItem subItem = select.getFromItem();
@@ -398,7 +394,7 @@ public class ApiServiceImpl implements ApiService {
                     if (limit != null) {
 
                         if (StringUtil.isNotEmpty(limit.getOffset())) {
-                            sqlQuerySource.setLimit(StringUtil.setDefaultIfEmpty(limit.getOffset() , 0)+ "," + limit.getRowCount());
+                            sqlQuerySource.setLimit(StringUtil.setDefaultIfEmpty(limit.getOffset(), 0) + "," + limit.getRowCount());
                         } else {
                             sqlQuerySource.setLimit(String.valueOf(limit.getRowCount()));
                         }
@@ -409,7 +405,7 @@ public class ApiServiceImpl implements ApiService {
                     SetOperationList setOperationList = (SetOperationList) body;
                     List<SelectBody> selects = setOperationList.getSelects();
                     //暂时只解析第一个结构，不接受不相同的where
-                    if(StringUtil.isNotEmpty(selects)) {
+                    if (StringUtil.isNotEmpty(selects)) {
                         SQLQuerySource parseSql = parserSQLByAst(selects.get(0).toString());
                         sqlQuerySource.setUdfSet(parseSql.getUdfSet());
                         sqlQuerySource.setWhereExpression(parseSql.getWhereExpression());
@@ -418,21 +414,19 @@ public class ApiServiceImpl implements ApiService {
                     }
                     sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                 } else { //其它暂不支持
-                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
                 }
-
 
 
             } else {
                 log.warn("Not support DML Parser");
-                throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Only support statement operation as select." );
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Only support statement operation as select.");
             }
-
 
 
         } catch (Exception e) {
             log.error("sqlParser error: ", e);
-            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e);
 
         }
 
@@ -475,6 +469,7 @@ public class ApiServiceImpl implements ApiService {
 
     /**
      * 获取自定义函数类
+     *
      * @param fun
      * @param expressions
      * @return
@@ -494,9 +489,9 @@ public class ApiServiceImpl implements ApiService {
     }
 
 
-
     /**
-     *  对SQL语句进行预先解析,为语法树结构
+     * 对SQL语句进行预先解析,为语法树结构
+     *
      * @param sql
      * @return
      */
@@ -508,7 +503,7 @@ public class ApiServiceImpl implements ApiService {
             List<SQLStatement> statementList = SQLUtils.parseStatements(sql, dialectDbType);
             if (statementList.size() > 0) {
                 SQLStatement statement = statementList.get(0);
-                if (statement instanceof  SQLSelectStatement) {
+                if (statement instanceof SQLSelectStatement) {
                     SQLSelectStatement sqlSelectStatement = (SQLSelectStatement) statement;
                     SQLSelectQuery sqlSelectQuery = sqlSelectStatement.getSelect().getQuery();
                     // 非union的查询语句
@@ -516,7 +511,7 @@ public class ApiServiceImpl implements ApiService {
                         SQLSelectQueryBlock sqlSelectQueryBlock = (SQLSelectQueryBlock) sqlSelectQuery;
                         // 获取字段列表
                         List<SQLSelectItem> selectItems = sqlSelectQueryBlock.getSelectList();
-                        sqlQuerySource.setSelectItems( Arrays.toString(selectItems.toArray()));
+                        sqlQuerySource.setSelectItems(Arrays.toString(selectItems.toArray()));
 
                         // 获取表
                         SQLTableSource table = sqlSelectQueryBlock.getFrom();
@@ -525,11 +520,11 @@ public class ApiServiceImpl implements ApiService {
                             sqlQuerySource.setTableName(((SQLExprTableSource) table).getName().getSimpleName());
                             // join多表
                         } else if (table instanceof SQLJoinTableSource) {
-                            SQLTableSource sqlSubTableSource = ((SQLJoinTableSource)table).getLeft();
+                            SQLTableSource sqlSubTableSource = ((SQLJoinTableSource) table).getLeft();
                             sqlQuerySource.setTableName(((SQLExprTableSource) sqlSubTableSource).getName().getSimpleName());
                             // 子查询作为表
                         } else if (table instanceof SQLSubqueryTableSource) {
-                            SQLSelectQuery sqlSubSelectQuery = ((SQLSubqueryTableSource)table).getSelect().getQuery();
+                            SQLSelectQuery sqlSubSelectQuery = ((SQLSubqueryTableSource) table).getSelect().getQuery();
                             sqlQuerySource.setTableName(getMultiSqlTableName(sqlSubSelectQuery));
                         }
                         // 获取where条件
@@ -553,7 +548,7 @@ public class ApiServiceImpl implements ApiService {
 
                         if (limit != null) {
                             if (StringUtil.isNotEmpty(limit.getOffset())) {
-                                sqlQuerySource.setLimit(StringUtil.setDefaultIfEmpty(limit.getOffset() , 0)+ "," + limit.getRowCount());
+                                sqlQuerySource.setLimit(StringUtil.setDefaultIfEmpty(limit.getOffset(), 0) + "," + limit.getRowCount());
                             } else {
                                 sqlQuerySource.setLimit(String.valueOf(limit.getRowCount()));
                             }
@@ -566,15 +561,14 @@ public class ApiServiceImpl implements ApiService {
                         sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
                     }
                 } else {
-                    throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
                 }
-
 
 
             }
         } catch (Exception e) {
             log.error("sqlParser error: ", e);
-            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
 
         }
 
@@ -584,18 +578,18 @@ public class ApiServiceImpl implements ApiService {
 
 
     private String getMultiSqlTableName(SQLSelectQuery sqlSubSelectQuery) {
-        SQLTableSource subTable =  ((SQLSelectQueryBlock) sqlSubSelectQuery).getFrom();
+        SQLTableSource subTable = ((SQLSelectQueryBlock) sqlSubSelectQuery).getFrom();
         if (subTable instanceof SQLExprTableSource) {
             return ((SQLExprTableSource) subTable).getName().getSimpleName();
         } else {
-            throw  new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Multi-level nested subqueries are not supported yet.");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Multi-level nested subqueries are not supported yet.");
         }
     }
 
 
-
     /**
      * 执行describe语句
+     *
      * @param param
      * @param statement
      * @return
@@ -631,6 +625,7 @@ public class ApiServiceImpl implements ApiService {
 
     /**
      * 执行show语句
+     *
      * @param param
      * @param showStatement
      * @return
@@ -643,7 +638,7 @@ public class ApiServiceImpl implements ApiService {
         if (clickHouseProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
             param.setDialectDBType(DBTypeEnum.CLICKHOUSE.getValue());
-        } else if (druidIoProperties.getDbname().equalsIgnoreCase(param.getSchema())) {
+        } else if (druidIoHttpSource.getDbname().equalsIgnoreCase(param.getSchema())) {
             param.setDbType(DBTypeEnum.DRUID.getValue());
             param.setDialectDBType(DBTypeEnum.DRUID.getValue());
             param.setQuery("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE'");
@@ -672,6 +667,7 @@ public class ApiServiceImpl implements ApiService {
 
     /**
      * 获取所有表信息
+     *
      * @return
      */
     private BaseResult getAllTables() {
@@ -682,17 +678,17 @@ public class ApiServiceImpl implements ApiService {
         BaseResult ck = new BaseResult();
         try {
             ck = executeShowStatement(temp, null);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.info("tables: 查询clickhouse异常", e);
         }
 
         //查druid
         BaseResult druid = new BaseResult();
         temp = new ApiParam();
-        temp.setSchema(druidIoProperties.getDbname());
+        temp.setSchema(druidIoHttpSource.getDbname());
         try {
             druid = executeShowStatement(temp, null);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.info("tables: 查询druid   异常", e);
         }
         //合并结果
@@ -700,28 +696,28 @@ public class ApiServiceImpl implements ApiService {
         List symbols = new ArrayList<>();
         String dbName = "";
         date.put("type", "enum");
-        if(ck.getStatus() != null && ck.getStatus() == HttpStatus.SC_OK){
-            Map ckDate = (Map)ck.getData();
+        if (ck.getStatus() != null && ck.getStatus() == HttpStatus.SC_OK) {
+            Map ckDate = (Map) ck.getData();
             dbName += (String) ckDate.get("name");
-            symbols.addAll((List)ckDate.get("symbols"));
+            symbols.addAll((List) ckDate.get("symbols"));
         }
-        if(druid.getStatus() != null && druid.getStatus() == HttpStatus.SC_OK){
-            Map druidDate = (Map)druid.getData();
-            if(!"".equals(dbName)){
+        if (druid.getStatus() != null && druid.getStatus() == HttpStatus.SC_OK) {
+            Map druidDate = (Map) druid.getData();
+            if (!"".equals(dbName)) {
                 dbName += ",";
             }
             dbName += (String) druidDate.get("name");
-            symbols.addAll((List)druidDate.get("symbols"));
+            symbols.addAll((List) druidDate.get("symbols"));
         }
         date.put("name", dbName);
         date.put("symbols", symbols);
-        if(ck.getStatus() == HttpStatus.SC_OK){
+        if (ck.getStatus() == HttpStatus.SC_OK) {
             ck.setData(date);
             return ck;
-        }else if(druid.getStatus() == HttpStatus.SC_OK){
+        } else if (druid.getStatus() == HttpStatus.SC_OK) {
             druid.setData(date);
             return druid;
-        }else {
+        } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "查询所有tables异常", null);
         }
     }
@@ -762,7 +758,7 @@ public class ApiServiceImpl implements ApiService {
         date.put("type", "enum");
         date.put("name", database);
         Iterator iterator = tables.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             list.add(String.valueOf(iterator.next()));
             date.put("symbols", list);
         }
