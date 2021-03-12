@@ -1,4 +1,4 @@
-package com.mesalab.common.configuration;
+package com.mesalab.qgw.model.api;
 
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Data
 @Component
 @NacosConfigurationProperties(prefix = "project", dataId = "galaxy-qgw-service", type = ConfigType.YAML, autoRefreshed = true)
-public class ProjectProperties {
+public class ProjectInfo {
 
     /**
      * 工程名

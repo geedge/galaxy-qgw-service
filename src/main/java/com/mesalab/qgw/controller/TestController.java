@@ -2,7 +2,8 @@ package com.mesalab.qgw.controller;
 
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.configuration.ProjectProperties;
+import com.mesalab.knowledge.common.config.ArangoConfig;
+import com.mesalab.qgw.model.api.ProjectInfo;
 import com.mesalab.common.enums.EnvironmentEnum;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.DiagnosisService;
@@ -32,7 +33,7 @@ public class TestController {
     @Autowired
     private DiagnosisService diagnosisService;
     @Autowired
-    private ProjectProperties projectProperties;
+    private ProjectInfo projectProperties;
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
@@ -43,6 +44,8 @@ public class TestController {
     private HBaseAPISource hBaseAPISource;
     @Autowired
     private EngineConfigSource engineConfigSource;
+    @Autowired
+    private ArangoConfig arangoConfig;
 
     /**
      * 测试
@@ -166,13 +169,23 @@ public class TestController {
     }
 
     /**
-     * 检查engineConfigSource动态连接配置
+     * 检查engine动态连接配置
      *
      * @return
      */
     @GetMapping(value = "engineConfigSource")
     public BaseResult engineConfigSource() {
         return BaseResultGenerator.success("ok", engineConfigSource);
+    }
+
+    /**
+     * 检查engine动态连接配置
+     *
+     * @return
+     */
+    @GetMapping(value = "arangoConfig")
+    public BaseResult arangoConfig() {
+        return BaseResultGenerator.success("ok", arangoConfig);
     }
 
 }

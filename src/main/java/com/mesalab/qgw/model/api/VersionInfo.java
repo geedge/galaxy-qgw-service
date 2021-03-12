@@ -10,13 +10,13 @@ import java.util.List;
 /**
  * @Date: 2021-03-12 11:27
  * @Author : liuyongqiang
- * @ClassName : Version
- * @Description : Version
+ * @ClassName : VersionInfo
+ * @Description : VersionInfo
  */
 @Data
 @Component
 @NacosConfigurationProperties(dataId = "galaxy-qgw-version", type = ConfigType.JSON, autoRefreshed = true)
-public class Version {
+public class VersionInfo {
 
     private String product;
     private String version;
