@@ -47,6 +47,10 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     private final String NAMESPACE_AVRO = "nacos-namespace-avro";
 
+    private final String DATA_ID_META_DATA = "meta_data";
+
+    private final String DEFAULT_GROUP = "DEFAULT_GROUP";
+
     private List<MetadataBean> metadataBeans;
 
     private Map<String, Schema> schemaMap = new HashMap<>();
@@ -132,12 +136,10 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     private void initTables() {
         try {
-            String dataId = "meta_data";
-            String group = "DEFAULT_GROUP";
             ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_AVRO));
-            String content = configService.getConfig(dataId, group, 3000);
+            String content = configService.getConfig(DATA_ID_META_DATA, DEFAULT_GROUP, 3000);
             metadataBeans = JSONUtil.toList(content, MetadataBean.class);
-            configService.addListener(dataId, group, new Listener() {
+            configService.addListener(DATA_ID_META_DATA, DEFAULT_GROUP, new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
