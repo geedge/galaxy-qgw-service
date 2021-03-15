@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -23,7 +24,9 @@ import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.concurrent.Executor;
 
 /**
  * @Date: 2021-03-11 15:48
@@ -43,6 +46,10 @@ public class NacosMetadataServiceImpl implements MetadataService {
     private DruidIoHttpSource druidIoHttpSource;
 
     private final String NAMESPACE_AVRO = "nacos-namespace-avro";
+
+    private List<MetadataBean> metadataBeans;
+
+    private Map<String, Schema> schemaMap = new HashMap<>();
 
 
     @Override
@@ -109,25 +116,67 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     @Override
     public Map<String, Schema> getAllSchema() {
-        Map<String, Schema> result = new HashMap<>();
+        return schemaMap;
+    }
+
+    @PostConstruct
+    public void init() {
+        log.info("======================initTables start======================");
+        initTables();
+        log.info("======================initTables success======================");
+
+        log.info("======================initFields start======================");
+        initFields();
+        log.info("======================initFields success======================");
+    }
+
+    private void initTables() {
         try {
+            String dataId = "meta_data";
+            String group = "DEFAULT_GROUP";
             ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_AVRO));
-            String content = configService.getConfig("meta_data", "DEFAULT_GROUP", 3000);
-            List<MetadataBean> metadataBeans = JSONUtil.toList(content, MetadataBean.class);
-            for (MetadataBean metadataBean : metadataBeans) {
-                List<String> tables = metadataBean.getTables();
-                for (String table : tables) {
-                    String schemaStr = configService.getConfig(table, metadataBean.getGroup(), 3000);
-                    if (StrUtil.isNotBlank(schemaStr)) {
-                        Schema schema = new Schema.Parser().parse(schemaStr);
-                        result.put(schema.getName(), schema);
-                    }
+            String content = configService.getConfig(dataId, group, 3000);
+            metadataBeans = JSONUtil.toList(content, MetadataBean.class);
+            configService.addListener(dataId, group, new Listener() {
+                @Override
+                public Executor getExecutor() {
+                    return null;
                 }
-            }
+
+                @Override
+                public void receiveConfigInfo(String configInfo) {
+                    metadataBeans = JSONUtil.toList(configInfo, MetadataBean.class);
+                }
+            });
         } catch (NacosException e) {
             log.info("NacosException:{}", e);
         }
-        return result;
+    }
+
+    private void initFields() {
+        for (MetadataBean metadataBean : metadataBeans) {
+            List<String> tables = metadataBean.getTables();
+            for (String table : tables) {
+                try {
+                    ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_AVRO));
+                    String content = configService.getConfig(table, metadataBean.getGroup(), 3000);
+                    addToSchemaMap(content);
+                    configService.addListener(table, metadataBean.getGroup(), new Listener() {
+                        @Override
+                        public Executor getExecutor() {
+                            return null;
+                        }
+
+                        @Override
+                        public void receiveConfigInfo(String configInfo) {
+                            addToSchemaMap(configInfo);
+                        }
+                    });
+                } catch (NacosException e) {
+                    log.info("NacosException:{}", e);
+                }
+            }
+        }
     }
 
     private BaseResult loadFields(String name) {
@@ -169,31 +218,23 @@ public class NacosMetadataServiceImpl implements MetadataService {
      **/
     private BaseResult loadTables(String name) {
         Map<String, Object> date = new LinkedHashMap<>();
-        try {
-            ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_AVRO));
-            String content = configService.getConfig("meta_data", "DEFAULT_GROUP", 3000);
-            List<String> tables = new ArrayList<>();
-            List<MetadataBean> metadataBeans = JSONUtil.toList(content, MetadataBean.class);
-            boolean existName = false;
-            for (MetadataBean metadataBean : metadataBeans) {
-                String namespace = metadataBean.getNamespace();
-                if (namespace.equalsIgnoreCase(name)) {
-                    existName = true;
-                    tables.addAll(metadataBean.getTables());
-                }
+        List<String> tables = new ArrayList<>();
+        boolean existName = false;
+        for (MetadataBean metadataBean : metadataBeans) {
+            String namespace = metadataBean.getNamespace();
+            if (namespace.equalsIgnoreCase(name)) {
+                existName = true;
+                tables.addAll(metadataBean.getTables());
             }
-            if (existName) {
-                date.put("type", "enum");
-                date.put("name", name);
-                date.put("symbols", tables);
-            } else {
-                return BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        "Not found, check url please");
-            }
-
-        } catch (NacosException e) {
-            log.info("NacosException:{}", e);
+        }
+        if (existName) {
+            date.put("type", "enum");
+            date.put("name", name);
+            date.put("symbols", tables);
+        } else {
+            return BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,
+                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Not found, check url please");
         }
         return BaseResultGenerator.success("ok", date);
     }
@@ -201,6 +242,13 @@ public class NacosMetadataServiceImpl implements MetadataService {
     private Schema getSchemaByName(String tableName) {
         Map<String, Schema> schemas = getAllSchema();
         return schemas.get(tableName);
+    }
+
+    private void addToSchemaMap(String content) {
+        if (StrUtil.isNotBlank(content)) {
+            Schema schema = new Schema.Parser().parse(content);
+            schemaMap.put(schema.getName(), schema);
+        }
     }
 
 }
