@@ -125,13 +125,10 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     @PostConstruct
     public void init() {
-        log.info("======================initTables start======================");
         initTables();
-        log.info("======================initTables success======================");
-
-        log.info("======================initFields start======================");
+        log.info("Initializing Schema Tables Complete");
         initFields();
-        log.info("======================initFields success======================");
+        log.info("Initializing Schema Fields Complete");
     }
 
     private void initTables() {
