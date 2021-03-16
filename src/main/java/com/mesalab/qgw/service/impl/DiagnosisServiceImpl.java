@@ -25,6 +25,7 @@ import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import com.mesalab.qgw.benchmark.engine.EngineWriter;
 import com.mesalab.qgw.service.DiagnosisService;
+import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.Schema;
@@ -33,10 +34,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -68,6 +71,9 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private EngineWriter engineWriter;
     @Autowired
     private DruidWriter druidWriter;
+
+    @Resource(name = "nacosMetadataService")
+    private MetadataService metadataService;
 
     private static final String localHostAddress = NetUtil.getLocalhostStr();
 
@@ -276,7 +282,14 @@ public class DiagnosisServiceImpl implements DiagnosisService {
      * @return
      */
     private Map<String, Map<String, String>> checkMetadataByDatasource(String path) {
-        Map<String, Schema> schemas = getSchemasByDatasource(path);
+        Map<String, Schema> schemas = new HashMap<>();
+        if (path.equals(CK_SCHEMA_DIR)) {
+            schemas = metadataService.getClickHouseSchema();
+        }
+        if (path.equals(DRUID_SCHEMA_DIR)) {
+            schemas = metadataService.getDruidSchema();
+        }
+
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : schemas.keySet()) {
@@ -348,7 +361,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
      * @return
      */
     private Map<String, Map<String, String>> parseSchemaByDatasource(String path) {
-        Map<String, Schema> schemas = getSchemasByDatasource(path);
+        Map<String, Schema> schemas = new HashMap<>();
+        if (path.equals(CK_SCHEMA_DIR)) {
+            schemas = metadataService.getClickHouseSchema();
+        }
+        if (path.equals(DRUID_SCHEMA_DIR)) {
+            schemas = metadataService.getDruidSchema();
+        }
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : schemas.keySet()) {

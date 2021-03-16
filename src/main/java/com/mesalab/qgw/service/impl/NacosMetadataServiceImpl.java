@@ -51,9 +51,17 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     private final String DEFAULT_GROUP = "DEFAULT_GROUP";
 
-    private List<MetadataBean> metadataBeans;
+    private final String CLICKHOUSE_GROUP = "CLICKHOUSE_GROUP";
 
-    private Map<String, Schema> schemaMap = new HashMap<>();
+    private final String DRUID_GROUP = "DRUID_GROUP";
+
+    public List<MetadataBean> metadataBeans;
+
+    public Map<String, Schema> allSchemaMap = new HashMap<>();
+
+    public Map<String, Schema> clickHouseSchemaMap = new HashMap<>();
+
+    public Map<String, Schema> druidSchemaMap = new HashMap<>();
 
 
     @Override
@@ -120,7 +128,17 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     @Override
     public Map<String, Schema> getAllSchema() {
-        return schemaMap;
+        return allSchemaMap;
+    }
+
+    @Override
+    public Map<String, Schema> getClickHouseSchema() {
+        return clickHouseSchemaMap;
+    }
+
+    @Override
+    public Map<String, Schema> getDruidSchema() {
+        return druidSchemaMap;
     }
 
     @PostConstruct
@@ -160,7 +178,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
                 try {
                     ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_AVRO));
                     String content = configService.getConfig(table, metadataBean.getGroup(), 3000);
-                    addToSchemaMap(content);
+                    addSchema(content, metadataBean);
                     configService.addListener(table, metadataBean.getGroup(), new Listener() {
                         @Override
                         public Executor getExecutor() {
@@ -170,7 +188,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
                         @Override
                         public void receiveConfigInfo(String configInfo) {
                             log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
-                            addToSchemaMap(configInfo);
+                            updateSchema(configInfo);
                         }
                     });
                 } catch (NacosException e) {
@@ -245,10 +263,29 @@ public class NacosMetadataServiceImpl implements MetadataService {
         return schemas.get(tableName);
     }
 
-    private void addToSchemaMap(String content) {
-        if (StrUtil.isNotBlank(content)) {
-            Schema schema = new Schema.Parser().parse(content);
-            schemaMap.put(schema.getName(), schema);
+    private void addSchema(String content, MetadataBean metadataBean) {
+        if (StrUtil.isBlank(content)) return;
+        Schema schema = new Schema.Parser().parse(content);
+        allSchemaMap.put(schema.getName(), schema);
+
+        if (CLICKHOUSE_GROUP.equals(metadataBean.getGroup())) {
+            clickHouseSchemaMap.put(schema.getName(), schema);
+        } else if (DRUID_GROUP.equals(metadataBean.getGroup())) {
+            druidSchemaMap.put(schema.getName(), schema);
+        }
+    }
+
+    private void updateSchema(String configInfo) {
+        if (StrUtil.isBlank(configInfo)) return;
+        Schema schema = new Schema.Parser().parse(configInfo);
+        allSchemaMap.put(schema.getName(), schema);
+        Schema ckSchema = clickHouseSchemaMap.get(schema.getName());
+        if (Objects.nonNull(ckSchema)) {
+            clickHouseSchemaMap.put(schema.getName(), schema);
+        }
+        Schema druidSchema = druidSchemaMap.get(schema.getName());
+        if (Objects.nonNull(druidSchema)) {
+            druidSchemaMap.put(schema.getName(), schema);
         }
     }
 
