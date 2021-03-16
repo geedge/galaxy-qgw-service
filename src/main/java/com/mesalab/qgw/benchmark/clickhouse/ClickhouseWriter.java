@@ -43,7 +43,6 @@ public class ClickhouseWriter extends Writer {
         log.info("Initializing ClickHouse Queries Template Complete");
     }
 
-    @PostConstruct
     public void initFilterJson() {
         try {
             ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_GALAXY));

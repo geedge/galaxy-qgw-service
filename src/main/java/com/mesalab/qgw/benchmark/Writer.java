@@ -1,5 +1,6 @@
 package com.mesalab.qgw.benchmark;
 
+import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
@@ -51,54 +52,58 @@ public abstract class Writer {
     }
 
     protected String generatePocSQL(Map<String, List<String>> environment, FileReader templateReader, FileWriter writer) {
-        String pocSQL;
-        if (writer.getFile().exists()) {
-            return writer.getFile().getAbsolutePath();
-        }
-
-        List<String> rawLines = templateReader.readLines();
-        List<String> resultLines = Lists.newArrayList();
-        rawLines.stream().forEach(line -> {
-
-            if (line.contains(TITLE_PREFIX)) {
-                if (IS_TITLE) {
-                    resultLines.add(line);
-                }
-            } else {
-
-                if (line.contains(LABEL_COMMON_FILTER)) {
-                    for (String filter : environment.get(LABEL_COMMON_FILTER)) {
-                        String replaceLine = line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
-                                .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0))
-                                .replaceAll(LABEL_COMMON_FILTER, filter);
-
-                        resultLines.add(replaceLine);
-
-                    }
-
-                } else if (line.contains(LABEL_INDEX_FILTER)) {
-                    for (String filter : environment.get(LABEL_INDEX_FILTER)) {
-                        String replaceLine = line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
-                                .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0))
-                                .replaceAll(LABEL_INDEX_FILTER, filter);
-
-                        resultLines.add(replaceLine);
-
-                    }
-
-                } else {
-                    resultLines.add(
-                            line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
-                                    .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0)));
-                }
-
-
+        String pocSQL = "";
+        try {
+            if (writer.getFile().exists()) {
+                return writer.getFile().getAbsolutePath();
             }
 
-        });
-        writer.appendLines(resultLines);
-        resultLines.clear();
-        pocSQL = writer.getFile().getAbsolutePath();
+            List<String> rawLines = templateReader.readLines();
+            List<String> resultLines = Lists.newArrayList();
+            rawLines.stream().forEach(line -> {
+
+                if (line.contains(TITLE_PREFIX)) {
+                    if (IS_TITLE) {
+                        resultLines.add(line);
+                    }
+                } else {
+
+                    if (line.contains(LABEL_COMMON_FILTER)) {
+                        for (String filter : environment.get(LABEL_COMMON_FILTER)) {
+                            String replaceLine = line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
+                                    .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0))
+                                    .replaceAll(LABEL_COMMON_FILTER, filter);
+
+                            resultLines.add(replaceLine);
+
+                        }
+
+                    } else if (line.contains(LABEL_INDEX_FILTER)) {
+                        for (String filter : environment.get(LABEL_INDEX_FILTER)) {
+                            String replaceLine = line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
+                                    .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0))
+                                    .replaceAll(LABEL_INDEX_FILTER, filter);
+
+                            resultLines.add(replaceLine);
+
+                        }
+
+                    } else {
+                        resultLines.add(
+                                line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
+                                        .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0)));
+                    }
+
+
+                }
+
+            });
+            writer.appendLines(resultLines);
+            resultLines.clear();
+            pocSQL = writer.getFile().getAbsolutePath();
+        } catch (IORuntimeException e) {
+            log.error("IORuntimeException:{}", e);
+        }
         return pocSQL;
     }
 
