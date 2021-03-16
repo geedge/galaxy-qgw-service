@@ -48,9 +48,9 @@ import java.util.stream.Stream;
 public class DiagnosisServiceImpl implements DiagnosisService {
     private static final Log log = LogFactory.get();
     private static final String CK_SCHEMA_DIR = File.separator + "config"
-            + File.separator + "avro" +  File.separator + "clickhouse";
+            + File.separator + "avro" + File.separator + "clickhouse";
     private static final String DRUID_SCHEMA_DIR = File.separator + "config"
-            + File.separator + "avro" +  File.separator + "druid";
+            + File.separator + "avro" + File.separator + "druid";
     private static final String AVRO_SUFFIX = ".avsc";
     private static final String METADATA_PREFIX = "Metadata";
     private static final String SCHEMA_PREFIX = "Schema";
@@ -62,13 +62,18 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private HttpConfig httpConfig;
     @Value("${server.port}")
     private int serverPort;
-    private ClickhouseWriter clickhouseWriter = new ClickhouseWriter();
-    private EngineWriter engineWriter = new EngineWriter();
-    private DruidWriter druidWriter = new DruidWriter();
+    @Autowired
+    private ClickhouseWriter clickhouseWriter;
+    @Autowired
+    private EngineWriter engineWriter;
+    @Autowired
+    private DruidWriter druidWriter;
+
     private static final String localHostAddress = NetUtil.getLocalhostStr();
 
     /**
      * 验证Schema格式是否正确
+     *
      * @return
      */
     @Override
@@ -88,7 +93,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (Exception e) {
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                    ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "Avro Schema Validation Fail:" , e);
+                    ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "Avro Schema Validation Fail:", e);
 
         }
         SchemaCacheUtils.removeAll();
@@ -97,6 +102,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
     /**
      * 验证schema与数据库表结构是否一致
+     *
      * @return
      */
     @Override
@@ -115,11 +121,10 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (Exception e) {
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Metadata Validation Fail:" , e);
+                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Metadata Validation Fail:", e);
         }
         return result;
     }
-
 
 
     @Override
@@ -154,7 +159,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (Exception e) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
-                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:" , e);
+                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:", e);
         }
         return result;
     }
@@ -167,21 +172,19 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, String> dialectResult = Maps.newHashMap();
 
         if (dialect.equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
-            testFile  = Optional.of(new File(clickhouseWriter.buildPocSQL()));
+            testFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
         } else if (dialect.equalsIgnoreCase(DBTypeEnum.ENGINE.getValue())) {
-            testFile  = Optional.of(new File(engineWriter.buildPocSQL()));
+            testFile = Optional.of(new File(engineWriter.buildPocSQL()));
         } else if (dialect.equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
-            testFile  = Optional.of(new File(druidWriter.buildPocSQL()));
+            testFile = Optional.of(new File(druidWriter.buildPocSQL()));
         } else {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Illegal value about dialect.");
         }
 
 
-
         try {
             Stopwatch watch = Stopwatch.createStarted();
-
 
 
             if (testFile.isPresent()) {
@@ -197,7 +200,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (Exception e) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
-                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Get Poc SQL Fail:" , e);
+                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Get Poc SQL Fail:", e);
         }
         return result;
     }
@@ -205,7 +208,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
     /**
      * 执行POC SQL测试集，并返回执行结果
-     * @param file sql 查询语句列表
+     *
+     * @param file    sql 查询语句列表
      * @param isSaved 是否保存查询结果
      * @return
      */
@@ -218,50 +222,48 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
         if (file.isPresent() && file.get().isFile()) {
             if (isSaved) {
-                writer = new FileWriter( file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat" );
+                writer = new FileWriter(file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat");
             }
             for (String line : rawLines) {
-                index ++;
+                index++;
                 if (Strings.isNullOrEmpty(line)) {
                     continue;
                 }
                 Map<String, String> queryResult = executeQuery(line, Optional.of(QueryFormatEnum.CSV));
                 int statusCode = Integer.valueOf(queryResult.get("status").trim());
                 if (statusCode != HttpStatus.SC_OK) {
-                    throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Query" + index + " : " + JsonPath.read(queryResult.get("result"), "$.message" ), null);
+                    throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Query" + index + " : " + JsonPath.read(queryResult.get("result"), "$.message"), null);
                 }
                 if (writer != null) {
-                    writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed" ) + "\n");
-                    writer.append(JsonPath.read(queryResult.get("result"), "$.meta" ) + "\n");
-                    writer.append(JsonPath.read(queryResult.get("result"), "$.data" ) + "\n");
+                    writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "\n");
+                    writer.append(JsonPath.read(queryResult.get("result"), "$.meta") + "\n");
+                    writer.append(JsonPath.read(queryResult.get("result"), "$.data") + "\n");
                 }
-                infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed" ) + "");
+                infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
             }
 
             resultMap.put(file.get().getName(), infoMap);
 
         } else {
-            log.error("File is not exist or is directory." );
+            log.error("File is not exist or is directory.");
         }
-
-
 
 
         return resultMap;
     }
 
 
-    private  Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {
+    private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {
         Map<String, String> infoMap = Maps.newLinkedHashMap();
         List<String> rawLines = new FileReader(file.get()).readLines();
         if (StringUtil.isEmpty(queryNo)) {
             int index = 0;
             for (String line : rawLines) {
-                index ++ ;
+                index++;
                 infoMap.put("Query" + index, line);
             }
         } else {
-            infoMap.put("Query" + queryNo, rawLines.get(queryNo-1));
+            infoMap.put("Query" + queryNo, rawLines.get(queryNo - 1));
         }
         return infoMap;
     }
@@ -269,29 +271,30 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
     /**
      * 对指定目录下的schema 与数据库的字段进行对比检查
+     *
      * @param path schema 列表
      * @return
      */
     private Map<String, Map<String, String>> checkMetadataByDatasource(String path) {
-        Map<String, Schema>  schemas = getSchemasByDatasource(path);
+        Map<String, Schema> schemas = getSchemasByDatasource(path);
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : schemas.keySet()) {
 
             Map<String, String> result = executeQuery("describe " + tableName, Optional.empty());
-            List<Map<String,Object>> dbFields = JsonPath.read(result.get("result"),"$.data.fields.*");
+            List<Map<String, Object>> dbFields = JsonPath.read(result.get("result"), "$.data.fields.*");
 
             Map<String, Object> dbFieldMap = Maps.newHashMap();
-            dbFields.stream().forEach( objectMap -> {
+            dbFields.stream().forEach(objectMap -> {
                 dbFieldMap.put(objectMap.get("name").toString(), objectMap.get("type"));
             });
-            List<Map<String,Object>> schemaFields = JsonPath.read(schemas.get(tableName).toString(), "$.fields.*");
+            List<Map<String, Object>> schemaFields = JsonPath.read(schemas.get(tableName).toString(), "$.fields.*");
             Map<String, Object> schemaFieldMap = Maps.newHashMap();
-            schemaFields.stream().forEach( objectMap -> {
+            schemaFields.stream().forEach(objectMap -> {
                 schemaFieldMap.put(objectMap.get("name").toString(), objectMap.get("type"));
             });
 
-            MapDifference<String, Object> difference =  Maps.difference(schemaFieldMap, dbFieldMap);
+            MapDifference<String, Object> difference = Maps.difference(schemaFieldMap, dbFieldMap);
 
             Map<String, Object> entriesOnlyOnLeft = difference.entriesOnlyOnLeft();
 
@@ -299,7 +302,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                 log.error("键只存在于左边Map的映射项:" + entriesOnlyOnLeft);
                 throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(),
-                        " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft , null);
+                        " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft, null);
 
             }
             Map<String, Object> entriesOnlyOnRight = difference.entriesOnlyOnRight();
@@ -313,19 +316,19 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
         resultMap.put(METADATA_PREFIX + path, infoMap);
 
-        return  resultMap;
+        return resultMap;
     }
 
 
     private Map<String, String> executeQuery(String sql, Optional<QueryFormatEnum> formatEnum) {
         Map<String, String> resultMap = Maps.newHashMap();
-        try{
+        try {
 
             if (serverPort == 0) {
 
                 serverPort = DEFAULT_SERVER_PORT;
             }
-            QueryFormatEnum  format = formatEnum.orElse(QueryFormatEnum.JSON);
+            QueryFormatEnum format = formatEnum.orElse(QueryFormatEnum.JSON);
             sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
             String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");
             int socketTimeOut = httpConfig.getServerResponseTimeOut();
@@ -338,9 +341,9 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     }
 
 
-
     /**
      * 对指定的数据源下的schema进行静态检查
+     *
      * @param path
      * @return
      */
@@ -350,7 +353,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : schemas.keySet()) {
             Map schemaMap = (Map) JsonMapper.fromJsonString(schemas.get(tableName).toString(), Map.class);
-            List<Map<String,Object>> fields = (List<Map<String,Object>>) schemaMap.get("fields");
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
             infoMap.put(tableName, fields.size() + " Fields");
         }
         resultMap.put(SCHEMA_PREFIX + path, infoMap);
@@ -361,6 +364,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
     /**
      * 获取当前路径下的schema对象列表
+     *
      * @param path avro 路径
      * @return
      */
@@ -371,21 +375,21 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             if (FileUtil.isNotEmpty(schemaDir) && FileUtil.isDirectory(schemaDir)) {
                 if (StringUtil.isEmpty(schemaDir.listFiles())) {
                     throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                            ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "The Directory is null: " + path) ;
+                            ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "The Directory is null: " + path);
                 }
                 for (File file : schemaDir.listFiles()) {
-                   try {
-                       if (StringUtil.lowerCase(file.getName()).endsWith(AVRO_SUFFIX)) {
-                           Schema schema = new Schema.Parser().parse(file);
-                           schemas.put(schema.getName(), schema);
-                       } else {
-                           log.warn("UnKnow format file {} ", file.getName());
-                       }
-                   } catch (Exception e) {
-                       log.error("Schema Parsing Error {}, Message is {}", file.getName(), e);
-                       throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                               ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), file.getName() + " Parse Error: " + e.getMessage() , e);
-                   }
+                    try {
+                        if (StringUtil.lowerCase(file.getName()).endsWith(AVRO_SUFFIX)) {
+                            Schema schema = new Schema.Parser().parse(file);
+                            schemas.put(schema.getName(), schema);
+                        } else {
+                            log.warn("UnKnow format file {} ", file.getName());
+                        }
+                    } catch (Exception e) {
+                        log.error("Schema Parsing Error {}, Message is {}", file.getName(), e);
+                        throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                                ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), file.getName() + " Parse Error: " + e.getMessage(), e);
+                    }
                 }
             }
         } catch (IOException e) {
@@ -393,9 +397,6 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         }
         return schemas;
     }
-
-
-
 
 
 }

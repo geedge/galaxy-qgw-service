@@ -144,6 +144,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
                 @Override
                 public void receiveConfigInfo(String configInfo) {
+                    log.info("ReceiveConfigInfo Schema Tables {}", configInfo);
                     metadataBeans = JSONUtil.toList(configInfo, MetadataBean.class);
                 }
             });
@@ -168,6 +169,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
                         @Override
                         public void receiveConfigInfo(String configInfo) {
+                            log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
                             addToSchemaMap(configInfo);
                         }
                     });
