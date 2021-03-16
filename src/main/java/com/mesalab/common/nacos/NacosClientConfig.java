@@ -1,5 +1,6 @@
 package com.mesalab.common.nacos;
 
+import com.alibaba.nacos.api.PropertyKeyConst;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,10 +26,10 @@ public class NacosClientConfig {
 
     public Properties getProperties(String namespace) {
         Properties properties = new Properties();
-        properties.put("serverAddr", serverAddr);
-        properties.put("username", username);
-        properties.put("password", password);
-        properties.put("namespace", namespace);
+        properties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
+        properties.put(PropertyKeyConst.USERNAME, username);
+        properties.put(PropertyKeyConst.PASSWORD, password);
+        properties.put(PropertyKeyConst.NAMESPACE, namespace);
         return properties;
     }
 }
