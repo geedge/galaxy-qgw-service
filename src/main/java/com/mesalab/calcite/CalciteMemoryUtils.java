@@ -183,7 +183,7 @@ public class CalciteMemoryUtils {
         return dummyTable;
     }
 
-    private static final String intUnits = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint";
+    private static final String intUnits = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint,int,long";
     private static final String doubleUnits = "Float32,Float64,float,double";
 
 }
