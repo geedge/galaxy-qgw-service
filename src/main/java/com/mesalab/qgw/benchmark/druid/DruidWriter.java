@@ -8,7 +8,8 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
-import com.mesalab.common.nacos.NacosClientConfig;
+import com.mesalab.common.nacos.NacosConfig;
+import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.benchmark.Writer;
 import com.zdjizhi.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +27,11 @@ public class DruidWriter extends Writer {
 
     private static final Log log = LogFactory.get();
 
-    private static final String DRUID_FILTER_DATA_ID = "galaxy-qgw-druid-filter";
 
-    private static final String DRUID_QUERIES_TEMPLATE_DATA_ID = "galaxy-qgw-druid-queries-template";
-
-    private String druidFilterJsonStr;
+    private String druidFilterJson;
 
     @Autowired
-    private NacosClientConfig nacosClientConfig;
+    private NacosConfig nacosConfig;
 
     @PostConstruct
     public void init() {
@@ -45,9 +43,9 @@ public class DruidWriter extends Writer {
 
     public void initFilterJson() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_GALAXY));
-            druidFilterJsonStr = configService.getConfig(DRUID_FILTER_DATA_ID, DEFAULT_GROUP, 3000);
-            configService.addListener(DRUID_FILTER_DATA_ID, DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
+            druidFilterJson = configService.getConfig(NacosConst.DRUID_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+            configService.addListener(NacosConst.DRUID_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
@@ -56,7 +54,7 @@ public class DruidWriter extends Writer {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo Druid Filter {}", configInfo);
-                    druidFilterJsonStr = configInfo;
+                    druidFilterJson = configInfo;
                 }
             });
         } catch (NacosException e) {
@@ -66,9 +64,9 @@ public class DruidWriter extends Writer {
 
     private void initQueriesTemplate() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_GALAXY));
-            configService.getConfig(DRUID_QUERIES_TEMPLATE_DATA_ID, DEFAULT_GROUP, 3000);
-            configService.addListener(DRUID_QUERIES_TEMPLATE_DATA_ID, DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
+            configService.getConfig(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+            configService.addListener(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
@@ -88,9 +86,9 @@ public class DruidWriter extends Writer {
     public String buildPocSQL() {
         String pocSql = "";
         try {
-            Map<String, List<String>> environment = getFilterOptions(druidFilterJsonStr);
+            Map<String, List<String>> environment = getFilterOptions(druidFilterJson);
 
-            FileReader templateReader = new FileReader(buildSnapshotFilePath(DRUID_QUERIES_TEMPLATE_DATA_ID));
+            FileReader templateReader = new FileReader(buildSnapshotFilePath(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID));
 
             FileWriter druidWriter = new FileWriter(new File("").getCanonicalPath()
                     + File.separator + "benchmark" + File.separator + "druid_queries" + "_"

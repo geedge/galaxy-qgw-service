@@ -11,7 +11,8 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.nacos.NacosClientConfig;
+import com.mesalab.common.nacos.NacosConfig;
+import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
@@ -39,21 +40,11 @@ import java.util.concurrent.Executor;
 public class NacosMetadataServiceImpl implements MetadataService {
 
     @Autowired
-    private NacosClientConfig nacosClientConfig;
+    private NacosConfig nacosConfig;
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
-
-    private final String NAMESPACE_AVRO = "nacos-namespace-avro";
-
-    private final String DATA_ID_META_DATA = "meta_data";
-
-    private final String DEFAULT_GROUP = "DEFAULT_GROUP";
-
-    private final String CLICKHOUSE_GROUP = "CLICKHOUSE_GROUP";
-
-    private final String DRUID_GROUP = "DRUID_GROUP";
 
     public List<MetadataBean> metadataBeans;
 
@@ -151,10 +142,10 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     private void initTables() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_AVRO));
-            String content = configService.getConfig(DATA_ID_META_DATA, DEFAULT_GROUP, 3000);
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_AVRO));
+            String content = configService.getConfig(NacosConst.META_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
             metadataBeans = JSONUtil.toList(content, MetadataBean.class);
-            configService.addListener(DATA_ID_META_DATA, DEFAULT_GROUP, new Listener() {
+            configService.addListener(NacosConst.META_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
@@ -176,7 +167,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
             List<String> tables = metadataBean.getTables();
             for (String table : tables) {
                 try {
-                    ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_AVRO));
+                    ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_AVRO));
                     String content = configService.getConfig(table, metadataBean.getGroup(), 3000);
                     addSchema(content, metadataBean);
                     configService.addListener(table, metadataBean.getGroup(), new Listener() {
@@ -268,9 +259,9 @@ public class NacosMetadataServiceImpl implements MetadataService {
         Schema schema = new Schema.Parser().parse(content);
         allSchemaMap.put(schema.getName(), schema);
 
-        if (CLICKHOUSE_GROUP.equals(metadataBean.getGroup())) {
+        if (NacosConst.CLICKHOUSE_GROUP.equals(metadataBean.getGroup())) {
             clickHouseSchemaMap.put(schema.getName(), schema);
-        } else if (DRUID_GROUP.equals(metadataBean.getGroup())) {
+        } else if (NacosConst.DRUID_GROUP.equals(metadataBean.getGroup())) {
             druidSchemaMap.put(schema.getName(), schema);
         }
     }

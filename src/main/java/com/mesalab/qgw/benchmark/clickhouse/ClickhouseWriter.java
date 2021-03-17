@@ -8,7 +8,8 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
-import com.mesalab.common.nacos.NacosClientConfig;
+import com.mesalab.common.nacos.NacosConfig;
+import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.benchmark.Writer;
 import com.zdjizhi.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +27,10 @@ public class ClickhouseWriter extends Writer {
 
     private static final Log log = LogFactory.get();
 
-    private static final String CK_FILTER_DATA_ID = "galaxy-qgw-ck-filter";
-
-    private static final String CK_QUERIES_TEMPLATE_DATA_ID = "galaxy-qgw-ck-queries-template";
-
-    private String ckFilterJsonStr;
+    private String ckFilterJson;
 
     @Autowired
-    private NacosClientConfig nacosClientConfig;
+    private NacosConfig nacosConfig;
 
     @PostConstruct
     public void init() {
@@ -45,9 +42,9 @@ public class ClickhouseWriter extends Writer {
 
     public void initFilterJson() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_GALAXY));
-            ckFilterJsonStr = configService.getConfig(CK_FILTER_DATA_ID, DEFAULT_GROUP, 3000);
-            configService.addListener(CK_FILTER_DATA_ID, DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
+            ckFilterJson = configService.getConfig(NacosConst.CK_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+            configService.addListener(NacosConst.CK_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
@@ -56,7 +53,7 @@ public class ClickhouseWriter extends Writer {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo ClickHouse Filter {}", configInfo);
-                    ckFilterJsonStr = configInfo;
+                    ckFilterJson = configInfo;
                 }
             });
         } catch (NacosException e) {
@@ -66,9 +63,9 @@ public class ClickhouseWriter extends Writer {
 
     private void initQueriesTemplate() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosClientConfig.getProperties(NAMESPACE_GALAXY));
-            configService.getConfig(CK_QUERIES_TEMPLATE_DATA_ID, DEFAULT_GROUP, 3000);
-            configService.addListener(CK_QUERIES_TEMPLATE_DATA_ID, DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
+            configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+            configService.addListener(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
@@ -87,9 +84,9 @@ public class ClickhouseWriter extends Writer {
     public String buildPocSQL() {
         String pocSql = "";
         try {
-            Map<String, List<String>> environment = getFilterOptions(ckFilterJsonStr);
+            Map<String, List<String>> environment = getFilterOptions(ckFilterJson);
 
-            FileReader templateReader = new FileReader(buildSnapshotFilePath(CK_QUERIES_TEMPLATE_DATA_ID));
+            FileReader templateReader = new FileReader(buildSnapshotFilePath(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID));
 
             FileWriter writer = new FileWriter(new File("").getCanonicalPath()
                     + File.separator + "benchmark" + File.separator + "ck_queries" + "_"

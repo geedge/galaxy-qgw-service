@@ -9,6 +9,7 @@ import com.alibaba.nacos.client.config.impl.LocalConfigInfoProcessor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.mesalab.common.nacos.NacosConst;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -26,9 +27,6 @@ public abstract class Writer {
     public static final String LABEL_INDEX_FILTER = "@index_filter";
     public static final String LABEL_TIME_START = "@start";
     public static final String LABEL_TIME_END = "@end";
-    public static final String NAMESPACE_GALAXY = "nacos-namespace-galaxy";
-    public static final String DEFAULT_GROUP = "DEFAULT_GROUP";
-    public static final String SNAPSHOT_TENANT = "snapshot-tenant";
 
     public Map<String, List<String>> getFilterOptions(String jsonString) {
         Map<String, List<String>> environment = Maps.newLinkedHashMap();
@@ -115,15 +113,15 @@ public abstract class Writer {
         String localSnapshotPath = LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH.replaceAll("\\\\", "/");
         StringBuilder filePath = new StringBuilder(localSnapshotPath);
         filePath.append("/");
-        filePath.append("fixed-");
+        filePath.append(NacosConst.FIXED);
         filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");
-        filePath.append(NAMESPACE_GALAXY).append("_nacos");
+        filePath.append(NacosConst.NAMESPACE_GALAXY).append(NacosConst.NACOS);
         filePath.append("/");
-        filePath.append(SNAPSHOT_TENANT);
+        filePath.append(NacosConst.SNAPSHOT_TENANT);
         filePath.append("/");
-        filePath.append(NAMESPACE_GALAXY);
+        filePath.append(NacosConst.NAMESPACE_GALAXY);
         filePath.append("/");
-        filePath.append(DEFAULT_GROUP);
+        filePath.append(NacosConst.DEFAULT_GROUP);
         filePath.append("/");
         filePath.append(dataId);
         log.info("dataId:{} snapshot path:{}", dataId, filePath.toString());

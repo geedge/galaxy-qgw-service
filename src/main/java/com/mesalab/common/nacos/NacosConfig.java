@@ -15,7 +15,7 @@ import java.util.Properties;
  */
 @Data
 @Component
-public class NacosClientConfig {
+public class NacosConfig {
 
     @Value("${nacos.config.server-addr}")
     private String serverAddr;
