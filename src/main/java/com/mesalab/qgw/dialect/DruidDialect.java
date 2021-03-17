@@ -5,9 +5,10 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
-import com.mesalab.calcite.storage.DataTypeMapping;
+import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.base.DataTypeMapping;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
@@ -26,6 +27,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.http.HttpStatus;
 
 import java.util.*;
@@ -182,7 +184,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             statistics.put("rows_read", allResults.size());
             baseResult.setData(allResults);
-            baseResult.setMeta(getMeta(allResults));
+            baseResult.setMeta(unifyMeta(allResults));
             baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
@@ -252,25 +254,30 @@ public class DruidDialect extends AbstractDataSourceDialect {
         return plainSelect.getWhere();
     }
 
-    private List getMeta(List<Object> results) {
-        List meta = new ArrayList<Map<String, String>>();
-        if (results.size() > 0) {
-            Map<String, Object> map = (Map) results.get(0);
-            for (String key : map.keySet()) {
-                Object value = map.get(key);
-                Map<String, String> temp = new HashMap<>();
-                temp.put("name", key);
-                if (value instanceof Integer) {
-                    temp.put("type", DataTypeMapping.BIGINT);
-                } else if (value instanceof Double) {
-                    temp.put("type", DataTypeMapping.DOUBLE);
-                } else {
-                    temp.put("type", DataTypeMapping.VARCHAR);
-                }
-                meta.add(temp);
-            }
+    private List<Map<String, String>> unifyMeta(List<Object> list) {
+        List<Map<String, String>> metaList = Lists.newArrayList();
+        if (StringUtil.isEmpty(list)) {
+            return metaList;
         }
-        return meta;
+        Map<String, Object> data = JsonPath.read(list.get(0), "$");
+        for (String key : data.keySet()) {
+            Map<String, String> temp = Maps.newHashMap();
+            temp.put("name", key);
+            Object value = data.get(key);
+            if (value instanceof Integer) {
+                temp.put("type", DataTypeMapping.INT);
+            } else if (value instanceof Long) {
+                temp.put("type", DataTypeMapping.LONG);
+            } else if (value instanceof Float) {
+                temp.put("type", DataTypeMapping.FLOAT);
+            } else if (value instanceof Double) {
+                temp.put("type", DataTypeMapping.DOUBLE);
+            } else {
+                temp.put("type", DataTypeMapping.STRING);
+            }
+            metaList.add(temp);
+        }
+        return metaList;
     }
 
     class Converter {
