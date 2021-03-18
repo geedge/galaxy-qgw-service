@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * @ClassName : CNServiceImpl
  * @Description : Druid数据查询引擎实现
  */
-@Service("druidEngineService")
+@Service
 public class CNServiceImpl implements CNService {
     private static final Log log = LogFactory.get();
 

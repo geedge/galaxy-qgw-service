@@ -39,7 +39,7 @@ public class CNParser extends DSLParser {
             DSLObject.Query.Parameters parameters = dslObject.getQuery().getParameters();
             selectSql = buildSelectFromSql(dslObject, parameters);
             selectSql = parseQueryOfShareNet(dslObject, selectSql);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new BusinessException("build SQL Exception " + e.getMessage(), e);
         }
         return selectSql;

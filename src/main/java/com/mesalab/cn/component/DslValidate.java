@@ -2,7 +2,6 @@ package com.mesalab.cn.component;
 
 import com.mesalab.cn.common.enums.*;
 import com.mesalab.cn.common.pojo.DSLObject;
-import com.mesalab.cn.service.CNService;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.MetadataService;
@@ -12,8 +11,6 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.http.HttpStatus;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -33,10 +30,8 @@ public class DslValidate {
 
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
-    @Autowired
-    CNService CNService;
     @Resource(name = "nacosMetadataService")
-    MetadataService metadataService;
+    private MetadataService metadataService;
 
     public void executeValidate(DSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
@@ -132,7 +127,7 @@ public class DslValidate {
             if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
                 throw new RuntimeException("Intervals value should be [start, end]");
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
         }
         return true;
