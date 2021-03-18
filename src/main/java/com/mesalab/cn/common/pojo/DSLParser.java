@@ -23,11 +23,6 @@ public abstract class DSLParser {
     private final static String DEFAULT_LIMIT = "100000";
 
 
-    @Autowired
-    CNService druidEngine;
-
-
-
     /**
      * 解析 Sort对象
      */

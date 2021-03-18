@@ -27,9 +27,9 @@ public class CNController {
     private static final Log log = LogFactory.get();
 
     @Autowired
-    protected CNRouter cnRouter;
+    private CNRouter cnRouter;
     @Autowired
-    protected DslValidate dslValidate;
+    private DslValidate dslValidate;
 
 
     @PostMapping("/v1/illegalAccess")

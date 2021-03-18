@@ -33,10 +33,10 @@ public class CNServiceImpl implements CNService {
     private static final Log log = LogFactory.get();
 
     @Autowired
-    CNParser cnParser;
+    private CNParser cnParser;
 
     @Autowired
-    ApiService apiService;
+    private ApiService apiService;
 
     @Override
     public BaseResult shareNetQuery(DSLObject dslObject) throws BusinessException {

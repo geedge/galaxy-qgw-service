@@ -32,8 +32,6 @@ public class CNParser extends DSLParser {
     private static final Log log = LogFactory.get();
 
     public final static String UA_FILTER = "osList,browserCnt,deviceCnt,osCnt,terminalCatCnt,deviceList,terminalCatList,terminalList,terminalCnt,browserList";
-    @Autowired
-    CNService cnService;
 
     public String buildShareNetSQL(DSLObject dslObject) {
         String selectSql;
