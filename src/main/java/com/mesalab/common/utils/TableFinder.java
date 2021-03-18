@@ -60,7 +60,7 @@ import net.sf.jsqlparser.statement.values.ValuesStatement;
 
 public class TableFinder implements SelectVisitor, FromItemVisitor, ExpressionVisitor, ItemsListVisitor, SelectItemVisitor, StatementVisitor {
 
-    private static MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    private static MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("nacosMetadataService");
 
     private static final String NOT_SUPPORTED_YET = "Not supported yet.";
     private boolean defaultAlias = false;

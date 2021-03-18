@@ -6,8 +6,10 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.base.DataTypeMapping;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
@@ -37,10 +39,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,7 +59,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("nacosMetadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
@@ -69,6 +68,27 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
     private final static double PERCENT_UP_LINE = 0.98;
     private final static double PERCENT_DOWN_LINE = 0.01;
+
+    private final static Map<String, String> metaMap = Maps.newHashMap();
+
+    static {
+        //实际Int128、Int256、UInt64、UInt256的最大值已经超过long最大值
+        metaMap.put("Int8", DataTypeMapping.INT);
+        metaMap.put("Int16", DataTypeMapping.INT);
+        metaMap.put("Int32", DataTypeMapping.INT);
+        metaMap.put("Int64", DataTypeMapping.LONG);
+        metaMap.put("Int128", DataTypeMapping.LONG);
+        metaMap.put("Int256", DataTypeMapping.LONG);
+        metaMap.put("UInt8", DataTypeMapping.INT);
+        metaMap.put("UInt16", DataTypeMapping.INT);
+        metaMap.put("UInt32", DataTypeMapping.LONG);
+        metaMap.put("UInt64", DataTypeMapping.LONG);
+        metaMap.put("UInt256", DataTypeMapping.LONG);
+        metaMap.put("Float32", DataTypeMapping.FLOAT);
+        metaMap.put("Float64", DataTypeMapping.DOUBLE);
+        metaMap.put("Date", DataTypeMapping.DATE);
+        metaMap.put("DateTime", DataTypeMapping.TIMESTAMP);
+    }
 
     public ClickHouseDialect(ApiParam param) {
         this.param = param;
@@ -136,7 +156,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
 
         Map<String, String> map = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), 0);
-        if (map.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+        if (Integer.parseInt(map.get("status")) == HttpStatus.SC_OK) {
             return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
@@ -175,6 +195,16 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         List<Object> list = Lists.newArrayList();
         list.add(result);
         return BaseResultGenerator.success(list);
+    }
+
+    private List<Map<String, String>> unifyMeta(Object meta) {
+        List<Map<String, String>> metaList = Lists.newArrayList();
+        if (StringUtil.isEmpty(meta)) {
+            return metaList;
+        }
+        metaList = JsonPath.read(meta, "$");
+        metaList.forEach(x -> x.put("type", metaMap.get(x.get("type")) == null ? DataTypeMapping.STRING : metaMap.get(x.get("type"))));
+        return metaList;
     }
 
 
@@ -895,10 +925,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         Map<String, String> results = executeHttpGet(sql);
 
-        if (results.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
 
             baseResult = BaseResultGenerator.generate(
-                    Integer.valueOf(results.get("status")),
+                    Integer.parseInt(results.get("status")),
                     ResultCodeEnum.EXECUTE_SUCCESS.getCode(),
                     message.get(),
                     JsonMapper.fromJsonString(results.get("result"), Map.class),
@@ -906,7 +936,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     null,
                     QueryFormatEnum.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), message.get(),
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), message.get(),
                     results.get("result"), null, null, param.getFormat());
         }
         return build();
@@ -926,7 +956,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             statistics.put("elapsed", Math.round(Double.parseDouble(String.valueOf(statisticMap.get("elapsed"))) * 1000));
             statistics.put("rows_read", statisticMap.get("rows_read"));
             baseResult.setData(resultMap.get("data"));
-            baseResult.setMeta(resultMap.get("meta"));
+            baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
             baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,
@@ -1060,7 +1090,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      */
     private FromItem generateDataSetSql(String tableName, String alias) throws JSQLParserException {
         String sql = String.format("SELECT 1 FROM (SELECT * FROM %s  LIMIT %s ) as %s ",
-                tableName, 10000, alias);
+                tableName, 200, alias);
         Statement parse = CCJSqlParserUtil.parse(sql);
         Select select = (Select) parse;
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();

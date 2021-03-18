@@ -4,83 +4,101 @@ import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.collect.Lists;
+import com.alibaba.nacos.api.NacosFactory;
+import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.listener.Listener;
+import com.alibaba.nacos.api.exception.NacosException;
+import com.mesalab.common.nacos.NacosConfig;
+import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.benchmark.Writer;
 import com.zdjizhi.utils.DateUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
+@Component
 public class EngineWriter extends Writer {
+
     private static final Log log = LogFactory.get();
+
+
+    private String engineFilterJson;
+
+    @Autowired
+    private NacosConfig nacosConfig;
+
+    @PostConstruct
+    public void init() {
+        initFilterJson();
+        log.info("Initializing Engine Filter Complete");
+        initQueriesTemplate();
+        log.info("Initializing Engine Queries Template Complete");
+    }
+
+    private void initFilterJson() {
+        try {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
+            engineFilterJson = configService.getConfig(NacosConst.ENGINE_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+            configService.addListener(NacosConst.ENGINE_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
+                @Override
+                public Executor getExecutor() {
+                    return null;
+                }
+
+                @Override
+                public void receiveConfigInfo(String configInfo) {
+                    log.info("ReceiveConfigInfo Engine Filter {}", configInfo);
+                    engineFilterJson = configInfo;
+                }
+            });
+        } catch (NacosException e) {
+            log.info("NacosException:{}", e);
+        }
+    }
+
+    private void initQueriesTemplate() {
+        try {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
+            configService.getConfig(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+            configService.addListener(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
+                @Override
+                public Executor getExecutor() {
+                    return null;
+                }
+
+                @Override
+                public void receiveConfigInfo(String configInfo) {
+                    log.info("ReceiveConfigInfo Engine Queries Template {}", configInfo);
+                }
+            });
+        } catch (NacosException e) {
+            log.info("NacosException:{}", e);
+        }
+    }
 
     @Override
     public String buildPocSQL() {
         String pocSql = "";
         try {
-            Map<String, List<String>> environment = getFilterOptions(new File("").getCanonicalPath()
-                    + File.separator + "benchmark" + File.separator + "engine_filter.json");
+            Map<String, List<String>> environment = getFilterOptions(engineFilterJson);
 
-            FileReader templateReader = new FileReader(new File("").getCanonicalPath()
-                    + File.separator + "benchmark" + File.separator + "engine_queries_template.sql");
+            FileReader templateReader = new FileReader(buildSnapshotFilePath(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID));
 
             FileWriter writer = new FileWriter(new File("").getCanonicalPath()
                     + File.separator + "benchmark" + File.separator + "engine_queries" + "_"
-                    + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) +  ".sql");
+                    + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql");
 
-            if (writer.getFile().exists()) {
-                return writer.getFile().getAbsolutePath();
-            }
+            pocSql = generatePocSQL(environment, templateReader, writer);
 
-            List<String> rawLines = templateReader.readLines();
-            List<String> resultLines = Lists.newArrayList();
-            rawLines.stream().forEach(line -> {
-
-                if (line.contains(TITLE_PREFIX)) {
-                    if(IS_TITLE) {
-                        resultLines.add(line);
-                    }
-                } else {
-
-                    if (line.contains(LABEL_COMMON_FILTER)) {
-                        for (String filter : environment.get(LABEL_COMMON_FILTER)) {
-                            String replaceLine = line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
-                                    .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0))
-                                    .replaceAll(LABEL_COMMON_FILTER, filter);
-
-                            resultLines.add(replaceLine);
-
-                        }
-
-                    } else if (line.contains(LABEL_INDEX_FILTER)){
-                        for (String filter : environment.get(LABEL_INDEX_FILTER)) {
-                            String replaceLine = line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
-                                    .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0))
-                                    .replaceAll(LABEL_INDEX_FILTER, filter);
-
-                            resultLines.add(replaceLine);
-
-                        }
-
-                    } else {
-                        resultLines.add(
-                                line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
-                                        .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0)));
-                    }
-
-
-
-                }
-
-            });
-            writer.appendLines(resultLines);
-            resultLines.clear();
-            pocSql = writer.getFile().getAbsolutePath();
         } catch (IOException e) {
             log.error("Not found file {}", e);
         }
-        return  pocSql;
+        return pocSql;
     }
 }

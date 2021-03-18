@@ -1,6 +1,6 @@
 package com.mesalab.qgw.monitor;
 
-import com.mesalab.common.configuration.HBaseProperties;
+import com.mesalab.qgw.model.api.HBaseAPISource;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
@@ -8,15 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 
 @Component
 public class HbaseHealthIndicator extends AbstractHealthIndicator {
 
-    public RestTemplate restTemplate = new RestTemplate();
     @Autowired
-    private HBaseProperties hBaseProperties;
+    private HBaseAPISource hBaseProperties;
     @Autowired
     private Connection hbaseConnection;
 

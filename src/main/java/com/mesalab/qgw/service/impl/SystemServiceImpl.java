@@ -36,6 +36,7 @@ import org.springframework.cglib.beans.BeanMap;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
+import javax.annotation.Resource;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -50,7 +51,7 @@ public class SystemServiceImpl implements SystemService {
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
     private HttpClientService httpClientService;
-    @Autowired
+    @Resource(name = "nacosMetadataService")
     private MetadataService metadataService;
     @Autowired
     HttpConfig httpConfig;

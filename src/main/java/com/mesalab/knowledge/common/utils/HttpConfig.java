@@ -1,7 +1,7 @@
 package com.mesalab.knowledge.common.utils;
 
+import com.alibaba.nacos.api.config.annotation.NacosValue;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Data
@@ -10,55 +10,55 @@ public class HttpConfig {
     /**
      * 最大连接数400
      */
-    @Value("${http.pool.max.connection}")
+    @NacosValue(value = "${http.pool.max.connection}", autoRefreshed = true)
     private int maxConnectionNum;
 
     /**
      * 单路由最大连接数80
      */
-    @Value("${http.pool.max.per.route}")
+    @NacosValue(value = "${http.pool.max.per.route}", autoRefreshed = true)
     private int maxPerRoute;
 
     /**
      * 向服务端请求超时时间设置(单位:毫秒)
      */
-    @Value("${http.pool.request.timeout}")
+    @NacosValue(value = "${http.pool.request.timeout}", autoRefreshed = true)
     private int serverRequestTimeOut;
 
     /**
      * 向服务端连接超时时间设置(单位:毫秒)
      */
-    @Value("${http.pool.connect.timeout}")
+    @NacosValue(value = "${http.pool.connect.timeout}", autoRefreshed = true)
     private int serverConnectTimeOut;
 
     /**
      * 服务端响应超时时间设置(单位:毫秒)
      */
-    @Value("${http.pool.response.timeout}")
+    @NacosValue(value = "${http.pool.response.timeout}", autoRefreshed = true)
     private int serverResponseTimeOut;
 
     /**
      * Druid查询请求响应时间
      */
-    @Value("${druid.socketTimeOut}")
+    @NacosValue(value = "${druid.socketTimeOut}", autoRefreshed = true)
     private int druidSocketTimeOut;
 
     /**
      * Arango查询请求响应时间
      */
-    @Value("${arango.socketTimeOut}")
+    @NacosValue(value = "${arango.socketTimeOut}", autoRefreshed = true)
     private int arangoSocketTimeOut;
 
     /**
      * ClickHouse长查询请求响应时间
      */
-    @Value("${clickhouse.longTermAccount.socketTimeOut}")
+    @NacosValue(value = "${clickhouse.longTermAccount.socketTimeOut}", autoRefreshed = true)
     private int ckLongTermAccountSocketTimeOut;
 
     /**
      * ClickHouse实时查询请求响应时间
      */
-    @Value("${clickhouse.realTimeAccount.socketTimeOut}")
+    @NacosValue(value = "${clickhouse.realTimeAccount.socketTimeOut}", autoRefreshed = true)
     private int ckRealTimeAccountSocketTimeOut;
 
 }
