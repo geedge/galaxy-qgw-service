@@ -29,7 +29,7 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
             if (connectionSuccess) {
                 builder.up()
                         .withDetail("app", "Hbase")
-                        .withDetail("url", hBaseProperties.getZookeeperQuorum() + ":" + hBaseProperties.getZookeeperPropertyClientPort())
+                        .withDetail("url", hBaseProperties.getZookeeperQuorum())
                         .withDetail("message", "ok");
             } else {
                 builder.down()

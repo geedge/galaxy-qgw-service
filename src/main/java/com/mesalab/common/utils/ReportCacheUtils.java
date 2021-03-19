@@ -1,6 +1,5 @@
 package com.mesalab.common.utils;
 
-import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
@@ -15,7 +14,10 @@ import com.zdjizhi.utils.StringUtil;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Map;
 
@@ -24,11 +26,27 @@ import java.util.Map;
  * @version 1.0
  * @date 2020/6/5 2:04 下午
  */
+@Component
 public class ReportCacheUtils {
     private static final Log log = LogFactory.get();
-    private static HBaseAPISource hBaseAPISource = (HBaseAPISource) SpringContextUtil.getBean("hBaseAPISource");
-    private static Connection hbaseConnection = (Connection) SpringContextUtil.getBean("hbaseConnection");
-    private static SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
+    @Autowired
+    private HBaseAPISource hBaseAPISourceCache;
+    @Autowired
+    private Connection hbaseConnectionCache;
+    @Autowired
+    private SystemService systemServiceCache;
+
+    private static HBaseAPISource hBaseAPISource;
+    private static Connection hbaseConnection;
+    private static SystemService systemService;
+
+    @PostConstruct
+    public void init() {
+        hBaseAPISource = this.hBaseAPISourceCache;
+        hbaseConnection = this.hbaseConnectionCache;
+        systemService = this.systemServiceCache;
+    }
+
 
     public static BaseResult<Object> get(String id, String query) {
         Result result = query(id, query);
@@ -62,18 +80,6 @@ public class ReportCacheUtils {
         }
         return result;
     }
-
-    /**
-     * 通过SQL生成查询唯一kEY
-     *
-     * @param sql
-     * @param resultId
-     * @return
-     */
-    public static String getQueryId(String resultId, String sql) {
-        return DigestUtil.md5Hex(resultId + sql.trim());
-    }
-
 
     private static void closeTable(Table table) {
         try {

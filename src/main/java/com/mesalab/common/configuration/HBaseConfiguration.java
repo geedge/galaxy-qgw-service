@@ -27,7 +27,6 @@ public class HBaseConfiguration {
             if (conf == null) {
                 conf = org.apache.hadoop.hbase.HBaseConfiguration.create();
                 conf.set("hbase.zookeeper.quorum", hBaseAPISource.getZookeeperQuorum());
-                conf.set("hbase.zookeeper.property.clientPort", hBaseAPISource.getZookeeperPropertyClientPort());
                 conf.set("hbase.zookeeper.znode.parent", hBaseAPISource.getZookeeperZnodeParent());
                 conf.set("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
                 conf.set("hbase.client.ipc.pool.size", hBaseAPISource.getClientIpcPoolSize());

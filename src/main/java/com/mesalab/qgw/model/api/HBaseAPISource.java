@@ -13,7 +13,6 @@ import java.io.Serializable;
 public class HBaseAPISource implements Serializable {
 
     private String zookeeperQuorum;
-    private String zookeeperPropertyClientPort;
     private String zookeeperZnodeParent;
     private String dbName;
     private String tableName;
