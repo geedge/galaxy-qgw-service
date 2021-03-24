@@ -89,16 +89,16 @@ public class CNServiceImpl implements CNService {
         DSLObject.Query.Parameters parameters = dslObject.getQuery().getParameters();
         DSLObject.Query.Parameters.Range range = parameters.getRange();
         for (Map<String, Object> datum : data) {
-            List<BannedApp.UserIp.IpAccessInfo.Feature> featureList = new ArrayList<>();
-            BannedApp.UserIp.IpAccessInfo.Feature feature;
+            List<BannedApp.Feature> featureList = new ArrayList<>();
+            BannedApp.Feature feature;
             for (Condition condition : range.getCondition()) {
-                feature = new BannedApp.UserIp.IpAccessInfo.Feature();
+                feature = new BannedApp.Feature();
                 feature.setFeatureKey(condition.getFieldKey());
                 feature.setUniqueCnt(String.valueOf(datum.get(condition.getFieldKey())));
                 featureList.add(feature);
             }
-            List<BannedApp.UserIp.IpAccessInfo> ipAccessInfoList = new ArrayList<>();
-            BannedApp.UserIp.IpAccessInfo ipAccessInfo = new BannedApp.UserIp.IpAccessInfo();
+            List<BannedApp.IpAccessInfo> ipAccessInfoList = new ArrayList<>();
+            BannedApp.IpAccessInfo ipAccessInfo = new BannedApp.IpAccessInfo();
             ipAccessInfo.setType(dslObject.getQuery().getQueryType());
             ipAccessInfo.setFeature(featureList);
             ipAccessInfoList.add(ipAccessInfo);
@@ -148,10 +148,10 @@ public class CNServiceImpl implements CNService {
                 if (CollectionUtils.isEmpty(next1.getIpAccessInfo())) {
                     userIpIterator.remove();
                 }
-                List<ShareNet.UserIp.IpAccessInfo> ipAccessInfoList = next1.getIpAccessInfo();
-                Iterator<ShareNet.UserIp.IpAccessInfo> ipAccessInfoIterator = ipAccessInfoList.iterator();
+                List<ShareNet.IpAccessInfo> ipAccessInfoList = next1.getIpAccessInfo();
+                Iterator<ShareNet.IpAccessInfo> ipAccessInfoIterator = ipAccessInfoList.iterator();
                 while (ipAccessInfoIterator.hasNext()) {
-                    ShareNet.UserIp.IpAccessInfo t = ipAccessInfoIterator.next();
+                    ShareNet.IpAccessInfo t = ipAccessInfoIterator.next();
                     if (StringUtil.isEmpty(t.getFeature())) {
                         ipAccessInfoIterator.remove();
                     }
@@ -172,12 +172,12 @@ public class CNServiceImpl implements CNService {
             condition.addAll(range.getCondition());
         }
         for (int i = 0; i < shareNet.getUserIps().size(); i++) {
-            List<ShareNet.UserIp.IpAccessInfo> ipAccessInfoList = shareNet.getUserIps().get(i).getIpAccessInfo();
+            List<ShareNet.IpAccessInfo> ipAccessInfoList = shareNet.getUserIps().get(i).getIpAccessInfo();
             for (int i1 = 0; i1 < ipAccessInfoList.size(); i1++) {
-                List<ShareNet.UserIp.IpAccessInfo.Feature> featureList = ipAccessInfoList.get(i1).getFeature();
-                Iterator<ShareNet.UserIp.IpAccessInfo.Feature> iterator = featureList.iterator();
+                List<ShareNet.Feature> featureList = ipAccessInfoList.get(i1).getFeature();
+                Iterator<ShareNet.Feature> iterator = featureList.iterator();
                 while (iterator.hasNext()) {
-                    ShareNet.UserIp.IpAccessInfo.Feature next = iterator.next();
+                    ShareNet.Feature next = iterator.next();
                     Condition fieldFilter = null;
                     for (Condition t : condition) {
                         if (next.getFeatureKey().equalsIgnoreCase(t.getFieldKey())) {
@@ -210,10 +210,10 @@ public class CNServiceImpl implements CNService {
         List<ShareNet> shareNets = new ArrayList<>();
         DSLObject.Query.Parameters parameters = dslObject.getQuery().getParameters();
         for (Map<String, Object> t : data) {
-            List<ShareNet.UserIp.IpAccessInfo.Feature> features = distinctFeature(t, parameters);
+            List<ShareNet.Feature> features = distinctFeature(t, parameters);
 
-            ShareNet.UserIp.IpAccessInfo ipAccessInfo = new ShareNet.UserIp.IpAccessInfo();
-            List<ShareNet.UserIp.IpAccessInfo> ipAccessInfoList = new ArrayList<>();
+            ShareNet.IpAccessInfo ipAccessInfo = new ShareNet.IpAccessInfo();
+            List<ShareNet.IpAccessInfo> ipAccessInfoList = new ArrayList<>();
             ipAccessInfo.setType(dslObject.getQuery().getQueryType());
             ipAccessInfo.setFeature(features);
             ipAccessInfoList.add(ipAccessInfo);
@@ -237,8 +237,8 @@ public class CNServiceImpl implements CNService {
         return shareNets;
     }
 
-    private List<ShareNet.UserIp.IpAccessInfo.Feature> distinctFeature(Map<String, Object> data, DSLObject.Query.Parameters parameters) {
-        List<ShareNet.UserIp.IpAccessInfo.Feature> features = new ArrayList<>();
+    private List<ShareNet.Feature> distinctFeature(Map<String, Object> data, DSLObject.Query.Parameters parameters) {
+        List<ShareNet.Feature> features = new ArrayList<>();
         if (StringUtil.isEmpty(parameters.getDistinct()) || CollectionUtils.isEmpty(parameters.getDistinct().getCondition())) {
             return features;
         }
@@ -247,7 +247,7 @@ public class CNServiceImpl implements CNService {
             if (CNParser.UA_FILTER.contains(term.getFieldKey())) {
                 continue;
             }
-            ShareNet.UserIp.IpAccessInfo.Feature feature = new ShareNet.UserIp.IpAccessInfo.Feature();
+            ShareNet.Feature feature = new ShareNet.Feature();
             feature.setFeatureKey(String.valueOf(term.getFieldKey()));
             feature.setUniqueCnt(String.valueOf(data.get(term.getFieldKey().concat("UniqueCnt"))));
             HashMap<String, Object> map = new HashMap<>(16);
@@ -262,10 +262,10 @@ public class CNServiceImpl implements CNService {
     private void uaAnalyse(List<ShareNet> shareNets) throws SQLException, RuntimeException {
         for (ShareNet shareNet : shareNets) {
             for (ShareNet.UserIp userIp : shareNet.getUserIps()) {
-                for (ShareNet.UserIp.IpAccessInfo ipAccessInfo : userIp.getIpAccessInfo()) {
-                    Iterator<ShareNet.UserIp.IpAccessInfo.Feature> iteratorFeature = ipAccessInfo.getFeature().iterator();
+                for (ShareNet.IpAccessInfo ipAccessInfo : userIp.getIpAccessInfo()) {
+                    Iterator<ShareNet.Feature> iteratorFeature = ipAccessInfo.getFeature().iterator();
                     while (iteratorFeature.hasNext()) {
-                        ShareNet.UserIp.IpAccessInfo.Feature feature = iteratorFeature.next();
+                        ShareNet.Feature feature = iteratorFeature.next();
                         uaParse(shareNet.getUserId(), userIp.getIp(), feature);
                     }
                 }
@@ -273,7 +273,7 @@ public class CNServiceImpl implements CNService {
         }
     }
 
-    private void uaParse(String userId, String userIp, ShareNet.UserIp.IpAccessInfo.Feature feature) throws SQLException {
+    private void uaParse(String userId, String userIp, ShareNet.Feature feature) throws SQLException {
         if (!"UA".equalsIgnoreCase(feature.getFeatureKey())) {
             return;
         }
@@ -329,8 +329,8 @@ public class CNServiceImpl implements CNService {
                     for (ShareNet.UserIp userIp : shareNet.getUserIps()) {
                         if (userIp.getIp().equals(data.getUserIps().get(0))) {
                             dataFeature:
-                            for (ShareNet.UserIp.IpAccessInfo.Feature dataFeature : data.getUserIps().get(0).getIpAccessInfo().get(0).getFeature()) {
-                                for (ShareNet.UserIp.IpAccessInfo.Feature feature : userIp.getIpAccessInfo().get(0).getFeature()) {
+                            for (ShareNet.Feature dataFeature : data.getUserIps().get(0).getIpAccessInfo().get(0).getFeature()) {
+                                for (ShareNet.Feature feature : userIp.getIpAccessInfo().get(0).getFeature()) {
                                     if (feature.getFeatureKey().equals(dataFeature)) {
                                         feature.getCountList().addAll(dataFeature.getCountList());
                                         List<Map<String, Object>> value = merge(feature.getCountList(), "value");
