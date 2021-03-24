@@ -300,7 +300,7 @@ public class CNServiceImpl implements CNService {
         HashMap<String, Object> t = new HashMap<>();
         try {
             userInfo = uaAnalyser.getUserinfo(inputString);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("UA解析异常:{}", e.getMessage());
         }
         if (StringUtil.isEmpty(userInfo)) {

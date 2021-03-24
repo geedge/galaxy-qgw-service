@@ -33,9 +33,10 @@ public class NetworkMonitorController {
 
     @PostMapping(value = "/traffic/v1/", produces = "application/json")
     public BaseResult trafficDistribution(HttpServletRequest request, @Validated @RequestBody DSLObject dslObject) {
-        log.debug("流量分布接口, 参数: queryString is {}, params is {}", request.getQueryString(), dslObject);
+        String queryString = request.getQueryString();
+        log.debug("流量分布接口, 参数: queryString is {}, params is {}", queryString, dslObject);
         dslValidate.executeValidate(dslObject);
-        if (PROTOCOL.equalsIgnoreCase(request.getQueryString())) {
+        if (PROTOCOL.equalsIgnoreCase(queryString)) {
             return networkMonitorService.getTrafficDistributedInfo(dslObject);
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Support protocol only", null);

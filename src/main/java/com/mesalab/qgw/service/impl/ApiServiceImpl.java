@@ -561,7 +561,7 @@ public class ApiServiceImpl implements ApiService {
         BaseResult ck = new BaseResult();
         try {
             ck = executeShowStatement(temp, null);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.info("tables: 查询clickhouse异常", e);
         }
 
@@ -571,7 +571,7 @@ public class ApiServiceImpl implements ApiService {
         temp.setSchema(druidIoHttpSource.getDbname());
         try {
             druid = executeShowStatement(temp, null);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.info("tables: 查询druid   异常", e);
         }
         //合并结果

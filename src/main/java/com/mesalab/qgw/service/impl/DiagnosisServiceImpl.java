@@ -95,7 +95,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             statistics.put("elapsed", executeTime);
             result = BaseResultGenerator.success("Avro Schema Validation Success.", mergeResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                     ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "Avro Schema Validation Fail:", e);
 
@@ -123,7 +123,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", mergeResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Metadata Validation Fail:", e);
         }
@@ -161,7 +161,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
                     ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:", e);
         }
@@ -202,7 +202,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Get Poc SQL Fail:", e);
         }
