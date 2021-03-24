@@ -2,9 +2,6 @@ package com.mesalab.knowledge.common.config;
 
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,7 +9,6 @@ import org.springframework.stereotype.Component;
  * @author: zhq
  * @create: 2020-07-07
  **/
-@Data
 @Component
 @NacosConfigurationProperties(prefix = "arango", dataId = "galaxy-qgw-service", type = ConfigType.YAML, autoRefreshed = true)
 public class ArangoConfig {
@@ -23,7 +19,7 @@ public class ArangoConfig {
 
     private String username;
 
-    private String password;
+    private String pin;
 
     private String jwturl;
 
@@ -33,4 +29,67 @@ public class ArangoConfig {
 
     private String jwt;
 
+    public String getServer() {
+        return server;
+    }
+
+    public void setServer(String server) {
+        this.server = server;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPin() {
+        return pin;
+    }
+
+    public void setPin(String pin) {
+        this.pin = pin;
+    }
+
+    public String getJwturl() {
+        return jwturl;
+    }
+
+    public void setJwturl(String jwturl) {
+        this.jwturl = jwturl;
+    }
+
+    public String getQueryurl() {
+        return queryurl;
+    }
+
+    public void setQueryurl(String queryurl) {
+        this.queryurl = queryurl;
+    }
+
+    public String getMaxrows() {
+        return maxrows;
+    }
+
+    public void setMaxrows(String maxrows) {
+        this.maxrows = maxrows;
+    }
+
+    public String getJwt() {
+        return jwt;
+    }
+
+    public void setJwt(String jwt) {
+        this.jwt = jwt;
+    }
 }

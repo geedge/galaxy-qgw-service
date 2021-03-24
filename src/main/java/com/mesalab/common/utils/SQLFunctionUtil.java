@@ -72,6 +72,7 @@ public class SQLFunctionUtil {
     public static final Pattern pNow = Pattern.compile("NOW\\(\\s*\\)", Pattern.CASE_INSENSITIVE);
     public static final Pattern pStrDateTime = Pattern.compile("(<|>|=|between|and)\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
     public static final Pattern pMergeFunction = Pattern.compile("\\WDATE_FORMAT\\(FROM_UNIXTIME\\s*\\(\\s*FLOOR\\s*\\(\\s*UNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pYearFunNum = Pattern.compile("(YEAR)\\s*\\(", Pattern.CASE_INSENSITIVE);
 
     /**
      * 解析mysql函数替换为对应数据库类型函数
@@ -170,7 +171,7 @@ public class SQLFunctionUtil {
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryparamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPin()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(sql)
                 .append(" FORMAT JSON;");
@@ -636,7 +637,6 @@ public class SQLFunctionUtil {
         String replaceValue = null;
         List<String> params = diviParam(expr, ",");
         if ("MAKEDATE".equals(StringUtils.upperCase(func)) && params.size() == 2) {
-            Pattern pYearFunNum = Pattern.compile("(YEAR)\\s*\\(", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pYearFunNum.matcher(expr);
             if (matcher.find() && "YEAR".equals(StringUtils.upperCase(matcher.group(1)))) {
                 String temp = expr.substring(matcher.start());

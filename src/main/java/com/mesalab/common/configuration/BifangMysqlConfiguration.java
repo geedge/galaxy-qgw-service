@@ -20,7 +20,7 @@ public class BifangMysqlConfiguration {
     @Value("${spring.datasource.username}")
     private String userName;
 
-    @Value("${spring.datasource.password}")
-    private String passWord;
+    @Value("${spring.datasource.pin}")
+    private String pin;
 
 }

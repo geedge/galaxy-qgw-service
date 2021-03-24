@@ -82,7 +82,7 @@ public class FederationDialect extends AbstractEngineDialect{
             }
             log.debug("Calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
 
-        } catch (Exception ex) {
+        } catch (BusinessException ex) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                     ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute memory-query error：", ex);
         }

@@ -172,7 +172,7 @@ public class ApiServiceImpl implements ApiService {
                     CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType()) + "Dialect");
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
             dialect = (Dialect) constructor.newInstance(param);
-        } catch (Exception e) {
+        } catch (ReflectiveOperationException | RuntimeException e) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
         }
         return dialect;
@@ -218,34 +218,6 @@ public class ApiServiceImpl implements ApiService {
         return SQLHelper.getTableName(param.getQuery());
     }
 
-
-    /**
-     * Visitor 模式解析SQL
-     *
-     * @param sql
-     */
-    @Deprecated
-    private String getTableNameFromDruid(String sql) {
-        String tableName = "";
-        try {
-
-            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, JdbcConstants.MYSQL);
-            SchemaStatVisitor statVisitor = SQLUtils.createSchemaStatVisitor(JdbcConstants.MYSQL);
-            SQLStatement statement = statementList.get(0);
-            statement.accept(statVisitor);
-            Map<TableStat.Name, TableStat> tables = statVisitor.getTables();
-
-            if (tables.keySet().size() > 0) {
-                TableStat.Name name = Iterables.getFirst(tables.keySet(), null);
-                tableName = name.getName();
-            }
-
-        } catch (Exception e) {
-            log.error("sqlParser error: ", e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
-        }
-        return tableName;
-    }
 
     /**
      * 递归解析SQLQuerySource ，拆分为数据库执行SQL与引擎执行的SQL source
@@ -424,7 +396,7 @@ public class ApiServiceImpl implements ApiService {
             }
 
 
-        } catch (Exception e) {
+        } catch (JSQLParserException | RuntimeException e) {
             log.error("sqlParser error: ", e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e);
 
@@ -482,100 +454,11 @@ public class ApiServiceImpl implements ApiService {
             Constructor constructor = dialectClazz.getConstructor(UDFElements.class);
             UDFElements udfElements = new UDFElements(funName, expressions);
             udf = (UDF) constructor.newInstance(udfElements);
-        } catch (Exception e) {
+        } catch (ReflectiveOperationException | RuntimeException e) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "自定义函数转换实例异常！", e);
         }
         return udf;
     }
-
-
-    /**
-     * 对SQL语句进行预先解析,为语法树结构
-     *
-     * @param sql
-     * @return
-     */
-    @Deprecated
-    private SQLQuerySource parserSQLByAst(String sql, String dialectDbType) {
-
-        SQLQuerySource sqlQuerySource = new SQLQuerySource();
-        try {
-            List<SQLStatement> statementList = SQLUtils.parseStatements(sql, dialectDbType);
-            if (statementList.size() > 0) {
-                SQLStatement statement = statementList.get(0);
-                if (statement instanceof SQLSelectStatement) {
-                    SQLSelectStatement sqlSelectStatement = (SQLSelectStatement) statement;
-                    SQLSelectQuery sqlSelectQuery = sqlSelectStatement.getSelect().getQuery();
-                    // 非union的查询语句
-                    if (sqlSelectQuery instanceof SQLSelectQueryBlock) {
-                        SQLSelectQueryBlock sqlSelectQueryBlock = (SQLSelectQueryBlock) sqlSelectQuery;
-                        // 获取字段列表
-                        List<SQLSelectItem> selectItems = sqlSelectQueryBlock.getSelectList();
-                        sqlQuerySource.setSelectItems(Arrays.toString(selectItems.toArray()));
-
-                        // 获取表
-                        SQLTableSource table = sqlSelectQueryBlock.getFrom();
-                        // 普通单表
-                        if (table instanceof SQLExprTableSource) {
-                            sqlQuerySource.setTableName(((SQLExprTableSource) table).getName().getSimpleName());
-                            // join多表
-                        } else if (table instanceof SQLJoinTableSource) {
-                            SQLTableSource sqlSubTableSource = ((SQLJoinTableSource) table).getLeft();
-                            sqlQuerySource.setTableName(((SQLExprTableSource) sqlSubTableSource).getName().getSimpleName());
-                            // 子查询作为表
-                        } else if (table instanceof SQLSubqueryTableSource) {
-                            SQLSelectQuery sqlSubSelectQuery = ((SQLSubqueryTableSource) table).getSelect().getQuery();
-                            sqlQuerySource.setTableName(getMultiSqlTableName(sqlSubSelectQuery));
-                        }
-                        // 获取where条件
-                        SQLExpr where = sqlSelectQueryBlock.getWhere();
-
-                        // 如果是二元表达式
-                        if (where instanceof SQLBinaryOpExpr) {
-                            SQLBinaryOpExpr sqlBinaryOpExpr = (SQLBinaryOpExpr) where;
-                            SQLExpr left = sqlBinaryOpExpr.getLeft();
-                            SQLBinaryOperator operator = sqlBinaryOpExpr.getOperator();
-                            SQLExpr right = sqlBinaryOpExpr.getRight();
-                            sqlQuerySource.setExpr(left.toString() + operator.name() + right.toString());
-                            // 如果是子查询
-                        } else if (where instanceof SQLInSubQueryExpr) {
-                            log.warn("UNSupport Parser sub Where!");
-
-                        }
-
-                        // 获取分页
-                        SQLLimit limit = sqlSelectQueryBlock.getLimit();
-
-                        if (limit != null) {
-                            if (StringUtil.isNotEmpty(limit.getOffset())) {
-                                sqlQuerySource.setLimit(StringUtil.setDefaultIfEmpty(limit.getOffset(), 0) + "," + limit.getRowCount());
-                            } else {
-                                sqlQuerySource.setLimit(String.valueOf(limit.getRowCount()));
-                            }
-                        }
-
-                        // union的查询语句
-                    } else if (sqlSelectQuery instanceof SQLUnionQuery) {
-                        SQLUnionQuery sqlUnionQuery = (SQLUnionQuery) sqlSelectQuery;
-                        sqlQuerySource.setTableName(getMultiSqlTableName(sqlUnionQuery.getRight()));
-                        sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
-                    }
-                } else {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
-                }
-
-
-            }
-        } catch (Exception e) {
-            log.error("sqlParser error: ", e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：", e);
-
-        }
-
-
-        return sqlQuerySource;
-    }
-
 
     private String getMultiSqlTableName(SQLSelectQuery sqlSubSelectQuery) {
         SQLTableSource subTable = ((SQLSelectQueryBlock) sqlSubSelectQuery).getFrom();

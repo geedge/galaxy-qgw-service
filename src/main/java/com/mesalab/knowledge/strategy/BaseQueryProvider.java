@@ -9,7 +9,6 @@ import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.JwtCache;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.JsonMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +46,7 @@ public class BaseQueryProvider {
         }
         Map<String, String> params = new HashMap<>();
         params.put("username", arangoConfig.getUsername());
-        params.put("password", arangoConfig.getPassword());
+        params.put("password", arangoConfig.getPin());
         String res = httpClientService.httpPost(arangoConfig.getJwturl(), JsonMapper.toJsonString(params));
         Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
         if (Objects.isNull(resMap.get(Constant.JWT))) {

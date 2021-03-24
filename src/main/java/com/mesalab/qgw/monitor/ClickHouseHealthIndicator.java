@@ -27,7 +27,7 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
 
         StringBuilder queryParamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPin()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append("select version()")
                 .append(" FORMAT JSON ;");
@@ -48,7 +48,7 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
 
 
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             builder.down()
                     .withDetail("app", "ClickHouse")
                     .withDetail("message", e.getMessage());

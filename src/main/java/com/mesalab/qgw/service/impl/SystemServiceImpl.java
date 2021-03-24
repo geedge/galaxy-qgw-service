@@ -199,7 +199,7 @@ public class SystemServiceImpl implements SystemService {
                     CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, apiParam.getDbType()) + "Dialect");
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
             dialect = (Dialect) constructor.newInstance(apiParam);
-        } catch (Exception e) {
+        } catch (ReflectiveOperationException | RuntimeException e) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
         }
         return dialect;

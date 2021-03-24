@@ -32,7 +32,7 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
             Object jwt = JwtCache.get(Constant.ARANGO_CACHE_JWT);
             if (StringUtil.isEmpty(jwt)) {
                 params.put("username", arangoConfig.getUsername());
-                params.put("password", arangoConfig.getPassword());
+                params.put("password", arangoConfig.getPin());
                 String res = httpClientService.httpPost(arangoConfig.getJwturl(), JsonMapper.toJsonString(params));
                 Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
                 if (StringUtil.isEmpty(resMap) || StringUtil.isEmpty(resMap.get(Constant.JWT))) {
@@ -58,7 +58,7 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
                         .withDetail("url", arangoConfig.getServer())
                         .withDetail("message", "ok");
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             builder.down()
                     .withDetail("app", "Arango")
                     .withDetail("message", "连接Arango 失败");

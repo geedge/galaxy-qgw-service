@@ -31,7 +31,7 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("userName", jobAdminHttpSource.getUserName());
-        map.add("password", jobAdminHttpSource.getPassword());
+        map.add("password", jobAdminHttpSource.getPin());
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 
@@ -55,7 +55,7 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
                         .withDetail("app", "xxl-job-admin")
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             builder.down()
                     .withDetail("app", "xxl-job-admin")
                     .withDetail("message", e.getMessage());

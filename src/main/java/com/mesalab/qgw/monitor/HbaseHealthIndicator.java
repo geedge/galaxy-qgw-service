@@ -9,6 +9,8 @@ import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 
 @Component
 public class HbaseHealthIndicator extends AbstractHealthIndicator {
@@ -38,7 +40,7 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
 
 
             }
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             builder.down()
                     .withDetail("app", "Hbase")
                     .withDetail("message", e.getMessage());

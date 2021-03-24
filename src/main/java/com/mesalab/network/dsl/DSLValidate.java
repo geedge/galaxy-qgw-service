@@ -123,7 +123,7 @@ public class DSLValidate {
             if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
                 throw new RuntimeException("Intervals value should be [start, end]");
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
         }
         return true;

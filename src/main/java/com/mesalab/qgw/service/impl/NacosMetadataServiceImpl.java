@@ -2,6 +2,8 @@ package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
@@ -35,10 +37,10 @@ import java.util.concurrent.Executor;
  * @ClassName : NacosMetadataServiceImpl
  * @Description : 获取Nacos注册中心元数据实现类
  */
-@Slf4j
 @Service("nacosMetadataService")
 public class NacosMetadataServiceImpl implements MetadataService {
 
+    private static final Log log = LogFactory.get();
     @Autowired
     private NacosConfig nacosConfig;
     @Autowired
@@ -158,7 +160,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
                 }
             });
         } catch (NacosException e) {
-            log.info("NacosException:{}", e);
+            log.error("NacosException: ", e);
         }
     }
 
@@ -183,7 +185,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
                         }
                     });
                 } catch (NacosException e) {
-                    log.info("NacosException:{}", e);
+                    log.error("NacosException:{}", e);
                 }
             }
         }

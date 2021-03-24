@@ -281,13 +281,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         public Converter generateDateFunction() {
-            try {
-                sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.CLICKHOUSE.getValue());
-            } catch (Exception ex) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                            ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "参数校验：SQL 日期函数解析错误", ex);
-            }
-
+            sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.CLICKHOUSE.getValue());
             return this;
         }
 
@@ -1152,12 +1146,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
     private String getRealTimeAccount() {
         return new StringBuilder("user=").append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getUserKey()).toString();
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPin()).toString();
     }
 
     private String getLongTermAccount() {
         return new StringBuilder("user=").append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getUserKey()).toString();
+                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPin()).toString();
     }
 
 }

@@ -7,6 +7,7 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -35,7 +36,7 @@ public class MariaDBHealthIndicator extends AbstractHealthIndicator {
                         .withDetail("url", url)
                         .withDetail("message", "error, " + query);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             builder.down()
                     .withDetail("app", "MariaDB")
                     .withDetail("url", url)

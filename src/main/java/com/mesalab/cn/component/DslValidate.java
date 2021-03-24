@@ -91,7 +91,7 @@ public class DslValidate {
         }
         sort.forEach(o -> {
             if (!StringUtil.isBlank(o.getType())) {
-                if (StringUtil.isEmpty(SortTypeEnum.getByType(o.getType().toLowerCase()))) {
+                if (StringUtil.isEmpty(SortTypeEnum.getByType(StringUtil.lowerCase(o.getType())))) {
                     throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                             "Sort type is invalid");
                 }
@@ -197,7 +197,7 @@ public class DslValidate {
 
     private void validLogicType(String logicType) {
         if (StringUtil.isNotBlank(logicType)) {
-            if (StringUtil.isEmpty(LogicTypeEnum.getByType(logicType.toLowerCase()))) {
+            if (StringUtil.isEmpty(LogicTypeEnum.getByType(StringUtil.lowerCase(logicType)))) {
                 throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                         "logicType is invalid");
             }

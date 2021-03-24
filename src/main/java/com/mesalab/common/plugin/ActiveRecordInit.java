@@ -23,7 +23,7 @@ public class ActiveRecordInit {
 
     @PostConstruct
     public void initDialect() {
-        DruidPlugin dp = new DruidPlugin(bmc.getUrl(), bmc.getUserName(), bmc.getPassWord());
+        DruidPlugin dp = new DruidPlugin(bmc.getUrl(), bmc.getUserName(), bmc.getPin());
         ArpStartPlugin arp = new ArpStartPlugin(dp);
         arp.addSqlTemplate("sql-temelate.sql");
         dp.start();

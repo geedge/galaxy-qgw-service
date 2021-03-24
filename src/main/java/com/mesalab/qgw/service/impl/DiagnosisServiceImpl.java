@@ -28,6 +28,7 @@ import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -295,6 +293,12 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         for (String tableName : schemas.keySet()) {
 
             Map<String, String> result = executeQuery("describe " + tableName, Optional.empty());
+            if (HttpStatus.SC_OK != Integer.parseInt(result.get("status"))) {
+                log.error("查询表结构失败：" + result.get("result"));
+                throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                        " The Table Structure query failed", null);
+            }
             List<Map<String, Object>> dbFields = JsonPath.read(result.get("result"), "$.data.fields.*");
 
             Map<String, Object> dbFieldMap = Maps.newHashMap();
@@ -396,7 +400,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                     throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                             ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "The Directory is null: " + path);
                 }
-                for (File file : schemaDir.listFiles()) {
+                for (File file : Objects.requireNonNull(schemaDir.listFiles())) {
                     try {
                         if (StringUtil.lowerCase(file.getName()).endsWith(AVRO_SUFFIX)) {
                             Schema schema = new Schema.Parser().parse(file);
@@ -404,7 +408,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         } else {
                             log.warn("UnKnow format file {} ", file.getName());
                         }
-                    } catch (Exception e) {
+                    } catch (AvroRuntimeException e) {
                         log.error("Schema Parsing Error {}, Message is {}", file.getName(), e);
                         throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                                 ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), file.getName() + " Parse Error: " + e.getMessage(), e);

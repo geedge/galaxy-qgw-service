@@ -147,7 +147,7 @@ public class StringUtil {
         }
         try {
             return Integer.parseInt(object.toString());
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             return defaultValue;
         }
     }
@@ -173,11 +173,7 @@ public class StringUtil {
         if (null == object) {
             return defaultValue;
         }
-        try {
-            return Boolean.parseBoolean(object.toString());
-        } catch (Exception e) {
-            return defaultValue;
-        }
+        return Boolean.parseBoolean(object.toString());
     }
 
 

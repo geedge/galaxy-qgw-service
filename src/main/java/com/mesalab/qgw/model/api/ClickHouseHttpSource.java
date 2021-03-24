@@ -29,7 +29,7 @@ public class ClickHouseHttpSource implements Serializable {
     @Data
     public static class DBAccount {
         private String username;
-        private String userKey;
+        private String pin;
     }
 
 }

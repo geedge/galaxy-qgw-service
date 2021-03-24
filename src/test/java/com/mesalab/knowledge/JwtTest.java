@@ -44,7 +44,7 @@ public class JwtTest extends GalaxyQGWApplicationTests {
         if (StringUtil.isEmpty(jwt)) {
             Map<String, String> params = new HashMap<>();
             params.put("username", arangoConfig.getUsername());
-            params.put("password", arangoConfig.getPassword());
+            params.put("password", arangoConfig.getPin());
             String res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(params));
             Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
             jwt = resMap.get(Constant.JWT) != null ? Constant.ARANGO_JWT_BEARER + resMap.get(Constant.JWT) : null;

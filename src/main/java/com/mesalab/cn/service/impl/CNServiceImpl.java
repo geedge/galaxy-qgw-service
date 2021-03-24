@@ -231,7 +231,7 @@ public class CNServiceImpl implements CNService {
         shareNets = mergeUserIpOfShareNet(shareNets);
         try {
             uaAnalyse(shareNets);
-        } catch (Exception e) {
+        } catch (SQLException | RuntimeException e) {
             log.error("UA解析异常:{}", e);
         }
         return shareNets;
@@ -259,7 +259,7 @@ public class CNServiceImpl implements CNService {
         return features;
     }
 
-    private void uaAnalyse(List<ShareNet> shareNets) throws SQLException {
+    private void uaAnalyse(List<ShareNet> shareNets) throws SQLException, RuntimeException {
         for (ShareNet shareNet : shareNets) {
             for (ShareNet.UserIp userIp : shareNet.getUserIps()) {
                 for (ShareNet.UserIp.IpAccessInfo ipAccessInfo : userIp.getIpAccessInfo()) {

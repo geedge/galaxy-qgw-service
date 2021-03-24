@@ -309,13 +309,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
 
         public Converter generateDateFunction() {
-
-            try {
-                sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.DRUID.getValue());
-            } catch (Exception ex) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "参数校验：SQL 日期函数解析错误", ex);
-            }
-
+            sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.DRUID.getValue());
             return this;
         }
 
