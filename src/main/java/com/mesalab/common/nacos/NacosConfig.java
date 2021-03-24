@@ -19,14 +19,14 @@ public class NacosConfig {
     private String serverAddr;
     @Value("${nacos.config.username}")
     private String username;
-    @Value("${nacos.config.pin}")
-    private String pin;
+    @Value("${nacos.config.password}")
+    private String password;
 
     public Properties getProperties(String namespace) {
         Properties properties = new Properties();
         properties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
         properties.put(PropertyKeyConst.USERNAME, username);
-        properties.put(PropertyKeyConst.PASSWORD, pin);
+        properties.put(PropertyKeyConst.PASSWORD, password);
         properties.put(PropertyKeyConst.NAMESPACE, namespace);
         return properties;
     }
