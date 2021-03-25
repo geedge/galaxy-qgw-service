@@ -31,7 +31,7 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("userName", jobAdminHttpSource.getUserName());
-        map.add("password", jobAdminHttpSource.getPin());
+        map.add("pin", jobAdminHttpSource.getPin());
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 

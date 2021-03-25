@@ -26,21 +26,21 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception
     {
-
+        String queryString = request.getQueryString();
         if (handler instanceof HandlerMethod) {
 
             HandlerMethod handlerMethod = (HandlerMethod) handler;
 
             CachedSubmitCheck submitCheck = handlerMethod.getMethodAnnotation(CachedSubmitCheck.class);
 
-            if (submitCheck == null || StringUtil.isBlank(request.getQueryString())) {
+            if (submitCheck == null || StringUtil.isBlank(queryString)) {
                 return true;
             }
             String clientId = this.getClientId();
-            String queryStr = StringEscapeUtils.escapeHtml4(request.getQueryString());
+            String queryStr = StringEscapeUtils.escapeHtml4(queryString);
             String queryKey = DigestUtil.md5Hex(queryStr);
             log.debug("Source compare to EscapeHtml4 SQL {}" ,
-                    DigestUtil.md5Hex(queryStr).equals(DigestUtil.md5Hex(request.getQueryString())));
+                    DigestUtil.md5Hex(queryStr).equals(DigestUtil.md5Hex(queryString)));
             log.debug("Query Submit Check,ClientId:{}, QueryKey:{}", clientId, queryKey);
             Object result = QueryCacheUtils.get(queryKey);
 

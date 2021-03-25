@@ -12,12 +12,9 @@ import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.AuditServiceLog;
 import com.zdjizhi.utils.IPUtil;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -66,7 +63,8 @@ public class AuditLogAspect {
             auditServiceLog.setParam(param);
         }
         auditServiceLog.setAnnotation(annotation.value());
-        auditServiceLog.setQueryKey(DigestUtil.md5Hex(StringUtil.isNotBlank(request.getQueryString()) ? request.getQueryString() : ""));
+        String queryString = request.getQueryString();
+        auditServiceLog.setQueryKey(DigestUtil.md5Hex(StringUtil.isNotBlank(queryString) ? queryString : ""));
 
         auditLog.set(auditServiceLog);
     }
