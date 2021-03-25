@@ -43,9 +43,9 @@ public class DruidWriter extends Writer {
 
     public void initFilterJson() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
-            druidFilterJson = configService.getConfig(NacosConst.DRUID_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
-            configService.addListener(NacosConst.DRUID_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
+            druidFilterJson = configService.getConfig(NacosConst.DRUID_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
+            configService.addListener(NacosConst.DRUID_FILTER_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
@@ -64,9 +64,9 @@ public class DruidWriter extends Writer {
 
     private void initQueriesTemplate() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
-            configService.getConfig(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
-            configService.addListener(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
+            configService.getConfig(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
+            configService.addListener(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;

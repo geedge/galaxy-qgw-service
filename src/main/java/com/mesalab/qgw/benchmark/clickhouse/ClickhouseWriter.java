@@ -42,9 +42,9 @@ public class ClickhouseWriter extends Writer {
 
     public void initFilterJson() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
-            ckFilterJson = configService.getConfig(NacosConst.CK_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
-            configService.addListener(NacosConst.CK_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
+            ckFilterJson = configService.getConfig(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
+            configService.addListener(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
@@ -63,9 +63,9 @@ public class ClickhouseWriter extends Writer {
 
     private void initQueriesTemplate() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
-            configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
-            configService.addListener(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
+            configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
+            configService.addListener(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;

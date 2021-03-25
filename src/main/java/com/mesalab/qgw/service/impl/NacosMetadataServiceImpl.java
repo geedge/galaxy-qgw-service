@@ -144,10 +144,10 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     private void initTables() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_AVRO));
-            String content = configService.getConfig(NacosConst.META_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
+            String content = configService.getConfig(NacosConst.META_DATA_ID, nacosConfig.getGroup(), 3000);
             metadataBeans = JSONUtil.toList(content, MetadataBean.class);
-            configService.addListener(NacosConst.META_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
+            configService.addListener(NacosConst.META_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
@@ -169,10 +169,10 @@ public class NacosMetadataServiceImpl implements MetadataService {
             List<String> tables = metadataBean.getTables();
             for (String table : tables) {
                 try {
-                    ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_AVRO));
+                    ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
                     String content = configService.getConfig(table, metadataBean.getGroup(), 3000);
                     addSchema(content, metadataBean);
-                    configService.addListener(table, metadataBean.getGroup(), new Listener() {
+                    configService.addListener(table, nacosConfig.getGroup(), new Listener() {
                         @Override
                         public Executor getExecutor() {
                             return null;

@@ -9,8 +9,10 @@ import com.alibaba.nacos.client.config.impl.LocalConfigInfoProcessor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.zdjizhi.utils.StringUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +21,9 @@ import java.util.Map;
 
 @Component
 public abstract class Writer {
+
+    @Autowired
+    NacosConfig nacosConfig;
 
     private static final Log log = LogFactory.get();
     public static final boolean IS_TITLE = false;
@@ -115,13 +120,13 @@ public abstract class Writer {
         filePath.append("/");
         filePath.append(NacosConst.FIXED);
         filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");
-        filePath.append(NacosConst.NAMESPACE_GALAXY).append(NacosConst.NACOS);
+        filePath.append(nacosConfig.getNamespace()).append(NacosConst.NACOS);
         filePath.append("/");
         filePath.append(NacosConst.SNAPSHOT_TENANT);
         filePath.append("/");
-        filePath.append(NacosConst.NAMESPACE_GALAXY);
+        filePath.append(nacosConfig.getNamespace());
         filePath.append("/");
-        filePath.append(NacosConst.DEFAULT_GROUP);
+        filePath.append(nacosConfig.getGroup());
         filePath.append("/");
         filePath.append(dataId);
         log.info("dataId:{} snapshot path:{}", dataId, filePath.toString());

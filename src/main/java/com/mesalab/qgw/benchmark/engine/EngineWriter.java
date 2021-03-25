@@ -43,9 +43,9 @@ public class EngineWriter extends Writer {
 
     private void initFilterJson() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
-            engineFilterJson = configService.getConfig(NacosConst.ENGINE_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
-            configService.addListener(NacosConst.ENGINE_FILTER_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
+            engineFilterJson = configService.getConfig(NacosConst.ENGINE_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
+            configService.addListener(NacosConst.ENGINE_FILTER_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
@@ -64,9 +64,9 @@ public class EngineWriter extends Writer {
 
     private void initQueriesTemplate() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties(NacosConst.NAMESPACE_GALAXY));
-            configService.getConfig(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
-            configService.addListener(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID, NacosConst.DEFAULT_GROUP, new Listener() {
+            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
+            configService.getConfig(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
+            configService.addListener(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;

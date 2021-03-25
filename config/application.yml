@@ -2,12 +2,12 @@ nacos:
   config:
     type: yaml #配置集的配置格式
     server-addr: 192.168.44.12:8848 #配置中心地址
-    namespace: nacos-namespace-galaxy #命名空间
+    namespace: e9f176b1-0132-49ae-9310-3c504b0a3087 #命名空间
     data-id: galaxy-qgw-service # 数据集ID
     auto-refresh: true #开启自动刷新
-    group: DEFAULT_GROUP  #配置对应的分组
-    username: galaxy #Nacos认证用户
-    password: galaxy #Nacos认证密码
+    group: Galaxy  #配置对应的分组
+    username: nacos #Nacos认证用户
+    password: nacos #Nacos认证密码
     bootstrap:
       enable: true #开启配置预加载功能
       log:

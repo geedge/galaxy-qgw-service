@@ -12,19 +12,13 @@ public class NacosConst {
 
     public static final String FIXED = "fixed-";
 
-    public static final String NAMESPACE_AVRO = "nacos-namespace-avro";
+    public static final String SNAPSHOT_TENANT = "snapshot-tenant";
 
     public static final String META_DATA_ID = "meta_data";
 
     public static final String CLICKHOUSE_GROUP = "CLICKHOUSE_GROUP";
 
     public static final String DRUID_GROUP = "DRUID_GROUP";
-
-    public static final String DEFAULT_GROUP = "DEFAULT_GROUP";
-
-    public static final String SNAPSHOT_TENANT = "snapshot-tenant";
-
-    public final static String NAMESPACE_GALAXY = "nacos-namespace-galaxy";
 
     public static final String CK_FILTER_DATA_ID = "galaxy-qgw-ck-filter";
 
