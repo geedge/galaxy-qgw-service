@@ -9,12 +9,12 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.QueryTypeEnum;
 import com.mesalab.knowledge.service.KnowledgeService;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Enumeration;
 
 @RestController
 @RequestMapping(value = "/knowledge")
@@ -35,14 +35,19 @@ public class KnowledgeController {
      * @return com.mesalab.common.base.BaseResult
      **/
     @PostMapping(value = "/v1/", produces = "application/json")
-    public BaseResult knowledgeQuery(HttpServletRequest request,  @RequestBody Object object) {
-        if (EnumUtils.isValidEnum(QueryTypeEnum.class,StringUtil.upperCase(request.getQueryString()))) {
-            log.debug("服务推荐接口, 参数: queryString is {},params is {}", request.getQueryString(), object);
+    public BaseResult knowledgeQuery(HttpServletRequest request, @RequestBody Object object) {
+        Enumeration<String> parameterNames = request.getParameterNames();
+        while (parameterNames.hasMoreElements()) {
+            String param = parameterNames.nextElement();
+            log.debug("服务推荐接口, 参数: queryString is {},params is {}", param, object);
+            if (!EnumUtils.isValidEnum(QueryTypeEnum.class, StringUtil.upperCase(param))
+                    || StringUtil.isNotEmpty(request.getParameter(param))) {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
+            }
             return knowledgeService.query(object);
-        } else {
-            log.error("服务推荐接口, 错误:queryString is {}, params is {}", request.getQueryString(), object);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
         }
+        throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+                ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
     }
 }

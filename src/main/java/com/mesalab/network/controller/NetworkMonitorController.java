@@ -2,6 +2,7 @@ package com.mesalab.network.controller;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.google.common.collect.Sets;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -9,11 +10,14 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.dsl.DSLValidate;
 import com.mesalab.network.service.NetworkMonitorService;
+import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Enumeration;
+import java.util.HashSet;
 
 
 /**
@@ -30,16 +34,27 @@ public class NetworkMonitorController {
     @Autowired
     private NetworkMonitorService networkMonitorService;
     private static final String PROTOCOL = "protocol";
+    private static final HashSet<String> ROUTES = Sets.newHashSet();
+
+    static {
+        ROUTES.add(PROTOCOL);
+    }
 
     @PostMapping(value = "/traffic/v1/", produces = "application/json")
     public BaseResult trafficDistribution(HttpServletRequest request, @Validated @RequestBody DSLObject dslObject) {
-        String queryString = request.getQueryString();
-        log.debug("流量分布接口, 参数: queryString is {}, params is {}", queryString, dslObject);
-        dslValidate.executeValidate(dslObject);
-        if (PROTOCOL.equalsIgnoreCase(queryString)) {
-            return networkMonitorService.getTrafficDistributedInfo(dslObject);
-        } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Support protocol only", null);
+        Enumeration<String> parameterNames = request.getParameterNames();
+        while (parameterNames.hasMoreElements()) {
+            String param = parameterNames.nextElement();
+            if (!ROUTES.contains(StringUtil.lowerCase(param))
+                    || StringUtil.isNotEmpty(request.getParameter(param))) {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Support：" + ROUTES, null);
+            }
+            log.debug("流量分布接口, 参数: queryString is {}, params is {}", param, dslObject);
+            dslValidate.executeValidate(dslObject);
+            if (PROTOCOL.equalsIgnoreCase(param)) {
+                return networkMonitorService.getTrafficDistributedInfo(dslObject);
+            }
         }
+        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Support：" + ROUTES, null);
     }
 }

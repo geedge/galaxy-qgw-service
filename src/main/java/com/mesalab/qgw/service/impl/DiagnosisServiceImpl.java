@@ -400,7 +400,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                     throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                             ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "The Directory is null: " + path);
                 }
-                for (File file : Objects.requireNonNull(schemaDir.listFiles())) {
+                for (File file : FileUtil.loopFiles(schemaDir)) {
                     try {
                         if (StringUtil.lowerCase(file.getName()).endsWith(AVRO_SUFFIX)) {
                             Schema schema = new Schema.Parser().parse(file);

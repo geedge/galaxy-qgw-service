@@ -23,7 +23,7 @@ public class ArpStartPlugin extends ActiveRecordPlugin {
     public boolean start() {
         try {
             super.start();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("ArpStartPlugin init error:{}", e.getMessage());
         }
         return true;
