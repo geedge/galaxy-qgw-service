@@ -4,6 +4,7 @@ import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
 import com.mesalab.common.enums.EnvironmentEnum;
 import com.mesalab.common.enums.EnvironmentGroupEnum;
+import com.mesalab.common.nacos.NacosConst;
 import lombok.Data;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,7 @@ import java.util.Map;
  */
 @Data
 @Component
-@NacosConfigurationProperties(prefix = "project", dataId = "galaxy-qgw-service", type = ConfigType.YAML, autoRefreshed = true)
+@NacosConfigurationProperties(prefix = "project", dataId = "galaxy-qgw-service", groupId = NacosConst.GALAXY_GROUP, type = ConfigType.YAML, autoRefreshed = true)
 public class ProjectInfo {
 
     /**

@@ -170,7 +170,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
             for (String table : tables) {
                 try {
                     ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
-                    String content = configService.getConfig(table, metadataBean.getGroup(), 3000);
+                    String content = configService.getConfig(table, nacosConfig.getGroup(), 3000);
                     addSchema(content, metadataBean);
                     configService.addListener(table, nacosConfig.getGroup(), new Listener() {
                         @Override

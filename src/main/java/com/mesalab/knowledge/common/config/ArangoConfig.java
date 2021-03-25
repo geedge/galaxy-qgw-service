@@ -2,6 +2,7 @@ package com.mesalab.knowledge.common.config;
 
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
+import com.mesalab.common.nacos.NacosConst;
 import org.springframework.stereotype.Component;
 
 /**
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Component;
  * @create: 2020-07-07
  **/
 @Component
-@NacosConfigurationProperties(prefix = "arango", dataId = "galaxy-qgw-service", type = ConfigType.YAML, autoRefreshed = true)
+@NacosConfigurationProperties(prefix = "arango", dataId = "galaxy-qgw-service", groupId = NacosConst.GALAXY_GROUP, type = ConfigType.YAML, autoRefreshed = true)
 public class ArangoConfig {
 
     private String server;

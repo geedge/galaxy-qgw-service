@@ -2,6 +2,7 @@ package com.mesalab.qgw.model.api;
 
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
+import com.mesalab.common.nacos.NacosConst;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ import java.util.List;
  */
 @Data
 @Component
-@NacosConfigurationProperties(dataId = "galaxy-qgw-version", type = ConfigType.JSON, autoRefreshed = true)
+@NacosConfigurationProperties(dataId = "galaxy-qgw-version", groupId = NacosConst.GALAXY_GROUP, type = ConfigType.JSON, autoRefreshed = true)
 public class VersionInfo {
 
     private String product;
