@@ -1,9 +1,8 @@
 package com.mesalab.common.plugin;
 
 import com.jfinal.plugin.druid.DruidPlugin;
-import com.mesalab.common.configuration.BifangMysqlConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -18,12 +17,18 @@ import javax.annotation.PostConstruct;
 @Component
 public class ActiveRecordInit {
 
-    @Autowired
-    private BifangMysqlConfig bmc;
+    @Value("${spring.datasource.url}")
+    private String url;
+
+    @Value("${spring.datasource.username}")
+    private String userName;
+
+    @Value("${spring.datasource.pin}")
+    private String pin;
 
     @PostConstruct
     public void initDialect() {
-        DruidPlugin dp = new DruidPlugin(bmc.getUrl(), bmc.getUserName(), bmc.getPin());
+        DruidPlugin dp = new DruidPlugin(url, userName, pin);
         ArpStartPlugin arp = new ArpStartPlugin(dp);
         arp.addSqlTemplate("sql-temelate.sql");
         dp.start();
