@@ -59,7 +59,7 @@ public class ClickhouseWriter extends Writer {
                 }
             });
         } catch (NacosException e) {
-            log.info("NacosException:{}", e);
+            log.error("NacosException:{}", e);
         }
     }
 
@@ -78,7 +78,7 @@ public class ClickhouseWriter extends Writer {
                 }
             });
         } catch (NacosException e) {
-            log.info("NacosException:{}", e);
+            log.error("NacosException:{}", e);
         }
     }
 

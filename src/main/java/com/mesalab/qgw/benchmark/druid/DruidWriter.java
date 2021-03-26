@@ -60,7 +60,7 @@ public class DruidWriter extends Writer {
                 }
             });
         } catch (NacosException e) {
-            log.info("NacosException:{}", e);
+            log.error("NacosException:{}", e);
         }
     }
 
@@ -79,7 +79,7 @@ public class DruidWriter extends Writer {
                 }
             });
         } catch (NacosException e) {
-            log.info("NacosException:{}", e);
+            log.error("NacosException:{}", e);
         }
     }
 
