@@ -33,6 +33,9 @@ public class EngineWriter extends Writer {
     @Autowired
     private NacosConfig nacosConfig;
 
+    @Autowired
+    private ConfigService configService;
+
     @PostConstruct
     public void init() {
         initFilterJson();
@@ -43,7 +46,6 @@ public class EngineWriter extends Writer {
 
     private void initFilterJson() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
             engineFilterJson = configService.getConfig(NacosConst.ENGINE_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
             configService.addListener(NacosConst.ENGINE_FILTER_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
@@ -64,7 +66,6 @@ public class EngineWriter extends Writer {
 
     private void initQueriesTemplate() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
             configService.getConfig(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
             configService.addListener(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override

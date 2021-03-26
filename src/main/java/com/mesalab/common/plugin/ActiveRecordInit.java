@@ -1,7 +1,7 @@
 package com.mesalab.common.plugin;
 
 import com.jfinal.plugin.druid.DruidPlugin;
-import com.mesalab.common.configuration.BifangMysqlConfiguration;
+import com.mesalab.common.configuration.BifangMysqlConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
 public class ActiveRecordInit {
 
     @Autowired
-    private BifangMysqlConfiguration bmc;
+    private BifangMysqlConfig bmc;
 
     @PostConstruct
     public void initDialect() {

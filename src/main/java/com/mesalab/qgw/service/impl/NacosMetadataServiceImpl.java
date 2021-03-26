@@ -44,6 +44,8 @@ public class NacosMetadataServiceImpl implements MetadataService {
     @Autowired
     private NacosConfig nacosConfig;
     @Autowired
+    private ConfigService configService;
+    @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
@@ -144,7 +146,6 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     private void initTables() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
             String content = configService.getConfig(NacosConst.META_DATA_ID, nacosConfig.getGroup(), 3000);
             metadataBeans = JSONUtil.toList(content, MetadataBean.class);
             configService.addListener(NacosConst.META_DATA_ID, nacosConfig.getGroup(), new Listener() {
@@ -169,7 +170,6 @@ public class NacosMetadataServiceImpl implements MetadataService {
             List<String> tables = metadataBean.getTables();
             for (String table : tables) {
                 try {
-                    ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
                     String content = configService.getConfig(table, nacosConfig.getGroup(), 3000);
                     addSchema(content, metadataBean);
                     configService.addListener(table, nacosConfig.getGroup(), new Listener() {

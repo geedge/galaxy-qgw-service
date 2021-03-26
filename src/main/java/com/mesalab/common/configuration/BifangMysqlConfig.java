@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component
-public class BifangMysqlConfiguration {
+public class BifangMysqlConfig {
 
     @Value("${spring.datasource.url}")
     private String url;

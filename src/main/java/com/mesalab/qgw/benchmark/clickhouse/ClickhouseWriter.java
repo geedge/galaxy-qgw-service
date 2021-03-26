@@ -32,6 +32,9 @@ public class ClickhouseWriter extends Writer {
     @Autowired
     private NacosConfig nacosConfig;
 
+    @Autowired
+    private ConfigService configService;
+
     @PostConstruct
     public void init() {
         initFilterJson();
@@ -42,7 +45,6 @@ public class ClickhouseWriter extends Writer {
 
     public void initFilterJson() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
             ckFilterJson = configService.getConfig(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
             configService.addListener(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
@@ -63,7 +65,6 @@ public class ClickhouseWriter extends Writer {
 
     private void initQueriesTemplate() {
         try {
-            ConfigService configService = NacosFactory.createConfigService(nacosConfig.getProperties());
             configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
             configService.addListener(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), new Listener() {
                 @Override
