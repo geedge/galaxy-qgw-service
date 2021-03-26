@@ -1,0 +1,56 @@
+{
+  "namespace": "tsg_galaxy_v3",
+  "type": "record",
+  "name": "connection_record_log_common_server_ip",
+  "doc": "{\"primary_key\":\"common_log_id\",\"index_key\":\"common_server_ip\"}",
+  "fields": [
+    {
+      "name": "common_log_id",
+      "type": "long"
+    },
+    {
+      "name": "common_recv_time",
+      "type": "long"
+    },
+    {
+      "name": "common_policy_id",
+      "type": "long"
+    },
+    {
+      "name": "common_action",
+      "type": "int"
+    },
+    {
+      "name": "common_server_ip",
+      "type": "string"
+    },
+    {
+      "name": "common_client_ip",
+      "type": "string"
+    },
+    {
+      "name": "common_sled_ip",
+      "type": "string"
+    },
+    {
+      "name": "common_entrance_id",
+      "type": "int"
+    },
+    {
+      "name": "common_subscriber_id",
+      "type": "string"
+    },
+    {
+      "name": "common_stream_trace_id",
+      "type": "long"
+    },
+    {
+      "name": "http_domain",
+      "type": "string"
+    },
+    {
+      "name": "ssl_sni",
+      "type": "string"
+    }
+  ]
+}

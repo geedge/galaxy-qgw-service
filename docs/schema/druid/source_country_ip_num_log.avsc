@@ -1,0 +1,20 @@
+{
+  "namespace": "druid",
+  "type": "record",
+  "name": "source_country_ip_num_log",
+  "doc": "{\"partition_key\":\"__time\"}",
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "country",
+      "type": "string"
+    },
+    {
+      "name": "ip_object",
+      "type": "string"
+    }
+  ]
+}
