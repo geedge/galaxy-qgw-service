@@ -9,6 +9,7 @@ import com.alibaba.nacos.client.config.impl.LocalConfigInfoProcessor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.zdjizhi.utils.StringUtil;
@@ -48,7 +49,7 @@ public abstract class Writer {
             if (StringUtil.isNotEmpty(indexFilter)) {
                 environment.put(LABEL_INDEX_FILTER, indexFilter.stream().findFirst().get());
             }
-        } catch (Exception e) {
+        } catch (JsonPathException e) {
             log.error(" Poc SQL is not found {} ", e);
         }
         return environment;
