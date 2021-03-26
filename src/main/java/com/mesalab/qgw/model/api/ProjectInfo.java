@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @Data
 @Component
-@NacosConfigurationProperties(prefix = "project", dataId = "galaxy-qgw-service", groupId = NacosConst.GALAXY_GROUP, type = ConfigType.YAML, autoRefreshed = true)
+@NacosConfigurationProperties(prefix = "project", dataId = "${nacos.config.data-id}", groupId = "${nacos.config.group}", type = ConfigType.YAML, autoRefreshed = true)
 public class ProjectInfo {
 
     /**

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.io.Serializable;
 
 @Component
-@NacosConfigurationProperties(prefix = "xxl-job-admin", dataId = "galaxy-qgw-service", groupId = NacosConst.GALAXY_GROUP, type = ConfigType.YAML, autoRefreshed = true)
+@NacosConfigurationProperties(prefix = "xxl-job-admin", dataId = "${nacos.config.data-id}", groupId = "${nacos.config.group}", type = ConfigType.YAML, autoRefreshed = true)
 public class JobAdminHttpSource implements Serializable {
 
     private String url;

@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 @Data
 @Component
-@NacosConfigurationProperties(prefix = "druid", dataId = "galaxy-qgw-service", groupId = NacosConst.GALAXY_GROUP, type = ConfigType.YAML, autoRefreshed = true)
+@NacosConfigurationProperties(prefix = "druid", dataId = "${nacos.config.data-id}", groupId = "${nacos.config.group}", type = ConfigType.YAML, autoRefreshed = true)
 public class DruidIoHttpSource implements Serializable {
     private String url;
     private String dbname;

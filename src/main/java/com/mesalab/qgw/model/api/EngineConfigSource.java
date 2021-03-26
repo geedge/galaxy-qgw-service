@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 @Data
 @Component
-@NacosConfigurationProperties(prefix = "engine", dataId = "galaxy-qgw-service", groupId = NacosConst.GALAXY_GROUP, type = ConfigType.YAML, autoRefreshed = true)
+@NacosConfigurationProperties(prefix = "engine", dataId = "${nacos.config.data-id}", groupId = "${nacos.config.group}", type = ConfigType.YAML, autoRefreshed = true)
 public class EngineConfigSource implements Serializable {
 
     private int maxCacheNum;
