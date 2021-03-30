@@ -247,7 +247,7 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-            <version>5.5.4</version>
+            <version>${hutool.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.java-json-tools</groupId>
@@ -560,10 +560,11 @@
                     <forceTags>true</forceTags>
                     <imageName>${docker.registry}:${docker.registry.port}/${docker.image.prefix}/${project.artifactId}
                     </imageName>
-                    <dockerHost>http://192.168.40.153:2375</dockerHost>
+                    <dockerHost>http://${docker.build}:${docker.build.port}</dockerHost>
                     <dockerDirectory>docker</dockerDirectory>
                     <buildArgs>
-                        <JDK_IMAGE>192.168.40.153:9080/common/jdk:1.8.0_73-go</JDK_IMAGE>
+                        <JDK_IMAGE>${docker.registry}:${docker.registry.port}/common/jdk:1.8.0_73-jre</JDK_IMAGE>
+                        <GOLANG_IMAGE>${docker.registry}:${docker.registry.port}/common/golang:1.15.6</GOLANG_IMAGE>
                         <JAR_FILE>${project.build.finalName}.xjar</JAR_FILE>
                     </buildArgs>
                     <imageTags>
