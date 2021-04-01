@@ -20,15 +20,15 @@ public class NacosConst {
 
     public static final String DRUID_GROUP = "DRUID_GROUP";
 
-    public static final String CK_FILTER_DATA_ID = "galaxy-qgw-ck-filter";
+    public static final String CK_FILTER_DATA_ID = "ck-filter";
 
-    public static final String CK_QUERIES_TEMPLATE_DATA_ID = "galaxy-qgw-ck-queries-template";
+    public static final String CK_QUERIES_TEMPLATE_DATA_ID = "ck-queries-template";
 
-    public static final String DRUID_FILTER_DATA_ID = "galaxy-qgw-druid-filter";
+    public static final String DRUID_FILTER_DATA_ID = "druid-filter";
 
-    public static final String DRUID_QUERIES_TEMPLATE_DATA_ID = "galaxy-qgw-druid-queries-template";
+    public static final String DRUID_QUERIES_TEMPLATE_DATA_ID = "druid-queries-template";
 
-    public static final String ENGINE_FILTER_DATA_ID = "galaxy-qgw-engine-filter";
+    public static final String ENGINE_FILTER_DATA_ID = "engine-filter";
 
-    public static final String ENGINE_QUERIES_TEMPLATE_DATA_ID = "galaxy-qgw-engine-queries-template";
+    public static final String ENGINE_QUERIES_TEMPLATE_DATA_ID = "engine-queries-template";
 }
