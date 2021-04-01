@@ -14,6 +14,7 @@ import net.sf.jsqlparser.statement.Statement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import java.io.File;
@@ -24,7 +25,8 @@ import java.util.Optional;
 @EnableAutoConfiguration
 public class ClickHouseTest extends GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
-    private ClickhouseWriter writer = new ClickhouseWriter();
+    @Autowired
+    private ClickhouseWriter writer;
 
     @Before
     public void testBefore() {

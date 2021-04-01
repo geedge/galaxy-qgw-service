@@ -14,6 +14,7 @@ import net.sf.jsqlparser.statement.Statement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import java.io.File;
@@ -25,12 +26,13 @@ import java.util.Optional;
 public class DruidTest extends GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
 
-    private DruidWriter writer = new DruidWriter();
+    @Autowired
+    private DruidWriter writer;
 
 
 
     @Test
-    public void testSqlParser() throws IOException {
+    public void testSqlParser() {
         String pocFile = writer.buildPocSQL();
         Optional<File> ckTestFile =  Optional.of(new File(pocFile));
         if (ckTestFile.isPresent()) {
