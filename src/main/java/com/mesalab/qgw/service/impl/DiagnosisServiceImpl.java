@@ -293,11 +293,12 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         for (String tableName : schemas.keySet()) {
 
             Map<String, String> result = executeQuery("describe " + tableName, Optional.empty());
-            if (HttpStatus.SC_OK != Integer.parseInt(result.get("status"))) {
+            if (HttpStatus.SC_OK != Integer.parseInt(result.get("status"))
+                    || Integer.parseInt(JsonPath.read(result.get("result"), "$.status").toString()) != HttpStatus.SC_OK) {
                 log.error("查询表结构失败：" + result.get("result"));
                 throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                        " The Table Structure query failed", null);
+                        " The Table[" + tableName + "] Structure query failed", null);
             }
             List<Map<String, Object>> dbFields = JsonPath.read(result.get("result"), "$.data.fields.*");
 
