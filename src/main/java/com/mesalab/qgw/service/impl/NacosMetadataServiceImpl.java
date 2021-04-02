@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
@@ -21,7 +20,6 @@ import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +28,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.Executor;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @Date: 2021-03-11 15:48
@@ -157,11 +157,56 @@ public class NacosMetadataServiceImpl implements MetadataService {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo Schema Tables {}", configInfo);
-                    metadataBeans = JSONUtil.toList(configInfo, MetadataBean.class);
+                    updateMetaData(configInfo);
                 }
             });
         } catch (NacosException e) {
             log.error("NacosException: ", e);
+        }
+    }
+
+    private void updateMetaData(String configInfo) {
+        List<MetadataBean> tempMetadatabeans = JSONUtil.toList(configInfo, MetadataBean.class);
+        filterTables(tempMetadatabeans, NacosConst.CLICKHOUSE_GROUP);
+        filterTables(tempMetadatabeans, NacosConst.DRUID_GROUP);
+        metadataBeans = tempMetadatabeans;
+    }
+
+    private void filterTables(List<MetadataBean> tempMetadatabeans, String group) {
+        List<String> tempTables = tempMetadatabeans.stream().filter(item -> item.getGroup().equals(group)).findFirst().get().getTables();
+        List<String> tables = metadataBeans.stream().filter(item -> item.getGroup().equals(group)).findFirst().get().getTables();
+        List<String> reduce;
+        if (tempTables.size() > tables.size()) {
+            reduce = tempTables.stream().filter(item -> !tables.contains(item)).collect(toList());
+            addListener(reduce);
+        } else if (tempTables.size() < tables.size()) {
+            reduce = tables.stream().filter(item -> !tempTables.contains(item)).collect(toList());
+            for (String s : reduce) {
+                allSchemaMap.remove(s);
+                clickHouseSchemaMap.remove(s);
+                druidSchemaMap.remove(s);
+            }
+        }
+    }
+
+    private void addListener(List<String> reduce) {
+        for (String s : reduce) {
+            try {
+                configService.addListener(s, nacosConfig.getGroup(), new Listener() {
+                    @Override
+                    public Executor getExecutor() {
+                        return null;
+                    }
+
+                    @Override
+                    public void receiveConfigInfo(String configInfo) {
+                        log.info("ReceiveConfigInfo Schema Tables {}", configInfo);
+                        updateSchema(configInfo);
+                    }
+                });
+            } catch (NacosException e) {
+                log.error("NacosException: ", e);
+            }
         }
     }
 
@@ -171,7 +216,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
             for (String table : tables) {
                 try {
                     String content = configService.getConfig(table, nacosConfig.getGroup(), 3000);
-                    addSchema(content, metadataBean);
+                    updateSchema(content);
                     configService.addListener(table, nacosConfig.getGroup(), new Listener() {
                         @Override
                         public Executor getExecutor() {
@@ -256,28 +301,15 @@ public class NacosMetadataServiceImpl implements MetadataService {
         return schemas.get(tableName);
     }
 
-    private void addSchema(String content, MetadataBean metadataBean) {
-        if (StrUtil.isBlank(content)) return;
-        Schema schema = new Schema.Parser().parse(content);
-        allSchemaMap.put(schema.getName(), schema);
-
-        if (NacosConst.CLICKHOUSE_GROUP.equals(metadataBean.getGroup())) {
-            clickHouseSchemaMap.put(schema.getName(), schema);
-        } else if (NacosConst.DRUID_GROUP.equals(metadataBean.getGroup())) {
-            druidSchemaMap.put(schema.getName(), schema);
-        }
-    }
-
     private void updateSchema(String configInfo) {
         if (StrUtil.isBlank(configInfo)) return;
         Schema schema = new Schema.Parser().parse(configInfo);
         allSchemaMap.put(schema.getName(), schema);
-        Schema ckSchema = clickHouseSchemaMap.get(schema.getName());
-        if (Objects.nonNull(ckSchema)) {
+        String namespace = schema.getNamespace();
+        if (NacosConst.CK_NAMESPACE.equals(namespace)) {
             clickHouseSchemaMap.put(schema.getName(), schema);
         }
-        Schema druidSchema = druidSchemaMap.get(schema.getName());
-        if (Objects.nonNull(druidSchema)) {
+        if (NacosConst.DR_NAMESPACE.equals(namespace)) {
             druidSchemaMap.put(schema.getName(), schema);
         }
     }

@@ -12,6 +12,10 @@ public class NacosConst {
 
     public static final String FIXED = "fixed-";
 
+    public static final String CK_NAMESPACE = "tsg_galaxy_v3";
+
+    public static final String DR_NAMESPACE = "druid";
+
     public static final String SNAPSHOT_TENANT = "snapshot-tenant";
 
     public static final String META_DATA_ID = "meta_data";
