@@ -169,7 +169,7 @@
       "name": "common_sub_action",
       "label": "Sub Action",
       "type": "string",
-      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"Allow\",\"value\":\"Allow\"},{\"code\":\"Deny\",\"value\":\"Deny\"},{\"code\":\"Monitor\",\"value\":\"Monitor\"},{\"code\":\"Replace\",\"value\":\"Replace\"},{\"code\":\"Redirect\",\"value\":\"Redirect\"},{\"code\":\"Insert\",\"value\":\"Insert\"},{\"code\":\"Hijack\",\"value\":\"Hijack\"}],\"allow_query\":\"true\"}"
+      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"allow\",\"value\":\"allow\"},{\"code\":\"deny\",\"value\":\"deny\"},{\"code\":\"monitor\",\"value\":\"monitor\"},{\"code\":\"replace\",\"value\":\"replace\"},{\"code\":\"redirect\",\"value\":\"redirect\"},{\"code\":\"insert\",\"value\":\"insert\"},{\"code\":\"hijack\",\"value\":\"hijack\"}],\"allow_query\":\"true\"}"
     },
     {
       "name": "common_user_region",
