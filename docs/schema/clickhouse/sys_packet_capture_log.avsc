@@ -144,6 +144,26 @@
       "type": "long"
     },
     {
+      "name": "common_c2s_pkt_diff",
+      "label": "Packets Sent(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_pkt_diff",
+      "label": "Packets Received(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_byte_diff",
+      "label": "Bytes Sent(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_byte_diff",
+      "label": "Bytes Received(Diff)",
+      "type": "long"
+    },
+    {
       "name": "common_service",
       "label": "Service",
       "type": "int",
@@ -238,6 +258,11 @@
     {
       "name": "common_l7_protocol",
       "label": "L7 Protocol",
+      "type": "string"
+    },
+    {
+      "name": "common_service_category",
+      "label": "FQDN Category",
       "type": "string"
     },
     {
