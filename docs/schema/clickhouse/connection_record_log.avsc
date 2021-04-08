@@ -127,22 +127,26 @@
     {
       "name": "common_c2s_pkt_num",
       "label": "Packets Sent",
-      "type": "long"
+      "type": "long",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_s2c_pkt_num",
       "label": "Packets Received",
-      "type": "long"
+      "type": "long",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
-      "type": "long"
+      "type": "long",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
-      "type": "long"
+      "type": "long",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_c2s_pkt_diff",
@@ -283,12 +287,14 @@
     {
       "name": "common_establish_latency_ms",
       "label": "Establish Latency(ms)",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_con_duration_ms",
       "label": "Duration(ms)",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_stream_dir",
@@ -519,12 +525,14 @@
     {
       "name": "http_response_lantency_ms",
       "label": "HTTP.Response Latency(ms)",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "http_session_duration_ms",
       "label": "HTTP.Session Duration(ms)",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "http_action_file_size",
@@ -539,7 +547,8 @@
     {
       "name": "mail_account",
       "label": "Mail.Account",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "mail_from_cmd",
@@ -555,13 +564,13 @@
       "name": "mail_from",
       "label": "Mail.From",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"email\"}}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"email\"}}"
     },
     {
       "name": "mail_to",
       "label": "Mail.To",
       "type": "string",
-      "doc": "{\"constraints\":{\"type\":\"email\"}}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"type\":\"email\"}}"
     },
     {
       "name": "mail_cc",
@@ -577,7 +586,7 @@
       "name": "mail_subject",
       "label": "Mail.Subject",
       "type": "string",
-      "doc": "{\"format\":{\"functions\":\"decode_of_base64\",\"param\":\"$.mail_subject_charset\"}}"
+      "doc": "{\"allow_query\":\"true\",\"format\":{\"functions\":\"decode_of_base64\",\"param\":\"$.mail_subject_charset\"}}"
     },
     {
       "name": "mail_subject_charset",
@@ -692,7 +701,8 @@
     {
       "name": "dns_qname",
       "label": "DNS.QNAME",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "dns_qtype",
@@ -793,7 +803,7 @@
       "name": "ssl_con_latency_ms",
       "label": "SSL.Connection Latency(ms)",
       "type": "int",
-      "doc": "{\"visibility\":\"disabled\"}"
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "ssl_ja3_fingerprint",
@@ -826,7 +836,7 @@
       "name": "quic_sni",
       "label": "QUIC.SNI",
       "type": "string",
-      "doc": "{\"format\":{\"functions\":\"sub_domain\",\"appendTo\":\"http_domain\"}}"
+      "doc": "{\"allow_query\":\"true\",\"format\":{\"functions\":\"sub_domain\",\"appendTo\":\"http_domain\"}}"
     },
     {
       "name": "quic_user_agent",
@@ -836,7 +846,8 @@
     {
       "name": "ftp_account",
       "label": "FTP.Account",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "ftp_url",
@@ -910,17 +921,20 @@
     {
       "name": "sip_call_id",
       "label": "SIP.Call-ID",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "sip_originator_description",
       "label": "SIP.Originator",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "sip_responder_description",
       "label": "SIP.Responder",
-      "type": "string"
+      "type": "string",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "sip_user_agent",

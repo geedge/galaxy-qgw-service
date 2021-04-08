@@ -140,12 +140,14 @@
     {
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
-      "type": "long"
+      "type": "long",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
-      "type": "long"
+      "type": "long",
+      "doc": "{\"allow_query\":\"true\"}"
     },
     {
       "name": "common_c2s_pkt_diff",
@@ -293,12 +295,14 @@
     {
       "name": "common_establish_latency_ms",
       "label": "Establish Latency(ms)",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_con_duration_ms",
       "label": "Duration(ms)",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_stream_dir",
