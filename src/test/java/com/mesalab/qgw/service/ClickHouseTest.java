@@ -35,7 +35,7 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
 
 
     @Test
-    public void testSqlParser() throws IOException {
+    public void testSqlParser() {
         String pocFile = writer.buildPocSQL();
         Optional<File> ckTestFile =  Optional.of(new File(pocFile));
         if (ckTestFile.isPresent()) {
