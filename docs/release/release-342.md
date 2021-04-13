@@ -9,7 +9,7 @@
  * 支持返回结果meta遵循avro定义类型(TSG-5776)。
  * 支持Nacos统一管理配置，集成应用配置、schema元数据、版本信息和sql测试数据集。
  * 修复Schema，对Sub Action字典值修正为小写(TSG-5938)。
- * 修改Schema通联与安全去掉rtp_originator_dir。
- * 扩展Schema增加日志详情other。
+ * 修改Schema，通联与安全隐藏rtp_originator_dir。
+ * 扩展Schema，增加日志详情other。
  
  
