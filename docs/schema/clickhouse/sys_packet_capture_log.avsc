@@ -29,6 +29,24 @@
       "doc": "{\"allow_query\":\"true\"}"
     },
     {
+      "name": "common_imei",
+      "label": "IMEI",
+      "type": "string",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_imsi",
+      "label": "IMSI",
+      "type": "string",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
+      "name": "common_phone_number",
+      "label": "Phone Number",
+      "type": "string",
+      "doc": "{\"visibility\":\"disabled\"}"
+    },
+    {
       "name": "common_client_ip",
       "label": "Client IP",
       "type": "string",
@@ -366,6 +384,26 @@
       "label": "Unorder Packets(s2c)",
       "type": "long",
       "doc": "{\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "common_c2s_pkt_retrans",
+      "label": "Packet Retransmission(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_pkt_retrans",
+      "label": "Packet Retransmission(s2c)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_byte_retrans",
+      "label": "Byte Retransmission(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_byte_retrans",
+      "label": "Byte Retransmission(s2c)",
+      "type": "long"
     },
     {
       "name": "common_tcp_client_isn",
