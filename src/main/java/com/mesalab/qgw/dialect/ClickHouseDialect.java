@@ -952,7 +952,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setData(resultMap.get("data"));
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
-        } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
+        } else {
             baseResult = BaseResultGenerator.failure(baseResult.getStatus(),
                     ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), normErrorMessage(dataObject));
         }
