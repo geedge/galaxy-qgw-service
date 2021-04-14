@@ -2,15 +2,9 @@ package com.mesalab.qgw.model.api;
 
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
-import com.mesalab.common.enums.EnvironmentEnum;
-import com.mesalab.common.enums.EnvironmentGroupEnum;
-import com.mesalab.common.nacos.NacosConst;
 import lombok.Data;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**

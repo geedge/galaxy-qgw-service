@@ -953,16 +953,19 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,
-                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager" : String.valueOf(dataObject));
-        } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager" : String.valueOf(dataObject));
-        } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager " : String.valueOf(dataObject));
+            baseResult = BaseResultGenerator.failure(baseResult.getStatus(),
+                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), normErrorMessage(dataObject));
         }
         return baseResult;
+    }
+
+    private String normErrorMessage(Object dataObject) {
+        String message = StringUtil.isNotEmpty(dataObject) ? String.valueOf(dataObject)
+                : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
+        message = message.startsWith("Code: 47") ?
+                message.substring(0, !message.contains(" while ") ? message.length() : message.indexOf(" while "))
+                : message;
+        return message;
     }
 
     private boolean containAggregateFunction(String sql) {

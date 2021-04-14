@@ -6,6 +6,7 @@ import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.DataTypeMapping;
@@ -186,20 +187,23 @@ public class DruidDialect extends AbstractDataSourceDialect {
             baseResult.setData(allResults);
             baseResult.setMeta(unifyMeta(allResults));
             baseResult.setStatistics(statistics);
-        } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " : String.valueOf(dataObject));
-        } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " : String.valueOf(dataObject));
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " : String.valueOf(dataObject));
+            baseResult = BaseResultGenerator.failure(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                    normErrorMessage(dataObject));
         }
         return baseResult;
     }
 
-
+    private String normErrorMessage(Object dataObject) {
+        String message = String.valueOf(dataObject);
+        try {
+            message = StringUtil.isNotBlank(message) ? JsonPath.read(dataObject.toString(), "$.errorMessage")
+                    : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
+        } catch (JsonPathException e) {
+            log.error("Build druid-errorMessage data is: {}", dataObject);
+        }
+        return message;
+    }
 
 
     /**

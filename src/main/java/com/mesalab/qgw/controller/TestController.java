@@ -1,21 +1,20 @@
 package com.mesalab.qgw.controller;
 
+import com.google.common.collect.Lists;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.HttpConfig;
-import com.mesalab.qgw.model.api.ProjectInfo;
-import com.mesalab.common.enums.EnvironmentEnum;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.DiagnosisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
+import java.util.List;
 
 /**
  * 测试Controller
@@ -29,8 +28,6 @@ import java.util.Arrays;
 @RequestMapping(value = "test")
 public class TestController {
 
-    @Autowired
-    private Environment environment;
     @Autowired
     private DiagnosisService diagnosisService;
     @Autowired
@@ -49,6 +46,8 @@ public class TestController {
     private ArangoConfig arangoConfig;
     @Autowired
     private HttpConfig httpConfig;
+    @Autowired
+    private NacosConfig nacosConfig;
 
     /**
      * 测试
@@ -63,37 +62,25 @@ public class TestController {
     }
 
     /**
-     * 获取项目环境值，获取的是Environment对象中的activeProfiles，String[]
+     * 获取项目环境
      *
      * @return 返回当前项目的环境值
      */
     @GetMapping(value = "activeProfiles")
     public BaseResult activeProfiles() {
-        String[] activeProfiles = environment.getActiveProfiles();
-        log.info("Active Profiles: {}", Arrays.toString(activeProfiles));
+        List<String> activeProfiles = Lists.newArrayList(nacosConfig.getNamespace());
+        log.info("Current Namespace: {}", activeProfiles);
         return BaseResultGenerator.success(activeProfiles);
     }
 
     /**
-     * 运行环境，将Environment.activeProfiles注入到projectProfiles中
+     * 运行环境
      *
      * @return 返回当前项目的运行环境
      */
     @GetMapping(value = "env")
     public BaseResult env() {
-        return BaseResultGenerator.success(environment.getActiveProfiles());
-    }
-
-    /**
-     * 是否是生产环境
-     *
-     * @return 返回当前项目的运行环境
-     */
-    @GetMapping(value = "isProduct")
-    public BaseResult isProduct() {
-        boolean isProduct = environment.acceptsProfiles(EnvironmentEnum.PROD.getName());
-        String msg = "Current Environment is" + (isProduct ? "" : " not") + " product";
-        return BaseResultGenerator.success(msg);
+        return BaseResultGenerator.success(Lists.newArrayList(nacosConfig.getNamespace()));
     }
 
     /**

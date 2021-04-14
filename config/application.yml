@@ -12,9 +12,6 @@ nacos:
       enable: true #开启配置预加载功能
       log:
         enable: true #开启Nacos支持日志级别的加载时机
-spring:
-  profiles:
-    active: dev
 logging:
   config: ./config/log4j2.xml
 
