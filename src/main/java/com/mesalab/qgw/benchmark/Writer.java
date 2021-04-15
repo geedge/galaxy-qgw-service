@@ -134,6 +134,27 @@ public abstract class Writer {
         return filePath.toString();
     }
 
+    protected String buildLocalDataFilePath(String dataId) {
+        String localDataPath = LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH.replaceAll("\\\\", "/");
+        StringBuilder filePath = new StringBuilder(localDataPath);
+        filePath.append("/");
+        filePath.append(NacosConst.FIXED);
+        filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");
+        filePath.append(nacosConfig.getNamespace()).append(NacosConst.NACOS);
+        filePath.append("/");
+        filePath.append(NacosConst.NACOS_LOCAL_DATA);
+        filePath.append("/");
+        filePath.append(NacosConst.CONFIG_DATA_TENANT);
+        filePath.append("/");
+        filePath.append(nacosConfig.getNamespace());
+        filePath.append("/");
+        filePath.append(nacosConfig.getGroup());
+        filePath.append("/");
+        filePath.append(dataId);
+        log.info("dataId:{} local data path:{}", dataId, filePath.toString());
+        return filePath.toString();
+    }
+
     protected abstract String buildPocSQL();
 
 

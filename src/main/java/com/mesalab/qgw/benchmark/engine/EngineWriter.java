@@ -4,7 +4,6 @@ import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
@@ -89,7 +88,14 @@ public class EngineWriter extends Writer {
         try {
             Map<String, List<String>> environment = getFilterOptions(engineFilterJson);
 
-            FileReader templateReader = new FileReader(buildSnapshotFilePath(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID));
+            String filePath;
+            String localDataFilePath = buildLocalDataFilePath(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID);
+            String snapshotFilePath = buildSnapshotFilePath(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID);
+            File localFile = new File(localDataFilePath);
+            //优先使用本地配置
+            filePath = localFile.exists()?localDataFilePath:snapshotFilePath;
+
+            FileReader templateReader = new FileReader(filePath);
 
             FileWriter writer = new FileWriter(new File("").getCanonicalPath()
                     + File.separator + "benchmark" + File.separator + "engine_queries" + "_"
