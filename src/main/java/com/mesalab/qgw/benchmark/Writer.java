@@ -116,13 +116,7 @@ public abstract class Writer {
     private String nacosServerAddr;
 
     protected String buildSnapshotFilePath(String dataId) {
-        String localSnapshotPath = LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH.replaceAll("\\\\", "/");
-        StringBuilder filePath = new StringBuilder(localSnapshotPath);
-        filePath.append("/");
-        filePath.append(NacosConst.FIXED);
-        filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");
-        filePath.append(nacosConfig.getNamespace()).append(NacosConst.NACOS);
-        filePath.append("/");
+        StringBuilder filePath = new StringBuilder(buildPrefixPath());
         filePath.append(NacosConst.SNAPSHOT_TENANT);
         filePath.append("/");
         filePath.append(nacosConfig.getNamespace());
@@ -135,13 +129,7 @@ public abstract class Writer {
     }
 
     protected String buildLocalDataFilePath(String dataId) {
-        String localDataPath = LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH.replaceAll("\\\\", "/");
-        StringBuilder filePath = new StringBuilder(localDataPath);
-        filePath.append("/");
-        filePath.append(NacosConst.FIXED);
-        filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");
-        filePath.append(nacosConfig.getNamespace()).append(NacosConst.NACOS);
-        filePath.append("/");
+        StringBuilder filePath = new StringBuilder(buildPrefixPath());
         filePath.append(NacosConst.NACOS_LOCAL_DATA);
         filePath.append("/");
         filePath.append(NacosConst.CONFIG_DATA_TENANT);
@@ -152,6 +140,17 @@ public abstract class Writer {
         filePath.append("/");
         filePath.append(dataId);
         log.info("dataId:{} local data path:{}", dataId, filePath.toString());
+        return filePath.toString();
+    }
+
+    private String buildPrefixPath() {
+        String path = LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH.replaceAll("\\\\", "/");
+        StringBuilder filePath = new StringBuilder(path);
+        filePath.append("/");
+        filePath.append(NacosConst.FIXED);
+        filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");
+        filePath.append(nacosConfig.getNamespace()).append(NacosConst.NACOS);
+        filePath.append("/");
         return filePath.toString();
     }
 
