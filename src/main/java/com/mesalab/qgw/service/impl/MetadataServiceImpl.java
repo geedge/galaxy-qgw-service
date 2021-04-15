@@ -214,14 +214,4 @@ public class MetadataServiceImpl implements MetadataService {
         }
 
     }
-
-    @Override
-    public Map<String, Schema> getClickHouseSchema() {
-        return null;
-    }
-
-    @Override
-    public Map<String, Schema> getDruidSchema() {
-        return null;
-    }
 }

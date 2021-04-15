@@ -59,18 +59,4 @@ public interface MetadataService {
      */
     Map<String, Schema> getAllSchema();
 
-    /**
-     * 获取 ClickHouse schema
-     *
-     * @return
-     */
-    Map<String, Schema> getClickHouseSchema();
-
-    /**
-     * 获取 Druid schema
-     *
-     * @return
-     */
-    Map<String, Schema> getDruidSchema();
-
 }

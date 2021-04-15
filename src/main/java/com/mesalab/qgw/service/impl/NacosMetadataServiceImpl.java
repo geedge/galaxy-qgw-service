@@ -54,11 +54,6 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     public Map<String, Schema> allSchemaMap = new HashMap<>();
 
-    public Map<String, Schema> clickHouseSchemaMap = new HashMap<>();
-
-    public Map<String, Schema> druidSchemaMap = new HashMap<>();
-
-
     @Override
     public BaseResult getSchemaInfo(String type, String name) {
         if (MetadataTypeEnum.TABLES.getValue().equals(type)) {
@@ -126,16 +121,6 @@ public class NacosMetadataServiceImpl implements MetadataService {
         return allSchemaMap;
     }
 
-    @Override
-    public Map<String, Schema> getClickHouseSchema() {
-        return clickHouseSchemaMap;
-    }
-
-    @Override
-    public Map<String, Schema> getDruidSchema() {
-        return druidSchemaMap;
-    }
-
     @PostConstruct
     public void init() {
         initTables();
@@ -183,8 +168,6 @@ public class NacosMetadataServiceImpl implements MetadataService {
             reduce = tables.stream().filter(item -> !tempTables.contains(item)).collect(toList());
             for (String s : reduce) {
                 allSchemaMap.remove(s);
-                clickHouseSchemaMap.remove(s);
-                druidSchemaMap.remove(s);
             }
         }
     }
@@ -306,12 +289,6 @@ public class NacosMetadataServiceImpl implements MetadataService {
         Schema schema = new Schema.Parser().parse(configInfo);
         allSchemaMap.put(schema.getName(), schema);
         String namespace = schema.getNamespace();
-        if (NacosConst.CK_NAMESPACE.equals(namespace)) {
-            clickHouseSchemaMap.put(schema.getName(), schema);
-        }
-        if (NacosConst.DR_NAMESPACE.equals(namespace)) {
-            druidSchemaMap.put(schema.getName(), schema);
-        }
     }
 
 }

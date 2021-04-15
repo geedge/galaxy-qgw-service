@@ -24,6 +24,8 @@ import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import com.mesalab.qgw.benchmark.engine.EngineWriter;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
@@ -48,13 +50,9 @@ import java.util.stream.Stream;
 @Service("diagnosisService")
 public class DiagnosisServiceImpl implements DiagnosisService {
     private static final Log log = LogFactory.get();
-    private static final String CK_SCHEMA_DIR = File.separator + "config"
-            + File.separator + "avro" + File.separator + "clickhouse";
-    private static final String DRUID_SCHEMA_DIR = File.separator + "config"
-            + File.separator + "avro" + File.separator + "druid";
     private static final String AVRO_SUFFIX = ".avsc";
-    private static final String METADATA_PREFIX = "Metadata";
-    private static final String SCHEMA_PREFIX = "Schema";
+    private static final String METADATA_PREFIX = "Metadata/";
+    private static final String SCHEMA_PREFIX = "Schema/";
     private static final int DEFAULT_SERVER_PORT = 9999;
 
     @Autowired
@@ -69,6 +67,10 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private EngineWriter engineWriter;
     @Autowired
     private DruidWriter druidWriter;
+    @Autowired
+    private ClickHouseHttpSource clickHouseHttpSource;
+    @Autowired
+    private DruidIoHttpSource druidIoHttpSource;
 
     @Resource(name = "nacosMetadataService")
     private MetadataService metadataService;
@@ -86,8 +88,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         try {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
-            Map<String, Map<String, String>> clickhouseResult = parseSchemaByDatasource(CK_SCHEMA_DIR);
-            Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(DRUID_SCHEMA_DIR);
+            Map<String, Map<String, String>> clickhouseResult = parseSchemaByDatasource(clickHouseHttpSource.getDbName(), metadataService.getAllSchema());
+            Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllSchema());
             Map<String, Map<String, String>> mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -115,8 +117,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         try {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
-            Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(CK_SCHEMA_DIR);
-            Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(DRUID_SCHEMA_DIR);
+            Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(clickHouseHttpSource.getDbName(), metadataService.getAllSchema());
+            Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllSchema());
             Map<String, Map<String, String>> mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -274,24 +276,18 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
 
     /**
-     * 对指定目录下的schema 与数据库的字段进行对比检查
+     * 对指定数据源dbName下的schema 与数据库的字段进行对比检查
      *
-     * @param path schema 列表
+     * @param dbName
+     * @param schemas
      * @return
      */
-    private Map<String, Map<String, String>> checkMetadataByDatasource(String path) {
-        Map<String, Schema> schemas = new HashMap<>();
-        if (path.equals(CK_SCHEMA_DIR)) {
-            schemas = metadataService.getClickHouseSchema();
-        }
-        if (path.equals(DRUID_SCHEMA_DIR)) {
-            schemas = metadataService.getDruidSchema();
-        }
+    private Map<String, Map<String, String>> checkMetadataByDatasource(String dbName, Map<String, Schema> schemas) {
 
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : schemas.keySet()) {
-
+            if (!dbName.equals(schemas.get(tableName).getNamespace())) continue;
             Map<String, String> result = executeQuery("describe " + tableName, Optional.empty());
             if (HttpStatus.SC_OK != Integer.parseInt(result.get("status"))
                     || Integer.parseInt(JsonPath.read(result.get("result"), "$.status").toString()) != HttpStatus.SC_OK) {
@@ -332,7 +328,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         }
 
 
-        resultMap.put(METADATA_PREFIX + path, infoMap);
+        resultMap.put(METADATA_PREFIX + dbName, infoMap);
 
         return resultMap;
     }
@@ -360,27 +356,22 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
 
     /**
-     * 对指定的数据源下的schema进行静态检查
+     * 对指定的数据源dbName下的schema进行静态检查
      *
-     * @param path
+     * @param dbName
+     * @param schemas
      * @return
      */
-    private Map<String, Map<String, String>> parseSchemaByDatasource(String path) {
-        Map<String, Schema> schemas = new HashMap<>();
-        if (path.equals(CK_SCHEMA_DIR)) {
-            schemas = metadataService.getClickHouseSchema();
-        }
-        if (path.equals(DRUID_SCHEMA_DIR)) {
-            schemas = metadataService.getDruidSchema();
-        }
+    private Map<String, Map<String, String>> parseSchemaByDatasource(String dbName, Map<String, Schema> schemas) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : schemas.keySet()) {
+            if (!dbName.equals(schemas.get(tableName).getNamespace())) continue;
             Map schemaMap = (Map) JsonMapper.fromJsonString(schemas.get(tableName).toString(), Map.class);
             List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
             infoMap.put(tableName, fields.size() + " Fields");
         }
-        resultMap.put(SCHEMA_PREFIX + path, infoMap);
+        resultMap.put(SCHEMA_PREFIX + dbName, infoMap);
 
         return resultMap;
     }
