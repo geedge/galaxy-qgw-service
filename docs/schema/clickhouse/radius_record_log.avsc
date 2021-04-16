@@ -213,7 +213,7 @@
       "name": "common_sub_action",
       "label": "Sub Action",
       "type": "string",
-      "doc": "{\"visibility\":\"hidden\"}"
+      "doc": "{\"data\":[{\"code\":\"allow\",\"value\":\"Allow\"},{\"code\":\"deny\",\"value\":\"Deny\"},{\"code\":\"monitor\",\"value\":\"Monitor\"},{\"code\":\"replace\",\"value\":\"Replace\"},{\"code\":\"redirect\",\"value\":\"Redirect\"},{\"code\":\"insert\",\"value\":\"Insert\"},{\"code\":\"hijack\",\"value\":\"Hijack\"}],\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_user_region",
