@@ -580,12 +580,12 @@
     {
       "name": "http_response_lantency_ms",
       "label": "HTTP.Response Latency(ms)",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "http_session_duration_ms",
       "label": "HTTP.Session Duration(ms)",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "http_action_file_size",
