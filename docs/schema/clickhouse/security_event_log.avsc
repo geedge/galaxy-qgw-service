@@ -320,7 +320,7 @@
       "name": "common_stream_dir",
       "label": "Stream Direction",
       "type": "int",
-      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"1\",\"value\":\"c2s\"},{\"code\":\"2\",\"value\":\"s2c\"},{\"code\":\"3\",\"value\":\"double\"}]}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"1\",\"value\":\"c2s\"},{\"code\":\"2\",\"value\":\"s2c\"},{\"code\":\"3\",\"value\":\"double\"}]}"
     },
     {
       "name": "common_address_list",

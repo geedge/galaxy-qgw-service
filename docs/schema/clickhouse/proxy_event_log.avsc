@@ -97,7 +97,7 @@
       "name": "common_action",
       "label": "Action",
       "type": "int",
-      "doc": "{\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"0\",\"value\":\"None\"},{\"code\":\"1\",\"value\":\"Monitor\"},{\"code\":\"2\",\"value\":\"Intercept\"},{\"code\":\"16\",\"value\":\"Deny\"},{\"code\":\"48\",\"value\":\"Manipulation\"},{\"code\":\"128\",\"value\":\"Allow\"}]}"
+      "doc": "{\"allow_query\":\"true\",\"constraints\":{\"operator_functions\":\"=,!=\"},\"data\":[{\"code\":\"0\",\"value\":\"None\"},{\"code\":\"1\",\"value\":\"Monitor\"},{\"code\":\"2\",\"value\":\"Intercept\"},{\"code\":\"16\",\"value\":\"Deny\"},{\"code\":\"48\",\"value\":\"Manipulation\"},{\"code\":\"128\",\"value\":\"Allow\"}]}"
     },
     {
       "name": "common_direction",
