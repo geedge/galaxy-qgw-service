@@ -17,8 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 @Component
 public abstract class Writer {
@@ -118,11 +120,11 @@ public abstract class Writer {
     protected String buildSnapshotFilePath(String dataId) {
         StringBuilder filePath = new StringBuilder(buildPrefixPath());
         filePath.append(NacosConst.SNAPSHOT_TENANT);
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(nacosConfig.getNamespace());
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(nacosConfig.getGroup());
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(dataId);
         log.info("dataId:{} snapshot path:{}", dataId, filePath.toString());
         return filePath.toString();
@@ -131,26 +133,26 @@ public abstract class Writer {
     protected String buildLocalDataFilePath(String dataId) {
         StringBuilder filePath = new StringBuilder(buildPrefixPath());
         filePath.append(NacosConst.NACOS_LOCAL_DATA);
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(NacosConst.CONFIG_DATA_TENANT);
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(nacosConfig.getNamespace());
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(nacosConfig.getGroup());
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(dataId);
         log.info("dataId:{} local data path:{}", dataId, filePath.toString());
         return filePath.toString();
     }
 
     private String buildPrefixPath() {
-        String path = LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH.replaceAll("\\\\", "/");
+        String path = LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH.replaceAll("\\\\", Matcher.quoteReplacement(File.separator));
         StringBuilder filePath = new StringBuilder(path);
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(NacosConst.FIXED);
         filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");
         filePath.append(nacosConfig.getNamespace()).append(NacosConst.NACOS);
-        filePath.append("/");
+        filePath.append(File.separator);
         return filePath.toString();
     }
 
