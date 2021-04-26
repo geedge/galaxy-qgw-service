@@ -1,5 +1,6 @@
 package com.mesalab.qgw.benchmark.druid;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
@@ -90,9 +91,8 @@ public class DruidWriter extends Writer {
             String filePath;
             String localDataFilePath = buildLocalDataFilePath(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID);
             String snapshotFilePath = buildSnapshotFilePath(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID);
-            File localFile = new File(localDataFilePath);
             //优先使用本地配置
-            filePath = localFile.exists()?localDataFilePath:snapshotFilePath;
+            filePath = FileUtil.exist(localDataFilePath)?localDataFilePath:snapshotFilePath;
 
             FileReader templateReader = new FileReader(filePath);
 

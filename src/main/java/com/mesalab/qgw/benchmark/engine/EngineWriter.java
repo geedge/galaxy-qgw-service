@@ -1,5 +1,6 @@
 package com.mesalab.qgw.benchmark.engine;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
@@ -91,9 +92,8 @@ public class EngineWriter extends Writer {
             String filePath;
             String localDataFilePath = buildLocalDataFilePath(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID);
             String snapshotFilePath = buildSnapshotFilePath(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID);
-            File localFile = new File(localDataFilePath);
             //优先使用本地配置
-            filePath = localFile.exists()?localDataFilePath:snapshotFilePath;
+            filePath = FileUtil.exist(localDataFilePath)?localDataFilePath:snapshotFilePath;
 
             FileReader templateReader = new FileReader(filePath);
 
