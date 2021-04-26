@@ -40,6 +40,13 @@ public abstract class AbstractDataSourceDialect implements Dialect {
      * @return
      */
     abstract  String getSyntaxCheckQuery();
+
+    /**
+     * 简化规范异常信息展示。
+     * @return
+     */
+    abstract String simplyErrorMessage(Object object);
+
     /**
      * 解析并生成最终结果
      * @param sql

@@ -1,5 +1,6 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -42,6 +43,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     private int pageOffset;
+    private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "org.apache.calcite.runtime.CalciteContextException: ";
     private Stopwatch watch = Stopwatch.createUnstarted();
     public ApiParam param;
     public BaseResult baseResult;
@@ -189,20 +191,22 @@ public class DruidDialect extends AbstractDataSourceDialect {
             baseResult.setStatistics(statistics);
         } else {
             baseResult = BaseResultGenerator.failure(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    normErrorMessage(dataObject));
+                    simplyErrorMessage(dataObject));
         }
         return baseResult;
     }
 
-    private String normErrorMessage(Object dataObject) {
+    @Override
+    public String simplyErrorMessage(Object dataObject) {
         String message = String.valueOf(dataObject);
         try {
-            message = StringUtil.isNotBlank(message) ? JsonPath.read(dataObject.toString(), "$.errorMessage")
+            message = StringUtil.isNotEmpty(dataObject) ? JsonPath.read(dataObject.toString(), "$.errorMessage")
                     : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
         } catch (JsonPathException e) {
-            log.error("Build druid-errorMessage data is: {}", dataObject);
+            log.error("Build error druid-errorMessage data is: {}", dataObject);
         }
-        return message;
+        message = message.startsWith(CLAZZ_NAME_CALCITE_EXCEPTION) ? message.substring(CLAZZ_NAME_CALCITE_EXCEPTION.length()) : message;
+        return StrUtil.removeAllLineBreaks("SQL Execution Error: ".concat(message)).trim();
     }
 
 

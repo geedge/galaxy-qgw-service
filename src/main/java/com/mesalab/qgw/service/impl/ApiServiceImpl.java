@@ -1,21 +1,11 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.druid.sql.SQLUtils;
-import com.alibaba.druid.sql.ast.SQLExpr;
-import com.alibaba.druid.sql.ast.SQLLimit;
-import com.alibaba.druid.sql.ast.SQLStatement;
-import com.alibaba.druid.sql.ast.expr.SQLBinaryOpExpr;
-import com.alibaba.druid.sql.ast.expr.SQLBinaryOperator;
-import com.alibaba.druid.sql.ast.expr.SQLInSubQueryExpr;
 import com.alibaba.druid.sql.ast.statement.*;
-import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
-import com.alibaba.druid.stat.TableStat;
-import com.alibaba.druid.util.JdbcConstants;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -55,6 +45,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service("apiService")
 public class ApiServiceImpl implements ApiService {
@@ -77,6 +69,10 @@ public class ApiServiceImpl implements ApiService {
 
     public static final String UNVALID_LIMIT_DESC = "NO LIMIT";
 
+    public static final String PARSER_EXCEPTION_CLASS_NAME = "net.sf.jsqlparser.parser.ParseException:";
+    public static final String PARSER_EXCEPTION_IDENTIFICATION = "Was expecting one of:";
+    public static final Pattern PATTERN_ANGLE_BRACKET = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE);
+
 
     @Override
     public BaseResult executeQuery(ApiParam param) {
@@ -87,7 +83,7 @@ public class ApiServiceImpl implements ApiService {
         try {
             statement = CCJSqlParserUtil.parse(param.getQuery());
         } catch (JSQLParserException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: " + e.toString(), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: " + simplyErrorMessage(String.valueOf(e.getCause())), null);
         }
 
 
@@ -107,6 +103,36 @@ public class ApiServiceImpl implements ApiService {
         return baseResult;
     }
 
+    /**
+     * Desc: 简化JSQLParser语法异常信息
+     *
+     * @param message
+     * @return {@link String}
+     * @created by wWei
+     * @date 2021/4/26 9:49 上午
+     */
+    private String simplyErrorMessage(String message) {
+        if (StringUtil.isBlank(message)) {
+            return StringUtil.EMPTY;
+        }
+        message = message.replace(PARSER_EXCEPTION_CLASS_NAME, StringUtil.EMPTY);
+        int end = message.indexOf(PARSER_EXCEPTION_IDENTIFICATION);
+        message = message.substring(0, end < 0 ? message.length() : end);
+        message = StrUtil.removeAllLineBreaks(message);
+        Matcher matcher = PATTERN_ANGLE_BRACKET.matcher(message);
+        if (matcher.find()) {
+            message = matcher.replaceAll(StringUtil.EMPTY);
+        }
+        String[] split = message.split(" ");
+        StringBuilder stringBuilder = new StringBuilder(message.length());
+        for (String c : split) {
+            if (StringUtil.isBlank(c)) {
+                continue;
+            }
+            stringBuilder.append(" ").append(c);
+        }
+        return stringBuilder.toString().trim();
+    }
 
     private BaseResult executeSelectStatement(ApiParam param) {
 

@@ -1,6 +1,7 @@
 package com.mesalab.qgw.dialect;
 
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -68,6 +69,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
     private final static double PERCENT_UP_LINE = 0.98;
     private final static double PERCENT_DOWN_LINE = 0.01;
+    private final static String DB_EXCEPTION_START = "e.displayText() = DB::Exception: ";
 
     private final static Map<String, String> metaMap = Maps.newHashMap();
 
@@ -953,19 +955,25 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else {
-            baseResult = BaseResultGenerator.failure(baseResult.getStatus(),
-                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), normErrorMessage(dataObject));
+            baseResult = BaseResultGenerator.failure((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? HttpStatus.SC_INTERNAL_SERVER_ERROR : baseResult.getStatus(),
+                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), simplyErrorMessage(dataObject));
         }
         return baseResult;
     }
 
-    private String normErrorMessage(Object dataObject) {
+    @Override
+    public String simplyErrorMessage(Object dataObject) {
         String message = StringUtil.isNotEmpty(dataObject) ? String.valueOf(dataObject)
                 : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
+        int i = message.indexOf(DB_EXCEPTION_START);
+        i = i > 0 ? i + DB_EXCEPTION_START.length() : 0;
         message = message.startsWith("Code: 47") ?
-                message.substring(0, !message.contains(" while ") ? message.length() : message.indexOf(" while "))
+                message.substring(i, !message.contains(" while ") ? message.length() : message.indexOf(" while "))
                 : message;
-        return message;
+        message = message.startsWith("Code: ") ?
+                message.substring(i, !message.contains("(version ") ? message.length() : message.indexOf("(version "))
+                : message;
+        return StrUtil.removeAllLineBreaks("SQL Execution Error: ".concat(message)).trim();
     }
 
     private boolean containAggregateFunction(String sql) {
