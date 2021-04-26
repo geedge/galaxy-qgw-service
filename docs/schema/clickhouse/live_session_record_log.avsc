@@ -269,7 +269,8 @@
     {
       "name": "common_app_id",
       "label": "Application ID",
-      "type": "int"
+      "type": "int",
+      "doc": "{\"format\":{\"functions\":\"app_match\",\"appendTo\":\"common_app_label\"}}"
     },
     {
       "name": "common_app_surrogate_id",
