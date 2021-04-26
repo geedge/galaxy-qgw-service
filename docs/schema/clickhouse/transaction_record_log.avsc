@@ -269,13 +269,14 @@
     {
       "name": "common_app_id",
       "label": "Application ID",
-      "type": "int",
-      "doc": "{\"format\":{\"functions\":\"app_match\",\"appendTo\":\"common_app_label\"}}"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\",\"format\":{\"functions\":\"app_match\",\"appendTo\":\"common_app_label\"}}"
     },
     {
       "name": "common_app_surrogate_id",
       "label": "Surrogate ID",
-      "type": "int"
+      "type": "string",
+      "doc": "{\"visibility\":\"hidden\"}"
     },
     {
       "name": "common_l7_protocol",
@@ -303,12 +304,12 @@
     {
       "name": "common_establish_latency_ms",
       "label": "Establish Latency(ms)",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "common_con_duration_ms",
       "label": "Duration(ms)",
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "common_stream_dir",
