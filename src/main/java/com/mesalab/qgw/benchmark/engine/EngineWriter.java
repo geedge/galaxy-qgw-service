@@ -91,9 +91,9 @@ public class EngineWriter extends Writer {
 
             String filePath;
             String localDataFilePath = buildLocalDataFilePath(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID);
-            String snapshotFilePath = buildSnapshotFilePath(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID);
+            String snapshotDataFilePath = buildSnapshotDataFilePath(NacosConst.ENGINE_QUERIES_TEMPLATE_DATA_ID);
             //优先使用本地配置
-            filePath = FileUtil.exist(localDataFilePath)?localDataFilePath:snapshotFilePath;
+            filePath = FileUtil.exist(localDataFilePath)?localDataFilePath:snapshotDataFilePath;
 
             FileReader templateReader = new FileReader(filePath);
 

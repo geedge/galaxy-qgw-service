@@ -117,7 +117,7 @@ public abstract class Writer {
     @Value("${nacos.config.server-addr}")
     private String nacosServerAddr;
 
-    protected String buildSnapshotFilePath(String dataId) {
+    protected String buildSnapshotDataFilePath(String dataId) {
         StringBuilder filePath = new StringBuilder(buildPrefixPath());
         filePath.append(NacosConst.SNAPSHOT_TENANT);
         filePath.append(File.separator);
@@ -146,8 +146,7 @@ public abstract class Writer {
     }
 
     private String buildPrefixPath() {
-        String path = LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH.replaceAll("\\\\", Matcher.quoteReplacement(File.separator));
-        StringBuilder filePath = new StringBuilder(path);
+        StringBuilder filePath = new StringBuilder(LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH);
         filePath.append(File.separator);
         filePath.append(NacosConst.FIXED);
         filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");

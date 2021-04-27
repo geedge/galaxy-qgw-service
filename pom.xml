@@ -498,7 +498,7 @@
                         <!-- <phase>package</phase>-->
                         <phase>install</phase>
                         <configuration>
-                            <password>ceiec</password>
+                            <password>Geedge2020!</password>
                             <excludes>
                                 <exclude>
                                     resources/**

@@ -90,9 +90,9 @@ public class DruidWriter extends Writer {
             Map<String, List<String>> environment = getFilterOptions(druidFilterJson);
             String filePath;
             String localDataFilePath = buildLocalDataFilePath(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID);
-            String snapshotFilePath = buildSnapshotFilePath(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID);
+            String snapshotDataFilePath = buildSnapshotDataFilePath(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID);
             //优先使用本地配置
-            filePath = FileUtil.exist(localDataFilePath)?localDataFilePath:snapshotFilePath;
+            filePath = FileUtil.exist(localDataFilePath)?localDataFilePath:snapshotDataFilePath;
 
             FileReader templateReader = new FileReader(filePath);
 

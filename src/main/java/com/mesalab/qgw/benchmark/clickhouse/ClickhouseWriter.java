@@ -88,10 +88,10 @@ public class ClickhouseWriter extends Writer {
             Map<String, List<String>> environment = getFilterOptions(ckFilterJson);
 
             String filePath;
-            String localData = buildLocalDataFilePath(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
-            String snapShotData = buildSnapshotFilePath(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
+            String localDataFilePath = buildLocalDataFilePath(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
+            String snapshotDataFilePath = buildSnapshotDataFilePath(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
             //优先使用本地配置
-            filePath = FileUtil.exist(localData)?localData:snapShotData;
+            filePath = FileUtil.exist(localDataFilePath)?localDataFilePath:snapshotDataFilePath;
 
             FileReader templateReader = new FileReader(filePath);
 
