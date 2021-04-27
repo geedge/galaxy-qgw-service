@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 @Component
 public abstract class Writer {
@@ -149,8 +148,12 @@ public abstract class Writer {
         StringBuilder filePath = new StringBuilder(LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH);
         filePath.append(File.separator);
         filePath.append(NacosConst.FIXED);
-        filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");
-        filePath.append(nacosConfig.getNamespace()).append(NacosConst.NACOS);
+        filePath.append(NacosConst.RAMPANT);
+        nacosServerAddr = nacosServerAddr.replaceAll(NacosConst.COLON, NacosConst.UNDERLINE);
+        filePath.append(nacosServerAddr).append(NacosConst.RAMPANT);
+        filePath.append(nacosConfig.getNamespace());
+        filePath.append(NacosConst.UNDERLINE);
+        filePath.append(NacosConst.NACOS);
         filePath.append(File.separator);
         return filePath.toString();
     }

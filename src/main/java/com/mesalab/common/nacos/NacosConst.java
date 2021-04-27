@@ -8,9 +8,15 @@ package com.mesalab.common.nacos;
  */
 public class NacosConst {
 
-    public static final String NACOS = "_nacos";
+    public static final String NACOS = "nacos";
 
-    public static final String FIXED = "fixed-";
+    public static final String FIXED = "fixed";
+
+    public static final String COLON = ":";
+
+    public static final String UNDERLINE = "_";
+
+    public static final String RAMPANT = "-";
 
     public static final String SNAPSHOT_TENANT = "snapshot-tenant";
 
