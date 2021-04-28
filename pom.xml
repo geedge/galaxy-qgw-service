@@ -587,10 +587,6 @@
                             <directory>dat</directory>
                         </resource>
                         <resource>
-                            <targetPath>/benchmark</targetPath>
-                            <directory>benchmark</directory>
-                        </resource>
-                        <resource>
                             <targetPath>/docs</targetPath>
                             <directory>docs</directory>
                         </resource>
