@@ -13,7 +13,6 @@ WORKDIR /home/tsg/galaxy/galaxy-qgw-service
 COPY --from=builder /build .
 COPY config config
 COPY dat dat
-COPY benchmark benchmark
 COPY docs docs
 ARG JAR_FILE
 COPY ${JAR_FILE} galaxy-qgw-service.xjar

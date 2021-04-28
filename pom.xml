@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mesalab</groupId>
     <artifactId>galaxy-qgw-service</artifactId>
-    <version>341</version>
+    <version>343</version>
     <packaging>jar</packaging>
     <name>galaxy-qgw-service</name>
 
@@ -585,10 +585,6 @@
                         <resource>
                             <targetPath>/dat</targetPath>
                             <directory>dat</directory>
-                        </resource>
-                        <resource>
-                            <targetPath>/benchmark</targetPath>
-                            <directory>benchmark</directory>
                         </resource>
                         <resource>
                             <targetPath>/docs</targetPath>
