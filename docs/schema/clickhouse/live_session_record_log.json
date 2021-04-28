@@ -1,0 +1,3426 @@
+{
+  "type": "record",
+  "name": "live_session_record_log",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "common_log_id",
+    "partition_key": "common_recv_time",
+    "functions": {
+      "aggregation": [
+        {
+          "name": "COUNT",
+          "function": "count(expr)"
+        },
+        {
+          "name": "COUNT_DISTINCT",
+          "function": "count(distinct expr)"
+        },
+        {
+          "name": "AVG",
+          "function": "avg(expr)"
+        },
+        {
+          "name": "SUM",
+          "function": "sum(expr)"
+        },
+        {
+          "name": "MAX",
+          "function": "max(expr)"
+        },
+        {
+          "name": "MIN",
+          "function": "min(expr)"
+        }
+      ],
+      "operator": [
+        {
+          "name": "=",
+          "function": "expr = value"
+        },
+        {
+          "name": "!=",
+          "function": "expr != value"
+        },
+        {
+          "name": ">",
+          "function": "expr > value"
+        },
+        {
+          "name": "<",
+          "function": "expr < value"
+        },
+        {
+          "name": ">=",
+          "function": "expr >= value"
+        },
+        {
+          "name": "<=",
+          "function": "expr <= value"
+        },
+        {
+          "name": "in",
+          "function": "expr in (values)"
+        },
+        {
+          "name": "not in",
+          "function": "expr not in (values)"
+        },
+        {
+          "name": "like",
+          "function": "expr like value"
+        },
+        {
+          "name": "not like",
+          "function": "expr not like value"
+        },
+        {
+          "name": "notEmpty",
+          "function": "notEmpty(expr)"
+        },
+        {
+          "name": "empty",
+          "function": "empty(expr)"
+        }
+      ]
+    },
+    "schema_query": {
+      "dimensions": [
+        "common_server_ip",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_external_ip",
+        "common_sled_ip",
+        "common_device_id",
+        "common_client_location",
+        "common_server_location",
+        "common_subscriber_id",
+        "common_client_port",
+        "common_server_port",
+        "common_schema_type",
+        "common_l4_protocol",
+        "common_l7_protocol",
+        "common_service_category",
+        "common_data_center",
+        "common_client_asn",
+        "common_server_asn",
+        "common_start_time",
+        "common_end_time",
+        "common_imei",
+        "common_imsi",
+        "common_phone_number",
+        "http_host",
+        "http_domain",
+        "http_url",
+        "ssl_sni",
+        "ssl_ja3_hash"
+      ],
+      "metrics": [
+        "common_server_ip",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_external_ip",
+        "common_subscriber_id",
+        "common_sled_ip",
+        "common_device_id",
+        "common_c2s_pkt_num",
+        "common_s2c_pkt_num",
+        "common_c2s_byte_num",
+        "common_s2c_byte_num",
+        "common_sessions",
+        "common_con_duration_ms",
+        "common_establish_latency_ms",
+        "common_c2s_ipfrag_num",
+        "common_s2c_ipfrag_num",
+        "common_c2s_tcp_lostlen",
+        "common_s2c_tcp_lostlen",
+        "common_c2s_tcp_unorder_num",
+        "common_s2c_tcp_unorder_num",
+        "common_imei",
+        "common_imsi",
+        "common_phone_number",
+        "http_host",
+        "http_domain",
+        "http_url",
+        "ssl_sni",
+        "ssl_ja3_hash"
+      ],
+      "filters": [
+        "common_address_type",
+        "common_server_ip",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_external_ip",
+        "common_client_port",
+        "common_server_port",
+        "common_client_location",
+        "common_server_location",
+        "common_subscriber_id",
+        "common_c2s_pkt_num",
+        "common_s2c_pkt_num",
+        "common_c2s_byte_num",
+        "common_s2c_byte_num",
+        "common_c2s_ipfrag_num",
+        "common_s2c_ipfrag_num",
+        "common_c2s_tcp_lostlen",
+        "common_s2c_tcp_lostlen",
+        "common_c2s_tcp_unorder_num",
+        "common_s2c_tcp_unorder_num",
+        "common_l4_protocol",
+        "common_l7_protocol",
+        "common_service_category",
+        "common_stream_dir",
+        "common_direction",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_id",
+        "common_schema_type",
+        "common_client_asn",
+        "common_server_asn",
+        "common_start_time",
+        "common_end_time",
+        "common_con_duration_ms",
+        "common_establish_latency_ms",
+        "common_imei",
+        "common_imsi",
+        "common_phone_number",
+        "http_host",
+        "http_domain",
+        "http_url",
+        "ssl_sni",
+        "ssl_ja3_hash"
+      ],
+      "references": {
+        "aggregation": [
+          {
+            "type": "int",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          },
+          {
+            "type": "long",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          },
+          {
+            "type": "float",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          },
+          {
+            "type": "double",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          },
+          {
+            "type": "string",
+            "functions": "COUNT,COUNT_DISTINCT"
+          },
+          {
+            "type": "date",
+            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          },
+          {
+            "type": "timestamp",
+            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          }
+        ],
+        "operator": [
+          {
+            "type": "int",
+            "functions": "=,!=,>,<,>=,<=,in,not in"
+          },
+          {
+            "type": "long",
+            "functions": "=,!=,>,<,>=,<=,in,not in"
+          },
+          {
+            "type": "float",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "double",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "string",
+            "functions": "=,!=,in,not in,like,not like,notEmpty,empty"
+          },
+          {
+            "type": "date",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "timestamp",
+            "functions": "=,!=,>,<,>=,<="
+          }
+        ]
+      },
+      "details": {
+        "general": [
+          "common_recv_time",
+          "common_log_id",
+          "common_stream_trace_id",
+          "common_direction",
+          "common_stream_dir",
+          "common_start_time",
+          "common_end_time",
+          "common_con_duration_ms",
+          "common_establish_latency_ms",
+          "common_processing_time",
+          "common_entrance_id",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_data_center",
+          "common_sled_ip"
+        ],
+        "action": [
+          "common_action",
+          "common_sub_action",
+          "common_policy_id",
+          "common_user_tags",
+          "common_user_region"
+        ],
+        "source": [
+          "common_client_ip",
+          "common_internal_ip",
+          "common_client_port",
+          "common_client_location",
+          "common_client_asn",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number"
+        ],
+        "destination": [
+          "common_server_ip",
+          "common_external_ip",
+          "common_server_port",
+          "common_server_location",
+          "common_server_asn"
+        ],
+        "application": [
+          "common_app_id",
+          "common_app_label",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_protocol_label",
+          "common_service_category",
+          "common_service",
+          "common_l4_protocol"
+        ],
+        "transmission": [
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_first_ttl",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn"
+        ],
+        "other": [
+          "common_address_type",
+          "common_schema_type",
+          "common_device_tag",
+          "common_encapsulation",
+          "common_tunnels",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_link_info_c2s",
+          "common_link_info_s2c"
+        ]
+      }
+    },
+    "schema_type": {
+      "BASE": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_service_category",
+          "common_l7_protocol",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "common_server_ip",
+          "common_server_port"
+        ]
+      },
+      "HTTP": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_service_category",
+          "common_l7_protocol",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "http_url",
+          "http_host",
+          "http_domain",
+          "http_request_line",
+          "http_response_line",
+          "http_request_header",
+          "http_response_header",
+          "http_request_content",
+          "http_response_content",
+          "http_request_body",
+          "http_response_body",
+          "http_request_body_key",
+          "http_response_body_key",
+          "http_proxy_flag",
+          "http_sequence",
+          "http_snapshot",
+          "http_cookie",
+          "http_referer",
+          "http_user_agent",
+          "http_content_length",
+          "http_content_type",
+          "http_set_cookie",
+          "http_version",
+          "http_response_lantency_ms",
+          "http_session_duration_ms",
+          "http_action_file_size"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "http_url",
+          "common_server_port"
+        ]
+      },
+      "MAIL": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "mail_protocol_type",
+          "mail_account",
+          "mail_from_cmd",
+          "mail_to_cmd",
+          "mail_from",
+          "mail_to",
+          "mail_cc",
+          "mail_bcc",
+          "mail_subject",
+          "mail_subject_charset",
+          "mail_content",
+          "mail_content_charset",
+          "mail_attachment_name",
+          "mail_attachment_name_charset",
+          "mail_attachment_content",
+          "mail_eml_file",
+          "mail_snapshot"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "mail_from",
+          "mail_to",
+          "mail_subject"
+        ]
+      },
+      "DNS": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "dns_message_id",
+          "dns_qr",
+          "dns_opcode",
+          "dns_aa",
+          "dns_tc",
+          "dns_rd",
+          "dns_ra",
+          "dns_rcode",
+          "dns_qdcount",
+          "dns_ancount",
+          "dns_nscount",
+          "dns_arcount",
+          "dns_qname",
+          "dns_qtype",
+          "dns_qclass",
+          "dns_cname",
+          "dns_sub",
+          "dns_rr"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_client_ip",
+          "dns_qr",
+          "dns_qname",
+          "dns_qtype"
+        ]
+      },
+      "SSL": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "ssl_sni",
+          "ssl_san",
+          "ssl_cn",
+          "ssl_pinningst",
+          "ssl_intercept_state",
+          "ssl_server_side_latency",
+          "ssl_client_side_latency",
+          "ssl_server_side_version",
+          "ssl_client_side_version",
+          "ssl_cert_verify",
+          "ssl_error",
+          "ssl_con_latency_ms",
+          "ssl_ja3_fingerprint",
+          "ssl_ja3_hash",
+          "ssl_cert_issuer",
+          "ssl_cert_subject"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "ssl_sni",
+          "common_server_ip",
+          "common_server_port"
+        ]
+      },
+      "QUIC": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "quic_version",
+          "quic_sni",
+          "quic_user_agent"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "quic_sni",
+          "common_server_ip",
+          "common_server_port"
+        ]
+      },
+      "FTP": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "ftp_account",
+          "ftp_url",
+          "ftp_content"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "ftp_url",
+          "common_server_ip",
+          "common_server_port"
+        ]
+      },
+      "BGP": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "bgp_type",
+          "bgp_as_num",
+          "bgp_route"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "bgp_type",
+          "bgp_as_num",
+          "common_server_ip",
+          "common_server_port"
+        ]
+      },
+      "SIP": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration",
+          "sip_bye"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_call_id",
+          "common_server_ip",
+          "common_server_port"
+        ]
+      },
+      "RTP": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "common_server_ip",
+          "common_server_port",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ]
+      },
+      "APP": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "app_extra_info"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "common_app_id",
+          "common_app_label",
+          "app_extra_info",
+          "common_server_ip",
+          "common_server_port"
+        ]
+      }
+    },
+    "default_columns": [
+      "common_recv_time",
+      "common_log_id",
+      "common_subscriber_id",
+      "common_client_ip",
+      "common_server_ip",
+      "common_server_port",
+      "common_schema_type"
+    ]
+  },
+  "fields": [
+    {
+      "name": "common_recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "allow_query": "true",
+        "constraints": {
+          "type": "timestamp"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_log_id",
+      "label": "Log ID",
+      "doc": {
+        "allow_query": "true",
+        "format": {
+          "functions": "snowflake_id"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_policy_id",
+      "label": "Policy ID",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_subscriber_id",
+      "label": "Subscriber ID",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_imei",
+      "label": "IMEI",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_imsi",
+      "label": "IMSI",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_phone_number",
+      "label": "Phone Number",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_client_ip",
+      "label": "Client IP",
+      "doc": {
+        "allow_query": "true",
+        "constraints": {
+          "type": "ip"
+        },
+        "format": {
+          "functions": "geo_asn,radius_match",
+          "appendTo": "common_client_asn,common_subscriber_id"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_internal_ip",
+      "label": "Internal IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "format": {
+          "functions": "if",
+          "param": "$.common_direction=69,$.common_client_ip,$.common_server_ip"
+        },
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_client_port",
+      "label": "Client Port",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_l4_protocol",
+      "label": "L4 Protocol",
+      "type": "string"
+    },
+    {
+      "name": "common_address_type",
+      "label": "Address Type",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "4",
+            "value": "ipv4"
+          },
+          {
+            "code": "6",
+            "value": "ipv6"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_server_ip",
+      "label": "Server IP",
+      "doc": {
+        "allow_query": "true",
+        "constraints": {
+          "type": "ip"
+        },
+        "format": {
+          "functions": "geo_asn",
+          "appendTo": "common_server_asn"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_server_port",
+      "label": "Server Port",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_external_ip",
+      "label": "External IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "format": {
+          "functions": "if",
+          "param": "$.common_direction=73,$.common_client_ip,$.common_server_ip"
+        },
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_action",
+      "label": "Action",
+      "doc": {
+        "visibility": "hidden",
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "None"
+          },
+          {
+            "code": "1",
+            "value": "Monitor"
+          },
+          {
+            "code": "2",
+            "value": "Intercept"
+          },
+          {
+            "code": "16",
+            "value": "Deny"
+          },
+          {
+            "code": "128",
+            "value": "Allow"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_direction",
+      "label": "Direction",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "69",
+            "value": "outbound"
+          },
+          {
+            "code": "73",
+            "value": "inbound"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_entrance_id",
+      "label": "Entrance ID",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_sled_ip",
+      "label": "Sled IP",
+      "doc": {
+        "allow_query": "true",
+        "constraints": {
+          "type": "ip"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_client_location",
+      "label": "Client Location",
+      "type": "string"
+    },
+    {
+      "name": "common_client_asn",
+      "label": "Client ASN",
+      "type": "string"
+    },
+    {
+      "name": "common_server_location",
+      "label": "Server Location",
+      "type": "string"
+    },
+    {
+      "name": "common_server_asn",
+      "label": "Server ASN",
+      "type": "string"
+    },
+    {
+      "name": "common_sessions",
+      "label": "Sessions",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_pkt_num",
+      "label": "Packets Sent",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_pkt_num",
+      "label": "Packets Received",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_byte_num",
+      "label": "Bytes Sent",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_byte_num",
+      "label": "Bytes Received",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_pkt_diff",
+      "label": "Packets Sent(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_pkt_diff",
+      "label": "Packets Received(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_byte_diff",
+      "label": "Bytes Sent(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_byte_diff",
+      "label": "Bytes Received(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_service",
+      "label": "Service",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_schema_type",
+      "label": "Schema Type",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "BASE",
+            "value": "BASE"
+          },
+          {
+            "code": "MAIL",
+            "value": "MAIL"
+          },
+          {
+            "code": "DNS",
+            "value": "DNS"
+          },
+          {
+            "code": "HTTP",
+            "value": "HTTP"
+          },
+          {
+            "code": "SSL",
+            "value": "SSL"
+          },
+          {
+            "code": "FTP",
+            "value": "FTP"
+          },
+          {
+            "code": "SIP",
+            "value": "SIP"
+          },
+          {
+            "code": "RTP",
+            "value": "RTP"
+          },
+          {
+            "code": "APP",
+            "value": "APP"
+          }
+        ],
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_user_tags",
+      "label": "User Tags",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_sub_action",
+      "label": "Sub Action",
+      "doc": {
+        "data": [
+          {
+            "code": "allow",
+            "value": "Allow"
+          },
+          {
+            "code": "deny",
+            "value": "Deny"
+          },
+          {
+            "code": "monitor",
+            "value": "Monitor"
+          },
+          {
+            "code": "replace",
+            "value": "Replace"
+          },
+          {
+            "code": "redirect",
+            "value": "Redirect"
+          },
+          {
+            "code": "insert",
+            "value": "Insert"
+          },
+          {
+            "code": "hijack",
+            "value": "Hijack"
+          }
+        ],
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_user_region",
+      "label": "User Region",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_device_id",
+      "label": "Device ID",
+      "type": "string"
+    },
+    {
+      "name": "common_link_id",
+      "label": "Link ID",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_isp",
+      "label": "ISP",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_device_tag",
+      "label": "Device Tag",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_data_center",
+      "label": "Data Center",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "City A",
+            "value": "City A"
+          },
+          {
+            "code": "City B",
+            "value": "City B"
+          },
+          {
+            "code": "City C",
+            "value": "City C"
+          },
+          {
+            "code": "City D",
+            "value": "City D"
+          },
+          {
+            "code": "City E",
+            "value": "City E"
+          },
+          {
+            "code": "City F",
+            "value": "City F"
+          },
+          {
+            "code": "City G",
+            "value": "City G"
+          },
+          {
+            "code": "City H",
+            "value": "City H"
+          },
+          {
+            "code": "City I",
+            "value": "City I"
+          },
+          {
+            "code": "City J",
+            "value": "City J"
+          },
+          {
+            "code": "City K",
+            "value": "City K"
+          },
+          {
+            "code": "City L",
+            "value": "City L"
+          },
+          {
+            "code": "City M",
+            "value": "City M"
+          },
+          {
+            "code": "City N",
+            "value": "City N"
+          },
+          {
+            "code": "City O",
+            "value": "City O"
+          },
+          {
+            "code": "City P",
+            "value": "City P"
+          },
+          {
+            "code": "City Q",
+            "value": "City Q"
+          },
+          {
+            "code": "City R",
+            "value": "City R"
+          }
+        ],
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_encapsulation",
+      "label": "Encapsulation",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "Ethernet"
+          },
+          {
+            "code": "8",
+            "value": "PPP"
+          },
+          {
+            "code": "12",
+            "value": "CiscoHDLC"
+          }
+        ],
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_app_label",
+      "label": "Application Label",
+      "type": "string"
+    },
+    {
+      "name": "common_tunnels",
+      "label": "Tunnels",
+      "type": "string"
+    },
+    {
+      "name": "common_protocol_label",
+      "label": "Protocol Label",
+      "type": "string"
+    },
+    {
+      "name": "common_app_id",
+      "label": "Application ID",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden",
+        "format": {
+          "functions": "app_match",
+          "appendTo": "common_app_label"
+        }
+      }
+    },
+    {
+      "name": "common_app_surrogate_id",
+      "label": "Surrogate ID",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_l7_protocol",
+      "label": "L7 Protocol",
+      "type": "string"
+    },
+    {
+      "name": "common_service_category",
+      "label": "FQDN Category",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "allow_query": "true",
+        "dict_location": {
+          "path": "/v1/category/dict",
+          "key": "categoryId",
+          "value": "categoryName"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_start_time",
+      "label": "Start Time",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_end_time",
+      "label": "End Time",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "format": {
+          "functions": "get_value",
+          "appendTo": "common_recv_time"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_establish_latency_ms",
+      "label": "Establish Latency(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_con_duration_ms",
+      "label": "Duration(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_stream_dir",
+      "label": "Stream Direction",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "c2s"
+          },
+          {
+            "code": "2",
+            "value": "s2c"
+          },
+          {
+            "code": "3",
+            "value": "double"
+          }
+        ],
+        "allow_query": "true"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_address_list",
+      "label": "Address List",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_has_dup_traffic",
+      "label": "Duplication Traffic",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "No"
+          },
+          {
+            "code": "1",
+            "value": "Yes"
+          }
+        ],
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_stream_error",
+      "label": "Stream Error",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_stream_trace_id",
+      "label": "Session ID",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_link_info_c2s",
+      "label": "Link Info(c2s)",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_link_info_s2c",
+      "label": "Link Info(s2c)",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_c2s_ipfrag_num",
+      "label": "Fragmentation Packets(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_ipfrag_num",
+      "label": "Fragmentation Packets(s2c)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_tcp_lostlen",
+      "label": "Sequence Gap Loss(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_tcp_lostlen",
+      "label": "Sequence Gap Loss(s2c)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_tcp_unorder_num",
+      "label": "Unorder Packets(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_tcp_unorder_num",
+      "label": "Unorder Packets(s2c)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_pkt_retrans",
+      "label": "Packet Retransmission(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_pkt_retrans",
+      "label": "Packet Retransmission(s2c)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_byte_retrans",
+      "label": "Byte Retransmission(c2s)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_byte_retrans",
+      "label": "Byte Retransmission(s2c)",
+      "type": "long"
+    },
+    {
+      "name": "common_tcp_client_isn",
+      "label": "TCP Client ISN",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_tcp_server_isn",
+      "label": "TCP Server ISN",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_first_ttl",
+      "label": "First TTL",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_processing_time",
+      "label": "Processing Time",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "format": {
+          "functions": "current_timestamp"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "http_url",
+      "label": "HTTP.URL",
+      "type": "string"
+    },
+    {
+      "name": "http_host",
+      "label": "HTTP.Host",
+      "doc": {
+        "format": {
+          "functions": "sub_domain",
+          "appendTo": "http_domain"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_domain",
+      "label": "HTTP.Domain",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_line",
+      "label": "HTTP.Request Line",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_line",
+      "label": "HTTP.Response Line",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_header",
+      "label": "HTTP.Request Headers",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_header",
+      "label": "HTTP.Response Headers",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_content",
+      "label": "HTTP.Request Content",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_content",
+      "label": "HTTP.Response Content",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_body",
+      "label": "HTTP.Request Body",
+      "doc": {
+        "constraints": {
+          "type": "file"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_body",
+      "label": "HTTP.Response Body",
+      "doc": {
+        "constraints": {
+          "type": "file"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_body_key",
+      "label": "HTTP.Request Body Key",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_body_key",
+      "label": "HTTP.Response Body Key",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_proxy_flag",
+      "label": "HTTP.Proxy Flag",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_sequence",
+      "label": "HTTP.Sequence",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_snapshot",
+      "label": "HTTP.Snapshot",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_cookie",
+      "label": "HTTP.Cookie",
+      "type": "string"
+    },
+    {
+      "name": "http_referer",
+      "label": "HTTP.Referer",
+      "type": "string"
+    },
+    {
+      "name": "http_user_agent",
+      "label": "HTTP.User Agent",
+      "type": "string"
+    },
+    {
+      "name": "http_content_length",
+      "label": "HTTP.Content Length",
+      "type": "string"
+    },
+    {
+      "name": "http_content_type",
+      "label": "HTTP.Content Type",
+      "type": "string"
+    },
+    {
+      "name": "http_set_cookie",
+      "label": "HTTP.Set Cookie",
+      "type": "string"
+    },
+    {
+      "name": "http_version",
+      "label": "HTTP.Version",
+      "type": "string"
+    },
+    {
+      "name": "http_response_lantency_ms",
+      "label": "HTTP.Response Latency(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "http_session_duration_ms",
+      "label": "HTTP.Session Duration(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
+    },
+    {
+      "name": "http_action_file_size",
+      "label": "HTTP.Action File Size",
+      "type": "int"
+    },
+    {
+      "name": "mail_protocol_type",
+      "label": "Mail.Protocol Type",
+      "type": "string"
+    },
+    {
+      "name": "mail_account",
+      "label": "Mail.Account",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_from_cmd",
+      "label": "Mail.From CMD",
+      "type": "string"
+    },
+    {
+      "name": "mail_to_cmd",
+      "label": "Mail.To CMD",
+      "type": "string"
+    },
+    {
+      "name": "mail_from",
+      "label": "Mail.From",
+      "doc": {
+        "allow_query": "true",
+        "constraints": {
+          "type": "email"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_to",
+      "label": "Mail.To",
+      "doc": {
+        "allow_query": "true",
+        "constraints": {
+          "type": "email"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_cc",
+      "label": "Mail.CC",
+      "type": "string"
+    },
+    {
+      "name": "mail_bcc",
+      "label": "Mail.BCC",
+      "type": "string"
+    },
+    {
+      "name": "mail_subject",
+      "label": "Mail.Subject",
+      "doc": {
+        "allow_query": "true",
+        "format": {
+          "functions": "decode_of_base64",
+          "param": "$.mail_subject_charset"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_subject_charset",
+      "label": "Mail.Subject Charset",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_content",
+      "label": "Mail.Content",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_content_charset",
+      "label": "Mail.Content Charset",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_name",
+      "label": "Mail.Attachment",
+      "doc": {
+        "format": {
+          "functions": "decode_of_base64",
+          "param": "$.mail_attachment_name_charset"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_name_charset",
+      "label": "Mail.Attachment Charset",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_content",
+      "label": "Mail.Attachment Content",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_eml_file",
+      "label": "Mail.EML File",
+      "doc": {
+        "constraints": {
+          "type": "file"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_snapshot",
+      "label": "Mail.Snapshot",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_message_id",
+      "label": "DNS.Message ID",
+      "type": "int"
+    },
+    {
+      "name": "dns_qr",
+      "label": "DNS.QR",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "QUERY"
+          },
+          {
+            "code": "1",
+            "value": "REESPONSE"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_opcode",
+      "label": "DNS.OPCODE",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "QUERY"
+          },
+          {
+            "code": "1",
+            "value": "IQUERY"
+          },
+          {
+            "code": "2",
+            "value": "STATUS"
+          },
+          {
+            "code": "5",
+            "value": "UPDATE"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_aa",
+      "label": "DNS.AA",
+      "type": "int"
+    },
+    {
+      "name": "dns_tc",
+      "label": "DNS.TC",
+      "type": "int"
+    },
+    {
+      "name": "dns_rd",
+      "label": "DNS.RD",
+      "type": "int"
+    },
+    {
+      "name": "dns_ra",
+      "label": "DNS.RA",
+      "type": "int"
+    },
+    {
+      "name": "dns_rcode",
+      "label": "DNS.RCODE",
+      "type": "int"
+    },
+    {
+      "name": "dns_qdcount",
+      "label": "DNS.QDCOUNT",
+      "type": "int"
+    },
+    {
+      "name": "dns_ancount",
+      "label": "DNS.ANCOUNT",
+      "type": "int"
+    },
+    {
+      "name": "dns_nscount",
+      "label": "DNS.NSCOUNT",
+      "type": "int"
+    },
+    {
+      "name": "dns_arcount",
+      "label": "DNS.ARCOUNT",
+      "type": "int"
+    },
+    {
+      "name": "dns_qname",
+      "label": "DNS.QNAME",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_qtype",
+      "label": "DNS.QTYPE",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "A"
+          },
+          {
+            "code": "2",
+            "value": "NS"
+          },
+          {
+            "code": "5",
+            "value": "CNAME"
+          },
+          {
+            "code": "6",
+            "value": "SOA"
+          },
+          {
+            "code": "11",
+            "value": "WKS"
+          },
+          {
+            "code": "12",
+            "value": "PTR"
+          },
+          {
+            "code": "13",
+            "value": "HINFO"
+          },
+          {
+            "code": "11",
+            "value": "WKS"
+          },
+          {
+            "code": "15",
+            "value": "MX"
+          },
+          {
+            "code": "28",
+            "value": "AAAA"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_qclass",
+      "label": "DNS.QCLASS",
+      "type": "int"
+    },
+    {
+      "name": "dns_cname",
+      "label": "DNS.CNAME",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_sub",
+      "label": "DNS.SUB",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "DNS"
+          },
+          {
+            "code": "2",
+            "value": "DNSSEC"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_rr",
+      "label": "DNS.RR",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_version",
+      "label": "SSL.Version",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_sni",
+      "label": "SSL.SNI",
+      "doc": {
+        "allow_query": "true",
+        "format": {
+          "functions": "sub_domain",
+          "appendTo": "http_domain"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_san",
+      "label": "SSL.SAN",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cn",
+      "label": "SSL.CN",
+      "type": "string"
+    },
+    {
+      "name": "ssl_pinningst",
+      "label": "SSL.Pinning",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "Not Pinning"
+          },
+          {
+            "code": "1",
+            "value": "Pinning"
+          },
+          {
+            "code": "2",
+            "value": "Maybe Pinning"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_intercept_state",
+      "label": "SSL.Intercept State",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "Passthrough"
+          },
+          {
+            "code": "1",
+            "value": "Intercept"
+          },
+          {
+            "code": "2",
+            "value": "Shutdown"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_server_side_latency",
+      "label": "SSL.Server Side Latency(ms)",
+      "type": "int"
+    },
+    {
+      "name": "ssl_client_side_latency",
+      "label": "SSL.Client Side Latency(ms)",
+      "type": "int"
+    },
+    {
+      "name": "ssl_server_side_version",
+      "label": "SSL.Server Side Version",
+      "type": "string"
+    },
+    {
+      "name": "ssl_client_side_version",
+      "label": "SSL.Client Side Version",
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_verify",
+      "label": "SSL.Certificate Verify",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "No"
+          },
+          {
+            "code": "1",
+            "value": "Yes"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_error",
+      "label": "SSL.Error",
+      "type": "string"
+    },
+    {
+      "name": "ssl_con_latency_ms",
+      "label": "SSL.Connection Latency(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_ja3_fingerprint",
+      "label": "SSL.JA3",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3_hash",
+      "label": "SSL.JA3 hash",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_issuer",
+      "label": "SSL.Issuer",
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_subject",
+      "label": "SSL.Subject",
+      "type": "string"
+    },
+    {
+      "name": "quic_version",
+      "label": "QUIC.Version",
+      "type": "string"
+    },
+    {
+      "name": "quic_sni",
+      "label": "QUIC.SNI",
+      "doc": {
+        "allow_query": "true",
+        "format": {
+          "functions": "sub_domain",
+          "appendTo": "http_domain"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "quic_user_agent",
+      "label": "QUIC.User Agent",
+      "type": "string"
+    },
+    {
+      "name": "ftp_account",
+      "label": "FTP.Account",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ftp_url",
+      "label": "FTP.URL",
+      "type": "string"
+    },
+    {
+      "name": "ftp_content",
+      "label": "FTP.Content",
+      "type": "string"
+    },
+    {
+      "name": "bgp_type",
+      "label": "BGP.Type",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "bgp_as_num",
+      "label": "BGP.AS Number",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "bgp_route",
+      "label": "BGP.Route",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "voip_calling_account",
+      "label": "VoIP.Calling Account",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "voip_called_account",
+      "label": "VoIP.Called Account",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "voip_calling_number",
+      "label": "VoIP.Calling Number",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "voip_called_number",
+      "label": "VoIP.Called Number",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "streaming_media_url",
+      "label": "Streaming.Media URL",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "streaming_media_protocol",
+      "label": "Streaming.Media Protocol",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_extra_info",
+      "label": "APP.Extra Info",
+      "type": "string"
+    },
+    {
+      "name": "sip_call_id",
+      "label": "SIP.Call-ID",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_description",
+      "label": "SIP.Originator",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_description",
+      "label": "SIP.Responder",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_user_agent",
+      "label": "SIP.User-Agent",
+      "type": "string"
+    },
+    {
+      "name": "sip_server",
+      "label": "SIP.Server",
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_connect_ip",
+      "label": "SIP.Originator IP",
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_media_port",
+      "label": "SIP.Originator Port",
+      "type": "int"
+    },
+    {
+      "name": "sip_originator_sdp_media_type",
+      "label": "SIP.Originator Media Type",
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_content",
+      "label": "SIP.Originator Content",
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_connect_ip",
+      "label": "SIP.Responder IP",
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_media_port",
+      "label": "SIP.Responder Port",
+      "type": "int"
+    },
+    {
+      "name": "sip_responder_sdp_media_type",
+      "label": "SIP.Responder Media Type",
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_content",
+      "label": "SIP.Responder Content",
+      "type": "string"
+    },
+    {
+      "name": "sip_duration",
+      "label": "SIP.Duration",
+      "type": "int"
+    },
+    {
+      "name": "sip_bye",
+      "label": "SIP.Bye",
+      "type": "string"
+    },
+    {
+      "name": "rtp_payload_type_c2s",
+      "label": "RTP.Payload Type(c2s)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
+            "code": "1",
+            "value": "1016"
+          },
+          {
+            "code": "2",
+            "value": "G721"
+          },
+          {
+            "code": "3",
+            "value": "GSM"
+          },
+          {
+            "code": "4",
+            "value": "G723"
+          },
+          {
+            "code": "5",
+            "value": "DVI4_8000"
+          },
+          {
+            "code": "6",
+            "value": "DVI4_16000"
+          },
+          {
+            "code": "7",
+            "value": "LPC"
+          },
+          {
+            "code": "8",
+            "value": "PCMA"
+          },
+          {
+            "code": "9",
+            "value": "G722"
+          },
+          {
+            "code": "10",
+            "value": "L16_STEREO"
+          },
+          {
+            "code": "11",
+            "value": "L16_MONO"
+          },
+          {
+            "code": "12",
+            "value": "QCELP"
+          },
+          {
+            "code": "13",
+            "value": "CN"
+          },
+          {
+            "code": "14",
+            "value": "MPA"
+          },
+          {
+            "code": "15",
+            "value": "G728"
+          },
+          {
+            "code": "16",
+            "value": "DVI4_11025"
+          },
+          {
+            "code": "17",
+            "value": "DVI4_22050"
+          },
+          {
+            "code": "18",
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "rtp_payload_type_s2c",
+      "label": "RTP.Payload Type(s2c)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
+            "code": "1",
+            "value": "1016"
+          },
+          {
+            "code": "2",
+            "value": "G721"
+          },
+          {
+            "code": "3",
+            "value": "GSM"
+          },
+          {
+            "code": "4",
+            "value": "G723"
+          },
+          {
+            "code": "5",
+            "value": "DVI4_8000"
+          },
+          {
+            "code": "6",
+            "value": "DVI4_16000"
+          },
+          {
+            "code": "7",
+            "value": "LPC"
+          },
+          {
+            "code": "8",
+            "value": "PCMA"
+          },
+          {
+            "code": "9",
+            "value": "G722"
+          },
+          {
+            "code": "10",
+            "value": "L16_STEREO"
+          },
+          {
+            "code": "11",
+            "value": "L16_MONO"
+          },
+          {
+            "code": "12",
+            "value": "QCELP"
+          },
+          {
+            "code": "13",
+            "value": "CN"
+          },
+          {
+            "code": "14",
+            "value": "MPA"
+          },
+          {
+            "code": "15",
+            "value": "G728"
+          },
+          {
+            "code": "16",
+            "value": "DVI4_11025"
+          },
+          {
+            "code": "17",
+            "value": "DVI4_22050"
+          },
+          {
+            "code": "18",
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "rtp_pcap_path",
+      "label": "RTP.PCAP",
+      "doc": {
+        "constraints": {
+          "type": "files"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "rtp_originator_dir",
+      "label": "RTP.Direction",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "unknown"
+          },
+          {
+            "code": "1",
+            "value": "c2s"
+          },
+          {
+            "code": "2",
+            "value": "s2c"
+          }
+        ]
+      },
+      "type": "int"
+    }
+  ]
+}

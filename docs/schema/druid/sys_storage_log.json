@@ -1,0 +1,38 @@
+{
+  "type": "record",
+  "name": "sys_storage_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "log_type",
+      "type": "string"
+    },
+    {
+      "name": "data_center",
+      "type": "string"
+    },
+    {
+      "name": "max_size",
+      "type": "long"
+    },
+    {
+      "name": "used_size",
+      "type": "long"
+    },
+    {
+      "name": "aggregate_size",
+      "type": "long"
+    },
+    {
+      "name": "last_storage",
+      "type": "long"
+    }
+  ]
+}

@@ -19,7 +19,6 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.SchemaCacheUtils;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
@@ -102,7 +101,6 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                     ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "Avro Schema Validation Fail:", e);
 
         }
-        SchemaCacheUtils.removeAll();
         return result;
     }
 

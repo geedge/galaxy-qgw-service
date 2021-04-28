@@ -1,6 +1,7 @@
 package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -21,6 +22,7 @@ import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaParseException;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -286,9 +288,27 @@ public class NacosMetadataServiceImpl implements MetadataService {
 
     private void updateSchema(String configInfo) {
         if (StrUtil.isBlank(configInfo)) return;
-        Schema schema = new Schema.Parser().parse(configInfo);
-        allSchemaMap.put(schema.getName(), schema);
-        String namespace = schema.getNamespace();
+        try {
+            Map schemaMap = JSONUtil.toBean(configInfo, Map.class);
+            Object docSchema;
+            if (StringUtil.isNotEmpty(docSchema = schemaMap.get("doc"))) {
+                schemaMap.put("doc", JSONUtil.toJsonStr(docSchema));
+            }
+            Object fieldsObj;
+            if (StringUtil.isNotEmpty(fieldsObj = schemaMap.get("fields"))) {
+                List<Map> fields = (List<Map>) fieldsObj;
+                for (Map next : fields) {
+                    Object docField;
+                    if (StringUtil.isEmpty(docField = next.get("doc"))) {
+                        continue;
+                    }
+                    next.put("doc", JSONUtil.toJsonStr(docField));
+                }
+            }
+            Schema schema = new Schema.Parser().parse(JSONUtil.toJsonStr(schemaMap));
+            allSchemaMap.put(schema.getName(), schema);
+        } catch (JSONException | SchemaParseException | ClassCastException e) {
+            log.error("update Schema error: {}", e);
+        }
     }
-
 }
