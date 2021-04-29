@@ -1,6 +1,8 @@
 package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.json.JSONUtil;
+import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.nacos.NacosConfig;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,13 +31,10 @@ public class NacosHealthIndicator extends AbstractHealthIndicator {
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         try {
-            String queryURL = URLUtil.normalize(nacosConfig.getServerAddr() + "/nacos/v1/auth/users/login?");
-            StringBuilder queryParamBuilder = new StringBuilder("username=")
-                    .append(nacosConfig.getUsername()).append("&")
-                    .append("password=").append(nacosConfig.getPassword());
 
-            ResponseEntity responseEntity = restTemplate.postForEntity(queryURL + queryParamBuilder, null, Map.class);
-            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
+            ResponseEntity responseEntity = restTemplate.getForEntity(URLUtil.normalize(nacosConfig.getServerAddr() + "/nacos/actuator/health"), Map.class);
+            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK
+                    && "UP".equalsIgnoreCase(JsonPath.read(JSONUtil.toJsonStr(responseEntity.getBody()), "$.status"))) {
                 builder.up()
                         .withDetail("app", "Nacos")
                         .withDetail("url", nacosConfig.getServerAddr())
