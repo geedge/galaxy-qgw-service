@@ -200,9 +200,9 @@ public class NacosMetadataServiceImpl implements MetadataService {
             List<String> tables = metadataBean.getTables();
             for (String table : tables) {
                 try {
-                    String content = configService.getConfig(table, nacosConfig.getGroup(), 3000);
+                    String content = configService.getConfig(table.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
                     updateSchema(content);
-                    configService.addListener(table, nacosConfig.getGroup(), new Listener() {
+                    configService.addListener(table.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new Listener() {
                         @Override
                         public Executor getExecutor() {
                             return null;

@@ -1,0 +1,46 @@
+{
+  "type": "record",
+  "name": "sd_multi_access_cnt_feature",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "hits",
+      "type": "long"
+    },
+    {
+      "name": "ip",
+      "type": "string"
+    },
+    {
+      "name": "ja3",
+      "type": "string"
+    },
+    {
+      "name": "qq_account",
+      "type": "string"
+    },
+    {
+      "name": "ttl",
+      "type": "long"
+    },
+    {
+      "name": "ua",
+      "type": "string"
+    },
+    {
+      "name": "user_id",
+      "type": "string"
+    },
+    {
+      "name": "wx_account",
+      "type": "string"
+    }
+  ]
+}

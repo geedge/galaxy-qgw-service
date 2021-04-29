@@ -1,0 +1,42 @@
+{
+  "type": "record",
+  "name": "security_event_hits_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "action",
+      "type": "long"
+    },
+    {
+      "name": "entrance_id",
+      "type": "long"
+    },
+    {
+      "name": "hits",
+      "type": "long"
+    },
+    {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "isp",
+      "type": "string"
+    },
+    {
+      "name": "policy_id",
+      "type": "long"
+    }
+  ]
+}

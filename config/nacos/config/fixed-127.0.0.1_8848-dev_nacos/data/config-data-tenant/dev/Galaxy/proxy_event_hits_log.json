@@ -1,0 +1,58 @@
+{
+  "type": "record",
+  "name": "proxy_event_hits_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "action",
+      "type": "long"
+    },
+    {
+      "name": "isp",
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "type": "long"
+    },
+    {
+      "name": "hits",
+      "type": "long"
+    },
+    {
+      "name": "policy_id",
+      "type": "long"
+    },
+    {
+      "name": "sub_action",
+      "type": "string"
+    },
+    {
+      "name": "country",
+      "type": "string"
+    },
+    {
+      "name": "location",
+      "type": "string"
+    },
+    {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "ip_object",
+      "type": "string"
+    }
+  ]
+}

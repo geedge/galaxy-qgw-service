@@ -1,0 +1,74 @@
+{
+  "type": "record",
+  "name": "traffic_summary_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "isp",
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "type": "long"
+    },
+    {
+      "name": "data_center",
+      "type": "string"
+    },
+    {
+      "name": "schema_type",
+      "type": "string"
+    },
+    {
+      "name": "ip_object",
+      "type": "string"
+    },
+    {
+      "name": "sessions",
+      "type": "long"
+    },
+    {
+      "name": "c2s_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "one_sided_connections",
+      "type": "long"
+    },
+    {
+      "name": "uncategorized_bytes",
+      "type": "long"
+    },
+    {
+      "name": "fragmentation_packets",
+      "type": "long"
+    },
+    {
+      "name": "sequence_gap_loss",
+      "type": "long"
+    },
+    {
+      "name": "unorder_packets",
+      "type": "long"
+    }
+  ]
+}

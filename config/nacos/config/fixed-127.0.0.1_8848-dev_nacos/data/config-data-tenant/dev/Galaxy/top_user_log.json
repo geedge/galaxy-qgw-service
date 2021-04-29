@@ -1,0 +1,42 @@
+{
+  "type": "record",
+  "name": "top_user_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "order_by",
+      "type": "string"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "session_num",
+      "type": "long"
+    },
+    {
+      "name": "subscriber_id",
+      "type": "string"
+    }
+  ]
+}
