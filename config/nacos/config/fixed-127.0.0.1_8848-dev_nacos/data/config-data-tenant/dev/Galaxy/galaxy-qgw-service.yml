@@ -30,6 +30,16 @@ spring:
     url: jdbc:mysql://192.168.44.3:3306/tsg-bifang?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
     username: root
     pin: 111111
+## Hbase configuration
+hbase:
+  zookeeperQuorum: 192.168.44.12:2181
+  zookeeperZnodeParent: /hbase
+  dbname: tsg
+  tableName: report_result
+  columnFamily: response
+  columnName: result
+  clientIpcPoolSize: 70
+  rpcTimeout: 60000
 ##############动态参数配置(修改后不需要重启项目)##############
 ## 项目参数
 project:
@@ -62,16 +72,6 @@ druid:
   url: 192.168.44.12:8082/druid/v2/sql
   dbname: druid
   socketTimeOut: 60000
-## Hbase configuration
-hbase:
-  zookeeperQuorum: 192.168.44.12:2181
-  zookeeperZnodeParent: /hbase
-  dbname: tsg
-  tableName: report_result
-  columnFamily: response
-  columnName: result
-  clientIpcPoolSize: 70
-  rpcTimeout: 60000
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin

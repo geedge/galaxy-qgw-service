@@ -101,7 +101,6 @@
         "common_schema_type",
         "common_l4_protocol",
         "common_l7_protocol",
-        "common_service_category",
         "common_data_center",
         "common_client_asn",
         "common_server_asn",
@@ -171,7 +170,6 @@
         "common_s2c_byte_num",
         "common_l4_protocol",
         "common_l7_protocol",
-        "common_service_category",
         "common_stream_dir",
         "common_data_center",
         "common_sled_ip",
@@ -2157,7 +2155,7 @@
     {
       "name": "common_app_id",
       "label": "Application ID",
-      "type": "int",
+      "type": "string",
       "doc": {
         "visibility": "hidden",
         "format": {
@@ -2169,7 +2167,7 @@
     {
       "name": "common_app_surrogate_id",
       "label": "Surrogate ID",
-      "type": "int",
+      "type": "string",
       "doc": {
         "visibility": "hidden"
       }
@@ -2183,9 +2181,6 @@
       "name": "common_service_category",
       "label": "FQDN Category",
       "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
         "allow_query": "true",
         "dict_location": {
           "path": "/v1/category/dict",

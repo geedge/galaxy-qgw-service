@@ -459,7 +459,7 @@
     },
     {
       "name": "common_app_id",
-      "type": "int",
+      "type": "string",
       "label": "Application ID",
       "doc": {
         "visibility": "hidden",
@@ -471,7 +471,7 @@
     },
     {
       "name": "common_app_surrogate_id",
-      "type": "int",
+      "type": "string",
       "label": "Surrogate ID",
       "doc": {
         "visibility": "hidden"

@@ -99,7 +99,6 @@
         "common_schema_type",
         "common_l4_protocol",
         "common_l7_protocol",
-        "common_service_category",
         "common_data_center",
         "common_client_asn",
         "common_server_asn",
@@ -163,7 +162,6 @@
         "common_s2c_tcp_unorder_num",
         "common_l4_protocol",
         "common_l7_protocol",
-        "common_service_category",
         "common_stream_dir",
         "common_direction",
         "common_data_center",
@@ -2028,7 +2026,7 @@
     },
     {
       "name": "common_app_id",
-      "type": "int",
+      "type": "string",
       "label": "Application ID",
       "doc": {
         "visibility": "hidden",
@@ -2040,7 +2038,7 @@
     },
     {
       "name": "common_app_surrogate_id",
-      "type": "int",
+      "type": "string",
       "label": "Surrogate ID",
       "doc": {
         "visibility": "hidden"
@@ -2055,9 +2053,6 @@
       "name": "common_service_category",
       "type": "string",
       "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
         "allow_query": "true",
         "dict_location": {
           "path": "/v1/category/dict",

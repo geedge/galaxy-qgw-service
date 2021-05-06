@@ -1332,7 +1332,7 @@
     {
       "name": "common_app_id",
       "label": "Application ID",
-      "type": "int",
+      "type": "string",
       "doc": {
         "visibility": "hidden",
         "format": {
@@ -1344,7 +1344,7 @@
     {
       "name": "common_app_surrogate_id",
       "label": "Surrogate ID",
-      "type": "int",
+      "type": "string",
       "doc": {
         "visibility": "hidden"
       }
@@ -1358,9 +1358,6 @@
       "name": "common_service_category",
       "label": "FQDN Category",
       "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
         "visibility": "disabled",
         "dict_location": {
           "path": "/v1/category/dict",
