@@ -526,7 +526,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
             String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
 
-            StringBuffer subQuery = getSubquerySql(primaryKey, indexTable);
+            String subQuery = getSubquerySql(primaryKey, indexTable);
             StringBuffer sb = new StringBuffer();
             sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(primaryKey).append(" in ( ").append(subQuery).append(")");
             if (StringUtil.isNotBlank(param.getDbQuerySource().getExpr())) {
@@ -553,7 +553,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getTableName());
                 return sql;
             } else {
-                StringBuffer subQuery = getSubquerySql(partitionKey, param.getTableName());
+                String subQuery = getSubquerySql(partitionKey, param.getTableName());
+                subQuery = subQuery.replaceAll("\\\\","$0$0");
+                subQuery = subQuery.replaceAll("\\$","\\\\\\$");
                 Matcher m = pWhere.matcher(sql);
                 StringBuffer sb = new StringBuffer();
                 while (m.find()) {
@@ -572,8 +574,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param tableName
          * @return
          */
-        private StringBuffer getSubquerySql(String columnName, String tableName) {
-            StringBuffer subQuery = new StringBuffer();
+        private String getSubquerySql(String columnName, String tableName) {
+            StringBuilder subQuery = new StringBuilder();
 
             subQuery.append("select " + columnName + " from ").append(tableName)
                     .append(" where ").append(param.getDbQuerySource().getExpr());
@@ -609,7 +611,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             } else {
                 subQuery.append(" limit 0, " + engineConfigSource.getDefaultResultNum());
             }
-            return subQuery;
+            return subQuery.toString();
         }
 
         /**
