@@ -289,10 +289,10 @@ public class NacosMetadataServiceImpl implements MetadataService {
     private void updateSchema(String configInfo) {
         if (StrUtil.isBlank(configInfo)) return;
         try {
-            Map schemaMap = JSONUtil.toBean(configInfo, Map.class);
+            Map schemaMap = (Map) JsonMapper.fromJsonString(configInfo, Map.class);
             Object docSchema;
             if (StringUtil.isNotEmpty(docSchema = schemaMap.get("doc"))) {
-                schemaMap.put("doc", JSONUtil.toJsonStr(docSchema));
+                schemaMap.put("doc", JsonMapper.toJsonString(docSchema));
             }
             Object fieldsObj;
             if (StringUtil.isNotEmpty(fieldsObj = schemaMap.get("fields"))) {
@@ -302,7 +302,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
                     if (StringUtil.isEmpty(docField = next.get("doc"))) {
                         continue;
                     }
-                    next.put("doc", JSONUtil.toJsonStr(docField));
+                    next.put("doc", JsonMapper.toJsonString(docField));
                 }
             }
             Schema schema = new Schema.Parser().parse(JSONUtil.toJsonStr(schemaMap));
