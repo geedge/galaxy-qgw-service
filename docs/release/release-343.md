@@ -9,8 +9,10 @@
  * 扩展Schema，Surrogate ID、Application ID字段类型变更为string，新增app_match函数(TSG-6215)。
  * 扩展Schema，取消FQDN Category报告指定与检索约束(TSG-5918)。
  * 新增Schema，liveChart_history、liveChart_live。
- * 新增nacos健康检测接口。
+ * 新增Nacos健康检测接口。
  * 修复正则替换对特殊字符\与$的处理(TSG-6244)。
- * SQL语句校验需要细化异常分类与异常描述(TSG-5966)。
- * 应用弱依赖增强(TSG-6002)。
+ * 改善SQL语句校验功能，细化异常分类与异常描述(TSG-5966)。
+ * 应用弱依赖增强，支持本地模式(TSG-6002)。
+ * 配置文件增加扩展名，改善本地显示和开发效率。
+
     
