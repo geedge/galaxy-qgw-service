@@ -235,15 +235,17 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                 }
                 Map<String, String> queryResult = executeQuery(line, Optional.of(QueryFormatEnum.CSV));
                 int statusCode = Integer.valueOf(queryResult.get("status").trim());
-                if (statusCode != HttpStatus.SC_OK) {
-                    throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Query" + index + " : " + JsonPath.read(queryResult.get("result"), "$.message"), null);
+                if (statusCode == HttpStatus.SC_OK) {
+                    if (writer != null) {
+                        writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "\n");
+                        writer.append(JsonPath.read(queryResult.get("result"), "$.meta") + "\n");
+                        writer.append(JsonPath.read(queryResult.get("result"), "$.data") + "\n");
+                    }
+                    infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
+                } else {
+                    infoMap.put("Query" + index, queryResult.get("message"));
                 }
-                if (writer != null) {
-                    writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "\n");
-                    writer.append(JsonPath.read(queryResult.get("result"), "$.meta") + "\n");
-                    writer.append(JsonPath.read(queryResult.get("result"), "$.data") + "\n");
-                }
-                infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
+
             }
 
             resultMap.put(file.get().getName(), infoMap);
@@ -337,7 +339,6 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         try {
 
             if (serverPort == 0) {
-
                 serverPort = DEFAULT_SERVER_PORT;
             }
             QueryFormatEnum format = formatEnum.orElse(QueryFormatEnum.JSON);

@@ -103,4 +103,4 @@ http:
     request:
       timeout: 10000
     response:
-      timeout: 10000
+      timeout: 60000
