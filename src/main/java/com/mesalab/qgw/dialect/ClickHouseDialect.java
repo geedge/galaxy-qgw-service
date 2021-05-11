@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
     private static final Pattern pSUM = Pattern.compile("\\bsum\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pNullable = Pattern.compile("\\bNullable\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pAvg = Pattern.compile("\\bavg\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pMax = Pattern.compile("\\bmax\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pMin = Pattern.compile("\\bmin\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -205,7 +206,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             return metaList;
         }
         metaList = JsonPath.read(meta, "$");
-        metaList.forEach(x -> x.put("type", metaMap.get(x.get("type")) == null ? DataTypeMapping.STRING : metaMap.get(x.get("type"))));
+        metaList.forEach(x ->
+        {
+            String type = x.get("type");
+            Matcher matcher = pNullable.matcher(type);
+            if (matcher.find()) {
+                type = matcher.group(1);
+            }
+            x.put("type", metaMap.get(type) == null ? DataTypeMapping.STRING : metaMap.get(type));
+        });
         return metaList;
     }
 
