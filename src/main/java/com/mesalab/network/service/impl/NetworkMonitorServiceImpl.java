@@ -49,7 +49,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     private int serverPort;
     private static String localHostAddress;
 
-    private static final String PROTOCOL_NODE = "Protocols/";
+    private static final String PROTOCOL_NODE = "Protocols.";
     private static final String PROTOCOL_ROOT_NODE = "ETHERNET";
 
     static {
@@ -157,7 +157,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             data.forEach(o -> {
-                String[] protocolIds = String.valueOf(o.get("type")).split("/");
+                String[] protocolIds = String.valueOf(o.get("type")).split("\\.");
                 String protocolId = protocolIds[protocolIds.length - 1];
                 o.put("type", protocolId);
             });
@@ -232,12 +232,12 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         "(" +
                         "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
                         "from %s " +
-                        "where %s %s and protocol_id like CONCAT('%s','/%s') and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) + 1 + %s " +
+                        "where %s %s and protocol_id like CONCAT('%s','.%s') and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'.','')) + 1 + %s " +
                         "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
                         "order by stat_time asc) ",
                 queryParam.getParameters().getGranularity(), queryParam.getDataSource(), whereOfTime, whereOfExactly, protocolStr, queryParam.getParameters().getGranularity(),
                 queryParam.getParameters().getGranularity(), queryParam.getDataSource(), whereOfTime, whereOfExactly, protocolStr, "%",
-                protocolStr.length() - protocolStr.replaceAll("/", "").length(), queryParam.getParameters().getGranularity());
+                protocolStr.length() - protocolStr.replaceAll("\\.", "").length(), queryParam.getParameters().getGranularity());
 
     }
 
@@ -342,7 +342,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         long sentPackets = Long.parseLong(results.get("c2s_pkt_num").toString());
         long receivedPackets = Long.parseLong(results.get("s2c_pkt_num").toString());
         String protocolId = results.get("protocol_id").toString();
-        List<String> protocolList = Lists.newArrayList(protocolId.split("/"));
+        List<String> protocolList = Lists.newArrayList(protocolId.split("\\."));
         ProtocolTree protocolTree = new ProtocolTree(protocolId, protocolList.size() <= 0 ? null : protocolList.get(protocolList.size() - 1), null);
         protocolTree.setSentBytes(sentBytes);
         protocolTree.setReceivedBytes(receivedBytes);

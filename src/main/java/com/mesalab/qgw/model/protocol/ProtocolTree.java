@@ -24,7 +24,7 @@ public class ProtocolTree {
     private Map<String, Object> metrics = Maps.newLinkedHashMap();
     private long sentBytes;
     private long receivedBytes;
-    private static final String HIERARCCY_FLAG = "/";
+    private static final String HIERARCCY_FLAG = ".";
 
 
 
