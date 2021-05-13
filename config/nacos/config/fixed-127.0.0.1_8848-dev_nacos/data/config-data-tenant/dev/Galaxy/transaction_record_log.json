@@ -2029,11 +2029,7 @@
       "type": "string",
       "label": "Application ID",
       "doc": {
-        "visibility": "hidden",
-        "format": {
-          "functions": "app_match",
-          "appendTo": "common_app_label"
-        }
+        "visibility": "hidden"
       }
     },
     {
