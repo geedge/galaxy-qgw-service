@@ -1276,7 +1276,7 @@
       "name": "common_service_category",
       "label": "FQDN Category",
       "doc": {
-        "visibility": "disabled",
+        "allow_query": "true",
         "dict_location": {
           "path": "/v1/category/dict",
           "key": "categoryId",
