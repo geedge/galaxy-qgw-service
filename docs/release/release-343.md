@@ -8,6 +8,7 @@
  * 扩展Schema，采集日志Action字段的隐藏;包含VoIP的协议SIP/RTP中属性中label修改(TSG-6212)。
  * 扩展Schema，Surrogate ID、Application ID字段类型变更为string(TSG-6215)。
  * 扩展Schema，取消FQDN Category报告指定与检索约束(TSG-5918)。
+ * 扩展Schema，函数增加描述信息(TSG-6348)。
  * 新增Schema，liveChart_history、liveChart_live。
  * 新增Nacos健康检测接口。
  * 修复正则替换对特殊字符\与$的处理(TSG-6244)。

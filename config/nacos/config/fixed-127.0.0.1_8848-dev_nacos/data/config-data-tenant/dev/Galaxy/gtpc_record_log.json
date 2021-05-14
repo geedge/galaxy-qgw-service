@@ -9,76 +9,94 @@
       "aggregation": [
         {
           "name": "COUNT",
+          "label": "COUNT",
           "function": "count(expr)"
         },
         {
           "name": "COUNT_DISTINCT",
+          "label": "COUNT_DISTINCT",
           "function": "count(distinct expr)"
         },
         {
           "name": "AVG",
+          "label": "AVG",
           "function": "avg(expr)"
         },
         {
           "name": "SUM",
+          "label": "SUM",
           "function": "sum(expr)"
         },
         {
           "name": "MAX",
+          "label": "MAX",
           "function": "max(expr)"
         },
         {
           "name": "MIN",
+          "label": "MIN",
           "function": "min(expr)"
         }
       ],
       "operator": [
         {
           "name": "=",
+          "label": "=",
           "function": "expr = value"
         },
         {
           "name": "!=",
+          "label": "!=",
           "function": "expr != value"
         },
         {
           "name": ">",
+          "label": ">",
           "function": "expr > value"
         },
         {
           "name": "<",
+          "label": "<",
           "function": "expr < value"
         },
         {
           "name": ">=",
+          "label": ">=",
           "function": "expr >= value"
         },
         {
           "name": "<=",
+          "label": "<=",
           "function": "expr <= value"
         },
         {
           "name": "in",
+          "label": "IN",
           "function": "expr in (values)"
         },
         {
           "name": "not in",
+          "label": "NOT IN",
           "function": "expr not in (values)"
         },
         {
           "name": "like",
+          "label": "LIKE",
           "function": "expr like value"
         },
         {
           "name": "not like",
+          "label": "NOT LIKE",
           "function": "expr not like value"
         },
         {
           "name": "notEmpty",
+          "label": "NOT EMPTY",
           "function": "notEmpty(expr)"
         },
         {
           "name": "empty",
+          "label": "EMPTY",
           "function": "empty(expr)"
         }
       ]
