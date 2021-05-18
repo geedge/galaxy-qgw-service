@@ -18,6 +18,8 @@
 *.iml
 *.ipr
 /logs/
+/config/nacos
+!/config/nacos/config/fixed-127.0.0.1_8848-dev_nacos
 
 ### NetBeans ###
 /nbproject/private/

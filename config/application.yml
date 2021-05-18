@@ -1,8 +1,7 @@
 nacos:
   config:
-    local-model: true #本地模式(1.此模式下启动项目,不会连接nacos服务端,配置依赖于本地目录 2. server-addr必须指定为127.0.0.1:8848)
     type: yaml #配置集的配置格式
-    server-addr: 127.0.0.1:8848 #配置中心地址
+    server-addr: 127.0.0.1:8848 #配置中心地址(1.本地配置模式: server-addr指定为127.0.0.1:8848 2.IDE配置VM启动参数：-DJM.SNAPSHOT.PATH=config)
     namespace: dev #命名空间
     data-id: galaxy-qgw-service.yml # 数据集ID
     auto-refresh: true #开启自动刷新
