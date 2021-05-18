@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +61,7 @@ public abstract class Writer {
         String pocSQL = "";
         try {
             if (writer.getFile().exists()) {
-                return writer.getFile().getAbsolutePath();
+                writer.getFile().createNewFile();
             }
 
             List<String> rawLines = templateReader.readLines();
@@ -106,8 +107,8 @@ public abstract class Writer {
             writer.appendLines(resultLines);
             resultLines.clear();
             pocSQL = writer.getFile().getAbsolutePath();
-        } catch (IORuntimeException e) {
-            log.error("IORuntimeException:{}", e);
+        } catch (IORuntimeException | IOException e) {
+            log.error("Generate PocSQL Exception:{}", e);
         }
         return pocSQL;
     }

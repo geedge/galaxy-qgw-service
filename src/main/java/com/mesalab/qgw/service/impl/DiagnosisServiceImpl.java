@@ -243,7 +243,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                     }
                     infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
                 } else {
-                    infoMap.put("Query" + index, queryResult.get("message"));
+                    infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.message"));
                 }
 
             }

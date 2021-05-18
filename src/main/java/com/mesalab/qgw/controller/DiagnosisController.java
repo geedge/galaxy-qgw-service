@@ -36,13 +36,7 @@ public class DiagnosisController {
 
     @RequestMapping(value = "/runSql")
     public BaseResult executePocSql(String isSaved) {
-        if (StringUtil.isNotBlank(isSaved)) {
-            return diagnosisService.runPocSQL(Boolean.valueOf(isSaved));
-        } else {
-            return diagnosisService.runPocSQL(false);
-        }
-
-
+        return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved));
     }
 
     @RequestMapping({"/sql", "/sql/{dialect}/{queryNo}"})

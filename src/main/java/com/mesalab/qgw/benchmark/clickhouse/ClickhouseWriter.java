@@ -82,27 +82,24 @@ public class ClickhouseWriter extends Writer {
         }
     }
 
+    @Override
     public String buildPocSQL() {
         String pocSql = "";
         try {
             Map<String, List<String>> environment = getFilterOptions(ckFilterJson);
 
-            String filePath;
-            String localDataFilePath = buildLocalDataFilePath(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
-            String snapshotDataFilePath = buildSnapshotDataFilePath(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
-            //优先使用本地配置
-            filePath = FileUtil.exist(localDataFilePath)?localDataFilePath:snapshotDataFilePath;
+            File templateFile = new File("benchmark" + File.separator + NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
+            String content = configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
+            templateFile = FileUtil.writeBytes(content.getBytes(), templateFile);
+            FileReader templateReader = new FileReader(templateFile);
 
-            FileReader templateReader = new FileReader(filePath);
-
-            FileWriter writer = new FileWriter(new File("").getCanonicalPath()
+            File file = FileUtil.writeBytes("".getBytes(), new File("").getCanonicalPath()
                     + File.separator + "benchmark" + File.separator + "ck_queries" + "_"
                     + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql");
+            FileWriter writer = FileWriter.create(file);
 
             pocSql = generatePocSQL(environment, templateReader, writer);
-
-
-        } catch (IOException e) {
+        } catch (IOException | NacosException e) {
             log.error("Not found file {}", e);
         }
         return pocSql;

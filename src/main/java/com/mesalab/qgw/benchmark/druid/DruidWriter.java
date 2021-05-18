@@ -88,20 +88,19 @@ public class DruidWriter extends Writer {
         String pocSql = "";
         try {
             Map<String, List<String>> environment = getFilterOptions(druidFilterJson);
-            String filePath;
-            String localDataFilePath = buildLocalDataFilePath(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID);
-            String snapshotDataFilePath = buildSnapshotDataFilePath(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID);
-            //优先使用本地配置
-            filePath = FileUtil.exist(localDataFilePath)?localDataFilePath:snapshotDataFilePath;
 
-            FileReader templateReader = new FileReader(filePath);
+            File templateFile = new File("benchmark" + File.separator + NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID);
+            String content = configService.getConfig(NacosConst.DRUID_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
+            templateFile = FileUtil.writeBytes(content.getBytes(), templateFile);
+            FileReader templateReader = new FileReader(templateFile);
 
-            FileWriter druidWriter = new FileWriter(new File("").getCanonicalPath()
+            File file = FileUtil.writeBytes("".getBytes(), new File("").getCanonicalPath()
                     + File.separator + "benchmark" + File.separator + "druid_queries" + "_"
                     + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql");
+            FileWriter writer = FileWriter.create(file);
 
-            pocSql = generatePocSQL(environment, templateReader, druidWriter);
-        } catch (IOException e) {
+            pocSql = generatePocSQL(environment, templateReader, writer);
+        } catch (IOException | NacosException e) {
             log.error("Not found file {}", e);
         }
         return pocSql;
