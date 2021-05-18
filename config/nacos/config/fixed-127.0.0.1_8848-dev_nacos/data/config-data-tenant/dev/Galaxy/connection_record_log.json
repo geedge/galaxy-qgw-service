@@ -126,6 +126,7 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_app_label",
         "http_host",
         "http_domain",
         "http_url",
@@ -156,6 +157,7 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_app_label",
         "http_host",
         "http_domain",
         "http_url",
@@ -200,6 +202,7 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_app_label",
         "http_host",
         "http_domain",
         "http_url",
@@ -2130,7 +2133,10 @@
     {
       "name": "common_app_label",
       "label": "Application Label",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "allow_query": "true"
+      }
     },
     {
       "name": "common_tunnels",
