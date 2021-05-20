@@ -58,7 +58,8 @@
             "destination_country_log",
             "top_urls_log",
             "top_client_ip_log",
-            "top_external_host_log"
+            "top_external_host_log",
+            "traffic_app_stat_log"
         ]
     },
     {
