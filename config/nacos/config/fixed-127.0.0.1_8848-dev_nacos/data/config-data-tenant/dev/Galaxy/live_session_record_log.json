@@ -1044,7 +1044,8 @@
           "common_processing_time",
           "ftp_account",
           "ftp_url",
-          "ftp_content"
+          "ftp_content",
+          "ftp_link_type"
         ],
         "default_columns": [
           "common_recv_time",
@@ -2994,6 +2995,11 @@
     {
       "name": "ftp_content",
       "label": "FTP.Content",
+      "type": "string"
+    },
+    {
+      "name": "ftp_link_type",
+      "label": "FTP.Link Type",
       "type": "string"
     },
     {
