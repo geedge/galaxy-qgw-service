@@ -242,9 +242,12 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         writer.append(JsonPath.read(queryResult.get("result"), "$.data") + "\n");
                     }
                     infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
+                } else if(statusCode >= HttpStatus.SC_BAD_REQUEST && statusCode < HttpStatus.SC_INTERNAL_SERVER_ERROR){
+                    throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), file.get().getName() + ",Query" + index + "," + JsonPath.read(queryResult.get("result"), "$.message"), null);
                 } else {
-                    infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.message"));
+                    infoMap.put("Query" + index, queryResult.get("status") + "," + queryResult.get("message"));
                 }
+
 
             }
 
@@ -347,7 +350,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             int socketTimeOut = httpConfig.getServerResponseTimeOut();
             resultMap = httpClientService.httpGet(queryURL + sql + "&format=" + format, socketTimeOut);
         } catch (UnsupportedEncodingException e) {
-            log.error("sql Encode error: ", e);
+            log.error("Unsupported Encoding error: ", e);
         }
 
         return resultMap;
