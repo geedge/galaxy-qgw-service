@@ -481,7 +481,10 @@
     {
       "name": "common_service_category",
       "label": "FQDN Category",
-      "type": "string"
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
     },
     {
       "name": "common_start_time",

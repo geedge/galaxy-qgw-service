@@ -70,6 +70,11 @@
           "function": "expr <= value"
         },
         {
+          "name": "has",
+          "label": "HAS",
+          "function": "has(expr, value)"
+        },
+        {
           "name": "in",
           "label": "IN",
           "function": "expr in (values)"
@@ -258,6 +263,10 @@
           {
             "type": "timestamp",
             "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type":"array",
+            "functions":"has"
           }
         ]
       },
@@ -2065,8 +2074,14 @@
     },
     {
       "name": "common_service_category",
-      "type": "string",
+      "type": {
+        "type": "array",
+        "items": "int"
+      },
       "doc": {
+        "constraints": {
+          "operator_functions": "has"
+        },
         "allow_query": "true",
         "dict_location": {
           "path": "/v1/category/dict",

@@ -70,6 +70,11 @@
           "function": "expr <= value"
         },
         {
+          "name": "has",
+          "label": "HAS",
+          "function": "has(expr, value)"
+        },
+        {
           "name": "in",
           "label": "IN",
           "function": "expr in (values)"
@@ -182,6 +187,10 @@
           {
             "type": "timestamp",
             "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "array",
+            "functions": "has"
           }
         ]
       },
@@ -1106,6 +1115,9 @@
       "name": "common_service_category",
       "label": "FQDN Category",
       "doc": {
+        "constraints": {
+          "operator_functions": "has"
+        },
         "visibility": "disabled",
         "dict_location": {
           "path": "/v1/category/dict",
@@ -1113,7 +1125,10 @@
           "value": "categoryName"
         }
       },
-      "type": "string"
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
     },
     {
       "name": "common_start_time",
