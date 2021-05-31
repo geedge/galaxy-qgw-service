@@ -3,3 +3,4 @@
  * 新增Schema，支持APP统计表traffic_app_stat_log(TSG-6418)。
  * 扩展Schema，FTP协议增加属性ftp_link_type(TSG-6377)。
  * 扩展Schema，增加Array类型并支持数组函数，common_service_category由string变为array(TSG-6467)。
+ * 修改Schema，安全策略日志隐藏mail_eml_file字段(TSG-6067)。
