@@ -235,6 +235,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                 }
                 Map<String, String> queryResult = executeQuery(line, Optional.of(QueryFormatEnum.CSV));
                 int statusCode = Integer.valueOf(queryResult.get("status").trim());
+
                 if (statusCode == HttpStatus.SC_OK) {
                     if (writer != null) {
                         writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "\n");
@@ -242,10 +243,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         writer.append(JsonPath.read(queryResult.get("result"), "$.data") + "\n");
                     }
                     infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
-                } else if(statusCode >= HttpStatus.SC_BAD_REQUEST && statusCode < HttpStatus.SC_INTERNAL_SERVER_ERROR){
-                    throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), file.get().getName() + ",Query" + index + "," + JsonPath.read(queryResult.get("result"), "$.message"), null);
+                } else if (statusCode == HttpStatus.SC_GATEWAY_TIMEOUT || statusCode == HttpStatus.SC_BAD_GATEWAY) {
+                    infoMap.put("Query" + index, "status:"+queryResult.get("status") + ",message:" + queryResult.get("message"));
+
                 } else {
-                    infoMap.put("Query" + index, queryResult.get("status") + "," + queryResult.get("message"));
+                    throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), file.get().getName()
+                                                        + ",Query" + index + "," + queryResult.get("status") + "," + queryResult.get("message"), null);
+
                 }
 
 
