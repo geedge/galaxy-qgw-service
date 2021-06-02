@@ -4,3 +4,4 @@
  * 扩展Schema，FTP协议增加属性ftp_link_type(TSG-6377)。
  * 扩展Schema，增加Array类型并支持数组函数，common_service_category由string变为array(TSG-6467)。
  * 修改Schema，安全策略日志隐藏mail_eml_file字段(TSG-6067)。
+ * 扩展Schema，对字段值为多项的属性进行定义，SSL.Subject与SSL.Issuer增加items约束(TSG-6561)。
