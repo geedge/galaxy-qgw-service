@@ -1456,7 +1456,111 @@
       "common_server_ip",
       "common_server_port",
       "common_schema_type"
-    ]
+    ],
+    "tunnel_type": {
+      "GTP": [
+        {
+          "name": "gtp_sgw_ip",
+          "label": "S-GW IP",
+          "type": "string"
+        },
+        {
+          "name": "gtp_pgw_ip",
+          "label": "P-GW IP",
+          "type": "string"
+        },
+        {
+          "name": "gtp_sgw_port",
+          "label": "S-GW Port",
+          "type": "int"
+        },
+        {
+          "name": "gtp_pgw_port",
+          "label": "P-GW Port",
+          "type": "int"
+        },
+        {
+          "name": "gtp_uplink_teid",
+          "label": "Uplink TEID",
+          "type": "long"
+        },
+        {
+          "name": "gtp_downlink_teid",
+          "label": "Downlink TEID",
+          "type": "long"
+        }
+      ],
+      "MPLS": [
+        {
+          "name": "mpls_c2s_direction_label",
+          "label": "Multiprotocol Label(c2s)",
+          "type": {
+            "type": "array",
+            "items": "int"
+          }
+        },
+        {
+          "name": "mpls_s2c_direction_label",
+          "label": "Multiprotocol Label(s2c)",
+          "type": {
+            "type": "array",
+            "items": "int"
+          }
+        }
+      ],
+      "VLAN": [
+        {
+          "name": "vlan_c2s_direction_id",
+          "label": "VLAN Direction(c2s)",
+          "type": {
+            "type": "array",
+            "items": "int"
+          }
+        },
+        {
+          "name": "vlan_s2c_direction_id",
+          "label": "VLAN Direction(s2c)",
+          "type": {
+            "type": "array",
+            "items": "int"
+          }
+        }
+      ],
+      "ETHERNET": [
+        {
+          "name": "source_mac",
+          "label": "Source MAC",
+          "type": "string"
+        },
+        {
+          "name": "destination_mac",
+          "label": "Destination MAC",
+          "type": "string"
+        }
+      ],
+      "MULTIPATH_ETHERNET": [
+        {
+          "name": "c2s_source_mac",
+          "label": "Source MAC(c2s)",
+          "type": "string"
+        },
+        {
+          "name": "c2s_destination_mac",
+          "label": "Destination MAC(c2s)",
+          "type": "string"
+        },
+        {
+          "name": "s2c_source_mac",
+          "label": "Source MAC(s2c)",
+          "type": "string"
+        },
+        {
+          "name": "s2c_destination_mac",
+          "label": "Destination MAC(s2c)",
+          "type": "string"
+        }
+      ]
+    }
   },
   "fields": [
     {
