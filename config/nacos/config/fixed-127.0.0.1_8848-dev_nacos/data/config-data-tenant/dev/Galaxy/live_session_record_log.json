@@ -2632,7 +2632,7 @@
           },
           {
             "code": "1",
-            "value": "REESPONSE"
+            "value": "RESPONSE"
           }
         ]
       },
@@ -2965,11 +2965,21 @@
     {
       "name": "ssl_cert_issuer",
       "label": "SSL.Issuer",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        }
+      },
       "type": "string"
     },
     {
       "name": "ssl_cert_subject",
       "label": "SSL.Subject",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        }
+      },
       "type": "string"
     },
     {
