@@ -495,8 +495,8 @@
                         <goals>
                             <goal>build</goal>
                         </goals>
-                        <!-- <phase>package</phase>-->
-                        <phase>install</phase>
+                        <phase>package</phase>
+                        <!--<phase>install</phase>-->
                         <configuration>
                             <password>Geedge2020!</password>
                             <excludes>
