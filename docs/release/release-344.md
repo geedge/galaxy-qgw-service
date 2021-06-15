@@ -5,3 +5,5 @@
  * 扩展Schema，增加Array类型并支持数组函数，common_service_category由string变为array(TSG-6467)。
  * 修改Schema，安全策略日志隐藏mail_eml_file字段(TSG-6067)。
  * 扩展Schema，对字段值为多项的属性进行定义，SSL.Subject与SSL.Issuer增加items约束(TSG-6561)。
+ * 改善SQL性能诊断，支持更多测试集。CK（316项)，Druid（55项），Engine(129项目)。
+ * 修改DNS协议日志，dns_qr字典的response拼写错误。
