@@ -76,6 +76,7 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     public BaseResult executeQuery(ApiParam param) {
+
         if (StringUtil.isBlank(param.getQuery())) {
             return BaseResultGenerator.success4Message("ok");
         }
@@ -83,7 +84,8 @@ public class ApiServiceImpl implements ApiService {
         try {
             statement = CCJSqlParserUtil.parse(param.getQuery());
         } catch (JSQLParserException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: " + simplyErrorMessage(String.valueOf(e.getCause())), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                    "SQL Syntax Error: " + simplyErrorMessage(String.valueOf(e.getCause())), null);
         }
 
 

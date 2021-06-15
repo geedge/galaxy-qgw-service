@@ -143,7 +143,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-            druidQueryParam.getContext().put("sqlQueryId", systemService.getQueryIdOfInternal(param.getResultId(), param.getQuery()));
+            druidQueryParam.getContext().put("sqlQueryId", SQLHelper.getQueryId(param.getResultId(), param.getQuery()));
         }
         druidQueryParam.setResultFormat("object");
         return druidQueryParam;

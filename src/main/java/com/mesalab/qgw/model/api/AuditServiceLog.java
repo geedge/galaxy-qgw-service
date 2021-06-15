@@ -8,11 +8,17 @@ public class AuditServiceLog {
 
     private String annotation;
 
+    private String queryKey;
+
+    private String cacheKey;
+
+    private String remoteAddr;
+
     private String clientIp;
 
     private long exeTime;
 
-    private String remoteAddr;
+    private String dbType;
 
     private String param;
 
@@ -22,9 +28,6 @@ public class AuditServiceLog {
 
     private String classMethod;
 
-    private String queryKey;
-
-    private String dbType;
 
 
 

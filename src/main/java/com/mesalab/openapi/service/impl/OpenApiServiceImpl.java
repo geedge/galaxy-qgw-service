@@ -55,7 +55,7 @@ public class OpenApiServiceImpl implements OpenApiService {
         list.stream().forEach(record -> {
             String querySql = record.get("query_sql");
             int resultId = record.getInt("result_id");
-            String queryId = systemService.getQueryIdOfExternal(String.valueOf(resultId), querySql);
+            String queryId = systemService.getQueryIdWithCatalog(String.valueOf(resultId), querySql);
             record.set("query_id", queryId);
             results.add(record.getColumns());
         });

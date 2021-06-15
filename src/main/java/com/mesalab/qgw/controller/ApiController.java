@@ -23,7 +23,7 @@ public class ApiController {
     private ApiService apiService;
 
     @RequestMapping("/")
-    @AuditLog("QGW QUERY SERVICE")
+    @AuditLog("ApiController.query")
     @CachedSubmitCheck
     public BaseResult query(ApiParam apiParam) {
 

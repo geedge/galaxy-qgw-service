@@ -164,20 +164,13 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Override
-    public String getQueryIdOfExternal(String resultId, String query) {
+    public String getQueryIdWithCatalog(String resultId, String query) {
         String tableName = SQLHelper.getTableName(query);
         String dbType = metadataService.getDBTypeByTableName(tableName);
-        return DigestUtil.md5Hex(dbType) +
-                queryIdSeparator +
-                DigestUtil.md5Hex(resultId + query.trim());
+        return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }
 
-    @Override
-    public String getQueryIdOfInternal(String resultId, String query) {
-        String queryId = getQueryIdOfExternal(resultId, query);
-        queryId = queryId.substring(queryId.indexOf(SystemServiceImpl.queryIdSeparator) + 1);
-        return queryId;
-    }
+
 
     @Override
     public BaseResult getProcessesByQueryId(String queryId) {

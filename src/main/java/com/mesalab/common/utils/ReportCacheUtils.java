@@ -48,13 +48,15 @@ public class ReportCacheUtils {
     }
 
 
-    public static BaseResult<Object> get(String id, String query) {
-        Result result = query(id, query);
+    public static BaseResult<Object> get (String resultId, String query) {
+        BaseResult baseResult;
+        Result result = query(resultId, query);
         byte[] value = result.getValue(Bytes.toBytes(hBaseAPISource.getColumnFamily()), Bytes.toBytes(hBaseAPISource.getColumnName()));
         Map map = (Map) JsonMapper.fromJsonString(Bytes.toString(value), Map.class);
-        BaseResult baseResult;
+
         if (StringUtil.isEmpty(map)) {
-            baseResult = BaseResultGenerator.failure("Results not exist");
+            log.warn("The report result [resultId:{}] is unavailable. It Has been deleted or does not exist.", resultId);
+            baseResult = BaseResultGenerator.success4Message("The report result [resultId:" + resultId + "] is unavailable. It Has been deleted or does not exist.");
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), String.valueOf(map.get("message")),
                     map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), QueryFormatEnum.JSON.getValue());
@@ -67,7 +69,7 @@ public class ReportCacheUtils {
         Result result;
         try {
             table = hbaseConnection.getTable(TableName.valueOf((hBaseAPISource.getDbName() + ":" + hBaseAPISource.getTableName())));
-            Get get = new Get(Bytes.toBytes(systemService.getQueryIdOfInternal(id, query)));
+            Get get = new Get(Bytes.toBytes(SQLHelper.getQueryId(id, query)));
             get.addColumn(Bytes.toBytes(hBaseAPISource.getColumnFamily()), Bytes.toBytes(hBaseAPISource.getColumnName()));
             result = table.get(get);
 

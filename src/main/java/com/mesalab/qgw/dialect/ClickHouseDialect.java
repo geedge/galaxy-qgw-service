@@ -1145,7 +1145,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
         StringBuilder queryParameterBuilder = new StringBuilder(1024);
         String dbName = metadataService.getDBNameByTableName(param.getTableName());
-
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
@@ -1154,7 +1153,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName).append("&")
-                    .append("query_id=").append(systemService.getQueryIdOfInternal(param.getResultId(), param.getQuery())).append("&");
+                    .append("query_id=").append(SQLHelper.getQueryId(param.getResultId(), param.getQuery())).append("&");
         } else {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
             queryParameterBuilder.append(getRealTimeAccount()).append("&")

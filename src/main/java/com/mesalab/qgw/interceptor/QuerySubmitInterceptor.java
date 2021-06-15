@@ -17,14 +17,14 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Optional;
 
 @Component
 public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
 
     private static final Log log = LogFactory.get();
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception
     {
         String queryString = request.getQueryString();
         if (handler instanceof HandlerMethod) {
@@ -38,15 +38,15 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
             }
             String clientId = this.getClientId();
             String queryStr = StringEscapeUtils.escapeHtml4(queryString);
-            String queryKey = DigestUtil.md5Hex(queryStr);
+            String cacheKey = DigestUtil.md5Hex(Optional.ofNullable(queryStr).orElse(""));
             log.debug("Source compare to EscapeHtml4 SQL {}" ,
                     DigestUtil.md5Hex(queryStr).equals(DigestUtil.md5Hex(queryString)));
-            log.debug("Query Submit Check,ClientId:{}, QueryKey:{}", clientId, queryKey);
-            Object result = QueryCacheUtils.get(queryKey);
-
+            log.debug("Query Submit Check,ClientId:{}, CacheKey:{}", clientId, cacheKey);
+            Object result = QueryCacheUtils.get(cacheKey);
             if (StringUtil.isNotEmpty(result)) {
+
                 CacheStats stats = QueryCacheUtils.getStats();
-                log.info(" Query Repeat Submit Stat,QEQ_count:{},HIT_count:{},HIT_rate:{}, MISS_count:{}",
+               log.info(" Query Repeat Submit Stat, QEQ_count:{}, HIT_count:{}, HIT_rate:{}, MISS_count:{}",
                         stats.requestCount(), stats.hitCount(), stats.hitRate(), stats.missCount());
                 response.setCharacterEncoding("UTF-8");
                 response.setContentType("application/json;charset=UTF-8");

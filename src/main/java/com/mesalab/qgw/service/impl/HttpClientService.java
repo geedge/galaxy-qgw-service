@@ -213,19 +213,19 @@ public class HttpClientService {
             resultMap.put("status", String.valueOf(response.getStatusLine().getStatusCode()));
             resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
         } catch (ClientProtocolException e) {
-            log.error("协议错误: {}", e.getMessage());
+            log.error("ClientProtocolException:{}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
         } catch (ParseException e) {
-            log.error("解析错误: {}", e.getMessage());
+            log.error("ParseException:{}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
         } catch (IOException e) {
-            log.error("IO错误: {}", e.getMessage());
+            log.error("IOException:{}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
             resultMap.put("message", e.getMessage());
         } catch (Exception e) {
-            log.error("其它错误: {}", e.getMessage());
+            log.error("Exception:{}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
             resultMap.put("message", e.getMessage());
         } finally {
@@ -234,7 +234,7 @@ public class HttpClientService {
                     EntityUtils.consumeQuietly(response.getEntity());
                     response.close();
                 } catch (IOException e) {
-                    log.error("释放链接错误: {}", e.getMessage());
+                    log.error("CloseConnectionException:{}", e.getMessage());
                 }
             }
         }
@@ -265,19 +265,19 @@ public class HttpClientService {
             resultMap.put("status", String.valueOf(response.getStatusLine().getStatusCode()));
             resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
         } catch (ClientProtocolException e) {
-            log.error("协议错误: {}", e.getMessage());
+            log.error("ClientProtocolException:{}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
         } catch (ParseException e) {
-            log.error("解析错误: {}", e.getMessage());
+            log.error("ParseException:{}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
             resultMap.put("message", e.getMessage());
         } catch (IOException e) {
-            log.error("IO错误: {}", e.getMessage());
+            log.error("IOException:{}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
             resultMap.put("message", e.getMessage());
         } catch (Exception e) {
-            log.error("其它错误: {}", e.getMessage());
+            log.error("Exception:{}", e.getMessage());
             resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
             resultMap.put("message", e.getMessage());
         } finally {
@@ -286,7 +286,7 @@ public class HttpClientService {
                     EntityUtils.consumeQuietly(response.getEntity());
                     response.close();
                 } catch (IOException e) {
-                    log.error("释放链接错误: {}", e.getMessage());
+                    log.error("CloseConnectionException:{}", e.getMessage());
                 }
             }
         }

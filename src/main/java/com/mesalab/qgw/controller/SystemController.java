@@ -4,6 +4,7 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
@@ -85,9 +86,11 @@ public class SystemController {
         Object resultId, query;
         if (StringUtil.isEmpty(resultId = param.get("resultId"))
                 || StringUtil.isEmpty(query = param.get("query"))) {
-            return BaseResultGenerator.failure("resultId or query cannot be empty");
+
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param resultId or query cannot be empty", null);
         }
-        String queryId = systemService.getQueryIdOfExternal(resultId.toString(), query.toString());
+        String queryId = systemService.getQueryIdWithCatalog(resultId.toString(), query.toString());
 
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> map = new HashMap<>(16);

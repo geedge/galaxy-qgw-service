@@ -127,6 +127,18 @@ public class BaseResultGenerator {
      * 操作失败响应结果， 自定义错误编码及信息
      *
      * @param status  HTTP 状态码
+     * @param code    返回业务编码
+     * @param message 自定义信息
+     * @return 响应结果
+     */
+    public static <T> BaseResult<T> failure(final int status, final String code, String queryKey, final String message) {
+        return new BaseResult<>(status, code, queryKey, false, message, null, null, null, null);
+    }
+
+    /**
+     * 操作失败响应结果， 自定义错误编码及信息
+     *
+     * @param status  HTTP 状态码
      * @param message 自定义信息
      * @return 响应结果
      */
@@ -144,15 +156,19 @@ public class BaseResultGenerator {
         return new BaseResult<>(resultStatusEnum.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), null, false, resultStatusEnum.getMessage(), null, null, null, null);
     }
 
+
     /**
      * 操作失败响应结果，自定义信息
      *
      * @param message 自定义信息
+     * @param queryKey 唯一标识
      * @return 响应结果
      */
-    public static <T> BaseResult<T> failure(final String message) {
-        return new BaseResult<>(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), null, false, message, null, null, null, null);
+    public static <T> BaseResult<T> failure(final String message, final String queryKey) {
+
+        return new BaseResult<>(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), queryKey, false, message, null, null, null, null);
     }
+
 
     /**
      * 异常响应结果， 默认结果

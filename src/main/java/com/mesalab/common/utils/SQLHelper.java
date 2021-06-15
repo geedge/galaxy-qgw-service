@@ -1,5 +1,6 @@
 package com.mesalab.common.utils;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import com.alibaba.druid.util.JdbcConstants;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -131,6 +132,19 @@ public class SQLHelper {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error.", e.getCause());
         }
+    }
+
+    /**
+     * 构建查询唯一标识：Query ID，由resultID+query 组成。
+     *
+     * @param resultId
+     * @param query
+     * @return {@link String}
+     * @created by wWei
+     * @date 2021/2/24 7:23 下午
+     */
+    public static String getQueryId(String resultId, String query) {
+        return  DigestUtil.md5Hex(resultId + query.trim());
     }
 
 }
