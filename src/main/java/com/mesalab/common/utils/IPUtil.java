@@ -13,12 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 public class IPUtil {
 
     private static IpLookup ipLookup =  new IpLookup.Builder(true)
-            .loadDataFileV4("dat/ip_v4.mmdb")
-            .loadDataFileV6("dat/ip_v6.mmdb")
-            .loadDataFilePrivateV4("dat/ip_private_v4.mmdb")
-            .loadDataFilePrivateV4("dat/ip_private_v6.mmdb")
-            .loadAsnDataFileV4("dat/asn_v4.mmdb")
-            .loadAsnDataFileV6("dat/asn_v6.mmdb")
             .build();
 
     public static String getGeo(String ip) {

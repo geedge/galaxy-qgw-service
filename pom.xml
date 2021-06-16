@@ -58,7 +58,7 @@
         <avro.version>1.9.1</avro.version>
         <active.record.version>4.9.01</active.record.version>
         <json.schema.version>2.2.10</json.schema.version>
-        <zdjizhi.version>1.0.4</zdjizhi.version>
+        <zdjizhi.version>1.0.6</zdjizhi.version>
         <uaAnalyser.version>1.0-RELEASE</uaAnalyser.version>
         <apache.calcite.version>1.22.0</apache.calcite.version>
         <jsqlparser.version>3.0</jsqlparser.version>
