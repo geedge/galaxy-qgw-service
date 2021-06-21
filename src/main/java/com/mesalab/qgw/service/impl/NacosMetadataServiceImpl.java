@@ -17,6 +17,7 @@ import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
+import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
@@ -51,6 +52,8 @@ public class NacosMetadataServiceImpl implements MetadataService {
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
+    @Autowired
+    private ElasticsearchHttpSource elasticsearchHttpSource;
 
     public List<MetadataBean> metadataBeans;
 
@@ -109,6 +112,9 @@ public class NacosMetadataServiceImpl implements MetadataService {
         if (druidIoHttpSource.getDbname().equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.DRUID.getValue();
         }
+        if (elasticsearchHttpSource.getDbname().equalsIgnoreCase(schema.getNamespace())) {
+            return DBTypeEnum.ELASTICSEARCH.getValue();
+        }
         return StringUtil.EMPTY;
     }
 
@@ -156,6 +162,7 @@ public class NacosMetadataServiceImpl implements MetadataService {
         List<MetadataBean> tempMetadatabeans = JSONUtil.toList(configInfo, MetadataBean.class);
         filterTables(tempMetadatabeans, NacosConst.CLICKHOUSE_GROUP);
         filterTables(tempMetadatabeans, NacosConst.DRUID_GROUP);
+        filterTables(tempMetadatabeans, NacosConst.ES_GROUP);
         metadataBeans = tempMetadatabeans;
     }
 

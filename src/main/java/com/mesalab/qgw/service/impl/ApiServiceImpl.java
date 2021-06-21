@@ -184,6 +184,8 @@ public class ApiServiceImpl implements ApiService {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
         } else if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(dbType)) {
             param.setDbType(DBTypeEnum.DRUID.getValue());
+        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            param.setDbType(DBTypeEnum.ELASTICSEARCH.getValue());
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
         }

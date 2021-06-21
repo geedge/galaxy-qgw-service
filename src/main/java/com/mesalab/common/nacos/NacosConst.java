@@ -30,6 +30,8 @@ public class NacosConst {
 
     public static final String DRUID_GROUP = "DRUID_GROUP";
 
+    public static final String ES_GROUP = "ES_GROUP";
+
     public static final String META_DATA_ID = "meta_data.json";
 
     public static final String CK_FILTER_DATA_ID = "ck-filter.json";

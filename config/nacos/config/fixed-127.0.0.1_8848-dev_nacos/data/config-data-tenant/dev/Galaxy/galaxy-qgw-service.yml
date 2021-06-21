@@ -72,6 +72,11 @@ druid:
   url: 192.168.44.12:8082/druid/v2/sql
   dbname: druid
   socketTimeOut: 60000
+## Elasticsearch configuration
+elasticsearch:
+  url: 192.168.44.55:9200/_sql
+  dbname: elasticsearch
+  socketTimeOut: 60000
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
