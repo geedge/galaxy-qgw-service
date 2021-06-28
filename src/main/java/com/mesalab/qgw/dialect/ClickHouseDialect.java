@@ -1130,14 +1130,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      */
     private Map<String, String> executeHttpGet(String sql) {
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
-
         ClickHouseHttpQuery clickHouseHttpQuery = buildHttpQueryParameter(sql);
-
         log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
-                Encodes.urlDecode(clickHouseHttpQuery.getQueryParameter()));
-
+                Encodes.urlDecode(clickHouseHttpQuery.getQueryParameter()).replaceAll("password=(.*)&", "password=XXX&"));
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
-
         return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());
     }
 
