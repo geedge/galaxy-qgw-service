@@ -13,10 +13,12 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
+import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
@@ -37,6 +39,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ElasticsearchHttpSource elasticsearchHttpSource = (ElasticsearchHttpSource) SpringContextUtil.getBean("elasticsearchHttpSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
+    private int pageOffset;
     public ApiParam param;
     public BaseResult baseResult;
 
@@ -58,7 +61,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     @Override
     String convertQuery(String sql) {
-        return sql;
+        return new Converter(sql).generateStandard().build();
     }
 
     @Override
@@ -111,10 +114,18 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
                 baseResult.setMessage("ok");
             }
             Map<String, Object> allResults = (Map<String, Object>) dataObject;
+            List<Map<String, Object>> data = getData(allResults);
+            if (pageOffset > 0 && StringUtil.isNotEmpty(data)) {
+                if (pageOffset >= data.size()) {
+                    data = new ArrayList<>();
+                } else {
+                    data = data.subList(pageOffset, data.size());
+                }
+            }
             Map<String, Object> statistics = Maps.newLinkedHashMap();
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             statistics.put("rows_read", allResults.size());
-            baseResult.setData(getData(allResults));
+            baseResult.setData(data);
             baseResult.setMeta(allResults.get("columns"));
             baseResult.setStatistics(statistics);
         } else {
@@ -165,6 +176,44 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         QueryParam queryParam = new QueryParam();
         queryParam.setQuery(sql);
         return queryParam;
+    }
+
+    class Converter {
+        String sql = null;
+
+        public Converter(String sql) {
+            this.sql = sql;
+        }
+
+        /**
+         * SQL转换为ES SQL语法格式
+         * 1. 不支持limit offset,rows 转为 limit rows
+         *
+         * @return
+         */
+        public ElasticsearchDialect.Converter generateStandard() {
+            SQLQuerySource dbQuerySource = param.getDbQuerySource();
+            if (StringUtil.isNotBlank(dbQuerySource.getLimit()) &&
+                    dbQuerySource.getLimit().split(",").length >= 2) {
+
+                String[] limits = dbQuerySource.getLimit().trim().split(",");
+                int offset = Integer.valueOf(limits[0].trim());
+                int rowNum = Integer.valueOf(limits[1].trim());
+                pageOffset = offset;
+                sql = SQLHelper.getLimitString(dbQuerySource.getSqlBody(), 0, (offset + rowNum));
+            }
+            return this;
+        }
+
+
+        public ElasticsearchDialect.Converter generateDateFunction() {
+            return this;
+        }
+
+
+        public String build() {
+            return sql;
+        }
     }
 
     @Data
