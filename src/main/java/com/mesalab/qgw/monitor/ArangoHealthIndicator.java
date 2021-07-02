@@ -25,14 +25,14 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
     private ArangoConfig arangoConfig;
     @Autowired
     HttpClientService httpClientService;
-    private final static String object = "Arango";
+    private final static String APP = "Arango";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(arangoConfig.getJwturl(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", object)
-                    .withDetail("message", "NOT REQUIRED");
+                    .withDetail("app", APP)
+                    .withDetail("message", "UNNEEDED");
             return;
         }
         Map<String, String> params = new HashMap<>();
@@ -45,7 +45,7 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
                 Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
                 if (StringUtil.isEmpty(resMap) || StringUtil.isEmpty(resMap.get(Constant.JWT))) {
                     builder.down()
-                            .withDetail("app", object)
+                            .withDetail("app", APP)
                             .withDetail("message", "获取Arango jwt 失败: " + arangoConfig.getServer());
                     return;
                 } else {
@@ -58,17 +58,17 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
             Map map = (Map) JsonMapper.fromJsonString(result, Map.class);
             if (StringUtil.isEmpty(map) || StringUtil.isEmpty(map.get("version"))) {
                 builder.down()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("message", "连接Arango 失败: " + result);
             } else {
                 builder.up()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("url", arangoConfig.getServer())
                         .withDetail("message", "ok");
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", object)
+                    .withDetail("app", APP)
                     .withDetail("message", "连接Arango 失败");
         }
     }

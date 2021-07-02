@@ -29,13 +29,14 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private ElasticsearchHttpSource elasticsearchHttpSource;
+    private final static String APP = "Elasticsearch";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) throws Exception {
         if (StrUtil.contains(elasticsearchHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", "Druid")
-                    .withDetail("message", "NOT REQUIRED");
+                    .withDetail("app", APP)
+                    .withDetail("message", "UNNEEDED");
             return;
         }
         String queryURL = URLUtil.normalize(elasticsearchHttpSource.getUrl() + "?format=json");
@@ -49,12 +50,12 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
 
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()
-                        .withDetail("app", "Elasticsearch")
+                        .withDetail("app", APP)
                         .withDetail("url", elasticsearchHttpSource.getUrl())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
-                        .withDetail("app", "Elasticsearch")
+                        .withDetail("app", APP)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
 
             }
@@ -62,7 +63,7 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
 
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", "Elasticsearch")
+                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
 
         }

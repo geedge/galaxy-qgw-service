@@ -20,14 +20,14 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
-    private final static String object = "ClickHouse";
+    private final static String APP = "ClickHouse";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(clickHouseHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", object)
-                    .withDetail("message", "NOT REQUIRED");
+                    .withDetail("app", APP)
+                    .withDetail("message", "UNNEEDED");
             return;
         }
         clickHouseHttpSource.getRealTimeAccount();
@@ -47,19 +47,19 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
 
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("url", clickHouseHttpSource.getUrl())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
 
 
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", object)
+                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
 
         }

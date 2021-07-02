@@ -8,7 +8,6 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -21,32 +20,32 @@ public class MariaDBHealthIndicator extends AbstractHealthIndicator {
 
     @Value("${spring.datasource.url}")
     private String url;
-    private final static String object = "MariaDB";
+    private final static String APP = "MariaDB";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(url, "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", object)
-                    .withDetail("message", "NOT REQUIRED");
+                    .withDetail("app", APP)
+                    .withDetail("message", "UNNEEDED");
             return;
         }
         try {
             List<Object> query = Db.query("select 1");
             if (!CollectionUtils.isEmpty(query) && 1 == Long.parseLong(String.valueOf(query.get(0)))) {
                 builder.up()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("url", url)
                         .withDetail("message", "ok");
             } else {
                 builder.down()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("url", url)
                         .withDetail("message", "error, " + query);
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", object)
+                    .withDetail("app", APP)
                     .withDetail("url", url)
                     .withDetail("message", "error, " + e.getMessage());
         }

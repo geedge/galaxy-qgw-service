@@ -25,14 +25,14 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
-    private final static String object = "xxl-job-admin";
+    private final static String APP = "xxl-job-admin";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(jobAdminHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", object)
-                    .withDetail("message", "NOT REQUIRED");
+                    .withDetail("app", APP)
+                    .withDetail("message", "UNNEEDED");
             return;
         }
         HttpHeaders headers = new HttpHeaders();
@@ -50,22 +50,22 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
                 int code = Integer.parseInt(String.valueOf(body.get("code")));
                 if (code == HttpStatus.SC_OK) {
                     builder.up()
-                            .withDetail("app", object)
+                            .withDetail("app", APP)
                             .withDetail("url", jobAdminHttpSource.getUrl())
                             .withDetail("message", "ok");
                 } else {
                     builder.down()
-                            .withDetail("app", object)
+                            .withDetail("app", APP)
                             .withDetail("message", body.get("msg") + ", status code " + code);
                 }
             } else {
                 builder.down()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", object)
+                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
 
         }

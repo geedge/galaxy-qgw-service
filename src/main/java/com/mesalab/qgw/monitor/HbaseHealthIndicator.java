@@ -20,14 +20,14 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
     private HBaseAPISource hBaseProperties;
     @Autowired
     private Connection hbaseConnection;
-    private final static String object = "Hbase";
+    private final static String APP = "Hbase";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(hBaseProperties.getZookeeperQuorum(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", object)
-                    .withDetail("message", "NOT REQUIRED");
+                    .withDetail("app", APP)
+                    .withDetail("message", "UNNEEDED");
             return;
         }
         try {
@@ -37,19 +37,19 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
 
             if (connectionSuccess) {
                 builder.up()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("url", hBaseProperties.getZookeeperQuorum())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("message", "error");
 
 
             }
         } catch (IOException | RuntimeException e) {
             builder.down()
-                    .withDetail("app", object)
+                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
         }
 

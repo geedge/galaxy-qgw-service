@@ -26,14 +26,14 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
-    private final static String object = "Druid";
+    private final static String APP = "Druid";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         if (StrUtil.contains(druidIoHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
-                    .withDetail("app", object)
-                    .withDetail("message", "NOT REQUIRED");
+                    .withDetail("app", APP)
+                    .withDetail("message", "UNNEEDED");
             return;
         }
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
@@ -50,12 +50,12 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
 
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("url", druidIoHttpSource.getUrl())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
-                        .withDetail("app", object)
+                        .withDetail("app", APP)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
 
             }
@@ -63,7 +63,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
 
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", object)
+                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
 
         }
