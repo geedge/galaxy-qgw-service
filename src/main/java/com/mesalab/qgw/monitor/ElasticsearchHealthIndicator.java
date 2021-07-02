@@ -1,5 +1,6 @@
 package com.mesalab.qgw.monitor;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.google.common.collect.Maps;
 import com.mesalab.common.utils.JsonMapper;
@@ -28,8 +29,15 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private ElasticsearchHttpSource elasticsearchHttpSource;
+
     @Override
     protected void doHealthCheck(Health.Builder builder) throws Exception {
+        if (StrUtil.contains(elasticsearchHttpSource.getUrl(), "127.0.0.1")) {
+            builder.up()
+                    .withDetail("app", "Druid")
+                    .withDetail("message", "NOT REQUIRED");
+            return;
+        }
         String queryURL = URLUtil.normalize(elasticsearchHttpSource.getUrl() + "?format=json");
         QueryParam queryParam = new QueryParam();
         queryParam.setQuery("select database()");
@@ -37,7 +45,7 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity request = new HttpEntity(JsonMapper.toJsonString(queryParam), headers);
-            ResponseEntity responseEntity  = restTemplate.postForEntity(queryURL, request, Object.class);
+            ResponseEntity responseEntity = restTemplate.postForEntity(queryURL, request, Object.class);
 
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()
@@ -52,7 +60,6 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
             }
 
 
-
         } catch (RuntimeException e) {
             builder.down()
                     .withDetail("app", "Elasticsearch")
@@ -60,6 +67,7 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
 
         }
     }
+
     @Data
     class QueryParam {
         private String query;

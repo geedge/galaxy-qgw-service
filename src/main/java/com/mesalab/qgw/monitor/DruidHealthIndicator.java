@@ -1,4 +1,6 @@
 package com.mesalab.qgw.monitor;
+
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.google.common.collect.Maps;
 import com.mesalab.common.utils.JsonMapper;
@@ -24,9 +26,16 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
+    private final static String object = "Druid";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
+        if (StrUtil.contains(druidIoHttpSource.getUrl(), "127.0.0.1")) {
+            builder.up()
+                    .withDetail("app", object)
+                    .withDetail("message", "NOT REQUIRED");
+            return;
+        }
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidHealthIndicator.DruidQueryParam druidQueryParam = new DruidHealthIndicator.DruidQueryParam();
 
@@ -37,25 +46,24 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity request = new HttpEntity(JsonMapper.toJsonString(druidQueryParam), headers);
-            ResponseEntity responseEntity  = restTemplate.postForEntity(queryURL, request, Object.class);
+            ResponseEntity responseEntity = restTemplate.postForEntity(queryURL, request, Object.class);
 
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()
-                        .withDetail("app", "Druid")
+                        .withDetail("app", object)
                         .withDetail("url", druidIoHttpSource.getUrl())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
-                        .withDetail("app", "Druid")
+                        .withDetail("app", object)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
 
             }
 
 
-
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", "Druid")
+                    .withDetail("app", object)
                     .withDetail("message", e.getMessage());
 
         }

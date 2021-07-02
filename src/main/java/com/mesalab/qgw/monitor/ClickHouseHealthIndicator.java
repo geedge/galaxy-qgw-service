@@ -1,4 +1,6 @@
 package com.mesalab.qgw.monitor;
+
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import org.apache.http.HttpStatus;
@@ -18,10 +20,17 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
+    private final static String object = "ClickHouse";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
-         clickHouseHttpSource.getRealTimeAccount();
+        if (StrUtil.contains(clickHouseHttpSource.getUrl(), "127.0.0.1")) {
+            builder.up()
+                    .withDetail("app", object)
+                    .withDetail("message", "NOT REQUIRED");
+            return;
+        }
+        clickHouseHttpSource.getRealTimeAccount();
 
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
 
@@ -34,23 +43,23 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
         String url = queryURL + queryParamBuilder.toString();
 
         try {
-            ResponseEntity responseEntity  = restTemplate.getForEntity(url, Map.class);
+            ResponseEntity responseEntity = restTemplate.getForEntity(url, Map.class);
 
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 builder.up()
-                        .withDetail("app", "ClickHouse")
+                        .withDetail("app", object)
                         .withDetail("url", clickHouseHttpSource.getUrl())
                         .withDetail("message", "ok");
             } else {
                 builder.down()
-                        .withDetail("app", "ClickHouse")
+                        .withDetail("app", object)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
 
 
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", "ClickHouse")
+                    .withDetail("app", object)
                     .withDetail("message", e.getMessage());
 
         }
