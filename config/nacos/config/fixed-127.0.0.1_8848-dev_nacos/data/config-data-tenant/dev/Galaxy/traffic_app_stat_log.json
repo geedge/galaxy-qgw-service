@@ -27,7 +27,7 @@
       "type": "long"
     },
     {
-      "name": "S2c_pkt_num",
+      "name": "s2c_pkt_num",
       "type": "long"
     },
     {
