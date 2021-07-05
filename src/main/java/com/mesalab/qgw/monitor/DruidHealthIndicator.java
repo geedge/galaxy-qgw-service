@@ -33,7 +33,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
         if (StrUtil.contains(druidIoHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
                     .withDetail("app", APP)
-                    .withDetail("message", "UNNEEDED");
+                    .withDetail("message", "DISABLED");
             return;
         }
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());

@@ -32,7 +32,7 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
         if (StrUtil.contains(jobAdminHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
                     .withDetail("app", APP)
-                    .withDetail("message", "UNNEEDED");
+                    .withDetail("message", "DISABLED");
             return;
         }
         HttpHeaders headers = new HttpHeaders();

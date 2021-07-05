@@ -27,7 +27,7 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
         if (StrUtil.contains(clickHouseHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
                     .withDetail("app", APP)
-                    .withDetail("message", "UNNEEDED");
+                    .withDetail("message", "DISABLED");
             return;
         }
         clickHouseHttpSource.getRealTimeAccount();

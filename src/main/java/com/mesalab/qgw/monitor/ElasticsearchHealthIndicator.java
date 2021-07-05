@@ -36,7 +36,7 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
         if (StrUtil.contains(elasticsearchHttpSource.getUrl(), "127.0.0.1")) {
             builder.up()
                     .withDetail("app", APP)
-                    .withDetail("message", "UNNEEDED");
+                    .withDetail("message", "DISABLED");
             return;
         }
         String queryURL = URLUtil.normalize(elasticsearchHttpSource.getUrl() + "?format=json");

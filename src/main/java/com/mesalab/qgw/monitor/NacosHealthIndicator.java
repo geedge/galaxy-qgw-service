@@ -35,7 +35,7 @@ public class NacosHealthIndicator extends AbstractHealthIndicator {
         if (StrUtil.contains(nacosConfig.getServerAddr(), "127.0.0.1")) {
             builder.up()
                     .withDetail("app", APP)
-                    .withDetail("message", "UNNEEDED");
+                    .withDetail("message", "DISABLED");
             return;
         }
         try {

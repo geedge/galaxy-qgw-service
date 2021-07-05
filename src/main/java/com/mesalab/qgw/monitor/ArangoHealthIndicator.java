@@ -32,7 +32,7 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
         if (StrUtil.contains(arangoConfig.getJwturl(), "127.0.0.1")) {
             builder.up()
                     .withDetail("app", APP)
-                    .withDetail("message", "UNNEEDED");
+                    .withDetail("message", "DISABLED");
             return;
         }
         Map<String, String> params = new HashMap<>();

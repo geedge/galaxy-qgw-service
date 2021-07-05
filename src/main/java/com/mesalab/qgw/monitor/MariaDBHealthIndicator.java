@@ -27,7 +27,7 @@ public class MariaDBHealthIndicator extends AbstractHealthIndicator {
         if (StrUtil.contains(url, "127.0.0.1")) {
             builder.up()
                     .withDetail("app", APP)
-                    .withDetail("message", "UNNEEDED");
+                    .withDetail("message", "DISABLED");
             return;
         }
         try {
