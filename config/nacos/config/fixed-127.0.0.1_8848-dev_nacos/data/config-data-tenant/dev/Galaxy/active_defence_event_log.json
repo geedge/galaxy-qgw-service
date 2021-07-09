@@ -40,7 +40,8 @@
           "common_policy_id",
           "common_address_type",
           "common_device_id",
-          "common_link_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
           "common_entrance_id",
           "common_user_region",
           "ad_method",
@@ -72,7 +73,8 @@
           "common_policy_id",
           "common_address_type",
           "common_device_id",
-          "common_link_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
           "common_entrance_id",
           "common_user_region",
           "ad_method",
@@ -103,7 +105,8 @@
           "common_policy_id",
           "common_address_type",
           "common_device_id",
-          "common_link_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
           "common_entrance_id",
           "common_user_region",
           "ad_method",
@@ -199,10 +202,18 @@
       "type": "string"
     },
     {
-      "name": "common_link_id",
-      "label": "Link ID",
+      "name": "common_egress_link_id",
+      "label": "Egress Link ID",
       "doc": {
-        "visibility": "disabled"
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_ingress_link_id",
+      "label": "Ingress Link ID",
+      "doc": {
+        "visibility": "hidden"
       },
       "type": "int"
     },

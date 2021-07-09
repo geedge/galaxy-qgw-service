@@ -283,7 +283,8 @@
           "common_processing_time",
           "common_entrance_id",
           "common_device_id",
-          "common_link_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
           "common_isp",
           "common_data_center",
           "common_sled_ip"
@@ -315,6 +316,7 @@
         ],
         "application": [
           "common_app_id",
+          "common_userdefine_app_name",
           "common_app_label",
           "common_app_surrogate_id",
           "common_l7_protocol",
@@ -402,7 +404,8 @@
           "common_sub_action",
           "common_user_region",
           "common_device_id",
-          "common_link_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
           "common_isp",
           "common_device_tag",
           "common_data_center",
@@ -411,6 +414,7 @@
           "common_tunnels",
           "common_protocol_label",
           "common_app_id",
+          "common_app_surrogate_id",
           "common_app_surrogate_id",
           "common_service_category",
           "common_l7_protocol",
@@ -976,10 +980,18 @@
       "type": "string"
     },
     {
-      "name": "common_link_id",
-      "label": "Link ID",
+      "name": "common_egress_link_id",
+      "label": "Egress Link ID",
       "doc": {
-        "visibility": "disabled"
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_ingress_link_id",
+      "label": "Ingress Link ID",
+      "doc": {
+        "visibility": "hidden"
       },
       "type": "int"
     },
@@ -1127,6 +1139,14 @@
     {
       "name": "common_app_id",
       "label": "Application ID",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_userdefine_app_name",
+      "label": "User Define APP Name",
       "type": "string",
       "doc": {
         "visibility": "hidden"

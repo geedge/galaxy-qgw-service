@@ -384,12 +384,20 @@
       "label": "Device ID"
     },
     {
-      "name": "common_link_id",
-      "type": "int",
+      "name": "common_egress_link_id",
+      "label": "Egress Link ID",
       "doc": {
-        "visibility": "disabled"
+        "visibility": "hidden"
       },
-      "label": "Link ID"
+      "type": "int"
+    },
+    {
+      "name": "common_ingress_link_id",
+      "label": "Ingress Link ID",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
     },
     {
       "name": "common_isp",
@@ -461,6 +469,14 @@
       "name": "common_app_id",
       "type": "string",
       "label": "Application ID",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_userdefine_app_name",
+      "label": "User Define APP Name",
+      "type": "string",
       "doc": {
         "visibility": "hidden"
       }
