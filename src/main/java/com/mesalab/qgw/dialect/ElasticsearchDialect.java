@@ -10,9 +10,11 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.SQLFunctionUtil;
 import com.mesalab.common.utils.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.knowledge.common.utils.HttpConfig;
@@ -61,7 +63,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     @Override
     String convertQuery(String sql) {
-        return new Converter(sql).generateStandard().build();
+        return new Converter(sql).generateStandard().generateDateFunction().build();
     }
 
     @Override
@@ -207,6 +209,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
 
         public ElasticsearchDialect.Converter generateDateFunction() {
+            sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.ELASTICSEARCH.getValue());
             return this;
         }
 
