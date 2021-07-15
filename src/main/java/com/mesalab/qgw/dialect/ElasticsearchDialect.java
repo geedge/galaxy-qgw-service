@@ -171,6 +171,8 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     private Map<String, String> executeHttpGet(String sql) {
         String queryURL = URLUtil.normalize(elasticsearchHttpSource.getUrl() + "?format=json");
         QueryParam queryParam = getQueryParam(sql);
+        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.ELASTICSEARCH.getValue(),
+                JsonMapper.toJsonString(queryParam));
         return httpClientService.httpPost(queryURL, JsonMapper.toJsonString(queryParam), httpConfig.getElasticsearchSocketTimeOut());
     }
 
