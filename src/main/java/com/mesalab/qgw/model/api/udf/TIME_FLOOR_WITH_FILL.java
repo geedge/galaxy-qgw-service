@@ -40,7 +40,7 @@ import java.util.*;
 public class TIME_FLOOR_WITH_FILL implements UDF{
     private static final Log log = LogFactory.get();
     @Autowired
-    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("nacosMetadataService");
+    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private String name;
     private String timestamp;

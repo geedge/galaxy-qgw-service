@@ -61,7 +61,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("nacosMetadataService");
+    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
@@ -242,7 +242,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         /**
          * Desc:
-         *  IN 转换为 集群 Global IN 模式(针对聚合、分组sql除外)
+         *  IN 转换为 集群 Global IN 模式(针对聚合、分组)
          *
          * @param sql
          * @return {@link String}
@@ -506,15 +506,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     continue;
                 }
 
-                BaseResult indexTableData = metadataService.getSchemaInfo("fields", tempIndexTable);
-                Schema indexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData.getData()));
+                Map indexTableData = metadataService.getSchemaInfo("fields", tempIndexTable);
+                Schema indexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData));
                 //判断二: order by 元素是否都在索引表中
                 if (!isValidOfOrderElementsInSchema(indexTableSchema)) {
                     continue;
                 }
 
-                BaseResult masterTableData = metadataService.getSchemaInfo("fields", param.getTableName());
-                Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData.getData()));
+                Map masterTableData = metadataService.getSchemaInfo("fields", param.getTableName());
+                Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData));
                 //判断三: where 条件列是否都在索引表中
                 setValidityByWhereExpressionsInSchema(param.getDbQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
                 if (getSubIndexValidFlag() && isExist(indexTableSchema.getFullName())) {

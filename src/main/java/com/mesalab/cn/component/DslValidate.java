@@ -11,10 +11,10 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.http.HttpStatus;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -30,7 +30,7 @@ public class DslValidate {
 
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
-    @Resource(name = "nacosMetadataService")
+    @Autowired
     private MetadataService metadataService;
 
     public void executeValidate(DSLObject dslObject) throws BusinessException {

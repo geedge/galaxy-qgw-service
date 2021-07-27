@@ -27,66 +27,18 @@ public class ClickhouseWriter extends Writer {
 
     private static final Log log = LogFactory.get();
 
-    private String ckFilterJson;
-
     @Autowired
     private NacosConfig nacosConfig;
 
     @Autowired
     private ConfigService configService;
 
-    @PostConstruct
-    public void init() {
-        initFilterJson();
-        log.info("Initializing ClickHouse Filter Complete");
-        initQueriesTemplate();
-        log.info("Initializing ClickHouse Queries Template Complete");
-    }
-
-    public void initFilterJson() {
-        try {
-            ckFilterJson = configService.getConfig(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
-            configService.addListener(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), new Listener() {
-                @Override
-                public Executor getExecutor() {
-                    return null;
-                }
-
-                @Override
-                public void receiveConfigInfo(String configInfo) {
-                    log.info("ReceiveConfigInfo ClickHouse Filter {}", configInfo);
-                    ckFilterJson = configInfo;
-                }
-            });
-        } catch (NacosException e) {
-            log.error("NacosException:{}", e);
-        }
-    }
-
-    private void initQueriesTemplate() {
-        try {
-            configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
-            configService.addListener(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), new Listener() {
-                @Override
-                public Executor getExecutor() {
-                    return null;
-                }
-
-                @Override
-                public void receiveConfigInfo(String configInfo) {
-                    log.info("ReceiveConfigInfo ClickHouse Queries Template {}", configInfo);
-                }
-            });
-        } catch (NacosException e) {
-            log.error("NacosException:{}", e);
-        }
-    }
-
     @Override
     public String buildPocSQL() {
         String pocSql = "";
         try {
-            Map<String, List<String>> environment = getFilterOptions(ckFilterJson);
+            String filter = configService.getConfig(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
+            Map<String, List<String>> environment = getFilterOptions(filter);
 
             File templateFile = new File("benchmark" + File.separator + NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
             String content = configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);

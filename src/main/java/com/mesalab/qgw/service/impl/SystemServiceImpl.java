@@ -51,7 +51,7 @@ public class SystemServiceImpl implements SystemService {
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
     private HttpClientService httpClientService;
-    @Resource(name = "nacosMetadataService")
+    @Resource(name = "metadataService")
     private MetadataService metadataService;
     @Autowired
     HttpConfig httpConfig;

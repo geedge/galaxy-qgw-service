@@ -1,82 +1,82 @@
-[
+{
+  "metadata": [
     {
-        "namespace":"tsg_galaxy_v3",
-        "group":"CLICKHOUSE_GROUP",
-        "tables":[
-            "connection_record_log",
-            "proxy_ip_info",
-            "radius_record_log",
-            "security_ip_info",
-            "connection_record_log_common_subscriber_id",
-            "proxy_event_log",
-            "security_event_log",
-            "connection_record_log_http_domain",
-            "sys_packet_capture_log",
-            "radius_onff_log",
-            "active_defence_event_log",
-            "connection_record_log_common_server_ip",
-            "security_website_domain_info",
-            "connection_record_log_common_client_ip",
-            "voip_record_log",
-            "transaction_record_log",
-            "gtpc_record_log",
-            "live_session_record_log"
-        ]
+      "namespace": "tsg_galaxy_v3",
+      "group": "CLICKHOUSE_GROUP",
+      "tables": [
+        "connection_record_log",
+        "proxy_ip_info",
+        "radius_record_log",
+        "security_ip_info",
+        "connection_record_log_common_subscriber_id",
+        "proxy_event_log",
+        "security_event_log",
+        "connection_record_log_http_domain",
+        "sys_packet_capture_log",
+        "radius_onff_log",
+        "active_defence_event_log",
+        "connection_record_log_common_server_ip",
+        "security_website_domain_info",
+        "connection_record_log_common_client_ip",
+        "voip_record_log",
+        "transaction_record_log",
+        "gtpc_record_log",
+        "live_session_record_log"
+      ]
     },
     {
-        "namespace":"elasticsearch",
-        "group":"ES_GROUP",
-        "tables":[
-            "ip",
-            "app",
-            "domain"
-        ]
+      "namespace": "elasticsearch",
+      "group": "ES_GROUP",
+      "tables": [
+        "ip",
+        "app",
+        "domain"
+      ]
     },
     {
-        "namespace":"system",
-        "group":"CLICKHOUSE_GROUP",
-        "tables":[
-            "query_log_cluster",
-            "tables_cluster",
-            "columns_cluster",
-            "disks_cluster",
-            "parts_cluster",
-            "processes",
-            "query_log"
-        ]
+      "namespace": "system",
+      "group": "CLICKHOUSE_GROUP",
+      "tables": [
+        "query_log_cluster",
+        "tables_cluster",
+        "columns_cluster",
+        "disks_cluster",
+        "parts_cluster",
+        "processes",
+        "query_log"
+      ]
     },
     {
-        "namespace":"druid",
-        "group":"DRUID_GROUP",
-        "tables":[
-            "top_domain_recommend_daily_log",
-            "source_country_ip_num_log",
-            "top_internal_host_log",
-            "top_website_domain_log",
-            "sd_multi_access_cnt_feature",
-            "proxy_event_hits_log",
-            "sys_storage_log",
-            "domain_country_num_log",
-            "security_event_hits_log",
-            "traffic_protocol_stat_log",
-            "top_website_urls_daily_log",
-            "top_server_ip_log",
-            "traffic_summary_log",
-            "traffic_metrics_log",
-            "top_user_log",
-            "destination_country_log",
-            "top_urls_log",
-            "top_client_ip_log",
-            "top_external_host_log",
-            "traffic_app_stat_log"
-        ]
+      "namespace": "druid",
+      "group": "DRUID_GROUP",
+      "tables": [
+        "top_domain_recommend_daily_log",
+        "source_country_ip_num_log",
+        "top_internal_host_log",
+        "top_website_domain_log",
+        "sd_multi_access_cnt_feature",
+        "proxy_event_hits_log",
+        "sys_storage_log",
+        "security_event_hits_log",
+        "traffic_protocol_stat_log",
+        "top_website_urls_daily_log",
+        "top_server_ip_log",
+        "traffic_summary_log",
+        "traffic_metrics_log",
+        "top_user_log",
+        "top_urls_log",
+        "top_client_ip_log",
+        "top_external_host_log",
+        "traffic_app_stat_log"
+      ]
     },
     {
-        "namespace":"etl",
-        "group":"ETL_GROUP",
-        "tables":[
-            "liveChart_history",
-            "liveChart_live"
-        ]
+      "namespace": "etl",
+      "group": "ETL_GROUP",
+      "tables": [
+        "liveChart_history",
+        "liveChart_live"
+      ]
     }
-]
+  ]
+}

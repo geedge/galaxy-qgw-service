@@ -55,7 +55,7 @@ public class ApiServiceImpl implements ApiService {
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
-    @Resource(name = "nacosMetadataService")
+    @Autowired
     private MetadataService metadataServiceTemp;
 
     private static MetadataService metadataService;
@@ -178,21 +178,10 @@ public class ApiServiceImpl implements ApiService {
 
 
     private Dialect parserAndGetDialect(ApiParam param) {
-        Dialect dialect = null;
-        String dbType = metadataService.getDBTypeByTableName(param.getTableName());
-        if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(dbType)) {
-            param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
-        } else if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(dbType)) {
-            param.setDbType(DBTypeEnum.DRUID.getValue());
-        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-            param.setDbType(DBTypeEnum.ELASTICSEARCH.getValue());
-        } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
-        }
+        param.setDbType(metadataService.getDBTypeByTableName(param.getTableName()));
         param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
         convertQueryRecursive(param, parserSQLByAst(param.getQuery()));
-        dialect = getDialect(param);
-        return dialect;
+        return getDialect(param);
     }
 
     private Dialect getDialect(ApiParam param) {

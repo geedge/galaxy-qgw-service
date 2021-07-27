@@ -1,9 +1,8 @@
 package com.mesalab.qgw.service;
 
 
-import com.mesalab.common.base.BaseResult;
 import org.apache.avro.Schema;
-
+import java.util.List;
 import java.util.Map;
 
 public interface MetadataService {
@@ -15,7 +14,7 @@ public interface MetadataService {
      * @param name
      * @return
      */
-    BaseResult getSchemaInfo(String type, String name);
+    Map getSchemaInfo(String type, String name);
 
     /**
      * 根据表名获取partitionKey
@@ -57,6 +56,16 @@ public interface MetadataService {
      *
      * @return
      */
-    Map<String, Schema> getAllSchema();
+    List<String> getAllTable();
+
+    /**
+     * Desc: 通过表名获取Schema
+     *
+     * @param name
+     * @return {@link Schema}
+     * @created by wWei
+     * @date 2021/7/27 2:41 下午
+     */
+    Schema getSchemaByName(String name);
 
 }
