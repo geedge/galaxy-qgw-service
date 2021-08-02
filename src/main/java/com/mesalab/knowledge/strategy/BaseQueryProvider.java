@@ -3,6 +3,7 @@ package com.mesalab.knowledge.strategy;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.ImmutableMap;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.config.ArangoConfig;
@@ -79,7 +80,7 @@ public class BaseQueryProvider {
                 res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt()));
             } else {
                 log.error(e.getErrorMessage());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), e.getErrorMessage(), null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), e.getErrorMessage(), null);
             }
         }
         Map jsonMap = (Map) JsonMapper.fromJsonString(res, Map.class);

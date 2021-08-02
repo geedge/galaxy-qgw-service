@@ -15,7 +15,9 @@ public enum CDQueryType {
     BANNED_APP("bannedApp", "sd_banned_app_cnt_feature"),
     EXTERNAL_CONTROL("externalControl", "sd_external_control_cnt_feature"),
     SHARE_NET("shareNet", "sd_multi_access_cnt_feature"),
-    SHARE_KEY("shareKey", "sd_share_key_feature");
+    SHARE_KEY("shareKey", "sd_share_key_feature"),
+
+    ENTITY_DETAIL("entityDetail", "entity_detail");
     private String queryType;
     private String dataSource;
 
