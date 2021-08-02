@@ -1,0 +1,59 @@
+{
+  "type": "record",
+  "name": "dos_event_log",
+  "namespace": "tsg_galaxy_v3",
+  "fields": [
+    {
+      "name": "log_id",
+      "type": "long"
+    },
+    {
+      "name": "start_time",
+      "type": "long"
+    },
+    {
+      "name": "end_time",
+      "type": "long"
+    },
+    {
+      "name": "attack_type",
+      "type": "string"
+    },
+    {
+      "name": "severity",
+      "type": "string"
+    },
+    {
+      "name": "conditions",
+      "type": "string"
+    },
+    {
+      "name": "destination_ip",
+      "type": "string"
+    },
+    {
+      "name": "destination_country",
+      "type": "string"
+    },
+    {
+      "name": "source_ip_list",
+      "type": "string"
+    },
+    {
+      "name": "source_country_list",
+      "type": "string"
+    },
+    {
+      "name": "session_rate",
+      "type": "long"
+    },
+    {
+      "name": "packet_rate",
+      "type": "long"
+    },
+    {
+      "name": "bit_rate",
+      "type": "long"
+    }
+  ]
+}

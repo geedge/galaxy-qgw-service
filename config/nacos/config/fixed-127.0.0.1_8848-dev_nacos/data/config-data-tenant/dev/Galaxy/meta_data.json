@@ -21,7 +21,8 @@
         "voip_record_log",
         "transaction_record_log",
         "gtpc_record_log",
-        "live_session_record_log"
+        "live_session_record_log",
+        "dos_event_log"
       ]
     },
     {
@@ -67,7 +68,8 @@
         "top_urls_log",
         "top_client_ip_log",
         "top_external_host_log",
-        "traffic_app_stat_log"
+        "traffic_app_stat_log",
+        "traffic_top_destination_ip_metrics_log"
       ]
     },
     {
