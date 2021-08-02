@@ -1,1 +1,6 @@
  Release 346 (TSG-21.08)
+ * 支持标准时间函数与ES函数转义。
+ * 修复应用连接nacos异常导致schema加载失败，(GAL-68)。
+ * 升级jsqlparser版本至3.1，支持IF(boolean and boolean,0,1)函数解析。
+ * 扩展Schema，新增DoS事件日志、目标IP流量统计日志，(TSG-7112)。
+ * 扩展Schema，新增公共字段common_mirrored_pkts和common_mirrored_bytes(TSG-7112)。
