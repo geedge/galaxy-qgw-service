@@ -8,7 +8,7 @@
         <!--最多产生10个压缩文件-->
         <property name="LOG_NUMS">10</property>
         <!--日志打印等级-->
-        <property name="LOG_LEVEL">info</property>
+        <property name="LOG_LEVEL">debug</property>
         <!--日志文件路径-->
         <property name="LOG_PATH">logs</property>
         <!--日志文件名称-->
