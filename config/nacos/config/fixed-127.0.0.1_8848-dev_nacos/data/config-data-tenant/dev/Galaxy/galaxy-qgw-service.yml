@@ -88,10 +88,10 @@ engine:
   defaultResultNum: 100000
 ## ArangoDB configuration
 arango:
-  server: http://192.168.44.55:8529
-  database: cyber_narrator_galaxy
-  username: root
-  pin: ceiec2019
+  server: http://192.168.44.12:8529
+  database: tsg_galaxy_v3
+  username: query
+  pin: ceiec2018
   jwturl: ${arango.server}/_db/${arango.database}/_open/auth
   queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
   maxrows: 10000
