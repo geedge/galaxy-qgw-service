@@ -348,7 +348,9 @@
           "common_s2c_byte_retrans",
           "common_first_ttl",
           "common_tcp_client_isn",
-          "common_tcp_server_isn"
+          "common_tcp_server_isn",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "other": [
           "common_address_type",
@@ -443,7 +445,9 @@
           "common_tcp_client_isn",
           "common_tcp_server_isn",
           "common_first_ttl",
-          "common_processing_time"
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "default_columns": [
           "common_recv_time",
@@ -533,6 +537,8 @@
           "common_tcp_server_isn",
           "common_first_ttl",
           "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes",
           "http_url",
           "http_host",
           "http_domain",
@@ -647,7 +653,9 @@
           "common_tcp_client_isn",
           "common_tcp_server_isn",
           "common_first_ttl",
-          "common_processing_time"
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "default_columns": [
           "common_recv_time",
@@ -735,6 +743,8 @@
           "common_tcp_server_isn",
           "common_first_ttl",
           "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes",
           "dns_message_id",
           "dns_qr",
           "dns_opcode",
@@ -841,7 +851,9 @@
           "common_tcp_client_isn",
           "common_tcp_server_isn",
           "common_first_ttl",
-          "common_processing_time"
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "default_columns": [
           "common_recv_time",
@@ -930,7 +942,9 @@
           "common_tcp_client_isn",
           "common_tcp_server_isn",
           "common_first_ttl",
-          "common_processing_time"
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "default_columns": [
           "common_recv_time",
@@ -1019,7 +1033,9 @@
           "common_tcp_client_isn",
           "common_tcp_server_isn",
           "common_first_ttl",
-          "common_processing_time"
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "default_columns": [
           "common_recv_time",
@@ -1108,7 +1124,9 @@
           "common_tcp_client_isn",
           "common_tcp_server_isn",
           "common_first_ttl",
-          "common_processing_time"
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "default_columns": [
           "common_recv_time",
@@ -1194,6 +1212,8 @@
           "common_tcp_server_isn",
           "common_first_ttl",
           "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes",
           "sip_call_id",
           "sip_originator_description",
           "sip_responder_description",
@@ -1300,7 +1320,9 @@
           "common_tcp_client_isn",
           "common_tcp_server_isn",
           "common_first_ttl",
-          "common_processing_time"
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "default_columns": [
           "common_recv_time",
@@ -1389,7 +1411,9 @@
           "common_tcp_client_isn",
           "common_tcp_server_isn",
           "common_first_ttl",
-          "common_processing_time"
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "default_columns": [
           "common_recv_time",
@@ -2337,6 +2361,22 @@
         }
       },
       "label": "Processing Time"
+    },
+    {
+      "name": "common_mirrored_pkts",
+      "label": "Mirrored Packets",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_mirrored_bytes",
+      "label": "Mirrored Bytes",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
     },
     {
       "name": "http_url",

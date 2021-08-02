@@ -268,7 +268,9 @@
           "common_s2c_byte_retrans",
           "common_first_ttl",
           "common_tcp_client_isn",
-          "common_tcp_server_isn"
+          "common_tcp_server_isn",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes"
         ],
         "other": [
           "common_address_type",
@@ -364,6 +366,8 @@
           "common_tcp_server_isn",
           "common_first_ttl",
           "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes",
           "radius_packet_type",
           "radius_nas_ip",
           "radius_framed_ip",
@@ -1393,6 +1397,22 @@
         }
       },
       "type": "long"
+    },
+    {
+      "name": "common_mirrored_pkts",
+      "label": "Mirrored Packets",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_mirrored_bytes",
+      "label": "Mirrored Bytes",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
     },
     {
       "name": "radius_packet_type",

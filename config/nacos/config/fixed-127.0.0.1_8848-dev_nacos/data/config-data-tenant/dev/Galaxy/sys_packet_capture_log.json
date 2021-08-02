@@ -722,6 +722,22 @@
       "label": "Processing Time"
     },
     {
+      "name": "common_mirrored_pkts",
+      "label": "Mirrored Packets",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_mirrored_bytes",
+      "label": "Mirrored Bytes",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
       "name": "nic_name",
       "type": "string",
       "label": "Nic Name"
