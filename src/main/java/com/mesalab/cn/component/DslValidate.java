@@ -18,6 +18,8 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static com.mesalab.cn.common.enums.EngineTypeEnum.ANALYSIS_ENGINE;
+
 /**
  * @Date: 2020-07-20 18:10
  * @Author : wangwei
@@ -47,7 +49,7 @@ public class DslValidate {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "DSLObject.query.dataEngine is invalid");
         }
-        if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))) {
+        if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))&&!ANALYSIS_ENGINE.getEngine().equals(query.getDataEngine())) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "DSLObject.query.dataSource is invalid");
         }

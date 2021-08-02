@@ -38,4 +38,10 @@ public class CNController {
         dslValidate.executeValidate(dslObject);
         return cnRouter.executeRouter(dslObject);
     }
+    @PostMapping("/v1/entityExplorer")
+    public BaseResult queryEntity(@RequestBody DSLObject dslObject) {
+        log.info("网络监视者实体详情查询接口, 参数: dslObject is {}", JsonMapper.toJsonString(dslObject));
+        dslValidate.executeValidate(dslObject);
+        return cnRouter.executeRouter(dslObject);
+    }
 }
