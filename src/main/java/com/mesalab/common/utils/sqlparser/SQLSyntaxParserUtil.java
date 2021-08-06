@@ -1,4 +1,4 @@
-package com.mesalab.common.utils;
+package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -9,6 +9,7 @@ import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.zdjizhi.utils.StringUtil;

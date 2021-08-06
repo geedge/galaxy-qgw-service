@@ -8,6 +8,7 @@ import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.SystemService;
 import com.zdjizhi.utils.StringUtil;

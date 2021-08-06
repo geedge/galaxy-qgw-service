@@ -1,21 +1,27 @@
-package com.mesalab.common.utils;
+package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.core.util.URLUtil;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.StringUtil;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
+import com.zdjizhi.utils.JsonMapper;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

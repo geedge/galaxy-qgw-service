@@ -1,4 +1,4 @@
-package com.mesalab.common.utils;
+package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.crypto.digest.DigestUtil;
 import com.alibaba.druid.util.JdbcConstants;

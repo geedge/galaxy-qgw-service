@@ -14,10 +14,10 @@ import com.mesalab.common.base.DataTypeMapping;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
+import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.MetadataService;
-import com.mesalab.qgw.service.SystemService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.common.utils.TableFinder;
 import com.zdjizhi.utils.Encodes;
@@ -64,7 +64,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
-    private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     public ApiParam param;
     public BaseResult baseResult;
 
@@ -123,7 +122,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     @Override
     public String getBestQuery() {
         return new Optimizer().generateQueryLimit().
-                generateSQL().generateUniq().generateSubquery().build();
+                generateSQL().generateStandard().generateUniq().generateSubquery().generateTopN().build();
     }
 
     @Override
@@ -228,13 +227,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         /**
          * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
-         * 1.集群模式子查询必须加库名、别名 (解决方法: 对sql统一处理添加库名、别名)
-         * 2.不支持 count(1) 需转为count(*)
-         * 3.针对非聚合SQL，非分组sql in/not in 替换为 Global in/not
+         * 1.不支持 count(1) 需转为count(*)
+         * 2.针对非聚合SQL，非分组sql in/not in 替换为 Global in/not
          * @return
          */
         public Converter generateStandard() {
-            sql = addTableName(sql);
             sql = generateCount(sql);
             sql = generateGlobalIn(sql);
             return this;
@@ -276,19 +273,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             }
             m.appendTail(sb);
             return sb.toString();
-        }
-
-        private String addTableName(String sql) {
-            try {
-                TableFinder tableFinder = new TableFinder();
-                Statement parse = CCJSqlParserUtil.parse(sql);
-                tableFinder.setDefaultAlias(true);
-                tableFinder.addSchemaName(parse);
-                return String.valueOf(parse);
-            } catch (JSQLParserException e) {
-                log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Rewrite add tableName and Alias Error", e);
-            }
         }
 
         public Converter generateDateFunction() {
@@ -413,6 +397,26 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         /**
+         * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
+         * 1.集群模式子查询必须加库名、别名 (解决方法: 对sql统一处理添加库名、别名)
+         *
+         * @return
+         */
+        public Optimizer generateStandard() {
+            try {
+                TableFinder tableFinder = new TableFinder();
+                Statement parse = CCJSqlParserUtil.parse(sql);
+                tableFinder.setDefaultAlias(true);
+                tableFinder.addSchemaName(parse);
+                sql = String.valueOf(parse);
+            } catch (JSQLParserException e) {
+                log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Rewrite add tableName and Alias Error", e);
+            }
+            return this;
+        }
+
+        /**
          * count(distinct())转为uniq函数
          *
          * @return
@@ -485,6 +489,25 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             return this;
         }
 
+        /**
+         * Desc: 针对单条查询TopN做优化
+         *
+         * @param
+         * @return {@link Optimizer}
+         * @created by wWei
+         * @date 2021/7/28 9:37 上午
+         */
+        public Optimizer generateTopN() {
+            if (!clickHouseHttpSource.getOptimizeTopN()) {
+                return this;
+            }
+            TopNSQLVisitor topNSQLVisitor = new TopNSQLVisitor();
+            if (!topNSQLVisitor.valid(sql)) {
+                return this;
+            }
+            sql = topNSQLVisitor.rewrite();
+            return this;
+        }
 
         /**
          * 设置索引表子查询参数: 索引表有效性、索引表表名
