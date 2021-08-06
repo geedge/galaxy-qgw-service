@@ -5,7 +5,7 @@
   "doc": {
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
-    "index_table": "connection_record_log_common_client_ip,connection_record_log_common_server_ip,connection_record_log_common_subscriber_id,connection_record_log_http_domain",
+    "index_table": "connection_record_log_common_client_ip,connection_record_log_common_server_ip,connection_record_log_http_domain",
     "functions": {
       "aggregation": [
         {
