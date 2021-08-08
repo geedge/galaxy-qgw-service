@@ -5,6 +5,8 @@ import com.mesalab.common.exception.BusinessException;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.*;
@@ -181,6 +183,21 @@ public class TopNSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectIte
 
     @Override
     public void visit(SelectExpressionItem selectExpressionItem) {
+        if (selectExpressionItem.getExpression() instanceof Function) {
+            Function expression = (Function) (selectExpressionItem.getExpression());
+            ExpressionList parameters;
+            if (StrUtil.isBlankIfStr(parameters = expression.getParameters())
+                    || parameters.getExpressions().size() != 1) {
+                this.valid = false;
+                return;
+            }
+            for (Expression expr : parameters.getExpressions()) {
+                if (!(expr instanceof Column)) {
+                    this.valid = false;
+                    return;
+                }
+            }
+        }
         this.selectItemExprList.add(selectExpressionItem.getExpression().toString());
         if (StrUtil.isEmptyIfStr(selectExpressionItem.getAlias())) {
             if (selectExpressionItem.getExpression() instanceof Column) {
