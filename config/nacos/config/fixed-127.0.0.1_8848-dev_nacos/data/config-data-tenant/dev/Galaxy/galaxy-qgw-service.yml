@@ -59,7 +59,7 @@ project:
 clickhouse:
   url: http://192.168.44.12:8123
   dbname: tsg_galaxy_v3
-  optimizeTopN: true
+  enableApproximateOptimizer: true
   realTimeAccount:
     username: tsg_query
     pin: ceiec2018

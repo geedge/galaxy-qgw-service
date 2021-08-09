@@ -122,7 +122,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     @Override
     public String getBestQuery() {
         return new Optimizer().generateQueryLimit().
-                generateSQL().generateStandard().generateUniq().generateSubquery().generateTopN().build();
+                generateSQL().generateStandard().generateApproximation().generateSubquery().build();
     }
 
     @Override
@@ -462,6 +462,24 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         /**
+         * Desc: 近似优化
+         * 1. uniq优化
+         * 2. TopN优化
+         *
+         * @param
+         * @return {@link Optimizer}
+         * @created by wWei
+         * @date 2021/8/9 3:19 下午
+         */
+        public Optimizer generateApproximation() {
+            if (!clickHouseHttpSource.isEnableApproximateOptimizer()) {
+                return this;
+            }
+            generateUniq().generateTopN();
+            return this;
+        }
+
+        /**
          * 事件索引子查询，目的提高日志查询检索性能:
          * 方式1.基于索引表
          * 方式2.基于分区键
@@ -498,9 +516,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @date 2021/7/28 9:37 上午
          */
         public Optimizer generateTopN() {
-            if (!clickHouseHttpSource.getOptimizeTopN()) {
-                return this;
-            }
             TopNSQLVisitor topNSQLVisitor = new TopNSQLVisitor();
             if (!topNSQLVisitor.valid(sql)) {
                 return this;
