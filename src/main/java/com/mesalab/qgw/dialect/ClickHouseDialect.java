@@ -122,7 +122,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     @Override
     public String getBestQuery() {
         return new Optimizer().generateQueryLimit().
-                generateSQL().generateStandard().generateApproximation().generateSubquery().build();
+                generateSQL().generateSubquery().generateTableAlias().generateApproximation().build();
     }
 
     @Override
@@ -402,7 +402,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          *
          * @return
          */
-        public Optimizer generateStandard() {
+        public Optimizer generateTableAlias() {
             try {
                 TableFinder tableFinder = new TableFinder();
                 Statement parse = CCJSqlParserUtil.parse(sql);

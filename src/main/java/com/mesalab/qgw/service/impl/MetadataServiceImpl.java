@@ -128,9 +128,11 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public List<String> getAllTable() {
         List<String> list = new ArrayList<>();
-        metadataConfig.getMetadata().forEach(o ->
-                list.addAll(o.getTables())
-        );
+        metadataConfig.getMetadata().forEach(o -> {
+            if (StringUtil.isNotEmpty(o.getTables())) {
+                list.addAll(o.getTables());
+            }
+        });
         return list;
     }
 
