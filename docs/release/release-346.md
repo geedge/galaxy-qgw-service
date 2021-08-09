@@ -6,5 +6,5 @@
  * 扩展Schema，新增公共字段common_mirrored_pkts和common_mirrored_bytes(TSG-7112)。
  * 扩展Schema，通联回表功能增强(GAL-74)。
  * 支持TopN优化，针对最内层符合TopN优化策略sql，开启distributed_group_by_no_merge。
- * 新增网络监视者实体详情查询接口。
+ * 新增网络叙事者实体详情查询接口。
  
