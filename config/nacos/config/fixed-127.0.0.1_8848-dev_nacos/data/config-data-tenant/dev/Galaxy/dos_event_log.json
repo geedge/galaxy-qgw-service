@@ -313,16 +313,31 @@
     {
       "name": "session_rate",
       "label": "Sessions/s",
+      "doc": {
+        "constraints": {
+          "type": "sessions/sec"
+        }
+      },
       "type": "long"
     },
     {
       "name": "packet_rate",
       "label": "Packets/s",
+      "doc": {
+        "constraints": {
+          "type": "packets/sec"
+        }
+      },
       "type": "long"
     },
     {
       "name": "bit_rate",
       "label": "Bits/s",
+      "doc": {
+        "constraints": {
+          "type": "bits/sec"
+        }
+      },
       "type": "long"
     }
   ]
