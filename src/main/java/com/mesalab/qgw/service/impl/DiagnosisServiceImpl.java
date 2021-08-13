@@ -18,6 +18,7 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
@@ -36,13 +37,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,6 +54,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private static final String METADATA_PREFIX = "Metadata/";
     private static final String SCHEMA_PREFIX = "Schema/";
     private static final int DEFAULT_SERVER_PORT = 9999;
+    ReentrantLock lock = new ReentrantLock();
 
     @Autowired
     private HttpClientService httpClientService;
@@ -138,6 +140,9 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, Map<String, String>> engineResult;
         Map<String, Map<String, String>> clickhouseResult;
         Map<String, Map<String, String>> druidResult;
+        if (!lock.tryLock()) {
+            throw new BusinessException(ResultStatusEnum.REQ_FORBIDDEN.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "The current task is executing. Please try again later.", null);
+        }
         try {
             Stopwatch watch = Stopwatch.createStarted();
 
@@ -163,6 +168,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         } catch (RuntimeException e) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
                     ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:", e);
+        } finally {
+            lock.unlock();
         }
         return result;
     }
