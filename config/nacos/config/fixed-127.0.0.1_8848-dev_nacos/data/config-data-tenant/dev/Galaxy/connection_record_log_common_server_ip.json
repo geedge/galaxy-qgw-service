@@ -16,14 +16,6 @@
       "type": "long"
     },
     {
-      "name": "common_policy_id",
-      "type": "long"
-    },
-    {
-      "name": "common_action",
-      "type": "int"
-    },
-    {
       "name": "common_server_ip",
       "type": "string"
     },
@@ -46,6 +38,26 @@
     {
       "name": "common_stream_trace_id",
       "type": "long"
+    },
+    {
+      "name": "common_schema_type",
+      "type": "string"
+    },
+    {
+      "name": "common_client_port",
+      "type": "int"
+    },
+    {
+      "name": "common_server_port",
+      "type": "int"
+    },
+    {
+      "name": "common_app_label",
+      "type": "string"
+    },
+    {
+      "name": "common_direction",
+      "type": "int"
     },
     {
       "name": "http_domain",

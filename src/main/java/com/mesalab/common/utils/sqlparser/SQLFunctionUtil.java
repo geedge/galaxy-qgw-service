@@ -1,21 +1,27 @@
-package com.mesalab.common.utils;
+package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.core.util.URLUtil;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.StringUtil;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
+import com.zdjizhi.utils.JsonMapper;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,6 +75,7 @@ public class SQLFunctionUtil {
     public static final Pattern pStrDateTime = Pattern.compile("(<|>|=|between|and)\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
     public static final Pattern pMergeFunction = Pattern.compile("\\WDATE_FORMAT\\(FROM_UNIXTIME\\s*\\(\\s*FLOOR\\s*\\(\\s*UNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pYearFunNum = Pattern.compile("(YEAR)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pQuantile = Pattern.compile("\\WQUANTILE\\s*\\(");
 
     /**
      * 解析mysql函数替换为对应数据库类型函数
@@ -79,6 +86,7 @@ public class SQLFunctionUtil {
      */
     public static String generateDateFunction(String sql, String dbType) {
         sql = translateUDF(sql, dbType);
+        sql = parseQuantile(sql , dbType);
         sql = parseMergepFunction(sql, dbType);
         sql = parseMarkDate(sql, dbType);
         sql = parseDateCalculateNum(sql, dbType);
@@ -198,7 +206,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = MergeFromUnixToTimeHavaMark(sqlParse, bracketsMatch[0], dbType);
+            String str = mergeFromUnixToTimeHavaMark(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -227,6 +235,76 @@ public class SQLFunctionUtil {
             String str = dateFormatHavaMark(sqlParse, bracketsMatch[0], false, dbType);
             sql = sql.substring(0, start) + str;
         }
+    }
+    /**
+     * 匹配范围：QUANTILE(
+     *
+     * @param sql    需要解析的sql
+     * @param dbType    数据库的类型
+     * @return
+     */
+    public static String parseQuantile(String sql, String dbType) {
+        int count = 0;
+        while (true) {
+            Matcher matcher = pQuantile.matcher(sql);
+            if (!matcher.find() || count++ >= 40) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseQuantile(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    /**
+     * 替换：QUANTILE(expr,level)、QUANTILE(expr)
+     *
+     * @param sqlParse
+     * @param num      包含括号的个数
+     * @param dbType
+     * @return
+     */
+    public static String parseQuantile(String sqlParse, int num, String dbType) {
+        Pattern pNumQuantile = Pattern.compile("(QUANTILE)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)");
+        Matcher matcher = pNumQuantile.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        if (matcher.find()) {
+            String group2 = matcher.group(2);
+            String replaceValue = group2;
+            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
+                replaceValue = quantileRealize(group2, dbType);
+            }
+            matcher.appendReplacement(sb, replaceValue);
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+    /**
+     * 替换：匹配范围：QUANTILE(
+     *
+     * @param param      截取到的括号内的参数
+     * @param dbType
+     * @return
+     */
+    private static String quantileRealize(String param, String dbType) {
+        List<String> params = diviParam(param, ",");
+        String replaceValue = null;
+        if (params.size() == 1) {
+            params.add("0.5");
+        }
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            replaceValue = "quantile#[" + params.get(1) + "#]#[" + params.get(0) + "#]";
+        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            replaceValue = "PERCENTILE#[" + params.get(0) + "," + params.get(1) + "*100#]";
+        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            replaceValue = "APPROX_QUANTILE#[" + params.get(0) + "," + params.get(1) + "#]";
+        }
+        return replaceValue;
     }
 
     /**
@@ -450,7 +528,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String MergeFromUnixToTimeHavaMark(String sql, int num, String dbType) {
+    private static String mergeFromUnixToTimeHavaMark(String sql, int num, String dbType) {
         Pattern p = Pattern.compile("DATE_FORMAT\\s*\\(\\s*FROM_UNIXTIME\\s*\\(\\s*FLOOR\\s*\\(\\s*UNIX_TIMESTAMP\\s*(\\((.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher m = p.matcher(sql);

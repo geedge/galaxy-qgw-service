@@ -8,7 +8,6 @@
         "proxy_ip_info",
         "radius_record_log",
         "security_ip_info",
-        "connection_record_log_common_subscriber_id",
         "proxy_event_log",
         "security_event_log",
         "connection_record_log_http_domain",

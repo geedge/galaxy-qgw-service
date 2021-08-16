@@ -14,6 +14,7 @@ public class IpLocationTest extends GalaxyQGWApplicationTests {
     @Test
     public void testIpToGeo() {
         log.info(IPUtil.getGeo("157.255.77.80"));
+        log.info(IPUtil.getGeo("2600:1700:901f:ffff:ffff:ffff:ffff:ffff"));
     }
 
     @Test
@@ -25,6 +26,7 @@ public class IpLocationTest extends GalaxyQGWApplicationTests {
     @Test
     public void testIpToCountry() {
         log.info(IPUtil.getCountry("157.255.77.80"));
+        log.info(IPUtil.getCountry("2600:1700:901f:ffff:ffff:ffff:ffff:ffff"));
 
     }
 

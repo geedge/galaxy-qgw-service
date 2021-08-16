@@ -4,17 +4,13 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.collect.Maps;
-import com.google.protobuf.Api;
-import com.google.protobuf.Option;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SQLHelper;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.AuditServiceLog;
-import com.mysql.cj.util.StringUtils;
 import com.zdjizhi.utils.IPUtil;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -28,7 +24,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Optional;
 
 

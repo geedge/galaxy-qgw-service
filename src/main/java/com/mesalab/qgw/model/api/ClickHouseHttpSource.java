@@ -17,6 +17,8 @@ public class ClickHouseHttpSource implements Serializable {
 
     private String dbName;
 
+    private boolean enableApproximateOptimizer;
+
     private DBAccount realTimeAccount;
 
     private DBAccount longTermAccount;
