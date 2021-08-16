@@ -49,9 +49,16 @@ public class DslValidate {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "DSLObject.query.dataEngine is invalid");
         }
-        if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))&&!ANALYSIS_ENGINE.getEngine().equals(query.getDataEngine())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.dataSource is invalid");
+        if(ANALYSIS_ENGINE.getEngine().equals(query.getDataEngine())){
+            if (StringUtil.isBlank(query.getDataSource())) {
+                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        "DSLObject.query.dataSource is invalid");
+            }
+        } else {
+            if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))) {
+                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        "DSLObject.query.dataSource is invalid");
+            }
         }
         DSLObject.Query.Parameters parameters = query.getParameters();
         if (StringUtil.isEmpty(parameters)) {
