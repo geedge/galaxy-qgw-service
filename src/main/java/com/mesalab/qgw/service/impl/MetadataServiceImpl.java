@@ -9,6 +9,7 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
+import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -56,6 +57,8 @@ public class MetadataServiceImpl implements MetadataService {
     public MetadataConfig metadataConfig;
 
     private Map<String, Schema> schemaCache = Maps.newHashMap();
+    private Map<String, String> originalCache = Maps.newHashMap();
+    private final static String KEY_REF = "$ref";
 
     @PostConstruct
     public void init() {
@@ -140,7 +143,7 @@ public class MetadataServiceImpl implements MetadataService {
     public Schema getSchemaByName(String tableName) {
         if (!getAllTable().contains(tableName)) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), tableName + " 表未在平台注册，请联系数据平台负责人", null);
+                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), tableName + " schema 未在平台注册，请联系数据平台负责人", null);
         }
         Schema schema;
         if (!StrUtil.isBlankIfStr(schema = schemaCache.get(tableName))) {
@@ -206,7 +209,104 @@ public class MetadataServiceImpl implements MetadataService {
                 log.error("{} field's doc isn't jsonString and won't convert: {}", next.get("name"), next.get("doc"));
             }
         }
-        return resultMap;
+        return (Map) fillRef(resultMap, name);
+    }
+
+    /**
+     * Desc: $ref实际引用赋值
+     *
+     * @param obj 需操作对象
+     * @param fileName 当前文件名称(不含.json)
+     * @return {@link Object}
+     * @created by wWei
+     * @date 2021/8/17 6:00 下午
+     */
+    private Object fillRef(Object obj, String fileName) {
+        if (obj instanceof Map) {
+            Map map = (Map) obj;
+            if (map.containsKey(KEY_REF)) {
+                return getRefValue(fileName, map);
+            } else {
+                fillRefMap(map, fileName);
+            }
+        } else if (obj instanceof List) {
+            fillRefList(fileName, (List) obj);
+        }
+        return obj;
+    }
+
+    private void fillRefList(String fileName, List list) {
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i) instanceof Map) {
+                Map map = (Map) list.get(i);
+                if (map.containsKey(KEY_REF)) {
+                    list.set(i, getRefValue(fileName, map));
+                } else {
+                    fillRefMap(map, fileName);
+                }
+            }
+        }
+    }
+
+    private void fillRefMap(Map map, String fileName) {
+        for (Object key : map.keySet()) {
+            Object value = map.get(key);
+            if (value instanceof Map) {
+                Map mapValue = (Map) value;
+                if (mapValue.containsKey(KEY_REF)) {
+                    map.put(key, getRefValue(fileName, mapValue));
+                } else {
+                    fillRefMap(mapValue, fileName);
+                }
+            } else if (value instanceof List) {
+                fillRefList(fileName, (List) value);
+            }
+        }
+    }
+
+    private String getCfg(String tableName) {
+        if (originalCache.containsKey(tableName)) {
+            return originalCache.get(tableName);
+        }
+        String content = null;
+        try {
+            content = configService.getConfig(tableName, nacosConfig.getGroup(), 3000);
+            if (StrUtil.isBlankIfStr(content)) {
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), tableName + " 获取Schema配置异常", null);
+            }
+            originalCache.put(tableName, content);
+            configService.addListener(tableName, nacosConfig.getGroup(), new AbstractListener() {
+                @Override
+                public void receiveConfigInfo(String configInfo) {
+                    log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
+                    originalCache.remove(tableName);
+                    originalCache.put(tableName, configInfo);
+                }
+            });
+        } catch (NacosException e) {
+            log.error("NacosException:{}", e);
+        }
+        return content;
+    }
+
+    private Object getRefValue(String fileName, Map map) {
+        String[] split = getRefStrArray(map);
+        String jsonPath = getJsonPath(split);
+        return JsonPath.read(getCfg(getFileName(split, fileName)), jsonPath);
+    }
+
+    private String[] getRefStrArray(Map refMap) {
+        String v = (String) refMap.get(KEY_REF);
+        return v.split("#", 2);
+    }
+
+    private String getJsonPath(String[] strArray) {
+        return "$".concat(strArray[1].replace("/", "."));
+    }
+
+    private String getFileName(String[] strArray, String fileName) {
+        return StrUtil.isEmpty(strArray[0]) ? fileName.concat(NacosConst.JSON_SUFFIX) : strArray[0];
     }
 
     /**

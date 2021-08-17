@@ -1,0 +1,381 @@
+{
+  "functions": {
+    "aggregation": [
+      {
+        "name": "COUNT",
+        "label": "COUNT",
+        "function": "count(expr)"
+      },
+      {
+        "name": "COUNT_DISTINCT",
+        "label": "COUNT_DISTINCT",
+        "function": "count(distinct expr)"
+      },
+      {
+        "name": "AVG",
+        "label": "AVG",
+        "function": "avg(expr)"
+      },
+      {
+        "name": "SUM",
+        "label": "SUM",
+        "function": "sum(expr)"
+      },
+      {
+        "name": "MAX",
+        "label": "MAX",
+        "function": "max(expr)"
+      },
+      {
+        "name": "MIN",
+        "label": "MIN",
+        "function": "min(expr)"
+      }
+    ],
+    "operator": [
+      {
+        "name": "=",
+        "label": "=",
+        "function": "expr = value"
+      },
+      {
+        "name": "!=",
+        "label": "!=",
+        "function": "expr != value"
+      },
+      {
+        "name": ">",
+        "label": ">",
+        "function": "expr > value"
+      },
+      {
+        "name": "<",
+        "label": "<",
+        "function": "expr < value"
+      },
+      {
+        "name": ">=",
+        "label": ">=",
+        "function": "expr >= value"
+      },
+      {
+        "name": "<=",
+        "label": "<=",
+        "function": "expr <= value"
+      },
+      {
+        "name": "has",
+        "label": "HAS",
+        "function": "has(expr, value)"
+      },
+      {
+        "name": "in",
+        "label": "IN",
+        "function": "expr in (values)"
+      },
+      {
+        "name": "not in",
+        "label": "NOT IN",
+        "function": "expr not in (values)"
+      },
+      {
+        "name": "like",
+        "label": "LIKE",
+        "function": "expr like value"
+      },
+      {
+        "name": "not like",
+        "label": "NOT LIKE",
+        "function": "expr not like value"
+      },
+      {
+        "name": "notEmpty",
+        "label": "NOT EMPTY",
+        "function": "notEmpty(expr)"
+      },
+      {
+        "name": "empty",
+        "label": "EMPTY",
+        "function": "empty(expr)"
+      }
+    ]
+  },
+  "schema_query": {
+    "references": {
+      "aggregation": [
+        {
+          "type": "int",
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+        },
+        {
+          "type": "long",
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+        },
+        {
+          "type": "float",
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+        },
+        {
+          "type": "double",
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+        },
+        {
+          "type": "string",
+          "functions": "COUNT,COUNT_DISTINCT"
+        },
+        {
+          "type": "date",
+          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        },
+        {
+          "type": "timestamp",
+          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        }
+      ],
+      "operator": [
+        {
+          "type": "int",
+          "functions": "=,!=,>,<,>=,<=,in,not in"
+        },
+        {
+          "type": "long",
+          "functions": "=,!=,>,<,>=,<=,in,not in"
+        },
+        {
+          "type": "float",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "double",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "string",
+          "functions": "=,!=,in,not in,like,not like,notEmpty,empty"
+        },
+        {
+          "type": "date",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "timestamp",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "array",
+          "functions": "has"
+        }
+      ]
+    }
+  },
+  "tunnel_type": {
+    "GTP": [
+      {
+        "name": "gtp_sgw_ip",
+        "label": "S-GW IP",
+        "type": "string"
+      },
+      {
+        "name": "gtp_pgw_ip",
+        "label": "P-GW IP",
+        "type": "string"
+      },
+      {
+        "name": "gtp_sgw_port",
+        "label": "S-GW Port",
+        "type": "int"
+      },
+      {
+        "name": "gtp_pgw_port",
+        "label": "P-GW Port",
+        "type": "int"
+      },
+      {
+        "name": "gtp_uplink_teid",
+        "label": "Uplink TEID",
+        "type": "long"
+      },
+      {
+        "name": "gtp_downlink_teid",
+        "label": "Downlink TEID",
+        "type": "long"
+      }
+    ],
+    "MPLS": [
+      {
+        "name": "mpls_c2s_direction_label",
+        "label": "Multiprotocol Label(c2s)",
+        "type": {
+          "type": "array",
+          "items": "int"
+        }
+      },
+      {
+        "name": "mpls_s2c_direction_label",
+        "label": "Multiprotocol Label(s2c)",
+        "type": {
+          "type": "array",
+          "items": "int"
+        }
+      }
+    ],
+    "VLAN": [
+      {
+        "name": "vlan_c2s_direction_id",
+        "label": "VLAN Direction(c2s)",
+        "type": {
+          "type": "array",
+          "items": "int"
+        }
+      },
+      {
+        "name": "vlan_s2c_direction_id",
+        "label": "VLAN Direction(s2c)",
+        "type": {
+          "type": "array",
+          "items": "int"
+        }
+      }
+    ],
+    "ETHERNET": [
+      {
+        "name": "source_mac",
+        "label": "Source MAC",
+        "type": "string"
+      },
+      {
+        "name": "destination_mac",
+        "label": "Destination MAC",
+        "type": "string"
+      }
+    ],
+    "MULTIPATH_ETHERNET": [
+      {
+        "name": "c2s_source_mac",
+        "label": "Source MAC(c2s)",
+        "type": "string"
+      },
+      {
+        "name": "c2s_destination_mac",
+        "label": "Destination MAC(c2s)",
+        "type": "string"
+      },
+      {
+        "name": "s2c_source_mac",
+        "label": "Source MAC(s2c)",
+        "type": "string"
+      },
+      {
+        "name": "s2c_destination_mac",
+        "label": "Destination MAC(s2c)",
+        "type": "string"
+      }
+    ]
+  },
+  "fields": {
+    "common_data_center": {
+      "data": [
+        {
+          "code": "City A",
+          "value": "City A"
+        },
+        {
+          "code": "City B",
+          "value": "City B"
+        },
+        {
+          "code": "City C",
+          "value": "City C"
+        },
+        {
+          "code": "City D",
+          "value": "City D"
+        },
+        {
+          "code": "City E",
+          "value": "City E"
+        },
+        {
+          "code": "City F",
+          "value": "City F"
+        },
+        {
+          "code": "City G",
+          "value": "City G"
+        },
+        {
+          "code": "City H",
+          "value": "City H"
+        },
+        {
+          "code": "City I",
+          "value": "City I"
+        },
+        {
+          "code": "City J",
+          "value": "City J"
+        },
+        {
+          "code": "City K",
+          "value": "City K"
+        },
+        {
+          "code": "City L",
+          "value": "City L"
+        },
+        {
+          "code": "City M",
+          "value": "City M"
+        },
+        {
+          "code": "City N",
+          "value": "City N"
+        },
+        {
+          "code": "City O",
+          "value": "City O"
+        },
+        {
+          "code": "City P",
+          "value": "City P"
+        },
+        {
+          "code": "City Q",
+          "value": "City Q"
+        },
+        {
+          "code": "City R",
+          "value": "City R"
+        }
+      ]
+    },
+    "common_encapsulation": {
+      "data": [
+        {
+          "code": "0",
+          "value": "Ethernet"
+        },
+        {
+          "code": "8",
+          "value": "PPP"
+        },
+        {
+          "code": "12",
+          "value": "CiscoHDLC"
+        }
+      ]
+    },
+    "common_has_dup_traffic": {
+      "data": [
+        {
+          "code": "0",
+          "value": "No"
+        },
+        {
+          "code": "1",
+          "value": "Yes"
+        }
+      ]
+    }
+  }
+}
