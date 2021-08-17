@@ -30,7 +30,7 @@ public class ActiveRecordInit {
     public void initDialect() {
         DruidPlugin dp = new DruidPlugin(url, userName, pin);
         ArpStartPlugin arp = new ArpStartPlugin(dp);
-        arp.addSqlTemplate("sql-temelate.sql");
+        arp.addSqlTemplate("sql-template.sql");
         dp.start();
         arp.start();
         log.info("Initializing ActiveRecordPlugin Complete");
