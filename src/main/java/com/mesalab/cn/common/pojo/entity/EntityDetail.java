@@ -25,7 +25,6 @@ public class EntityDetail {
     private String type;
     private String from;
     private String to;
-    @JsonProperty("last_time")
     private Long lastTime;
     private List<Object> leaf;
 
