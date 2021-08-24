@@ -218,12 +218,6 @@ public class ApiServiceImpl implements ApiService {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param Syntax Error: The option must be real-time or long-term or syntax-validation. ", null);
         }
-        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())
-                && StringUtil.isBlank(param.getReportId())
-                && StringUtil.isBlank(param.getResultId())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Param Syntax Error: The option=long-term, must be reportId or resultId.", null);
-        }
 
         if (StringUtil.isBlank(param.getFormat())) {
             param.setFormat(QueryFormatEnum.JSON.getValue());
