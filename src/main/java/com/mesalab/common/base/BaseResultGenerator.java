@@ -224,6 +224,7 @@ public class BaseResultGenerator {
      * 生成返回结果
      * @param message    返回消息
      * @param data       返回数据
+     * @param <T>        返回数据类型
      * @return 返回结果
      */
     public static BaseResult success(String message, List<Map> data, List<Map> meta, Map statistics) {
