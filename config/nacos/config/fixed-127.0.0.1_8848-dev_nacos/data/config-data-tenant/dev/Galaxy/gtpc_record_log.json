@@ -130,7 +130,8 @@
         "gtp_apn",
         "gtp_imei",
         "gtp_imsi",
-        "gtp_phone_number"
+        "gtp_phone_number",
+        "gtp_msg_type"
       ],
       "metrics": [
         "common_server_ip",
@@ -1490,7 +1491,8 @@
             "code": "delete",
             "value": "delete"
           }
-        ]
+        ],
+        "allow_query": "true"
       },
       "type": "string"
     },
