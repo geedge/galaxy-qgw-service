@@ -102,7 +102,7 @@ public class TestController {
     @GetMapping(value = "runSql")
     @Deprecated
     public BaseResult runSql() {
-        BaseResult result = diagnosisService.runPocSQL(false);
+        BaseResult result = diagnosisService.runPocSQL(false, "validation");
         return result;
     }
 
