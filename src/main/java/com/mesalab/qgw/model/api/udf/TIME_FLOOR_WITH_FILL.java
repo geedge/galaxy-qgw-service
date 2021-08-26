@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
@@ -177,7 +178,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
             targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
             if (StringUtil.isNotBlank(sqlQuerySource.getLimit())
-                    && !sqlQuerySource.getLimit().equalsIgnoreCase(ApiServiceImpl.UNVALID_LIMIT_DESC)
+                    && !sqlQuerySource.getLimit().equalsIgnoreCase(SQLHelper.INVALID_LIMIT_DESC)
                     && targetResult.size() > Integer.parseInt(sqlQuerySource.getLimit())) {
                 targetResult = targetResult.subList(0, Integer.parseInt(sqlQuerySource.getLimit()));
             }

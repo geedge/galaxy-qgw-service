@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 public class SQLHelper {
 
     public static final Pattern pOrder = Pattern.compile("order\\s*by[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
-
+    public static final String INVALID_LIMIT_DESC = "NO LIMIT";
 
     /**
      * 去除qlString的select子句。
