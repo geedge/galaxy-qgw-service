@@ -3,6 +3,7 @@ package com.mesalab.qgw.model.api;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.service.impl.ApiServiceImpl;
 import com.zdjizhi.utils.StringUtil;
@@ -40,7 +41,7 @@ public class SQLQuerySource {
 
 
     public boolean isEnableLimit() {
-        if (StringUtil.isNotBlank(limit) && limit.equalsIgnoreCase(ApiServiceImpl.UNVALID_LIMIT_DESC)) {
+        if (StringUtil.isNotBlank(limit) && limit.equalsIgnoreCase(SQLHelper.INVALID_LIMIT_DESC)) {
             return false;
         } else {
             return true;
