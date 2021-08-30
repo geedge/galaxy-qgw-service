@@ -34,12 +34,12 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 
-/*
+/**
  * @author tiangaochao
- * @create: 2021-08-24
+ * @date 2021/8/30 15:16 下午
  * */
 @Service("entityService")
-@PropertySource(value = "classpath:sql_text.sql", factory = SqlPropertySourceFactory.class)
+@PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class EntityServiceImp implements EntityService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
@@ -64,15 +64,15 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         String fileSql;
         String sql;
         if (param.equalsIgnoreCase(EntityQueryTypeEnum.ACTIVECLIENTIP.getType())) {
-            fileSql = env.getProperty("ACTIVECLIENTIP");
+            fileSql = env.getProperty("ENTITY_ACTIVECLIENTIP");
             sql = generateClientSql(dslObject.getQuery(), fileSql);
             baseResult = getResult(sql);
         } else if (param.equalsIgnoreCase(EntityQueryTypeEnum.TOPSERVERIP.getType())) {
-            fileSql = env.getProperty("TOPSERVERIP");
+            fileSql = env.getProperty("ENTITY_TOPSERVERIP");
             sql = generateServerSql(dslObject.getQuery(), fileSql);
             baseResult = getResult(sql);
         } else if (param.equalsIgnoreCase(EntityQueryTypeEnum.TOPSNI.getType())) {
-            fileSql = env.getProperty("TOPSNI");
+            fileSql = env.getProperty("ENTITY_TOPSNI");
             sql = generateSniSql(dslObject.getQuery(), fileSql);
             baseResult = getResult(sql);
         } else {

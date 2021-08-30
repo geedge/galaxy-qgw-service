@@ -15,6 +15,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.network.property.SqlPropertySourceFactory;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
@@ -32,6 +33,9 @@ import lombok.Getter;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -41,8 +45,10 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 @Service("systemService")
-public class SystemServiceImpl implements SystemService {
+@PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
+public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private static final Log log = LogFactory.get();
+    private Environment env;
     @Autowired
     private ApiService apiService;
     @Autowired
@@ -63,14 +69,7 @@ public class SystemServiceImpl implements SystemService {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         ApiParam param = new ApiParam();
-        param.setQuery("SELECT log_type, SUM(used_size) as used_size, SUM(max_size) * 7/10 as max_size, TIME_FORMAT(LATEST(last_storage) * 1000,'YYYY-MM-dd') as first_storage \n" +
-                "FROM ( \n" +
-                "  SELECT log_type, LATEST(used_size) as used_size, LATEST(max_size) as max_size, LATEST(last_storage) as last_storage\n" +
-                "  FROM sys_storage_log\n" +
-                "  WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '1' HOUR AND data_center != '' \n" +
-                "  GROUP BY data_center,log_type\n" +
-                ")\n" +
-                "GROUP BY log_type");
+        param.setQuery(env.getProperty("SYSTEM_STORAGEQUOTA"));
         BaseResult result = apiService.executeQuery(param);
         return resetBaseResult(result, "log_type");
     }
@@ -87,7 +86,7 @@ public class SystemServiceImpl implements SystemService {
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
             ApiParam param = new ApiParam();
-            String sql = String.format("select TIME_FORMAT(__time,'YYYY-MM-dd') as stat_time,log_type as type, sum(aggregate_size) as used_size from sys_storage_log where __time >= '%s' and __time < '%s' group by TIME_FORMAT(__time,'YYYY-MM-dd'), log_type", searchStartTime, searchEndTime);
+            String sql = String.format(env.getProperty("SYSTEM_DAILYTRENDOFSTORAGE"), searchStartTime, searchEndTime);
             param.setQuery(sql);
             BaseResult result = apiService.executeQuery(param);
             return resetBaseResult(result, "type");
@@ -151,7 +150,7 @@ public class SystemServiceImpl implements SystemService {
         } else {
             return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的日志类型: " + logType);
         }
-        list.forEach(o->o.setLogType(LogType.getLabelByValue(o.getLogType())));
+        list.forEach(o -> o.setLogType(LogType.getLabelByValue(o.getLogType())));
         return BaseResultGenerator.success("ok", list);
     }
 
@@ -167,7 +166,6 @@ public class SystemServiceImpl implements SystemService {
         String dbType = metadataService.getDBTypeByTableName(tableName);
         return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }
-
 
 
     @Override
@@ -207,7 +205,6 @@ public class SystemServiceImpl implements SystemService {
         }
         return DBTypeEnum.CLICKHOUSE.getValue();
     }
-
 
 
     private boolean logTypeValid(List<StorageDeletionInfo> list) {
@@ -531,6 +528,11 @@ public class SystemServiceImpl implements SystemService {
             map.put(fieldName, value);
         }
         return map;
+    }
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.env = environment;
     }
 
 

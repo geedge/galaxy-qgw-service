@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @date 2020/6/30 4:24 下午
  */
 @Service("networkMonitorService")
-@PropertySource(value = "classpath:sql_text.sql", factory = SqlPropertySourceFactory.class)
+@PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class NetworkMonitorServiceImpl implements NetworkMonitorService , EnvironmentAware {
     private static final Log log = LogFactory.get();
     @Autowired
