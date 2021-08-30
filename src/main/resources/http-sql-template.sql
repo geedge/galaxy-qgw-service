@@ -16,32 +16,31 @@ union all
 (SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes from %s where %s %s and protocol_id like CONCAT('%s','.%s') and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'.','')) + 1 + %s group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id order by stat_time asc)
 #end
 
-#sql("ENTITY_ACTIVECLIENTIP")
-select common_client_ip from %s where %s %s GROUP BY common_client_ip, common_app_label ORDER BY SUM (common_sessions) LIMIT %s
+#sql("ENTITY_ACTIVE_CLIENT_IP")
+select common_client_ip from %s where %s %s GROUP BY common_client_ip, common_app_label ORDER BY SUM (common_sessions) DESC LIMIT %s
 #end
 
-#sql("ENTITY_TOPSERVERIP")
+#sql("ENTITY_TOP_SERVER_IP")
 SELECT DISTINCT(ip) FROM (
-(select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by ip order by sum (common_sessions) desc limit 14000)
-UNION ALL
-(select common_client_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by ip order by COUNT (DISTINCT (common_client_ip)) desc limit 14000)
-UNION ALL
-(select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by ip order by sum (common_sessions) desc limit 14000)
-UNION ALL
-(select common_client_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by ip order by COUNT (DISTINCT (common_client_ip)) desc limit 14000))
+    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by ip order by sum(common_sessions) desc limit 100000)
+    UNION ALL
+    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by ip order by COUNT(DISTINCT(common_client_ip)) desc limit 40000)
+    UNION ALL
+    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by ip order by sum(common_sessions) desc limit 100000)
+    UNION ALL
+    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by ip order by COUNT(DISTINCT(common_client_ip)) desc limit 100000))
 #end
 
-#sql("ENTITY_TOPSNI")
+#sql("ENTITY_TOP_SNI")
 select ssl_sni from %s where %s and notEmpty(ssl_sni) group by ssl_sni order by SUM (common_sessions) desc limit 30000
 #end
 
-#sql("SYSTEM_STORAGEQUOTA")
+#sql("SYSTEM_STORAGE_QUOTA")
 SELECT log_type, SUM(used_size) as used_size, SUM(max_size) * 7 / 10 as max_size, TIME_FORMAT(LATEST(last_storage) * 1000, 'YYYY-MM-dd') as first_storage FROM
-(
-SELECT log_type, LATEST(used_size) as used_size, LATEST(max_size) as max_size, LATEST(last_storage) as last_storage FROM sys_storage_log WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '1' HOUR AND data_center != '' GROUP BY data_center, log_type
-)GROUP BY log_type
+    (SELECT log_type, LATEST(used_size) as used_size, LATEST(max_size) as max_size, LATEST(last_storage) as last_storage FROM sys_storage_log WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '1' HOUR AND data_center != '' GROUP BY data_center, log_type)
+GROUP BY log_type
 #end
 
-#sql("SYSTEM_DAILYTRENDOFSTORAGE")
+#sql("SYSTEM_DAILY_TREND_OF_STORAGE")
 select TIME_FORMAT(__time, 'YYYY-MM-dd') as stat_time, log_type as type, sum(aggregate_size) as used_size from sys_storage_log where __time >= '%s' and __time < '%s' group by TIME_FORMAT(__time, 'YYYY-MM-dd'), log_type
 #end

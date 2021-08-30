@@ -5,7 +5,6 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -219,16 +218,6 @@ public class BaseResultGenerator {
      */
     public static <T> BaseResult<T> error(final String message) {
         return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), null, false, message, null, null, null, null);
-    }
-    /**
-     * 生成返回结果
-     * @param message    返回消息
-     * @param data       返回数据
-     * @param <T>        返回数据类型
-     * @return 返回结果
-     */
-    public static BaseResult success(String message, List<Map> data, List<Map> meta, Map statistics) {
-        return new BaseResult<>(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), null, false, message, statistics, null, meta, data);
     }
 
 }

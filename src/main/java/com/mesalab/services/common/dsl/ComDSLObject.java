@@ -1,4 +1,4 @@
-package com.mesalab.entity.entity;
+package com.mesalab.services.common.dsl;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import java.util.List;
  * @Description :
  */
 @Data
-public class DSLObject implements Serializable {
+public class ComDSLObject implements Serializable {
     private String clientId;
     private Query query;
 
@@ -25,14 +25,14 @@ public class DSLObject implements Serializable {
         @Data
         public static class QueryBean {
             private String granularity;
-            private List<MatchBean> match;
+            private List<FilterBean> match;
+            private List<FilterBean> range;
             private List<String> intervals;
-            private List<RangeBean> range;
             private List<SortBean> sort;
         }
 
         @Data
-        public static class MatchBean {
+        public static class FilterBean {
             private String type;
             private String fieldKey;
             private List<String> fieldValues;
@@ -44,11 +44,5 @@ public class DSLObject implements Serializable {
             private String fieldKey;
         }
 
-        @Data
-        public static class RangeBean {
-            private String type;
-            private String fieldKey;
-            private List<String> fieldValues;
-        }
     }
 }

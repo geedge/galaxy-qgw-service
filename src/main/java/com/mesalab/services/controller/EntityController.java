@@ -1,4 +1,4 @@
-package com.mesalab.entity.controller;
+package com.mesalab.services.controller;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -6,10 +6,10 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.entity.entity.CommonDSLValidate;
-import com.mesalab.entity.entity.DSLObject;
-import com.mesalab.entity.enums.EntityQueryTypeEnum;
-import com.mesalab.entity.service.EntityService;
+import com.mesalab.services.common.dsl.ComDSLValidate;
+import com.mesalab.services.common.dsl.ComDSLObject;
+import com.mesalab.services.common.enums.EntityQueryType;
+import com.mesalab.services.service.EntityService;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,22 +33,21 @@ public class EntityController {
     @Autowired
     private EntityService entityService;
     @Autowired
-    private CommonDSLValidate commonDSLValidate;
+    private ComDSLValidate comDSLValidate;
 
     @PostMapping(value = "/v1/", produces = "application/json")
-    public BaseResult EntityQuery(HttpServletRequest request, @Validated @RequestBody DSLObject dslObject) {
+    public BaseResult EntityQuery(HttpServletRequest request, @Validated @RequestBody ComDSLObject dslObject) {
         Enumeration<String> parameterNames = request.getParameterNames();
         while (parameterNames.hasMoreElements()) {
             String param = parameterNames.nextElement();
-            log.debug("服务推荐接口, 参数: queryString is {},params is {}", param, dslObject);
-            if (!EnumUtils.isValidEnum(EntityQueryTypeEnum.class, StringUtil.upperCase(param))
+            log.debug("实体推荐接口, 参数: queryString is {},params is {}", param, dslObject);
+            if (!EnumUtils.isValidEnum(EntityQueryType.class, StringUtil.upperCase(param))
                     || StringUtil.isNotEmpty(request.getParameter(param))) {
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                         ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
             }
-
-            commonDSLValidate.conditionsValidation(dslObject, param);
-            return entityService.getDslInfo(param, dslObject);
+            comDSLValidate.validation(dslObject);
+            return entityService.getEntityInfo(param, dslObject);
         }
         throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                 ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);

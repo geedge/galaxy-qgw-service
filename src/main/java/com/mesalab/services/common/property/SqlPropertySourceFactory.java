@@ -1,4 +1,4 @@
-package com.mesalab.network.property;
+package com.mesalab.services.common.property;
 
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
@@ -62,4 +62,3 @@ public class SqlPropertySourceFactory implements PropertySourceFactory {
         }
     }
 }
-

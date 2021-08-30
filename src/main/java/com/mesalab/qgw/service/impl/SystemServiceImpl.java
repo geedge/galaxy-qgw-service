@@ -15,7 +15,6 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.knowledge.common.utils.HttpConfig;
-import com.mesalab.network.property.SqlPropertySourceFactory;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
@@ -25,6 +24,7 @@ import com.mesalab.qgw.model.job.XxlJobInfo;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.SystemService;
+import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
@@ -69,7 +69,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         ApiParam param = new ApiParam();
-        param.setQuery(env.getProperty("SYSTEM_STORAGEQUOTA"));
+        param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         BaseResult result = apiService.executeQuery(param);
         return resetBaseResult(result, "log_type");
     }
@@ -86,7 +86,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
             ApiParam param = new ApiParam();
-            String sql = String.format(env.getProperty("SYSTEM_DAILYTRENDOFSTORAGE"), searchStartTime, searchEndTime);
+            String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
             param.setQuery(sql);
             BaseResult result = apiService.executeQuery(param);
             return resetBaseResult(result, "type");
