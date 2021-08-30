@@ -1,8 +1,8 @@
 package com.mesalab.knowledge.strategy;
 
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.knowledge.entity.DSLObject;
@@ -75,10 +75,11 @@ public class SubscriberIdProviderImpl implements QueryProvider {
             if (Objects.isNull(ipEdges)||Objects.isNull(ipEdges.get("_to"))) {
                 newMap.put("IP", "");
             } else {
-                newMap.put("IP", CharMatcher.anyOf("IP/").trimLeadingFrom(String.valueOf(ipEdges.get("_to"))));
+                newMap.put("IP", StrUtil.removePrefix(String.valueOf(ipEdges.get("_to")),"IP/"));
             }
             list.add(newMap);
         }
         return list;
     }
+
 }

@@ -2,11 +2,11 @@ package com.mesalab.cn.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.mesalab.cn.common.pojo.Condition;
@@ -20,7 +20,6 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.strategy.BaseQueryProvider;
 import org.apache.commons.compress.utils.Lists;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 
 /**
  * @description:
@@ -405,8 +403,8 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         return EntityDetail.builder()
                 .type(type)
                 .name(String.valueOf(edmap.get(field)))
-                .from(CharMatcher.anyOf("from/").trimLeadingFrom(String.valueOf(edmap.get("_from"))))
-                .to(CharMatcher.anyOf("to/").trimLeadingFrom(String.valueOf(edmap.get("_to"))))
+                .from(StrUtil.removePrefix(String.valueOf(edmap.get("_from")),"from/"))
+                .to(StrUtil.removePrefix(String.valueOf(edmap.get("_to")),"to/"))
                 .lastTime(Long.valueOf(String.valueOf(edmap.get("last_time"))))
                 .leaf(edmap.get("leaf") == null ? null : (List) edmap.get("leaf")).build();
     }

@@ -1,8 +1,8 @@
 package com.mesalab.knowledge.strategy;
 
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -159,8 +159,8 @@ public class FqdnProviderImpl implements QueryProvider {
                 for (IpLearningPath.IplearningEdges edges : edgesList) {
                     Map<String, Object> map = Maps.newHashMap();
                     List<String> protocolsList = Lists.newArrayList();
-                    map.put("FQDN_NAME", CharMatcher.anyOf("FQDN/").trimLeadingFrom(edges.getFrom()));
-                    map.put("IP", CharMatcher.anyOf("IP/").trimLeadingFrom(edges.getTo()));
+                    map.put("FQDN_NAME", StrUtil.removePrefix(edges.getFrom(),"FQDN/"));
+                    map.put("IP", StrUtil.removePrefix(edges.getTo(),"IP/"));
                     map.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(edges.getFirstFoundTime(), DateUtils.YYYY_MM_DD_HH24_MM_SS));
                     map.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(edges.getLastFoundTime(), DateUtils.YYYY_MM_DD_HH24_MM_SS));
                     //协议 按 TLS_CNT_TOTAL>0,SESSION_RECENT按 *_CNT_RECENT和，SESSION_TOTAL按 *_CNT_TOTAL和
