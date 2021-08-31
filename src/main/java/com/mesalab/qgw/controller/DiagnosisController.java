@@ -2,19 +2,18 @@ package com.mesalab.qgw.controller;
 
 import cn.hutool.http.HttpStatus;
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.DiagnosisOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.DiagnosisService;
-import com.mesalab.qgw.service.impl.DiagnosisServiceImpl;
-import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Arrays;
 
 /**
  * Galaxy日志自动诊断接口
@@ -39,10 +38,9 @@ public class DiagnosisController {
 
     @RequestMapping(value = "/runSql")
     public BaseResult executePocSql(String isSaved, @RequestParam(defaultValue = "validation") String option) throws BusinessException {
-        if (!option.equals("validation") && !option.equals("execution")) {
+        if (Arrays.stream(DiagnosisOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(option))) {
             throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "The option parameter must be either validation or execution");
-
+                    "Param Syntax Error: The option must be either validation or execution");
         }
         return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved), option);
     }

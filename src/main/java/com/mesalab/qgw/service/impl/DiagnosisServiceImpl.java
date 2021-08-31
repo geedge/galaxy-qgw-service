@@ -4,7 +4,9 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.net.NetUtil;
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -225,16 +227,17 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private Map<String, Map<String, String>> executePocSqlByDatasource(Optional<File> file, boolean isSaved, String option) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newLinkedHashMap();
-        ApiParam apiParam = new ApiParam();
-        if (option.equals("validation")) {
-            apiParam.setOption(QueryOptionEnum.SYNTAX_VALIDATION.getValue());
-        } else if (option.equals("execution")) {
-            apiParam.setOption(QueryOptionEnum.REAL_TIME.getValue());
+        Map<String, Object> paramMap = Maps.newHashMap();
+        if (DiagnosisOptionEnum.VALIDATION.getValue().equalsIgnoreCase(option)) {
+            paramMap.put("option", QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+        } else if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
+            paramMap.put("option", QueryOptionEnum.REAL_TIME.getValue());
         }
-        List<String> rawLines = new FileReader(file.get()).readLines();
+        paramMap.put("format", QueryFormatEnum.CSV.getValue());
         FileWriter writer = null;
         int index = 0;
         if (file.isPresent() && file.get().isFile()) {
+            List<String> rawLines = new FileReader(file.get()).readLines();
             if (isSaved) {
                 writer = new FileWriter(file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat");
             }
@@ -243,8 +246,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                 if (Strings.isNullOrEmpty(line)) {
                     continue;
                 }
-                Map<String, String> queryResult = executeQuery(line, apiParam);
-                int statusCode = Integer.valueOf(queryResult.get("status").trim());
+                Map<String, String> queryResult = executeQuery(line, paramMap);
+                int statusCode = Integer.parseInt(queryResult.get("status").trim());
 
                 if (statusCode == HttpStatus.SC_OK) {
                     if (writer != null) {
@@ -346,21 +349,17 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     }
 
 
-    private Map<String, String> executeQuery(String sql, ApiParam apiParam) {
+    private Map<String, String> executeQuery(String sql, Map<String, Object> urlParam) {
         Map<String, String> resultMap = Maps.newHashMap();
         try {
             if (serverPort == 0) {
                 serverPort = DEFAULT_SERVER_PORT;
             }
-            String optionDiaWay = apiParam.getOption();
-            if (StringUtil.isBlank(apiParam.getFormat())) {
-                apiParam.setFormat(QueryFormatEnum.JSON.getValue());
-            }
-            String format = apiParam.getFormat();
+            String param = URLUtil.buildQuery(urlParam, CharsetUtil.CHARSET_UTF_8);
             sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
             String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");
             int socketTimeOut = httpConfig.getServerResponseTimeOut();
-            resultMap = httpClientService.httpGet(queryURL + sql + "&option=" + optionDiaWay + "&format=" + format, socketTimeOut);
+            resultMap = httpClientService.httpGet(queryURL + sql + (StrUtil.isBlank(param) ? "" : "&" + param), socketTimeOut);
         } catch (UnsupportedEncodingException e) {
             log.error("Unsupported Encoding error: ", e);
         }
