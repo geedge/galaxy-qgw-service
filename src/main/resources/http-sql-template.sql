@@ -28,7 +28,8 @@ SELECT DISTINCT(ip) FROM (
     UNION ALL
     (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by ip order by sum(common_sessions) desc limit 100000)
     UNION ALL
-    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by ip order by COUNT(DISTINCT(common_client_ip)) desc limit 100000))
+    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by ip order by COUNT(DISTINCT(common_client_ip)) desc limit 100000)
+) LIMIT 280000
 #end
 
 #sql("ENTITY_TOP_SNI")
