@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "dos_event_log",
+  "name": "dos_event",
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "log_id",

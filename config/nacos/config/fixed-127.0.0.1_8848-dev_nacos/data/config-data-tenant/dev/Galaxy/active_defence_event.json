@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "active_defence_event_log",
+  "name": "active_defence_event",
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "common_log_id",

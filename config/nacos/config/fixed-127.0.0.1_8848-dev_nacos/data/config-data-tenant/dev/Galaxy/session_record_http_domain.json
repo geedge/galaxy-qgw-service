@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "connection_record_log_http_domain",
+  "name": "session_record_http_domain",
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "common_log_id",

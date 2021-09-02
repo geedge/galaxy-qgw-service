@@ -1,10 +1,11 @@
 {
   "type": "record",
-  "name": "transaction_record_log",
+  "name": "session_record",
   "namespace": "tsg_galaxy_v3",
   "doc": {
-    "primary_key": "common_stream_trace_id",
+    "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
+    "index_table": "session_record_common_client_ip,session_record_common_server_ip,session_record_http_domain",
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     },
@@ -32,9 +33,12 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_app_label",
         "http_host",
         "http_domain",
-        "http_url"
+        "http_url",
+        "ssl_sni",
+        "ssl_ja3_hash"
       ],
       "metrics": [
         "common_server_ip",
@@ -60,9 +64,12 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_app_label",
         "http_host",
         "http_domain",
-        "http_url"
+        "http_url",
+        "ssl_sni",
+        "ssl_ja3_hash"
       ],
       "filters": [
         "common_address_type",
@@ -102,9 +109,12 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_app_label",
         "http_host",
         "http_domain",
-        "http_url"
+        "http_url",
+        "ssl_sni",
+        "ssl_ja3_hash"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -494,13 +504,33 @@
           "common_first_ttl",
           "common_processing_time",
           "common_mirrored_pkts",
-          "common_mirrored_bytes"
+          "common_mirrored_bytes",
+          "mail_protocol_type",
+          "mail_account",
+          "mail_from_cmd",
+          "mail_to_cmd",
+          "mail_from",
+          "mail_to",
+          "mail_cc",
+          "mail_bcc",
+          "mail_subject",
+          "mail_subject_charset",
+          "mail_content",
+          "mail_content_charset",
+          "mail_attachment_name",
+          "mail_attachment_name_charset",
+          "mail_attachment_content",
+          "mail_eml_file",
+          "mail_snapshot"
         ],
         "default_columns": [
           "common_recv_time",
           "common_log_id",
           "common_subscriber_id",
-          "common_client_ip"
+          "common_client_ip",
+          "mail_from",
+          "mail_to",
+          "mail_subject"
         ]
       },
       "DNS": {
@@ -692,13 +722,30 @@
           "common_first_ttl",
           "common_processing_time",
           "common_mirrored_pkts",
-          "common_mirrored_bytes"
+          "common_mirrored_bytes",
+          "ssl_sni",
+          "ssl_san",
+          "ssl_cn",
+          "ssl_pinningst",
+          "ssl_intercept_state",
+          "ssl_server_side_latency",
+          "ssl_client_side_latency",
+          "ssl_server_side_version",
+          "ssl_client_side_version",
+          "ssl_cert_verify",
+          "ssl_error",
+          "ssl_con_latency_ms",
+          "ssl_ja3_fingerprint",
+          "ssl_ja3_hash",
+          "ssl_cert_issuer",
+          "ssl_cert_subject"
         ],
         "default_columns": [
           "common_recv_time",
           "common_log_id",
           "common_subscriber_id",
           "common_client_ip",
+          "ssl_sni",
           "common_server_ip",
           "common_server_port"
         ]
@@ -783,13 +830,17 @@
           "common_first_ttl",
           "common_processing_time",
           "common_mirrored_pkts",
-          "common_mirrored_bytes"
+          "common_mirrored_bytes",
+          "quic_version",
+          "quic_sni",
+          "quic_user_agent"
         ],
         "default_columns": [
           "common_recv_time",
           "common_log_id",
           "common_subscriber_id",
           "common_client_ip",
+          "quic_sni",
           "common_server_ip",
           "common_server_port"
         ]
@@ -874,13 +925,18 @@
           "common_first_ttl",
           "common_processing_time",
           "common_mirrored_pkts",
-          "common_mirrored_bytes"
+          "common_mirrored_bytes",
+          "ftp_account",
+          "ftp_url",
+          "ftp_content",
+          "ftp_link_type"
         ],
         "default_columns": [
           "common_recv_time",
           "common_log_id",
           "common_subscriber_id",
           "common_client_ip",
+          "ftp_url",
           "common_server_ip",
           "common_server_port"
         ]
@@ -965,13 +1021,18 @@
           "common_first_ttl",
           "common_processing_time",
           "common_mirrored_pkts",
-          "common_mirrored_bytes"
+          "common_mirrored_bytes",
+          "bgp_type",
+          "bgp_as_num",
+          "bgp_route"
         ],
         "default_columns": [
           "common_recv_time",
           "common_log_id",
           "common_subscriber_id",
           "common_client_ip",
+          "bgp_type",
+          "bgp_as_num",
           "common_server_ip",
           "common_server_port"
         ]
@@ -1047,6 +1108,10 @@
           "common_s2c_tcp_lostlen",
           "common_c2s_tcp_unorder_num",
           "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
           "common_tcp_client_isn",
           "common_tcp_server_isn",
           "common_first_ttl",
@@ -1161,7 +1226,11 @@
           "common_first_ttl",
           "common_processing_time",
           "common_mirrored_pkts",
-          "common_mirrored_bytes"
+          "common_mirrored_bytes",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
         ],
         "default_columns": [
           "common_recv_time",
@@ -1169,7 +1238,8 @@
           "common_subscriber_id",
           "common_client_ip",
           "common_server_ip",
-          "common_server_port"
+          "common_server_port",
+          "rtp_pcap_path"
         ]
       },
       "APP": {
@@ -1252,7 +1322,8 @@
           "common_first_ttl",
           "common_processing_time",
           "common_mirrored_pkts",
-          "common_mirrored_bytes"
+          "common_mirrored_bytes",
+          "app_extra_info"
         ],
         "default_columns": [
           "common_recv_time",
@@ -1261,6 +1332,7 @@
           "common_client_ip",
           "common_app_id",
           "common_app_label",
+          "app_extra_info",
           "common_server_ip",
           "common_server_port"
         ]
@@ -1282,69 +1354,69 @@
   "fields": [
     {
       "name": "common_recv_time",
-      "type": "long",
+      "label": "Receive Time",
       "doc": {
         "allow_query": "true",
         "constraints": {
           "type": "timestamp"
         }
       },
-      "label": "Receive Time"
+      "type": "long"
     },
     {
       "name": "common_log_id",
-      "type": "long",
+      "label": "Log ID",
       "doc": {
         "allow_query": "true",
         "format": {
           "functions": "snowflake_id"
         }
       },
-      "label": "Log ID"
+      "type": "long"
     },
     {
       "name": "common_policy_id",
-      "type": "long",
+      "label": "Policy ID",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Policy ID"
+      "type": "long"
     },
     {
       "name": "common_subscriber_id",
-      "type": "string",
+      "label": "Subscriber ID",
       "doc": {
         "allow_query": "true"
       },
-      "label": "Subscriber ID"
+      "type": "string"
     },
     {
       "name": "common_imei",
-      "type": "string",
+      "label": "IMEI",
       "doc": {
         "allow_query": "true"
       },
-      "label": "IMEI"
+      "type": "string"
     },
     {
       "name": "common_imsi",
-      "type": "string",
+      "label": "IMSI",
       "doc": {
         "allow_query": "true"
       },
-      "label": "IMSI"
+      "type": "string"
     },
     {
       "name": "common_phone_number",
-      "type": "string",
+      "label": "Phone Number",
       "doc": {
         "allow_query": "true"
       },
-      "label": "Phone Number"
+      "type": "string"
     },
     {
       "name": "common_client_ip",
-      "type": "string",
+      "label": "Client IP",
       "doc": {
         "allow_query": "true",
         "constraints": {
@@ -1355,11 +1427,11 @@
           "appendTo": "common_client_asn,common_subscriber_id"
         }
       },
-      "label": "Client IP"
+      "type": "string"
     },
     {
       "name": "common_internal_ip",
-      "type": "string",
+      "label": "Internal IP",
       "doc": {
         "constraints": {
           "type": "ip"
@@ -1370,24 +1442,24 @@
         },
         "allow_query": "true"
       },
-      "label": "Internal IP"
+      "type": "string"
     },
     {
       "name": "common_client_port",
-      "type": "int",
+      "label": "Client Port",
       "doc": {
         "allow_query": "true"
       },
-      "label": "Client Port"
+      "type": "int"
     },
     {
       "name": "common_l4_protocol",
-      "type": "string",
-      "label": "L4 Protocol"
+      "label": "L4 Protocol",
+      "type": "string"
     },
     {
       "name": "common_address_type",
-      "type": "int",
+      "label": "Address Type",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -1403,11 +1475,11 @@
           }
         ]
       },
-      "label": "Address Type"
+      "type": "int"
     },
     {
       "name": "common_server_ip",
-      "type": "string",
+      "label": "Server IP",
       "doc": {
         "allow_query": "true",
         "constraints": {
@@ -1418,19 +1490,19 @@
           "appendTo": "common_server_asn"
         }
       },
-      "label": "Server IP"
+      "type": "string"
     },
     {
       "name": "common_server_port",
-      "type": "int",
+      "label": "Server Port",
       "doc": {
         "allow_query": "true"
       },
-      "label": "Server Port"
+      "type": "int"
     },
     {
       "name": "common_external_ip",
-      "type": "string",
+      "label": "External IP",
       "doc": {
         "constraints": {
           "type": "ip"
@@ -1441,11 +1513,11 @@
         },
         "allow_query": "true"
       },
-      "label": "External IP"
+      "type": "string"
     },
     {
       "name": "common_action",
-      "type": "int",
+      "label": "Action",
       "doc": {
         "visibility": "hidden",
         "constraints": {
@@ -1474,11 +1546,11 @@
           }
         ]
       },
-      "label": "Action"
+      "type": "int"
     },
     {
       "name": "common_direction",
-      "type": "int",
+      "label": "Direction",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -1494,115 +1566,127 @@
           }
         ]
       },
-      "label": "Direction"
+      "type": "int"
     },
     {
       "name": "common_entrance_id",
-      "type": "int",
+      "label": "Entrance ID",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "Entrance ID"
+      "type": "int"
     },
     {
       "name": "common_sled_ip",
-      "type": "string",
+      "label": "Sled IP",
       "doc": {
         "allow_query": "true",
         "constraints": {
           "type": "ip"
         }
       },
-      "label": "Sled IP"
+      "type": "string"
     },
     {
       "name": "common_client_location",
-      "type": "string",
-      "label": "Client Location"
+      "label": "Client Location",
+      "type": "string"
     },
     {
       "name": "common_client_asn",
-      "type": "string",
-      "label": "Client ASN"
+      "label": "Client ASN",
+      "type": "string"
     },
     {
       "name": "common_server_location",
-      "type": "string",
-      "label": "Server Location"
+      "label": "Server Location",
+      "type": "string"
     },
     {
       "name": "common_server_asn",
-      "type": "string",
-      "label": "Server ASN"
+      "label": "Server ASN",
+      "type": "string"
     },
     {
       "name": "common_sessions",
-      "type": "long",
-      "label": "Sessions"
+      "label": "Sessions",
+      "type": "long"
     },
     {
       "name": "common_c2s_pkt_num",
-      "type": "long",
-      "label": "Packets Sent"
+      "label": "Packets Sent",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
     },
     {
       "name": "common_s2c_pkt_num",
-      "type": "long",
-      "label": "Packets Received"
+      "label": "Packets Received",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
     },
     {
       "name": "common_c2s_byte_num",
-      "type": "long",
-      "label": "Bytes Sent"
+      "label": "Bytes Sent",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
     },
     {
       "name": "common_s2c_byte_num",
-      "type": "long",
-      "label": "Bytes Received"
+      "label": "Bytes Received",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
     },
     {
       "name": "common_c2s_pkt_diff",
-      "type": "long",
+      "label": "Packets Sent(Diff)",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Packets Sent(Diff)"
+      "type": "long"
     },
     {
       "name": "common_s2c_pkt_diff",
-      "type": "long",
+      "label": "Packets Received(Diff)",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Packets Received(Diff)"
+      "type": "long"
     },
     {
       "name": "common_c2s_byte_diff",
-      "type": "long",
+      "label": "Bytes Sent(Diff)",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Bytes Sent(Diff)"
+      "type": "long"
     },
     {
       "name": "common_s2c_byte_diff",
-      "type": "long",
+      "label": "Bytes Received(Diff)",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Bytes Received(Diff)"
+      "type": "long"
     },
     {
       "name": "common_service",
-      "type": "int",
+      "label": "Service",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "Service"
+      "type": "int"
     },
     {
       "name": "common_schema_type",
-      "type": "string",
+      "label": "Schema Type",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -1613,6 +1697,10 @@
             "value": "BASE"
           },
           {
+            "code": "MAIL",
+            "value": "MAIL"
+          },
+          {
             "code": "DNS",
             "value": "DNS"
           },
@@ -1621,25 +1709,41 @@
             "value": "HTTP"
           },
           {
+            "code": "SSL",
+            "value": "SSL"
+          },
+          {
+            "code": "FTP",
+            "value": "FTP"
+          },
+          {
             "code": "SIP",
             "value": "SIP"
+          },
+          {
+            "code": "RTP",
+            "value": "RTP"
+          },
+          {
+            "code": "APP",
+            "value": "APP"
           }
         ],
         "allow_query": "true"
       },
-      "label": "Schema Type"
+      "type": "string"
     },
     {
       "name": "common_user_tags",
-      "type": "string",
+      "label": "User Tags",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "User Tags"
+      "type": "string"
     },
     {
       "name": "common_sub_action",
-      "type": "string",
+      "label": "Sub Action",
       "doc": {
         "data": [
           {
@@ -1673,20 +1777,20 @@
         ],
         "visibility": "hidden"
       },
-      "label": "Sub Action"
+      "type": "string"
     },
     {
       "name": "common_user_region",
-      "type": "string",
+      "label": "User Region",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "User Region"
+      "type": "string"
     },
     {
       "name": "common_device_id",
-      "type": "string",
-      "label": "Device ID"
+      "label": "Device ID",
+      "type": "string"
     },
     {
       "name": "common_egress_link_id",
@@ -1706,23 +1810,23 @@
     },
     {
       "name": "common_isp",
-      "type": "string",
+      "label": "ISP",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "ISP"
+      "type": "string"
     },
     {
       "name": "common_device_tag",
-      "type": "string",
+      "label": "Device Tag",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Device Tag"
+      "type": "string"
     },
     {
       "name": "common_data_center",
-      "type": "string",
+      "label": "Data Center",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -1732,11 +1836,11 @@
         },
         "allow_query": "true"
       },
-      "label": "Data Center"
+      "type": "string"
     },
     {
       "name": "common_encapsulation",
-      "type": "int",
+      "label": "Encapsulation",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -1746,27 +1850,30 @@
         },
         "visibility": "hidden"
       },
-      "label": "Encapsulation"
+      "type": "int"
     },
     {
       "name": "common_app_label",
+      "label": "Application Label",
       "type": "string",
-      "label": "Application Label"
+      "doc": {
+        "allow_query": "true"
+      }
     },
     {
       "name": "common_tunnels",
-      "type": "string",
-      "label": "Tunnels"
+      "label": "Tunnels",
+      "type": "string"
     },
     {
       "name": "common_protocol_label",
-      "type": "string",
-      "label": "Protocol Label"
+      "label": "Protocol Label",
+      "type": "string"
     },
     {
       "name": "common_app_id",
-      "type": "string",
       "label": "Application ID",
+      "type": "string",
       "doc": {
         "visibility": "hidden"
       }
@@ -1774,30 +1881,24 @@
     {
       "name": "common_userdefine_app_name",
       "label": "User Define APP Name",
-      "type": "string",
-      "doc": {
-        "visibility": "hidden"
-      }
+      "type": "string"
     },
     {
       "name": "common_app_surrogate_id",
-      "type": "string",
       "label": "Surrogate ID",
+      "type": "string",
       "doc": {
         "visibility": "hidden"
       }
     },
     {
       "name": "common_l7_protocol",
-      "type": "string",
-      "label": "L7 Protocol"
+      "label": "L7 Protocol",
+      "type": "string"
     },
     {
       "name": "common_service_category",
-      "type": {
-        "type": "array",
-        "items": "int"
-      },
+      "label": "FQDN Category",
       "doc": {
         "constraints": {
           "operator_functions": "has"
@@ -1809,21 +1910,24 @@
           "value": "categoryName"
         }
       },
-      "label": "FQDN Category"
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
     },
     {
       "name": "common_start_time",
-      "type": "long",
+      "label": "Start Time",
       "doc": {
         "constraints": {
           "type": "timestamp"
         }
       },
-      "label": "Start Time"
+      "type": "long"
     },
     {
       "name": "common_end_time",
-      "type": "long",
+      "label": "End Time",
       "doc": {
         "constraints": {
           "type": "timestamp"
@@ -1833,21 +1937,27 @@
           "appendTo": "common_recv_time"
         }
       },
-      "label": "End Time"
+      "type": "long"
     },
     {
       "name": "common_establish_latency_ms",
-      "type": "long",
-      "label": "Establish Latency(ms)"
+      "label": "Establish Latency(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
     },
     {
       "name": "common_con_duration_ms",
-      "type": "long",
-      "label": "Duration(ms)"
+      "label": "Duration(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
     },
     {
       "name": "common_stream_dir",
-      "type": "int",
+      "label": "Stream Direction",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -1868,19 +1978,19 @@
         ],
         "allow_query": "true"
       },
-      "label": "Stream Direction"
+      "type": "int"
     },
     {
       "name": "common_address_list",
-      "type": "string",
+      "label": "Address List",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "Address List"
+      "type": "string"
     },
     {
       "name": "common_has_dup_traffic",
-      "type": "int",
+      "label": "Duplication Traffic",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -1890,117 +2000,117 @@
         },
         "visibility": "hidden"
       },
-      "label": "Duplication Traffic"
+      "type": "int"
     },
     {
       "name": "common_stream_error",
-      "type": "string",
+      "label": "Stream Error",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Stream Error"
+      "type": "string"
     },
     {
       "name": "common_stream_trace_id",
-      "type": "long",
+      "label": "Session ID",
       "doc": {
         "allow_query": "true"
       },
-      "label": "Session ID"
+      "type": "long"
     },
     {
       "name": "common_link_info_c2s",
-      "type": "string",
+      "label": "Link Info(c2s)",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Link Info(c2s)"
+      "type": "string"
     },
     {
       "name": "common_link_info_s2c",
-      "type": "string",
+      "label": "Link Info(s2c)",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Link Info(s2c)"
+      "type": "string"
     },
     {
       "name": "common_c2s_ipfrag_num",
-      "type": "long",
-      "label": "Fragmentation Packets(c2s)"
+      "label": "Fragmentation Packets(c2s)",
+      "type": "long"
     },
     {
       "name": "common_s2c_ipfrag_num",
-      "type": "long",
-      "label": "Fragmentation Packets(s2c)"
+      "label": "Fragmentation Packets(s2c)",
+      "type": "long"
     },
     {
       "name": "common_c2s_tcp_lostlen",
-      "type": "long",
-      "label": "Sequence Gap Loss(c2s)"
+      "label": "Sequence Gap Loss(c2s)",
+      "type": "long"
     },
     {
       "name": "common_s2c_tcp_lostlen",
-      "type": "long",
-      "label": "Sequence Gap Loss(s2c)"
+      "label": "Sequence Gap Loss(s2c)",
+      "type": "long"
     },
     {
       "name": "common_c2s_tcp_unorder_num",
-      "type": "long",
-      "label": "Unorder Packets(c2s)"
+      "label": "Unorder Packets(c2s)",
+      "type": "long"
     },
     {
       "name": "common_s2c_tcp_unorder_num",
-      "type": "long",
-      "label": "Unorder Packets(s2c)"
+      "label": "Unorder Packets(s2c)",
+      "type": "long"
     },
     {
       "name": "common_c2s_pkt_retrans",
-      "type": "long",
-      "label": "Packet Retransmission(c2s)"
+      "label": "Packet Retransmission(c2s)",
+      "type": "long"
     },
     {
       "name": "common_s2c_pkt_retrans",
-      "type": "long",
-      "label": "Packet Retransmission(s2c)"
+      "label": "Packet Retransmission(s2c)",
+      "type": "long"
     },
     {
       "name": "common_c2s_byte_retrans",
-      "type": "long",
-      "label": "Byte Retransmission(c2s)"
+      "label": "Byte Retransmission(c2s)",
+      "type": "long"
     },
     {
       "name": "common_s2c_byte_retrans",
-      "type": "long",
-      "label": "Byte Retransmission(s2c)"
+      "label": "Byte Retransmission(s2c)",
+      "type": "long"
     },
     {
       "name": "common_tcp_client_isn",
-      "type": "long",
+      "label": "TCP Client ISN",
       "doc": {
         "allow_query": "true"
       },
-      "label": "TCP Client ISN"
+      "type": "long"
     },
     {
       "name": "common_tcp_server_isn",
-      "type": "long",
+      "label": "TCP Server ISN",
       "doc": {
         "allow_query": "true"
       },
-      "label": "TCP Server ISN"
+      "type": "long"
     },
     {
       "name": "common_first_ttl",
-      "type": "int",
+      "label": "First TTL",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "First TTL"
+      "type": "int"
     },
     {
       "name": "common_processing_time",
-      "type": "long",
+      "label": "Processing Time",
       "doc": {
         "constraints": {
           "type": "timestamp"
@@ -2009,7 +2119,7 @@
           "functions": "current_timestamp"
         }
       },
-      "label": "Processing Time"
+      "type": "long"
     },
     {
       "name": "common_mirrored_pkts",
@@ -2029,194 +2139,336 @@
     },
     {
       "name": "http_url",
-      "type": "string",
-      "label": "HTTP.URL"
+      "label": "HTTP.URL",
+      "type": "string"
     },
     {
       "name": "http_host",
-      "type": "string",
+      "label": "HTTP.Host",
       "doc": {
         "format": {
           "functions": "sub_domain",
           "appendTo": "http_domain"
         }
       },
-      "label": "HTTP.Host"
+      "type": "string"
     },
     {
       "name": "http_domain",
-      "type": "string",
+      "label": "HTTP.Domain",
       "doc": {
         "allow_query": "true"
       },
-      "label": "HTTP.Domain"
+      "type": "string"
     },
     {
       "name": "http_request_line",
-      "type": "string",
+      "label": "HTTP.Request Line",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "HTTP.Request Line"
+      "type": "string"
     },
     {
       "name": "http_response_line",
-      "type": "string",
+      "label": "HTTP.Response Line",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "HTTP.Response Line"
+      "type": "string"
     },
     {
       "name": "http_request_header",
-      "type": "string",
+      "label": "HTTP.Request Headers",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "HTTP.Request Headers"
+      "type": "string"
     },
     {
       "name": "http_response_header",
-      "type": "string",
+      "label": "HTTP.Response Headers",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "HTTP.Response Headers"
+      "type": "string"
     },
     {
       "name": "http_request_content",
-      "type": "string",
+      "label": "HTTP.Request Content",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "HTTP.Request Content"
+      "type": "string"
     },
     {
       "name": "http_response_content",
-      "type": "string",
+      "label": "HTTP.Response Content",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "HTTP.Response Content"
+      "type": "string"
     },
     {
       "name": "http_request_body",
-      "type": "string",
+      "label": "HTTP.Request Body",
       "doc": {
         "constraints": {
           "type": "file"
         }
       },
-      "label": "HTTP.Request Body"
+      "type": "string"
     },
     {
       "name": "http_response_body",
-      "type": "string",
+      "label": "HTTP.Response Body",
       "doc": {
         "constraints": {
           "type": "file"
         }
       },
-      "label": "HTTP.Response Body"
+      "type": "string"
     },
     {
       "name": "http_request_body_key",
-      "type": "string",
+      "label": "HTTP.Request Body Key",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "HTTP.Request Body Key"
+      "type": "string"
     },
     {
       "name": "http_response_body_key",
-      "type": "string",
+      "label": "HTTP.Response Body Key",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "HTTP.Response Body Key"
+      "type": "string"
     },
     {
       "name": "http_proxy_flag",
-      "type": "int",
+      "label": "HTTP.Proxy Flag",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "HTTP.Proxy Flag"
+      "type": "int"
     },
     {
       "name": "http_sequence",
-      "type": "int",
+      "label": "HTTP.Sequence",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "HTTP.Sequence"
+      "type": "int"
     },
     {
       "name": "http_snapshot",
-      "type": "string",
+      "label": "HTTP.Snapshot",
       "doc": {
         "visibility": "hidden"
       },
-      "label": "HTTP.Snapshot"
+      "type": "string"
     },
     {
       "name": "http_cookie",
-      "type": "string",
-      "label": "HTTP.Cookie"
+      "label": "HTTP.Cookie",
+      "type": "string"
     },
     {
       "name": "http_referer",
-      "type": "string",
-      "label": "HTTP.Referer"
+      "label": "HTTP.Referer",
+      "type": "string"
     },
     {
       "name": "http_user_agent",
-      "type": "string",
-      "label": "HTTP.User Agent"
+      "label": "HTTP.User Agent",
+      "type": "string"
     },
     {
       "name": "http_content_length",
-      "type": "string",
-      "label": "HTTP.Content Length"
+      "label": "HTTP.Content Length",
+      "type": "string"
     },
     {
       "name": "http_content_type",
-      "type": "string",
-      "label": "HTTP.Content Type"
+      "label": "HTTP.Content Type",
+      "type": "string"
     },
     {
       "name": "http_set_cookie",
-      "type": "string",
-      "label": "HTTP.Set Cookie"
+      "label": "HTTP.Set Cookie",
+      "type": "string"
     },
     {
       "name": "http_version",
-      "type": "string",
-      "label": "HTTP.Version"
+      "label": "HTTP.Version",
+      "type": "string"
     },
     {
       "name": "http_response_latency_ms",
-      "type": "long",
-      "label": "HTTP.Response Latency(ms)"
+      "label": "HTTP.Response Latency(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
     },
     {
       "name": "http_session_duration_ms",
-      "type": "long",
-      "label": "HTTP.Session Duration(ms)"
+      "label": "HTTP.Session Duration(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "long"
     },
     {
       "name": "http_action_file_size",
-      "type": "int",
-      "label": "HTTP.Action File Size"
+      "label": "HTTP.Action File Size",
+      "type": "int"
+    },
+    {
+      "name": "mail_protocol_type",
+      "label": "Mail.Protocol Type",
+      "type": "string"
+    },
+    {
+      "name": "mail_account",
+      "label": "Mail.Account",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_from_cmd",
+      "label": "Mail.From CMD",
+      "type": "string"
+    },
+    {
+      "name": "mail_to_cmd",
+      "label": "Mail.To CMD",
+      "type": "string"
+    },
+    {
+      "name": "mail_from",
+      "label": "Mail.From",
+      "doc": {
+        "allow_query": "true",
+        "constraints": {
+          "type": "email"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_to",
+      "label": "Mail.To",
+      "doc": {
+        "allow_query": "true",
+        "constraints": {
+          "type": "email"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_cc",
+      "label": "Mail.CC",
+      "type": "string"
+    },
+    {
+      "name": "mail_bcc",
+      "label": "Mail.BCC",
+      "type": "string"
+    },
+    {
+      "name": "mail_subject",
+      "label": "Mail.Subject",
+      "doc": {
+        "allow_query": "true",
+        "format": {
+          "functions": "decode_of_base64",
+          "param": "$.mail_subject_charset"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_subject_charset",
+      "label": "Mail.Subject Charset",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_content",
+      "label": "Mail.Content",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_content_charset",
+      "label": "Mail.Content Charset",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_name",
+      "label": "Mail.Attachment",
+      "doc": {
+        "format": {
+          "functions": "decode_of_base64",
+          "param": "$.mail_attachment_name_charset"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_name_charset",
+      "label": "Mail.Attachment Charset",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_content",
+      "label": "Mail.Attachment Content",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_eml_file",
+      "label": "Mail.EML File",
+      "doc": {
+        "constraints": {
+          "type": "file"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_snapshot",
+      "label": "Mail.Snapshot",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
     },
     {
       "name": "dns_message_id",
-      "type": "int",
-      "label": "DNS.Message ID"
+      "label": "DNS.Message ID",
+      "type": "int"
     },
     {
       "name": "dns_qr",
-      "type": "int",
+      "label": "DNS.QR",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -2232,11 +2484,11 @@
           }
         ]
       },
-      "label": "DNS.QR"
+      "type": "int"
     },
     {
       "name": "dns_opcode",
-      "type": "int",
+      "label": "DNS.OPCODE",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -2260,61 +2512,64 @@
           }
         ]
       },
-      "label": "DNS.OPCODE"
+      "type": "int"
     },
     {
       "name": "dns_aa",
-      "type": "int",
-      "label": "DNS.AA"
+      "label": "DNS.AA",
+      "type": "int"
     },
     {
       "name": "dns_tc",
-      "type": "int",
-      "label": "DNS.TC"
+      "label": "DNS.TC",
+      "type": "int"
     },
     {
       "name": "dns_rd",
-      "type": "int",
-      "label": "DNS.RD"
+      "label": "DNS.RD",
+      "type": "int"
     },
     {
       "name": "dns_ra",
-      "type": "int",
-      "label": "DNS.RA"
+      "label": "DNS.RA",
+      "type": "int"
     },
     {
       "name": "dns_rcode",
-      "type": "int",
-      "label": "DNS.RCODE"
+      "label": "DNS.RCODE",
+      "type": "int"
     },
     {
       "name": "dns_qdcount",
-      "type": "int",
-      "label": "DNS.QDCOUNT"
+      "label": "DNS.QDCOUNT",
+      "type": "int"
     },
     {
       "name": "dns_ancount",
-      "type": "int",
-      "label": "DNS.ANCOUNT"
+      "label": "DNS.ANCOUNT",
+      "type": "int"
     },
     {
       "name": "dns_nscount",
-      "type": "int",
-      "label": "DNS.NSCOUNT"
+      "label": "DNS.NSCOUNT",
+      "type": "int"
     },
     {
       "name": "dns_arcount",
-      "type": "int",
-      "label": "DNS.ARCOUNT"
+      "label": "DNS.ARCOUNT",
+      "type": "int"
     },
     {
       "name": "dns_qname",
-      "type": "string",
-      "label": "DNS.QNAME"
+      "label": "DNS.QNAME",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
     },
     {
       "name": "dns_qtype",
-      "type": "int",
+      "label": "DNS.QTYPE",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -2362,24 +2617,24 @@
           }
         ]
       },
-      "label": "DNS.QTYPE"
+      "type": "int"
     },
     {
       "name": "dns_qclass",
-      "type": "int",
-      "label": "DNS.QCLASS"
+      "label": "DNS.QCLASS",
+      "type": "int"
     },
     {
       "name": "dns_cname",
-      "type": "string",
+      "label": "DNS.CNAME",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "DNS.CNAME"
+      "type": "string"
     },
     {
       "name": "dns_sub",
-      "type": "int",
+      "label": "DNS.SUB",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -2395,90 +2650,666 @@
           }
         ]
       },
-      "label": "DNS.SUB"
+      "type": "int"
     },
     {
       "name": "dns_rr",
-      "type": "string",
+      "label": "DNS.RR",
       "doc": {
         "visibility": "disabled"
       },
-      "label": "DNS.RR"
+      "type": "string"
+    },
+    {
+      "name": "ssl_version",
+      "label": "SSL.Version",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_sni",
+      "label": "SSL.SNI",
+      "doc": {
+        "allow_query": "true",
+        "format": {
+          "functions": "sub_domain",
+          "appendTo": "http_domain"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_san",
+      "label": "SSL.SAN",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cn",
+      "label": "SSL.CN",
+      "type": "string"
+    },
+    {
+      "name": "ssl_pinningst",
+      "label": "SSL.Pinning",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "Not Pinning"
+          },
+          {
+            "code": "1",
+            "value": "Pinning"
+          },
+          {
+            "code": "2",
+            "value": "Maybe Pinning"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_intercept_state",
+      "label": "SSL.Intercept State",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "Passthrough"
+          },
+          {
+            "code": "1",
+            "value": "Intercept"
+          },
+          {
+            "code": "2",
+            "value": "Shutdown"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_server_side_latency",
+      "label": "SSL.Server Side Latency(ms)",
+      "type": "int"
+    },
+    {
+      "name": "ssl_client_side_latency",
+      "label": "SSL.Client Side Latency(ms)",
+      "type": "int"
+    },
+    {
+      "name": "ssl_server_side_version",
+      "label": "SSL.Server Side Version",
+      "type": "string"
+    },
+    {
+      "name": "ssl_client_side_version",
+      "label": "SSL.Client Side Version",
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_verify",
+      "label": "SSL.Certificate Verify",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "No"
+          },
+          {
+            "code": "1",
+            "value": "Yes"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_error",
+      "label": "SSL.Error",
+      "type": "string"
+    },
+    {
+      "name": "ssl_con_latency_ms",
+      "label": "SSL.Connection Latency(ms)",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_ja3_fingerprint",
+      "label": "SSL.JA3",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3_hash",
+      "label": "SSL.JA3 hash",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_issuer",
+      "label": "SSL.Issuer",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_subject",
+      "label": "SSL.Subject",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "quic_version",
+      "label": "QUIC.Version",
+      "type": "string"
+    },
+    {
+      "name": "quic_sni",
+      "label": "QUIC.SNI",
+      "doc": {
+        "allow_query": "true",
+        "format": {
+          "functions": "sub_domain",
+          "appendTo": "http_domain"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "quic_user_agent",
+      "label": "QUIC.User Agent",
+      "type": "string"
+    },
+    {
+      "name": "ftp_account",
+      "label": "FTP.Account",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ftp_url",
+      "label": "FTP.URL",
+      "type": "string"
+    },
+    {
+      "name": "ftp_content",
+      "label": "FTP.Content",
+      "type": "string"
+    },
+    {
+      "name": "ftp_link_type",
+      "label": "FTP.Link Type",
+      "type": "string"
+    },
+    {
+      "name": "bgp_type",
+      "label": "BGP.Type",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "bgp_as_num",
+      "label": "BGP.AS Number",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "bgp_route",
+      "label": "BGP.Route",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "voip_calling_account",
+      "label": "VoIP.Calling Account",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "voip_called_account",
+      "label": "VoIP.Called Account",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "voip_calling_number",
+      "label": "VoIP.Calling Number",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "voip_called_number",
+      "label": "VoIP.Called Number",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "streaming_media_url",
+      "label": "Streaming.Media URL",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "streaming_media_protocol",
+      "label": "Streaming.Media Protocol",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_extra_info",
+      "label": "APP.Extra Info",
+      "type": "string"
     },
     {
       "name": "sip_call_id",
-      "type": "string",
-      "label": "SIP.Call-ID"
+      "label": "SIP.Call-ID",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
     },
     {
       "name": "sip_originator_description",
-      "type": "string",
-      "label": "SIP.Originator"
+      "label": "SIP.Originator",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
     },
     {
       "name": "sip_responder_description",
-      "type": "string",
-      "label": "SIP.Responder"
+      "label": "SIP.Responder",
+      "doc": {
+        "allow_query": "true"
+      },
+      "type": "string"
     },
     {
       "name": "sip_user_agent",
-      "type": "string",
-      "label": "SIP.User-Agent"
+      "label": "SIP.User-Agent",
+      "type": "string"
     },
     {
       "name": "sip_server",
-      "type": "string",
-      "label": "SIP.Server"
+      "label": "SIP.Server",
+      "type": "string"
     },
     {
       "name": "sip_originator_sdp_connect_ip",
-      "type": "string",
-      "label": "SIP.Originator IP"
+      "label": "SIP.Originator IP",
+      "type": "string"
     },
     {
       "name": "sip_originator_sdp_media_port",
-      "type": "int",
-      "label": "SIP.Originator Port"
+      "label": "SIP.Originator Port",
+      "type": "int"
     },
     {
       "name": "sip_originator_sdp_media_type",
-      "type": "string",
-      "label": "SIP.Originator Media Type"
+      "label": "SIP.Originator Media Type",
+      "type": "string"
     },
     {
       "name": "sip_originator_sdp_content",
-      "type": "string",
-      "label": "SIP.Originator Content"
+      "label": "SIP.Originator Content",
+      "type": "string"
     },
     {
       "name": "sip_responder_sdp_connect_ip",
-      "type": "string",
-      "label": "SIP.Responder IP"
+      "label": "SIP.Responder IP",
+      "type": "string"
     },
     {
       "name": "sip_responder_sdp_media_port",
-      "type": "int",
-      "label": "SIP.Responder Port"
+      "label": "SIP.Responder Port",
+      "type": "int"
     },
     {
       "name": "sip_responder_sdp_media_type",
-      "type": "string",
-      "label": "SIP.Responder Media Type"
+      "label": "SIP.Responder Media Type",
+      "type": "string"
     },
     {
       "name": "sip_responder_sdp_content",
-      "type": "string",
-      "label": "SIP.Responder Content"
+      "label": "SIP.Responder Content",
+      "type": "string"
     },
     {
       "name": "sip_duration",
-      "type": "int",
-      "label": "SIP.Duration"
+      "label": "SIP.Duration",
+      "type": "int"
     },
     {
       "name": "sip_bye",
-      "type": "string",
-      "label": "SIP.Bye"
+      "label": "SIP.Bye",
+      "type": "string"
+    },
+    {
+      "name": "rtp_payload_type_c2s",
+      "label": "RTP.Payload Type(c2s)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
+            "code": "1",
+            "value": "1016"
+          },
+          {
+            "code": "2",
+            "value": "G721"
+          },
+          {
+            "code": "3",
+            "value": "GSM"
+          },
+          {
+            "code": "4",
+            "value": "G723"
+          },
+          {
+            "code": "5",
+            "value": "DVI4_8000"
+          },
+          {
+            "code": "6",
+            "value": "DVI4_16000"
+          },
+          {
+            "code": "7",
+            "value": "LPC"
+          },
+          {
+            "code": "8",
+            "value": "PCMA"
+          },
+          {
+            "code": "9",
+            "value": "G722"
+          },
+          {
+            "code": "10",
+            "value": "L16_STEREO"
+          },
+          {
+            "code": "11",
+            "value": "L16_MONO"
+          },
+          {
+            "code": "12",
+            "value": "QCELP"
+          },
+          {
+            "code": "13",
+            "value": "CN"
+          },
+          {
+            "code": "14",
+            "value": "MPA"
+          },
+          {
+            "code": "15",
+            "value": "G728"
+          },
+          {
+            "code": "16",
+            "value": "DVI4_11025"
+          },
+          {
+            "code": "17",
+            "value": "DVI4_22050"
+          },
+          {
+            "code": "18",
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "rtp_payload_type_s2c",
+      "label": "RTP.Payload Type(s2c)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
+            "code": "1",
+            "value": "1016"
+          },
+          {
+            "code": "2",
+            "value": "G721"
+          },
+          {
+            "code": "3",
+            "value": "GSM"
+          },
+          {
+            "code": "4",
+            "value": "G723"
+          },
+          {
+            "code": "5",
+            "value": "DVI4_8000"
+          },
+          {
+            "code": "6",
+            "value": "DVI4_16000"
+          },
+          {
+            "code": "7",
+            "value": "LPC"
+          },
+          {
+            "code": "8",
+            "value": "PCMA"
+          },
+          {
+            "code": "9",
+            "value": "G722"
+          },
+          {
+            "code": "10",
+            "value": "L16_STEREO"
+          },
+          {
+            "code": "11",
+            "value": "L16_MONO"
+          },
+          {
+            "code": "12",
+            "value": "QCELP"
+          },
+          {
+            "code": "13",
+            "value": "CN"
+          },
+          {
+            "code": "14",
+            "value": "MPA"
+          },
+          {
+            "code": "15",
+            "value": "G728"
+          },
+          {
+            "code": "16",
+            "value": "DVI4_11025"
+          },
+          {
+            "code": "17",
+            "value": "DVI4_22050"
+          },
+          {
+            "code": "18",
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
+          }
+        ]
+      },
+      "type": "int"
+    },
+    {
+      "name": "rtp_pcap_path",
+      "label": "RTP.PCAP",
+      "doc": {
+        "constraints": {
+          "type": "files"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "rtp_originator_dir",
+      "label": "RTP.Direction",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "unknown"
+          },
+          {
+            "code": "1",
+            "value": "c2s"
+          },
+          {
+            "code": "2",
+            "value": "s2c"
+          }
+        ],
+        "visibility": "hidden"
+      },
+      "type": "int"
     }
   ]
 }

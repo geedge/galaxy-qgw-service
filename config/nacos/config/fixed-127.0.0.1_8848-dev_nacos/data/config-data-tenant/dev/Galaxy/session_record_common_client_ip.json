@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "connection_record_log_common_client_ip",
+  "name": "session_record_common_client_ip",
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "common_log_id",

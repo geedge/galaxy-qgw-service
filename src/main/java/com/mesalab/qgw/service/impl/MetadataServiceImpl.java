@@ -209,57 +209,36 @@ public class MetadataServiceImpl implements MetadataService {
                 log.error("{} field's doc isn't jsonString and won't convert: {}", next.get("name"), next.get("doc"));
             }
         }
-        return (Map) fillRef(resultMap, name);
+        fillReference(resultMap, name);
+        return resultMap;
     }
 
     /**
-     * Desc: $ref实际引用赋值
-     *
-     * @param obj 需操作对象
-     * @param fileName 当前文件名称(不含.json)
-     * @return {@link Object}
-     * @created by wWei
-     * @date 2021/8/17 6:00 下午
+     * @param map       需操作对象
+     * @param cfgName   当前文件名称
+     * @return void
+     * @Description     $ref实际引用部分赋值
+     * @author wanghao
+     * @date 2021/9/1 17:02
      */
-    private Object fillRef(Object obj, String fileName) {
-        if (obj instanceof Map) {
-            Map map = (Map) obj;
-            if (map.containsKey(KEY_REF)) {
-                return getRefValue(fileName, map);
-            } else {
-                fillRefMap(map, fileName);
-            }
-        } else if (obj instanceof List) {
-            fillRefList(fileName, (List) obj);
-        }
-        return obj;
-    }
 
-    private void fillRefList(String fileName, List list) {
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i) instanceof Map) {
-                Map map = (Map) list.get(i);
-                if (map.containsKey(KEY_REF)) {
-                    list.set(i, getRefValue(fileName, map));
-                } else {
-                    fillRefMap(map, fileName);
-                }
-            }
-        }
-    }
-
-    private void fillRefMap(Map map, String fileName) {
-        for (Object key : map.keySet()) {
-            Object value = map.get(key);
-            if (value instanceof Map) {
-                Map mapValue = (Map) value;
+    private void fillReference(Map map, String cfgName) {
+        for (Object mapKey : map.keySet()) {
+            Object keyObj = map.get(mapKey);
+            if (keyObj instanceof Map) {
+                Map mapValue = (Map) keyObj;
                 if (mapValue.containsKey(KEY_REF)) {
-                    map.put(key, getRefValue(fileName, mapValue));
+                    map.put(mapKey, getRefValue(cfgName, mapValue));
                 } else {
-                    fillRefMap(mapValue, fileName);
+                    fillReference(mapValue, cfgName);
                 }
-            } else if (value instanceof List) {
-                fillRefList(fileName, (List) value);
+            } else if (keyObj instanceof List) {
+                List listValue = (List) keyObj;
+                for (Object next : listValue) {
+                    if (next instanceof Map) {
+                        fillReference((Map) next, cfgName);
+                    }
+                }
             }
         }
     }
@@ -290,10 +269,10 @@ public class MetadataServiceImpl implements MetadataService {
         return content;
     }
 
-    private Object getRefValue(String fileName, Map map) {
+    private Object getRefValue(String schemaName, Map map) {
         String[] split = getRefStrArray(map);
         String jsonPath = getJsonPath(split);
-        return JsonPath.read(getCfg(getFileName(split, fileName)), jsonPath);
+        return JsonPath.read(getCfg(getFileName(split, schemaName)), jsonPath);
     }
 
     private String[] getRefStrArray(Map refMap) {

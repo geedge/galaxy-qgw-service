@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "radius_record_log",
+  "name": "voip_record",
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "common_log_id",
@@ -10,25 +10,109 @@
     },
     "schema_query": {
       "dimensions": [
-        "radius_nas_ip",
-        "radius_framed_ip",
-        "common_subscriber_id"
+        "common_server_ip",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_external_ip",
+        "common_sled_ip",
+        "common_device_id",
+        "common_client_location",
+        "common_server_location",
+        "common_subscriber_id",
+        "common_client_port",
+        "common_server_port",
+        "common_schema_type",
+        "common_l4_protocol",
+        "common_l7_protocol",
+        "common_data_center",
+        "common_client_asn",
+        "common_server_asn",
+        "common_start_time",
+        "common_end_time",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_duration",
+        "sip_bye",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
+        "rtp_originator_dir"
       ],
       "metrics": [
-        "radius_framed_ip",
-        "radius_event_timestamp",
+        "common_server_ip",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_external_ip",
+        "common_subscriber_id",
+        "common_sled_ip",
+        "common_device_id",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
         "common_c2s_byte_num",
-        "common_s2c_byte_num"
+        "common_s2c_byte_num",
+        "common_sessions",
+        "common_con_duration_ms",
+        "common_establish_latency_ms",
+        "common_c2s_ipfrag_num",
+        "common_s2c_ipfrag_num",
+        "common_c2s_tcp_lostlen",
+        "common_s2c_tcp_lostlen",
+        "common_c2s_tcp_unorder_num",
+        "common_s2c_tcp_unorder_num",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_duration"
       ],
       "filters": [
-        "radius_framed_ip",
+        "common_address_type",
+        "common_server_ip",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_external_ip",
+        "common_client_port",
+        "common_server_port",
+        "common_client_location",
+        "common_server_location",
         "common_subscriber_id",
-        "radius_packet_type",
-        "radius_acct_session_id",
-        "radius_acct_multi_session_id",
-        "radius_acct_status_type"
+        "common_c2s_pkt_num",
+        "common_s2c_pkt_num",
+        "common_c2s_byte_num",
+        "common_s2c_byte_num",
+        "common_c2s_ipfrag_num",
+        "common_s2c_ipfrag_num",
+        "common_c2s_tcp_lostlen",
+        "common_s2c_tcp_lostlen",
+        "common_c2s_tcp_unorder_num",
+        "common_s2c_tcp_unorder_num",
+        "common_l4_protocol",
+        "common_l7_protocol",
+        "common_stream_dir",
+        "common_direction",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_id",
+        "common_schema_type",
+        "common_client_asn",
+        "common_server_asn",
+        "common_start_time",
+        "common_end_time",
+        "common_con_duration_ms",
+        "common_establish_latency_ms",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_duration",
+        "sip_bye",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
+        "rtp_originator_dir"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -95,6 +179,10 @@
           "common_s2c_pkt_num",
           "common_c2s_byte_num",
           "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
           "common_c2s_ipfrag_num",
           "common_s2c_ipfrag_num",
           "common_c2s_tcp_lostlen",
@@ -126,7 +214,7 @@
       }
     },
     "schema_type": {
-      "RADIUS": {
+      "SIP": {
         "columns": [
           "common_recv_time",
           "common_log_id",
@@ -207,41 +295,244 @@
           "common_processing_time",
           "common_mirrored_pkts",
           "common_mirrored_bytes",
-          "radius_packet_type",
-          "radius_nas_ip",
-          "radius_framed_ip",
-          "radius_account",
-          "radius_session_timeout",
-          "radius_idle_timeout",
-          "radius_acct_status_type",
-          "radius_acct_terminate_cause",
-          "radius_event_timestamp",
-          "radius_nas_port",
-          "radius_service_type",
-          "radius_framed_protocol",
-          "radius_callback_number",
-          "radius_callback_id",
-          "radius_termination_action",
-          "radius_called_station_id",
-          "radius_calling_station_id",
-          "radius_acct_delay_time",
-          "radius_acct_session_id",
-          "radius_acct_multi_session_id",
-          "radius_acct_input_octets",
-          "radius_acct_output_octets",
-          "radius_acct_input_packets",
-          "radius_acct_output_packets",
-          "radius_acct_session_time",
-          "radius_acct_link_count",
-          "radius_acct_interim_interval"
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration",
+          "sip_bye"
         ],
         "default_columns": [
           "common_recv_time",
           "common_log_id",
           "common_subscriber_id",
-          "radius_nas_ip",
-          "radius_framed_ip",
-          "radius_acct_status_type"
+          "common_client_ip",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_call_id",
+          "common_server_ip",
+          "common_server_port"
+        ]
+      },
+      "RTP": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_userdefine_app_name",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "common_server_ip",
+          "common_server_port",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ]
+      },
+      "VoIP": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_action",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_user_tags",
+          "common_sub_action",
+          "common_user_region",
+          "common_device_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_userdefine_app_name",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes",
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration",
+          "sip_bye",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_call_id",
+          "common_server_ip",
+          "common_server_port",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
         ]
       }
     },
@@ -249,9 +540,14 @@
       "common_recv_time",
       "common_log_id",
       "common_subscriber_id",
-      "radius_nas_ip",
-      "radius_framed_ip",
-      "radius_acct_status_type"
+      "common_client_ip",
+      "sip_originator_description",
+      "sip_responder_description",
+      "sip_call_id",
+      "common_server_ip",
+      "common_server_port",
+      "rtp_pcap_path",
+      "rtp_originator_dir"
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
@@ -324,7 +620,29 @@
       "name": "common_client_ip",
       "label": "Client IP",
       "doc": {
-        "visibility": "hidden"
+        "allow_query": "true",
+        "constraints": {
+          "type": "ip"
+        },
+        "format": {
+          "functions": "geo_asn,radius_match",
+          "appendTo": "common_client_asn,common_subscriber_id"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_internal_ip",
+      "label": "Internal IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "format": {
+          "functions": "if",
+          "param": "$.common_direction=69,$.common_client_ip,$.common_server_ip"
+        },
+        "allow_query": "true"
       },
       "type": "string"
     },
@@ -332,17 +650,9 @@
       "name": "common_client_port",
       "label": "Client Port",
       "doc": {
-        "visibility": "hidden"
+        "allow_query": "true"
       },
       "type": "int"
-    },
-    {
-      "name": "common_internal_ip",
-      "label": "Internal IP",
-      "doc": {
-        "visibility": "hidden"
-      },
-      "type": "string"
     },
     {
       "name": "common_l4_protocol",
@@ -396,7 +706,14 @@
       "name": "common_external_ip",
       "label": "External IP",
       "doc": {
-        "visibility": "hidden"
+        "constraints": {
+          "type": "ip"
+        },
+        "format": {
+          "functions": "if",
+          "param": "$.common_direction=73,$.common_client_ip,$.common_server_ip"
+        },
+        "allow_query": "true"
       },
       "type": "string"
     },
@@ -424,10 +741,6 @@
           {
             "code": "16",
             "value": "Deny"
-          },
-          {
-            "code": "48",
-            "value": "Manipulation"
           },
           {
             "code": "128",
@@ -479,41 +792,26 @@
     {
       "name": "common_client_location",
       "label": "Client Location",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "string"
     },
     {
       "name": "common_client_asn",
       "label": "Client ASN",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "string"
     },
     {
       "name": "common_server_location",
       "label": "Server Location",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "string"
     },
     {
       "name": "common_server_asn",
       "label": "Server ASN",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "string"
     },
     {
       "name": "common_sessions",
       "label": "Sessions",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
@@ -585,31 +883,19 @@
         },
         "data": [
           {
-            "code": "BASE",
-            "value": "BASE"
+            "code": "VoIP",
+            "value": "VoIP"
           },
           {
-            "code": "HTTP",
-            "value": "HTTP"
+            "code": "SIP",
+            "value": "SIP"
           },
           {
-            "code": "MAIL",
-            "value": "MAIL"
-          },
-          {
-            "code": "DNS",
-            "value": "DNS"
-          },
-          {
-            "code": "SSL",
-            "value": "SSL"
-          },
-          {
-            "code": "FTP",
-            "value": "FTP"
+            "code": "RTP",
+            "value": "RTP"
           }
         ],
-        "visibility": "hidden"
+        "allow_query": "true"
       },
       "type": "string"
     },
@@ -670,9 +956,6 @@
     {
       "name": "common_device_id",
       "label": "Device ID",
-      "doc": {
-        "visibility": "disabled"
-      },
       "type": "string"
     },
     {
@@ -738,9 +1021,6 @@
     {
       "name": "common_app_label",
       "label": "Application Label",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "string"
     },
     {
@@ -754,9 +1034,6 @@
     {
       "name": "common_protocol_label",
       "label": "Protocol Label",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "string"
     },
     {
@@ -786,10 +1063,7 @@
     {
       "name": "common_l7_protocol",
       "label": "L7 Protocol",
-      "type": "string",
-      "doc": {
-        "visibility": "hidden"
-      }
+      "type": "string"
     },
     {
       "name": "common_service_category",
@@ -816,8 +1090,7 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        },
-        "visibility": "hidden"
+        }
       },
       "type": "long"
     },
@@ -831,25 +1104,18 @@
         "format": {
           "functions": "get_value",
           "appendTo": "common_recv_time"
-        },
-        "visibility": "hidden"
+        }
       },
       "type": "long"
     },
     {
       "name": "common_establish_latency_ms",
       "label": "Establish Latency(ms)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
       "name": "common_con_duration_ms",
       "label": "Duration(ms)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
@@ -872,7 +1138,8 @@
             "code": "3",
             "value": "double"
           }
-        ]
+        ],
+        "allow_query": "true"
       },
       "type": "int"
     },
@@ -933,49 +1200,31 @@
     {
       "name": "common_c2s_ipfrag_num",
       "label": "Fragmentation Packets(c2s)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
       "name": "common_s2c_ipfrag_num",
       "label": "Fragmentation Packets(s2c)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
       "name": "common_c2s_tcp_lostlen",
       "label": "Sequence Gap Loss(c2s)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
       "name": "common_s2c_tcp_lostlen",
       "label": "Sequence Gap Loss(s2c)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
       "name": "common_c2s_tcp_unorder_num",
       "label": "Unorder Packets(c2s)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
       "name": "common_s2c_tcp_unorder_num",
       "label": "Unorder Packets(s2c)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
@@ -1014,7 +1263,7 @@
       "name": "common_tcp_client_isn",
       "label": "TCP Client ISN",
       "doc": {
-        "visibility": "disabled"
+        "allow_query": "true"
       },
       "type": "long"
     },
@@ -1022,7 +1271,7 @@
       "name": "common_tcp_server_isn",
       "label": "TCP Server ISN",
       "doc": {
-        "visibility": "disabled"
+        "allow_query": "true"
       },
       "type": "long"
     },
@@ -1064,287 +1313,352 @@
       }
     },
     {
-      "name": "radius_packet_type",
-      "label": "Packet Type",
+      "name": "sip_call_id",
+      "label": "SIP.Call-ID",
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_description",
+      "label": "SIP.Originator",
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_description",
+      "label": "SIP.Responder",
+      "type": "string"
+    },
+    {
+      "name": "sip_user_agent",
+      "label": "SIP.User-Agent",
+      "type": "string"
+    },
+    {
+      "name": "sip_server",
+      "label": "SIP.Server",
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_connect_ip",
+      "label": "SIP.Originator IP",
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_media_port",
+      "label": "SIP.Originator Port",
+      "type": "int"
+    },
+    {
+      "name": "sip_originator_sdp_media_type",
+      "label": "SIP.Originator Media Type",
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_content",
+      "label": "SIP.Originator Content",
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_connect_ip",
+      "label": "SIP.Responder IP",
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_media_port",
+      "label": "SIP.Responder Port",
+      "type": "int"
+    },
+    {
+      "name": "sip_responder_sdp_media_type",
+      "label": "SIP.Responder Media Type",
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_content",
+      "label": "SIP.Responder Content",
+      "type": "string"
+    },
+    {
+      "name": "sip_duration",
+      "label": "SIP.Duration",
+      "type": "int"
+    },
+    {
+      "name": "sip_bye",
+      "label": "SIP.Bye",
+      "type": "string"
+    },
+    {
+      "name": "rtp_payload_type_c2s",
+      "label": "RTP.Payload Type(c2s)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
         },
         "data": [
           {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
             "code": "1",
-            "value": "Access-Request"
+            "value": "1016"
           },
           {
             "code": "2",
-            "value": "Access-Accept"
+            "value": "G721"
           },
           {
             "code": "3",
-            "value": "Access-Reject"
+            "value": "GSM"
           },
           {
             "code": "4",
-            "value": "Accounting-Request"
+            "value": "G723"
           },
           {
             "code": "5",
-            "value": "Accounting-Response"
-          },
-          {
-            "code": "11",
-            "value": "Access-Challenge"
-          }
-        ]
-      },
-      "type": "int"
-    },
-    {
-      "name": "radius_account",
-      "label": "Account",
-      "doc": {
-        "format": {
-          "functions": "get_value",
-          "appendTo": "common_subscriber_id"
-        }
-      },
-      "type": "string"
-    },
-    {
-      "name": "radius_nas_ip",
-      "label": "Nas IP",
-      "type": "string"
-    },
-    {
-      "name": "radius_framed_ip",
-      "label": "Framed IP",
-      "doc": {
-        "allow_query": "true",
-        "constraints": {
-          "type": "ip"
-        }
-      },
-      "type": "string"
-    },
-    {
-      "name": "radius_session_timeout",
-      "label": "Session Timeout",
-      "type": "int"
-    },
-    {
-      "name": "radius_idle_timeout",
-      "label": "Idle Timeout",
-      "type": "int"
-    },
-    {
-      "name": "radius_acct_status_type",
-      "label": "ACC Status Type",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
-        "data": [
-          {
-            "code": "1",
-            "value": "Start"
-          },
-          {
-            "code": "2",
-            "value": "Stop"
-          },
-          {
-            "code": "3",
-            "value": "Interim-Update"
-          },
-          {
-            "code": "7",
-            "value": "Accounting-On"
-          },
-          {
-            "code": "8",
-            "value": "Accounting-Off"
-          }
-        ]
-      },
-      "type": "int"
-    },
-    {
-      "name": "radius_acct_terminate_cause",
-      "label": "Acct Terminate Cause",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
-        "data": [
-          {
-            "code": "1",
-            "value": "User Request"
-          },
-          {
-            "code": "2",
-            "value": "Lost Carrier"
-          },
-          {
-            "code": "3",
-            "value": "Lost Service"
-          },
-          {
-            "code": "4",
-            "value": "Idle Timeout"
-          },
-          {
-            "code": "5",
-            "value": "Session Timeout"
+            "value": "DVI4_8000"
           },
           {
             "code": "6",
-            "value": "Admin Reset"
+            "value": "DVI4_16000"
           },
           {
             "code": "7",
-            "value": "Admin Reboot"
+            "value": "LPC"
           },
           {
             "code": "8",
-            "value": "Port Error"
+            "value": "PCMA"
           },
           {
             "code": "9",
-            "value": "NAS Error"
+            "value": "G722"
           },
           {
             "code": "10",
-            "value": "NAS Request"
+            "value": "L16_STEREO"
           },
           {
             "code": "11",
-            "value": "NAS Reboot"
+            "value": "L16_MONO"
           },
           {
             "code": "12",
-            "value": "Port Unneeded"
+            "value": "QCELP"
           },
           {
             "code": "13",
-            "value": "Port Preempted"
+            "value": "CN"
           },
           {
             "code": "14",
-            "value": "Port Suspended"
+            "value": "MPA"
           },
           {
             "code": "15",
-            "value": "Service Unavailable"
+            "value": "G728"
           },
           {
             "code": "16",
-            "value": "Callback"
+            "value": "DVI4_11025"
           },
           {
             "code": "17",
-            "value": "User Error"
+            "value": "DVI4_22050"
           },
           {
             "code": "18",
-            "value": "Host Request"
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
           }
         ]
       },
       "type": "int"
     },
     {
-      "name": "radius_event_timestamp",
-      "label": "Event Timestamp",
+      "name": "rtp_payload_type_s2c",
+      "label": "RTP.Payload Type(s2c)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
+            "code": "1",
+            "value": "1016"
+          },
+          {
+            "code": "2",
+            "value": "G721"
+          },
+          {
+            "code": "3",
+            "value": "GSM"
+          },
+          {
+            "code": "4",
+            "value": "G723"
+          },
+          {
+            "code": "5",
+            "value": "DVI4_8000"
+          },
+          {
+            "code": "6",
+            "value": "DVI4_16000"
+          },
+          {
+            "code": "7",
+            "value": "LPC"
+          },
+          {
+            "code": "8",
+            "value": "PCMA"
+          },
+          {
+            "code": "9",
+            "value": "G722"
+          },
+          {
+            "code": "10",
+            "value": "L16_STEREO"
+          },
+          {
+            "code": "11",
+            "value": "L16_MONO"
+          },
+          {
+            "code": "12",
+            "value": "QCELP"
+          },
+          {
+            "code": "13",
+            "value": "CN"
+          },
+          {
+            "code": "14",
+            "value": "MPA"
+          },
+          {
+            "code": "15",
+            "value": "G728"
+          },
+          {
+            "code": "16",
+            "value": "DVI4_11025"
+          },
+          {
+            "code": "17",
+            "value": "DVI4_22050"
+          },
+          {
+            "code": "18",
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
+          }
+        ]
+      },
       "type": "int"
     },
     {
-      "name": "radius_service_type",
-      "label": "Service Type",
-      "type": "int"
-    },
-    {
-      "name": "radius_nas_port",
-      "label": "Nas Port",
-      "type": "int"
-    },
-    {
-      "name": "radius_framed_protocol",
-      "label": "Framed Protocol",
-      "type": "int"
-    },
-    {
-      "name": "radius_callback_number",
-      "label": "Callback Number",
+      "name": "rtp_pcap_path",
+      "label": "RTP.PCAP",
+      "doc": {
+        "constraints": {
+          "type": "files"
+        }
+      },
       "type": "string"
     },
     {
-      "name": "radius_callback_id",
-      "label": "Callback ID",
-      "type": "string"
-    },
-    {
-      "name": "radius_termination_action",
-      "label": "Termination Action",
-      "type": "int"
-    },
-    {
-      "name": "radius_called_station_id",
-      "label": "Called Station ID",
-      "type": "string"
-    },
-    {
-      "name": "radius_calling_station_id",
-      "label": "Calling Station ID",
-      "type": "string"
-    },
-    {
-      "name": "radius_acct_delay_time",
-      "label": "Acct Delay Time",
-      "type": "int"
-    },
-    {
-      "name": "radius_acct_session_id",
-      "label": "Acct Session ID",
-      "type": "string"
-    },
-    {
-      "name": "radius_acct_multi_session_id",
-      "label": "Acct Multi Session ID",
-      "type": "string"
-    },
-    {
-      "name": "radius_acct_input_octets",
-      "label": "Acct Input Octets",
-      "type": "long"
-    },
-    {
-      "name": "radius_acct_output_octets",
-      "label": "Acct Output Octets",
-      "type": "long"
-    },
-    {
-      "name": "radius_acct_input_packets",
-      "label": "Acct Input Packets",
-      "type": "long"
-    },
-    {
-      "name": "radius_acct_output_packets",
-      "label": "Acct Output Packets",
-      "type": "long"
-    },
-    {
-      "name": "radius_acct_session_time",
-      "label": "Acct Session Time",
-      "type": "int"
-    },
-    {
-      "name": "radius_acct_link_count",
-      "label": "Acct Link Count",
-      "type": "int"
-    },
-    {
-      "name": "radius_acct_interim_interval",
-      "label": "Acct Interim Interval",
+      "name": "rtp_originator_dir",
+      "label": "RTP.Direction",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "unknown"
+          },
+          {
+            "code": "1",
+            "value": "c2s"
+          },
+          {
+            "code": "2",
+            "value": "s2c"
+          }
+        ]
+      },
       "type": "int"
     }
   ]

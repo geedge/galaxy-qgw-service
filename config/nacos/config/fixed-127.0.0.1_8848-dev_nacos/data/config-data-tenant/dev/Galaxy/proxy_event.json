@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "proxy_event_log",
+  "name": "proxy_event",
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "common_log_id",

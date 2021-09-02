@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "gtpc_record_log",
+  "name": "gtpc_record",
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "common_log_id",

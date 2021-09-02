@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "live_session_record_log",
+  "name": "security_event",
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "common_log_id",
@@ -14,6 +14,8 @@
         "common_client_ip",
         "common_internal_ip",
         "common_external_ip",
+        "common_policy_id",
+        "common_action",
         "common_sled_ip",
         "common_device_id",
         "common_client_location",
@@ -32,11 +34,18 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_app_label",
         "http_host",
         "http_domain",
         "http_url",
         "ssl_sni",
-        "ssl_ja3_hash"
+        "ssl_ja3_hash",
+        "ssl_client_side_version",
+        "ssl_server_side_version",
+        "mail_account",
+        "mail_from",
+        "mail_to",
+        "quic_sni"
       ],
       "metrics": [
         "common_server_ip",
@@ -46,29 +55,34 @@
         "common_subscriber_id",
         "common_sled_ip",
         "common_device_id",
+        "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
         "common_c2s_byte_num",
         "common_s2c_byte_num",
-        "common_sessions",
+        "common_mirrored_pkts",
+        "common_mirrored_bytes",
         "common_con_duration_ms",
         "common_establish_latency_ms",
-        "common_c2s_ipfrag_num",
-        "common_s2c_ipfrag_num",
-        "common_c2s_tcp_lostlen",
-        "common_s2c_tcp_lostlen",
-        "common_c2s_tcp_unorder_num",
-        "common_s2c_tcp_unorder_num",
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_app_label",
         "http_host",
         "http_domain",
         "http_url",
         "ssl_sni",
-        "ssl_ja3_hash"
+        "ssl_ja3_hash",
+        "ssl_client_side_latency",
+        "ssl_server_side_latency",
+        "mail_account",
+        "mail_from",
+        "mail_to",
+        "quic_sni"
       ],
       "filters": [
+        "common_policy_id",
+        "common_action",
         "common_address_type",
         "common_server_ip",
         "common_client_ip",
@@ -83,19 +97,15 @@
         "common_s2c_pkt_num",
         "common_c2s_byte_num",
         "common_s2c_byte_num",
-        "common_c2s_ipfrag_num",
-        "common_s2c_ipfrag_num",
-        "common_c2s_tcp_lostlen",
-        "common_s2c_tcp_lostlen",
-        "common_c2s_tcp_unorder_num",
-        "common_s2c_tcp_unorder_num",
+        "common_mirrored_pkts",
+        "common_mirrored_bytes",
         "common_l4_protocol",
         "common_l7_protocol",
         "common_stream_dir",
-        "common_direction",
         "common_data_center",
         "common_sled_ip",
         "common_device_id",
+        "common_direction",
         "common_schema_type",
         "common_client_asn",
         "common_server_asn",
@@ -106,11 +116,25 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_app_label",
         "http_host",
         "http_domain",
         "http_url",
+        "http_content_type",
         "ssl_sni",
-        "ssl_ja3_hash"
+        "ssl_ja3_hash",
+        "ssl_pinningst",
+        "ssl_intercept_state",
+        "ssl_client_side_version",
+        "ssl_server_side_version",
+        "ssl_cert_verify",
+        "ssl_client_side_latency",
+        "ssl_server_side_latency",
+        "mail_account",
+        "mail_from",
+        "mail_to",
+        "mail_subject",
+        "quic_sni"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -264,8 +288,8 @@
           "common_app_id",
           "common_userdefine_app_name",
           "common_app_surrogate_id",
-          "common_service_category",
           "common_l7_protocol",
+          "common_service_category",
           "common_start_time",
           "common_end_time",
           "common_establish_latency_ms",
@@ -297,6 +321,7 @@
         "default_columns": [
           "common_recv_time",
           "common_log_id",
+          "common_policy_id",
           "common_subscriber_id",
           "common_client_ip",
           "common_server_ip",
@@ -355,8 +380,8 @@
           "common_app_id",
           "common_userdefine_app_name",
           "common_app_surrogate_id",
-          "common_service_category",
           "common_l7_protocol",
+          "common_service_category",
           "common_start_time",
           "common_end_time",
           "common_establish_latency_ms",
@@ -414,6 +439,7 @@
         "default_columns": [
           "common_recv_time",
           "common_log_id",
+          "common_policy_id",
           "common_subscriber_id",
           "common_client_ip",
           "http_url",
@@ -522,6 +548,7 @@
         "default_columns": [
           "common_recv_time",
           "common_log_id",
+          "common_policy_id",
           "common_subscriber_id",
           "common_client_ip",
           "mail_from",
@@ -632,6 +659,7 @@
         "default_columns": [
           "common_recv_time",
           "common_log_id",
+          "common_policy_id",
           "common_client_ip",
           "dns_qr",
           "dns_qname",
@@ -739,6 +767,7 @@
         "default_columns": [
           "common_recv_time",
           "common_log_id",
+          "common_policy_id",
           "common_subscriber_id",
           "common_client_ip",
           "ssl_sni",
@@ -834,6 +863,7 @@
         "default_columns": [
           "common_recv_time",
           "common_log_id",
+          "common_policy_id",
           "common_subscriber_id",
           "common_client_ip",
           "quic_sni",
@@ -930,6 +960,7 @@
         "default_columns": [
           "common_recv_time",
           "common_log_id",
+          "common_policy_id",
           "common_subscriber_id",
           "common_client_ip",
           "ftp_url",
@@ -1025,6 +1056,7 @@
         "default_columns": [
           "common_recv_time",
           "common_log_id",
+          "common_policy_id",
           "common_subscriber_id",
           "common_client_ip",
           "bgp_type",
@@ -1235,8 +1267,7 @@
           "common_client_ip",
           "common_server_ip",
           "common_server_port",
-          "rtp_pcap_path",
-          "rtp_originator_dir"
+          "rtp_pcap_path"
         ]
       },
       "APP": {
@@ -1325,6 +1356,7 @@
         "default_columns": [
           "common_recv_time",
           "common_log_id",
+          "common_policy_id",
           "common_subscriber_id",
           "common_client_ip",
           "common_app_id",
@@ -1338,6 +1370,7 @@
     "default_columns": [
       "common_recv_time",
       "common_log_id",
+      "common_policy_id",
       "common_subscriber_id",
       "common_client_ip",
       "common_server_ip",
@@ -1375,7 +1408,7 @@
       "name": "common_policy_id",
       "label": "Policy ID",
       "doc": {
-        "visibility": "hidden"
+        "allow_query": "true"
       },
       "type": "long"
     },
@@ -1516,15 +1549,11 @@
       "name": "common_action",
       "label": "Action",
       "doc": {
-        "visibility": "hidden",
+        "allow_query": "true",
         "constraints": {
           "operator_functions": "=,!="
         },
         "data": [
-          {
-            "code": "0",
-            "value": "None"
-          },
           {
             "code": "1",
             "value": "Monitor"
@@ -1607,6 +1636,12 @@
     {
       "name": "common_sessions",
       "label": "Sessions",
+      "doc": {
+        "format": {
+          "functions": "set_value",
+          "param": "1"
+        }
+      },
       "type": "long"
     },
     {
@@ -1644,21 +1679,33 @@
     {
       "name": "common_c2s_pkt_diff",
       "label": "Packets Sent(Diff)",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_pkt_diff",
       "label": "Packets Received(Diff)",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_byte_diff",
       "label": "Bytes Sent(Diff)",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_diff",
       "label": "Bytes Received(Diff)",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "long"
     },
     {
@@ -1678,8 +1725,8 @@
         },
         "data": [
           {
-            "code": "BASE",
-            "value": "BASE"
+            "code": "HTTP",
+            "value": "HTTP"
           },
           {
             "code": "MAIL",
@@ -1690,12 +1737,12 @@
             "value": "DNS"
           },
           {
-            "code": "HTTP",
-            "value": "HTTP"
-          },
-          {
             "code": "SSL",
             "value": "SSL"
+          },
+          {
+            "code": "QUIC",
+            "value": "QUIC"
           },
           {
             "code": "FTP",
@@ -1840,7 +1887,10 @@
     {
       "name": "common_app_label",
       "label": "Application Label",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "allow_query": "true"
+      }
     },
     {
       "name": "common_tunnels",
@@ -1863,10 +1913,7 @@
     {
       "name": "common_userdefine_app_name",
       "label": "User Define APP Name",
-      "type": "string",
-      "doc": {
-        "visibility": "hidden"
-      }
+      "type": "string"
     },
     {
       "name": "common_app_surrogate_id",
@@ -1944,6 +1991,7 @@
       "name": "common_stream_dir",
       "label": "Stream Direction",
       "doc": {
+        "allow_query": "true",
         "constraints": {
           "operator_functions": "=,!="
         },
@@ -1960,8 +2008,7 @@
             "code": "3",
             "value": "double"
           }
-        ],
-        "allow_query": "true"
+        ]
       },
       "type": "int"
     },
@@ -1990,9 +2037,6 @@
     {
       "name": "common_stream_error",
       "label": "Stream Error",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "string"
     },
     {
@@ -2022,51 +2066,81 @@
     {
       "name": "common_c2s_ipfrag_num",
       "label": "Fragmentation Packets(c2s)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_ipfrag_num",
       "label": "Fragmentation Packets(s2c)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_tcp_lostlen",
       "label": "Sequence Gap Loss(c2s)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_tcp_lostlen",
       "label": "Sequence Gap Loss(s2c)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_tcp_unorder_num",
       "label": "Unorder Packets(c2s)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_tcp_unorder_num",
       "label": "Unorder Packets(s2c)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_pkt_retrans",
       "label": "Packet Retransmission(c2s)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_pkt_retrans",
       "label": "Packet Retransmission(s2c)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_byte_retrans",
       "label": "Byte Retransmission(c2s)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_retrans",
       "label": "Byte Retransmission(s2c)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
@@ -2111,7 +2185,7 @@
       "label": "Mirrored Packets",
       "type": "long",
       "doc": {
-        "visibility": "hidden"
+        "allow_query": "true"
       }
     },
     {
@@ -2119,12 +2193,15 @@
       "label": "Mirrored Bytes",
       "type": "long",
       "doc": {
-        "visibility": "hidden"
+        "allow_query": "true"
       }
     },
     {
       "name": "http_url",
       "label": "HTTP.URL",
+      "doc": {
+        "allow_query": "true"
+      },
       "type": "string"
     },
     {
@@ -2164,7 +2241,7 @@
     },
     {
       "name": "http_request_header",
-      "label": "HTTP.Request Headers",
+      "label": "HTTP.Request Header",
       "doc": {
         "visibility": "hidden"
       },
@@ -2172,7 +2249,7 @@
     },
     {
       "name": "http_response_header",
-      "label": "HTTP.Response Headers",
+      "label": "HTTP.Response Header",
       "doc": {
         "visibility": "hidden"
       },
@@ -2298,17 +2375,17 @@
       "type": "long"
     },
     {
+      "name": "http_action_file_size",
+      "label": "HTTP.Action File Size",
+      "type": "int"
+    },
+    {
       "name": "http_session_duration_ms",
       "label": "HTTP.Session Duration(ms)",
       "doc": {
         "allow_query": "true"
       },
       "type": "long"
-    },
-    {
-      "name": "http_action_file_size",
-      "label": "HTTP.Action File Size",
-      "type": "int"
     },
     {
       "name": "mail_protocol_type",
@@ -2434,7 +2511,8 @@
       "doc": {
         "constraints": {
           "type": "file"
-        }
+        },
+        "visibility": "hidden"
       },
       "type": "string"
     },
@@ -2668,9 +2746,6 @@
     {
       "name": "ssl_san",
       "label": "SSL.SAN",
-      "doc": {
-        "visibility": "disabled"
-      },
       "type": "string"
     },
     {
@@ -2817,12 +2892,12 @@
     },
     {
       "name": "quic_version",
-      "label": "QUIC.Version",
+      "label": "Quic.Version",
       "type": "string"
     },
     {
       "name": "quic_sni",
-      "label": "QUIC.SNI",
+      "label": "Quic.SNI",
       "doc": {
         "allow_query": "true",
         "format": {
@@ -2834,7 +2909,7 @@
     },
     {
       "name": "quic_user_agent",
-      "label": "QUIC.User Agent",
+      "label": "Quic.User Agent",
       "type": "string"
     },
     {
@@ -3266,7 +3341,7 @@
       "label": "RTP.PCAP",
       "doc": {
         "constraints": {
-          "type": "files"
+          "type": "file"
         }
       },
       "type": "string"
@@ -3291,7 +3366,8 @@
             "code": "2",
             "value": "s2c"
           }
-        ]
+        ],
+        "visibility": "hidden"
       },
       "type": "int"
     }
