@@ -17,19 +17,23 @@ union all
 #end
 
 #sql("ENTITY_ACTIVE_CLIENT_IP")
-select common_client_ip from %s where %s %s GROUP BY common_client_ip, common_app_label ORDER BY SUM (common_sessions) DESC LIMIT %s
+select common_client_ip as client_ip from %s where %s %s GROUP BY common_client_ip, common_app_label ORDER BY SUM (common_sessions) DESC LIMIT %s
 #end
 
-#sql("ENTITY_TOP_SERVER_IP")
-SELECT DISTINCT(ip) FROM (
-    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by ip order by sum(common_sessions) desc limit 100000)
-    UNION ALL
-    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by ip order by COUNT(DISTINCT(common_client_ip)) desc limit 40000)
-    UNION ALL
-    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by ip order by sum(common_sessions) desc limit 100000)
-    UNION ALL
-    (select common_server_ip as ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by ip order by COUNT(DISTINCT(common_client_ip)) desc limit 100000)
-) LIMIT 280000
+#sql("ENTITY_UDP_SESSION")
+select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by sum(common_sessions) desc limit 100000
+#end
+
+#sql("ENTITY_UDP_UNIQ_CLIENT_IPS")
+select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit 40000
+#end
+
+#sql("ENTITY_TCP_SESSION")
+select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by sum(common_sessions) desc limit 100000
+#end
+
+#sql("ENTITY_TCP_UNIQ_CLIENT_IPS")
+select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit 100000
 #end
 
 #sql("ENTITY_TOP_SNI")

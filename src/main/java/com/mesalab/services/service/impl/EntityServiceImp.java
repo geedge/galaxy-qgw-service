@@ -11,18 +11,14 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
-import com.mesalab.qgw.model.api.HBaseAPISource;
-import com.mesalab.qgw.service.SystemService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.hadoop.hbase.client.Connection;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,8 +31,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author tiangaochao
@@ -82,9 +77,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             sql = generateActiveClientIP(comDSLObject.getQuery(), fileSql);
             baseResult = getResult(sql);
         } else if (param.equalsIgnoreCase(EntityQueryType.TOPSERVERIP.getType())) {
-            fileSql = env.getProperty("ENTITY_TOP_SERVER_IP");
-            sql = generateTopServerIP(comDSLObject.getQuery(), fileSql);
-            baseResult = getResult(sql);
+            baseResult = getResultOfServerIP(comDSLObject.getQuery());
         } else if (param.equalsIgnoreCase(EntityQueryType.TOPSNI.getType())) {
             fileSql = env.getProperty("ENTITY_TOP_SNI");
             sql = generateTopSNI(comDSLObject.getQuery(), fileSql);
@@ -98,6 +91,70 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return baseResult;
     }
 
+    private BaseResult getResultOfServerIP(ComDSLObject.Query query) {
+        String timeInterval = getTimeInterval(query.getParameters());
+        String datasource = query.getDataSource();
+
+        String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, timeInterval);
+        Map<String, String> tcpSessionResult = executeQuery(tcpSessionSql);
+
+        String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
+        Map<String, String> tcpClientIpResult = executeQuery(tcpClientIpsSql);
+
+        String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval);
+        Map<String, String> udpSessionResult = executeQuery(udpSessionSql);
+
+        String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
+        Map<String, String> udpClientIpsResult = executeQuery(udpClientIpsSql);
+
+        if (!String.valueOf(HttpStatus.SC_OK).equals(tcpSessionResult.get("status"))
+                || !String.valueOf(HttpStatus.SC_OK).equals(tcpClientIpResult.get("status"))
+                || !String.valueOf(HttpStatus.SC_OK).equals(udpSessionResult.get("status"))
+                || !String.valueOf(HttpStatus.SC_OK).equals(udpClientIpsResult.get("status"))) {
+            return BaseResultGenerator.error(
+                    "tcp by session result:" + tcpSessionResult
+                            + "tcp by client ips result:" + tcpClientIpResult
+                            + "udp by session result:" + udpSessionResult
+                            + "udp by client ips result:" + udpClientIpsResult
+            );
+        }
+
+        BaseResult baseResult;
+        HashSet<Map<String, String>> hashSet = new HashSet<>();
+        getData(udpSessionResult).forEach(hashSet::add);
+        getData(udpClientIpsResult).forEach(hashSet::add);
+        getData(tcpSessionResult).forEach(hashSet::add);
+        getData(tcpClientIpResult).forEach(hashSet::add);
+
+        Map tcpSessionResultMap = (Map) JsonMapper.fromJsonString(tcpSessionResult.get("result"), Map.class);
+        Map tcpSessionStatistics = (Map) tcpSessionResultMap.get("statistics");
+        Map tcpClientIpResultMap = (Map) JsonMapper.fromJsonString(tcpClientIpResult.get("result"), Map.class);
+        Map tcpClientIpStatistics = (Map) tcpClientIpResultMap.get("statistics");
+        Map udpSessionResultMap = (Map) JsonMapper.fromJsonString(udpSessionResult.get("result"), Map.class);
+        Map udpSessionStatistics = (Map) udpSessionResultMap.get("statistics");
+        Map udpClientIpResultMap = (Map) JsonMapper.fromJsonString(udpClientIpsResult.get("result"), Map.class);
+        Map udpClientIpStatistics = (Map) udpClientIpResultMap.get("statistics");
+        for (Object key : tcpSessionStatistics.keySet()) {
+            if ("result_size".equals(key.toString())) {
+                tcpSessionStatistics.put(key, JsonMapper.toJsonString(hashSet).getBytes().length);
+            } else if ("result_rows".equals(key.toString())) {
+                tcpSessionStatistics.put(key, hashSet.size());
+            } else {
+                tcpSessionStatistics.put(key, Long.parseLong(tcpSessionStatistics.get(key).toString())
+                        + Long.parseLong(tcpClientIpStatistics.get(key).toString())
+                        + Long.parseLong(udpSessionStatistics.get(key).toString())
+                        + Long.parseLong(udpClientIpStatistics.get(key).toString()));
+            }
+        }
+        baseResult = BaseResultGenerator.success("ok", hashSet, tcpSessionStatistics);
+        return baseResult;
+    }
+
+    public List<Map> getData(Map<String, String> result) {
+        Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+        return  (List<Map>) resultMap.get("data");
+    }
+
     public String generateActiveClientIP(ComDSLObject.Query query, String fileSql) {
         String timeInterval = getTimeInterval(query.getParameters());
         String matchDate = getMatchDate(query.getParameters());
@@ -109,7 +166,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         if (CollectionUtils.isEmpty(query.getMatch())) {
             return StringUtil.EMPTY;
         }
-        StringBuffer matchDate = new StringBuffer();
+        StringBuilder matchDate = new StringBuilder();
         for (ComDSLObject.Query.FilterBean item : query.getMatch()) {
             if (MatchEnum.EXACTLY.getType().equals(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
                 matchDate.append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
@@ -122,7 +179,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         if (CollectionUtils.isEmpty(parameters.getIntervals())) {
             return StringUtil.EMPTY;
         }
-        StringBuffer timeInterval = new StringBuffer();
+        StringBuilder timeInterval = new StringBuilder();
         String[] intervals = getIntervals(parameters.getIntervals());
         timeInterval.append("common_recv_time >= toDateTime('").append(intervals[0]).append("') AND common_recv_time< toDateTime('").append(intervals[1]).append("')");
         return timeInterval.toString();
@@ -143,12 +200,6 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             baseResult = BaseResultGenerator.error(result.get("result"));
         }
         return baseResult;
-    }
-
-    public String generateTopServerIP(ComDSLObject.Query query, String fileSql) {
-        String timeInterval = getTimeInterval(query.getParameters());
-        String datasource = query.getDataSource();
-        return String.format(fileSql, datasource, timeInterval, datasource, timeInterval, datasource, timeInterval, datasource, timeInterval);
     }
 
     public String generateTopSNI(ComDSLObject.Query query, String fileSql) {
