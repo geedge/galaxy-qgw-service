@@ -75,8 +75,8 @@
       "namespace": "etl",
       "group": "ETL_GROUP",
       "tables": [
-        "liveChart_history",
-        "liveChart_live"
+        "liveChart_session",
+        "liveChart_interim"
       ]
     }
   ]
