@@ -37,6 +37,10 @@
     {
       "name": "bit_rate",
       "type": "long"
+    },
+    {
+      "name": "partition_num",
+      "type": "long"
     }
   ]
 }

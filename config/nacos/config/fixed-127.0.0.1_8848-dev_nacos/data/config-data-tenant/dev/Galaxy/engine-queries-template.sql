@@ -66,4 +66,6 @@ select common_subscriber_id as user, count(*) as sessions from session_record wh
 SELECT common_subscriber_id as user,SUM(coalesce(common_c2s_byte_num, 0)) AS sent_bytes,SUM(coalesce(common_s2c_byte_num, 0)) AS received_bytes,SUM(coalesce(common_c2s_byte_num, 0)+coalesce(common_s2c_byte_num, 0)) AS bytes FROM session_record WHERE common_recv_time>= toStartOfDay(toDateTime(@start))-604800 and common_recv_time< toStartOfDay(toDateTime(@start)) and notEmpty(user)   GROUP BY user ORDER BY bytes  DESC LIMIT 100
 --Q34.Report Unique Endpoints
 select uniq(common_client_ip) as "Client IP",uniq(common_server_ip) as "Server IP",uniq(common_internal_ip) as "Internal IP",uniq(common_external_ip) as "External IP",uniq(http_domain) as "Domain",uniq(ssl_sni) as "SNI"  from session_record where common_recv_time>= toStartOfDay(toDateTime(@start))-604800 and common_recv_time< toStartOfDay(toDateTime(@start))
+--Q35.TopN Optimizer
+SELECT http_url AS url, SUM(common_sessions) AS sessions FROM session_record WHERE common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) AND notEmpty(http_url) GROUP BY http_url ORDER BY sessions DESC limit 10
 
