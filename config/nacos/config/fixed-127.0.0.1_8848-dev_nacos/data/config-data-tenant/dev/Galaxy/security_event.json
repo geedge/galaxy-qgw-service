@@ -45,7 +45,8 @@
         "mail_account",
         "mail_from",
         "mail_to",
-        "quic_sni"
+        "quic_sni",
+        "quic_version"
       ],
       "metrics": [
         "common_server_ip",
@@ -134,7 +135,8 @@
         "mail_from",
         "mail_to",
         "mail_subject",
-        "quic_sni"
+        "quic_sni",
+        "quic_version"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -2893,6 +2895,9 @@
     {
       "name": "quic_version",
       "label": "Quic.Version",
+      "doc": {
+        "allow_query": "true"
+      },
       "type": "string"
     },
     {

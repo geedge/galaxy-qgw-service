@@ -36,7 +36,9 @@
         "http_domain",
         "http_url",
         "ssl_sni",
-        "ssl_ja3_hash"
+        "ssl_ja3_hash",
+        "quic_sni",
+        "quic_version"
       ],
       "metrics": [
         "common_server_ip",
@@ -66,7 +68,8 @@
         "http_domain",
         "http_url",
         "ssl_sni",
-        "ssl_ja3_hash"
+        "ssl_ja3_hash",
+        "quic_sni"
       ],
       "filters": [
         "common_address_type",
@@ -110,7 +113,9 @@
         "http_domain",
         "http_url",
         "ssl_sni",
-        "ssl_ja3_hash"
+        "ssl_ja3_hash",
+        "quic_sni",
+        "quic_vesion"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -1698,6 +1703,10 @@
             "value": "SSL"
           },
           {
+            "code": "QUIC",
+            "value": "QUIC"
+          },
+          {
             "code": "FTP",
             "value": "FTP"
           },
@@ -2818,6 +2827,9 @@
     {
       "name": "quic_version",
       "label": "QUIC.Version",
+      "doc": {
+        "allow_query": "true"
+      },
       "type": "string"
     },
     {
