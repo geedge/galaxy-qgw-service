@@ -6,3 +6,4 @@
  * 优化SELECT查询，不同option下的执行过程。
  * 扩展Schema，日志统一术语(TSG-7579)、更新etl表名。
  * 扩展Schema，会话、过渡、安全日志支持QUIC协议检索和报告定制(TSG-7695)
+ * 扩展健康检查接口，展示组件timeZone信息(druid、ck、es、mariadb)

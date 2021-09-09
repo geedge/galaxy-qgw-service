@@ -2,7 +2,6 @@ package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
-import com.google.common.collect.Maps;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
 import lombok.Data;
@@ -16,6 +15,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * TODO
@@ -41,7 +43,7 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
         }
         String queryURL = URLUtil.normalize(elasticsearchHttpSource.getUrl() + "?format=json");
         QueryParam queryParam = new QueryParam();
-        queryParam.setQuery("select database()");
+        queryParam.setQuery("select format(now(),'Z') as timeZone");
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -49,10 +51,13 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
             ResponseEntity responseEntity = restTemplate.postForEntity(queryURL, request, Object.class);
 
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
+                Map body = (Map) responseEntity.getBody();
+                String timeZone = ((List) ((List) body.get("rows")).get(0)).get(0).toString();
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", elasticsearchHttpSource.getUrl())
-                        .withDetail("message", "ok");
+                        .withDetail("message", "ok")
+                        .withDetail("timeZone", timeZone);
             } else {
                 builder.down()
                         .withDetail("app", APP)
