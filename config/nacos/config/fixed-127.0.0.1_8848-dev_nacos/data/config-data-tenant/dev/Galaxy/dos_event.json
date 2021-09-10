@@ -242,6 +242,10 @@
             "value": "ICMP Flood"
           },
           {
+            "code": "DNS Flood",
+            "value": "DNS Flood"
+          },
+          {
             "code": "DNS Amplification",
             "value": "DNS Amplification"
           }
