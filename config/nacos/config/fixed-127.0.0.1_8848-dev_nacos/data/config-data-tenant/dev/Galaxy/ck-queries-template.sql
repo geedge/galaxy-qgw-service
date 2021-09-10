@@ -102,19 +102,17 @@ SELECT "Internal IP" AS "Internal IP", "External IP" AS "External IP", "Sled IP"
 SELECT "Client ASN" AS "Client ASN", "Server ASN" AS "Server ASN", sum(coalesce("Sessions", 0)) AS "Sessions" FROM (SELECT common_server_asn AS "Server ASN", common_client_asn AS "Client ASN", sum(coalesce(common_sessions, 0)) AS "Sessions" FROM session_record AS session_record WHERE ( ( common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) ) ) AND ( common_stream_dir != 3 ) GROUP BY "Server ASN", "Client ASN" LIMIT 1048576) GROUP BY "Client ASN", "Server ASN" ORDER BY "Sessions" DESC LIMIT 500
 --Q52.Top handshake latency by Website and Client IPs
 SELECT "SSL.SNI" AS "SSL.SNI", "Client IP" AS "Client IP", avg(coalesce("Establish Latency(ms)", 0)) AS "Establish Latency(ms)" FROM (SELECT common_client_ip AS "Client IP", ssl_sni AS "SSL.SNI", avg(coalesce(common_establish_latency_ms, 0)) AS "Establish Latency(ms)" FROM session_record AS session_record WHERE ( ( common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) ) ) GROUP BY "Client IP", "SSL.SNI" LIMIT 1048576) GROUP BY "SSL.SNI", "Client IP" ORDER BY "Establish Latency(ms)" DESC LIMIT 500
---Q53.Domain Baidu.com Metrics
-select  FROM_UNIXTIME(min(common_recv_time)) as "First Seen" , FROM_UNIXTIME(max(common_recv_time)) as "Last Seen" ,  median(http_response_latency_ms) as "Server Processing Time Median(ms)", count(1) as Responses,any(common_server_location)  as Location from session_record WHERE  common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end)  AND  http_domain='baidu.com'
---Q54.Domain baidu.com Drill down Client IP
+--Q53.Domain baidu.com Drill down Client IP
 select common_client_ip as "Client IP" , avg(common_establish_latency_ms) as "Establishing Time Mean(ms)", count(1) as Responses,any(common_client_location) as Location from session_record where  common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end)  and http_domain='baidu.com' group by "Client IP" order by Responses desc limit 100
---Q55.Domain baidu.com Drill down Server IP
+--Q54.Domain baidu.com Drill down Server IP
 select common_server_ip as "Server IP" , avg(http_response_latency_ms) as "Server Processing Time Mean(ms)", count(1) as Responses,any(common_server_location) as Location from session_record where common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) and http_domain='baidu.com' group by "Server IP" order by Responses desc limit 100
---Q56.Domain baidu.com Drill down URI
+--Q55.Domain baidu.com Drill down URI
 select http_url as "URI" , avg(http_response_latency_ms) as "Server Processing Time Mean(ms)", count(1) as Responses from session_record where  common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) and http_domain='baidu.com' group by "URI" order by Responses desc limit 100
---Q57.L7 Protocol Metrics
+--Q56.L7 Protocol Metrics
 select  common_l7_protocol as "Protocol" , uniq(common_client_ip) as "Clients" , uniq(common_server_ip) as "Servers", count(1) as Sessions,sum(common_c2s_byte_num+common_s2c_byte_num)  as bytes from session_record where common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) and notEmpty(common_l7_protocol)  group by common_l7_protocol  order by bytes desc
---Q58.L7 Protocol SIP Drill down Client IP
+--Q57.L7 Protocol SIP Drill down Client IP
 select common_client_ip as "Client IP" , count(1) as Sessions,sum(common_c2s_byte_num) as "Bytes Out", sum(common_s2c_byte_num) as "Bytes In",any(common_client_location) as Location from session_record where common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) and common_l7_protocol='SIP' group by "Client IP" order by Sessions desc limit 100
---Q59.L7 Protocol SIP Drill down Server IP
+--Q58.L7 Protocol SIP Drill down Server IP
 select common_server_ip as "Server IP" , count(1) as Sessions,sum(common_c2s_byte_num) as "Bytes Out", sum(common_s2c_byte_num) as "Bytes In",any(common_server_location) as Location from session_record where common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) and common_l7_protocol='SIP' group by "Server IP" order by Sessions desc limit 100
---Q60.Top5 Server IP keys with Unique Client IPs Trend (Grain 5 minute)
+--Q59.Top5 Server IP keys with Unique Client IPs Trend (Grain 5 minute)
 SELECT toDateTime(intDiv(toUInt32(toDateTime(toDateTime(common_recv_time))),300)*300) AS _time , common_server_ip AS server_ip, COUNT(DISTINCT(common_client_ip)) AS nums FROM session_record AS session_record WHERE common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) AND common_server_ip IN ( SELECT common_server_ip FROM session_record AS session_record WHERE common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end)  GROUP BY common_server_ip ORDER BY count(*) DESC LIMIT 5 ) GROUP BY toDateTime(intDiv(toUInt32(toDateTime(toDateTime(common_recv_time))),300)*300) , server_ip ORDER BY toDateTime(intDiv(toUInt32(toDateTime(toDateTime(common_recv_time))),300)*300) DESC LIMIT 10000

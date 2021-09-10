@@ -23,16 +23,20 @@ import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import com.mesalab.qgw.benchmark.engine.EngineWriter;
-import com.mesalab.qgw.model.api.ApiParam;
+import com.mesalab.qgw.model.api.ClickHouseHttpQuery;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.MetadataService;
+import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
+import lombok.Data;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -41,9 +45,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,7 +58,9 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private static final String METADATA_PREFIX = "Metadata/";
     private static final String SCHEMA_PREFIX = "Schema/";
     private static final int DEFAULT_SERVER_PORT = 9999;
-    ReentrantLock lock = new ReentrantLock();
+    private static final String DRUID_PREFIX = "druid_";
+    private static final String CK_PREFIX = "ck_";
+    private static final String ENGINE_PREFIX = "engine_";
 
     @Autowired
     private HttpClientService httpClientService;
@@ -140,37 +146,28 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, Map<String, String>> engineResult;
         Map<String, Map<String, String>> clickhouseResult;
         Map<String, Map<String, String>> druidResult;
-        if (!lock.tryLock()) {
-            throw new BusinessException(ResultStatusEnum.REQ_FORBIDDEN.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "The current task is executing. Please try again later.", null);
-        }
-        try {
-            Stopwatch watch = Stopwatch.createStarted();
+        Stopwatch watch = Stopwatch.createStarted();
 
-            Optional<File> druidTestFile = Optional.of(new File(druidWriter.buildPocSQL()));
-            druidResult = executePocSqlByDatasource(druidTestFile, isSaved, option);
+        Optional<File> druidTestFile = Optional.of(new File(druidWriter.buildPocSQL()));
+        druidResult = executePocSqlByDatasource(druidTestFile, isSaved, option);
 
-            Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
-            clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, option);
+        Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
+        clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, option);
 
-            Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
-            engineResult = executePocSqlByDatasource(engineTestFile, isSaved, option);
+        Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
+        engineResult = executePocSqlByDatasource(engineTestFile, isSaved, option);
 
 
-            mergeResult = Stream
-                    .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        mergeResult = Stream
+                .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
-            result.setFormatType(QueryFormatEnum.JSON.getValue());
-        } catch (RuntimeException e) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
-                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:", e);
-        } finally {
-            lock.unlock();
-        }
+        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+        result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
+        result.setFormatType(QueryFormatEnum.JSON.getValue());
+
         return result;
     }
 
@@ -237,39 +234,169 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         FileWriter writer = null;
         int index = 0;
         if (file.isPresent() && file.get().isFile()) {
+            String benchFileName = file.get().getName();
             List<String> rawLines = new FileReader(file.get()).readLines();
             if (isSaved) {
                 writer = new FileWriter(file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat");
             }
-            for (String line : rawLines) {
-                index++;
-                if (Strings.isNullOrEmpty(line)) {
-                    continue;
-                }
-                Map<String, String> queryResult = executeQuery(line, paramMap);
-                int statusCode = Integer.parseInt(queryResult.get("status").trim());
-
-                if (statusCode == HttpStatus.SC_OK) {
-                    if (writer != null) {
-                        writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "\n");
-                        writer.append(JsonPath.read(queryResult.get("result"), "$.meta") + "\n");
-                        writer.append(JsonPath.read(queryResult.get("result"), "$.data") + "\n");
+            if (StringUtil.lowerCase(benchFileName).startsWith(DRUID_PREFIX)) {
+                for (String line : rawLines) {
+                    index++;
+                    if (Strings.isNullOrEmpty(line)) {
+                        continue;
                     }
-                    infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
-                } else if (statusCode == HttpStatus.SC_GATEWAY_TIMEOUT || statusCode == HttpStatus.SC_BAD_GATEWAY) {
-                    infoMap.put("Query" + index, "status:" + queryResult.get("status") + ",message:" + queryResult.get("message"));
+                    BaseResult queryResult = generateDruidBaseResult(line);
+                    resultProcess(file, infoMap, writer, index, queryResult);
+                }
+            } else if (StringUtil.lowerCase(benchFileName).startsWith(CK_PREFIX)) {
+                for (String line : rawLines) {
+                    index++;
+                    if (Strings.isNullOrEmpty(line)) {
+                        continue;
+                    }
+                    BaseResult queryResult = generateClickHouseBaseResult(line);
+                    resultProcess(file, infoMap, writer, index, queryResult);
+                }
+            } else if (StringUtil.lowerCase(benchFileName).startsWith(ENGINE_PREFIX)) {
+                for (String line : rawLines) {
+                    index++;
+                    if (Strings.isNullOrEmpty(line)) {
+                        continue;
+                    }
+                    Map<String, String> queryResult = executeQuery(line, paramMap);
+                    int statusCode = Integer.parseInt(queryResult.get("status").trim());
+                    if (statusCode == HttpStatus.SC_OK) {
+                        if (writer != null) {
+                            writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "\n");
+                            writer.append(JsonPath.read(queryResult.get("result"), "$.meta") + "\n");
+                            writer.append(JsonPath.read(queryResult.get("result"), "$.data") + "\n");
+                        }
+                        infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
+                    } else if (statusCode == HttpStatus.SC_GATEWAY_TIMEOUT || statusCode == HttpStatus.SC_BAD_GATEWAY) {
+                        infoMap.put("Query" + index, "status:" + queryResult.get("status") + ",message:" + queryResult.get("message"));
 
-                } else {
-                    throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), file.get().getName()
-                            + ",Query" + index + "," + queryResult.get("status") + "," + queryResult.get("message"), null);
+                    } else {
+                        throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), file.get().getName()
+                                + ",Query" + index + "," + queryResult.get("status") + "," + queryResult.get("message"), null);
+                    }
                 }
             }
             resultMap.put(file.get().getName(), infoMap);
-
         } else {
             log.error("File is not exist or is directory.");
         }
         return resultMap;
+    }
+
+    private void resultProcess(Optional<File> file, Map<String, String> infoMap, FileWriter writer, int index, BaseResult queryResult) {
+        int statusCode = Integer.parseInt(queryResult.getStatus().toString());
+        if (statusCode == HttpStatus.SC_OK) {
+            if (writer != null) {
+                writer.append("--Query" + index + "\t" + "Elapsed(ms):" + queryResult.getStatistics().get("elapsed") + "\n");
+                writer.append(queryResult.getMeta() + "\n");
+                writer.append(queryResult.getData() + "\n");
+            }
+            infoMap.put("Query" + index, queryResult.getStatistics().get("elapsed") + "");
+        } else if (statusCode == HttpStatus.SC_GATEWAY_TIMEOUT || statusCode == HttpStatus.SC_BAD_GATEWAY) {
+            infoMap.put("Query" + index, "status:" + queryResult.getStatus() + ",message:" + queryResult.getMessage());
+
+        } else {
+            throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), file.get().getName()
+                    + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage(), null);
+        }
+    }
+
+    /**
+     * @param sql
+     * @return com.mesalab.common.base.BaseResult
+     * @Description druid SQL测试集在Druid数据源查询并获取查询结果
+     * @author wanghao
+     * @date 2021/9/9 17:42
+     */
+    private BaseResult generateDruidBaseResult(String sql) {
+        BaseResult baseResult;
+        Object dataObject;
+        Stopwatch watch = Stopwatch.createUnstarted();
+        watch.start();
+        Map<String, String> results = druidExecuteHttpPost(sql);
+        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
+                    (List<Object>) com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+            dataObject = baseResult.getData();
+            List<Object> allResults = (List<Object>) dataObject;
+            Map<String, Object> statistics = Maps.newLinkedHashMap();
+            statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+            statistics.put("rows_read", allResults.size());
+            baseResult.setData(allResults);
+            baseResult.setStatistics(statistics);
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
+                    results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
+            dataObject = baseResult.getData();
+            baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
+        }
+        return baseResult;
+    }
+
+
+    private Map<String, String> druidExecuteHttpPost(String sql) {
+        String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
+        DruidQueryParam druidQueryParam = new DruidQueryParam();
+        druidQueryParam.setQuery(sql);
+        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
+        druidQueryParam.setResultFormat("object");
+        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), com.mesalab.common.utils.JsonMapper.toJsonString(druidQueryParam));
+        int socketTimeOut = httpConfig.getDruidSocketTimeOut();
+        return httpClientService.httpPost(queryURL, com.mesalab.common.utils.JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
+    }
+
+
+    /**
+     * @param sql
+     * @return com.mesalab.common.base.BaseResult
+     * @Description ck SQL测试集在ClickHouse数据源查询并获取查询结果
+     * @author wanghao
+     * @date 2021/9/9 17:39
+     */
+    private BaseResult generateClickHouseBaseResult(String sql) {
+        BaseResult baseResult;
+        Object dataObject;
+        Map<String, String> results = clickHouseExecuteHttpGet(sql);
+        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
+                    com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+            dataObject = baseResult.getData();
+            Map<String, Object> resultMap = (Map<String, Object>) dataObject;
+            Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
+            Map<String, Object> statistics = Maps.newLinkedHashMap();
+            statistics.put("elapsed", Math.round(Double.parseDouble(String.valueOf(statisticMap.get("elapsed"))) * 1000));
+            statistics.put("rows_read", statisticMap.get("rows_read"));
+            baseResult.setData(resultMap.get("data"));
+            baseResult.setStatistics(statistics);
+        } else {
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
+                    results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
+            dataObject = baseResult.getData();
+            baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? HttpStatus.SC_INTERNAL_SERVER_ERROR : baseResult.getStatus());
+            baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
+        }
+        return baseResult;
+    }
+
+    private Map<String, String> clickHouseExecuteHttpGet(String sql) {
+        String ckQuery = Encodes.urlEncode(sql);
+        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
+        StringBuilder queryParamBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPin()).append("&")
+                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
+                .append("query=").append(ckQuery)
+                .append(" FORMAT JSON;");
+        ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
+        clickHouseHttpQuery.setQueryParameter(queryParamBuilder.toString());
+        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), com.mesalab.common.utils.JsonMapper.toJsonString(clickHouseHttpQuery));
+        List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
+        return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());
     }
 
 
@@ -425,6 +552,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             log.error("The current directory {} does not exist.", path);
         }
         return schemas;
+    }
+
+    @Data
+    class DruidQueryParam {
+        private String query;
+        private Map<String, String> context = Maps.newHashMap();
+        private String resultFormat;
     }
 
 
