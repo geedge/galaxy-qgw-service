@@ -761,6 +761,11 @@
       "name": "pcap_storage_task_id",
       "type": "int",
       "label": "Task ID"
+    },
+    {
+      "name": "pcap_storage_duration",
+      "type": "int",
+      "label": "Duration"
     }
   ]
 }
