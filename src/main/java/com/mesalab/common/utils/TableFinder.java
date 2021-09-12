@@ -1,6 +1,5 @@
 package com.mesalab.common.utils;
 
-import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.expression.*;
@@ -64,6 +63,8 @@ public class TableFinder implements SelectVisitor, FromItemVisitor, ExpressionVi
 
     private static final String NOT_SUPPORTED_YET = "Not supported yet.";
     private boolean defaultAlias = false;
+    private boolean defaultNamespace = false;
+    private boolean needSuffix = false;
 
     public void addSchemaName(Statement statement) {
         statement.accept(this);
@@ -71,6 +72,14 @@ public class TableFinder implements SelectVisitor, FromItemVisitor, ExpressionVi
 
     public void setDefaultAlias(boolean bool) {
         this.defaultAlias = bool;
+    }
+
+    public void setDefaultNamespace(boolean bool) {
+        this.defaultNamespace = bool;
+    }
+
+    public void setNeedSuffix(boolean bool) {
+        this.needSuffix = bool;
     }
 
     @Override
@@ -119,16 +128,20 @@ public class TableFinder implements SelectVisitor, FromItemVisitor, ExpressionVi
     }
 
     @Override
-    public void visit(Table tableName) {
+    public void visit(Table table) {
         //添加 schemaName
-        if (StringUtil.isBlank(tableName.getSchemaName())) {
-            tableName.setSchemaName(metadataService.getDBNameByTableName(tableName.getName()));
+        if (defaultNamespace && StringUtil.isBlank(table.getSchemaName())) {
+            table.setSchemaName(metadataService.getDBNameByTableName(table.getName()));
         }
         //添加 alias
-        if ((defaultAlias && (tableName.getAlias() == null))
-                || defaultAlias && (StringUtil.isBlank(tableName.getAlias().getName()))) {
-            Alias alias = new Alias(tableName.getName(), true);
-            tableName.setAlias(alias);
+        if ((defaultAlias && (table.getAlias() == null))
+                || defaultAlias && (StringUtil.isBlank(table.getAlias().getName()))) {
+            Alias alias = new Alias(table.getName(), true);
+            table.setAlias(alias);
+        }
+        //表名添加 _20_11_rc3 后缀
+        if (needSuffix) {
+            table.setName(table.getName().concat("_20_11_rc3"));
         }
     }
 

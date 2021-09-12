@@ -130,6 +130,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 TableFinder tableFinder = new TableFinder();
                 Statement parse = CCJSqlParserUtil.parse(sql);
                 tableFinder.setDefaultAlias(true);
+                tableFinder.setDefaultNamespace(true);
                 tableFinder.addSchemaName(parse);
                 sql = String.valueOf(parse);
             } catch (JSQLParserException e) {

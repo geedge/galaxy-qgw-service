@@ -10,10 +10,7 @@ import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SQLFunctionUtil;
-import com.mesalab.common.utils.SQLHelper;
-import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.*;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
@@ -70,7 +67,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
     @Override
     public String convertQuery(String sql) {
-        return new Converter(sql).generateStandard().generateDateFunction().build();
+        return new Converter(sql).generateTableSuffix().generateStandard().generateDateFunction().build();
 
     }
 
@@ -318,6 +315,29 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
         public String build() {
             return sql;
+        }
+
+        /**
+         * Desc: 表名添加后缀
+         *
+         * @param
+         * @return {@link Converter}
+         * @created by wWei
+         * @date 2021/9/10 3:19 下午
+         */
+        public Converter generateTableSuffix() {
+            try {
+                TableFinder tableFinder = new TableFinder();
+                Statement parse = CCJSqlParserUtil.parse(sql);
+                tableFinder.setNeedSuffix(true);
+                tableFinder.setDefaultAlias(true);
+                tableFinder.addSchemaName(parse);
+                sql = String.valueOf(parse);
+            } catch (JSQLParserException e) {
+                log.error("表名添加后缀异常: ", e);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "添加库名、别名异常", e);
+            }
+            return this;
         }
     }
 
