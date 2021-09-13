@@ -15,7 +15,7 @@ spring:
 clickhouse:
   url: jdbc:clickhouse://192.168.44.12:8123
   driverClassName: ru.yandex.clickhouse.ClickHouseDriver
-  dbname: tsg_galaxy_v3
+  dbname: tsg_galaxy_20_11_rc3
   realTimeAccount:
     username: tsg_query
     password: ceiec2018

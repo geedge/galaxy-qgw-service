@@ -139,7 +139,7 @@ public class TableFinder implements SelectVisitor, FromItemVisitor, ExpressionVi
             Alias alias = new Alias(table.getName(), true);
             table.setAlias(alias);
         }
-        //表名添加 _20_11_rc3 后缀
+        //OLAP升级表名添加 _20_11_rc3 后缀
         if (needSuffix) {
             table.setName(table.getName().concat("_20_11_rc3"));
         }
