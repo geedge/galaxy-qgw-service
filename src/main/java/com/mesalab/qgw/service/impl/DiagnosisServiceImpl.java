@@ -146,28 +146,32 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, Map<String, String>> engineResult;
         Map<String, Map<String, String>> clickhouseResult;
         Map<String, Map<String, String>> druidResult;
-        Stopwatch watch = Stopwatch.createStarted();
+        try {
+            Stopwatch watch = Stopwatch.createStarted();
 
-        Optional<File> druidTestFile = Optional.of(new File(druidWriter.buildPocSQL()));
-        druidResult = executePocSqlByDatasource(druidTestFile, isSaved, option);
+            Optional<File> druidTestFile = Optional.of(new File(druidWriter.buildPocSQL()));
+            druidResult = executePocSqlByDatasource(druidTestFile, isSaved, option);
 
-        Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
-        clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, option);
+            Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
+            clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, option);
 
-        Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
-        engineResult = executePocSqlByDatasource(engineTestFile, isSaved, option);
+            Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
+            engineResult = executePocSqlByDatasource(engineTestFile, isSaved, option);
 
 
-        mergeResult = Stream
-                .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergeResult = Stream
+                    .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-        result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
-        result.setFormatType(QueryFormatEnum.JSON.getValue());
-
+            statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+            result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
+            result.setFormatType(QueryFormatEnum.JSON.getValue());
+        } catch (RuntimeException e) {
+            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:", e);
+        }
         return result;
     }
 
