@@ -8,3 +8,4 @@
  * 扩展Schema，会话、过渡、安全日志支持QUIC协议检索和报告定制(TSG-7695)
  * 扩展健康检查接口，展示组件timeZone信息(druid、ck、es、mariadb)
  * 扩展Schema，DoS事件日志schema增加DNS Flood(TSG-7739)
+ * 完善SQL数据集诊断接口，测试集分类执行。
