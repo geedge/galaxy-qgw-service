@@ -61,16 +61,18 @@ public class AuditLogAspect {
         auditServiceLog.setClientIp(clientIp);
         auditServiceLog.setMethod(method);
         if (log.isDebugEnabled()) {
-            auditServiceLog.setParam(paramObject.toString());
+            auditServiceLog.setParam(Optional.ofNullable(paramObject).orElse("").toString());
             auditServiceLog.setUrl(url);
             auditServiceLog.setClassMethod(classMethod);
         }
 
-        auditServiceLog.setCacheKey(DigestUtil.md5Hex(Optional.ofNullable(StringEscapeUtils.escapeHtml4(request.getQueryString())).orElse("")));
+        auditServiceLog.setCacheKey(DigestUtil.md5Hex(Optional.ofNullable(request.getQueryString()).orElse("")));
 
         if (paramObject instanceof ApiParam) {
-            ApiParam  param = (ApiParam) paramObject;
-            auditServiceLog.setQueryKey(SQLHelper.getQueryId(param.getResultId(), param.getQuery()));
+            ApiParam  apiParam = (ApiParam) paramObject;
+            if (!apiParam.queryParamIsNull()) {
+                auditServiceLog.setQueryKey(SQLHelper.getQueryId(apiParam.getResultId(), apiParam.getQuery()));
+            }
         }
 
 
@@ -94,8 +96,6 @@ public class AuditLogAspect {
            ApiParam param = (ApiParam) joinPoint.getArgs()[0];
            auditLog.get().setDbType(param.getDbType());
        }
-
-
     }
 
 

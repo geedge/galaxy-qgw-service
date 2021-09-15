@@ -40,4 +40,8 @@ public class ApiParam implements Serializable {
     public void setResultId(String resultId) {
         this.resultId = resultId;
     }
+
+    public  boolean queryParamIsNull() {
+        return StringUtil.isBlank(query);
+    }
 }

@@ -24,9 +24,7 @@ public class RequestParamWrapper extends HttpServletRequestWrapper {
     @Override
     public String[] getParameterValues(String name) {
         if (QueryParamEnum.QUERY.getValue().equals(name)) {
-
             queryString =  queryString.replaceAll("\\+", "%2B");
-
             List<NameValuePair> values = URLEncodedUtils.parse(queryString, Charset.forName("UTF-8"));
             List<String> valueList = Lists.newArrayList();
               for (NameValuePair nameValuePair: values) {

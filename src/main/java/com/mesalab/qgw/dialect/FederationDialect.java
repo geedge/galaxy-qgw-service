@@ -100,7 +100,7 @@ public class FederationDialect extends AbstractEngineDialect{
             statisticMap.put("result_size", 0);
             statisticMap.put("result_rows", 0);
         } else {
-            statisticMap.put("result_size", JsonMapper.toJsonString(baseResult.getData()).getBytes().length);
+            statisticMap.put("result_size", baseResult.getData().toString().getBytes().length);
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
 
@@ -112,6 +112,7 @@ public class FederationDialect extends AbstractEngineDialect{
         log.debug("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
         return baseResult;
     }
+
 
     @Override
     public void executeUDF() {

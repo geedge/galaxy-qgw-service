@@ -9,12 +9,11 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
@@ -24,39 +23,38 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
 
     private static final Log log = LogFactory.get();
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception
+    public boolean preHandle(HttpServletRequest request,
+                             HttpServletResponse response, Object handler) throws Exception
     {
-        String queryString = request.getQueryString();
+
         if (handler instanceof HandlerMethod) {
-
             HandlerMethod handlerMethod = (HandlerMethod) handler;
-
             CachedSubmitCheck submitCheck = handlerMethod.getMethodAnnotation(CachedSubmitCheck.class);
+            if (StringUtil.isNotEmpty(submitCheck)) {
+                Object result = QueryCacheUtils.get(generateCacheKey(request));
+                if (StringUtil.isNotEmpty(result)) {
+                    CacheStats stats = QueryCacheUtils.getStats();
+                    log.info(" Query Repeat Submit Stat, QEQ_count:{}, HIT_count:{}, HIT_rate:{}, MISS_count:{}",
+                            stats.requestCount(), stats.hitCount(), stats.hitRate(), stats.missCount());
+                    response.setCharacterEncoding("UTF-8");
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write(JsonMapper.toJsonString(result));
+                    return false;
 
-            if (submitCheck == null || StringUtil.isBlank(queryString)) {
-                return true;
-            }
-            String clientId = this.getClientId();
-            String queryStr = StringEscapeUtils.escapeHtml4(queryString);
-            String cacheKey = DigestUtil.md5Hex(Optional.ofNullable(queryStr).orElse(""));
-            log.debug("Source compare to EscapeHtml4 SQL {}" ,
-                    DigestUtil.md5Hex(queryStr).equals(DigestUtil.md5Hex(queryString)));
-            log.debug("Query Submit Check,ClientId:{}, CacheKey:{}", clientId, cacheKey);
-            Object result = QueryCacheUtils.get(cacheKey);
-            if (StringUtil.isNotEmpty(result)) {
-
-                CacheStats stats = QueryCacheUtils.getStats();
-               log.info(" Query Repeat Submit Stat, QEQ_count:{}, HIT_count:{}, HIT_rate:{}, MISS_count:{}",
-                        stats.requestCount(), stats.hitCount(), stats.hitRate(), stats.missCount());
-                response.setCharacterEncoding("UTF-8");
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write(JsonMapper.toJsonString(result));
-                return false;
+                }
 
             }
-
         }
         return true;
+    }
+
+
+    private String generateCacheKey(HttpServletRequest request) {
+
+        if (RequestMethod.GET.name().equals(request.getMethod())) {
+            return DigestUtil.md5Hex(Optional.ofNullable(request.getQueryString()).orElse(""));
+        }
+        return null;
     }
 
 
