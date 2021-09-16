@@ -36,9 +36,9 @@ public class ApiController {
             produces = "application/json;charset=utf-8")
     @AuditLog("ApiController.post")
     @CachedSubmitCheck
-    public BaseResult post(@RequestBody(required = false) ApiParam apiParam, ApiParam urlApiParam) {
+    public BaseResult post(ApiParam apiParam) {
 
-        apiParam = Optional.ofNullable(apiParam).orElse(urlApiParam);
+        apiParam = Optional.ofNullable(apiParam).orElse(apiParam);
 
         if (apiParam.queryParamIsNull()) {
             return BaseResultGenerator.success4Message("ok");

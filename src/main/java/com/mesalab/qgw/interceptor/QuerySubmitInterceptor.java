@@ -31,7 +31,11 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
             CachedSubmitCheck submitCheck = handlerMethod.getMethodAnnotation(CachedSubmitCheck.class);
             if (StringUtil.isNotEmpty(submitCheck)) {
-                Object result = QueryCacheUtils.get(generateCacheKey(request));
+                String cacheKey = generateCacheKey(request);
+                if(StringUtil.isBlank(cacheKey)) {
+                    return true;
+                }
+                Object result = QueryCacheUtils.get(cacheKey);
                 if (StringUtil.isNotEmpty(result)) {
                     CacheStats stats = QueryCacheUtils.getStats();
                     log.info(" Query Repeat Submit Stat, QEQ_count:{}, HIT_count:{}, HIT_rate:{}, MISS_count:{}",
@@ -50,11 +54,7 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
 
 
     private String generateCacheKey(HttpServletRequest request) {
-
-        if (RequestMethod.GET.name().equals(request.getMethod())) {
-            return DigestUtil.md5Hex(Optional.ofNullable(request.getQueryString()).orElse(""));
-        }
-        return null;
+        return DigestUtil.md5Hex(Optional.ofNullable(request.getQueryString()).orElse(""));
     }
 
 
