@@ -10,3 +10,4 @@
  * 扩展Schema，DoS事件日志schema增加DNS Flood(TSG-7739)
  * 完善SQL数据集诊断接口，测试集分类执行。
  * 优化重复提交处理逻辑，仅针对幂等GET操作进行处理。
+ * 修复服务推荐ippool接口修改aql，过滤FIRST_FOUND_TIME等字段在IP表不存在情况。
