@@ -143,7 +143,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         List<Map<String, String>> meta = (List<Map<String, String>>) allResults.get("columns");
         rowsList.forEach(o ->
         {
-            HashMap<String, Object> map = new HashMap<>(o.size());
+            HashMap<String, Object> map = new LinkedHashMap<>(o.size());
             for (int i = 0; i < o.size(); i++) {
                 map.put(meta.get(i).get("name"), o.get(i));
             }
