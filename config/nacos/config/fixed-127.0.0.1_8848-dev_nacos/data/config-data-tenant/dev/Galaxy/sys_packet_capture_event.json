@@ -411,7 +411,12 @@
       "name": "common_device_tag",
       "type": "string",
       "doc": {
-        "visibility": "hidden"
+        "visibility": "hidden",
+        "format": {
+          "functions": "flattenSpec,flattenSpec",
+          "appendTo": "common_data_center,common_device_group",
+          "param": "$.tags[?(@.tag=='data_center')].value,$.tags[?(@.tag=='device_group')].value"
+        }
       },
       "label": "Device Tag"
     },
@@ -419,6 +424,11 @@
       "name": "common_data_center",
       "type": "string",
       "label": "Data Center"
+    },
+    {
+      "name": "common_device_group",
+      "type": "string",
+      "label": "Device Group"
     },
     {
       "name": "common_encapsulation",
