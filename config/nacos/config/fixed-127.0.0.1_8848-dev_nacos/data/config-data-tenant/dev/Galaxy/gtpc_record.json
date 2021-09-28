@@ -24,6 +24,7 @@
         "common_l4_protocol",
         "common_l7_protocol",
         "common_data_center",
+        "common_device_group",
         "common_client_asn",
         "common_server_asn",
         "common_start_time",
@@ -86,6 +87,7 @@
         "common_stream_dir",
         "common_direction",
         "common_data_center",
+        "common_device_group",
         "common_sled_ip",
         "common_device_id",
         "common_schema_type",
@@ -127,6 +129,7 @@
           "common_ingress_link_id",
           "common_isp",
           "common_data_center",
+          "common_device_group",
           "common_sled_ip"
         ],
         "action": [
@@ -251,6 +254,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -750,7 +754,12 @@
       "name": "common_device_tag",
       "label": "Device Tag",
       "doc": {
-        "visibility": "hidden"
+        "visibility": "hidden",
+        "format": {
+          "functions": "flattenSpec,flattenSpec",
+          "appendTo": "common_data_center,common_device_group",
+          "param": "$.tags[?(@.tag=='data_center')].value,$.tags[?(@.tag=='device_group')].value"
+        }
       },
       "type": "string"
     },
@@ -763,6 +772,20 @@
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/common_data_center/data"
+        },
+        "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_device_group",
+      "label": "Device Group",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/common_device_group/data"
         },
         "allow_query": "true"
       },

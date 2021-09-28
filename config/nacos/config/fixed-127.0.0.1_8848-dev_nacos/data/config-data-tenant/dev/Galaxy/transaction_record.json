@@ -25,6 +25,7 @@
         "common_l4_protocol",
         "common_l7_protocol",
         "common_data_center",
+        "common_device_group",
         "common_client_asn",
         "common_server_asn",
         "common_start_time",
@@ -90,6 +91,7 @@
         "common_stream_dir",
         "common_direction",
         "common_data_center",
+        "common_device_group",
         "common_sled_ip",
         "common_device_id",
         "common_schema_type",
@@ -127,6 +129,7 @@
           "common_ingress_link_id",
           "common_isp",
           "common_data_center",
+          "common_device_group",
           "common_sled_ip"
         ],
         "action": [
@@ -251,6 +254,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -342,6 +346,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -386,7 +391,11 @@
           "http_request_header",
           "http_response_header",
           "http_request_content",
+          "http_request_content_length",
+          "http_request_content_type",
           "http_response_content",
+          "http_response_content_length",
+          "http_response_content_type",
           "http_request_body",
           "http_response_body",
           "http_request_body_key",
@@ -459,6 +468,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -548,6 +558,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -657,6 +668,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -748,6 +760,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -839,6 +852,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -930,6 +944,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -1021,6 +1036,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -1126,6 +1142,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -1217,6 +1234,7 @@
           "common_isp",
           "common_device_tag",
           "common_data_center",
+          "common_device_group",
           "common_encapsulation",
           "common_app_label",
           "common_tunnels",
@@ -1716,13 +1734,18 @@
       "name": "common_device_tag",
       "type": "string",
       "doc": {
-        "visibility": "hidden"
+        "visibility": "hidden",
+        "format": {
+          "functions": "flattenSpec,flattenSpec",
+          "appendTo": "common_data_center,common_device_group",
+          "param": "$.tags[?(@.tag=='data_center')].value,$.tags[?(@.tag=='device_group')].value"
+        }
       },
       "label": "Device Tag"
     },
     {
       "name": "common_data_center",
-      "type": "string",
+      "label": "Data Center",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="
@@ -1732,7 +1755,21 @@
         },
         "allow_query": "true"
       },
-      "label": "Data Center"
+      "type": "string"
+    },
+    {
+      "name": "common_device_group",
+      "label": "Device Group",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/common_device_group/data"
+        },
+        "allow_query": "true"
+      },
+      "type": "string"
     },
     {
       "name": "common_encapsulation",
@@ -2092,12 +2129,32 @@
       "label": "HTTP.Request Content"
     },
     {
+      "name": "http_request_content_length",
+      "label": "HTTP.Request Content Length",
+      "type": "string"
+    },
+    {
+      "name": "http_request_content_type",
+      "label": "HTTP.Request Content Type",
+      "type": "string"
+    },
+    {
       "name": "http_response_content",
       "type": "string",
       "doc": {
         "visibility": "hidden"
       },
       "label": "HTTP.Response Content"
+    },
+    {
+      "name": "http_response_content_length",
+      "label": "HTTP.Response Content Length",
+      "type": "string"
+    },
+    {
+      "name": "http_response_content_type",
+      "label": "HTTP.Response Content Type",
+      "type": "string"
     },
     {
       "name": "http_request_body",
@@ -2177,11 +2234,17 @@
     {
       "name": "http_content_length",
       "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
       "label": "HTTP.Content Length"
     },
     {
       "name": "http_content_type",
       "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
       "label": "HTTP.Content Type"
     },
     {
