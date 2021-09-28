@@ -422,13 +422,31 @@
     },
     {
       "name": "common_data_center",
-      "type": "string",
-      "label": "Data Center"
+      "label": "Data Center",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/common_data_center/data"
+        }
+      },
+      "type": "string"
     },
     {
       "name": "common_device_group",
-      "type": "string",
-      "label": "Device Group"
+      "label": "Device Group",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']"
+        }
+      },
+      "type": "string"
     },
     {
       "name": "common_encapsulation",

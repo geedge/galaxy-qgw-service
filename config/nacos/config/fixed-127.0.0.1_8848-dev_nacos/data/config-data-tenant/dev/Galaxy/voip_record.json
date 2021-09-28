@@ -1023,7 +1023,9 @@
           "operator_functions": "=,!="
         },
         "data": {
-          "$ref": "public_schema_info.json#/fields/common_device_group/data"
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']"
         },
         "allow_query": "true"
       },

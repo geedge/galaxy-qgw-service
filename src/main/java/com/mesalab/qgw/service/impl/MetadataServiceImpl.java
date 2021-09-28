@@ -8,6 +8,7 @@ import cn.hutool.log.LogFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
 import com.alibaba.nacos.api.exception.NacosException;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -48,6 +49,8 @@ public class MetadataServiceImpl implements MetadataService {
     @Autowired
     private ConfigService configService;
     @Autowired
+    private ConfigService pubConfigService;
+    @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
@@ -59,6 +62,9 @@ public class MetadataServiceImpl implements MetadataService {
     private Map<String, Schema> schemaCache = Maps.newHashMap();
     private Map<String, String> originalCache = Maps.newHashMap();
     private final static String KEY_REF = "$ref";
+    private final static String KEY = "key";
+    private final static String VALUE = "value";
+    private final static String CODE = "code";
 
     @PostConstruct
     public void init() {
@@ -228,7 +234,7 @@ public class MetadataServiceImpl implements MetadataService {
             if (keyObj instanceof Map) {
                 Map mapValue = (Map) keyObj;
                 if (mapValue.containsKey(KEY_REF)) {
-                    map.put(mapKey, getRefValue(cfgName, mapValue));
+                    map.put(mapKey, regexValue(getRefValue(cfgName, mapValue), mapValue));
                 } else {
                     fillReference(mapValue, cfgName);
                 }
@@ -243,24 +249,28 @@ public class MetadataServiceImpl implements MetadataService {
         }
     }
 
-    private String getCfg(String tableName) {
-        if (originalCache.containsKey(tableName)) {
-            return originalCache.get(tableName);
+    private String getCfg(String cfgName) {
+        if (originalCache.containsKey(cfgName)) {
+            return originalCache.get(cfgName);
         }
         String content = null;
         try {
-            content = configService.getConfig(tableName, nacosConfig.getGroup(), 3000);
+            content = getPubCfg(cfgName);
+            if (!StrUtil.isBlankIfStr(content)) {
+                return content;
+            }
+            content = configService.getConfig(cfgName, nacosConfig.getGroup(), 3000);
             if (StrUtil.isBlankIfStr(content)) {
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), tableName + " 获取Schema配置异常", null);
+                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), cfgName + " 获取Schema配置异常", null);
             }
-            originalCache.put(tableName, content);
-            configService.addListener(tableName, nacosConfig.getGroup(), new AbstractListener() {
+            originalCache.put(cfgName, content);
+            configService.addListener(cfgName, nacosConfig.getGroup(), new AbstractListener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
-                    originalCache.remove(tableName);
-                    originalCache.put(tableName, configInfo);
+                    originalCache.remove(cfgName);
+                    originalCache.put(cfgName, configInfo);
                 }
             });
         } catch (NacosException e) {
@@ -269,10 +279,43 @@ public class MetadataServiceImpl implements MetadataService {
         return content;
     }
 
+    private String getPubCfg(String cfgName) throws NacosException {
+        String content = pubConfigService.getConfig(cfgName, NacosConst.DEFAULT_GROUP, 3000);
+        originalCache.put(cfgName, content);
+        pubConfigService.addListener(cfgName, NacosConst.DEFAULT_GROUP, new AbstractListener() {
+            @Override
+            public void receiveConfigInfo(String configInfo) {
+                log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
+                originalCache.remove(cfgName);
+                originalCache.put(cfgName, configInfo);
+            }
+        });
+        return content;
+    }
+
     private Object getRefValue(String schemaName, Map map) {
         String[] split = getRefStrArray(map);
         String jsonPath = getJsonPath(split);
         return JsonPath.read(getCfg(getFileName(split, schemaName)), jsonPath);
+    }
+
+    private Object regexValue(Object obj, Map<String, String> map) {
+        if (map.size() <= 1) {
+            return obj;
+        }
+        List<Map> list = Lists.newArrayList();
+        List key = JsonPath.read(obj, map.get(KEY));
+        List value = JsonPath.read(obj, map.get(VALUE));
+        if (key.size() != value.size()) {
+            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.UNKNOW_ERROR.getCode(), "regex $ref key value error");
+        }
+        for (int i = 0; i < key.size(); i++) {
+            HashMap<String, Object> item = Maps.newLinkedHashMap();
+            item.put(CODE, key.get(i));
+            item.put(VALUE, value.get(i));
+            list.add(item);
+        }
+        return list;
     }
 
     private String[] getRefStrArray(Map refMap) {

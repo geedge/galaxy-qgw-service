@@ -26,6 +26,10 @@ public class NacosConst {
 
     public static final String CONFIG_DATA_TENANT = "config-data-tenant";
 
+    public static final String NAMESPACE_PUBLIC = "public";
+
+    public static final String DEFAULT_GROUP = "DEFAULT_GROUP";
+
     public static final String CLICKHOUSE_GROUP = "CLICKHOUSE_GROUP";
 
     public static final String DRUID_GROUP = "DRUID_GROUP";
