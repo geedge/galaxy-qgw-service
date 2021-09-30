@@ -27,6 +27,10 @@
       "type": "string"
     },
     {
+      "name": "device_group",
+      "type": "string"
+    },
+    {
       "name": "sessions",
       "type": "long"
     },

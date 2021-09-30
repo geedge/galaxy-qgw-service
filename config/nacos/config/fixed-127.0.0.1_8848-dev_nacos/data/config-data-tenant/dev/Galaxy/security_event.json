@@ -124,6 +124,8 @@
         "http_domain",
         "http_url",
         "http_content_type",
+        "http_request_content_type",
+        "http_response_content_type",
         "ssl_sni",
         "ssl_ja3_hash",
         "ssl_pinningst",

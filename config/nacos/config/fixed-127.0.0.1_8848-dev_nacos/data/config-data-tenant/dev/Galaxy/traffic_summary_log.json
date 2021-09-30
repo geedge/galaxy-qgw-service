@@ -19,6 +19,10 @@
       "type": "long"
     },
     {
+      "name": "device_group",
+      "type": "string"
+    },
+    {
       "name": "data_center",
       "type": "string"
     },
