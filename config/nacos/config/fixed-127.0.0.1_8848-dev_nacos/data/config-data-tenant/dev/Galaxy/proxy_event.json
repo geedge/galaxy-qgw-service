@@ -85,7 +85,6 @@
         "http_host",
         "http_domain",
         "http_url",
-        "http_content_type",
         "http_request_content_type",
         "http_response_content_type",
         "doh_host",
