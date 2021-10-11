@@ -131,6 +131,12 @@
         "parameters": "common_app_label,."
       },
       {
+        "function": "flattenSpec",
+        "name": "data_center",
+        "fieldName": "common_device_tag",
+        "parameters": "$.tags[?(@.tag=='data_center')].value"
+      },
+      {
         "function": "hierarchy",
         "name": "protocol_id",
         "fieldName": "common_protocol_label",
