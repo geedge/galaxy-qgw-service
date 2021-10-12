@@ -40,7 +40,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     @Autowired
     BaseQueryProvider baseQueryProvider;
 
-    private static final String APP_ID = "app_id";
+    private static final String APP_NAME = "app_name";
     private static final String DOMAIN = "domain";
     private static final String IP = "ip";
     private static final String SERVER_IP = "server_ip";
@@ -62,40 +62,40 @@ public class EntityDetailServiceImpl implements EntityDetailService {
                     "type", "domain"),
             "second", ImmutableMap.of(
                     "step", "1..1", "table", "R_USE_DOMAIN2IP", "direction", "from/", "field", "ip",
-                    "type", "server_ip"),
+                    "type", "ip"),
             "third", ImmutableMap.of(
                     "step", "1..1", "table", "R_VISIT_IP2IP", "direction", "to/", "field", "client_ip",
-                    "type", "client_ip"));
+                    "type", "ip"));
     private static final ImmutableMap<String, Map<String, String>> domainView = ImmutableMap.<String, Map<String, String>>of(
             "first", ImmutableMap.of(
                     "step", "1..2", "table", "R_USE_APP2DOMAIN", "direction", "to/", "field", "domain",
                     "type", "domain"),
             "second", ImmutableMap.of(
                     "step", "1..2", "table", "R_USE_DOMAIN2IP", "direction", "from/", "field", "ip",
-                    "type", "server_ip"),
+                    "type", "ip"),
             "third", ImmutableMap.of(
                     "step", "1..1", "table", "R_VISIT_IP2IP", "direction", "to/", "field", "client_ip",
-                    "type", "client_ip"));
+                    "type", "ip"));
     private static final ImmutableMap<String, Map<String, String>> serverIpView = ImmutableMap.<String, Map<String, String>>of(
             "first", ImmutableMap.of(
                     "step", "1..2", "table", "R_USE_DOMAIN2IP", "direction", "to/", "field", "domain",
                     "type", "domain"),
             "second", ImmutableMap.of(
                     "step", "1..1", "table", "R_USE_APP2DOMAIN", "direction", "to/", "field", "ip",
-                    "type", "server_ip"),
+                    "type", "ip"),
             "third", ImmutableMap.of(
                     "step", "1..1", "table", "R_VISIT_IP2IP", "direction", "to/", "field", "domain",
-                    "type", "client_ip"));
+                    "type", "ip"));
     private static final ImmutableMap<String, Map<String, String>> clientIpView = ImmutableMap.<String, Map<String, String>>of(
             "first", ImmutableMap.of(
                     "step", "1..1", "table", "R_VISIT_IP2IP", "direction", "from/", "field", "server_ip",
-                    "type", "server_ip"),
+                    "type", "ip"),
             "second", ImmutableMap.of(
                     "step", "1..1", "table", "R_USE_DOMAIN2IP", "direction", "to/", "field", "domain", "type",
                     "domain"),
             "third", ImmutableMap.of(
-                    "step", "1..1", "table", "R_USE_APP2DOMAIN", "direction", "to/", "field", "app_id",
-                    "type", "app_id"));
+                    "step", "1..1", "table", "R_USE_APP2DOMAIN", "direction", "to/", "field", "app_name",
+                    "type", "app_name"));
 
     @Override
     public BaseResult entityDetailQuery(DSLObject dslObject) throws BusinessException {
@@ -106,7 +106,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     private BaseResult parserQuery(DSLObject dslObject) throws BusinessException {
         DSLObject.Query.Parameters parameters = dslObject.getQuery().getParameters();
         DSLObject.Query.Parameters.Match match = parameters.getMatch();
-        valid(match);
+        valid(parameters);
         List<Condition> condition = match.getCondition();
         String filter = String.valueOf(condition.get(0).getFieldValues().get(0));
         String fieldKey = condition.get(0).getFieldKey();
@@ -115,17 +115,18 @@ public class EntityDetailServiceImpl implements EntityDetailService {
 
         Object result = null;
         switch (fieldKey) {
-            case APP_ID:
+            case APP_NAME:
                 result = queryByApp(filter, sort, limit);
                 break;
             case DOMAIN:
                 result = queryByDomain(filter, sort, limit);
                 break;
-            case SERVER_IP:
-                result = queryByServerIp(filter, sort, limit);
-                break;
-            case CLIENT_IP:
-                result = queryByClientIp(filter, sort, limit);
+            case IP:
+                if(existServerIp(filter)){
+                    result = queryByServerIp(filter, sort, limit);
+                } else {
+                    result = queryByClientIp(filter, sort, limit);
+                }
                 break;
             default:
                 break;
@@ -146,13 +147,15 @@ public class EntityDetailServiceImpl implements EntityDetailService {
 
         //拆分2度结果跟1度结果
         for (Map edDomainMap : firstEdges) {
-            if (condition.equals(String.valueOf(edDomainMap.get(APP_ID)))) {
-                firstList.add(edDomainMap);
-            } else {
-                elseAppList.add(edDomainMap);
+            if(edDomainMap.get(APP_NAME)!=null) {
+                if (condition.equals(String.valueOf(edDomainMap.get(APP_NAME)))) {
+                    firstList.add(edDomainMap);
+                } else {
+                    elseAppList.add(edDomainMap);
+                }
             }
         }
-        firstList.parallelStream().collect(Collectors.groupingBy(e -> e.get(DOMAIN), Collectors.toList())).forEach(
+        firstList.parallelStream().collect(Collectors.groupingBy(e -> Optional.ofNullable(e.get(DOMAIN)), Collectors.toList())).forEach(
                 (id, transfer) -> transfer.stream().reduce((a, b) -> a).ifPresent(distinctList::add));
 
         List<Object> appleaf = new ArrayList<>();
@@ -161,7 +164,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
             EntityDetail edDomain = toBean(first, firstAql.get(FIELD), firstAql.get(TYPE));
             for (Map elseApp : elseAppList) {
                 if (first.get(DOMAIN).equals(elseApp.get(DOMAIN))) {
-                    domainLeaf.add(toBean(elseApp, APP_ID, APP_ID));
+                    domainLeaf.add(toBean(elseApp, APP_NAME, APP_NAME));
                 }
             }
 
@@ -183,7 +186,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
             appleaf.add(edDomain);
         }
         if (ObjectUtil.isNotEmpty(appleaf)) {
-            return EntityDetail.builder().name(condition).type(APP_ID).leaf(appleaf).build();
+            return EntityDetail.builder().name(condition).type(APP_NAME).leaf(appleaf).build();
         }
         return null;
     }
@@ -212,12 +215,12 @@ public class EntityDetailServiceImpl implements EntityDetailService {
             }
         }
         app2DomaintList.parallelStream()
-                .collect(Collectors.groupingBy(e -> e.get(APP_ID), Collectors.toList())).forEach(
+                .collect(Collectors.groupingBy(e -> Optional.ofNullable(e.get(APP_NAME)), Collectors.toList())).forEach(
                 (id, transfer) -> transfer.stream().reduce((a, b) -> a).ifPresent(distinctList::add));
         for (Map appMap : distinctList) {
-            EntityDetail ed = toBean(appMap, APP_ID, APP_ID);
+            EntityDetail ed = toBean(appMap, APP_NAME, APP_NAME);
             for (Map domain : firstAppList) {
-                if (appMap.get("app_id").equals(domain.get("app_id"))) {
+                if (domain.get(APP_NAME)!=null&&domain.get(APP_NAME).equals(appMap.get(APP_NAME))) {
                     EntityDetail domainEd = toBean(domain, DOMAIN, DOMAIN);
                     List<Object> edLeaf = Lists.newArrayList();
                     if (ed.getLeaf() != null) {
@@ -244,7 +247,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         }
 
         secondIpList.parallelStream()
-                .collect(Collectors.groupingBy(e -> e.get(IP), Collectors.toList())).forEach(
+                .collect(Collectors.groupingBy(e -> Optional.ofNullable(e.get(IP)), Collectors.toList())).forEach(
                 (id, transfer) -> transfer.stream().reduce((a, b) -> a)
                         .ifPresent(secondDistinctList::add));
 
@@ -292,7 +295,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
 
         List<Map> firstEdges = execute(firstAql.get(STEP), firstAql.get(DIRECTION).concat(condition), firstAql.get(TABLE), sort, limit);
         //一级
-        EntityDetail searchServerIp = EntityDetail.builder().name(condition).type(SERVER_IP).build();
+        EntityDetail searchServerIp = EntityDetail.builder().name(condition).type(IP).build();
         List<Map> distinctList = new ArrayList();
         List<Map> serverIp2DomainList = new ArrayList();
         List<Object> serverIpLeaf = new ArrayList<>();
@@ -307,7 +310,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
                 firstServerIpList.add(edDomainMap);
             }
         }
-        serverIp2DomainList.parallelStream().collect(Collectors.groupingBy(e -> e.get(DOMAIN), Collectors.toList())).forEach(
+        serverIp2DomainList.parallelStream().collect(Collectors.groupingBy(e -> Optional.ofNullable(e.get(DOMAIN)), Collectors.toList())).forEach(
                 (id, transfer) -> transfer.stream().reduce((a, b) -> a).ifPresent(distinctList::add));
 
         //2级
@@ -318,13 +321,13 @@ public class EntityDetailServiceImpl implements EntityDetailService {
             List<Map> secondEdges = execute(secondAql.get(STEP), secondAql.get(DIRECTION).concat(domainEd.getName()), secondAql.get(TABLE), sort, limit);
             for (Map serverIp : firstServerIpList) {
                 if (domainMap.get(DOMAIN).equals(serverIp.get(DOMAIN))) {
-                    EntityDetail serverEd = toBean(serverIp, IP, SERVER_IP);
+                    EntityDetail serverEd = toBean(serverIp, IP, IP);
                     domainLeaf.add(serverEd);
                 }
             }
             for (Map appEdge : secondEdges) {
                 if (domainMap.get(DOMAIN).equals(appEdge.get(DOMAIN))) {
-                    EntityDetail appEd = toBean(appEdge, APP_ID, APP_ID);
+                    EntityDetail appEd = toBean(appEdge, APP_NAME, APP_NAME);
                     domainLeaf.add(appEd);
                 }
             }
@@ -335,7 +338,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         List<Map> thirdEdges = execute(thirdAql.get(STEP), thirdAql.get(DIRECTION).concat(condition),
                 thirdAql.get(TABLE), sort, limit);
         for (Map edClientMap : thirdEdges) {
-            serverIpLeaf.add(toBean(edClientMap, CLIENT_IP, CLIENT_IP));
+            serverIpLeaf.add(toBean(edClientMap, CLIENT_IP, IP));
         }
         searchServerIp.setLeaf(serverIpLeaf);
         if (ObjectUtil.isNotEmpty(serverIpLeaf)) {
@@ -351,11 +354,11 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         Map<String, String> thirdAql = clientIpView.get(THIRD);
 
         List<Map> firstEdges = execute(firstAql.get(STEP), firstAql.get(DIRECTION).concat(condition), firstAql.get(TABLE), sort, limit);
-        EntityDetail searchClientIp = EntityDetail.builder().name(condition).type(CLIENT_IP).build();
+        EntityDetail searchClientIp = EntityDetail.builder().name(condition).type(IP).build();
         List<Object> clientIpLeaf = new ArrayList<>();
 
         for (Map serverIpMap : firstEdges) {
-            EntityDetail serverEd = toBean(serverIpMap, SERVER_IP, SERVER_IP);
+            EntityDetail serverEd = toBean(serverIpMap, SERVER_IP, IP);
             List<Object> serverLeaf = Lists.newArrayList();
             List<Map> secondEdges = execute(secondAql.get(STEP), secondAql.get(DIRECTION).concat(serverEd.getName()), secondAql.get(TABLE), sort, limit);
             for (Map domainMap : secondEdges) {
@@ -363,7 +366,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
                 List<Map> thirdEdges = execute(thirdAql.get(STEP), thirdAql.get(DIRECTION).concat(domainEd.getName()), thirdAql.get(TABLE), sort, limit);
                 List<Object> domainLeaf = Lists.newArrayList();
                 for (Map appMap : thirdEdges) {
-                    domainLeaf.add(toBean(appMap, APP_ID, APP_ID));
+                    domainLeaf.add(toBean(appMap, APP_NAME, APP_NAME));
                 }
                 domainEd.setLeaf(domainLeaf);
                 serverLeaf.add(domainEd);
@@ -402,15 +405,15 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     private EntityDetail toBean(Map<String, Object> edmap, String field, String type) {
         return EntityDetail.builder()
                 .type(type)
-                .name(String.valueOf(edmap.get(field)))
+                .name(String.valueOf(edmap.get(field)==null?"":edmap.get(field)))
                 .from(StrUtil.removePrefix(String.valueOf(edmap.get("_from")),"from/"))
                 .to(StrUtil.removePrefix(String.valueOf(edmap.get("_to")),"to/"))
                 .lastTime(Long.valueOf(String.valueOf(edmap.get("last_time"))))
                 .leaf(edmap.get("leaf") == null ? null : (List) edmap.get("leaf")).build();
     }
 
-    private void valid(DSLObject.Query.Parameters.Match match) {
-
+    private void valid(DSLObject.Query.Parameters parameters) {
+        DSLObject.Query.Parameters.Match match = parameters.getMatch();
         if (ObjectUtil.isEmpty(match)) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match is required");
         }
@@ -424,8 +427,22 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         if (ObjectUtil.isEmpty(condition.get(0).getFieldKey())) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition.fieldKey is required");
         }
-        if (!(Arrays.asList(APP_ID, DOMAIN, SERVER_IP, CLIENT_IP).contains(condition.get(0).getFieldKey()))) {
+        if (!(Arrays.asList(APP_NAME, DOMAIN, IP).contains(condition.get(0).getFieldKey()))) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition.fieldKey is illegal");
         }
+        Integer limit = parameters.getLimit();
+        if(ObjectUtil.isNotEmpty(limit)&&!(limit>=0&&limit<=DEF_LIMIT)){
+            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.limit is 0-"+DEF_LIMIT);
+        }
+    }
+    private boolean existServerIp(String ip){
+        String aql = "FOR doc IN R_VISIT_IP2IP FILTER doc._to == 'to/"+ip+"' LIMIT 1 RETURN doc";
+        log.info("entity detail aql {}", aql);
+        List<Map> resultList = new ObjectMapper().convertValue(baseQueryProvider.queryArango(aql), new TypeReference<List<Map>>() {
+        });
+        if(ObjectUtil.isEmpty(resultList)){
+            return false;
+        }
+        return true;
     }
 }
