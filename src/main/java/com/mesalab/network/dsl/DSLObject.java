@@ -26,11 +26,12 @@ public class DSLObject implements Serializable {
         @Data
         public static class Parameters {
             private String granularity;
-            private List<MatchBean> match;
+            private List<FilterBean> match;
+            private List<FilterBean> range;
             private List<String> intervals;
 
             @Data
-            public static class MatchBean {
+            public static class FilterBean {
                 private String type;
                 private String fieldKey;
                 private List<String> fieldValues;

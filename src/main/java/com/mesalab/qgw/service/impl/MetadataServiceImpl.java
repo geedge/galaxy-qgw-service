@@ -257,6 +257,7 @@ public class MetadataServiceImpl implements MetadataService {
         try {
             content = getPubCfg(cfgName);
             if (!StrUtil.isBlankIfStr(content)) {
+                originalCache.put(cfgName, content);
                 return content;
             }
             content = configService.getConfig(cfgName, nacosConfig.getGroup(), 3000);
@@ -269,7 +270,6 @@ public class MetadataServiceImpl implements MetadataService {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
-                    originalCache.remove(cfgName);
                     originalCache.put(cfgName, configInfo);
                 }
             });
@@ -281,12 +281,10 @@ public class MetadataServiceImpl implements MetadataService {
 
     private String getPubCfg(String cfgName) throws NacosException {
         String content = pubConfigService.getConfig(cfgName, NacosConst.DEFAULT_GROUP, 3000);
-        originalCache.put(cfgName, content);
         pubConfigService.addListener(cfgName, NacosConst.DEFAULT_GROUP, new AbstractListener() {
             @Override
             public void receiveConfigInfo(String configInfo) {
                 log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
-                originalCache.remove(cfgName);
                 originalCache.put(cfgName, configInfo);
             }
         });

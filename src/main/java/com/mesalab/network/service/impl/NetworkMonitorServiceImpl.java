@@ -16,6 +16,7 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.service.NetworkMonitorService;
 import com.mesalab.qgw.model.protocol.ProtocolTree;
@@ -200,7 +201,6 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     private String generateStatSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
-        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
         return String.format(sqlTemplate,
                 intervals[1], intervals[0], whereOfTime, whereOfExactly, PROTOCOL_ROOT_NODE,
@@ -210,10 +210,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
-        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
         String protocolStr = null;
-        List<DSLObject.QueryBean.Parameters.MatchBean> match = queryParam.getParameters().getMatch();
-        for (DSLObject.QueryBean.Parameters.MatchBean item : match) {
+        List<DSLObject.QueryBean.Parameters.FilterBean> match = queryParam.getParameters().getMatch();
+        for (DSLObject.QueryBean.Parameters.FilterBean item : match) {
             if (MatchEnum.PREFIX.getType().equals(item.getType())) {
                 String[] split = item.getFieldValues().get(0).split(",");
                 protocolStr = split[0].replaceFirst(PROTOCOL_NODE, "");
@@ -231,7 +230,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
 
         return String.format(sqlTemplate,
-                queryParam.getDataSource(), whereOfTime, StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly);
+                queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
 
     private String getWhereOfTime(DSLObject.QueryBean.Parameters parameters) {
@@ -249,14 +248,24 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     }
 
     private String getWhereOfExactly(DSLObject.QueryBean.Parameters parameters) {
-        if (CollectionUtils.isEmpty(parameters.getMatch())) {
+        ArrayList<DSLObject.QueryBean.Parameters.FilterBean> list = Lists.newArrayList();
+        if (!CollectionUtils.isEmpty(parameters.getMatch())) {
+            list.addAll(parameters.getMatch());
+        }
+        if (!CollectionUtils.isEmpty(parameters.getRange())) {
+            list.addAll(parameters.getRange());
+        }
+        if (CollectionUtils.isEmpty(list)) {
             return StringUtil.EMPTY;
         }
         StringBuffer whereOfExactly = new StringBuffer();
-        List<DSLObject.QueryBean.Parameters.MatchBean> match = parameters.getMatch();
-        for (DSLObject.QueryBean.Parameters.MatchBean item : match) {
-            if (MatchEnum.EXACTLY.getType().equals(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                whereOfExactly.append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+        for (DSLObject.QueryBean.Parameters.FilterBean item : list) {
+            if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
+                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+            } else if (RangeEnum.EQ.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
+                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+            } else if (RangeEnum.NE.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
+                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" NOT IN ('").append(String.join("','", item.getFieldValues())).append("')");
             }
         }
         return whereOfExactly.toString();
@@ -265,7 +274,6 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     private String generateProtocolTreeSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
-        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
         return String.format(sqlTemplate,
                 queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
