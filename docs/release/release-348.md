@@ -4,3 +4,4 @@
  * 扩展Schema，基于Nacos动态获取public中device_group数据集(TSG-7943)。
  * 修复ES查询结果乱序情况。
  * 扩展Schema，抽取公共schema_type，统一columns、default_columns。
+ * 扩展liveChart，接口适配Device Group查询(TSG-7998)。
