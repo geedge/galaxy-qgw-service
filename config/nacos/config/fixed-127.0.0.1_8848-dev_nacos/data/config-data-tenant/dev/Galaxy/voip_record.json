@@ -709,8 +709,8 @@
         },
         "data": {
           "$ref": "device_tag.json#",
-          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']",
-          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']"
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
         },
         "allow_query": "true"
       },
