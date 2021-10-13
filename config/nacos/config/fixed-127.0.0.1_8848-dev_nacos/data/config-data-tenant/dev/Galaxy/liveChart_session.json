@@ -2,7 +2,7 @@
   "type": "record",
   "name": "liveChart_session",
   "in": "SESSION-RECORD",
-  "out": "TRAFFIC-PROTOCOL-STAT-LOG",
+  "out": "TRAFFIC-PROTOCOL-STAT",
   "task": "Protocol-Distribution",
   "doc": {
     "timestamp": {
@@ -28,6 +28,11 @@
       {
         "name": "data_center",
         "fieldName": "common_data_center",
+        "type": "string"
+      },
+      {
+        "name": "device_group",
+        "fieldName": "common_device_group",
         "type": "string"
       }
     ],
@@ -135,6 +140,12 @@
         "name": "data_center",
         "fieldName": "common_device_tag",
         "parameters": "$.tags[?(@.tag=='data_center')].value"
+      },
+      {
+        "function": "flattenSpec",
+        "name": "device_group",
+        "fieldName": "common_device_tag",
+        "parameters": "$.tags[?(@.tag=='device_group')].value"
       },
       {
         "function": "hierarchy",
