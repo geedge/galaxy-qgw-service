@@ -5,3 +5,4 @@
  * 修复ES查询结果乱序情况。
  * 扩展Schema，抽取公共schema_type，统一columns、default_columns。
  * 扩展liveChart，接口适配Device Group查询(TSG-7998)。
+ * 增强schema，提升解析schema鲁棒性(TSG-8002)。

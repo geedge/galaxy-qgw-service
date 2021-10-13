@@ -65,6 +65,7 @@ public class MetadataServiceImpl implements MetadataService {
     private final static String KEY = "key";
     private final static String VALUE = "value";
     private final static String CODE = "code";
+    private final static String NOT_FOUND = "Not found, check url please";
 
     @PostConstruct
     public void init() {
@@ -79,7 +80,7 @@ public class MetadataServiceImpl implements MetadataService {
         } else if (MetadataTypeEnum.FIELDS.getValue().equals(type)) {
             return loadFields(name);
         }
-        throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not found, check url please");
+        throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), NOT_FOUND);
     }
 
     @Override
@@ -193,7 +194,7 @@ public class MetadataServiceImpl implements MetadataService {
     private Map loadFields(String name) {
         Schema schema = getSchemaByName(name);
         if (StringUtil.isEmpty(schema)) {
-            throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not found, check url please");
+            throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), NOT_FOUND);
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
         Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
@@ -261,10 +262,6 @@ public class MetadataServiceImpl implements MetadataService {
                 return content;
             }
             content = configService.getConfig(cfgName, nacosConfig.getGroup(), 3000);
-            if (StrUtil.isBlankIfStr(content)) {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), cfgName + " 获取Schema配置异常", null);
-            }
             originalCache.put(cfgName, content);
             configService.addListener(cfgName, nacosConfig.getGroup(), new AbstractListener() {
                 @Override
@@ -292,9 +289,16 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private Object getRefValue(String schemaName, Map map) {
+        Object data = null;
         String[] split = getRefStrArray(map);
         String jsonPath = getJsonPath(split);
-        return JsonPath.read(getCfg(getFileName(split, schemaName)), jsonPath);
+        try {
+            String cfg = getCfg(getFileName(split, schemaName));
+            data = JsonPath.read(cfg, jsonPath);
+        } catch (RuntimeException e) {
+            log.warn("read reference schema error: {}", e);
+        }
+        return data;
     }
 
     private Object regexValue(Object obj, Map<String, String> map) {
@@ -346,7 +350,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
         );
         if (tables.isEmpty()) {
-            throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not found, check url please");
+            throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), NOT_FOUND);
         }
         date.put("type", "enum");
         date.put("name", name);
