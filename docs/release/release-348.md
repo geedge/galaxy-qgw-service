@@ -6,3 +6,4 @@
  * 扩展Schema，抽取公共schema_type，统一columns、default_columns。
  * 扩展liveChart，接口适配Device Group查询(TSG-7998)。
  * 增强schema，提升解析schema鲁棒性(TSG-8002)。
+ * 扩展schema，修改data_center字典取自device_tag.json配置。
