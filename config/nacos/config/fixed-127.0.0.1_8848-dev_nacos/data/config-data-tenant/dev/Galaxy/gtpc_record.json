@@ -771,7 +771,9 @@
           "operator_functions": "=,!="
         },
         "data": {
-          "$ref": "public_schema_info.json#/fields/common_data_center/data"
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
         },
         "allow_query": "true"
       },

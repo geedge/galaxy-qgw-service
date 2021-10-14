@@ -305,12 +305,13 @@ public class MetadataServiceImpl implements MetadataService {
         if (map.size() <= 1) {
             return obj;
         }
-        List<Map> list = Lists.newArrayList();
         List key = JsonPath.read(obj, map.get(KEY));
         List value = JsonPath.read(obj, map.get(VALUE));
         if (key.size() != value.size()) {
-            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.UNKNOW_ERROR.getCode(), "regex $ref key value error");
+            log.warn("parse reference schema error: key and value non-correspondence", null);
+            return Lists.newArrayList();
         }
+        List<Map<String, Object>> list = Lists.newArrayList();
         for (int i = 0; i < key.size(); i++) {
             HashMap<String, Object> item = Maps.newLinkedHashMap();
             item.put(CODE, key.get(i));
