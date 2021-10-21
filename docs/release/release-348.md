@@ -7,3 +7,4 @@
  * 扩展liveChart，接口适配Device Group查询(TSG-7998)。
  * 增强schema，提升解析schema鲁棒性(TSG-8002)。
  * 扩展schema，修改data_center字典取自device_tag.json配置。
+ * 修复部分报告无法生成问题,自定义函数TIME_FLOOR_WITH_FILL针对Device Group无法拆分(TSG-8107)
