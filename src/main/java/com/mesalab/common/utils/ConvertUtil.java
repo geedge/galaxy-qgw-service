@@ -1,6 +1,7 @@
 package com.mesalab.common.utils;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.*;
 import com.mesalab.common.support.IConvertor;
 import com.zdjizhi.utils.DateUtils;
@@ -16,9 +17,7 @@ import java.util.*;
  * @date 2018/5/9
  */
 public class ConvertUtil {
-
-    public static final String GROUP_SEPRATOR = "|G|";
-
+     public static final String GROUP_SEPARATOR = "__GALAXY__";
       enum  Fill {
 
         NONE(""),  NULL("NULL"), ZERO("0"), PREVIOUS("previous"), NEXT("next");
@@ -141,34 +140,31 @@ public class ConvertUtil {
      *             Map<metric,value>
      *
      * @param sources
-     * @param groupLabel
+     * @param groupLabels
      * @param timeGranLabel
      * @return
      */
-    public static  Map<String, Map<String, Map<String, Object>>> convertResultListToTimeseries(Collection<Object> sources,  String groupLabel, String timeGranLabel) {
-
-
+    public static  Map<String, Map<String, Map<String, Object>>> convertResultListToTimeSeries(Collection<Object> sources,
+                                                                                               List<String> groupLabels, String timeGranLabel) {
         Map<String, Map<String, Map<String, Object>>> resultMap = Maps.newLinkedHashMap();
-
         for (Object source : sources) {
 
             Map<String, Object> sourceMap = ((Map<String, Object>) source);
 
-            String groupKey = null;
-            if (StringUtil.isBlank(groupLabel)) {
-                groupKey = "default";
+            List<String> groupValues = Lists.newArrayList();
 
+            if (StringUtil.isEmpty(groupLabels)) {
+                groupValues.add("default");
             } else {
-                for(String group : StringUtils.split(groupLabel, GROUP_SEPRATOR)) {
-                    groupKey = Joiner.on(GROUP_SEPRATOR).skipNulls().join(groupKey, sourceMap.get(group));
-                    sourceMap.remove(group);
+                for(String groupLabel : groupLabels) {
+                    groupValues.add(String.valueOf(sourceMap.get(groupLabel)));
+                    sourceMap.remove(groupLabel);
                 }
             }
 
-
             String timeGran = sourceMap.get(timeGranLabel).toString();
             sourceMap.remove(timeGranLabel);
-
+            String groupKey = Joiner.on(GROUP_SEPARATOR).join(groupValues);
             Map groupMap = resultMap.get(groupKey);
 
             if (StringUtil.isEmpty(groupMap)) {
@@ -190,23 +186,20 @@ public class ConvertUtil {
 
 
 
-    public static List<Map<String, Object>> convertTimeseriesToList(Map<String, Map<String, Map<String, Object>>> target, String groupLabel, String timeGranLabel) {
+    public static List<Map<String, Object>> convertTimeSeriesToList(Map<String, Map<String, Map<String, Object>>> target, List<String> groupLabels, String timeGranLabel) {
         List<Map<String, Object>> results = Lists.newArrayList();
-        String[] grouLabelArray;
-        String[] groupKeyArray;
+        List<String> groupValues;
         for(String groupKey : target.keySet()) {
 
-            Map<String, Map<String, Object>> groupMap =  target.get(groupKey);
-
-            for (Map.Entry<String, Map<String,Object>> entry: groupMap.entrySet()) {
+            Map<String, Map<String, Object>> timeSeriesValueMap =  target.get(groupKey);
+            for (Map.Entry<String, Map<String,Object>> entry: timeSeriesValueMap.entrySet()) {
 
                 Map<String, Object> resultMap = Maps.newLinkedHashMap();
                 resultMap.put(timeGranLabel, entry.getKey());
-                if (StringUtil.isNotBlank(groupLabel)) {
-                    grouLabelArray = StringUtils.split(groupLabel, GROUP_SEPRATOR);
-                    groupKeyArray = StringUtils.splitByWholeSeparatorPreserveAllTokens(groupKey, GROUP_SEPRATOR);
-                    for (int i = 0; i < grouLabelArray.length; i++) {
-                        resultMap.put(grouLabelArray[i], StringUtil.isBlank(groupKey) ? StringUtil.EMPTY : groupKeyArray[i]);
+                if (StringUtil.isNotEmpty(groupLabels)) {
+                    groupValues= Splitter.on(GROUP_SEPARATOR).splitToList(groupKey);
+                    for (int i = 0; i < groupLabels.size(); i++) {
+                        resultMap.put(groupLabels.get(i), StringUtil.isBlank(groupKey) ? StringUtil.EMPTY : groupValues.get(i));
                     }
 
                 }

@@ -3,6 +3,7 @@ package com.mesalab.qgw.model.api.udf;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -91,8 +92,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     @Override
     public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
         List<Map<String, Object>>  targetResult = null;
-        String groupLabel= null;
+        List<String> groupLabels = Lists.newArrayList();
         String timeGranLabel = null;
+
 
         try {
             Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
@@ -104,7 +106,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                         groupDimension.get(groupKey).contains(timestamp)) {
                     timeGranLabel = groupKey;
                 } else {
-                    groupLabel = Joiner.on(ConvertUtil.GROUP_SEPRATOR).skipNulls().join(groupKey, groupLabel);
+                    groupLabels.add(groupKey);
                 }
 
             }
@@ -149,34 +151,34 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
 
 
-            Map<String, Map<String, Map<String, Object>>> targetTimeseriesMap =  ConvertUtil.convertResultListToTimeseries(results,
-                    groupLabel, timeGranLabel);
+            Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap =  ConvertUtil.convertResultListToTimeSeries(results,
+                    groupLabels, timeGranLabel);
 
-            int actualSeriesNum = maxSeriesNum > targetTimeseriesMap.size() ? targetTimeseriesMap.size() : maxSeriesNum;
+            int actualSeriesNum = maxSeriesNum > targetTimeSeriesMap.size() ? targetTimeSeriesMap.size() : maxSeriesNum;
 
             if (actualSeriesNum > 0) {
 
-                Map<String, Map<String, Map<String, Object>>> limitTimeseriesMap = Maps.newLinkedHashMap();
+                Map<String, Map<String, Map<String, Object>>> limitTimeSeriesMap = Maps.newLinkedHashMap();
                 int i = 1;
-                for (Map.Entry<String, Map<String, Map<String, Object>>> entry: targetTimeseriesMap.entrySet()) {
-                    limitTimeseriesMap.put(entry.getKey(), entry.getValue());
+                for (Map.Entry<String, Map<String, Map<String, Object>>> entry: targetTimeSeriesMap.entrySet()) {
+                    limitTimeSeriesMap.put(entry.getKey(), entry.getValue());
                     if (++i > actualSeriesNum) {
                         break;
                     }
 
                 }
-                targetTimeseriesMap.clear();
-                targetTimeseriesMap.putAll(limitTimeseriesMap);
+                targetTimeSeriesMap.clear();
+                targetTimeSeriesMap.putAll(limitTimeSeriesMap);
             }
 
             if(StringUtil.isNotEmpty(dateRangeList)){
 
-                for (String key : targetTimeseriesMap.keySet()) {
-                    targetTimeseriesMap.put(key,ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeseriesMap.get(key), dateRangeList, fill.toString()));
+                for (String key : targetTimeSeriesMap.keySet()) {
+                    targetTimeSeriesMap.put(key,ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill.toString()));
                 }
             }
 
-            targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
+            targetResult = ConvertUtil.convertTimeSeriesToList(targetTimeSeriesMap, groupLabels, timeGranLabel);
             if (StringUtil.isNotBlank(sqlQuerySource.getLimit())
                     && !sqlQuerySource.getLimit().equalsIgnoreCase(SQLHelper.INVALID_LIMIT_DESC)
                     && targetResult.size() > Integer.parseInt(sqlQuerySource.getLimit())) {
