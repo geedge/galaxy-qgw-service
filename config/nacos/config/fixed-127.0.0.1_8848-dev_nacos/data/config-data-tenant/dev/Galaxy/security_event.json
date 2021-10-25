@@ -274,6 +274,9 @@
       },
       "APP": {
         "$ref": "public_schema_info.json#/schema_type/APP"
+      },
+      "SSH": {
+        "$ref": "public_schema_info.json#/schema_type/SSH"
       }
     },
     "default_columns": [
@@ -668,6 +671,10 @@
           {
             "code": "APP",
             "value": "APP"
+          },
+          {
+            "code": "SSH",
+            "value": "SSH"
           }
         ],
         "allow_query": "true"
@@ -2331,6 +2338,61 @@
         "visibility": "hidden"
       },
       "type": "int"
+    },
+    {
+      "name": "ssh_version",
+      "label": "SSH.Version",
+      "type": "string"
+    },
+    {
+      "name": "ssh_auth_success",
+      "label": "SSH.Authentication Result",
+      "type": "string"
+    },
+    {
+      "name": "ssh_client_version",
+      "label": "SSH.Client Version",
+      "type": "string"
+    },
+    {
+      "name": "ssh_server_version",
+      "label": "SSH.Server Version",
+      "type": "string"
+    },
+    {
+      "name": "ssh_cipher_alg",
+      "label": "SSH.Encryption Algorithm",
+      "type": "string"
+    },
+    {
+      "name": "ssh_mac_alg",
+      "label": "SSH.Signing Algorithm",
+      "type": "string"
+    },
+    {
+      "name": "ssh_compression_alg",
+      "label": "SSH.Compression Algorithm",
+      "type": "string"
+    },
+    {
+      "name": "ssh_kex_alg",
+      "label": "SSH. Key Exchange Algorithm",
+      "type": "string"
+    },
+    {
+      "name": "ssh_host_key_alg",
+      "label": "SSH.Server Host Key Algorithm",
+      "type": "string"
+    },
+    {
+      "name": "ssh_host_key",
+      "label": "SSH.Server Key Fingerprint",
+      "type": "string"
+    },
+    {
+      "name": "ssh_hassh",
+      "label": "SSH.HASSH",
+      "type": "string"
     }
   ]
 }
