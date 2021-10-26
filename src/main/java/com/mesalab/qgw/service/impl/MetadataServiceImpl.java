@@ -305,8 +305,15 @@ public class MetadataServiceImpl implements MetadataService {
         if (map.size() <= 1) {
             return obj;
         }
-        List key = JsonPath.read(obj, map.get(KEY));
-        List value = JsonPath.read(obj, map.get(VALUE));
+        List<Object> key = Lists.newArrayList();
+        List<Object> value = Lists.newArrayList();
+        try {
+            key.addAll(JsonPath.read(obj, map.get(KEY)));
+            value.addAll(JsonPath.read(obj, map.get(VALUE)));
+        } catch (RuntimeException ex) {
+            log.warn("parse reference schema error: JsonPath.read error", null);
+            return Lists.newArrayList();
+        }
         if (key.size() != value.size()) {
             log.warn("parse reference schema error: key and value non-correspondence", null);
             return Lists.newArrayList();
