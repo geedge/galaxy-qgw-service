@@ -21,6 +21,7 @@ import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
+import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
@@ -56,6 +57,8 @@ public class MetadataServiceImpl implements MetadataService {
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
     private ElasticsearchHttpSource elasticsearchHttpSource;
+    @Autowired
+    private HBaseAPISource hBaseAPISource;
     @Autowired
     public MetadataConfig metadataConfig;
 
@@ -125,6 +128,9 @@ public class MetadataServiceImpl implements MetadataService {
         }
         if (elasticsearchHttpSource.getDbname().equalsIgnoreCase(schema.getNamespace())) {
             return DBTypeEnum.ELASTICSEARCH.getValue();
+        }
+        if (hBaseAPISource.getDbName().equalsIgnoreCase(schema.getNamespace())){
+            return DBTypeEnum.HBASE.getValue();
         }
         return StringUtil.EMPTY;
     }

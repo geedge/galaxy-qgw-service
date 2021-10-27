@@ -71,6 +71,13 @@
         "liveChart_session",
         "liveChart_interim"
       ]
+    },
+    {
+      "namespace":"tsg",
+      "group":"HBASE_GROUP",
+      "tables":[
+        "report_result"
+      ]
     }
   ]
 }
