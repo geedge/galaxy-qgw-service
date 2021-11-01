@@ -2,7 +2,7 @@ package com.mesalab.calcite.storage;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import org.apache.calcite.sql.type.SqlTypeName;
+import com.zdjizhi.calcite.sql.type.SqlTypeName;
 
 import java.math.BigDecimal;
 import java.sql.Date;

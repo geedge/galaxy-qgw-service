@@ -45,7 +45,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     private int pageOffset;
-    private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "org.apache.calcite.runtime.CalciteContextException: ";
+    private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "com.zdjizhi.calcite.runtime.CalciteContextException: ";
     private Stopwatch watch = Stopwatch.createUnstarted();
     public ApiParam param;
     public BaseResult baseResult;

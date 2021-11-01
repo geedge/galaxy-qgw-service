@@ -1,8 +1,8 @@
 package com.mesalab.calcite;
 
 import com.mesalab.calcite.storage.Storage;
-import org.apache.calcite.schema.Table;
-import org.apache.calcite.schema.impl.AbstractSchema;
+import com.zdjizhi.calcite.schema.Table;
+import com.zdjizhi.calcite.schema.impl.AbstractSchema;
 
 import java.util.*;
 

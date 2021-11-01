@@ -7,7 +7,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
-import org.apache.calcite.rel.core.TableScan;
+import com.zdjizhi.calcite.rel.core.TableScan;
 
 import java.util.Optional;
 
