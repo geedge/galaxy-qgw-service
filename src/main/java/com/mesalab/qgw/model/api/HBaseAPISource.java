@@ -2,7 +2,6 @@ package com.mesalab.qgw.model.api;
 
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
-import com.mesalab.common.nacos.NacosConst;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -17,9 +16,14 @@ public class HBaseAPISource implements Serializable {
     private String zookeeperZnodeParent;
     private String dbName;
     private String tableName;
-    private String columnFamily;
-    private String columnName;
-    private String clientIpcPoolSize;
+    private Report report;
     private String rpcTimeout;
+
+    @Data
+    public static class Report{
+        private String columnFamily;
+        private String columnName;
+        private String clientIpcPoolSize;
+    }
 
 }
