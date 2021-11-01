@@ -23,7 +23,7 @@
     },
     {
       "namespace": "elasticsearch",
-      "group": "ES_GROUP",
+      "group": "ELASTICSEARCH_GROUP",
       "tables": [
         "ip",
         "app",
@@ -73,10 +73,17 @@
       ]
     },
     {
-      "namespace":"tsg",
-      "group":"HBASE_GROUP",
-      "tables":[
+      "namespace": "tsg",
+      "group": "HBASE_GROUP",
+      "tables": [
         "report_result"
+      ]
+    },
+    {
+      "namespace": "tsg_galaxy",
+      "group": "HBASE_GROUP",
+      "tables": [
+        "relation_account_framedip"
       ]
     }
   ]

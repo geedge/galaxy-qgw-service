@@ -2,6 +2,7 @@ package com.mesalab.qgw.monitor;
 
 
 import cn.hutool.core.util.StrUtil;
+import com.mesalab.qgw.dialect.HbaseDialect;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import org.apache.phoenix.jdbc.PhoenixResultSet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,6 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
-import java.util.*;
 
 
 @Component
@@ -36,18 +36,12 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
                     .withDetail("message", "DISABLED");
             return;
         }
-        Properties properties = new Properties();
-        properties.setProperty("phoenix.schema.isNamespaceMappingEnabled", "true");
-        properties.setProperty("phoenix.schema.mapSystemTablesToNamespace", "true");
-        properties.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
-        properties.setProperty("zookeeper.recovery.retry.intervalmill", "200");
-        properties.setProperty("zookeeper.recovery.retry", "3");
-        properties.setProperty("hbase.client.retries.number", "3");
+        HbaseDialect.PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             String url = "jdbc:phoenix:".concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
-            conn = DriverManager.getConnection(url, properties);
+            conn = DriverManager.getConnection(url, HbaseDialect.PROPERTIES);
             String sql = "select 1";
             ps = conn.prepareStatement(sql);
             PhoenixResultSet resultSet = (PhoenixResultSet) ps.executeQuery();

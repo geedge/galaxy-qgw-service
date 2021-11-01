@@ -14,16 +14,15 @@ public class HBaseAPISource implements Serializable {
 
     private String zookeeperQuorum;
     private String zookeeperZnodeParent;
-    private String dbName;
-    private String tableName;
     private Report report;
     private String rpcTimeout;
 
     @Data
     public static class Report{
+        private String dbName;
+        private String tableName;
         private String columnFamily;
         private String columnName;
-        private String clientIpcPoolSize;
     }
 
 }

@@ -22,6 +22,7 @@ import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
 import com.mesalab.qgw.model.api.HBaseAPISource;
+import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
@@ -116,23 +117,37 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public String getDBTypeByTableName(String tableName) {
         Schema schema = getSchemaByName(tableName);
+        String data = StringUtil.EMPTY;
         if (StringUtil.isEmpty(schema)) {
-            return StringUtil.EMPTY;
+            return data;
         }
-        if (clickHouseHttpSource.getDbName().equalsIgnoreCase(schema.getNamespace())
-                || "system".equalsIgnoreCase(schema.getNamespace())) {
-            return DBTypeEnum.CLICKHOUSE.getValue();
+        for (MetadataBean meta : metadataConfig.getMetadata()) {
+            if (meta.getTables().contains(tableName)) {
+                return getDBTypeByGroup(meta.getGroup());
+            }
         }
-        if (druidIoHttpSource.getDbname().equalsIgnoreCase(schema.getNamespace())) {
-            return DBTypeEnum.DRUID.getValue();
+        return data;
+    }
+
+    private String getDBTypeByGroup(String group) {
+        String type;
+        switch (group) {
+            case "CLICKHOUSE_GROUP":
+                type = DBTypeEnum.CLICKHOUSE.getValue();
+                break;
+            case "ELASTICSEARCH_GROUP":
+                type = DBTypeEnum.ELASTICSEARCH.getValue();
+                break;
+            case "HBASE_GROUP":
+                type = DBTypeEnum.HBASE.getValue();
+                break;
+            case "DRUID_GROUP":
+                type = DBTypeEnum.DRUID.getValue();
+                break;
+            default:
+                type = StringUtil.EMPTY;
         }
-        if (elasticsearchHttpSource.getDbname().equalsIgnoreCase(schema.getNamespace())) {
-            return DBTypeEnum.ELASTICSEARCH.getValue();
-        }
-        if (hBaseAPISource.getDbName().equalsIgnoreCase(schema.getNamespace())){
-            return DBTypeEnum.HBASE.getValue();
-        }
-        return StringUtil.EMPTY;
+        return type;
     }
 
     @Override

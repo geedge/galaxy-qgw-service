@@ -1,7 +1,7 @@
 package com.mesalab.qgw.dialect;
 
-import com.clearspring.analytics.util.Lists;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -23,7 +23,6 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import org.apache.http.HttpStatus;
-import org.apache.phoenix.jdbc.PhoenixResultSet;
 
 
 import java.sql.*;
@@ -45,10 +44,16 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     private HBaseAPISource hBaseAPISource = (HBaseAPISource) SpringContextUtil.getBean("hBaseAPISource");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private final static Map<String, String> metaMap = Maps.newHashMap();
+    public static Properties PROPERTIES = new Properties();
 
     static {
         try {
             Class.forName("org.apache.phoenix.jdbc.PhoenixDriver");
+            PROPERTIES.setProperty("phoenix.schema.isNamespaceMappingEnabled", "true");
+            PROPERTIES.setProperty("phoenix.schema.mapSystemTablesToNamespace", "true");
+            PROPERTIES.setProperty("zookeeper.recovery.retry.intervalmill", "200");
+            PROPERTIES.setProperty("zookeeper.recovery.retry", "3");
+            PROPERTIES.setProperty("hbase.client.retries.number", "3");
         } catch (ClassNotFoundException e) {
             log.error("PhoenixDriver load error. ", e);
         }
@@ -131,27 +136,27 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     }
 
     private Map<String, Object> executeQuery(String sql) {
-        Properties properties = new Properties();
-        properties.setProperty("phoenix.schema.isNamespaceMappingEnabled", "true");
-        properties.setProperty("phoenix.schema.mapSystemTablesToNamespace", "true");
-        properties.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
-        properties.setProperty("zookeeper.recovery.retry.intervalmill", "200");
-        properties.setProperty("zookeeper.recovery.retry", "3");
-        properties.setProperty("hbase.client.retries.number", "3");
+        Connection conn = null;
+        java.sql.Statement statement = null;
+        ResultSet resultSet = null;
         try {
+            log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.HBASE.getValue(), sql);
+            PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
             String url = URL_PREFIX.concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
-            Connection conn = DriverManager.getConnection(url, properties);
-            return executePhoenixQuery(conn.prepareStatement(sql));
+            conn = DriverManager.getConnection(url, PROPERTIES);
+            statement = conn.createStatement();
+            resultSet = statement.executeQuery(sql);
+            return buildResult(resultSet);
         } catch (RuntimeException | SQLException e) {
-            log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e.getMessage());
+            log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Execute Error - ", e);
+        } finally {
+            close(resultSet, statement, conn);
         }
     }
 
-    private Map<String, Object> executePhoenixQuery(PreparedStatement ps) throws SQLException {
-        Map<String, Object> result = new HashMap<>();
-        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.HBASE.getValue(), ps);
-        PhoenixResultSet resultSet = (PhoenixResultSet) ps.executeQuery();
+    private Map<String, Object> buildResult(ResultSet resultSet) throws SQLException {
+        Map<String, Object> result = Maps.newHashMap();
         ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
         List<String> metaList = Lists.newArrayList();
         List<Map<String, String>> metaDataList = new ArrayList<>();
@@ -226,6 +231,33 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
         public String build() {
             return sql;
+        }
+    }
+
+    private static void close(ResultSet rs, java.sql.Statement st, Connection conn) {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                log.error("ResultSet close error : ", e.getMessage());
+            }
+
+        }
+        if (st != null) {
+            try {
+                st.close();
+            } catch (SQLException e) {
+                log.error("Statement close error : ", e.getMessage());
+            }
+
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                log.error("Connection close error : ", e.getMessage());
+            }
+
         }
     }
 }

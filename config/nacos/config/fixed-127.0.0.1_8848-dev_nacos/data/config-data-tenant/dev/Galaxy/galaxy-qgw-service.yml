@@ -34,13 +34,12 @@ spring:
 hbase:
   zookeeperQuorum: 192.168.44.12:2181
   zookeeperZnodeParent: /hbase
-  dbname: tsg
-  tableName: report_result
+  rpcTimeout: 60000
   report:
+    dbname: tsg
+    tableName: report_result
     columnFamily: response
     columnName: result
-    clientIpcPoolSize: 70
-  rpcTimeout: 60000
 ##############动态参数配置(修改后不需要重启项目)##############
 ## 项目参数
 project:

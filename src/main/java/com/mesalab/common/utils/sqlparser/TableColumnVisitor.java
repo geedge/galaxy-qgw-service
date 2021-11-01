@@ -2,7 +2,7 @@ package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.core.util.StrUtil;
 import com.mesalab.common.utils.SpringContextUtil;
-import com.mesalab.qgw.model.api.HBaseAPISource;
+import com.mesalab.qgw.service.MetadataService;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.arithmetic.*;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
@@ -24,7 +24,7 @@ import java.util.List;
  * @Author wWei
  */
 public class TableColumnVisitor implements SelectVisitor, SelectItemVisitor, FromItemVisitor, GroupByVisitor, OrderByVisitor, ExpressionVisitor {
-    private HBaseAPISource hBaseAPISource = (HBaseAPISource) SpringContextUtil.getBean("hBaseAPISource");
+    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
 
     public void surroundWithDoubleQuote(Statement statement) {
         if (statement instanceof Select) {
@@ -275,7 +275,7 @@ public class TableColumnVisitor implements SelectVisitor, SelectItemVisitor, Fro
         }
         String schemaName = table.getSchemaName();
         if (StrUtil.isBlankIfStr(schemaName)) {
-            table.setSchemaName("\"" + hBaseAPISource.getDbName() + "\"");
+            table.setSchemaName("\"" + metadataService.getSchemaByName(name).getNamespace() + "\"");
         } else {
             if (!isQuote(schemaName)) {
                 table.setSchemaName(addDoubleQuote(schemaName));

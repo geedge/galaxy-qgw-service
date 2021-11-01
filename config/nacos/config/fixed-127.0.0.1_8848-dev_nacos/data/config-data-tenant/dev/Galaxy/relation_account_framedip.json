@@ -1,0 +1,7 @@
+{
+  "type": "record",
+  "name": "relation_account_framedip",
+  "namespace": "tsg_galaxy",
+  "fields": [
+  ]
+}
