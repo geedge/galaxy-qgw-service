@@ -34,6 +34,9 @@
         "http_host",
         "http_domain",
         "http_url",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
         "doh_host",
         "doh_qname"
       ],
@@ -54,6 +57,9 @@
         "http_host",
         "http_domain",
         "http_url",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
         "doh_host",
         "doh_qname"
       ],
@@ -85,6 +91,9 @@
         "http_host",
         "http_domain",
         "http_url",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
         "http_request_content_type",
         "http_response_content_type",
         "doh_host",
@@ -1199,16 +1208,25 @@
     {
       "name": "http_cookie",
       "label": "HTTP.Cookie",
+      "doc": {
+        "allow_query": "true"
+      },
       "type": "string"
     },
     {
       "name": "http_referer",
       "label": "HTTP.Referer",
+      "doc": {
+        "allow_query": "true"
+      },
       "type": "string"
     },
     {
       "name": "http_user_agent",
       "label": "HTTP.User Agent",
+      "doc": {
+        "allow_query": "true"
+      },
       "type": "string"
     },
     {

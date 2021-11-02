@@ -39,10 +39,15 @@
         "http_host",
         "http_domain",
         "http_url",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
         "ssl_sni",
         "ssl_ja3_hash",
         "ssl_client_side_version",
         "ssl_server_side_version",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
         "mail_account",
         "mail_from",
         "mail_to",
@@ -73,10 +78,15 @@
         "http_host",
         "http_domain",
         "http_url",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
         "ssl_sni",
         "ssl_ja3_hash",
         "ssl_client_side_latency",
         "ssl_server_side_latency",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
         "mail_account",
         "mail_from",
         "mail_to",
@@ -123,6 +133,9 @@
         "http_host",
         "http_domain",
         "http_url",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
         "http_request_content_type",
         "http_response_content_type",
         "ssl_sni",
@@ -134,6 +147,8 @@
         "ssl_cert_verify",
         "ssl_client_side_latency",
         "ssl_server_side_latency",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
         "mail_account",
         "mail_from",
         "mail_to",
@@ -1293,16 +1308,25 @@
     {
       "name": "http_cookie",
       "label": "HTTP.Cookie",
+      "doc": {
+        "allow_query": "true"
+      },
       "type": "string"
     },
     {
       "name": "http_referer",
       "label": "HTTP.Referer",
+      "doc": {
+        "allow_query": "true"
+      },
       "type": "string"
     },
     {
       "name": "http_user_agent",
       "label": "HTTP.User Agent",
+      "doc": {
+        "allow_query": "true"
+      },
       "type": "string"
     },
     {
@@ -1839,6 +1863,7 @@
       "name": "ssl_cert_issuer",
       "label": "SSL.Issuer",
       "doc": {
+        "allow_query": "true",
         "constraints": {
           "type": "items"
         }
@@ -1849,6 +1874,7 @@
       "name": "ssl_cert_subject",
       "label": "SSL.Subject",
       "doc": {
+        "allow_query": "true",
         "constraints": {
           "type": "items"
         }
