@@ -125,7 +125,7 @@ public abstract class DSLParser {
      * @Date: 2020/7/23 11:47
      * @return: java.lang.String
      **/
-    public String parseLike(String value, String type) {
+    public static String parseLike(String value, String type) {
         switch (MatchTypeEnum.getByType(type)) {
             case REGEX:
                 return parseRegex(value);//正则匹配
@@ -148,7 +148,7 @@ public abstract class DSLParser {
      * @Date: 2020/7/23 11:49
      * @return: java.lang.String
      **/
-    public String parseRegex(String value) {
+    public static String parseRegex(String value) {
         if (value.startsWith("$")) {
             //以$开头，不以*结尾，无论关键字其他位置是否包含表示匹配方式的字符*和$，即表示完整匹配
             value = value.replaceAll("\\$", "");
