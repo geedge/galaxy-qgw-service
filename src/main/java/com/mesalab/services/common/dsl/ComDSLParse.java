@@ -1,5 +1,6 @@
 package com.mesalab.services.common.dsl;
 
+import cn.hutool.core.util.EscapeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -43,10 +44,10 @@ public class ComDSLParse extends DSLParser {
             String fieldKey = ObjectUtil.isEmpty(defField) ? m.getFieldKey() : defField;
             List<String> fieldValues = m.getFieldValues();
             if(MatchEnum.EXACTLY.getType().equals(m.getType())){
-                return fieldValues.stream().collect(joining("','",fieldKey.concat(" IN ('"),"')"));
+                return fieldValues.stream().map(v->encode(v)).collect(joining("','",fieldKey.concat(" IN ('"),"')"));
             } else {
                 return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
-                    return parseLike(v, m.getType());
+                    return parseLike(encode(v), m.getType());
                 }).collect(joining(" or ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
             }
         }).collect(joining(" AND ", " AND ", " "));
@@ -60,5 +61,8 @@ public class ComDSLParse extends DSLParser {
     @Override
     public String parseIntervals(DSLObject dslObject, String sql) {
         return null;
+    }
+    public static String encode(String str){
+        return str.replace("'", "\\'");
     }
 }
