@@ -6,6 +6,7 @@ import com.google.common.base.Splitter;
 import com.mesalab.cn.common.constant.SqlKeywords;
 import com.mesalab.cn.common.pojo.DSLObject;
 import com.mesalab.cn.common.pojo.DSLParser;
+import com.mesalab.knowledge.enums.MatchEnum;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import org.aspectj.weaver.ast.Instanceof;
@@ -41,12 +42,15 @@ public class ComDSLParse extends DSLParser {
         return matches.stream().map(m -> {
             String fieldKey = ObjectUtil.isEmpty(defField) ? m.getFieldKey() : defField;
             List<String> fieldValues = m.getFieldValues();
-            return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
-                return parseLike(v, m.getType());
-            }).collect(joining(" or ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
+            if(MatchEnum.EXACTLY.getType().equals(m.getType())){
+                return fieldValues.stream().collect(joining("','",fieldKey.concat(" IN ('"),"')"));
+            } else {
+                return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
+                    return parseLike(v, m.getType());
+                }).collect(joining(" or ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
+            }
         }).collect(joining(" AND ", " AND ", " "));
     }
-
 
     @Override
     public String parseSort(DSLObject dslObject, String sql) {

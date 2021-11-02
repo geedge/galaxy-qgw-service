@@ -115,11 +115,18 @@ public class ComDSLValidate {
         }
         for (ComDSLObject.Query.FilterBean matchBean : matchList) {
             Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(matchBean.getType())), "match type is illegal");
-            for (String fieldValue : matchBean.getFieldValues()) {
+
+            if (MatchEnum.REGEX.getType().equals(matchBean.getType())) {
+                matchBean.getFieldValues().forEach(mv -> {
+                    org.apache.commons.lang3.Validate.isTrue(!(String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*")), "error in matching sign. begin with * and do not end with * for suffix matching, end with * and do not begin with $ or * for prefix matching, begin with $ and do not end with * for exactly matching, begin with * and end with * or no wildcard for substring matching");
+                });
+            }
+
+            /*for (String fieldValue : matchBean.getFieldValues()) {
                 if (fieldValue.startsWith("*") || fieldValue.endsWith("$")) {
                     throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Match fieldValues cannot startWith '*' or endWith '$'");
                 }
-            }
+            }*/
         }
         return true;
     }
