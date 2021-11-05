@@ -3,4 +3,5 @@
  * 扩展公共查询接口，支持SQL查询Hbase数据源。
  * 完善Schema，增强解析schema的鲁棒性(TSG-8239)。
  * 扩展Schema，支持SSL和HTTP内容字段搜索(TSG-8283)。
- * 数据源由Bifang变更为Galaxy，删除APPID列表接口和报告查询接口(TSG-8300).
+ * 新增通过Subscriber ID获取IP推荐功能(TSG-8030)。
+ * 删除appID列表、报告查询接口(TSG-8300)。
