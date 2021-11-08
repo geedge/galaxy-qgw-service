@@ -475,7 +475,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (!clickHouseHttpSource.isEnableApproximateOptimizer()) {
                 return this;
             }
-            generateUniq().generateTopN();
+            generateTopN().generateUniq();
             return this;
         }
 
