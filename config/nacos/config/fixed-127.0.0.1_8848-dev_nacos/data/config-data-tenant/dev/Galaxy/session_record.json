@@ -263,12 +263,6 @@
       "BGP": {
         "$ref": "public_schema_info.json#/schema_type/BGP"
       },
-      "SIP": {
-        "$ref": "public_schema_info.json#/schema_type/SIP"
-      },
-      "RTP": {
-        "$ref": "public_schema_info.json#/schema_type/RTP"
-      },
       "APP": {
         "$ref": "public_schema_info.json#/schema_type/APP"
       },
@@ -657,14 +651,6 @@
           {
             "code": "FTP",
             "value": "FTP"
-          },
-          {
-            "code": "SIP",
-            "value": "SIP"
-          },
-          {
-            "code": "RTP",
-            "value": "RTP"
           },
           {
             "code": "APP",
@@ -1967,25 +1953,16 @@
     {
       "name": "sip_call_id",
       "label": "SIP.Call-ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "sip_originator_description",
       "label": "SIP.Originator",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "sip_responder_description",
       "label": "SIP.Responder",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {

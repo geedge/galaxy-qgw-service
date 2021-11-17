@@ -6,3 +6,4 @@
  * 新增通过Subscriber ID获取IP推荐功能(TSG-8030)。
  * 删除appID列表、报告查询接口(TSG-8300)。
  * 修复ck优化策略, 避免将uniq top sql进行优化(TSG-8394)。
+ * 扩展Schema，会话日志Schema Type 去掉SIP、RTP展示(TSG-8410)。

@@ -1,19 +1,16 @@
 package com.mesalab.services.common.dsl;
 
-import cn.hutool.core.util.EscapeUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.mesalab.cn.common.constant.SqlKeywords;
 import com.mesalab.cn.common.pojo.DSLObject;
 import com.mesalab.cn.common.pojo.DSLParser;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
-import org.aspectj.weaver.ast.Instanceof;
 
 import java.util.List;
-import java.util.Objects;
 
 import static java.util.stream.Collectors.joining;
 
@@ -44,8 +41,9 @@ public class ComDSLParse extends DSLParser {
             String fieldKey = ObjectUtil.isEmpty(defField) ? m.getFieldKey() : defField;
             List<String> fieldValues = m.getFieldValues();
             if(MatchEnum.EXACTLY.getType().equals(m.getType())){
-                return fieldValues.stream().map(v->encode(v)).collect(joining("','",fieldKey.concat(" IN ('"),"')"));
+                return fieldValues.stream().map(DigestUtil::md5Hex).collect(joining("','", fieldKey.concat(" IN ('"), "')"));
             } else {
+                fieldKey = fieldKey.equals(defField) ? "account" : fieldKey;
                 return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
                     return parseLike(encode(v), m.getType());
                 }).collect(joining(" or ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
