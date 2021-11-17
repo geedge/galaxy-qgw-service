@@ -28,6 +28,12 @@ public class TopNSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectIte
 
     private static final Pattern pSelect = Pattern.compile("\\bselect\\s+", Pattern.CASE_INSENSITIVE);
     private static final Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pUniq = Pattern.compile("\\buniq\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pUniqExact = Pattern.compile("\\buniqExact\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pUniqCombined = Pattern.compile("\\buniqCombined\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pUniqCombined64 = Pattern.compile("\\buniqCombined64\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pUniqHLL12 = Pattern.compile("\\buniqHLL12\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pUniqTheta = Pattern.compile("\\buniqTheta\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pLimitSetting = Pattern.compile("\\blimit(.*?)(\\))", Pattern.CASE_INSENSITIVE);
 
     private List<String> groupByList;
@@ -65,12 +71,37 @@ public class TopNSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectIte
             return this.valid = false;
         }
         setInnerSelectBody(selectBody);
-        if (pCount.matcher(this.innerSelectBody.toString()).find()) {
+        if (findCount(this.innerSelectBody.toString())) {
             return this.valid = false;
         }
         parse((PlainSelect) this.innerSelectBody);
         validation();
         return this.valid;
+    }
+
+    private boolean findCount(String inner) {
+        if (pCount.matcher(inner).find()) {
+            return true;
+        }
+        if (pUniq.matcher(inner).find()) {
+            return true;
+        }
+        if (pUniqExact.matcher(inner).find()) {
+            return true;
+        }
+        if (pUniqCombined.matcher(inner).find()) {
+            return true;
+        }
+        if (pUniqCombined64.matcher(inner).find()) {
+            return true;
+        }
+        if (pUniqHLL12.matcher(inner).find()) {
+            return true;
+        }
+        if (pUniqTheta.matcher(inner).find()) {
+            return true;
+        }
+        return false;
     }
 
     public String rewrite() {
