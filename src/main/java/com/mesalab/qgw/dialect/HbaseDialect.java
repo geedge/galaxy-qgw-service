@@ -12,6 +12,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.TableColumnVisitor;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.EngineConfigSource;
@@ -88,6 +89,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     String convertQuery(String sql) {
+        sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.HBASE.getValue());
         Statement parse;
         try {
             parse = CCJSqlParserUtil.parse(sql);
