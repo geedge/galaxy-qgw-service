@@ -370,6 +370,17 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
                     }
                 });
         List<ProtocolTree> mergeNodes = new ArrayList(mergeResultMap.values());
+        mergeNodes.sort((o1, o2) -> {
+            long numThis = o1.getReceivedBytes() + o1.getSentBytes();
+            long numParam = o2.getReceivedBytes() + o2.getSentBytes();
+            if (numThis > numParam) {
+                return -1;
+            } else if (numThis < numParam) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
         return TreeUtils.mergeTree(mergeNodes, ProtocolTree::getId, ProtocolTree::getParentId, ProtocolTree::setChildrens);
     }
 
