@@ -19,10 +19,14 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.sqlparser.TableColumnVisitor;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import com.mesalab.qgw.benchmark.engine.EngineWriter;
+import com.mesalab.qgw.benchmark.hbase.HbaseWriter;
+import com.mesalab.qgw.dialect.HbaseDialect;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpQuery;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
@@ -32,6 +36,9 @@ import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.Statement;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.http.HttpStatus;
@@ -61,6 +68,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private static final String DRUID_PREFIX = "druid_";
     private static final String CK_PREFIX = "ck_";
     private static final String ENGINE_PREFIX = "engine_";
+    private static final String HBASE_PREFIX = "hbase_";
 
     @Autowired
     private HttpClientService httpClientService;
@@ -74,6 +82,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private EngineWriter engineWriter;
     @Autowired
     private DruidWriter druidWriter;
+    @Autowired
+    private HbaseWriter hbaseWriter;
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
@@ -146,6 +156,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, Map<String, String>> engineResult;
         Map<String, Map<String, String>> clickhouseResult;
         Map<String, Map<String, String>> druidResult;
+        Map<String, Map<String, String>> hbaseResult;
         try {
             Stopwatch watch = Stopwatch.createStarted();
 
@@ -155,14 +166,18 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
             clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, option);
 
+            Optional<File> hbaseTestFile = Optional.of(new File(hbaseWriter.buildPocSQL()));
+            hbaseResult = executePocSqlByDatasource(hbaseTestFile, isSaved, option);
+
             Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
             engineResult = executePocSqlByDatasource(engineTestFile, isSaved, option);
-
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergeResult = Stream.concat(mergeResult.entrySet().stream(), hbaseResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
@@ -259,6 +274,15 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         continue;
                     }
                     BaseResult queryResult = generateClickHouseBaseResult(line);
+                    resultProcess(file, infoMap, writer, index, queryResult);
+                }
+            } else if (StringUtil.lowerCase(benchFileName).startsWith(HBASE_PREFIX)) {
+                for (String line : rawLines) {
+                    index++;
+                    if (Strings.isNullOrEmpty(line)) {
+                        continue;
+                    }
+                    BaseResult queryResult = generateHbaseBaseResult(line);
                     resultProcess(file, infoMap, writer, index, queryResult);
                 }
             } else if (StringUtil.lowerCase(benchFileName).startsWith(ENGINE_PREFIX)) {
@@ -403,6 +427,37 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());
     }
 
+
+    /**
+     * @param sql
+     * @return com.mesalab.common.base.BaseResult
+     * @Description hbase SQL测试集在hbase数据源查询并获取查询结果
+     * @author wanghao
+     * @date 2021/11/11 10:01
+     */
+    private BaseResult generateHbaseBaseResult(String sql) {
+        BaseResult baseResult = null;
+        HbaseDialect hbaseDialect = new HbaseDialect(queryBuild(sql));
+        baseResult = hbaseDialect.generateBaseResult(converter(sql), Optional.of("OK"));
+        return baseResult;
+    }
+
+    private ApiParam queryBuild(String sql) {
+        return ApiParam.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
+    }
+
+    private String converter(String sql) {
+        Statement parse;
+        try {
+            parse = CCJSqlParserUtil.parse(sql);
+        } catch (JSQLParserException e) {
+            log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Converter SQL Syntax Error.", e);
+        }
+        TableColumnVisitor visitor = new TableColumnVisitor();
+        visitor.surroundWithDoubleQuote(parse);
+        return parse.toString();
+    }
 
     private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {
         Map<String, String> infoMap = Maps.newLinkedHashMap();

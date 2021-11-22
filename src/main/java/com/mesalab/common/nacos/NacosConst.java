@@ -50,4 +50,7 @@ public class NacosConst {
 
     public static final String ENGINE_QUERIES_TEMPLATE_DATA_ID = "engine-queries-template.sql";
 
+    public static final String HBASE_FILTER_DATA_ID = "hbase-filter.json";
+
+    public static final String HBASE_QUERIES_TEMPLATE_DATA_ID = "hbase-queries-template.sql";
 }

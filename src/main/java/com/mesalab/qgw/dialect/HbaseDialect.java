@@ -1,5 +1,6 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.core.util.StrUtil;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -118,12 +119,16 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    String simplyErrorMessage(Object object) {
-        return null;
+    public String simplyErrorMessage(Object errorMessage) {
+        String message = StringUtil.isNotEmpty(errorMessage) ? String.valueOf(errorMessage)
+                : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
+        message = message.startsWith("ERROR ") ? message.substring(message.indexOf(":") + 1)
+                : message;
+        return StrUtil.removeAllLineBreaks("SQL Execute Error :".concat(message)).trim();
     }
 
     @Override
-    BaseResult generateBaseResult(String sql, Optional<String> message) {
+    public BaseResult generateBaseResult(String sql, Optional<String> message) {
         watch.start();
         Map<String, Object> results = executeQuery(sql);
         int status = Integer.parseInt(String.valueOf(results.get("status")));
@@ -151,7 +156,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             return buildResult(resultSet);
         } catch (RuntimeException | SQLException e) {
             log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Execute Error - ", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), simplyErrorMessage(e.getMessage()), null);
         } finally {
             close(resultSet, statement, conn);
         }
