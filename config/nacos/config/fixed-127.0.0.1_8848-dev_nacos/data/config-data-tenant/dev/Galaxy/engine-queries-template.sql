@@ -94,3 +94,23 @@ select FROM_UNIXTIME(min(common_recv_time)) as "First Seen" , FROM_UNIXTIME(max(
 select "Device Group" as "Device Group" ,"Data Center" as "Data Center" ,FROM_UNIXTIME("End Time") as "End Time" , sum("counter") as "counter"  from (select common_device_group as "Device Group" ,common_data_center as "Data Center" ,TIME_FLOOR_WITH_FILL (common_end_time,'PT1H','zero') as "End Time" ,count(common_log_id) as "counter"  from session_record where   common_recv_time >= toDateTime(@start) and common_recv_time< toDateTime(@end)  group by "Device Group","Data Center","End Time") group by "Device Group" ,"Data Center" ,"End Time"  order by  "End Time" asc  limit 5
 --Q48.TIME_FLOOR_WITH_FILL 02
 select FROM_UNIXTIME("End Time") as "End Time" , sum("counter") as "counter"  from (select common_device_group as "Device Group" ,common_data_center as "Data Center" ,TIME_FLOOR_WITH_FILL (common_end_time,'PT1H','zero') as "End Time" ,count(common_log_id) as "counter" ,count(http_domain) as "HTTP.Domain"  from security_event where   ((common_recv_time >= toDateTime('2021-10-19 00:00:00') and common_recv_time < toDateTime('2021-10-20 00:00:00'))  )  AND (  ( common_action = 2  ) ) group by "Device Group","Data Center","End Time") group by "End Time"  order by  "End Time" asc
+--Q49.CONVERT_TZ (Druid) 01
+SELECT CONVERT_TZ('2019-09-09 09:09:09','GMT','MET') as test_time from proxy_event_hits_log limit 1
+--Q50.CONVERT_TZ (Druid) 02
+SELECT CONVERT_TZ('2019-09-09 09:09:09','Europe/London','America/New_York') as test_time from proxy_event_hits_log limit 1
+--Q51.CONVERT_TZ (Druid) 03
+SELECT CONVERT_TZ(now(),'GMT','America/New_York') as test_time from proxy_event_hits_log limit 1
+--Q53.CONVERT_TZ (clickhouse) 01
+SELECT CONVERT_TZ('2019-09-09 09:09:09','GMT','MET') as test_time from session_record limit 1
+--Q54.CONVERT_TZ (clickhouse) 02
+SELECT CONVERT_TZ('2019-09-09 09:09:09','Europe/London','America/New_York') as test_time from session_record limit 1
+--Q55.CONVERT_TZ (clickhouse) 03
+SELECT CONVERT_TZ(now(),'GMT','America/New_York') as test_time from session_record limit 1
+--Q57.CONVERT_TZ (hbase) 01
+SELECT CONVERT_TZ('2019-09-09 09:09:09','GMT','MET') as test_time from report_result limit 1
+--Q58.CONVERT_TZ (hbase) 02
+SELECT CONVERT_TZ('2019-09-09 09:09:09','Europe/London','America/New_York') as test_time from report_result limit 1
+--Q59.CONVERT_TZ (hbase) 03
+SELECT CONVERT_TZ(now(),'GMT','America/New_York') as test_time from report_result limit 1
+--Q61.CONVERT_TZ (elasticsearch)
+SELECT CONVERT_TZ('2019-09-09 09:09:09','Europe/London','America/New_York')as time from report_result limit 1

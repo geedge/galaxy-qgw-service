@@ -80,6 +80,8 @@ public class SQLFunctionUtil {
     public static final Pattern pYearFunNum = Pattern.compile("(YEAR)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pQuantile = Pattern.compile("\\WQUANTILE\\s*\\(");
     public static final Pattern pTimeZone = Pattern.compile("\\W(CONVERT_TZ)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pTZFormat = Pattern.compile("\\+\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
+    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
     /**
      * 解析mysql函数替换为对应数据库类型函数
@@ -120,12 +122,12 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = dateTZHavaMark(sqlParse, bracketsMatch[0], dbType);
+            String str = dateTZReplace(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
 
-    public static String dateTZHavaMark(String sqlParse, int num, String dbType) {
+    public static String dateTZReplace(String sqlParse, int num, String dbType) {
         Pattern pDateFormatMark = Pattern.compile("(CONVERT_TZ)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher mDateFormatMark = pDateFormatMark.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -133,7 +135,7 @@ public class SQLFunctionUtil {
             String group2 = mDateFormatMark.group(2);
             String replaceValue = group2;
             if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
-                replaceValue = dateTZRealize(mDateFormatMark.group(1), group2, dbType);
+                replaceValue = dateTZReplaceByDB(mDateFormatMark.group(1), group2, dbType);
             }
             mDateFormatMark.appendReplacement(sb, replaceValue);
         }
@@ -141,21 +143,36 @@ public class SQLFunctionUtil {
         return sb.toString();
     }
 
-    public static String dateTZRealize(String func, String param, String dbType) {
+    public static String dateTZReplaceByDB(String func, String param, String dbType) {
         List<String> params = diviParam(param, ",");
         String replaceValue = null;
-        if (func.equals("CONVERT_TZ") && params.size() == 3) {
+        if (("CONVERT_TZ").equals(func) && params.size() == 3) {
+            int timeDifference;
             String oldTZString = params.get(1).replaceAll("'", "").replaceAll(" ", "");
-            int oldTZInt = (Integer.parseInt(TimeZoneUtil.timeZoneTransition(oldTZString))) / 100;
             String startTZString = params.get(2).replaceAll("'", "").replaceAll(" ", "");
-            int startTZInt = (Integer.parseInt(TimeZoneUtil.timeZoneTransition(startTZString))) / 100;
-            int timeDifference = startTZInt - oldTZInt;
+            if (pTZFormat.matcher(params.get(1)).find()) {
+                timeDifference = (Integer.parseInt(startTZString.replaceAll(":", ""))) / 100 - (Integer.parseInt(oldTZString.replaceAll(":", ""))) / 100;
+            } else {
+                int oldTZInt = (Integer.parseInt(TimeZoneUtil.timeZoneTransition(oldTZString))) / 100;
+                int startTZInt = (Integer.parseInt(TimeZoneUtil.timeZoneTransition(startTZString))) / 100;
+                timeDifference = startTZInt - oldTZInt;
+            }
             if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
                 replaceValue = "addHours#[toDateTime#[" + params.get(0) + "," + params.get(1) + "#]," + timeDifference + "," + params.get(1) + "#]";
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                replaceValue = "TIME_SHIFT#[TIME_PARSE#[" + params.get(0) + "#]," + "PT1H" + timeDifference + "," + params.get(1) + "#]";
+                if (!strFormatDateTime.matcher(params.get(0)).find()) {
+                    replaceValue = "TIME_FORMAT#[TIME_SHIFT#[" + params.get(0) + "," + "'PT1H'," + timeDifference + "," + params.get(1) + "#],'yyyy-MM-dd HH:mm:ss'#]";
+                } else {
+                    replaceValue = "TIME_FORMAT#[TIME_SHIFT#[TIME_PARSE#[" + params.get(0) + "#]," + "'PT1H'," + timeDifference + "," + params.get(1) + "#],'yyyy-MM-dd HH:mm:ss'#]";
+                }
             } else if (DBTypeEnum.HBASE.getValue().equals(dbType)) {
-                replaceValue = "TO_CHAR#[" + func + "#[TO_TIMESTAMP#[" + params.get(0) + "#],'" + TimeZoneUtil.timeZoneTransition(oldTZString) + "','" + TimeZoneUtil.timeZoneTransition(startTZString) + "'#],'yyyy-MM-dd HH:mm:ss'#]";
+                if (!strFormatDateTime.matcher(params.get(0)).find()) {
+                    replaceValue = "TO_CHAR#[" + func + "#[ " + params.get(0) + ",'" + TimeZoneUtil.timeZoneTransition(oldTZString) + "','" + TimeZoneUtil.timeZoneTransition(startTZString) + "'#],'yyyy-MM-dd HH:mm:ss'#]";
+                } else {
+                    replaceValue = "TO_CHAR#[" + func + "#[TO_TIMESTAMP#[" + params.get(0) + "#],'" + TimeZoneUtil.timeZoneTransition(oldTZString) + "','" + TimeZoneUtil.timeZoneTransition(startTZString) + "'#],'yyyy-MM-dd HH:mm:ss'#]";
+                }
+            } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+                replaceValue = "DATETIME_FORMAT#[DATE_ADD#['HOUR'," + timeDifference + ",#[DATETIME_PARSE#['" + params.get(0).replaceAll("'", "") + " " + oldTZString + "','yyyy-MM-dd HH:mm:ss VV'#]#]::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
             }
         }
         return replaceValue;
@@ -265,7 +282,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = mergeFromUnixToTimeHavaMark(sqlParse, bracketsMatch[0], dbType);
+            String str = mergeFromUnixToTimeReplaceByDB(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -291,7 +308,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = dateFormatHavaMark(sqlParse, bracketsMatch[0], false, dbType);
+            String str = dateFormatdateFormatReplace(sqlParse, bracketsMatch[0], false, dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -316,7 +333,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseQuantile(sqlParse, bracketsMatch[0], dbType);
+            String str = parseQuantileReplace(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -329,7 +346,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    public static String parseQuantile(String sqlParse, int num, String dbType) {
+    public static String parseQuantileReplace(String sqlParse, int num, String dbType) {
         Pattern pNumQuantile = Pattern.compile("(QUANTILE)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)");
         Matcher matcher = pNumQuantile.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -337,7 +354,7 @@ public class SQLFunctionUtil {
             String group2 = matcher.group(2);
             String replaceValue = group2;
             if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
-                replaceValue = quantileRealize(group2, dbType);
+                replaceValue = quantileReplaceByDB(group2, dbType);
             }
             matcher.appendReplacement(sb, replaceValue);
         }
@@ -352,7 +369,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String quantileRealize(String param, String dbType) {
+    private static String quantileReplaceByDB(String param, String dbType) {
         List<String> params = diviParam(param, ",");
         String replaceValue = null;
         if (params.size() == 1) {
@@ -388,7 +405,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = dateFormatHavaMark(sqlParse, bracketsMatch[0], true, dbType);
+            String str = dateFormatdateFormatReplace(sqlParse, bracketsMatch[0], true, dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -413,7 +430,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = dateRelativeHaveMark(sqlParse, bracketsMatch[0], dbType);
+            String str = dateReplace(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -438,7 +455,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseUnixTimeHavaMark(sqlParse, bracketsMatch[0], dbType);
+            String str = parseUnixTimeReplaceByDB(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -463,7 +480,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseDateHavaMark(sqlParse, bracketsMatch[0], dbType);
+            String str = parseDateReplaceByDB(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -488,7 +505,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseUnitFuncGetNumHaveMark(sqlParse, bracketsMatch[0], dbType);
+            String str = parseUnitFuncGetNumReplace(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -513,7 +530,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseMarkDateHaveMark(sqlParse, bracketsMatch[0], dbType);
+            String str = parseMarkDateReplace(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -538,7 +555,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch[0] >= 1) {
                 --bracketsMatch[0];
             }
-            String str = parseLastDayFuncHaveMark(sqlParse, bracketsMatch[0], dbType);
+            String str = parseLastDayFuncReplace(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -575,7 +592,7 @@ public class SQLFunctionUtil {
             if (bracketsMatch2[0] >= 1) {
                 --bracketsMatch2[0];
             }
-            String str = parseDateCalculateNumHaveMark(sqlParse, bracketsMatch[0], bracketsMatch2[0], dbType);
+            String str = parseDateCalculateNumReplaceByDB(sqlParse, bracketsMatch[0], bracketsMatch2[0], dbType);
             sql = sql.substring(0, matcher.start()) + str;
         }
     }
@@ -589,7 +606,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String mergeFromUnixToTimeHavaMark(String sql, int num, String dbType) {
+    private static String mergeFromUnixToTimeReplaceByDB(String sql, int num, String dbType) {
         Pattern p = Pattern.compile("DATE_FORMAT\\s*\\(\\s*FROM_UNIXTIME\\s*\\(\\s*FLOOR\\s*\\(\\s*UNIX_TIMESTAMP\\s*(\\((.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher m = p.matcher(sql);
@@ -668,7 +685,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String parseDateCalculateNumHaveMark(String sqlParse, int num, int num2, String dbType) {
+    private static String parseDateCalculateNumReplaceByDB(String sqlParse, int num, int num2, String dbType) {
         Pattern pDateCalculateNumParse = Pattern.compile("(DATE)\\s*\\((.*?(.*?\\).*?){" + num2 + "})\\)(.*?(.*?\\).*?){" + (num - num2 - 1) + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mDateCalculateNumParse = pDateCalculateNumParse.matcher(sqlParse);
@@ -708,12 +725,12 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    public static String parseLastDayFuncHaveMark(String sqlParse, int num, String dbType) {
+    public static String parseLastDayFuncReplace(String sqlParse, int num, String dbType) {
         Pattern pLastDayParse = Pattern.compile("(LAST_DAY)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mLastDayParse = pLastDayParse.matcher(sqlParse);
         if (mLastDayParse.find()) {
-            String replaceValue = lastDayRealize(mLastDayParse.group(1), mLastDayParse.group(2), dbType);
+            String replaceValue = lastDayReplace(mLastDayParse.group(1), mLastDayParse.group(2), dbType);
             mLastDayParse.appendReplacement(sb, replaceValue);
         }
         mLastDayParse.appendTail(sb);
@@ -728,7 +745,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String lastDayRealize(String unit, String param, String dbType) {
+    private static String lastDayReplace(String unit, String param, String dbType) {
         String replaceValue = null;
         if ("LAST_DAY".equals(StringUtils.upperCase(unit))) {
             if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
@@ -750,12 +767,12 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    public static String parseMarkDateHaveMark(String sqlParse, int num, String dbType) {
+    public static String parseMarkDateReplace(String sqlParse, int num, String dbType) {
         Pattern pMarkDateParse = Pattern.compile("(MAKEDATE)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mMarkDateParse = pMarkDateParse.matcher(sqlParse);
         if (mMarkDateParse.find()) {
-            String replaceValue = markDateRealize(mMarkDateParse.group(1), mMarkDateParse.group(2), dbType);
+            String replaceValue = markDateReplaceByDb(mMarkDateParse.group(1), mMarkDateParse.group(2), dbType);
             mMarkDateParse.appendReplacement(sb, replaceValue);
         }
         mMarkDateParse.appendTail(sb);
@@ -770,7 +787,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String markDateRealize(String func, String expr, String dbType) {
+    private static String markDateReplaceByDb(String func, String expr, String dbType) {
         String replaceValue = null;
         List<String> params = diviParam(expr, ",");
         if ("MAKEDATE".equals(StringUtils.upperCase(func)) && params.size() == 2) {
@@ -821,12 +838,12 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String parseUnitFuncGetNumHaveMark(String sqlParse, int num, String dbType) {
+    private static String parseUnitFuncGetNumReplace(String sqlParse, int num, String dbType) {
         Pattern pUnitFuncParse = Pattern.compile("(YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|SECOND|DAYOFYEAR|DAYOFMONTH|DAYOFWEEK)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         StringBuffer sb = new StringBuffer();
         Matcher mUnitFuncParse = pUnitFuncParse.matcher(sqlParse);
         if (mUnitFuncParse.find()) {
-            String replaceValue = unitFuncGetNumRealize(mUnitFuncParse.group(1), mUnitFuncParse.group(2), dbType);
+            String replaceValue = unitFuncGetNumReplaceByDB(mUnitFuncParse.group(1), mUnitFuncParse.group(2), dbType);
             mUnitFuncParse.appendReplacement(sb, replaceValue);
         }
         mUnitFuncParse.appendTail(sb);
@@ -841,7 +858,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String unitFuncGetNumRealize(String unit, String expr, String dbType) {
+    private static String unitFuncGetNumReplaceByDB(String unit, String expr, String dbType) {
         String replaceValue = null;
         unit = StringUtils.upperCase(unit);
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
@@ -961,7 +978,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String dateRelative(List<String> params, Boolean sign, String dbType) {
+    private static String dateReplaceByDb(List<String> params, Boolean sign, String dbType) {
         String replaceValue = "";
         if (params.size() == 2 && StringUtils.upperCase(params.get(1)).contains("INTERVAL")) {
             String param1 = params.get(0);
@@ -1093,7 +1110,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    private static String dateFormatRealize(String func, String param, boolean bool, String dbType) {
+    private static String dateFormatdateFormatReplaceByDB(String func, String param, boolean bool, String dbType) {
         List<String> params = diviParam(param, ",");
         String param1 = params.get(0);
         String replaceValue = null;
@@ -1358,7 +1375,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    public static String dateFormatHavaMark(String sqlParse, int num, boolean bool, String dbType) {
+    public static String dateFormatdateFormatReplace(String sqlParse, int num, boolean bool, String dbType) {
         Pattern pDateFormatMark = Pattern.compile("(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher mDateFormatMark = pDateFormatMark.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -1366,7 +1383,7 @@ public class SQLFunctionUtil {
             String group2 = mDateFormatMark.group(2);
             String replaceValue = group2;
             if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
-                replaceValue = dateFormatRealize(mDateFormatMark.group(1), group2, bool, dbType);
+                replaceValue = dateFormatdateFormatReplaceByDB(mDateFormatMark.group(1), group2, bool, dbType);
             }
             mDateFormatMark.appendReplacement(sb, replaceValue);
         }
@@ -1382,7 +1399,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    public static String dateRelativeHaveMark(String sqlParse, int num, String dbType) {
+    public static String dateReplace(String sqlParse, int num, String dbType) {
         Pattern pDateRelativeParse = Pattern.compile("(ADDDATE|DATE_ADD|SUBDATE|DATE_SUB)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pDateRelativeParse.matcher(sqlParse);
         String innerValue = "";
@@ -1391,7 +1408,7 @@ public class SQLFunctionUtil {
             Boolean sign = StringUtils.upperCase(matcherParse.group(1)).contains("ADD");
             if (StringUtil.getBracketsMatch(matcherParse.group(2), null, false)[0] >= 0) {
                 List<String> params = diviParam(matcherParse.group(2), ",");
-                innerValue = dateRelative(params, sign, dbType);
+                innerValue = dateReplaceByDb(params, sign, dbType);
             }
             matcherParse.appendReplacement(sb, innerValue);
         }
@@ -1407,7 +1424,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    public static String parseUnixTimeHavaMark(String sqlParse, int num, String dbType) {
+    public static String parseUnixTimeReplaceByDB(String sqlParse, int num, String dbType) {
         Pattern pUnixTimeParse = Pattern.compile("(UNIX_TIMESTAMP)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pUnixTimeParse.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -1442,7 +1459,7 @@ public class SQLFunctionUtil {
      * @param dbType
      * @return
      */
-    public static String parseDateHavaMark(String sqlParse, int num, String dbType) {
+    public static String parseDateReplaceByDB(String sqlParse, int num, String dbType) {
         Pattern pDateParse = Pattern.compile("(DATE)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pDateParse.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
