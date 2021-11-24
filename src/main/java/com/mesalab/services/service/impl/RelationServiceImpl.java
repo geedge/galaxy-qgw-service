@@ -58,7 +58,8 @@ public class RelationServiceImpl implements RelationService {
         RelationTypeEnum rte = RelationTypeEnum.getByType(param);
         String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
         String timeWhere = ComDSLParse.parseInterval(query, "last_update_time", true);
-        String sql = MessageFormat.format(rte.getSqlTemplate(), rte.getDatasource(), fieldWhere.concat(timeWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
+        String filterStatus = " AND acct_status_type != 2 ";
+        String sql = MessageFormat.format(rte.getSqlTemplate(), rte.getDatasource(), fieldWhere.concat(timeWhere).concat(filterStatus), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
         log.info("real time relation subscribe id query sql: {}", sql);
         return ApiParam.builder().option("real-time").query(sql).build();
     }
