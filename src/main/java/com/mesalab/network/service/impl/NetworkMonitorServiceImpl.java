@@ -58,11 +58,12 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
 
     private static final String PROTOCOL_NODE = "Protocols.";
     private static final String PROTOCOL_ROOT_NODE = "ETHERNET";
+    private static final String PROTOCOL_ROOT_PARENT_ID = "ROOT";
+
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
     }
-
     @Override
     public BaseResult getTrafficDistributedInfo(DSLObject dslObject) {
         BaseResult baseResult;
@@ -350,7 +351,6 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
                         ProtocolTree mergeProtocolTree = new ProtocolTree(firstProtocolTree.getId(), firstProtocolTree.getName(),
                                 firstProtocolTree.getParentId(), 0, 0);
                         mergeProtocolTree.setMetrics(Maps.newLinkedHashMap());
-
                         for (ProtocolTree protocolTree : input) {
                             mergeProtocolTree.setSentBytes(mergeProtocolTree.getSentBytes() + protocolTree.getSentBytes());
                             mergeProtocolTree.setReceivedBytes(mergeProtocolTree.getReceivedBytes() + protocolTree.getReceivedBytes());
@@ -369,19 +369,27 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
                         return mergeProtocolTree;
                     }
                 });
-        List<ProtocolTree> mergeNodes = new ArrayList(mergeResultMap.values());
-        mergeNodes.sort((o1, o2) -> {
-            long numThis = o1.getReceivedBytes() + o1.getSentBytes();
-            long numParam = o2.getReceivedBytes() + o2.getSentBytes();
-            if (numThis > numParam) {
-                return -1;
-            } else if (numThis < numParam) {
-                return 1;
-            } else {
-                return 0;
+        List<ProtocolTree> mergeResultList = new ArrayList(mergeResultMap.values());
+        mergeResultList.sort(new Comparator<ProtocolTree>() {
+            @Override
+            public int compare(ProtocolTree o1, ProtocolTree o2) {
+                return (o2.getReceivedBytes()+o2.getSentBytes()) - (o1.getReceivedBytes()+o1.getSentBytes()) > 0 ? 1 : -1;
             }
         });
-        return TreeUtils.mergeTree(mergeNodes, ProtocolTree::getId, ProtocolTree::getParentId, ProtocolTree::setChildrens);
+
+        List<ProtocolTree> roots = mergeResultList.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
+        Map<String, List<ProtocolTree>> protocolMap = Maps.newLinkedHashMap();
+        protocolMap.put(PROTOCOL_ROOT_PARENT_ID, roots);
+        for(ProtocolTree protocolTree : mergeResultList) {
+            if (StringUtil.isEmpty(protocolMap.get(protocolTree.getParentId()))) {
+                protocolMap.put(protocolTree.getParentId(), Lists.newArrayList(protocolTree));
+            } else {
+                protocolMap.get(protocolTree.getParentId()).add(protocolTree);
+            }
+        }
+
+        return TreeUtils.mergeTree(protocolMap, PROTOCOL_ROOT_PARENT_ID, ProtocolTree::getId, ProtocolTree::setChildrens);
+
     }
 
     enum QueryType {

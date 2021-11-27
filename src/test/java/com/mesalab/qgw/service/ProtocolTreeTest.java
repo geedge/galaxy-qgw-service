@@ -16,10 +16,7 @@ import org.junit.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @EnableAutoConfiguration
@@ -46,8 +43,8 @@ public class ProtocolTreeTest extends GalaxyQGWApplicationTests {
         List<ProtocolTree> listNodes = Lists.newArrayList(concatResult);
 
         ProtocolTree root = new ProtocolTree("Protocols", "Protocols", null);
-        List<ProtocolTree> roots = listNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
-        roots.forEach(item -> {
+        List<ProtocolTree> rootList = listNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
+        rootList.forEach(item -> {
             root.setSentBytes(root.getSentBytes() + item.getSentBytes());
             root.setReceivedBytes(root.getReceivedBytes() + item.getReceivedBytes());
         });
@@ -99,11 +96,27 @@ public class ProtocolTreeTest extends GalaxyQGWApplicationTests {
                     }
                 });
 
-        List<ProtocolTree> mergeNodes = new ArrayList(mergeResultMap.values());
+        List<ProtocolTree> mergeResultList = new ArrayList(mergeResultMap.values());
 
 
-        List<ProtocolTree> treeNodes = TreeUtils.mergeTree(mergeNodes, ProtocolTree::getId, ProtocolTree::getParentId, ProtocolTree::setChildrens);
-        log.info(JsonMapper.toJsonString(treeNodes));
+        mergeResultList.sort(new Comparator<ProtocolTree>() {
+            @Override
+            public int compare(ProtocolTree o1, ProtocolTree o2) {
+                return (o2.getReceivedBytes()+o2.getSentBytes()) - (o1.getReceivedBytes()+o1.getSentBytes()) > 0 ? 1 : -1;
+            }
+        });
+
+        List<ProtocolTree> roots = mergeResultList.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
+        Map<String, List<ProtocolTree>> protocolMap = Maps.newLinkedHashMap();
+        protocolMap.put("ROOT", roots);
+        for(ProtocolTree protocolTree : mergeResultList) {
+            if (StringUtil.isEmpty(protocolMap.get(protocolTree.getParentId()))) {
+                protocolMap.put(protocolTree.getParentId(), Lists.newArrayList(protocolTree));
+            } else {
+                protocolMap.get(protocolTree.getParentId()).add(protocolTree);
+            }
+        }
+        log.info(JsonMapper.toJsonString(TreeUtils.mergeTree(protocolMap, "ROOT", ProtocolTree::getId, ProtocolTree::setChildrens)));
 
 
 
