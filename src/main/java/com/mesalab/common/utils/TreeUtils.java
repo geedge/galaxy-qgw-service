@@ -6,11 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class TreeUtils {
@@ -59,32 +59,32 @@ public class TreeUtils {
 
     /**
      * 聚合为树结构
-     * @param list 节点列表数据
+     * @param rootParentID 根节点父ID
+     * @param <R, List<T>> protocolMap 协议数据偏平结构
      * @param loadKey 节点的ID；函数，接收一个节点获取唯一ID
-     * @param loadParentKey 节点的父亲ID；函数，接收一个节点获取父亲ID
      * @param write 节点Children写入函数；函数，接收当前节点和子节点列表，然后将子节点项写入当前节点。
      * @param <T> 当前节点对象
      * @param <R> 请求节点返回的属性信息
      * @return 树结构列表
      */
-    public static <T, R> List<T> mergeTree(List<T> list,
+    public static <T, R> List<T> mergeTree(Map<R, List<T>> protocolMap,
+                                           String rootParentID,
                                            Function<T, R> loadKey,
-                                           Function<T, R> loadParentKey,
                                            BiConsumer<T, List<T>> write) {
-        List<T> root = list.stream().filter(o -> StringUtil.isEmpty(loadParentKey.apply(o))).collect(Collectors.toList());
+
+        List<T> root = protocolMap.get(rootParentID);
         Stack<T> stack = new Stack<T>();
         root.forEach(stack::push);
         while (!stack.isEmpty()) {
             T o = stack.pop();
             R key = loadKey.apply(o);
-            List<T> childrens = list.stream().filter(k -> key.equals(loadParentKey.apply(k))).collect(Collectors.toList());
-            write.accept(o, childrens);
-            if (childrens.size() > 0) {
-                childrens.forEach(stack :: push);
+            List<T> children = protocolMap.get(key);
+            write.accept(o, children);
+            if (StringUtil.isNotEmpty(children)) {
+                children.forEach(stack :: push);
             }
 
         }
-
         return root;
     }
 
