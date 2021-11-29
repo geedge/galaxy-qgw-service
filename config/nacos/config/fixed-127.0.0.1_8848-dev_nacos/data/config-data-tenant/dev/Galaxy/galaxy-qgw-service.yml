@@ -83,10 +83,19 @@ xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
   userName: query
   pin: ceiec2018
-## Engine configuration
+## Engine、Service configuration
 engine:
   maxCacheNum: 1048575
   defaultResultNum: 100000
+service:
+  entity:
+    activeClientIP: 10000
+    topServerIP:
+      TCPBySession: 100000
+      TCPByUniqClientIP: 100000
+      UDPBySession: 100000
+      UDPByUniqClientIP: 40000
+    topSNI: 30000
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.12:8529

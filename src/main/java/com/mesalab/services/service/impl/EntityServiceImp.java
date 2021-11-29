@@ -5,6 +5,9 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.beust.jcommander.internal.Sets;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -13,11 +16,13 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.qgw.model.api.EntityConfigSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
+import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,14 +51,18 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     private HttpClientService httpClientServiceTemp;
     @Autowired
     private HttpConfig httpConfigTemp;
+    @Autowired
+    private EntityConfigSource entityConfigSourceTemp;
 
     private static HttpClientService httpClientService;
     private static HttpConfig httpConfig;
+    private static EntityConfigSource entityConfigSource;
 
     @PostConstruct
     public void init() {
         httpClientService = this.httpClientServiceTemp;
         httpConfig = this.httpConfigTemp;
+        entityConfigSource = this.entityConfigSourceTemp;
     }
 
     @Value("${server.port}")
@@ -92,19 +101,23 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     private BaseResult getResultOfServerIP(ComDSLObject.Query query) {
-        String timeInterval = getTimeInterval(query.getParameters());
+        String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
 
-        String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, timeInterval);
+        String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, timeInterval,
+                StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopServerIPByTCPSession() ? entityConfigSource.getTopServerIPByTCPSession() : query.getLimit());
         Map<String, String> tcpSessionResult = executeQuery(tcpSessionSql);
 
-        String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
+        String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
+                StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopServerIPByTCPUniqClientIP() ? entityConfigSource.getTopServerIPByTCPUniqClientIP() : query.getLimit());
         Map<String, String> tcpClientIpResult = executeQuery(tcpClientIpsSql);
 
-        String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval);
+        String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval,
+                StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopServerIPByUDPBySession() ? entityConfigSource.getTopServerIPByUDPBySession() : query.getLimit());
         Map<String, String> udpSessionResult = executeQuery(udpSessionSql);
 
-        String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
+        String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
+                StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopServerIPByUDPUniqClientIP() ? entityConfigSource.getTopServerIPByUDPUniqClientIP() : query.getLimit());
         Map<String, String> udpClientIpsResult = executeQuery(udpClientIpsSql);
 
         if (!String.valueOf(HttpStatus.SC_OK).equals(tcpSessionResult.get("status"))
@@ -119,13 +132,24 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             );
         }
 
-        BaseResult baseResult;
         HashSet<Map<String, String>> hashSet = new HashSet<>();
         getData(udpSessionResult).forEach(hashSet::add);
         getData(udpClientIpsResult).forEach(hashSet::add);
         getData(tcpSessionResult).forEach(hashSet::add);
         getData(tcpClientIpResult).forEach(hashSet::add);
 
+        Set<Map<String, String>> data = Sets.newHashSet();
+        if (StringUtil.isNotEmpty(query.getLimit()) && hashSet.size() > Integer.parseInt(query.getLimit())) {
+            for (Map<String, String> item : hashSet) {
+                if (data.size() >= Integer.parseInt(query.getLimit())) {
+                    break;
+                }
+                data.add(item);
+            }
+        } else {
+            data = hashSet;
+        }
+        Map<String, Object> statistics = Maps.newHashMap();
         Map tcpSessionResultMap = (Map) JsonMapper.fromJsonString(tcpSessionResult.get("result"), Map.class);
         Map tcpSessionStatistics = (Map) tcpSessionResultMap.get("statistics");
         Map tcpClientIpResultMap = (Map) JsonMapper.fromJsonString(tcpClientIpResult.get("result"), Map.class);
@@ -136,30 +160,29 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         Map udpClientIpStatistics = (Map) udpClientIpResultMap.get("statistics");
         for (Object key : tcpSessionStatistics.keySet()) {
             if ("result_size".equals(key.toString())) {
-                tcpSessionStatistics.put(key, JsonMapper.toJsonString(hashSet).getBytes().length);
+                statistics.put(key.toString(), JsonMapper.toJsonString(data).getBytes().length);
             } else if ("result_rows".equals(key.toString())) {
-                tcpSessionStatistics.put(key, hashSet.size());
+                statistics.put(key.toString(), data.size());
             } else {
-                tcpSessionStatistics.put(key, Long.parseLong(tcpSessionStatistics.get(key).toString())
+                statistics.put(String.valueOf(key), Long.parseLong(tcpSessionStatistics.get(key).toString())
                         + Long.parseLong(tcpClientIpStatistics.get(key).toString())
                         + Long.parseLong(udpSessionStatistics.get(key).toString())
                         + Long.parseLong(udpClientIpStatistics.get(key).toString()));
             }
         }
-        baseResult = BaseResultGenerator.success("ok", hashSet, tcpSessionStatistics);
-        return baseResult;
+        return BaseResultGenerator.success("ok", data, statistics);
     }
 
     public List<Map> getData(Map<String, String> result) {
         Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
-        return  (List<Map>) resultMap.get("data");
+        return (List<Map>) resultMap.get("data");
     }
 
     public String generateActiveClientIP(ComDSLObject.Query query, String fileSql) {
-        String timeInterval = getTimeInterval(query.getParameters());
+        String timeInterval = getTimeInterval(query.getParameters(), -30);
         String matchDate = getMatchDate(query.getParameters());
         matchDate = StringUtil.isBlank(matchDate) ? "" : " AND " + matchDate;
-        return String.format(fileSql, query.getDataSource(), timeInterval, matchDate, StringUtil.isBlank(query.getLimit()) ? 10000 : query.getLimit());
+        return String.format(fileSql, query.getDataSource(), timeInterval, matchDate, StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getActiveClientIP() ? entityConfigSource.getActiveClientIP() : query.getLimit());
     }
 
     private String getMatchDate(ComDSLObject.Query.QueryBean query) {
@@ -175,9 +198,14 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return matchDate.toString();
     }
 
-    private String getTimeInterval(ComDSLObject.Query.QueryBean parameters) {
-        if (CollectionUtils.isEmpty(parameters.getIntervals())) {
-            return StringUtil.EMPTY;
+    private String getTimeInterval(ComDSLObject.Query.QueryBean parameters, int defaultInterval) {
+        if (StringUtil.isEmpty(parameters.getIntervals())) {
+            Date now = new Date();
+            Date someMinute = DateUtils.getSomeMinute(now, defaultInterval);
+            String end = DateUtils.getFormatDate(now, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            String start = DateUtils.getFormatDate(someMinute, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            List<String> list = Lists.newArrayList(start.concat("/").concat(end));
+            parameters.setIntervals(list);
         }
         StringBuilder timeInterval = new StringBuilder();
         String[] intervals = getIntervals(parameters.getIntervals());
@@ -203,9 +231,9 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     public String generateTopSNI(ComDSLObject.Query query, String fileSql) {
-        String timeInterval = getTimeInterval(query.getParameters());
+        String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
-        return String.format(fileSql, datasource, timeInterval);
+        return String.format(fileSql, datasource, timeInterval, StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopSNI() ? entityConfigSource.getTopSNI() : query.getLimit());
     }
 
     private Map<String, String> executeQuery(String sql) {
