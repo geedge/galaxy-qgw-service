@@ -21,23 +21,23 @@ select common_client_ip as client_ip from %s where %s %s GROUP BY common_client_
 #end
 
 #sql("ENTITY_UDP_SESSION")
-select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by sum(common_sessions) desc limit 80
+select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by sum(common_sessions) desc limit %s
 #end
 
 #sql("ENTITY_UDP_UNIQ_CLIENT_IPS")
-select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit 80
+select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit %s
 #end
 
 #sql("ENTITY_TCP_SESSION")
-select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by sum(common_sessions) desc limit 25000
+select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by sum(common_sessions) desc limit %s
 #end
 
 #sql("ENTITY_TCP_UNIQ_CLIENT_IPS")
-select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit 11500
+select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit %s
 #end
 
 #sql("ENTITY_TOP_SNI")
-select ssl_sni from %s where %s and notEmpty(ssl_sni) group by ssl_sni order by SUM (common_sessions) desc limit 2000
+select ssl_sni from %s where %s and notEmpty(ssl_sni) group by ssl_sni order by SUM (common_sessions) desc limit %s
 #end
 
 #sql("SYSTEM_STORAGE_QUOTA")
