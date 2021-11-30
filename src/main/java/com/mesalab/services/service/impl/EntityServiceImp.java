@@ -95,7 +95,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         String fileSql;
         String sql;
         if (param.equalsIgnoreCase(EntityQueryType.ACTIVECLIENTIP.getType())) {
-            baseResult = getHbaseResult(comDSLObject.getQuery());
+            baseResult = getActiveClientIP(comDSLObject.getQuery());
         } else if (param.equalsIgnoreCase(EntityQueryType.TOPSERVERIP.getType())) {
             baseResult = getResultOfServerIP(comDSLObject.getQuery());
         } else if (param.equalsIgnoreCase(EntityQueryType.TOPSNI.getType())) {
@@ -111,7 +111,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return baseResult;
     }
 
-    private BaseResult getHbaseResult(ComDSLObject.Query query) {
+    private BaseResult getActiveClientIP(ComDSLObject.Query query) {
         BaseResult baseResult;
         String fileSql;
         String sql;
@@ -195,8 +195,6 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return Joiner.on(" ").join(" AND last_update_time >=", start, " AND  last_update_time <", old);
 
     }
-
-
 
     private BaseResult getResultOfServerIP(ComDSLObject.Query query) {
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
