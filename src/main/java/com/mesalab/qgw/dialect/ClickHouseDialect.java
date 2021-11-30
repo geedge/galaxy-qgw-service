@@ -166,9 +166,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-   public BaseResult getProcesses() {
-        String sql = String.format("select elapsed,total_rows_approx,read_rows from `system`.processes where query_id='%s'", param.getQueryId());
+    public BaseResult getProcesses() {
+        String tableName = "processes";
+        String sql = String.format("select elapsed,total_rows_approx,read_rows from `system`.%s where query_id='%s'", tableName, param.getQueryId());
         param.setQuery(sql);
+        param.setTableName(tableName);
         BaseResult baseResult = generateBaseResult(sql, Optional.of("ok"));
         Map<String, Object> result = new HashMap<>(16);
         if (!baseResult.isSuccess()) {
