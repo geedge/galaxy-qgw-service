@@ -83,7 +83,8 @@
       "namespace": "tsg_galaxy",
       "group": "HBASE_GROUP",
       "tables": [
-        "relation_account_framedip"
+        "relation_account_framedip",
+        "recommendation_app_cip"
       ]
     }
   ]
