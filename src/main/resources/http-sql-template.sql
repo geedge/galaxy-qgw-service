@@ -25,7 +25,7 @@ select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN
 #end
 
 #sql("ENTITY_UDP_UNIQ_CLIENT_IPS")
-select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit %s
+select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit %s
 #end
 
 #sql("ENTITY_TCP_SESSION")
