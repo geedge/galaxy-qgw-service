@@ -279,6 +279,11 @@
       "common_server_port",
       "common_schema_type"
     ],
+    "internal_columns": [
+      "common_recv_time",
+      "common_log_id",
+      "common_processing_time"
+    ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
     }
