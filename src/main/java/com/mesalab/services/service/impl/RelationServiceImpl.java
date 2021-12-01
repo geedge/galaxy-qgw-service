@@ -11,40 +11,43 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.dsl.ComDSLParse;
-import com.mesalab.services.common.enums.RelationTypeEnum;
+import com.mesalab.services.common.enums.EntityQueryType;
+import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.RelationService;
 import com.zdjizhi.utils.DateUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class RelationServiceImpl implements RelationService {
+@PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
+public class RelationServiceImpl implements RelationService , EnvironmentAware {
 
 
     @Value("${arango.maxrows}")
     private String defLimit;//查询最大条数
     @Autowired
     private ApiService apiService;
+    private Environment env;
 
     private static final Log log = LogFactory.get();
 
     @Override
     public BaseResult getRealRelation(String param, ComDSLObject comDSLObject) {
         BaseResult baseResult;
-        if (RelationTypeEnum.SUBSCRIBERIDPOOL.getType().equals(param)) {
-            baseResult = formatResult(apiService.executeQuery(queryBuild(param, comDSLObject.getQuery())));
-
+        if (param.equals(EntityQueryType.SUBSCRIBERIDPOOL.getType())) {
+            baseResult = formatResult(apiService.executeQuery(queryBuild(comDSLObject.getQuery())));
         } else {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
         }
@@ -54,12 +57,10 @@ public class RelationServiceImpl implements RelationService {
         return baseResult;
     }
 
-    private ApiParam queryBuild(String param, ComDSLObject.Query query) {
-        RelationTypeEnum rte = RelationTypeEnum.getByType(param);
+    private ApiParam queryBuild(ComDSLObject.Query query) {
         String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
         String timeWhere = ComDSLParse.parseInterval(query, "last_update_time", true);
-        String filterStatus = " AND acct_status_type != 2 ";
-        String sql = MessageFormat.format(rte.getSqlTemplate(), rte.getDatasource(), fieldWhere.concat(timeWhere).concat(filterStatus), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
+        String sql = String.format(env.getProperty("RELATION_SUBSCRIBER_ID"), fieldWhere.concat(timeWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
         log.info("real time relation subscribe id query sql: {}", sql);
         return ApiParam.builder().option("real-time").query(sql).build();
     }
@@ -81,5 +82,10 @@ public class RelationServiceImpl implements RelationService {
             baseResult = BaseResultGenerator.error(baseResult.getStatus(),baseResult.getMessage());
         }
         return baseResult;
+    }
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.env = environment;
     }
 }

@@ -15,6 +15,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -28,7 +29,6 @@ import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.dsl.ComDSLParse;
 import com.mesalab.services.common.enums.EntityQueryType;
-import com.mesalab.services.common.enums.RelationTypeEnum;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
 import com.zdjizhi.utils.DateUtils;
@@ -45,7 +45,6 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -116,8 +115,9 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         String fileSql;
         String sql;
         ComDSLObject.Query.FilterBean filterBean = query.getParameters().getMatch().get(0);
-        if ("exactly".equalsIgnoreCase(String.valueOf(filterBean.getType())) || StringUtil.isEmpty(filterBean.getType())) {
-            baseResult = formatResult(apiService.executeQuery(queryBuild(query)));
+        if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(String.valueOf(filterBean.getType()))) {
+            baseResult = formatResult(apiService.executeQuery(queryBuild(query)),
+                    ObjectUtil.isEmpty(query.getLimit()) || Integer.parseInt(query.getLimit())>10000 ? String.valueOf(entityConfigSourceTemp.getActiveClientIP()) : query.getLimit());
             if (((List) baseResult.getData()).isEmpty()) {
                 fileSql = env.getProperty("ENTITY_ACTIVE_CLIENT_IP");
                 sql = generateActiveClientIP(query, fileSql);
@@ -130,21 +130,20 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return baseResult;
     }
 
-    private BaseResult formatResult(BaseResult baseResult) {
+    private BaseResult formatResult(BaseResult baseResult,String limit) {
         if (String.valueOf(HttpStatus.SC_OK).equals(String.valueOf(baseResult.getStatus()))) {
-            List<Object> app = new ArrayList<>();
+            List<Object> alterationResultList = new ArrayList<>();
             List<Map> resultList = new ObjectMapper().convertValue(baseResult.getData(), new TypeReference<List<Map>>() {
             });
-            List<Object> finalApp = app;
             resultList.forEach(r -> {
                 if (ObjectUtil.isNotEmpty(r)) {
                     List<Object> list = (List<Object>) JsonMapper.fromJsonString(String.valueOf(r.get("client_ip")), Object.class);
                     list.forEach(t -> {
-                        finalApp.add(t);
+                        alterationResultList.add(t);
                     });
                 }
             });
-            app.sort(new Comparator<Object>() {
+            alterationResultList.sort(new Comparator<Object>() {
                 @Override
                 public int compare(Object o1, Object o2) {
                     Integer sessionsO1 = Integer.parseInt(String.valueOf(((Map) o1).get("sessions")));
@@ -154,13 +153,17 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             });
 
             List<Object> appList = new ArrayList<>();
-            app.forEach(l -> {
+            for (Object o : alterationResultList) {
+                if (appList.size()>=Integer.parseInt(limit)){
+                    break;
+                }
                 Map common_client_ip = new HashMap();
-                common_client_ip.put("common_client_ip", ((Map) l).get("common_client_ip"));
+                common_client_ip.put("common_client_ip", ((Map) o).get("common_client_ip"));
                 appList.add(common_client_ip);
-            });
-            app = appList;
-            return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), app, baseResult.getMeta(), baseResult.getStatistics(), "json");
+            }
+            baseResult.getStatistics().put("result_rows",appList.size());
+            baseResult.getStatistics().put("result_size",JsonMapper.toJsonString(appList).getBytes().length);
+            return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), appList, baseResult.getMeta(), baseResult.getStatistics(), QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.error(baseResult.getStatus(), baseResult.getMessage());
         }
@@ -168,11 +171,9 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     private ApiParam queryBuild(ComDSLObject.Query query) {
-        RelationTypeEnum rte = RelationTypeEnum.getByType("activeclientip");
         String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
         String timeWhere = parseInterval(query);
-        String sql = MessageFormat.format(rte.getSqlTemplate(), rte.getDatasource(), fieldWhere.concat(timeWhere),
-                ObjectUtil.isEmpty(query.getLimit()) ? String.valueOf(entityConfigSourceTemp.getActiveClientIP()) : query.getLimit());
+        String sql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_CACHE_ACTIVE_CLIENT_IP")), fieldWhere.concat(timeWhere));
         log.info("real time relation active_client_ip id query sql: {}", sql);
         return ApiParam.builder().option("real-time").query(sql).build();
     }
@@ -191,8 +192,8 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
         }
         long start = DateUtils.convertStringToTimestamp(intervals.get(0), "yyyy-MM-dd HH:mm:ss");
-        long old = DateUtils.convertStringToTimestamp(intervals.get(1), "yyyy-MM-dd HH:mm:ss");
-        return Joiner.on(" ").join(" AND last_update_time >=", start, " AND  last_update_time <", old);
+        long end = DateUtils.convertStringToTimestamp(intervals.get(1), "yyyy-MM-dd HH:mm:ss");
+        return Joiner.on(" ").join(" AND last_update_time >=", start, " AND last_update_time <", end);
 
     }
 

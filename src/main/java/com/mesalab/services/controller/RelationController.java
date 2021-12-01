@@ -8,7 +8,7 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.dsl.ComDSLValidate;
-import com.mesalab.services.common.enums.RelationTypeEnum;
+import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.service.RelationService;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
@@ -37,8 +37,8 @@ public class RelationController {
         while (parameterNames.hasMoreElements()) {
             String param = parameterNames.nextElement();
             log.info("subscribe id 实时推荐接口, 参数: queryString is {},params is {}", param, dslObject);
-            if (!EnumUtils.isValidEnum(RelationTypeEnum.class, StringUtil.upperCase(param))
-                    || StringUtil.isNotEmpty(request.getParameter(param))) {
+            if (!EnumUtils.isValidEnum(EntityQueryType.class, StringUtil.upperCase(param))
+                    ||StringUtil.isNotEmpty(request.getParameter(param))) {
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                         ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
             }
