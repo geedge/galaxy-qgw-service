@@ -14,6 +14,7 @@ import lombok.Getter;
 public enum EntityQueryType {
     ACTIVECLIENTIP("activeclientip"),
     TOPSERVERIP("topserverip"),
-    TOPSNI("topsni");
+    TOPSNI("topsni"),
+    SUBSCRIBERIDPOOL("subscriberidpool");
     private final String type;
 }

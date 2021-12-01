@@ -49,3 +49,11 @@ GROUP BY log_type
 #sql("SYSTEM_DAILY_TREND_OF_STORAGE")
 select TIME_FORMAT(__time, 'YYYY-MM-dd') as stat_time, log_type as type, sum(aggregate_size) as used_size from sys_storage_log where __time >= '%s' and __time < '%s' group by TIME_FORMAT(__time, 'YYYY-MM-dd'), log_type
 #end
+
+#sql("ENTITY_CACHE_ACTIVE_CLIENT_IP")
+SELECT client_ip_list AS client_ip FROM tsg_galaxy.recommendation_app_cip WHERE 1=1 %s
+#end
+
+#sql("RELATION_SUBSCRIBER_ID")
+SELECT account AS SUBSCRIBER_ID,framed_ip AS IP,first_found_time AS FIRST_FOUND_TIME,last_update_time AS LAST_FOUND_TIME FROM tsg_galaxy.relation_account_framedip WHERE 1=1 %s AND acct_status_type != 2 LIMIT %s
+#end
