@@ -117,7 +117,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         ComDSLObject.Query.FilterBean filterBean = query.getParameters().getMatch().get(0);
         if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(String.valueOf(filterBean.getType()))) {
             baseResult = formatResult(apiService.executeQuery(queryBuild(query)),
-                    ObjectUtil.isEmpty(query.getLimit()) || Integer.parseInt(query.getLimit())>10000 ? String.valueOf(entityConfigSourceTemp.getActiveClientIP()) : query.getLimit());
+                    StringUtil.isEmpty(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getActiveClientIP() ? String.valueOf(entityConfigSource.getActiveClientIP()) : query.getLimit());
             if (((List) baseResult.getData()).isEmpty()) {
                 fileSql = env.getProperty("ENTITY_ACTIVE_CLIENT_IP");
                 sql = generateActiveClientIP(query, fileSql);
@@ -130,17 +130,15 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return baseResult;
     }
 
-    private BaseResult formatResult(BaseResult baseResult,String limit) {
+    private BaseResult formatResult(BaseResult baseResult, String limit) {
         if (String.valueOf(HttpStatus.SC_OK).equals(String.valueOf(baseResult.getStatus()))) {
             List<Object> alterationResultList = new ArrayList<>();
             List<Map> resultList = new ObjectMapper().convertValue(baseResult.getData(), new TypeReference<List<Map>>() {
             });
             resultList.forEach(r -> {
                 if (ObjectUtil.isNotEmpty(r)) {
-                    List<Object> list = (List<Object>) JsonMapper.fromJsonString(String.valueOf(r.get("client_ip")), Object.class);
-                    list.forEach(t -> {
-                        alterationResultList.add(t);
-                    });
+                    List<Object> list = (List<Object>) JsonMapper.fromJsonList(String.valueOf(r.get("client_ip")), Object.class);
+                    alterationResultList.addAll(list);
                 }
             });
             alterationResultList.sort(new Comparator<Object>() {
@@ -152,18 +150,18 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                 }
             });
 
-            List<Object> appList = new ArrayList<>();
+            List<Object> dataResult = new ArrayList<>();
             for (Object o : alterationResultList) {
-                if (appList.size()>=Integer.parseInt(limit)){
+                if (dataResult.size() >= Integer.parseInt(limit)) {
                     break;
                 }
-                Map common_client_ip = new HashMap();
-                common_client_ip.put("common_client_ip", ((Map) o).get("common_client_ip"));
-                appList.add(common_client_ip);
+                Map clientIp = new HashMap();
+                clientIp.put("client_ip", ((Map) o).get("common_client_ip"));
+                dataResult.add(clientIp);
             }
-            baseResult.getStatistics().put("result_rows",appList.size());
-            baseResult.getStatistics().put("result_size",JsonMapper.toJsonString(appList).getBytes().length);
-            return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), appList, baseResult.getMeta(), baseResult.getStatistics(), QueryFormatEnum.JSON.getValue());
+            baseResult.getStatistics().put("result_rows", dataResult.size());
+            baseResult.getStatistics().put("result_size", JsonMapper.toJsonString(dataResult).getBytes().length);
+            return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), dataResult, baseResult.getMeta(), baseResult.getStatistics(), QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.error(baseResult.getStatus(), baseResult.getMessage());
         }
@@ -179,18 +177,16 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     private String parseInterval(ComDSLObject.Query query) {
-        List<String> intervals = new ArrayList<>();
-        if (ObjectUtil.isEmpty(query.getParameters().getIntervals()) || ObjectUtil.isNull(query.getParameters().getIntervals())) {
+        if (StringUtil.isEmpty(query.getParameters().getIntervals())) {
             Date nowDate = new Date();
             Date changeDate = DateUtils.getSomeMinute(nowDate, -30);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            String nowTime = dateFormat.format(nowDate);
-            String changeTime = dateFormat.format(changeDate);
-            intervals.add(changeTime);
-            intervals.add(nowTime);
-        } else {
-            intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
+            String nowFormat = dateFormat.format(nowDate);
+            String changeFormat = dateFormat.format(changeDate);
+            List<String> list = Lists.newArrayList(changeFormat.concat("/").concat(nowFormat));
+            query.getParameters().setIntervals(list);
         }
+        List<String> intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
         long start = DateUtils.convertStringToTimestamp(intervals.get(0), "yyyy-MM-dd HH:mm:ss");
         long end = DateUtils.convertStringToTimestamp(intervals.get(1), "yyyy-MM-dd HH:mm:ss");
         return Joiner.on(" ").join(" AND last_update_time >=", start, " AND last_update_time <", end);
