@@ -12,6 +12,6 @@ import com.mesalab.network.dsl.DSLObject;
 
 public interface NetworkMonitorService {
 
-    BaseResult getTrafficDistributedInfo(DSLObject dslObject);
+    BaseResult build(DSLObject dslObject);
 
 }

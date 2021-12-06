@@ -41,7 +41,7 @@ public class NetworkMonitorController {
     }
 
     @PostMapping(value = "/traffic/v1/", produces = "application/json")
-    public BaseResult trafficDistribution(HttpServletRequest request, @Validated @RequestBody DSLObject dslObject) {
+    public BaseResult trafficStatistics(HttpServletRequest request, @Validated @RequestBody DSLObject dslObject) {
         Enumeration<String> parameterNames = request.getParameterNames();
         while (parameterNames.hasMoreElements()) {
             String param = parameterNames.nextElement();
@@ -52,7 +52,7 @@ public class NetworkMonitorController {
             log.debug("流量分布接口, 参数: queryString is {}, params is {}", param, dslObject);
             dslValidate.executeValidate(dslObject);
             if (PROTOCOL.equalsIgnoreCase(param)) {
-                return networkMonitorService.getTrafficDistributedInfo(dslObject);
+                return networkMonitorService.build(dslObject);
             }
         }
         throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Support：" + ROUTES, null);

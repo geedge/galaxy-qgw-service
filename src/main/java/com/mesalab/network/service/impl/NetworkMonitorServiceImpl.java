@@ -4,7 +4,7 @@ import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.collect.Iterables;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
@@ -65,18 +65,14 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         localHostAddress = NetUtil.getLocalhostStr();
     }
     @Override
-    public BaseResult getTrafficDistributedInfo(DSLObject dslObject) {
+    public BaseResult build(DSLObject dslObject) {
         BaseResult baseResult;
-        String sql;
         if (QueryType.PROTOCOL_TREE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            sql = generateProtocolTreeSql(dslObject.getQuery(), env.getProperty("NETWORK_TREE_SUMMARY"));
-            baseResult = getResultProtocolTree(sql);
+            baseResult = getProtocolTree(generateProtocolTreeSql(dslObject.getQuery(), env.getProperty("NETWORK_TREE_SUMMARY")));
         } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            sql = generateProtocolDataRateSql(dslObject.getQuery(), env.getProperty("NETWORK_DATA_SUMMARY"));
-            baseResult = getProtocolDataRateSummary(sql);
+            baseResult = getProtocolDataRateSummary(generateProtocolDataRateSql(dslObject.getQuery(), env.getProperty("NETWORK_DATA_SUMMARY")));
         } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            sql = generateOverviewSummarySql(dslObject.getQuery(), env.getProperty("NETWORK_OVERVIEW_SUMMARY"));
-            Map<String, String> dataRateResult = executeQuery(sql);
+            Map<String, String> dataRateResult = executeQuery(generateOverviewSummarySql(dslObject.getQuery(), env.getProperty("NETWORK_OVERVIEW_SUMMARY")));
             String statSql = generateStatSql(dslObject.getQuery(), env.getProperty("NETWORK_OVERVIEW_STAT"));
             Map<String, String> statResult = executeQuery(statSql);
             baseResult = buildNetworkOverviewResult(dataRateResult, statResult);
@@ -176,23 +172,17 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         return baseResult;
     }
 
-    private BaseResult getResultProtocolTree(String sql) {
+    private BaseResult getProtocolTree(String sql) {
         BaseResult baseResult;
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
-            List<ProtocolTree> listProtocol = getListProtocol(getProtocolTrees((List<Map>) resultMap.get("data")));
-            for (ProtocolTree protocolTree : listProtocol) {
-                List<ProtocolTree> ethernetCollect = protocolTree.getChildrens().stream().filter(
-                        p -> PROTOCOL_ROOT_NODE.equals(p.getName())).collect(Collectors.toList());
-                if (protocolTree.getChildrens().size() != ethernetCollect.size()) {
-                    protocolTree.setChildrens(ethernetCollect);
-                    protocolTree.setReceivedBytes(StringUtil.isEmpty(ethernetCollect.get(0)) ? 0 : ethernetCollect.get(0).getReceivedBytes());
-                    protocolTree.setSentBytes(StringUtil.isEmpty(ethernetCollect.get(0)) ? 0 : ethernetCollect.get(0).getSentBytes());
-                    log.warn("Protocol-Tree warn Exceptional data occurs and non-{} protocols are filtered out: {}", PROTOCOL_ROOT_NODE, protocolTree.getChildrens());
-                }
+            List<Map> resultList = (List<Map>) resultMap.get("data");
+            if(StringUtil.isEmpty(resultList)) {
+                return BaseResultGenerator.success("ok", resultList, (Map) resultMap.get("statistics"));
             }
-            baseResult = BaseResultGenerator.success("ok", listProtocol, (Map) resultMap.get("statistics"));
+            List<ProtocolTree> protocolTreeList = buildHierarchicalStructure(getFlatStructure(resultList));
+            baseResult = BaseResultGenerator.success("ok", protocolTreeList, (Map) resultMap.get("statistics"));
         } else {
             baseResult = BaseResultGenerator.error(result.get("result"));
         }
@@ -279,14 +269,15 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
                 queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
 
-    private List<ProtocolTree> getProtocolTrees(List<Map> data) {
-        Iterable<ProtocolTree> resultConcat = Iterables.concat(new ArrayList<>());
-        for (Map datum : data) {
-            String s = JsonMapper.toJsonString(datum);
-            List<ProtocolTree> nodes = parserRawData(s);
-            resultConcat = Iterables.concat(resultConcat, nodes);
+    private List<ProtocolTree> getFlatStructure(List<Map> protocolData) {
+        List<ProtocolTree> listNodes = Lists.newArrayList();
+        for (Map protocolMap : protocolData) {
+            ProtocolTree protocolTree = convertStringToObject(JsonMapper.toJsonString(protocolMap));
+            if(StringUtil.isNotEmpty(protocolTree)) {
+                listNodes.add(protocolTree);
+            }
+
         }
-        List<ProtocolTree> listNodes = Lists.newArrayList(resultConcat);
         ProtocolTree root = new ProtocolTree("Protocols", "Protocols", null);
         List<ProtocolTree> roots = listNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
         roots.forEach(item -> {
@@ -314,27 +305,32 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     }
 
 
-    private List<ProtocolTree> parserRawData(String jsonString) {
-        List<ProtocolTree> lists = Lists.newArrayList();
-        Map<String, Object> results = (Map<String, Object>) JsonMapper.fromJsonString(jsonString, Map.class);
-        long sessions = Long.parseLong(results.get("sessions").toString());
-        long sentBytes = Long.parseLong(results.get("c2s_byte_num").toString());
-        long receivedBytes = Long.parseLong(results.get("s2c_byte_num").toString());
-        long sentPackets = Long.parseLong(results.get("c2s_pkt_num").toString());
-        long receivedPackets = Long.parseLong(results.get("s2c_pkt_num").toString());
-        String protocolId = results.get("protocol_id").toString();
-        List<String> protocolList = Lists.newArrayList(protocolId.split("\\."));
-        ProtocolTree protocolTree = new ProtocolTree(protocolId, protocolList.size() <= 0 ? null : protocolList.get(protocolList.size() - 1), null);
-        protocolTree.setSentBytes(sentBytes);
-        protocolTree.setReceivedBytes(receivedBytes);
-        protocolTree.getMetrics().put("sentPackets", sentPackets);
-        protocolTree.getMetrics().put("receivedPackets", receivedPackets);
-        protocolTree.getMetrics().put("sessions", sessions);
-        lists.add(protocolTree);
-        return lists;
+    private ProtocolTree convertStringToObject(String protocolString) {
+        ProtocolTree protocolTree = null;
+        try {
+           Map<String, Object> results = (Map<String, Object>) JsonMapper.fromJsonString(protocolString, Map.class);
+           long sessions = Long.parseLong(results.get("sessions").toString());
+           long sentBytes = Long.parseLong(results.get("c2s_byte_num").toString());
+           long receivedBytes = Long.parseLong(results.get("s2c_byte_num").toString());
+           long sentPackets = Long.parseLong(results.get("c2s_pkt_num").toString());
+           long receivedPackets = Long.parseLong(results.get("s2c_pkt_num").toString());
+           String protocolId = results.get("protocol_id").toString();
+           List<String> protocols = Splitter.on(".").omitEmptyStrings().splitToList(protocolId);
+           String protocolName = StringUtil.isNotEmpty(protocols) ? protocols.get(protocols.size()-1): null;
+           protocolTree = new ProtocolTree(protocolId, protocolName, null);
+           protocolTree.setSentBytes(sentBytes);
+           protocolTree.setReceivedBytes(receivedBytes);
+           protocolTree.getMetrics().put("sentPackets", sentPackets);
+           protocolTree.getMetrics().put("receivedPackets", receivedPackets);
+           protocolTree.getMetrics().put("sessions", sessions);
+       } catch (BusinessException e) {
+           log.error("Convert Json String to  Protocol Tree Object Error ", e);
+       }
+
+        return protocolTree;
     }
 
-    private List<ProtocolTree> getListProtocol(List<ProtocolTree> listNodes) {
+    private List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> listNodes) {
         Map<String, List<ProtocolTree>> resultMap = listNodes.stream().collect(Collectors.groupingBy(ProtocolTree::getId));
         Map<String, Object> mergeResultMap =
                 Maps.transformValues(resultMap, new com.google.common.base.Function<List<ProtocolTree>, Object>() {
@@ -347,48 +343,61 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
                         if (input.size() == 1) {
                             return input.get(0);
                         }
-                        ProtocolTree firstProtocolTree = input.get(0);
-                        ProtocolTree mergeProtocolTree = new ProtocolTree(firstProtocolTree.getId(), firstProtocolTree.getName(),
-                                firstProtocolTree.getParentId(), 0, 0);
-                        mergeProtocolTree.setMetrics(Maps.newLinkedHashMap());
+                        ProtocolTree mergedProtocolTree = new ProtocolTree(input.get(0).getId(), input.get(0).getName(),
+                                input.get(0).getParentId());
+                        Map<String,Object> summedMetrics = Maps.newLinkedHashMap();
                         for (ProtocolTree protocolTree : input) {
-                            mergeProtocolTree.setSentBytes(mergeProtocolTree.getSentBytes() + protocolTree.getSentBytes());
-                            mergeProtocolTree.setReceivedBytes(mergeProtocolTree.getReceivedBytes() + protocolTree.getReceivedBytes());
+                            mergedProtocolTree.setSentBytes(mergedProtocolTree.getSentBytes() + protocolTree.getSentBytes());
+                            mergedProtocolTree.setReceivedBytes(mergedProtocolTree.getReceivedBytes() + protocolTree.getReceivedBytes());
                             for (String key : protocolTree.getMetrics().keySet()) {
-                                if (StringUtil.isEmpty(mergeProtocolTree.getMetrics().get(key))) {
-                                    mergeProtocolTree.getMetrics().put(key, protocolTree.getMetrics().get(key));
+                                if (StringUtil.isEmpty(summedMetrics.get(key))) {
+                                    summedMetrics.put(key, protocolTree.getMetrics().get(key));
                                 } else {
-                                    long sumValue = Long.parseLong(mergeProtocolTree.getMetrics().get(key).toString())
+                                    long sumValue = Long.parseLong(summedMetrics.get(key).toString())
                                             + Long.parseLong(protocolTree.getMetrics().get(key).toString());
-                                    mergeProtocolTree.getMetrics().put(key, sumValue);
+                                    summedMetrics.put(key, sumValue);
                                 }
+
+
                             }
-
                         }
+                        mergedProtocolTree.setMetrics(summedMetrics);
 
-                        return mergeProtocolTree;
+                        return mergedProtocolTree;
                     }
                 });
         List<ProtocolTree> mergeResultList = new ArrayList(mergeResultMap.values());
         mergeResultList.sort(new Comparator<ProtocolTree>() {
             @Override
             public int compare(ProtocolTree o1, ProtocolTree o2) {
-                return (o2.getReceivedBytes()+o2.getSentBytes()) - (o1.getReceivedBytes()+o1.getSentBytes()) > 0 ? 1 : -1;
+                return (o2.getReceivedBytes() + o2.getSentBytes()) - (o1.getReceivedBytes() + o1.getSentBytes()) > 0 ? 1 : -1;
             }
         });
 
-        List<ProtocolTree> roots = mergeResultList.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
         Map<String, List<ProtocolTree>> protocolMap = Maps.newLinkedHashMap();
+        List<ProtocolTree> roots = mergeResultList.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
         protocolMap.put(PROTOCOL_ROOT_PARENT_ID, roots);
-        for(ProtocolTree protocolTree : mergeResultList) {
-            if (StringUtil.isEmpty(protocolMap.get(protocolTree.getParentId()))) {
-                protocolMap.put(protocolTree.getParentId(), Lists.newArrayList(protocolTree));
+        mergeResultList.stream().filter(o -> StringUtil.isNotBlank(o.getParentId())).forEach(x->{
+            if (StringUtil.isEmpty(protocolMap.get(x.getParentId()))) {
+                protocolMap.put(x.getParentId(), Lists.newArrayList(x));
             } else {
-                protocolMap.get(protocolTree.getParentId()).add(protocolTree);
+                protocolMap.get(x.getParentId()).add(x);
+            }
+        });
+
+        List<ProtocolTree> protocolTreeList = TreeUtils.mergeTree(protocolMap, PROTOCOL_ROOT_PARENT_ID, ProtocolTree::getId, ProtocolTree::setChildrens);
+        for (ProtocolTree protocolTree : protocolTreeList) {
+            List<ProtocolTree> ethernetList = protocolTree.getChildrens().stream().filter(
+                    p -> PROTOCOL_ROOT_NODE.equals(p.getName())).collect(Collectors.toList());
+            if (protocolTree.getChildrens().size() != ethernetList.size()) {
+                protocolTree.setChildrens(ethernetList);
+                protocolTree.setReceivedBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getReceivedBytes());
+                protocolTree.setSentBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getSentBytes());
+                log.warn("Protocol Tree Exceptional data occurs and non-{} protocols are filtered out: {}", PROTOCOL_ROOT_NODE, protocolTree.getChildrens());
             }
         }
 
-        return TreeUtils.mergeTree(protocolMap, PROTOCOL_ROOT_PARENT_ID, ProtocolTree::getId, ProtocolTree::setChildrens);
+        return protocolTreeList;
 
     }
 
