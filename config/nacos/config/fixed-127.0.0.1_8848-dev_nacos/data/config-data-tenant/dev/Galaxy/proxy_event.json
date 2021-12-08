@@ -633,6 +633,10 @@
           {
             "code": "hijack",
             "value": "Hijack"
+          },
+          {
+            "code": "edit_element",
+            "value": "Edit Element"
           }
         ],
         "allow_query": "true"

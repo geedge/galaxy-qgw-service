@@ -187,9 +187,9 @@
       "session_rate"
     ],
     "internal_columns": [
-      "common_recv_time",
-      "common_log_id",
-      "common_processing_time"
+      "start_time",
+      "log_id",
+      "end_time"
     ]
   },
   "fields": [
