@@ -115,7 +115,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         Map<String, String> map = httpClientService.httpDelete(deleteUrl, 1000);
         if (Integer.parseInt(map.get("status")) == HttpStatus.SC_OK
                 || Integer.parseInt(map.get("status")) == HttpStatus.SC_ACCEPTED) {
-            return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null);
+            return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null, null);
         } else {
             return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
         }
@@ -159,10 +159,10 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
         if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
-                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, null, QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, param.getFormat());
+                    results.get("result"), null, null, null, param.getFormat());
         }
 
         return build();

@@ -84,7 +84,8 @@
       "group": "HBASE_GROUP",
       "tables": [
         "relation_account_framedip",
-        "recommendation_app_cip"
+        "recommendation_app_cip",
+        "job_result"
       ]
     }
   ]

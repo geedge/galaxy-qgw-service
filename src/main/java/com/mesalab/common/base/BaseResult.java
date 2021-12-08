@@ -34,6 +34,8 @@ public class BaseResult<T> implements Serializable {
 
     private Map<String, Object> statistics;
 
+    private Map<String, Object> job;
+
     private String formatType;
 
     private T meta;

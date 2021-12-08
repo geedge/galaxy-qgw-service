@@ -36,7 +36,7 @@ public class RelationController {
         Enumeration<String> parameterNames = request.getParameterNames();
         while (parameterNames.hasMoreElements()) {
             String param = parameterNames.nextElement();
-            log.info("subscribe id 实时推荐接口, 参数: queryString is {},params is {}", param, dslObject);
+            log.debug("subscribe id 实时推荐接口, 参数: queryString is {},params is {}", param, dslObject);
             if (!EnumUtils.isValidEnum(EntityQueryType.class, StringUtil.upperCase(param))
                     ||StringUtil.isNotEmpty(request.getParameter(param))) {
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(),

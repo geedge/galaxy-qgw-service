@@ -349,7 +349,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, String> results = druidExecuteHttpPost(sql);
         if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
-                    (List<Object>) com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+                    (List<Object>) com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             List<Object> allResults = (List<Object>) dataObject;
             Map<String, Object> statistics = Maps.newLinkedHashMap();
@@ -359,7 +359,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             baseResult.setStatistics(statistics);
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
+                    results.get("result"), null, null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
         }
@@ -392,7 +392,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, String> results = clickHouseExecuteHttpGet(sql);
         if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
-                    com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+                    com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             Map<String, Object> resultMap = (Map<String, Object>) dataObject;
             Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
@@ -403,7 +403,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             baseResult.setStatistics(statistics);
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
-                    results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
+                    results.get("result"), null, null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? HttpStatus.SC_INTERNAL_SERVER_ERROR : baseResult.getStatus());
             baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));

@@ -99,10 +99,10 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         Map<String, String> results = executeHttpGet(sql);
         if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
-                    (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+                    (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, null, QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, param.getFormat());
+                    results.get("result"), null, null,null , param.getFormat());
         }
         return build();
     }

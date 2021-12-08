@@ -48,7 +48,7 @@ public class ReportCacheUtils {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "The report result [resultId:" + resultId + "] is unavailable. It Has been deleted or does not exist.");
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), String.valueOf(map.get("message")),
-                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), QueryFormatEnum.JSON.getValue());
+                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), null, QueryFormatEnum.JSON.getValue());
         }
         return baseResult;
     }

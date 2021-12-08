@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
@@ -60,7 +61,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     private ApiParam queryBuild(ComDSLObject.Query query) {
         String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
         String timeWhere = ComDSLParse.parseInterval(query, "last_update_time", true);
-        String sql = String.format(env.getProperty("RELATION_SUBSCRIBER_ID"), fieldWhere.concat(timeWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
+        String sql = String.format(Objects.requireNonNull(env.getProperty("RELATION_SUBSCRIBER_ID")), fieldWhere.concat(timeWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
         log.info("real time relation subscribe id query sql: {}", sql);
         return ApiParam.builder().option("real-time").query(sql).build();
     }

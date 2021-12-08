@@ -119,3 +119,17 @@ http:
       timeout: 10000
     response:
       timeout: 60000
+## task cfg
+task:
+  runningTTL: 30000
+  progressTTL: 5000
+  task:
+    corePoolSize: 20
+    maxPoolSize: 30
+    keepAliveTime: 10
+    queueCapacity: 10
+  subTask:
+    corePoolSize: 8
+    maxPoolSize: 16
+    keepAliveTime: 10
+    queueCapacity: 1000

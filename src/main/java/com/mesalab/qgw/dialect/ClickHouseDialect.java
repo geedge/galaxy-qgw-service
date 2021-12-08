@@ -159,7 +159,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         Map<String, String> map = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), 0);
         if (Integer.parseInt(map.get("status")) == HttpStatus.SC_OK) {
-            return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null);
+            return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null, null);
         } else {
             return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
         }
@@ -981,17 +981,17 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     JsonMapper.fromJsonString(results.get("result"), Map.class),
                     null,
                     null,
+                    null,
                     QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), message.get(),
-                    results.get("result"), null, null, param.getFormat());
+                    results.get("result"), null, null, null, param.getFormat());
         }
         return build();
     }
 
 
     private BaseResult build() {
-
         Object dataObject = baseResult.getData();
         if (baseResult.isSuccess()) {
             if (StringUtil.isBlank(baseResult.getMessage())) {
