@@ -40,7 +40,7 @@ public class SubTaskService implements EnvironmentAware {
     @Autowired
     ApiService apiService;
 
-    @Async("subTaskExecutor")
+    @Async("taskExecutor")
     public void execute(String id, String logType, String filter, String field, long count) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK")),
                 field, logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));

@@ -119,17 +119,17 @@ http:
       timeout: 10000
     response:
       timeout: 60000
-## task cfg
-task:
+## job cfg
+job:
   runningTTL: 30000
   progressTTL: 5000
-  task:
+  pool:
     corePoolSize: 20
     maxPoolSize: 30
-    keepAliveTime: 10
     queueCapacity: 10
-  subTask:
+## task cfg
+task:
+  pool:
     corePoolSize: 8
     maxPoolSize: 16
-    keepAliveTime: 10
     queueCapacity: 1000

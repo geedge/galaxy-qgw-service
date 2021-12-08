@@ -11,29 +11,27 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * TODO
  *
- * @Classname ThreadPoolTaskConfig
- * @Date 2021/12/1 9:20 上午
+ * @Classname ThreadPoolCfgSubJob
+ * @Date 2021/12/3 9:13 上午
  * @Author wWei
  */
 @Configuration
 @EnableAsync
-public class ThreadPoolCfgTask {
+public class TaskThreadPoolCfg {
     @Autowired
     TaskCfg taskCfg;
-    private static final String threadNamePrefix = "Async-Service-";
+    private static final int keepAliveTime = 10;
+    private static final String threadNamePrefix = "Async(sub)-Service-";
 
     @Bean("taskExecutor")
     public ThreadPoolTaskExecutor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(taskCfg.getTaskCorePoolSize());
-        executor.setMaxPoolSize(taskCfg.getTaskMaxPoolSize());
-        executor.setQueueCapacity(taskCfg.getTaskQueueCapacity());
-        executor.setKeepAliveSeconds(taskCfg.getTaskKeepAliveTime());
+        executor.setCorePoolSize(taskCfg.getPoolCorePoolSize());
+        executor.setMaxPoolSize(taskCfg.getPoolMaxPoolSize());
+        executor.setQueueCapacity(taskCfg.getPoolQueueCapacity());
+        executor.setKeepAliveSeconds(keepAliveTime);
         executor.setThreadNamePrefix(threadNamePrefix);
-
-        // 线程池对拒绝任务的处理策略
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
-        // 初始化
         executor.initialize();
         return executor;
     }

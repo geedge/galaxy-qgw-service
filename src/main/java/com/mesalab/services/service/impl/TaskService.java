@@ -11,7 +11,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.mesalab.services.configuration.TaskCfg;
+import com.mesalab.services.configuration.JobCfg;
 import com.mesalab.services.service.JobService;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +49,9 @@ public class TaskService implements EnvironmentAware {
     @Autowired
     MetadataService metadataService;
     @Autowired
-    TaskCfg taskCfg;
+    JobCfg jobCfg;
 
-    @Async("taskExecutor")
+    @Async("jobExecutor")
     public void addExecutor(String id, HashMap<String, Object> param) {
         long now = System.currentTimeMillis();
         if (isExist(id)) {
@@ -86,7 +86,7 @@ public class TaskService implements EnvironmentAware {
                 break;
             }
             synchronized (lock) {
-                lock.wait(taskCfg.getProgressTTL());
+                lock.wait(jobCfg.getProgressTTL());
             }
             BaseResult result = jobService.getResult(id);
             if (result.isSuccess() && StringUtil.isNotEmpty(result.getData())) {
@@ -108,7 +108,7 @@ public class TaskService implements EnvironmentAware {
         if (baseResult.isSuccess() && (StringUtil.isNotEmpty(baseResult.getData()))) {
             List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
             long statTime = Long.parseLong(list.get(0).get("stat_time").toString());
-            if ((now - statTime) > taskCfg.getRunningTTL()) {
+            if ((now - statTime) > jobCfg.getRunningTTL()) {
                 executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_SET_CANCELED")), id, true));
                 return true;
             }
