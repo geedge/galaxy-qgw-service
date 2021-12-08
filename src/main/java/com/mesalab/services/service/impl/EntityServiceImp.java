@@ -161,7 +161,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             }
             baseResult.getStatistics().put("result_rows", dataResult.size());
             baseResult.getStatistics().put("result_size", JsonMapper.toJsonString(dataResult).getBytes().length);
-            return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), dataResult, baseResult.getMeta(), baseResult.getStatistics(), null, QueryFormatEnum.JSON.getValue());
+            return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), dataResult, baseResult.getMeta(), baseResult.getStatistics(), QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.error(baseResult.getStatus(), baseResult.getMessage());
         }

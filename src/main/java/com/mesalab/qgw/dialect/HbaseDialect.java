@@ -134,10 +134,10 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         int status = Integer.parseInt(String.valueOf(results.get("status")));
         if (status == HttpStatus.SC_OK) {
             baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
-                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), null, QueryFormatEnum.JSON.getValue());
+                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), String.valueOf(results.get("message")),
-                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), null, param.getFormat());
+                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), param.getFormat());
         }
         return baseResult;
     }
