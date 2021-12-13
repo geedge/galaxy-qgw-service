@@ -122,7 +122,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     @Override
     public String getBestQuery() {
         return new Optimizer().generateQueryLimit().
-                generateSQL().generateSubquery().generateTableAlias().generateApproximation().build();
+                generateSQL().generateSubQuery().generateTableAlias().generateApproximation().build();
     }
 
     @Override
@@ -477,7 +477,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (!clickHouseHttpSource.isEnableApproximateOptimizer()) {
                 return this;
             }
-            generateTopN().generateUniq();
+            generateDistributedGroupBy().generateUniq();
             return this;
         }
 
@@ -491,7 +491,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          *
          * @return
          */
-        public Optimizer generateSubquery() {
+        public Optimizer generateSubQuery() {
 
             if (StringUtil.isBlank(param.getDbQuerySource().getExpr())) {
                 return this;
@@ -500,7 +500,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 return this;
             }
 
-            String indexTable = getAvaliableIndexTable();
+            String indexTable = getAvailableIndexTable();
             if (StringUtil.isNotBlank(indexTable)) {
                 sql = getSubqueryByIndexTable(indexTable);
             } else {
@@ -510,19 +510,17 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         /**
-         * Desc: 针对单条查询TopN做优化
-         *
+         * Desc: 针对单条查询Top做优化
          * @param
          * @return {@link Optimizer}
          * @created by wWei
          * @date 2021/7/28 9:37 上午
          */
-        public Optimizer generateTopN() {
-            TopNSQLVisitor topNSQLVisitor = new TopNSQLVisitor();
-            if (!topNSQLVisitor.valid(sql)) {
-                return this;
+        public Optimizer generateDistributedGroupBy() {
+            TopSQLVisitor topSQLVisitor = new TopSQLVisitor();
+            if (topSQLVisitor.isValid(sql)) {
+                sql = topSQLVisitor.rewrite();
             }
-            sql = topNSQLVisitor.rewrite();
             return this;
         }
 
@@ -531,7 +529,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          *
          * @return
          */
-        private String getAvaliableIndexTable() {
+        private String getAvailableIndexTable() {
             String indexTable = "";
             String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
             String[] indexTables = StringUtil.split(str, ",");

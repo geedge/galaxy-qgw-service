@@ -16,25 +16,24 @@ import java.util.Map;
 
 
 /**
- * TODO
  *
- * @Classname MySelectVisitorAdapter
+ * @Classname InnerSelectItemVisitor
  * @Date 2021/7/20 3:39 下午
  * @Author wWei
  */
-public class InnerSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItemVisitor, SelectVisitor {
+public class TopInnerSelectItemVisitor implements OrderByVisitor, GroupByVisitor, SelectItemVisitor, SelectVisitor {
 
     private List<Expression> groupByList;
     private List<Expression> OrderByList;
     private Map<String, String> exprAlias;
 
-    public InnerSQLVisitor() {
+    public TopInnerSelectItemVisitor() {
         this.groupByList = Lists.newArrayList();
         this.OrderByList = Lists.newArrayList();
         this.exprAlias = Maps.newHashMap();
     }
 
-    public void rewrite2Inner(PlainSelect plainSelect) {
+    public void rewrite(PlainSelect plainSelect) {
 
         for (SelectItem selectItem : plainSelect.getSelectItems()) {
             selectItem.accept(this);
