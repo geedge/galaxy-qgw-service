@@ -8,7 +8,6 @@
     <version>349</version>
     <packaging>jar</packaging>
     <name>galaxy-qgw-service</name>
-
     <repositories>
         <repository>
             <id>nexus</id>
@@ -53,7 +52,7 @@
         <commons.logging.version>1.2</commons.logging.version>
         <guava.version>23.0</guava.version>
         <nutz.version>1.r.65</nutz.version>
-        <log4j.version>2.10.0</log4j.version>
+        <log4j2.version>2.15.0</log4j2.version>
         <httpclient.version>4.5.6</httpclient.version>
         <avro.version>1.9.1</avro.version>
         <active.record.version>4.9.01</active.record.version>
@@ -141,11 +140,7 @@
             <artifactId>log4j-web</artifactId>
             <version>${log4j2.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-1.2-api</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
