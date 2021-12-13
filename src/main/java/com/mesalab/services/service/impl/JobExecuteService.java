@@ -35,7 +35,7 @@ import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
  */
 @Service("taskService")
 @PropertySource(value = "classpath:job-sql-template.sql", factory = SqlPropertySourceFactory.class)
-public class TaskService implements EnvironmentAware {
+public class JobExecuteService implements EnvironmentAware {
     private static final Log log = LogFactory.get();
     final Object lock = new Object();
     @Autowired
@@ -45,7 +45,7 @@ public class TaskService implements EnvironmentAware {
     @Autowired
     JobService jobService;
     @Autowired
-    SubTaskService subTaskService;
+    TaskExecuteService taskExecuteService;
     @Autowired
     MetadataService metadataService;
     @Autowired
@@ -61,16 +61,16 @@ public class TaskService implements EnvironmentAware {
         init(id, fields);
         String logType = (String) param.get("query.data_source");
         String filter = (String) param.get("custom.field_discovery.filter");
-        executeSubTask(id, now, fields, logType, filter);
+        executeTask(id, now, fields, logType, filter);
     }
 
-    private void executeSubTask(String id, long now, List<String> fields, String logType, String filter) {
+    private void executeTask(String id, long now, List<String> fields, String logType, String filter) {
         long count = getCount(logType, filter);
         if (isCancel(id, now)) {
             return;
         }
         for (String field : fields) {
-            subTaskService.execute(id, logType, filter, field, count);
+            taskExecuteService.execute(id, logType, filter, field, count);
         }
         try {
             updateProgress(id, fields.size());

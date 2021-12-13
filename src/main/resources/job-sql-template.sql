@@ -8,7 +8,7 @@ SELECT result.* FROM job_result LIMIT 1
 ALTER TABLE "tsg_galaxy"."job_result" ADD "result"."%s" VARCHAR
 #end
 #sql("JOB_INIT")
-UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."is_canceled", "detail"."last_query_time", "result"."field") VALUES('%s', %s, %s, %s, %s, '%s')
+UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."is_canceled", "detail"."last_query_time", "detail"."discovery_field") VALUES('%s', %s, %s, %s, %s, '%s')
 #end
 #sql("JOB_LOG_COUNT")
 SELECT count(1) AS count FROM %s %s LIMIT 1
@@ -29,7 +29,7 @@ SELECT %s AS value, count(1) AS count FROM %s %s GROUP BY value ORDER BY count D
 UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "result"."%s") values('%s', '%s')
 #end
 #sql("JOB_RESULT")
-SELECT is_done AS is_done, done_progress AS done_progress, is_canceled AS is_canceled, result.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
+SELECT is_done AS is_done, done_progress AS done_progress, is_canceled AS is_canceled, discovery_field AS discovery_field, result.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
 #end
 #sql("JOB_RESULT_QUERY")
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."last_query_time") VALUES( '%s', %s)
