@@ -209,6 +209,10 @@
     {
       "name": "ad_reflection_bytes",
       "type": "long"
+    },
+    {
+      "name": "intcp_edit_elem_num",
+      "type": "long"
     }
   ]
 }
