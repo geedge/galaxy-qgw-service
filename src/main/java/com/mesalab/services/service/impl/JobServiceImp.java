@@ -41,11 +41,10 @@ import java.util.*;
 public class JobServiceImp implements JobService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private static final String URL_PREFIX = "jdbc:phoenix:";
-    public static HashMap<String, Object> JOBS = Maps.newHashMap();
     @Autowired
     ApiService apiService;
     @Autowired
-    TaskService taskService;
+    JobExecuteService jobExecuteService;
     private Environment env;
 
     @Autowired
@@ -78,7 +77,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     public BaseResult getJobId(HashMap<String, Object> map) {
         syntaxValidation(map);
         String id = DigestUtil.md5Hex(String.valueOf(map));
-        taskService.addExecutor(id, map);
+        jobExecuteService.addExecutor(id, map);
         return BaseResultGenerator.success("ok", build(id));
     }
 
@@ -106,7 +105,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         Map<String, Object> job = Maps.newHashMap();
         Map<String, Object> map = data.get(0);
 
-        String[] list = String.valueOf(map.get("field")).split(",");
+        String[] list = String.valueOf(map.get("discovery_field")).split(",");
         List<Map<String, Object>> res = Lists.newArrayList();
         for (String column : list) {
             Map<String, Object> result = Maps.newHashMap();
