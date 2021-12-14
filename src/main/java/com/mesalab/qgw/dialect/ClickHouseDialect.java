@@ -358,7 +358,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 return;
             }
 
-            String orginInnerSql = innerSqlQuerySource.getSqlBody();
+            String originalInnerSql = innerSqlQuerySource.getSqlBody();
             String limitInnerSql = innerSqlQuerySource.getSqlBody();
 
             if (StringUtil.isNotBlank(innerSqlQuerySource.getLimit())) {
@@ -387,7 +387,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             }
 
             if (StringUtil.isNotEmpty(sqlQuerySource.getSubSqlQuerySources())) {
-                sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(orginInnerSql, limitInnerSql));
+                sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(originalInnerSql, limitInnerSql));
             }
 
         }
@@ -511,6 +511,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         /**
          * Desc: 针对单条查询Top做优化
+         * settings distributed_group_by_no_merge=1
+         * If you set it to 1, then intermediate results from remote servers will not be merged.
          * @param
          * @return {@link Optimizer}
          * @created by wWei

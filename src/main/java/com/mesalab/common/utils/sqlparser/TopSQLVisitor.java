@@ -24,30 +24,19 @@ import java.util.stream.Collectors;
 
 
 /**
- * TODO
  *
- * @Classname Validate
+ * @Classname TopSQLVisitor
  * @Date 2021/7/20 3:39 下午
  * @Author wWei
  */
 public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItemVisitor {
     private static final Log log = LogFactory.get();
-    private static final Pattern pSelect = Pattern.compile("\\bselect\\s+", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pUniq = Pattern.compile("\\buniq\\s*\\(", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pUniqExact = Pattern.compile("\\buniqExact\\s*\\(", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pUniqCombined = Pattern.compile("\\buniqCombined\\s*\\(", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pUniqCombined64 = Pattern.compile("\\buniqCombined64\\s*\\(", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pUniqHLL12 = Pattern.compile("\\buniqHLL12\\s*\\(", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pUniqTheta = Pattern.compile("\\buniqTheta\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pLimitSetting = Pattern.compile("\\blimit(.*?)(\\))", Pattern.CASE_INSENSITIVE);
-
     private List<String> groupByList;
     private List<String> orderByList;
     private List<String> selectItemExprList;
     private List<String> selectItemAliasList;
     private List<String> functionList;
-    private int count;
     private SelectBody innerSelectBody = null;
     private SelectBody originalSelectBody = null;
 
@@ -57,7 +46,6 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
         this.groupByList = Lists.newArrayList();
         this.orderByList = Lists.newArrayList();
         this.functionList = Lists.newArrayList();
-        this.count = 0;
     }
 
     /**
@@ -69,72 +57,32 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
     public boolean isValid(String sql) {
         boolean isValid = false;
         try {
-            Matcher matcher = pSelect.matcher(sql);
-            while (matcher.find()) {
-                this.count++;
-            }
             SelectBody selectBody = ((Select) CCJSqlParserUtil.parse(sql)).getSelectBody();
             this.originalSelectBody = selectBody;
-            iterateSelect(selectBody);
-            if (this.count != 0) {
-                isValid = false;
-            } else {
-                innerSelectBody = getInnerSelectBody(selectBody);
-                if (StringUtil.isNotEmpty(innerSelectBody)) {
-                    isValid = parseAndValidation((PlainSelect) innerSelectBody);
-                } else {
-                    isValid = false;
-                }
+            innerSelectBody = getInnerSelectBody(selectBody);
+            if (StringUtil.isNotEmpty(innerSelectBody)) {
+                isValid = parseAndValidation((PlainSelect) innerSelectBody);
             }
 
         } catch (JSQLParserException e) {
             isValid = false;
             log.error("Parse SQL error ", e);
-        } finally {
-            return isValid;
         }
-    }
 
+        return isValid;
 
-
-    private boolean findCount(String inner) {
-        if (pCount.matcher(inner).find()) {
-            return true;
-        }
-        if (pUniq.matcher(inner).find()) {
-            return true;
-        }
-        if (pUniqExact.matcher(inner).find()) {
-            return true;
-        }
-        if (pUniqCombined.matcher(inner).find()) {
-            return true;
-        }
-        if (pUniqCombined64.matcher(inner).find()) {
-            return true;
-        }
-        if (pUniqHLL12.matcher(inner).find()) {
-            return true;
-        }
-        if (pUniqTheta.matcher(inner).find()) {
-            return true;
-        }
-        return false;
     }
 
     public String rewrite() {
-        String sql = innerSelectBody.toString();
-        Select innerSelect;
         try {
-            innerSelect = (Select) CCJSqlParserUtil.parse(sql);
+            String sql = innerSelectBody.toString();
+            Select innerSelect = (Select) CCJSqlParserUtil.parse(sql);
             PlainSelect plainInnerSelect = (PlainSelect) innerSelect.getSelectBody();
-            TopInnerSelectItemVisitor innerSelectItemVisitor = new TopInnerSelectItemVisitor();
-            innerSelectItemVisitor.rewrite(plainInnerSelect);
+            new TopInnerSelectItemVisitor().rewrite(plainInnerSelect);
 
             Select outerSelect = (Select) CCJSqlParserUtil.parse(sql);
             PlainSelect plainOuterSelect = (PlainSelect) outerSelect.getSelectBody();
-            TopOuterSelectItemVisitor outerSelectItemVisitor = new TopOuterSelectItemVisitor();
-            outerSelectItemVisitor.rewrite(plainOuterSelect, plainInnerSelect);
+            new TopOuterSelectItemVisitor().rewrite(plainOuterSelect, plainInnerSelect);
             return this.originalSelectBody.toString().replace(this.innerSelectBody.toString(), appendSetting(plainOuterSelect));
         } catch (JSQLParserException e) {
             throw new BusinessException("rewrite SQL error ", e);
@@ -152,6 +100,11 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
         return sb.toString();
     }
 
+    /**
+     * 递归遍历获取最内层SQL，内层SQL非标准查询将返回NULL
+     * @param selectBody
+     * @return
+     */
     private SelectBody getInnerSelectBody(SelectBody selectBody) {
         if (selectBody instanceof PlainSelect) {
             FromItem fromItem = ((PlainSelect) selectBody).getFromItem();
@@ -165,18 +118,11 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
         }
     }
 
-    private void iterateSelect(SelectBody selectBody) {
-        this.count--;
-        if (selectBody instanceof PlainSelect) {
-            PlainSelect plainSelect = (PlainSelect) selectBody;
-            FromItem fromItem = plainSelect.getFromItem();
-            if (fromItem instanceof SubSelect) {
-                SubSelect subSelect = (SubSelect) fromItem;
-                iterateSelect(subSelect.getSelectBody());
-            }
-        }
-    }
-
+    /**
+     * 对当前SQL解析并验证是否符合TOP优化条件
+     * @param plainSelect
+     * @return
+     */
     private boolean parseAndValidation(PlainSelect plainSelect) {
 
         for (SelectItem item : plainSelect.getSelectItems()) {
@@ -199,17 +145,20 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
            return false;
         }
 
-        List unsupportedFunctionList =  functionList.stream().filter(o -> StringUtil.isBlank(SQLFunctionUtil.getDistributedGroupByFunction(o))).collect(Collectors.toList());
+        List unsupportedFunctionList =  functionList.stream().filter(o ->
+                StringUtil.isBlank(SQLFunctionUtil.getDistributedGroupByFunction(o))).collect(Collectors.toList());
         if(unsupportedFunctionList.size() > 0) {
             return false;
         }
 
-       List unsupportedGroupByList =  groupByList.stream().filter(o -> !selectItemExprList.contains(o) && !selectItemAliasList.contains(o) ).collect(Collectors.toList());
+       List unsupportedGroupByList =  groupByList.stream().filter(o ->
+               !selectItemExprList.contains(o) && !selectItemAliasList.contains(o) ).collect(Collectors.toList());
         if(unsupportedGroupByList.size() > 0) {
             return false;
         }
 
-        List unsupportedOrderByList =  orderByList.stream().filter(o -> !selectItemExprList.contains(o) && !selectItemAliasList.contains(o) ).collect(Collectors.toList());
+        List unsupportedOrderByList =  orderByList.stream().filter(o ->
+                !selectItemExprList.contains(o) && !selectItemAliasList.contains(o) ).collect(Collectors.toList());
         if(unsupportedOrderByList.size() > 0) {
             return false;
         }
@@ -248,6 +197,9 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
                Column column = (Column) (expression);
                Alias alias = new Alias(column.getColumnName());
                selectExpressionItem.setAlias(alias);
+               this.selectItemAliasList.add(selectExpressionItem.getAlias().getName());
+           }  else if (expression instanceof  Function) {
+               selectExpressionItem.setAlias(new Alias("\""+ expression.toString() + "\""));
                this.selectItemAliasList.add(selectExpressionItem.getAlias().getName());
            }
 

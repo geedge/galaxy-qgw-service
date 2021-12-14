@@ -62,6 +62,8 @@ public class SQLFunctionUtil {
         distributedGroupByFunction.put("count","sum");
         distributedGroupByFunction.put("sum","sum");
         distributedGroupByFunction.put("avg","avg");
+        distributedGroupByFunction.put("min","min");
+        distributedGroupByFunction.put("max","max");
         distributedGroupByFunction.put("median","median");
     }
 
