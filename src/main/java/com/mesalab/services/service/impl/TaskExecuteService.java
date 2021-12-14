@@ -33,7 +33,7 @@ import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
  * @Date 2021/11/25 10:11 下午
  * @Author wWei
  */
-@Service("subTaskService")
+@Service("taskExecuteService")
 @PropertySource(value = "classpath:job-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class TaskExecuteService implements EnvironmentAware {
     private static final Log log = LogFactory.get();
