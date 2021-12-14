@@ -11,7 +11,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.mesalab.services.configuration.JobCfg;
+import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +22,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.Future;
 
 import static com.mesalab.services.service.impl.JobServiceImp.execute;
 import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
@@ -49,7 +50,7 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     MetadataService metadataService;
     @Autowired
-    JobCfg jobCfg;
+    JobConfig jobCfg;
 
     @Async("jobExecutor")
     public void addExecutor(String id, HashMap<String, Object> param) {
@@ -69,34 +70,37 @@ public class JobExecuteService implements EnvironmentAware {
         if (isCancel(id, now)) {
             return;
         }
-        for (String field : fields) {
-            taskExecuteService.execute(id, logType, filter, field, count);
-        }
+        List<Future<Boolean>> list = Lists.newArrayList();
         try {
-            updateProgress(id, fields.size());
+            for (String field : fields) {
+                list.add(taskExecuteService.execute(id, logType, filter, field, count));
+            }
+            updateProcess(id, fields, list);
         } catch (Exception e) {
-            log.error("Update Progress Error", e);
+            log.error(e, "update progress error: jobId-{}", id);
+            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
+                    id, true, 1));
         }
     }
 
-    private void updateProgress(String id, int allColumnNum) throws Exception {
-        int num = 0;
-        while (Thread.currentThread().isAlive()) {
-            if (num++ > 50) {
+    private void updateProcess(String id, List<String> fields, List<Future<Boolean>> list) throws InterruptedException {
+        long start = System.currentTimeMillis();
+        while (true) {
+            if (System.currentTimeMillis() - start > jobCfg.getTimeout()) {
+                list.forEach(o -> o.cancel(true));
+                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
+                        id, true, 1));
+                break;
+            }
+
+            int doneNum = list.parallelStream().filter(Future::isDone).toArray().length;
+            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
+                    id, doneNum == fields.size(), Double.parseDouble(String.format("%.4f", (doneNum * 1.0 / fields.size())))));
+            if (doneNum >= fields.size()) {
                 break;
             }
             synchronized (lock) {
                 lock.wait(jobCfg.getProgressTTL());
-            }
-            BaseResult result = jobService.getResult(id);
-            if (result.isSuccess() && StringUtil.isNotEmpty(result.getData())) {
-                Object data = result.getData();
-                List<Map<String, Object>> list = (List<Map<String, Object>>) data;
-                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
-                        id, list.size() == allColumnNum, Double.parseDouble(String.format("%.4f", (list.size() * 1.0 / allColumnNum)))));
-                if (list.size() >= allColumnNum) {
-                    break;
-                }
             }
         }
     }

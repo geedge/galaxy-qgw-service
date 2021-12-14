@@ -123,6 +123,7 @@ http:
 job:
   runningTTL: 30000
   progressTTL: 5000
+  timeout: 120000
   pool:
     corePoolSize: 20
     maxPoolSize: 30

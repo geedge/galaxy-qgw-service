@@ -13,12 +13,14 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component
-public class JobCfg {
+public class JobConfig {
 
     @NacosValue(value = "${job.runningTTL}", autoRefreshed = true)
     private int runningTTL;
     @NacosValue(value = "${job.progressTTL}", autoRefreshed = true)
     private int progressTTL;
+    @NacosValue(value = "${job.timeout}", autoRefreshed = true)
+    private int timeout;
     @NacosValue(value = "${job.pool.corePoolSize}", autoRefreshed = true)
     private int poolCorePoolSize;
     @NacosValue(value = "${job.pool.maxPoolSize}", autoRefreshed = true)
