@@ -16,11 +16,13 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Future;
 
 import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
 
@@ -41,14 +43,14 @@ public class TaskExecuteService implements EnvironmentAware {
     ApiService apiService;
 
     @Async("taskExecutor")
-    public void execute(String id, String logType, String filter, String field, long count) {
+    public Future<Boolean> execute(String id, String logType, String filter, String field, long count) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK")),
                 field, logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).
                 query(sql).build());
         if (!baseResult.isSuccess()) {
             log.error("subTask Error: ", baseResult.getMessage());
-            return;
+            return new AsyncResult<>(false);
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         Map<String, Object> map = Maps.newHashMap();
@@ -58,6 +60,7 @@ public class TaskExecuteService implements EnvironmentAware {
         String s = JsonMapper.toJsonString(map).replace("'", "\\'").replaceAll("\\\"", "\\\\\"");
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_RESULT")),
                 field, id, s));
+        return new AsyncResult<>(true);
     }
 
     @Override

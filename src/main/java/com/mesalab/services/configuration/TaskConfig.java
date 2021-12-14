@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component
-public class TaskCfg {
+public class TaskConfig {
 
     @NacosValue(value = "${task.pool.corePoolSize}", autoRefreshed = true)
     private int poolCorePoolSize;

@@ -19,16 +19,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableAsync
 public class JobThreadPoolCfg {
     @Autowired
-    JobCfg jobCfg;
+    JobConfig jobConfig;
     private static final int keepAliveTime = 10;
     private static final String threadNamePrefix = "Async-Service-";
 
     @Bean("jobExecutor")
     public ThreadPoolTaskExecutor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(jobCfg.getPoolCorePoolSize());
-        executor.setMaxPoolSize(jobCfg.getPoolMaxPoolSize());
-        executor.setQueueCapacity(jobCfg.getPoolQueueCapacity());
+        executor.setCorePoolSize(jobConfig.getPoolCorePoolSize());
+        executor.setMaxPoolSize(jobConfig.getPoolMaxPoolSize());
+        executor.setQueueCapacity(jobConfig.getPoolQueueCapacity());
         executor.setKeepAliveSeconds(keepAliveTime);
         executor.setThreadNamePrefix(threadNamePrefix);
 
