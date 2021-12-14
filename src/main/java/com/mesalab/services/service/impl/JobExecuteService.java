@@ -34,7 +34,7 @@ import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
  * @Date 2021/11/25 10:11 下午
  * @Author wWei
  */
-@Service("taskService")
+@Service("jobExecuteService")
 @PropertySource(value = "classpath:job-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class JobExecuteService implements EnvironmentAware {
     private static final Log log = LogFactory.get();
@@ -55,32 +55,33 @@ public class JobExecuteService implements EnvironmentAware {
     @Async("jobExecutor")
     public void addExecutor(String id, HashMap<String, Object> param) {
         long now = System.currentTimeMillis();
-        if (isExist(id)) {
-            return;
-        }
-        List<String> fields = (List<String>) param.get("custom.field_discovery.fields");
-        init(id, fields);
-        String logType = (String) param.get("query.data_source");
-        String filter = (String) param.get("custom.field_discovery.filter");
-        executeTask(id, now, fields, logType, filter);
-    }
-
-    private void executeTask(String id, long now, List<String> fields, String logType, String filter) {
-        long count = getCount(logType, filter);
-        if (isCancel(id, now)) {
-            return;
-        }
-        List<Future<Boolean>> list = Lists.newArrayList();
         try {
-            for (String field : fields) {
-                list.add(taskExecuteService.execute(id, logType, filter, field, count));
+            if (isExist(id)) {
+                return;
             }
-            updateProcess(id, fields, list);
+            List<String> fields = (List<String>) param.get("custom.field_discovery.fields");
+            init(id, fields);
+            String logType = (String) param.get("query.data_source");
+            String filter = (String) param.get("custom.field_discovery.filter");
+            executeTask(id, now, fields, logType, filter);
         } catch (Exception e) {
-            log.error(e, "update progress error: jobId-{}", id);
+            log.error(e, "execute job error: jobId-{}", id);
+        } finally {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
                     id, true, 1));
         }
+    }
+
+    private void executeTask(String id, long now, List<String> fields, String logType, String filter) throws InterruptedException {
+        long count = getCount(logType, filter);
+        if (count == 0 || isCancel(id, now)) {
+            return;
+        }
+        List<Future<Boolean>> list = Lists.newArrayList();
+        for (String field : fields) {
+            list.add(taskExecuteService.execute(id, logType, filter, field, count));
+        }
+        updateProcess(id, fields, list);
     }
 
     private void updateProcess(String id, List<String> fields, List<Future<Boolean>> list) throws InterruptedException {
@@ -94,11 +95,11 @@ public class JobExecuteService implements EnvironmentAware {
             }
 
             int doneNum = list.parallelStream().filter(Future::isDone).toArray().length;
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
-                    id, doneNum == fields.size(), Double.parseDouble(String.format("%.4f", (doneNum * 1.0 / fields.size())))));
             if (doneNum >= fields.size()) {
                 break;
             }
+            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
+                    id, doneNum == fields.size(), Double.parseDouble(String.format("%.4f", (doneNum * 1.0 / fields.size())))));
             synchronized (lock) {
                 lock.wait(jobCfg.getProgressTTL());
             }
