@@ -89,10 +89,9 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     private BaseResult<List<Map<String, Object>>> buildResult(String id) {
         BaseResult baseResult = apiService.executeQuery(
-                ApiParam.builder().
-                        option("real-time").
-                        query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).
-                        build());
+                ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue())
+                        .query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id))
+                        .build());
         if (!baseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(),
                     "get Job Result Error: ".concat(baseResult.getMessage()), null);
@@ -115,6 +114,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 res.add(result);
             }
         }
+        job.put("count", map.get("count"));
         job.put("is_done", map.get("is_done"));
         job.put("done_progress", map.get("done_progress"));
         job.put("is_canceled", map.get("is_canceled"));

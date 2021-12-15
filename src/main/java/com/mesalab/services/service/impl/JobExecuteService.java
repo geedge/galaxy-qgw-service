@@ -77,6 +77,8 @@ public class JobExecuteService implements EnvironmentAware {
         if (count == 0 || isCancel(id, now)) {
             return;
         }
+        executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")),
+                "count", id, count));
         List<Future<Boolean>> list = Lists.newArrayList();
         for (String field : fields) {
             list.add(taskExecuteService.execute(id, logType, filter, field, count));
@@ -114,7 +116,7 @@ public class JobExecuteService implements EnvironmentAware {
             List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
             long statTime = Long.parseLong(list.get(0).get("stat_time").toString());
             if ((now - statTime) > jobCfg.getRunningTTL()) {
-                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_SET_CANCELED")), id, true));
+                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), "is_canceled", id, true));
                 return true;
             }
         }
