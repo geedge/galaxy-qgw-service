@@ -15,6 +15,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.ApiService;
+import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.JsonMapper;
@@ -114,10 +115,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 res.add(result);
             }
         }
-        job.put("count", map.get("count"));
-        job.put("is_done", map.get("is_done"));
-        job.put("done_progress", map.get("done_progress"));
-        job.put("is_canceled", map.get("is_canceled"));
+        job.put(JobConfig.COUNT, map.get(JobConfig.COUNT));
+        job.put(JobConfig.IS_DONE, map.get(JobConfig.IS_DONE));
+        job.put(JobConfig.DONE_PROGRESS, map.get(JobConfig.DONE_PROGRESS));
+        job.put(JobConfig.IS_CANCELED, map.get(JobConfig.IS_CANCELED));
         return BaseResultGenerator.success(job, res);
     }
 
