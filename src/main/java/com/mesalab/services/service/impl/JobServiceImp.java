@@ -145,7 +145,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         java.sql.Statement statement = null;
         int i;
         try {
-            log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.HBASE.getValue(), sql);
+            log.info("{} engine execute update: {}", DBTypeEnum.HBASE.getValue(), sql);
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
             String url = URL_PREFIX.concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
             conn = DriverManager.getConnection(url, PROPERTIES);
@@ -153,7 +153,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             i = statement.executeUpdate(sql);
             conn.commit();
         } catch (RuntimeException | SQLException e) {
-            log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e);
+            log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), e.getMessage(), null);
         } finally {
             close(statement, conn);

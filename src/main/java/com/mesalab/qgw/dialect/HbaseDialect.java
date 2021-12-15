@@ -147,7 +147,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         java.sql.Statement statement = null;
         ResultSet resultSet = null;
         try {
-            log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.HBASE.getValue(), sql);
+            log.info("{} engine execute query: {}", DBTypeEnum.HBASE.getValue(), sql);
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
             String url = URL_PREFIX.concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
             conn = DriverManager.getConnection(url, PROPERTIES);
@@ -155,7 +155,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             resultSet = statement.executeQuery(sql);
             return buildResult(resultSet);
         } catch (RuntimeException | SQLException e) {
-            log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e);
+            log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), simplyErrorMessage(e.getMessage()), null);
         } finally {
             close(resultSet, statement, conn);
