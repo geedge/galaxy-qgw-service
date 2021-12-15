@@ -3,6 +3,7 @@ package com.mesalab.services.controller;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -50,6 +51,9 @@ public class JobController {
         log.info("Long Polling Request ， Job ID is {}", jobId);
         BaseResult baseResult = jobService.getResult(jobId);
         DeferredResult<BaseResult> deferredResult = deferredResultHolder.newDeferredResult(jobId, 3 * 1000l, baseResult);
+        deferredResult.onTimeout(() ->{
+            deferredResultHolder.handleDeferredData(deferredResult, jobService.getResult(jobId));
+        });
         if (StringUtil.isNotEmpty(baseResult)
                 && Boolean.valueOf(baseResult.getJob().get(JobConfig.IS_DONE).toString())) {
             deferredResultHolder.handleDeferredData(deferredResult, baseResult);

@@ -1,4 +1,6 @@
 package com.mesalab.qgw.service.impl;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.qgw.service.DeferredResultHolder;
@@ -8,6 +10,7 @@ import java.util.Map;
 
 @Service("deferredResultHolder")
 public class DeferredResultHolderImpl implements DeferredResultHolder<BaseResult> {
+    private static final Log log = LogFactory.get();
     private Map<String, DeferredResult<BaseResult>> deferredResults = Maps.newConcurrentMap();
 
     public DeferredResult<BaseResult> newDeferredResult(String key) {
@@ -30,6 +33,7 @@ public class DeferredResultHolderImpl implements DeferredResultHolder<BaseResult
             @Override
             public void run() {
                 remove(key);
+                log.info("Async Request {} is done.Current DeferredResults has been {} requests.", key, deferredResults.size());
             }
         });
         return deferredResult;
