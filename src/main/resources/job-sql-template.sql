@@ -8,7 +8,7 @@ SELECT result.* FROM job_result LIMIT 1
 ALTER TABLE "tsg_galaxy"."job_result" ADD "result"."%s" VARCHAR
 #end
 #sql("JOB_INIT")
-UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."is_canceled", "detail"."last_query_time", "detail"."discovery_field") VALUES('%s', %s, %s, %s, %s, '%s')
+UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."is_canceled", "detail"."last_query_time", "detail"."discovery_field", "detail"."count") VALUES('%s', %s, %s, %s, %s, '%s', %s)
 #end
 #sql("JOB_LOG_COUNT")
 SELECT count(1) AS count FROM %s %s LIMIT 1

@@ -136,7 +136,7 @@ public class JobExecuteService implements EnvironmentAware {
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), field));
             }
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")),
-                    id, false, 0, false, System.currentTimeMillis(), String.join(",", fields)));
+                    id, false, 0, false, System.currentTimeMillis(), String.join(",", fields), 0));
         }
     }
 
