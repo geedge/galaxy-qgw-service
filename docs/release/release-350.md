@@ -9,3 +9,6 @@
  * 扩展Schema，增加内置列internal_columns描述(TSG-8759)。
  * 扩展Schema，Radius协议增加字段radius_acct_authentic(TSG-8648)。
  * 扩展Schema，描述L2TP PPTP协议(TSG-8618)。
+ * 新增字段发现功能(TSG-8542)。
+ * 完善ToP优化，细化ToP优化策略，聚合函数支持无别名，增加min与max函数的支持
+ 
