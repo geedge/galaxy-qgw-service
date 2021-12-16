@@ -106,9 +106,6 @@ public class JobExecuteService implements EnvironmentAware {
             format.applyPattern("0.0");
             format.setRoundingMode(RoundingMode.FLOOR);
             double v = Double.parseDouble(format.format(doneNum * 1.0 / fields.size()));
-            if (v == process) {
-                continue;
-            }
             if (v - process >= 0.1) {
                 process = v;
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
@@ -160,7 +157,7 @@ public class JobExecuteService implements EnvironmentAware {
             return false;
         }
         Map<String, Object> map = data.get(0);
-        return !(Boolean) map.get("isCanceled");
+        return StringUtil.isEmpty(map.get("isCanceled")) || !(Boolean) map.get("isCanceled");
     }
 
     private Long getCount(String logType, String filter) {
