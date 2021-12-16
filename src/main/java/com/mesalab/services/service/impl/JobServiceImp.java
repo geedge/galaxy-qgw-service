@@ -124,10 +124,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         statistics.put("rows_read", res.size());
         statistics.put("result_rows", res.size());
         statistics.put("result_size", String.valueOf(res).getBytes().length);
-        job.put(JobConfig.COUNT, map.get(JobConfig.COUNT));
-        job.put(JobConfig.IS_DONE, map.get(JobConfig.IS_DONE));
-        job.put(JobConfig.DONE_PROGRESS, map.get(JobConfig.DONE_PROGRESS));
-        job.put(JobConfig.IS_CANCELED, map.get(JobConfig.IS_CANCELED));
+        job.put(JobConfig.COUNT,  StringUtil.isEmpty(map.get(JobConfig.COUNT)) ? 0 : map.get(JobConfig.COUNT));
+        job.put(JobConfig.IS_DONE, StringUtil.isEmpty(map.get(JobConfig.IS_DONE)) ? false : map.get(JobConfig.IS_DONE));
+        job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
+        job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
         return BaseResultGenerator.success(statistics, job, res);
     }
 
