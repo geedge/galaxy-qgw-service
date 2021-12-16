@@ -57,6 +57,7 @@ public class JobController {
             deferredResultHolder.handleDeferredData(deferredResult, jobService.getResult(jobId));
         });
         if (StringUtil.isNotEmpty(baseResult)
+                && StringUtil.isNotEmpty(baseResult.getJob())
                 && Boolean.valueOf(baseResult.getJob().get(JobConfig.IS_DONE).toString())) {
             deferredResultHolder.handleDeferredData(deferredResult, baseResult);
         }
