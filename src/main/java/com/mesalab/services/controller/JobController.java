@@ -31,6 +31,8 @@ public class JobController {
 
     @Autowired
     JobService jobService;
+    @Autowired
+    JobConfig jobConfig;
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
@@ -50,7 +52,7 @@ public class JobController {
     public DeferredResult<BaseResult> longPollingResult(@PathVariable String jobId) {
         log.info("Long Polling Request ， Job ID is {}", jobId);
         BaseResult baseResult = jobService.getResult(jobId);
-        DeferredResult<BaseResult> deferredResult = deferredResultHolder.newDeferredResult(jobId, 3 * 1000l, baseResult);
+        DeferredResult<BaseResult> deferredResult = deferredResultHolder.newDeferredResult(jobId, jobConfig.getResponseTimeout(), baseResult);
         deferredResult.onTimeout(() ->{
             deferredResultHolder.handleDeferredData(deferredResult, jobService.getResult(jobId));
         });
