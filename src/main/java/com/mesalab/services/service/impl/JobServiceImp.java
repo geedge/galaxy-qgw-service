@@ -15,6 +15,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.ApiService;
+import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.JsonMapper;
@@ -89,10 +90,9 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     private BaseResult<List<Map<String, Object>>> buildResult(String id) {
         BaseResult baseResult = apiService.executeQuery(
-                ApiParam.builder().
-                        option("real-time").
-                        query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).
-                        build());
+                ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue())
+                        .query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id))
+                        .build());
         if (!baseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(),
                     "get Job Result Error: ".concat(baseResult.getMessage()), null);
@@ -115,9 +115,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 res.add(result);
             }
         }
-        job.put("is_done", map.get("is_done"));
-        job.put("done_progress", map.get("done_progress"));
-        job.put("is_canceled", map.get("is_canceled"));
+        job.put(JobConfig.COUNT, map.get(JobConfig.COUNT));
+        job.put(JobConfig.IS_DONE, map.get(JobConfig.IS_DONE));
+        job.put(JobConfig.DONE_PROGRESS, map.get(JobConfig.DONE_PROGRESS));
+        job.put(JobConfig.IS_CANCELED, map.get(JobConfig.IS_CANCELED));
         return BaseResultGenerator.success(job, res);
     }
 
@@ -144,7 +145,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         java.sql.Statement statement = null;
         int i;
         try {
-            log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.HBASE.getValue(), sql);
+            log.info("{} engine execute update: {}", DBTypeEnum.HBASE.getValue(), sql);
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
             String url = URL_PREFIX.concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
             conn = DriverManager.getConnection(url, PROPERTIES);
@@ -152,7 +153,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             i = statement.executeUpdate(sql);
             conn.commit();
         } catch (RuntimeException | SQLException e) {
-            log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e);
+            log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), e.getMessage(), null);
         } finally {
             close(statement, conn);

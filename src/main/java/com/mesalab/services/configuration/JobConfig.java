@@ -14,6 +14,10 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class JobConfig {
+    public static final String COUNT = "count";
+    public static final String IS_DONE = "is_done";
+    public static final String DONE_PROGRESS = "done_progress";
+    public static final String IS_CANCELED= "is_canceled";
 
     @NacosValue(value = "${job.runningTTL}", autoRefreshed = true)
     private int runningTTL;

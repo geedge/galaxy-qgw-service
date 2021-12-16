@@ -10,8 +10,12 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +24,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Log log = LogFactory.get();
+
+
+    @ExceptionHandler(AsyncRequestTimeoutException.class) //捕获特定异常
+    public void handleAsyncRequestTimeoutException(AsyncRequestTimeoutException e, HttpServletRequest request) {
+        log.info("Handle Async Request Timeout Exception");
+    }
+
 
     @ExceptionHandler(Exception.class)
     public BaseResult handleException(Exception e, HttpServletRequest request, HttpServletResponse response) {
