@@ -57,11 +57,7 @@ public class JobExecuteService implements EnvironmentAware {
     public void addExecutor(String id, HashMap<String, Object> param) {
         long now = System.currentTimeMillis();
         try {
-            if (isExist(id)) {
-                return;
-            }
             List<String> fields = (List<String>) param.get("custom.field_discovery.fields");
-            init(id, fields);
             String logType = (String) param.get("query.data_source");
             String filter = (String) param.get("custom.field_discovery.filter");
             executeTask(id, now, fields, logType, filter);
@@ -106,9 +102,6 @@ public class JobExecuteService implements EnvironmentAware {
             format.applyPattern("0.0");
             format.setRoundingMode(RoundingMode.FLOOR);
             double v = Double.parseDouble(format.format(doneNum * 1.0 / fields.size()));
-            if (v == process) {
-                continue;
-            }
             if (v - process >= 0.1) {
                 process = v;
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
@@ -130,37 +123,6 @@ public class JobExecuteService implements EnvironmentAware {
             }
         }
         return false;
-    }
-
-    private void init(String id, List<String> fields) {
-        List<String> interim = Lists.newArrayList(fields);
-        ApiParam apiParam = ApiParam.builder().query(env.getProperty("JOB_RESULT_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build();
-        BaseResult baseResult = apiService.executeQuery(apiParam);
-        if (baseResult.isSuccess()) {
-            List<Map<String, Object>> meta = (List<Map<String, Object>>) baseResult.getMeta();
-            List<String> metaName = new ArrayList<>();
-            meta.forEach(m -> metaName.add(m.get("name").toString()));
-            interim.removeAll(metaName);
-            for (String field : interim) {
-                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), field));
-            }
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")),
-                    id, false, 0, false, System.currentTimeMillis(), String.join(",", fields), 0));
-        }
-    }
-
-    private boolean isExist(String id) {
-        String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_STATUS")), id);
-        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
-        if (!baseResult.isSuccess()) {
-            log.error("Query Job Status Error", baseResult.getMessage());
-        }
-        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-        if (StringUtil.isEmpty(data)) {
-            return false;
-        }
-        Map<String, Object> map = data.get(0);
-        return !(Boolean) map.get("isCanceled");
     }
 
     private Long getCount(String logType, String filter) {

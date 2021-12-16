@@ -81,35 +81,25 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     public BaseResult getJobId(HashMap<String, Object> map) {
         syntaxValidation(map);
         String id = DigestUtil.md5Hex(String.valueOf(map));
-        jobExecuteService.addExecutor(id, map);
+        if (!isExist(id)) {
+            init(id, (List<String>) map.get("custom.field_discovery.fields"));
+            jobExecuteService.addExecutor(id, map);
+        }
         return BaseResultGenerator.success("ok", build(id));
     }
 
     @Override
     public BaseResult getResult(String id) {
         watch.reset().start();
-        updateQueryTime(id, System.currentTimeMillis());
         return buildResult(id);
     }
 
     private BaseResult<List<Map<String, Object>>> buildResult(String id) {
-        BaseResult baseResult = apiService.executeQuery(
-                ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue())
-                        .query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id))
-                        .build());
-        if (!baseResult.isSuccess()) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(),
-                    "get Job Result Error: ".concat(baseResult.getMessage()), null);
-        }
-        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-        if (StringUtil.isEmpty(data)) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Not Found This Job: ".concat(id), null);
-        }
+        List<Map<String, Object>> data = validationData(id);
+        updateQueryTime(id, System.currentTimeMillis());
         Map<String, Object> job = Maps.newHashMap();
         Map<String, Object> map = data.get(0);
-
-        String[] list = String.valueOf(map.get("discovery_field")).split(",");
+        String[] list = StringUtil.isEmpty(map.get(JobConfig.DISCOVERY_FIELD)) ? new String[0] : map.get(JobConfig.DISCOVERY_FIELD).toString().split(",");
         List<Map<String, Object>> res = Lists.newArrayList();
         for (String column : list) {
             Map<String, Object> result = Maps.newHashMap();
@@ -124,11 +114,62 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         statistics.put("rows_read", res.size());
         statistics.put("result_rows", res.size());
         statistics.put("result_size", String.valueOf(res).getBytes().length);
-        job.put(JobConfig.COUNT,  StringUtil.isEmpty(map.get(JobConfig.COUNT)) ? 0 : map.get(JobConfig.COUNT));
+        job.put(JobConfig.COUNT, StringUtil.isEmpty(map.get(JobConfig.COUNT)) ? 0 : map.get(JobConfig.COUNT));
         job.put(JobConfig.IS_DONE, StringUtil.isEmpty(map.get(JobConfig.IS_DONE)) ? false : map.get(JobConfig.IS_DONE));
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
         return BaseResultGenerator.success(statistics, job, res);
+    }
+
+    private boolean isExist(String id) {
+        String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_STATUS")), id);
+        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
+        if (!baseResult.isSuccess()) {
+            log.error("Query Job Status Error", baseResult.getMessage());
+        }
+        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+        if (StringUtil.isEmpty(data)) {
+            return false;
+        }
+        Map<String, Object> map = data.get(0);
+        if (StringUtil.isEmpty(map.get("isCanceled"))) {
+            return false;
+        }
+        return StringUtil.isNotEmpty(map.get("isCanceled")) && !(Boolean) map.get("isCanceled");
+    }
+
+    private void init(String id, List fields) {
+        List<String> interim = Lists.newArrayList();
+        ApiParam apiParam = ApiParam.builder().query(env.getProperty("JOB_RESULT_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build();
+        BaseResult baseResult = apiService.executeQuery(apiParam);
+        if (baseResult.isSuccess()) {
+            List<Map<String, Object>> meta = (List<Map<String, Object>>) baseResult.getMeta();
+            List<String> metaName = new ArrayList<>();
+            meta.forEach(m -> metaName.add(m.get("name").toString()));
+            interim.removeAll(metaName);
+            for (String field : interim) {
+                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), field));
+            }
+            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")),
+                    id, false, 0, false, System.currentTimeMillis(), String.join(",", fields), 0));
+        }
+    }
+
+    private List<Map<String, Object>> validationData(String id) {
+        BaseResult baseResult = apiService.executeQuery(
+                ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue())
+                        .query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id))
+                        .build());
+        if (!baseResult.isSuccess()) {
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(),
+                    "get Job Result Error: ".concat(baseResult.getMessage()), null);
+        }
+        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+        if (StringUtil.isEmpty(data) || StringUtil.isEmpty(data.get(0).get(JobConfig.DISCOVERY_FIELD))) {
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Not Found This Job: ".concat(id), null);
+        }
+        return data;
     }
 
     private void updateQueryTime(String id, long now) {
