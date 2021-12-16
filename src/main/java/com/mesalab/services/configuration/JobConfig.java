@@ -19,12 +19,12 @@ public class JobConfig {
     public static final String DONE_PROGRESS = "done_progress";
     public static final String IS_CANCELED= "is_canceled";
 
-    @NacosValue(value = "${job.runningTTL}", autoRefreshed = true)
-    private int runningTTL;
-    @NacosValue(value = "${job.progressTTL}", autoRefreshed = true)
-    private int progressTTL;
-    @NacosValue(value = "${job.timeout}", autoRefreshed = true)
-    private int timeout;
+    @NacosValue(value = "${job.interactive.timeout}", autoRefreshed = true)
+    private int interactiveTimeout;
+    @NacosValue(value = "${job.response.timeout}", autoRefreshed = true)
+    private int responseTimeout;
+    @NacosValue(value = "${job.execution.timeout}", autoRefreshed = true)
+    private int executionTimeout;
     @NacosValue(value = "${job.pool.corePoolSize}", autoRefreshed = true)
     private int poolCorePoolSize;
     @NacosValue(value = "${job.pool.maxPoolSize}", autoRefreshed = true)

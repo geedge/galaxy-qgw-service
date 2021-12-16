@@ -121,9 +121,12 @@ http:
       timeout: 60000
 ## job cfg
 job:
-  runningTTL: 30000
-  progressTTL: 5000
-  timeout: 120000
+  interactive:
+    timeout: 30000
+  response:
+    timeout: 3000
+  execution:
+    timeout: 90000
   pool:
     corePoolSize: 20
     maxPoolSize: 30

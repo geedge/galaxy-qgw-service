@@ -3,6 +3,7 @@ package com.mesalab.services.service.impl;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * TODO
@@ -42,6 +44,7 @@ import java.util.*;
 public class JobServiceImp implements JobService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private static final String URL_PREFIX = "jdbc:phoenix:";
+    private Stopwatch watch = Stopwatch.createUnstarted();
     @Autowired
     ApiService apiService;
     @Autowired
@@ -84,6 +87,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     @Override
     public BaseResult getResult(String id) {
+        watch.reset().start();
         updateQueryTime(id, System.currentTimeMillis());
         return buildResult(id);
     }
@@ -115,11 +119,16 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 res.add(result);
             }
         }
+        HashMap<String, Object> statistics = Maps.newHashMap();
+        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+        statistics.put("rows_read", res.size());
+        statistics.put("result_rows", res.size());
+        statistics.put("result_size", String.valueOf(res).getBytes().length);
         job.put(JobConfig.COUNT, map.get(JobConfig.COUNT));
         job.put(JobConfig.IS_DONE, map.get(JobConfig.IS_DONE));
         job.put(JobConfig.DONE_PROGRESS, map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, map.get(JobConfig.IS_CANCELED));
-        return BaseResultGenerator.success(job, res);
+        return BaseResultGenerator.success(statistics, job, res);
     }
 
     private void updateQueryTime(String id, long now) {

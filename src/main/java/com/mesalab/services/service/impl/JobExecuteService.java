@@ -21,6 +21,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Future;
 
@@ -38,7 +40,6 @@ import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
 @PropertySource(value = "classpath:job-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class JobExecuteService implements EnvironmentAware {
     private static final Log log = LogFactory.get();
-    final Object lock = new Object();
     @Autowired
     Environment env;
     @Autowired
@@ -88,8 +89,9 @@ public class JobExecuteService implements EnvironmentAware {
 
     private void updateProcess(String id, List<String> fields, List<Future<Boolean>> list) throws InterruptedException {
         long start = System.currentTimeMillis();
+        double process = 0.0;
         while (true) {
-            if (System.currentTimeMillis() - start > jobCfg.getTimeout()) {
+            if (System.currentTimeMillis() - start > jobCfg.getExecutionTimeout()) {
                 list.forEach(o -> o.cancel(true));
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
                         id, true, 1));
@@ -100,10 +102,17 @@ public class JobExecuteService implements EnvironmentAware {
             if (doneNum >= fields.size()) {
                 break;
             }
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
-                    id, doneNum == fields.size(), Double.parseDouble(String.format("%.4f", (doneNum * 1.0 / fields.size())))));
-            synchronized (lock) {
-                lock.wait(jobCfg.getProgressTTL());
+            DecimalFormat format = new DecimalFormat("#0.#");
+            format.applyPattern("0.0");
+            format.setRoundingMode(RoundingMode.FLOOR);
+            double v = Double.parseDouble(format.format(doneNum * 1.0 / fields.size()));
+            if (v == process) {
+                continue;
+            }
+            if (v - process >= 0.1) {
+                process = v;
+                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
+                        id, doneNum == fields.size(), Double.parseDouble(String.format("%.4f", (doneNum * 1.0 / fields.size())))));
             }
         }
     }
@@ -115,7 +124,7 @@ public class JobExecuteService implements EnvironmentAware {
         if (baseResult.isSuccess() && (StringUtil.isNotEmpty(baseResult.getData()))) {
             List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
             long statTime = Long.parseLong(list.get(0).get("stat_time").toString());
-            if ((now - statTime) > jobCfg.getRunningTTL()) {
+            if ((now - statTime) > jobCfg.getInteractiveTimeout()) {
                 executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), "is_canceled", id, true));
                 return true;
             }
@@ -136,7 +145,7 @@ public class JobExecuteService implements EnvironmentAware {
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), field));
             }
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")),
-                    id, false, 0, false, System.currentTimeMillis(), String.join(",", fields)));
+                    id, false, 0, false, System.currentTimeMillis(), String.join(",", fields), 0));
         }
     }
 

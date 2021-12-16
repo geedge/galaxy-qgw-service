@@ -82,15 +82,16 @@ public class BaseResultGenerator {
     /**
      * Desc: 操作成功响应结果，自定义数据，Job结果
      *
+     * @param statistics
      * @param job
      * @param data
      * @return {@link BaseResult<T>}
      * @created by wWei
      * @date 2021/11/26 11:46 上午
      */
-    public static <T> BaseResult<T> success(final Map<String, Object> job, final T data) {
+    public static <T> BaseResult<T> success(final Map<String, Object> statistics, final Map<String, Object> job, final T data) {
         return new BaseResult<>(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), null, true,
-                ResultCodeEnum.EXECUTE_SUCCESS.getMessage(), null, job, null, null, data);
+                ResultCodeEnum.EXECUTE_SUCCESS.getMessage(), statistics, job, null, null, data);
     }
 
 
