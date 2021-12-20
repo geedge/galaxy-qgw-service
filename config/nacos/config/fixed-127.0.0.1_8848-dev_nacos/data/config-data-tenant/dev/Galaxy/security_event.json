@@ -307,7 +307,9 @@
     "internal_columns": [
       "common_recv_time",
       "common_log_id",
-      "common_processing_time"
+      "common_processing_time",
+      "common_userdefine_app_name",
+      "common_tunnels"
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
