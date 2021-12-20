@@ -4,6 +4,7 @@ package com.mesalab.services.service.impl;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.QueryOptionEnum;
@@ -25,6 +26,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static com.mesalab.services.service.impl.JobServiceImp.execute;
 import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
@@ -55,23 +57,23 @@ public class JobExecuteService implements EnvironmentAware {
 
     @Async("jobExecutor")
     public void addExecutor(String id, HashMap<String, Object> param) {
-        long now = System.currentTimeMillis();
+        Stopwatch watch = Stopwatch.createStarted();
         try {
             List<String> fields = (List<String>) param.get("custom.field_discovery.fields");
             String logType = (String) param.get("query.data_source");
             String filter = (String) param.get("custom.field_discovery.filter");
-            executeTask(id, now, fields, logType, filter);
+            executeTask(id, watch, fields, logType, filter);
         } catch (Exception e) {
             log.error(e, "execute job error: jobId-{}", id);
         } finally {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
-                    id, true, 1));
+                    id, true, 1, watch.elapsed(TimeUnit.MILLISECONDS)));
         }
     }
 
-    private void executeTask(String id, long now, List<String> fields, String logType, String filter) throws InterruptedException {
+    private void executeTask(String id, Stopwatch watch, List<String> fields, String logType, String filter) {
         long count = getCount(logType, filter);
-        if (count == 0 || isCancel(id, now)) {
+        if (count == 0 || isCancel(id)) {
             return;
         }
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")),
@@ -80,17 +82,16 @@ public class JobExecuteService implements EnvironmentAware {
         for (String field : fields) {
             list.add(taskExecuteService.execute(id, logType, filter, field, count));
         }
-        updateProcess(id, fields, list);
+        updateProcess(id, watch, fields, list);
     }
 
-    private void updateProcess(String id, List<String> fields, List<Future<Boolean>> list) throws InterruptedException {
-        long start = System.currentTimeMillis();
+    private void updateProcess(String id,Stopwatch watch, List<String> fields, List<Future<Boolean>> list) {
         double process = 0.0;
         while (true) {
-            if (System.currentTimeMillis() - start > jobCfg.getExecutionTimeout()) {
+            if (watch.elapsed(TimeUnit.MILLISECONDS) > jobCfg.getExecutionTimeout()) {
                 list.forEach(o -> o.cancel(true));
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
-                        id, true, 1));
+                        id, true, 1, watch.elapsed(TimeUnit.MILLISECONDS)));
                 break;
             }
 
@@ -105,19 +106,19 @@ public class JobExecuteService implements EnvironmentAware {
             if (v - process >= 0.1) {
                 process = v;
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
-                        id, doneNum == fields.size(), Double.parseDouble(String.format("%.4f", (doneNum * 1.0 / fields.size())))));
+                        id, doneNum == fields.size(), Double.parseDouble(String.format("%.4f", (doneNum * 1.0 / fields.size()))), watch.elapsed(TimeUnit.MILLISECONDS)));
             }
         }
     }
 
-    private boolean isCancel(String id, long now) {
+    private boolean isCancel(String id) {
         ApiParam build = ApiParam.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_TTL")), id)).
                 option(QueryOptionEnum.REAL_TIME.getValue()).build();
         BaseResult baseResult = apiService.executeQuery(build);
         if (baseResult.isSuccess() && (StringUtil.isNotEmpty(baseResult.getData()))) {
             List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
             long statTime = Long.parseLong(list.get(0).get("stat_time").toString());
-            if ((now - statTime) > jobCfg.getInteractiveTimeout()) {
+            if ((System.currentTimeMillis() - statTime) > jobCfg.getInteractiveTimeout()) {
                 executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), "is_canceled", id, true));
                 return true;
             }

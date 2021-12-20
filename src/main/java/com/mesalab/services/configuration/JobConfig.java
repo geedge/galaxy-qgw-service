@@ -19,6 +19,7 @@ public class JobConfig {
     public static final String DONE_PROGRESS = "done_progress";
     public static final String IS_CANCELED= "is_canceled";
     public static final String DISCOVERY_FIELD= "discovery_field";
+    public static final String DURATION_TIME= "duration_time";
 
     @NacosValue(value = "${job.interactive.timeout}", autoRefreshed = true)
     private int interactiveTimeout;

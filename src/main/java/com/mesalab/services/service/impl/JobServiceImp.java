@@ -3,7 +3,6 @@ package com.mesalab.services.service.impl;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * TODO
@@ -44,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 public class JobServiceImp implements JobService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private static final String URL_PREFIX = "jdbc:phoenix:";
-    private Stopwatch watch = Stopwatch.createUnstarted();
     @Autowired
     ApiService apiService;
     @Autowired
@@ -90,7 +87,6 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     @Override
     public BaseResult getResult(String id) {
-        watch.reset().start();
         return buildResult(id);
     }
 
@@ -110,7 +106,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             }
         }
         HashMap<String, Object> statistics = Maps.newHashMap();
-        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+        statistics.put("elapsed", map.get(JobConfig.DURATION_TIME));
         statistics.put("rows_read", res.size());
         statistics.put("result_rows", res.size());
         statistics.put("result_size", String.valueOf(res).getBytes().length);
@@ -151,7 +147,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), field));
             }
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")),
-                    id, false, 0, false, System.currentTimeMillis(), String.join(",", fields), 0));
+                    id, false, 0, false, System.currentTimeMillis(), String.join(",", fields), 0, 0));
         }
     }
 
