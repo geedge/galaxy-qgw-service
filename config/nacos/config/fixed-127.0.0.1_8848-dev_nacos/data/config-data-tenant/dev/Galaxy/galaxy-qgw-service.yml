@@ -82,7 +82,7 @@ elasticsearch:
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
   userName: query
-  pin: ceiec2018
+  pin: galaxy2018
 ## Engine、Service configuration
 engine:
   maxCacheNum: 1048575
