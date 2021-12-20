@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
         response.setStatus(e.getErrorStatus());
         String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
         String message = (e.getMessage() != null ? e.getMessage() : e.getErrorMessage()) + "  " + (e.getCause() != null ? e.getCause().getMessage() : "");
-        log.error("queryKey:{}, message:{}, stackTrace:{}", queryKey, message, getStackTrace(e));
+        log.error("queryKey:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
        return BaseResultGenerator.failure(e.getErrorStatus(), e.getErrorCode(), queryKey, message);
     }
 

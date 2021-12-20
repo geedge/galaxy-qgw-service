@@ -76,6 +76,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     @Override
     public BaseResult getJobId(HashMap<String, Object> map) {
+        validateRequestBody(map);
         syntaxValidation(map);
         String id = DigestUtil.md5Hex(String.valueOf(map));
         if (!isExist(id)) {
@@ -172,6 +173,20 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT_QUERY")), id, now));
     }
 
+    private void validateRequestBody(HashMap<String, Object> body) {
+        if (!body.containsKey("query.type")) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The param must contain query.type", null);
+        }
+        if (!body.containsKey("query.data_source")) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The param must contain query.data_source", null);
+        }
+        if (!body.containsKey("query.sample_ratio")) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The param must contain query.sample_ratio", null);
+        }
+    }
 
     private void syntaxValidation(HashMap<String, Object> map) {
         String syntaxValidation = env.getProperty("SYNTAX_VALIDATION");

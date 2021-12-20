@@ -29,13 +29,16 @@ public class DeferredResultHolderImpl implements DeferredResultHolder<BaseResult
     public DeferredResult<BaseResult> newDeferredResult(String key, long timeout, Object timeoutResult) {
         DeferredResult<BaseResult> deferredResult = new DeferredResult<>(timeout, timeoutResult);
         add(key, deferredResult);
-        deferredResult.onCompletion(new Runnable() {
-            @Override
-            public void run() {
-                remove(key);
-                log.info("Async Request {} is done.Current DeferredResults has been {} requests.", key, deferredResults.size());
-            }
+        deferredResult.onCompletion(() -> {
+            remove(key);
+            log.info("Async Request {} is done.Current DeferredResults has been {} requests.", key, deferredResults.size());
         });
+
+        deferredResult.onError((Throwable t) -> {
+            remove(key);
+            log.error("Async Request {} is error.Current DeferredResults has been {} requests.", key, deferredResults.size());
+        });
+
         return deferredResult;
     }
 
