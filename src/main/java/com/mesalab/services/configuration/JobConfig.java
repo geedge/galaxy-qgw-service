@@ -33,4 +33,6 @@ public class JobConfig {
     private int poolMaxPoolSize;
     @NacosValue(value = "${job.pool.queueCapacity}", autoRefreshed = true)
     private int poolQueueCapacity;
+    @NacosValue(value="${job.longPolling.enabled}", autoRefreshed = true)
+    private boolean longPollingEnabled;
 }

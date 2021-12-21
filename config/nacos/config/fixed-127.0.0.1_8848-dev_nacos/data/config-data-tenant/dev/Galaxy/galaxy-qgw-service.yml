@@ -121,6 +121,8 @@ http:
       timeout: 60000
 ## job cfg
 job:
+  longPolling:
+    enabled: true
   interactive:
     timeout: 30000
   response:
