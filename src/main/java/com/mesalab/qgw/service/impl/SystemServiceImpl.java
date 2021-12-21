@@ -18,6 +18,7 @@ import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
+import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
@@ -31,6 +32,7 @@ import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.http.HttpStatus;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
 import org.springframework.context.EnvironmentAware;
@@ -172,6 +174,21 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult getProcessesByQueryId(String queryId) {
         Dialect dialect = buildAndGetDialect(queryId);
         return dialect.getProcesses();
+    }
+
+    @Override
+    public BaseResult getCiphertext(EncryptionInfo param) {
+        BaseResult baseResult;
+        BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
+        textEncryptor.setPassword("galaxy");
+        String encrypt = textEncryptor.encrypt(param.getPassword());
+        List data = new ArrayList();
+        Map dataMap = new HashMap();
+        dataMap.put("password", param.getPassword());
+        dataMap.put("encrypted_password", encrypt);
+        data.add(dataMap);
+        baseResult = BaseResultGenerator.success("ok", data);
+        return baseResult;
     }
 
     public Dialect buildAndGetDialect(String queryId) {

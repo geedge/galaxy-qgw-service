@@ -7,6 +7,7 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.service.SystemService;
 import com.zdjizhi.utils.StringUtil;
@@ -97,6 +98,15 @@ public class SystemController {
         map.put("queryId", queryId);
         result.add(map);
         return BaseResultGenerator.success(result);
+    }
+    @GetMapping(value = "encryption")
+    public BaseResult getCiphertext(EncryptionInfo param) {
+        log.info("Plaintext encrypted,The plaintext argument is : {}",param);
+        if (StringUtil.isEmpty(param.getPassword())||StringUtil.isEmpty(param.getSalt())){
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param password or salt cannot be empty", null );
+        }
+        return systemService.getCiphertext(param);
     }
 
 }
