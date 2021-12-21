@@ -1,6 +1,7 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 
 import java.util.List;
@@ -62,4 +63,13 @@ public interface SystemService {
      * @date 2021/1/7 6:49 下午
      */
     BaseResult getProcessesByQueryId(String queryId);
+    /**
+     * Desc: 通过queryId查询SQL任务执行状态
+     *
+     * @param queryId
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2021/1/7 6:49 下午
+     */
+    BaseResult getCiphertext(EncryptionInfo param);
 }
