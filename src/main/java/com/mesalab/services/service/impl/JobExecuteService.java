@@ -13,7 +13,6 @@ import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
-import com.mesalab.services.service.JobService;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -46,8 +45,6 @@ public class JobExecuteService implements EnvironmentAware {
     Environment env;
     @Autowired
     ApiService apiService;
-    @Autowired
-    JobService jobService;
     @Autowired
     TaskExecuteService taskExecuteService;
     @Autowired
