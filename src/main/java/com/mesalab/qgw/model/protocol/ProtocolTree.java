@@ -24,9 +24,9 @@ public class ProtocolTree {
     private Map<String, Object> metrics = Maps.newLinkedHashMap();
     private long sentBytes;
     private long receivedBytes;
-    private static final String HIERARCCY_FLAG = ".";
-
-
+    private long totalSentBytes;
+    private long totalReceivedBytes;
+    private static final String HIERARCHY_FLAG = ".";
 
     public ProtocolTree(String id, String  name, String parentId) {
         this.id = id;
@@ -42,10 +42,14 @@ public class ProtocolTree {
         this.receivedBytes = receivedBytes;
     }
 
+    public void addMetric(String key, Object value) {
+        metrics.put(key, value);
+    }
+
 
     public String getParentId() {
-        return id.lastIndexOf(HIERARCCY_FLAG) > 0  ?
-                id.substring(0, id.lastIndexOf(HIERARCCY_FLAG)) : null;
+        return id.lastIndexOf(HIERARCHY_FLAG) > 0  ?
+                id.substring(0, id.lastIndexOf(HIERARCHY_FLAG)) : null;
     }
 
     public void setParentId(String parentId) {

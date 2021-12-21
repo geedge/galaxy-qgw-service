@@ -55,10 +55,12 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     private int serverPort;
     private Environment env;
     private static String localHostAddress;
-
-    private static final String PROTOCOL_NODE = "Protocols.";
+    private static final String PROTOCOL_TREE_ROOT_NAME = "Protocols.";
     private static final String PROTOCOL_ROOT_NODE = "ETHERNET";
     private static final String PROTOCOL_ROOT_PARENT_ID = "ROOT";
+    private static final String PROTOCOL_METRIC_ENCAPSULATION_PATHS = "encapsulationPaths";
+    private static final String PROTOCOL_METRIC_PROTOCOLS_AND_APPLICATIONS = "protocolsAndApplications";
+
 
 
     static {
@@ -68,14 +70,13 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     public BaseResult build(DSLObject dslObject) {
         BaseResult baseResult;
         if (QueryType.PROTOCOL_TREE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            baseResult = getProtocolTree(generateProtocolTreeSql(dslObject.getQuery(), env.getProperty("NETWORK_TREE_SUMMARY")));
+            baseResult = buildProtocolTree(generateProtocolTreeSql(dslObject.getQuery(), env.getProperty("PROTOCOL_TREE_SUMMARY")));
         } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            baseResult = getProtocolDataRateSummary(generateProtocolDataRateSql(dslObject.getQuery(), env.getProperty("NETWORK_DATA_SUMMARY")));
+            baseResult = buildProtocolDataRateSummary(generateProtocolDataRateSql(dslObject.getQuery(), env.getProperty("PROTOCOL_DATA_RATE_SUMMARY")));
         } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            Map<String, String> dataRateResult = executeQuery(generateOverviewSummarySql(dslObject.getQuery(), env.getProperty("NETWORK_OVERVIEW_SUMMARY")));
-            String statSql = generateStatSql(dslObject.getQuery(), env.getProperty("NETWORK_OVERVIEW_STAT"));
-            Map<String, String> statResult = executeQuery(statSql);
-            baseResult = buildNetworkOverviewResult(dataRateResult, statResult);
+            Map<String, String> summaryStatResult = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), env.getProperty("NETWORK_STATISTICS_SUMMARY")));
+            Map<String, String> dynamicStatResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), env.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
+            baseResult = buildNetworkOverviewResult(summaryStatResult, dynamicStatResult);
         } else {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
         }
@@ -154,7 +155,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         return baseResult;
     }
 
-    private BaseResult getProtocolDataRateSummary(String sql) {
+    private BaseResult buildProtocolDataRateSummary(String sql) {
         BaseResult baseResult;
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
@@ -172,7 +173,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         return baseResult;
     }
 
-    private BaseResult getProtocolTree(String sql) {
+    private BaseResult buildProtocolTree(String sql) {
         BaseResult baseResult;
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
@@ -189,7 +190,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         return baseResult;
     }
 
-    private String generateStatSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
+    private String generateDynamicStatSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
@@ -206,7 +207,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         for (DSLObject.QueryBean.Parameters.FilterBean item : match) {
             if (MatchEnum.PREFIX.getType().equals(item.getType())) {
                 String[] split = item.getFieldValues().get(0).split(",");
-                protocolStr = split[0].replaceFirst(PROTOCOL_NODE, "");
+                protocolStr = split[0].replaceFirst(PROTOCOL_TREE_ROOT_NAME, "");
             }
         }
         return String.format(sqlTemplate,
@@ -216,7 +217,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
 
     }
 
-    private String generateOverviewSummarySql(DSLObject.QueryBean queryParam, String sqlTemplate) {
+    private String generateNetworkStatSummarySql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
 
@@ -270,27 +271,31 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     }
 
     private List<ProtocolTree> getFlatStructure(List<Map> protocolData) {
-        List<ProtocolTree> listNodes = Lists.newArrayList();
+        List<ProtocolTree> nodes = Lists.newArrayList();
         for (Map protocolMap : protocolData) {
             ProtocolTree protocolTree = convertStringToObject(JsonMapper.toJsonString(protocolMap));
             if(StringUtil.isNotEmpty(protocolTree)) {
-                listNodes.add(protocolTree);
+                nodes.add(protocolTree);
             }
 
         }
         ProtocolTree root = new ProtocolTree("Protocols", "Protocols", null);
-        List<ProtocolTree> roots = listNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
+        Map<String,Long> protocolsAndApplications =  nodes.stream().collect(Collectors.groupingBy(ProtocolTree :: getName, Collectors.counting()));
+        root.addMetric(PROTOCOL_METRIC_ENCAPSULATION_PATHS, nodes.size());
+        root.addMetric(PROTOCOL_METRIC_PROTOCOLS_AND_APPLICATIONS, protocolsAndApplications.size());
+        List<ProtocolTree> roots = nodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
         roots.forEach(item -> {
             root.setSentBytes(root.getSentBytes() + item.getSentBytes());
             root.setReceivedBytes(root.getReceivedBytes() + item.getReceivedBytes());
+            root.setTotalSentBytes(root.getTotalSentBytes() + item.getSentBytes());
+            root.setTotalReceivedBytes(root.getTotalReceivedBytes() + item.getReceivedBytes());
+        });
+        nodes.forEach(item -> {
+            item.setId(PROTOCOL_TREE_ROOT_NAME + item.getId());
         });
 
-        listNodes.forEach(item -> {
-            item.setId(PROTOCOL_NODE + item.getId());
-        });
-
-        listNodes.add(root);
-        return listNodes;
+        nodes.add(root);
+        return nodes;
     }
 
     private Map<String, String> executeQuery(String sql) {
