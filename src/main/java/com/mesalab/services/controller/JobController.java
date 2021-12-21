@@ -38,18 +38,16 @@ public class JobController {
         return jobService.getJobId(reqBody);
     }
 
-    @GetMapping(value = "/jobs/{jobId}/field_discovery/no_long_polling")
-    public BaseResult getJobResult(@PathVariable String jobId) {
-        return jobService.getResult(jobId);
-    }
-
-
     @GetMapping(value = "/jobs/{jobId}/field_discovery")
     public DeferredResult<BaseResult> longPollingResult(@PathVariable String jobId) {
         log.info("Long Polling Request,Job ID is {}", jobId);
         BaseResult baseResult = jobService.getResult(jobId);
         DeferredResult<BaseResult> deferredResult =
                 deferredResultHolder.newDeferredResult(jobId, jobConfig.getResponseTimeout(), baseResult);
+        if (!jobConfig.isLongPollingEnabled()) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+            return deferredResult;
+        }
         deferredResult.onTimeout(() ->{
             deferredResultHolder.handleDeferredData(deferredResult, jobService.getResult(jobId));
         });

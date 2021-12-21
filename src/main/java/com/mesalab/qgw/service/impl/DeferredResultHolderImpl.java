@@ -12,9 +12,11 @@ import java.util.Map;
 public class DeferredResultHolderImpl implements DeferredResultHolder<BaseResult> {
     private static final Log log = LogFactory.get();
     private Map<String, DeferredResult<BaseResult>> deferredResults = Maps.newConcurrentMap();
+    private static final int DEFAULT_POLLING_INTERVAL_MS = 10000;
+    private static final int MIN_POLLING_INTERVAL_MS = 500;
 
     public DeferredResult<BaseResult> newDeferredResult(String key) {
-        return newDeferredResult(key, 10 * 1000L, null);
+        return newDeferredResult(key, DEFAULT_POLLING_INTERVAL_MS, null);
     }
 
     public DeferredResult<BaseResult> newDeferredResult(String key, long timeout) {
@@ -22,12 +24,12 @@ public class DeferredResultHolderImpl implements DeferredResultHolder<BaseResult
     }
 
     public DeferredResult<BaseResult> newDeferredResult(String key, Object timeoutResult) {
-        return newDeferredResult(key, 10 * 1000L, timeoutResult);
+        return newDeferredResult(key, DEFAULT_POLLING_INTERVAL_MS, timeoutResult);
     }
 
     @Override
     public DeferredResult<BaseResult> newDeferredResult(String key, long timeout, Object timeoutResult) {
-        DeferredResult<BaseResult> deferredResult = new DeferredResult<>(timeout, timeoutResult);
+        DeferredResult<BaseResult> deferredResult = new DeferredResult<>(Math.max(timeout, MIN_POLLING_INTERVAL_MS), timeoutResult);
         add(key, deferredResult);
         deferredResult.onCompletion(() -> {
             remove(key);
