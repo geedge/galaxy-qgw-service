@@ -11,8 +11,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
@@ -33,6 +31,7 @@ import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
+import com.zdjizhi.utils.TimeConstants;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,7 +44,6 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -94,6 +92,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         String fileSql;
         String sql;
         if (param.equalsIgnoreCase(EntityQueryType.ACTIVECLIENTIP.getType())) {
+            setDefaultValue(comDSLObject.getQuery());
             baseResult = getActiveClientIP(comDSLObject.getQuery());
         } else if (param.equalsIgnoreCase(EntityQueryType.TOPSERVERIP.getType())) {
             baseResult = getResultOfServerIP(comDSLObject.getQuery());
@@ -112,22 +111,46 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
     private BaseResult getActiveClientIP(ComDSLObject.Query query) {
         BaseResult baseResult;
-        String fileSql;
-        String sql;
         ComDSLObject.Query.FilterBean filterBean = query.getParameters().getMatch().get(0);
         if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(String.valueOf(filterBean.getType()))) {
-            baseResult = formatResult(apiService.executeQuery(queryBuild(query)),
-                    StringUtil.isEmpty(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getActiveClientIP() ? String.valueOf(entityConfigSource.getActiveClientIP()) : query.getLimit());
-            if (((List) baseResult.getData()).isEmpty()) {
-                fileSql = env.getProperty("ENTITY_ACTIVE_CLIENT_IP");
-                sql = generateActiveClientIP(query, fileSql);
-                baseResult = getResult(sql);
+            baseResult = apiService.executeQuery(queryBuild(query));
+            if (isValid(baseResult, getIntervals(query.getParameters().getIntervals()))) {
+                baseResult = formatResult(baseResult, query.getLimit());
+            } else {
+                baseResult = getResult(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
             }
         } else {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "ComDSLObject.query.parameters.match.type is invalid ( or is null)");
         }
         return baseResult;
+    }
+
+    private void setDefaultValue(ComDSLObject.Query query) {
+        if (StringUtil.isEmpty(query.getParameters().getIntervals())) {
+            Date now = new Date();
+            Date someMinute = DateUtils.getSomeMinute(now, -30);
+            String end = DateUtils.getFormatDate(now, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            String start = DateUtils.getFormatDate(someMinute, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            List<String> list = Lists.newArrayList(start.concat("/").concat(end));
+            query.getParameters().setIntervals(list);
+        }
+        query.setLimit(StringUtil.isEmpty(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getActiveClientIP() ? String.valueOf(entityConfigSource.getActiveClientIP()) : query.getLimit());
+    }
+
+    public boolean isValid(BaseResult baseResult, String[] intervals) {
+        if (StringUtil.isEmpty(baseResult.getData())) {
+            return false;
+        }
+        List<Map> data = (List<Map>) baseResult.getData();
+        long updateTime = (long) (data.get(0).get("last_update_time"));
+        long paramStartTime = DateUtils.convertStringToTimestamp(intervals[0], TimeConstants.YYYY_MM_DD_HH24_MM_SS);
+        long paramEndTime = DateUtils.convertStringToTimestamp(intervals[1], TimeConstants.YYYY_MM_DD_HH24_MM_SS);
+        if (paramStartTime >= updateTime - 30 * 60 && paramEndTime <= updateTime + 30 * 60) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private BaseResult formatResult(BaseResult baseResult, String limit) {
@@ -170,27 +193,9 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
     private ApiParam queryBuild(ComDSLObject.Query query) {
         String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
-        String timeWhere = parseInterval(query);
-        String sql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_CACHE_ACTIVE_CLIENT_IP")), fieldWhere.concat(timeWhere));
+        String sql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_CACHE_ACTIVE_CLIENT_IP")), fieldWhere);
         log.info("real time relation active_client_ip id query sql: {}", sql);
         return ApiParam.builder().option("real-time").query(sql).build();
-    }
-
-    private String parseInterval(ComDSLObject.Query query) {
-        if (StringUtil.isEmpty(query.getParameters().getIntervals())) {
-            Date nowDate = new Date();
-            Date changeDate = DateUtils.getSomeMinute(nowDate, -30);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            String nowFormat = dateFormat.format(nowDate);
-            String changeFormat = dateFormat.format(changeDate);
-            List<String> list = Lists.newArrayList(changeFormat.concat("/").concat(nowFormat));
-            query.getParameters().setIntervals(list);
-        }
-        List<String> intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
-        long start = DateUtils.convertStringToTimestamp(intervals.get(0), "yyyy-MM-dd HH:mm:ss");
-        long end = DateUtils.convertStringToTimestamp(intervals.get(1), "yyyy-MM-dd HH:mm:ss");
-        return Joiner.on(" ").join(" AND last_update_time >=", start, " AND last_update_time <", end);
-
     }
 
     private BaseResult getResultOfServerIP(ComDSLObject.Query query) {
@@ -271,11 +276,11 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return (List<Map>) resultMap.get("data");
     }
 
-    public String generateActiveClientIP(ComDSLObject.Query query, String fileSql) {
+    public String generateActiveClientIP(ComDSLObject.Query query, String fileSql, String limit) {
         String timeInterval = getTimeInterval(query.getParameters(), -30);
         String matchDate = getMatchDate(query.getParameters());
         matchDate = StringUtil.isBlank(matchDate) ? "" : " AND " + matchDate;
-        return String.format(fileSql, query.getDataSource(), timeInterval, matchDate, StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getActiveClientIP() ? entityConfigSource.getActiveClientIP() : query.getLimit());
+        return String.format(fileSql, query.getDataSource(), timeInterval, matchDate, limit);
     }
 
     private String getMatchDate(ComDSLObject.Query.QueryBean query) {

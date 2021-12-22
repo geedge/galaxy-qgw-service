@@ -51,7 +51,7 @@ select TIME_FORMAT(__time, 'YYYY-MM-dd') as stat_time, log_type as type, sum(agg
 #end
 
 #sql("ENTITY_CACHE_ACTIVE_CLIENT_IP")
-SELECT client_ip_list AS client_ip FROM tsg_galaxy.recommendation_app_cip WHERE 1=1 %s
+SELECT client_ip_list AS client_ip,last_update_time FROM tsg_galaxy.recommendation_app_cip WHERE 1=1 %s
 #end
 
 #sql("RELATION_SUBSCRIBER_ID")
