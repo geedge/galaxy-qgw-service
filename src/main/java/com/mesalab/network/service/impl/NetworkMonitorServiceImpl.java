@@ -1,6 +1,10 @@
 package com.mesalab.network.service.impl;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.net.NetUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -12,18 +16,21 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
+import com.mesalab.network.common.Constants;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.service.NetworkMonitorService;
-import com.mesalab.qgw.model.protocol.ProtocolTree;
+import com.mesalab.network.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.HttpStatus;
+import org.nutz.json.Json;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.EnvironmentAware;
@@ -34,6 +41,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.*;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -55,13 +63,6 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     private int serverPort;
     private Environment env;
     private static String localHostAddress;
-    private static final String PROTOCOL_TREE_ROOT_NAME = "Protocols.";
-    private static final String PROTOCOL_ROOT_NODE = "ETHERNET";
-    private static final String PROTOCOL_ROOT_PARENT_ID = "ROOT";
-    private static final String PROTOCOL_METRIC_ENCAPSULATION_PATHS = "encapsulationPaths";
-    private static final String PROTOCOL_METRIC_PROTOCOLS_AND_APPLICATIONS = "protocolsAndApplications";
-
-
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
@@ -99,44 +100,58 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
             if (!statData.isEmpty()) {
                 data.putAll(statData.get(0));
             }
-            if (statData.size() >= 2) {
-                data.put("current_sessions", statData.get(1).get("total_bytes"));
-            }
+
             if (!summaryData.isEmpty()) {
                 data.putAll(summaryData.get(0));
             }
-            long uniqClientIp = Long.parseLong(String.valueOf(data.get("uniq_client_ip") == null ? 0 : data.get("uniq_client_ip")));
-            long totalSessions = Long.parseLong(String.valueOf(data.get("total_sessions") == null ? 0 : data.get("total_sessions")));
-            long summaryTotalSessions = Long.parseLong(String.valueOf(data.get("summarySessions") == null ? 0 : data.get("summarySessions")));
-            long summaryTotalBytes = Long.parseLong(String.valueOf(data.get("summaryTotalBytes") == null ? 0 : data.get("summaryTotalBytes")));
-            long summaryTotalPackets = Long.parseLong(String.valueOf(data.get("summaryTotalPackets") == null ? 0 : data.get("summaryTotalPackets")));
-            long currentSessions = Long.parseLong(String.valueOf(data.get("current_sessions") == null ? 0 : data.get("current_sessions")));
-            long dataRate = Long.parseLong(String.valueOf(data.get("data_rate") == null ? 0 : data.get("data_rate")));
-            long totalBytes = Long.parseLong(String.valueOf(data.get("total_bytes") == null ? 0 : data.get("total_bytes")));
-            long totalUncategorizedBytes = Long.parseLong(String.valueOf(data.get("total_uncategorized_bytes") == null ? 0 : data.get("total_uncategorized_bytes")));
-            double totalUncategorizedPercent = summaryTotalBytes == 0 ? 0 : totalUncategorizedBytes * 1.0 / summaryTotalBytes;
-            long oneSidedConnections = Long.parseLong(String.valueOf(data.get("one_sided_connections") == null ? 0 : data.get("one_sided_connections")));
-            double oneSidedPercent = summaryTotalSessions == 0 ? 0 : oneSidedConnections * 1.0 / summaryTotalSessions;
-            long sequenceGapLossBytes = Long.parseLong(String.valueOf(data.get("sequence_gap_loss_bytes") == null ? 0 : data.get("sequence_gap_loss_bytes")));
-            double sequenceGapLossBytesPercent = sequenceGapLossBytes == 0 ? 0 : sequenceGapLossBytes * 1.0 / (summaryTotalBytes + sequenceGapLossBytes);
-            long fragmentationPackets = Long.parseLong(String.valueOf(data.get("fragmentation_packets") == null ? 0 : data.get("fragmentation_packets")));
-            double fragmentationPacketsPercent = summaryTotalPackets == 0 ? 0 : fragmentationPackets * 1.0 / summaryTotalPackets;
+            long uniqClientIp = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP)));
+            long totalSessions = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS)));
+            long totalBytes = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES)));
+            long totalPackets = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS)));
+            long totalUncategorizedBytes = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES)));
+            long oneSidedConnections = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS)));
+            long sequenceGapLossBytes = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES)));
+            long fragmentationPackets = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS)));
+
+            String totalUncategorizedPercent = totalBytes == 0 ? String.valueOf(0)
+                    : NumberUtil.div(BigDecimal.valueOf(totalUncategorizedBytes), BigDecimal.valueOf(totalBytes), 4).toPlainString();
+            String oneSidedPercent = totalSessions == 0 ? String.valueOf(0)
+                    : NumberUtil.div(BigDecimal.valueOf(oneSidedConnections), BigDecimal.valueOf(totalSessions), 4).toPlainString();
+            String sequenceGapLossBytesPercent = sequenceGapLossBytes == 0 ? String.valueOf(0)
+                    : NumberUtil.div(BigDecimal.valueOf(sequenceGapLossBytes), BigDecimal.valueOf(totalBytes + sequenceGapLossBytes), 4).toPlainString();
+            String fragmentationPacketsPercent = totalPackets == 0 ? String.valueOf(0)
+                    : NumberUtil.div(BigDecimal.valueOf(fragmentationPackets), BigDecimal.valueOf(totalPackets), 4).toPlainString();
+
+            long dynamicSessions = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS)));
+            long dynamicBytes = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES)));
+            long dataRate = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE)));
+
 
             List result = new ArrayList<>();
             Map resultMap = new LinkedHashMap<>();
-            resultMap.put("uniq_client_ip", uniqClientIp);
-            resultMap.put("total_sessions", totalSessions);
-            resultMap.put("current_sessions", currentSessions);
-            resultMap.put("data_rate", dataRate);
-            resultMap.put("total_bytes", totalBytes);
-            resultMap.put("total_uncategorized_bytes", totalUncategorizedBytes);
-            resultMap.put("total_uncategorized_percent", Double.parseDouble(String.format("%.4f", totalUncategorizedPercent)));
-            resultMap.put("one_sided_connections", oneSidedConnections);
-            resultMap.put("one_sided_percent", Double.parseDouble(String.format("%.4f", oneSidedPercent)));
-            resultMap.put("sequence_gap_loss_bytes", sequenceGapLossBytes);
-            resultMap.put("sequence_gap_loss_percent", Double.parseDouble(String.format("%.4f", sequenceGapLossBytesPercent)));
-            resultMap.put("fragmentation_packets", fragmentationPackets);
-            resultMap.put("fragmentation_percent", Double.parseDouble(String.format("%.4f", fragmentationPacketsPercent)));
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP, uniqClientIp);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, dynamicSessions);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE, dataRate);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, dynamicBytes);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES, totalUncategorizedBytes);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_PERCENT, totalUncategorizedPercent);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS, oneSidedConnections);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_PERCENT, oneSidedPercent);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES, sequenceGapLossBytes);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_PERCENT,  sequenceGapLossBytesPercent);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS, fragmentationPackets);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PERCENT, fragmentationPacketsPercent);
             result.add(resultMap);
 
             Map statistics = (Map) summaryDataResult.get("statistics");
@@ -195,8 +210,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
         return String.format(sqlTemplate,
-                intervals[1], intervals[0], whereOfTime, whereOfExactly, PROTOCOL_ROOT_NODE,
-                whereOfTime, whereOfExactly, PROTOCOL_ROOT_NODE);
+                intervals[1], intervals[0], whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE,
+                whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE);
     }
 
     private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
@@ -207,7 +222,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         for (DSLObject.QueryBean.Parameters.FilterBean item : match) {
             if (MatchEnum.PREFIX.getType().equals(item.getType())) {
                 String[] split = item.getFieldValues().get(0).split(",");
-                protocolStr = split[0].replaceFirst(PROTOCOL_TREE_ROOT_NAME, "");
+                protocolStr = split[0].replaceFirst(Constants.PROTOCOL_TREE_ROOT_NAME + Constants.ENCAPSULATION_PATH_SEPARATOR, "");
             }
         }
         return String.format(sqlTemplate,
@@ -279,10 +294,10 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
             }
 
         }
-        ProtocolTree root = new ProtocolTree("Protocols", "Protocols", null);
+        ProtocolTree root = new ProtocolTree(Constants.PROTOCOL_TREE_ROOT_NAME, Constants.PROTOCOL_TREE_ROOT_NAME, null);
         Map<String,Long> protocolsAndApplications =  nodes.stream().collect(Collectors.groupingBy(ProtocolTree :: getName, Collectors.counting()));
-        root.addMetric(PROTOCOL_METRIC_ENCAPSULATION_PATHS, nodes.size());
-        root.addMetric(PROTOCOL_METRIC_PROTOCOLS_AND_APPLICATIONS, protocolsAndApplications.size());
+        root.addMetric(Constants.PROTOCOL_TREE_METRIC_ENCAPSULATION_PATHS, nodes.size());
+        root.addMetric(Constants.PROTOCOL_TREE_METRIC_PROTOCOLS_AND_APPLICATIONS, protocolsAndApplications.size());
         List<ProtocolTree> roots = nodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
         roots.forEach(item -> {
             root.setSentBytes(root.getSentBytes() + item.getSentBytes());
@@ -291,9 +306,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
             root.setTotalReceivedBytes(root.getTotalReceivedBytes() + item.getReceivedBytes());
         });
         nodes.forEach(item -> {
-            item.setId(PROTOCOL_TREE_ROOT_NAME + item.getId());
+            item.setId(Constants.PROTOCOL_TREE_ROOT_NAME + Constants.ENCAPSULATION_PATH_SEPARATOR + item.getId());
         });
-
         nodes.add(root);
         return nodes;
     }
@@ -314,20 +328,29 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         ProtocolTree protocolTree = null;
         try {
            Map<String, Object> results = (Map<String, Object>) JsonMapper.fromJsonString(protocolString, Map.class);
-           long sessions = Long.parseLong(results.get("sessions").toString());
-           long sentBytes = Long.parseLong(results.get("c2s_byte_num").toString());
-           long receivedBytes = Long.parseLong(results.get("s2c_byte_num").toString());
-           long sentPackets = Long.parseLong(results.get("c2s_pkt_num").toString());
-           long receivedPackets = Long.parseLong(results.get("s2c_pkt_num").toString());
-           String protocolId = results.get("protocol_id").toString();
-           List<String> protocols = Splitter.on(".").omitEmptyStrings().splitToList(protocolId);
+           String protocolId = String.valueOf(results.get("protocol_id"));
+           if (StringUtil.isBlank(protocolId)) {
+               log.warn("Protocol ID is NULL {}", protocolString);
+               return null;
+           }
+           long sessions = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_SESSIONS)).orElse(0).toString());
+           long sentBytes = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_C2S_BYTE_NUM)).orElse(0).toString());
+           long receivedBytes = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_S2C_BYTE_NUM)).orElse(0).toString());
+           long sentPackets = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_C2S_PKT_NUM)).orElse(0).toString());
+           long receivedPackets = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_S2C_PKT_NUM)).orElse(0).toString());
+           List<String> protocols = Splitter.on(Constants.ENCAPSULATION_PATH_SEPARATOR).omitEmptyStrings().splitToList(protocolId);
            String protocolName = StringUtil.isNotEmpty(protocols) ? protocols.get(protocols.size()-1): null;
            protocolTree = new ProtocolTree(protocolId, protocolName, null);
            protocolTree.setSentBytes(sentBytes);
            protocolTree.setReceivedBytes(receivedBytes);
-           protocolTree.getMetrics().put("sentPackets", sentPackets);
-           protocolTree.getMetrics().put("receivedPackets", receivedPackets);
-           protocolTree.getMetrics().put("sessions", sessions);
+           protocolTree.getMetrics().put(Constants.PROTOCOL_TREE_METRIC_SENT_PACKETS, sentPackets);
+           protocolTree.getMetrics().put(Constants.PROTOCOL_TREE_METRIC_RECEIVED_PACKETS, receivedPackets);
+           protocolTree.getMetrics().put(Constants.PROTOCOL_TREE_METRIC_SESSIONS, sessions);
        } catch (BusinessException e) {
            log.error("Convert Json String to  Protocol Tree Object Error ", e);
        }
@@ -335,8 +358,98 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         return protocolTree;
     }
 
-    private List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> listNodes) {
-        Map<String, List<ProtocolTree>> resultMap = listNodes.stream().collect(Collectors.groupingBy(ProtocolTree::getId));
+    private List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes) {
+
+        List<ProtocolTree> targetNodes = groupByName(nodes);
+
+        targetNodes.sort(new Comparator<ProtocolTree>() {
+            @Override
+            public int compare(ProtocolTree o1, ProtocolTree o2) {
+                return (o2.getReceivedBytes() + o2.getSentBytes()) - (o1.getReceivedBytes() + o1.getSentBytes()) > 0 ? 1 : -1;
+            }
+        });
+        Map<String, List<ProtocolTree>> protocolMap = Maps.newLinkedHashMap();
+        List<ProtocolTree> roots = targetNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
+        protocolMap.put(Constants.PROTOCOLS_PARENT_ID, roots);
+        targetNodes.stream().filter(o -> StringUtil.isNotBlank(o.getParentId())).forEach(x->{
+            if (StringUtil.isEmpty(protocolMap.get(x.getParentId()))) {
+                protocolMap.put(x.getParentId(), Lists.newArrayList(x));
+            } else {
+                protocolMap.get(x.getParentId()).add(x);
+            }
+        });
+
+        List<ProtocolTree> protocolTreeList = TreeUtils.mergeTree(protocolMap, Constants.PROTOCOLS_PARENT_ID, ProtocolTree::getId, ProtocolTree::setChildrens);
+        for (ProtocolTree protocolTree : protocolTreeList) {
+            List<ProtocolTree> ethernetList = protocolTree.getChildrens().stream().filter(
+                    p -> Constants.PROTOCOL_ETHERNET_NODE.equals(p.getName())).collect(Collectors.toList());
+            if (protocolTree.getChildrens().size() != ethernetList.size()) {
+                protocolTree.setChildrens(ethernetList);
+                protocolTree.setReceivedBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getReceivedBytes());
+                protocolTree.setSentBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getSentBytes());
+                log.warn("Protocol Tree Exceptional data occurs and non-{} protocols are filtered out: {}", Constants.PROTOCOL_ETHERNET_NODE, protocolTree.getChildrens());
+            }
+        }
+
+        return protocolTreeList;
+
+    }
+
+    /**
+     *  基于Name聚合，统计Protocol和Application在全栈下的流量
+     * @param nodes
+     * @return
+     */
+    private List<ProtocolTree> groupByName(List<ProtocolTree> nodes) {
+        Map<String, List<ProtocolTree>> resultMap = nodes.stream()
+                .collect(Collectors.groupingBy(ProtocolTree::getName, Collectors.collectingAndThen(Collectors.toList(), protocolTreeList->{
+
+                    List<ProtocolTree> parentNodes = protocolTreeList.stream()
+                                .filter(p -> StringUtil.isBlank(p.getParentId()) || !Splitter.on(".").omitEmptyStrings().splitToList(p.getParentId()).contains(p.getName()))
+                                .collect(Collectors.toList());
+                    Map<String,Long> summedMetrics = Maps.newLinkedHashMap();
+                    Map<String,Long> totalBytesMetrics = Maps.newLinkedHashMap();
+                    totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES, 0L);
+                    totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES, 0L);
+
+                    parentNodes.stream().filter(p -> !p.getName().equalsIgnoreCase(Constants.PROTOCOL_TREE_ROOT_NAME)).forEach(protocolTree->{
+                        totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES, totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES) + protocolTree.getSentBytes());
+                        totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES, totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES) + protocolTree.getReceivedBytes());
+                        for (String key : protocolTree.getMetrics().keySet()) {
+                            String totalKey = StrUtil.upperFirstAndAddPre(key, "total");
+                            if (StringUtil.isEmpty(summedMetrics.get(totalKey))) {
+                                summedMetrics.put(totalKey, Long.valueOf(protocolTree.getMetrics().get(key).toString()));
+                            } else {
+                                summedMetrics.put(totalKey,  summedMetrics.get(totalKey)
+                                        + Long.parseLong(protocolTree.getMetrics().get(key).toString()));
+                            }
+                        }
+                    });
+
+                    protocolTreeList.stream().filter(p -> !p.getName().equalsIgnoreCase(Constants.PROTOCOL_TREE_ROOT_NAME)).forEach(protocolTree->{
+                        protocolTree.setTotalSentBytes(totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES));
+                        protocolTree.setTotalReceivedBytes(totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES));
+                        protocolTree.getMetrics().putAll(summedMetrics);
+                    });
+
+                    return protocolTreeList;
+                })));
+
+        List<ProtocolTree> protocolTreeList = Lists.newArrayList();
+        resultMap.values().forEach(o -> {
+            protocolTreeList.addAll(o);
+        });
+
+        return protocolTreeList;
+    }
+
+    /**
+     * 基于Protocol ID 进行二次聚合，已基于Druid group by protocol id 聚合。
+     * @param nodes
+     * @return
+     */
+    private List<ProtocolTree> groupByProtocolId(List<ProtocolTree> nodes) {
+        Map<String, List<ProtocolTree>> resultMap = nodes.stream().collect(Collectors.groupingBy(ProtocolTree::getId));
         Map<String, Object> mergeResultMap =
                 Maps.transformValues(resultMap, new com.google.common.base.Function<List<ProtocolTree>, Object>() {
                     @Nullable
@@ -372,38 +485,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
                     }
                 });
         List<ProtocolTree> mergeResultList = new ArrayList(mergeResultMap.values());
-        mergeResultList.sort(new Comparator<ProtocolTree>() {
-            @Override
-            public int compare(ProtocolTree o1, ProtocolTree o2) {
-                return (o2.getReceivedBytes() + o2.getSentBytes()) - (o1.getReceivedBytes() + o1.getSentBytes()) > 0 ? 1 : -1;
-            }
-        });
-
-        Map<String, List<ProtocolTree>> protocolMap = Maps.newLinkedHashMap();
-        List<ProtocolTree> roots = mergeResultList.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
-        protocolMap.put(PROTOCOL_ROOT_PARENT_ID, roots);
-        mergeResultList.stream().filter(o -> StringUtil.isNotBlank(o.getParentId())).forEach(x->{
-            if (StringUtil.isEmpty(protocolMap.get(x.getParentId()))) {
-                protocolMap.put(x.getParentId(), Lists.newArrayList(x));
-            } else {
-                protocolMap.get(x.getParentId()).add(x);
-            }
-        });
-
-        List<ProtocolTree> protocolTreeList = TreeUtils.mergeTree(protocolMap, PROTOCOL_ROOT_PARENT_ID, ProtocolTree::getId, ProtocolTree::setChildrens);
-        for (ProtocolTree protocolTree : protocolTreeList) {
-            List<ProtocolTree> ethernetList = protocolTree.getChildrens().stream().filter(
-                    p -> PROTOCOL_ROOT_NODE.equals(p.getName())).collect(Collectors.toList());
-            if (protocolTree.getChildrens().size() != ethernetList.size()) {
-                protocolTree.setChildrens(ethernetList);
-                protocolTree.setReceivedBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getReceivedBytes());
-                protocolTree.setSentBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getSentBytes());
-                log.warn("Protocol Tree Exceptional data occurs and non-{} protocols are filtered out: {}", PROTOCOL_ROOT_NODE, protocolTree.getChildrens());
-            }
-        }
-
-        return protocolTreeList;
-
+        return mergeResultList;
     }
 
     enum QueryType {

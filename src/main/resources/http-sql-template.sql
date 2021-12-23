@@ -1,9 +1,9 @@
 #sql("NETWORK_STATISTICS_SUMMARY")
-SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip,  SUM(one_sided_connections) AS one_sided_connections,  SUM(uncategorized_bytes) AS total_uncategorized_bytes,  SUM(fragmentation_packets) AS fragmentation_packets,  SUM(sequence_gap_loss) AS sequence_gap_loss_bytes,  SUM(s2c_byte_num+c2s_byte_num) AS summaryTotalBytes,  SUM(s2c_pkt_num+c2s_pkt_num) AS summaryTotalPackets,  SUM(sessions) AS summarySessions  FROM %s  WHERE %s  %s LIMIT 1
+SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip,  SUM(one_sided_connections) AS one_sided_connections,  SUM(uncategorized_bytes) AS total_uncategorized_bytes,  SUM(fragmentation_packets) AS fragmentation_packets,  SUM(sequence_gap_loss) AS sequence_gap_loss_bytes,  SUM(s2c_byte_num+c2s_byte_num) AS total_bytes,  SUM(s2c_pkt_num+c2s_pkt_num) AS total_packets,  SUM(sessions) AS total_sessions  FROM %s  WHERE %s  %s LIMIT 1
 #end
 
 #sql("TRAFFIC_DYNAMIC_STATISTICS")
-(SELECT SUM(c2s_byte_num + s2c_byte_num) as total_bytes, SUM(sessions) as total_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/((TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s'))/1000) AS data_rate  FROM traffic_protocol_stat_log  WHERE %s %s AND protocol_id = '%s' LIMIT 1) UNION ALL ( SELECT SUM(sessions), 0, 0 FROM traffic_protocol_stat_log WHERE %s %sAND protocol_id = '%s' GROUP BY __time ORDER BY __time DESC LIMIT 1 )
+SELECT SUM(c2s_byte_num + s2c_byte_num) as dynamic_bytes, SUM(sessions) as dynamic_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/((TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s'))/1000) AS data_rate  FROM traffic_protocol_stat_log  WHERE %s %s AND protocol_id = '%s' LIMIT 1
 #end
 
 #sql("PROTOCOL_TREE_SUMMARY")
