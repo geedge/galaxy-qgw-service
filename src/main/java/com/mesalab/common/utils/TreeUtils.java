@@ -57,25 +57,25 @@ public class TreeUtils {
     /**
      * 聚合为树结构
      * @param rootParentID 根节点父ID
-     * @param <R, List<T>> protocolMap 协议数据偏平结构
+     * @param <R, List<T>> dataMap 数据偏平结构，R-Parent ID ,List<T> Children
      * @param loadKey 节点的ID；函数，接收一个节点获取唯一ID
      * @param write 节点Children写入函数；函数，接收当前节点和子节点列表，然后将子节点项写入当前节点。
      * @param <T> 当前节点对象
      * @param <R> 请求节点返回的属性信息
      * @return 树结构列表
      */
-    public static <T, R> List<T> mergeTree(Map<R, List<T>> protocolMap,
+    public static <T, R> List<T> mergeTree(Map<R, List<T>> dataMap,
                                            String rootParentID,
                                            Function<T, R> loadKey,
                                            BiConsumer<T, List<T>> write) {
 
-        List<T> root = protocolMap.get(rootParentID);
+        List<T> root = dataMap.get(rootParentID);
         Stack<T> stack = new Stack<T>();
         root.forEach(stack::push);
         while (!stack.isEmpty()) {
             T o = stack.pop();
             R key = loadKey.apply(o);
-            List<T> children = Optional.ofNullable(protocolMap.get(key)).orElse(new ArrayList<>());
+            List<T> children = Optional.ofNullable(dataMap.get(key)).orElse(new ArrayList<>());
             write.accept(o, children);
             if (StringUtil.isNotEmpty(children)) {
                 children.forEach(stack :: push);

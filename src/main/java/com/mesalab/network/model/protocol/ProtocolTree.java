@@ -1,8 +1,8 @@
-package com.mesalab.qgw.model.protocol;
+package com.mesalab.network.model.protocol;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.zdjizhi.utils.StringUtil;
+import com.mesalab.network.common.Constants;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,8 +24,8 @@ public class ProtocolTree {
     private Map<String, Object> metrics = Maps.newLinkedHashMap();
     private long sentBytes;
     private long receivedBytes;
-    private static final String HIERARCCY_FLAG = ".";
-
+    private long totalSentBytes;
+    private long totalReceivedBytes;
 
 
     public ProtocolTree(String id, String  name, String parentId) {
@@ -42,10 +42,14 @@ public class ProtocolTree {
         this.receivedBytes = receivedBytes;
     }
 
+    public void addMetric(String key, Object value) {
+        metrics.put(key, value);
+    }
+
 
     public String getParentId() {
-        return id.lastIndexOf(HIERARCCY_FLAG) > 0  ?
-                id.substring(0, id.lastIndexOf(HIERARCCY_FLAG)) : null;
+        return id.lastIndexOf(Constants.ENCAPSULATION_PATH_SEPARATOR) > 0  ?
+                id.substring(0, id.lastIndexOf(Constants.ENCAPSULATION_PATH_SEPARATOR)) : null;
     }
 
     public void setParentId(String parentId) {
