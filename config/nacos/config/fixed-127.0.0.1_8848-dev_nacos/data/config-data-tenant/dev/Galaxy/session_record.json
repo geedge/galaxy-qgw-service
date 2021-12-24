@@ -165,13 +165,6 @@
           "common_stream_behavior",
           "common_sled_ip"
         ],
-        "action": [
-          "common_action",
-          "common_sub_action",
-          "common_policy_id",
-          "common_user_tags",
-          "common_user_region"
-        ],
         "source": [
           "common_client_ip",
           "common_internal_ip",
@@ -237,7 +230,12 @@
           "common_has_dup_traffic",
           "common_stream_error",
           "common_link_info_c2s",
-          "common_link_info_s2c"
+          "common_link_info_s2c",
+          "common_action",
+          "common_sub_action",
+          "common_policy_id",
+          "common_user_tags",
+          "common_user_region"
         ]
       }
     },
@@ -287,7 +285,11 @@
       "common_log_id",
       "common_processing_time",
       "common_userdefine_app_name",
-      "common_tunnels"
+      "common_tunnels",
+      "rtp_pcap_path",
+      "http_request_body",
+      "http_response_body",
+      "mail_eml_file"
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"

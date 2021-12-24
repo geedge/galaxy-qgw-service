@@ -312,7 +312,11 @@
       "common_log_id",
       "common_processing_time",
       "common_userdefine_app_name",
-      "common_tunnels"
+      "common_tunnels",
+      "http_request_body",
+      "http_response_body",
+      "mail_eml_file",
+      "rtp_pcap_path"
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"

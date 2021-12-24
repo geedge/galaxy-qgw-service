@@ -55,13 +55,6 @@
           "common_stream_behavior",
           "common_sled_ip"
         ],
-        "action": [
-          "common_action",
-          "common_sub_action",
-          "common_policy_id",
-          "common_user_tags",
-          "common_user_region"
-        ],
         "source": [
           "common_client_ip",
           "common_internal_ip",
@@ -123,7 +116,12 @@
           "common_has_dup_traffic",
           "common_stream_error",
           "common_link_info_c2s",
-          "common_link_info_s2c"
+          "common_link_info_s2c",
+          "common_action",
+          "common_sub_action",
+          "common_policy_id",
+          "common_user_tags",
+          "common_user_region"
         ]
       }
     },
