@@ -52,6 +52,7 @@
           "common_isp",
           "common_data_center",
           "common_device_group",
+          "common_stream_behavior",
           "common_sled_ip"
         ],
         "action": [
@@ -632,6 +633,14 @@
           "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
         },
         "allow_query": "true"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_stream_behavior",
+      "label": "Stream Behavior",
+      "doc": {
+        "visibility": "hidden"
       },
       "type": "string"
     },

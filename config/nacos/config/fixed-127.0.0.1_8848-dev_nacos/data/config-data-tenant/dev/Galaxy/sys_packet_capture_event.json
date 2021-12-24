@@ -451,6 +451,13 @@
       "type": "string"
     },
     {
+      "name": "common_stream_behavior",
+      "label": "Stream Behavior",
+      "doc": {
+      },
+      "type": "string"
+    },
+    {
       "name": "common_encapsulation",
       "type": "int",
       "doc": {

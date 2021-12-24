@@ -26,6 +26,7 @@
         "common_l7_protocol",
         "common_data_center",
         "common_device_group",
+        "common_stream_behavior",
         "common_client_asn",
         "common_server_asn",
         "common_start_time",
@@ -99,6 +100,7 @@
         "common_direction",
         "common_data_center",
         "common_device_group",
+        "common_stream_behavior",
         "common_sled_ip",
         "common_device_id",
         "common_schema_type",
@@ -141,6 +143,7 @@
           "common_isp",
           "common_data_center",
           "common_device_group",
+          "common_stream_behavior",
           "common_sled_ip"
         ],
         "action": [
@@ -767,6 +770,11 @@
         },
         "allow_query": "true"
       },
+      "type": "string"
+    },
+    {
+      "name": "common_stream_behavior",
+      "label": "Stream Behavior",
       "type": "string"
     },
     {
