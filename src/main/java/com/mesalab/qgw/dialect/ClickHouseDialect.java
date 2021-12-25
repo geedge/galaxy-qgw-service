@@ -1001,6 +1001,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             Map<String, Object> statistics = Maps.newLinkedHashMap();
             statistics.put("elapsed", Math.round(Double.parseDouble(String.valueOf(statisticMap.get("elapsed"))) * 1000));
             statistics.put("rows_read", statisticMap.get("rows_read"));
+            statistics.put("bytes_read", statisticMap.get("bytes_read"));
             baseResult.setData(resultMap.get("data"));
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
