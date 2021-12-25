@@ -80,8 +80,8 @@ public class ApiServiceImpl implements ApiService {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
                     "SQL Syntax Error: " + simplyErrorMessage(String.valueOf(e.getCause())), null);
         }
-
         BaseResult baseResult;
+        log.debug("Request option ：{}, SQL ：{}", param.getOption(), param.getQuery());
         if (statement instanceof Select) {
             baseResult = executeSelectStatement(param);
         } else if (statement instanceof DescribeStatement) {

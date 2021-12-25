@@ -502,9 +502,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
             String indexTable = getAvailableIndexTable();
             if (StringUtil.isNotBlank(indexTable)) {
-                sql = getSubqueryByIndexTable(indexTable);
+                sql = getSubQueryByIndexTable(indexTable);
             } else {
-                sql = getSubqueryByPartitionKey(sql);
+                sql = getSubQueryByPartitionKey(sql);
             }
             return this;
         }
@@ -571,7 +571,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param indexTable
          * @return
          */
-        private String getSubqueryByIndexTable(String indexTable) {
+        private String getSubQueryByIndexTable(String indexTable) {
 
             String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
 
@@ -596,7 +596,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param sql
          * @return
          */
-        private String getSubqueryByPartitionKey(String sql) {
+        private String getSubQueryByPartitionKey(String sql) {
             String partitionKey = getPartitionKey(param.getTableName());
             if (StringUtil.isBlank(partitionKey)) {
                 log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getTableName());
@@ -1171,7 +1171,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private Map<String, String> executeHttpGet(String sql) {
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         ClickHouseHttpQuery clickHouseHttpQuery = buildHttpQueryParameter(sql);
-        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
+        log.info("DB engine is :{},execute http query is :{}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
                 Encodes.urlDecode(clickHouseHttpQuery.getQueryParameter()).replaceAll("password=(.*)&", "password=XXX&"));
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
         return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());

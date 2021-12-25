@@ -135,7 +135,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private Map<String, String> executeHttpPost(String sql) {
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidQueryParam druidQueryParam = getDruidQueryParam(sql);
-        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
+        log.info("DB engine is :{},execute query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
         return httpClientService.httpPost(queryURL, JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
     }

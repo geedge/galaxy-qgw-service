@@ -108,7 +108,6 @@ public class FederationDialect extends AbstractEngineDialect{
             convertJsonToCSV();
         }
         baseResult.setFormatType(param.getFormat());
-
         log.debug("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
         return baseResult;
     }
