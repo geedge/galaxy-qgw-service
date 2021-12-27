@@ -454,6 +454,7 @@
       "name": "common_stream_behavior",
       "label": "Stream Behavior",
       "doc": {
+        "visibility": "hidden"
       },
       "type": "string"
     },

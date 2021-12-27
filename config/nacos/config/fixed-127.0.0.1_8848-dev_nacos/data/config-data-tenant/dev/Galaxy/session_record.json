@@ -269,6 +269,9 @@
       },
       "SSH": {
         "$ref": "public_schema_info.json#/schema_type/SSH"
+      },
+      "Stratum": {
+        "$ref": "public_schema_info.json#/schema_type/Stratum"
       }
     },
     "default_columns": [
@@ -2370,6 +2373,21 @@
     {
       "name": "ssh_hassh",
       "label": "SSH.HASSH",
+      "type": "string"
+    },
+    {
+      "name": "stratum_cryptocurrency",
+      "label": "Cryptocurrency",
+      "type": "string"
+    },
+    {
+      "name": "stratum_mining_pools",
+      "label": "Mining Pools",
+      "type": "string"
+    },
+    {
+      "name": "stratum_mining_program",
+      "label": "Mining Program",
       "type": "string"
     }
   ]
