@@ -1202,13 +1202,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     private String getRealTimeAccount() {
-        return new StringBuilder("user=").append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPin()).toString();
+        return new StringBuilder("user=").append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).toString();
     }
 
     private String getLongTermAccount() {
-        return new StringBuilder("user=").append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPin()).toString();
+        return new StringBuilder("user=").append(clickHouseHttpSource.getLongTermAccountUserName()).append("&")
+                .append("password=").append(clickHouseHttpSource.getLongTermAccountPin()).toString();
     }
 
 }

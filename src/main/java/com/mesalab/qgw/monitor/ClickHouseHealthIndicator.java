@@ -31,13 +31,13 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
                     .withDetail("message", "DISABLED");
             return;
         }
-        clickHouseHttpSource.getRealTimeAccount();
+        clickHouseHttpSource.getRealTimeAccountSocketTimeOut();
 
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
 
         StringBuilder queryParamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPin()).append("&")
+                .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append("select timezone() as timeZone")
                 .append(" FORMAT JSON ;");

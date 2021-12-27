@@ -1,8 +1,7 @@
 package com.mesalab.knowledge.common.config;
 
-import com.alibaba.nacos.api.config.ConfigType;
-import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
-import com.mesalab.common.nacos.NacosConst;
+import com.alibaba.nacos.api.config.annotation.NacosValue;
+import lombok.Data;
 import org.springframework.stereotype.Component;
 
 /**
@@ -10,87 +9,47 @@ import org.springframework.stereotype.Component;
  * @author: zhq
  * @create: 2020-07-07
  **/
+@Data
 @Component
-@NacosConfigurationProperties(prefix = "arango", dataId = "${nacos.config.data-id}", groupId = "${nacos.config.group}", type = ConfigType.YAML, autoRefreshed = true)
 public class ArangoConfig {
-
+    /**
+     * url地址
+     */
+    @NacosValue(value = "${arango.server}", autoRefreshed = true)
     private String server;
-
+    /**
+     * 数据库
+     */
+    @NacosValue(value = "${arango.database}", autoRefreshed = true)
     private String database;
-
+    /**
+     * 用户名
+     */
+    @NacosValue(value = "${arango.username}", autoRefreshed = true)
     private String username;
-
+    /**
+     * 密码
+     */
+    @NacosValue(value = "${arango.pin}", autoRefreshed = true)
     private String pin;
-
+    /**
+     * 获取jwt的url
+     */
+    @NacosValue(value = "${arango.jwturl}", autoRefreshed = true)
     private String jwturl;
-
+    /**
+     * 查询的url
+     */
+    @NacosValue(value = "${arango.queryurl}", autoRefreshed = true)
     private String queryurl;
-
+    /**
+     * 最大行
+     */
+    @NacosValue(value = "${arango.maxrows}", autoRefreshed = true)
     private String maxrows;
-
-    private String jwt;
-
-    public String getServer() {
-        return server;
-    }
-
-    public void setServer(String server) {
-        this.server = server;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPin() {
-        return pin;
-    }
-
-    public void setPin(String pin) {
-        this.pin = pin;
-    }
-
-    public String getJwturl() {
-        return jwturl;
-    }
-
-    public void setJwturl(String jwturl) {
-        this.jwturl = jwturl;
-    }
-
-    public String getQueryurl() {
-        return queryurl;
-    }
-
-    public void setQueryurl(String queryurl) {
-        this.queryurl = queryurl;
-    }
-
-    public String getMaxrows() {
-        return maxrows;
-    }
-
-    public void setMaxrows(String maxrows) {
-        this.maxrows = maxrows;
-    }
-
-    public String getJwt() {
-        return jwt;
-    }
-
-    public void setJwt(String jwt) {
-        this.jwt = jwt;
-    }
+    /**
+     * 超时时间
+     */
+    @NacosValue(value = "${arango.socketTimeOut}", autoRefreshed = true)
+    private String socketTimeOut;
 }

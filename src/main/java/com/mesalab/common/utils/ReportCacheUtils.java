@@ -58,8 +58,8 @@ public class ReportCacheUtils {
         ApiParam param = new ApiParam();
         StringBuffer sb = new StringBuffer();
         String rowKey = SQLHelper.getQueryId(id, query);
-        sb.append("select ").append(hBaseAPISource.getReport().getColumnName());
-        sb.append(" from ").append(hBaseAPISource.getReport().getDbName()).append(".").append(hBaseAPISource.getReport().getTableName());
+        sb.append("select ").append(hBaseAPISource.getColumnName());
+        sb.append(" from ").append(hBaseAPISource.getDbName()).append(".").append(hBaseAPISource.getTableName());
         sb.append(" where ").append("ROWKEY=").append("\'" + rowKey + "\'");
         param.setQuery(sb.toString());
         BaseResult result = apiService.executeQuery(param);

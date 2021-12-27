@@ -415,8 +415,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         String ckQuery = Encodes.urlEncode(sql);
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryParamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPin()).append("&")
+                .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(ckQuery)
                 .append(" FORMAT JSON;");
