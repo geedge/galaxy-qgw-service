@@ -81,8 +81,8 @@ elasticsearch:
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
-  userName: ENC(Xl/K5ekbEAtZNqb1XHG22g==)
-  pin: ENC(/TwBhSNQuiWT3jn11coKLtyo5klTbs+H)
+  userName: ENC(v8NKKlLWitI7vGhuGYorRQ==)
+  pin: ENC(xTCafSByYA6SyvhUJ6vrh2VSXuZAVK/O)
 ## Engine、Service configuration
 engine:
   maxCacheNum: 1048575

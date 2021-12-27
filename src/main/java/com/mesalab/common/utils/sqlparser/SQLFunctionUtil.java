@@ -117,10 +117,9 @@ public class SQLFunctionUtil {
     }
 
     public static String timeZoneFunc(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pTimeZone.matcher(sql);
-            if (!matcher.find() || count++ == 30) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -280,10 +279,9 @@ public class SQLFunctionUtil {
      * @return
      */
     private static String parseMergepFunction(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pMergeFunction.matcher(sql);
-            if (!matcher.find() || count++ >= 40) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -306,10 +304,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseDateFormat(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pDateFormat.matcher(sql);
-            if (!matcher.find() || count++ >= 40) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -331,10 +328,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseQuantile(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pQuantile.matcher(sql);
-            if (!matcher.find() || count++ >= 40) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -403,10 +399,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseGroupByFormat(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pGroupByFormat.matcher(sql);
-            if (!matcher.find() || count++ >= 30) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start();
@@ -428,10 +423,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseDateRelative(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pDateRelative.matcher(sql);
-            if (!matcher.find() || count++ >= 30) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -453,10 +447,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseUnixTime(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pUnixTime.matcher(sql);
-            if (!matcher.find() || count++ == 30) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -478,10 +471,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseDate(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pDate.matcher(sql);
-            if (!matcher.find() || count++ >= 30) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -503,10 +495,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseUnitFuncGetNum(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pUnitFuncGetNum.matcher(sql);
-            if (!matcher.find() || count++ >= 30) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -528,10 +519,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseMarkDate(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pMarkDate.matcher(sql);
-            if (!matcher.find() || count++ >= 30) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -553,10 +543,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseLastDayFunc(String sql, String dbType) {
-        int count = 0;
         while (true) {
             Matcher matcher = pLastDateFunc.matcher(sql);
-            if (!matcher.find() || count++ >= 30) {
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -578,11 +567,10 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String parseDateCalculateNum(String sql, String dbType) {
-        int count = 0;
         String sqlTmp = "";
         while (true) {
             Matcher matcher = pDateCalculateNum.matcher(sql);
-            if (!matcher.find() || count++ >= 30) {
+            if (!matcher.find()) {
                 sql = sql.replace("##", "(");
                 return sql;
             }
@@ -1524,10 +1512,9 @@ public class SQLFunctionUtil {
      * @return
      */
     private static String translateByPattern(String sql, String dbType, Pattern pattern) {
-        int count = 0;
         while (true) {
             Matcher matcher = pattern.matcher(sql);
-            if (!matcher.find() || count++ >= 40) {
+            if (!matcher.find()) {
                 return sql;
             }
             String sqlParse = sql.substring(matcher.start());
