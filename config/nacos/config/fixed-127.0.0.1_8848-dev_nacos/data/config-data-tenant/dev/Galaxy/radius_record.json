@@ -52,7 +52,7 @@
           "common_isp",
           "common_data_center",
           "common_device_group",
-          "common_stream_behavior",
+          "common_app_behavior",
           "common_sled_ip"
         ],
         "source": [
@@ -635,8 +635,8 @@
       "type": "string"
     },
     {
-      "name": "common_stream_behavior",
-      "label": "Stream Behavior",
+      "name": "common_app_behavior",
+      "label": "Application Behavior",
       "doc": {
         "visibility": "hidden"
       },
