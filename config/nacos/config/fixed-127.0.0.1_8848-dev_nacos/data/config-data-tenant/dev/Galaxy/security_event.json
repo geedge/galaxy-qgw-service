@@ -180,7 +180,6 @@
           "common_isp",
           "common_data_center",
           "common_device_group",
-          "common_app_behavior",
           "common_sled_ip"
         ],
         "action": [
@@ -217,7 +216,8 @@
           "common_protocol_label",
           "common_service_category",
           "common_service",
-          "common_l4_protocol"
+          "common_l4_protocol",
+          "common_app_behavior"
         ],
         "transmission": [
           "common_sessions",
