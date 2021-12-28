@@ -201,6 +201,7 @@
           "common_stream_error",
           "common_link_info_c2s",
           "common_link_info_s2c",
+          "common_packet_capture_file",
           "common_action",
           "common_sub_action",
           "common_policy_id",
@@ -330,7 +331,8 @@
     "internal_columns": [
       "common_recv_time",
       "common_log_id",
-      "common_processing_time"
+      "common_processing_time",
+      "common_packet_capture_file"
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
@@ -996,6 +998,17 @@
       "label": "Link Info(s2c)",
       "doc": {
         "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_packet_capture_file",
+      "label": "Packet Capture File",
+      "doc": {
+        "visibility": "hidden",
+        "constraints": {
+          "type": "file"
+        }
       },
       "type": "string"
     },

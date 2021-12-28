@@ -231,6 +231,7 @@
           "common_stream_error",
           "common_link_info_c2s",
           "common_link_info_s2c",
+          "common_packet_capture_file",
           "common_action",
           "common_sub_action",
           "common_policy_id",
@@ -289,6 +290,7 @@
       "common_processing_time",
       "common_userdefine_app_name",
       "common_tunnels",
+      "common_packet_capture_file",
       "rtp_pcap_path",
       "http_request_body",
       "http_response_body",
@@ -1006,6 +1008,17 @@
       "label": "Link Info(s2c)",
       "doc": {
         "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_packet_capture_file",
+      "label": "Packet Capture File",
+      "doc": {
+        "visibility": "hidden",
+        "constraints": {
+          "type": "file"
+        }
       },
       "type": "string"
     },

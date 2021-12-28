@@ -201,6 +201,7 @@
           "common_stream_error",
           "common_link_info_c2s",
           "common_link_info_s2c",
+          "common_packet_capture_file",
           "common_action",
           "common_sub_action",
           "common_policy_id",
@@ -258,6 +259,7 @@
       "common_log_id",
       "common_processing_time",
       "common_tunnels",
+      "common_packet_capture_file",
       "http_request_body",
       "http_response_body"
     ],
@@ -937,6 +939,17 @@
         "visibility": "hidden"
       },
       "label": "Link Info(s2c)"
+    },
+    {
+      "name": "common_packet_capture_file",
+      "label": "Packet Capture File",
+      "doc": {
+        "visibility": "hidden",
+        "constraints": {
+          "type": "file"
+        }
+      },
+      "type": "string"
     },
     {
       "name": "common_c2s_ipfrag_num",
