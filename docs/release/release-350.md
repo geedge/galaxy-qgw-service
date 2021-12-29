@@ -12,4 +12,5 @@
  * 新增字段发现功能(TSG-8542)。
  * 完善ToP优化，细化ToP优化策略，聚合函数支持无别名，增加min与max函数的支持
  * 修复远程代码执行漏洞，升级log4j2版本为2.17.0
+ * 修复Schema，DoS Log搜索Attack Type移除DNS Amplification(TSG-9188)。
  
