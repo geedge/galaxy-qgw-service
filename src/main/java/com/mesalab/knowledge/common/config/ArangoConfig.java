@@ -25,12 +25,12 @@ public class ArangoConfig {
     /**
      * 用户名
      */
-    @NacosValue(value = "${arango.username}", autoRefreshed = true)
+    @NacosValue(value = "${arango.username}")
     private String username;
     /**
      * 密码
      */
-    @NacosValue(value = "${arango.pin}", autoRefreshed = true)
+    @NacosValue(value = "${arango.pin}")
     private String pin;
     /**
      * 获取jwt的url

@@ -27,12 +27,12 @@ public class ClickHouseHttpSource implements Serializable {
     /**
      * realTime的用户名
      */
-    @NacosValue(value = "${clickhouse.realTimeAccount.username}", autoRefreshed = true)
+    @NacosValue(value = "${clickhouse.realTimeAccount.username}")
     private String realTimeAccountUserName;
     /**
      * realTime的密码
      */
-    @NacosValue(value = "${clickhouse.realTimeAccount.pin}", autoRefreshed = true)
+    @NacosValue(value = "${clickhouse.realTimeAccount.pin}")
     private String realTimeAccountPin;
     /**
      * realTime的超时时间
@@ -42,12 +42,12 @@ public class ClickHouseHttpSource implements Serializable {
     /**
      * long查询的用户名
      */
-    @NacosValue(value = "${clickhouse.longTermAccount.username}", autoRefreshed = true)
+    @NacosValue(value = "${clickhouse.longTermAccount.username}")
     private String longTermAccountUserName;
     /**
      * long查询的密码
      */
-    @NacosValue(value = "${clickhouse.longTermAccount.pin}", autoRefreshed = true)
+    @NacosValue(value = "${clickhouse.longTermAccount.pin}")
     private String longTermAccountPin;
     /**
      * long超时时间

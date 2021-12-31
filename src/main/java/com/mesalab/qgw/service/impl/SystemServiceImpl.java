@@ -4,6 +4,7 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -180,14 +181,12 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult getCiphertext(EncryptionInfo param) {
         BaseResult baseResult;
         BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
-        textEncryptor.setPassword("galaxy");
+        textEncryptor.setPassword(param.getSalt());
         String encrypt = textEncryptor.encrypt(param.getPassword());
-        List data = new ArrayList();
         Map dataMap = new HashMap();
         dataMap.put("password", param.getPassword());
         dataMap.put("encrypted_password", encrypt);
-        data.add(dataMap);
-        baseResult = BaseResultGenerator.success("ok", data);
+        baseResult = BaseResultGenerator.success("ok", Lists.newArrayList(dataMap));
         return baseResult;
     }
 

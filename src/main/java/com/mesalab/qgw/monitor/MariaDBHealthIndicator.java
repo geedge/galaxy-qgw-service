@@ -1,6 +1,7 @@
 package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.google.common.base.Splitter;
 import com.jfinal.plugin.activerecord.Db;
 import com.mesalab.common.utils.TimeZoneUtil;
@@ -22,7 +23,7 @@ import java.util.Map;
 @Component
 public class MariaDBHealthIndicator extends AbstractHealthIndicator {
 
-    @Value("${spring.datasource.url}")
+    @NacosValue("${spring.datasource.url}")
     private String url;
     private final static String APP = "MariaDB";
 

@@ -17,11 +17,11 @@ public class JobAdminHttpSource implements Serializable {
     /**
      * xxl-job-admin的用户名
      */
-    @NacosValue(value = "${xxl-job-admin.userName}", autoRefreshed = true)
+    @NacosValue(value = "${xxl-job-admin.userName}")
     private String userName;
     /**
      * xxl-job-admin的密码
      */
-    @NacosValue(value = "${xxl-job-admin.pin}", autoRefreshed = true)
+    @NacosValue(value = "${xxl-job-admin.pin}")
     private String pin;
 }
