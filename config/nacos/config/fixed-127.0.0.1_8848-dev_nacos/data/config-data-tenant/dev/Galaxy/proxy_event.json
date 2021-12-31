@@ -238,7 +238,6 @@
       "name": "common_recv_time",
       "label": "Receive Time",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "timestamp"
         }
@@ -249,7 +248,6 @@
       "name": "common_log_id",
       "label": "Log ID",
       "doc": {
-        "allow_query": "true",
         "format": {
           "functions": "snowflake_id"
         }
@@ -259,48 +257,32 @@
     {
       "name": "common_policy_id",
       "label": "Policy ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
       "name": "common_subscriber_id",
       "label": "Subscriber ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "common_imei",
       "label": "IMEI",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "common_imsi",
       "label": "IMSI",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "common_phone_number",
       "label": "Phone Number",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "common_client_ip",
       "label": "Client IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         },
@@ -321,17 +303,13 @@
         "format": {
           "functions": "if",
           "param": "$.common_direction=69,$.common_client_ip,$.common_server_ip"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
     {
       "name": "common_client_port",
       "label": "Client Port",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "int"
     },
     {
@@ -363,7 +341,6 @@
       "name": "common_server_ip",
       "label": "Server IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         },
@@ -377,10 +354,7 @@
     {
       "name": "common_server_port",
       "label": "Server Port",
-      "type": "int",
-      "doc": {
-        "allow_query": "true"
-      }
+      "type": "int"
     },
     {
       "name": "common_external_ip",
@@ -392,8 +366,7 @@
         "format": {
           "functions": "if",
           "param": "$.common_direction=73,$.common_client_ip,$.common_server_ip"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
@@ -401,7 +374,6 @@
       "name": "common_action",
       "label": "Action",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "operator_functions": "=,!="
         },
@@ -466,7 +438,6 @@
       "name": "common_sled_ip",
       "label": "Sled IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         }
@@ -523,17 +494,11 @@
     {
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
@@ -580,7 +545,6 @@
       "name": "common_schema_type",
       "label": "Schema Type",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "operator_functions": "=,!="
         },
@@ -645,8 +609,7 @@
             "code": "edit_element",
             "value": "Edit Element"
           }
-        ],
-        "allow_query": "true"
+        ]
       },
       "type": "string"
     },
@@ -711,8 +674,7 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
@@ -727,8 +689,7 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
           "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
@@ -817,7 +778,6 @@
         "constraints": {
           "operator_functions": "has"
         },
-        "allow_query": "true",
         "dict_location": {
           "path": "/v1/category/dict",
           "key": "categoryId",
@@ -833,6 +793,7 @@
       "name": "common_start_time",
       "label": "Start Time",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         }
@@ -843,6 +804,7 @@
       "name": "common_end_time",
       "label": "End Time",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         },
@@ -926,9 +888,6 @@
     {
       "name": "common_stream_trace_id",
       "label": "Session ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
@@ -1094,9 +1053,6 @@
     {
       "name": "http_url",
       "label": "HTTP.URL",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -1113,9 +1069,6 @@
     {
       "name": "http_domain",
       "label": "HTTP.Domain",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -1184,6 +1137,7 @@
       "name": "http_request_body",
       "label": "HTTP.Request Body",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "file"
         }
@@ -1194,6 +1148,7 @@
       "name": "http_response_body",
       "label": "HTTP.Response Body",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "file"
         }
@@ -1243,25 +1198,16 @@
     {
       "name": "http_cookie",
       "label": "HTTP.Cookie",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "http_referer",
       "label": "HTTP.Referer",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "http_user_agent",
       "label": "HTTP.User Agent",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {

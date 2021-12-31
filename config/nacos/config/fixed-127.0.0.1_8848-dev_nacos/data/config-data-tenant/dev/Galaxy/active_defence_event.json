@@ -142,7 +142,6 @@
       "name": "common_recv_time",
       "label": "Receive Time",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "timestamp"
         },
@@ -156,7 +155,6 @@
       "name": "common_log_id",
       "label": "Log ID",
       "doc": {
-        "allow_query": "true",
         "format": {
           "functions": "snowflake_id"
         }
@@ -166,9 +164,6 @@
     {
       "name": "common_policy_id",
       "label": "Policy ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
@@ -229,7 +224,6 @@
       "name": "ad_target_ip",
       "label": "Target IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         },
@@ -248,9 +242,6 @@
     {
       "name": "ad_cc_target_url",
       "label": "Target URL",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {

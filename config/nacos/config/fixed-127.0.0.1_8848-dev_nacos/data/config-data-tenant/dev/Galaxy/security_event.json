@@ -332,7 +332,6 @@
       "name": "common_recv_time",
       "label": "Receive Time",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "timestamp"
         }
@@ -343,7 +342,6 @@
       "name": "common_log_id",
       "label": "Log ID",
       "doc": {
-        "allow_query": "true",
         "format": {
           "functions": "snowflake_id"
         }
@@ -353,48 +351,32 @@
     {
       "name": "common_policy_id",
       "label": "Policy ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
       "name": "common_subscriber_id",
       "label": "Subscriber ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "common_imei",
       "label": "IMEI",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "common_imsi",
       "label": "IMSI",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "common_phone_number",
       "label": "Phone Number",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "common_client_ip",
       "label": "Client IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         },
@@ -415,17 +397,13 @@
         "format": {
           "functions": "if",
           "param": "$.common_direction=69,$.common_client_ip,$.common_server_ip"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
     {
       "name": "common_client_port",
       "label": "Client Port",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "int"
     },
     {
@@ -457,7 +435,6 @@
       "name": "common_server_ip",
       "label": "Server IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         },
@@ -471,9 +448,6 @@
     {
       "name": "common_server_port",
       "label": "Server Port",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "int"
     },
     {
@@ -486,8 +460,7 @@
         "format": {
           "functions": "if",
           "param": "$.common_direction=73,$.common_client_ip,$.common_server_ip"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
@@ -495,7 +468,6 @@
       "name": "common_action",
       "label": "Action",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "operator_functions": "=,!="
         },
@@ -552,7 +524,6 @@
       "name": "common_sled_ip",
       "label": "Sled IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         }
@@ -593,33 +564,21 @@
     {
       "name": "common_c2s_pkt_num",
       "label": "Packets Sent",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
       "name": "common_s2c_pkt_num",
       "label": "Packets Received",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
@@ -710,8 +669,7 @@
             "code": "SSH",
             "value": "SSH"
           }
-        ],
-        "allow_query": "true"
+        ]
       },
       "type": "string"
     },
@@ -822,8 +780,7 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
@@ -838,8 +795,7 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
           "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
@@ -865,10 +821,7 @@
     {
       "name": "common_app_label",
       "label": "Application Label",
-      "type": "string",
-      "doc": {
-        "allow_query": "true"
-      }
+      "type": "string"
     },
     {
       "name": "common_tunnels",
@@ -913,7 +866,6 @@
         "constraints": {
           "operator_functions": "has"
         },
-        "allow_query": "true",
         "dict_location": {
           "path": "/v1/category/dict",
           "key": "categoryId",
@@ -929,6 +881,7 @@
       "name": "common_start_time",
       "label": "Start Time",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         }
@@ -939,6 +892,7 @@
       "name": "common_end_time",
       "label": "End Time",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         },
@@ -952,24 +906,17 @@
     {
       "name": "common_establish_latency_ms",
       "label": "Establish Latency(ms)",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
       "name": "common_con_duration_ms",
       "label": "Duration(ms)",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
       "name": "common_stream_dir",
       "label": "Stream Direction",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "operator_functions": "=,!="
         },
@@ -1020,9 +967,6 @@
     {
       "name": "common_stream_trace_id",
       "label": "Session ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
@@ -1045,6 +989,7 @@
       "name": "common_packet_capture_file",
       "label": "Packet Capture File",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "file"
         }
@@ -1134,17 +1079,11 @@
     {
       "name": "common_tcp_client_isn",
       "label": "TCP Client ISN",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
       "name": "common_tcp_server_isn",
       "label": "TCP Server ISN",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
@@ -1171,25 +1110,16 @@
     {
       "name": "common_mirrored_pkts",
       "label": "Mirrored Packets",
-      "type": "long",
-      "doc": {
-        "allow_query": "true"
-      }
+      "type": "long"
     },
     {
       "name": "common_mirrored_bytes",
       "label": "Mirrored Bytes",
-      "type": "long",
-      "doc": {
-        "allow_query": "true"
-      }
+      "type": "long"
     },
     {
       "name": "http_url",
       "label": "HTTP.URL",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -1206,9 +1136,6 @@
     {
       "name": "http_domain",
       "label": "HTTP.Domain",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -1283,6 +1210,7 @@
       "name": "http_request_body",
       "label": "HTTP.Request Body",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "file"
         }
@@ -1293,6 +1221,7 @@
       "name": "http_response_body",
       "label": "HTTP.Response Body",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "file"
         }
@@ -1342,25 +1271,16 @@
     {
       "name": "http_cookie",
       "label": "HTTP.Cookie",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "http_referer",
       "label": "HTTP.Referer",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "http_user_agent",
       "label": "HTTP.User Agent",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -1392,9 +1312,6 @@
     {
       "name": "http_response_latency_ms",
       "label": "HTTP.Response Latency(ms)",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
@@ -1405,9 +1322,6 @@
     {
       "name": "http_session_duration_ms",
       "label": "HTTP.Session Duration(ms)",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
@@ -1418,9 +1332,6 @@
     {
       "name": "mail_account",
       "label": "Mail.Account",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -1437,7 +1348,6 @@
       "name": "mail_from",
       "label": "Mail.From",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "email"
         }
@@ -1448,7 +1358,6 @@
       "name": "mail_to",
       "label": "Mail.To",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "email"
         }
@@ -1469,7 +1378,6 @@
       "name": "mail_subject",
       "label": "Mail.Subject",
       "doc": {
-        "allow_query": "true",
         "format": {
           "functions": "decode_of_base64",
           "param": "$.mail_subject_charset"
@@ -1648,9 +1556,6 @@
     {
       "name": "dns_qname",
       "label": "DNS.QNAME",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -1758,7 +1663,6 @@
       "name": "ssl_sni",
       "label": "SSL.SNI",
       "doc": {
-        "allow_query": "true",
         "format": {
           "functions": "sub_domain",
           "appendTo": "http_domain"
@@ -1872,9 +1776,6 @@
     {
       "name": "ssl_con_latency_ms",
       "label": "SSL.Connection Latency(ms)",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "int"
     },
     {
@@ -1888,16 +1789,12 @@
     {
       "name": "ssl_ja3_hash",
       "label": "SSL.JA3 hash",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "ssl_cert_issuer",
       "label": "SSL.Issuer",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "items"
         }
@@ -1908,7 +1805,6 @@
       "name": "ssl_cert_subject",
       "label": "SSL.Subject",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "items"
         }
@@ -1918,16 +1814,12 @@
     {
       "name": "quic_version",
       "label": "Quic.Version",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "quic_sni",
       "label": "Quic.SNI",
       "doc": {
-        "allow_query": "true",
         "format": {
           "functions": "sub_domain",
           "appendTo": "http_domain"
@@ -1943,9 +1835,6 @@
     {
       "name": "ftp_account",
       "label": "FTP.Account",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -2043,25 +1932,16 @@
     {
       "name": "sip_call_id",
       "label": "SIP.Call-ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "sip_originator_description",
       "label": "SIP.Originator",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
       "name": "sip_responder_description",
       "label": "SIP.Responder",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -2368,6 +2248,7 @@
       "name": "rtp_pcap_path",
       "label": "RTP.PCAP",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "file"
         }

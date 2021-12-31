@@ -197,7 +197,7 @@
       "name": "start_time",
       "label": "Start Time",
       "doc": {
-        "allow_query": "true",
+        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         }
@@ -208,6 +208,7 @@
       "name": "end_time",
       "label": "End Time",
       "doc": {
+        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         }
@@ -218,7 +219,6 @@
       "name": "log_id",
       "label": "Log ID",
       "doc": {
-        "allow_query": "true",
         "format": {
           "functions": "snowflake_id"
         }
@@ -229,7 +229,6 @@
       "name": "attack_type",
       "label": "Attack Type",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "operator_functions": "=,!="
         },
@@ -258,7 +257,6 @@
       "name": "severity",
       "label": "Severity",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "operator_functions": "=,!="
         },
@@ -295,9 +293,6 @@
     {
       "name": "destination_ip",
       "label": "Destination IP",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {

@@ -154,7 +154,6 @@
       "name": "common_recv_time",
       "label": "Receive Time",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "timestamp"
         }
@@ -165,7 +164,6 @@
       "name": "common_log_id",
       "label": "Log ID",
       "doc": {
-        "allow_query": "true",
         "format": {
           "functions": "snowflake_id"
         }
@@ -183,9 +181,6 @@
     {
       "name": "common_subscriber_id",
       "label": "Subscriber ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "string"
     },
     {
@@ -265,7 +260,6 @@
       "name": "common_server_ip",
       "label": "Server IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         },
@@ -279,9 +273,6 @@
     {
       "name": "common_server_port",
       "label": "Server Port",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "int"
     },
     {
@@ -361,7 +352,6 @@
       "name": "common_sled_ip",
       "label": "Sled IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         }
@@ -615,8 +605,7 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
@@ -631,8 +620,7 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
           "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        },
-        "allow_query": "true"
+        }
       },
       "type": "string"
     },
@@ -832,9 +820,6 @@
     {
       "name": "common_stream_trace_id",
       "label": "Session ID",
-      "doc": {
-        "allow_query": "true"
-      },
       "type": "long"
     },
     {
@@ -1053,7 +1038,6 @@
       "name": "radius_framed_ip",
       "label": "Framed IP",
       "doc": {
-        "allow_query": "true",
         "constraints": {
           "type": "ip"
         }
