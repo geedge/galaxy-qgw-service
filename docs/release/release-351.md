@@ -9,3 +9,4 @@
  * 完善Entity推荐接口，活跃Client IP推荐设置缓存数据±30 min误差(TSG-9024)
  * 完善Schema，内置列internal_columns增加文件类型的字段，调整除了Security 和 Proxy Events 等Action有值的日志详情(TSG-9171)
  * 完善Schema，日志字段查询约束由"白名单"改为"黑名单"模式(TSG-9207)
+ * 优化镜像，变更jdk版本，减少镜像大小。
