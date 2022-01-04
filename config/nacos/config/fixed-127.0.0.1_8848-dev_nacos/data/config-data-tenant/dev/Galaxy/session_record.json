@@ -639,6 +639,10 @@
           {
             "code": "SSH",
             "value": "SSH"
+          },
+          {
+            "code": "Stratum",
+            "value": "Stratum"
           }
         ]
       },
