@@ -67,27 +67,30 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     static {
         localHostAddress = NetUtil.getLocalhostStr();
     }
+
     @Override
-    public BaseResult build(DSLObject dslObject) {
+    public BaseResult buildProtocolTree(DSLObject dslObject) {
         BaseResult baseResult;
-        if (QueryType.PROTOCOL_TREE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            baseResult = buildProtocolTree(generateProtocolTreeSql(dslObject.getQuery(), env.getProperty("PROTOCOL_TREE_SUMMARY")));
-        } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            baseResult = buildProtocolDataRateSummary(generateProtocolDataRateSql(dslObject.getQuery(), env.getProperty("PROTOCOL_DATA_RATE_SUMMARY")));
-        } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            Map<String, String> summaryStatResult = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), env.getProperty("NETWORK_STATISTICS_SUMMARY")));
-            Map<String, String> dynamicStatResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), env.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
-            baseResult = buildNetworkOverviewResult(summaryStatResult, dynamicStatResult);
+        String sql = generateProtocolTreeSql(dslObject.getQuery(), env.getProperty("PROTOCOL_TREE_SUMMARY"));
+        Map<String, String> result = executeQuery(sql);
+        if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
+            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            List<Map> resultList = (List<Map>) resultMap.get("data");
+            if(StringUtil.isEmpty(resultList)) {
+                return BaseResultGenerator.success("ok", resultList, (Map) resultMap.get("statistics"));
+            }
+            List<ProtocolTree> protocolTreeList = buildHierarchicalStructure(buildFlatStructure(resultList));
+            baseResult = BaseResultGenerator.success("ok", protocolTreeList, (Map) resultMap.get("statistics"));
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
-        }
-        if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
+            baseResult = BaseResultGenerator.error(result.get("result"));
         }
         return baseResult;
     }
 
-    private BaseResult buildNetworkOverviewResult(Map<String, String> dataRateResult, Map<String, String> currentSessionResult) {
+    @Override
+    public BaseResult buildNetworkOverviewResult(DSLObject dslObject) {
+        Map<String, String> dataRateResult = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), env.getProperty("NETWORK_STATISTICS_SUMMARY")));
+        Map<String, String> currentSessionResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), env.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
         BaseResult baseResult;
         if (String.valueOf(HttpStatus.SC_OK).equals(currentSessionResult.get("status"))
                 && String.valueOf(HttpStatus.SC_OK).equals(dataRateResult.get("status"))) {
@@ -170,8 +173,10 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         return baseResult;
     }
 
-    private BaseResult buildProtocolDataRateSummary(String sql) {
+    @Override
+    public BaseResult buildProtocolDataRateSummary(DSLObject dslObject) {
         BaseResult baseResult;
+        String sql = generateProtocolDataRateSql(dslObject.getQuery(), env.getProperty("PROTOCOL_DATA_RATE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
@@ -182,23 +187,6 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
                 o.put("type", protocolId);
             });
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
-        } else {
-            baseResult = BaseResultGenerator.error(result.get("result"));
-        }
-        return baseResult;
-    }
-
-    private BaseResult buildProtocolTree(String sql) {
-        BaseResult baseResult;
-        Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
-            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
-            List<Map> resultList = (List<Map>) resultMap.get("data");
-            if(StringUtil.isEmpty(resultList)) {
-                return BaseResultGenerator.success("ok", resultList, (Map) resultMap.get("statistics"));
-            }
-            List<ProtocolTree> protocolTreeList = buildHierarchicalStructure(getFlatStructure(resultList));
-            baseResult = BaseResultGenerator.success("ok", protocolTreeList, (Map) resultMap.get("statistics"));
         } else {
             baseResult = BaseResultGenerator.error(result.get("result"));
         }
@@ -285,7 +273,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
                 queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
 
-    private List<ProtocolTree> getFlatStructure(List<Map> protocolData) {
+    @Override
+    public List<ProtocolTree> buildFlatStructure(List<Map> protocolData) {
         List<ProtocolTree> nodes = Lists.newArrayList();
         for (Map protocolMap : protocolData) {
             ProtocolTree protocolTree = convertStringToObject(JsonMapper.toJsonString(protocolMap));
@@ -358,7 +347,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         return protocolTree;
     }
 
-    private List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes) {
+    @Override
+    public List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes) {
 
         List<ProtocolTree> targetNodes = groupByName(nodes);
 
@@ -488,19 +478,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         return mergeResultList;
     }
 
-    enum QueryType {
 
-        PROTOCOL_TREE_SUMMARY("protocolTreeSummary"), PROTOCOL_DATA_RATE_SUMMARY("protocolDataRateSummary"), NETWORK_OVERVIEW_SUMMARY("networkOverviewSummary");
-        private final String value;
-
-        QueryType(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
     @Override
     public void setEnvironment(Environment environment) {
         env = environment;

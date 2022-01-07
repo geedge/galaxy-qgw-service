@@ -2,6 +2,10 @@ package com.mesalab.network.service;
 
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.network.dsl.DSLObject;
+import com.mesalab.network.model.protocol.ProtocolTree;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author wangwei
@@ -12,6 +16,10 @@ import com.mesalab.network.dsl.DSLObject;
 
 public interface NetworkMonitorService {
 
-    BaseResult build(DSLObject dslObject);
+    BaseResult buildProtocolTree(DSLObject dslObject);
+    BaseResult buildProtocolDataRateSummary(DSLObject dslObject);
+    BaseResult buildNetworkOverviewResult(DSLObject dslObject);
+    List<ProtocolTree> buildFlatStructure(List<Map> data);
+    List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes);
 
 }
