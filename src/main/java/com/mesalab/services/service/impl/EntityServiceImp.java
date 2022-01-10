@@ -45,6 +45,10 @@ import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author tiangaochao
@@ -164,17 +168,14 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                     alterationResultList.addAll(list);
                 }
             });
-            alterationResultList.sort(new Comparator<Object>() {
-                @Override
-                public int compare(Object o1, Object o2) {
-                    Integer sessionsO1 = Integer.parseInt(String.valueOf(((Map) o1).get("sessions")));
-                    Integer sessionsO2 = Integer.parseInt(String.valueOf(((Map) o2).get("sessions")));
-                    return sessionsO2.compareTo(sessionsO1);
-                }
-            });
+
+            List<Object> sortedAndDistinctList = alterationResultList.stream()
+                    .sorted(Comparator.comparingInt(x -> Integer.parseInt(String.valueOf(((Map) x).get("sessions")))).reversed())
+                    .filter(distinctByKey(x -> String.valueOf(((Map) x).get("common_client_ip"))))
+                    .collect(Collectors.toList());
 
             List<Object> dataResult = new ArrayList<>();
-            for (Object o : alterationResultList) {
+            for (Object o : sortedAndDistinctList) {
                 if (dataResult.size() >= Integer.parseInt(limit)) {
                     break;
                 }
@@ -189,6 +190,18 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             baseResult = BaseResultGenerator.error(baseResult.getStatus(), baseResult.getMessage());
         }
         return baseResult;
+    }
+
+    /**
+     * @param keyExtractor
+     * @return java.util.function.Predicate<T>
+     * @Description 自定义函数，根据value去重
+     * @author wanghao
+     * @date 2022/1/10 11:36
+     */
+    private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
     private ApiParam queryBuild(ComDSLObject.Query query) {
