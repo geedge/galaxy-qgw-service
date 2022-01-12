@@ -135,8 +135,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         return StringUtil.isNotEmpty(map.get("isCanceled")) && !(Boolean) map.get("isCanceled");
     }
 
-    private void init(String id, List fields) {
-        List<String> interim = Lists.newArrayList();
+    private void init(String id, List<String> fields) {
+        List<String> interim = Lists.newArrayList(fields);
         ApiParam apiParam = ApiParam.builder().query(env.getProperty("JOB_RESULT_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build();
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (baseResult.isSuccess()) {
