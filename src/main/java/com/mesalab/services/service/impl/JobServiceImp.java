@@ -97,25 +97,28 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         Map<String, Object> job = Maps.newHashMap();
         Map<String, Object> map = data.get(0);
         String[] list = StringUtil.isEmpty(map.get(JobConfig.DISCOVERY_FIELD)) ? new String[0] : map.get(JobConfig.DISCOVERY_FIELD).toString().split(",");
-        List<Map<String, Object>> res = Lists.newArrayList();
-        for (String column : list) {
+        List<Map<String, Object>> resultList = Lists.newArrayList();
+        for (String field : list) {
             Map<String, Object> result = Maps.newHashMap();
-            Object o = map.get(column);
+            Object o = map.get(field);
             if (StringUtil.isNotEmpty(o)) {
-                result.put(column, JsonMapper.fromJsonString(String.valueOf(o), Map.class));
-                res.add(result);
+                Map fieldResult = (Map) JsonMapper.fromJsonString(String.valueOf(o), Map.class);
+                List<Object> topK = (List<Object>) fieldResult.get("topk");
+                fieldResult.put("topk", topK.size() > 10 ? topK.subList(0, 10) : topK);
+                result.put(field, fieldResult);
+                resultList.add(result);
             }
         }
         HashMap<String, Object> statistics = Maps.newHashMap();
         statistics.put("elapsed", map.get(JobConfig.DURATION_TIME));
-        statistics.put("rows_read", res.size());
-        statistics.put("result_rows", res.size());
-        statistics.put("result_size", String.valueOf(res).getBytes().length);
+        statistics.put("rows_read", resultList.size());
+        statistics.put("result_rows", resultList.size());
+        statistics.put("result_size", String.valueOf(resultList).getBytes().length);
         job.put(JobConfig.COUNT, StringUtil.isEmpty(map.get(JobConfig.COUNT)) ? 0 : map.get(JobConfig.COUNT));
         job.put(JobConfig.IS_DONE, StringUtil.isEmpty(map.get(JobConfig.IS_DONE)) ? false : map.get(JobConfig.IS_DONE));
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
-        return BaseResultGenerator.success(statistics, job, res);
+        return BaseResultGenerator.success(statistics, job, resultList);
     }
 
     private boolean isExist(String id) {

@@ -121,6 +121,9 @@ http:
       timeout: 60000
 ## job cfg
 job:
+  timeSlicing:
+    enabled: true
+    interval: 1800 #单位: Second
   longPolling:
     enabled: true
   interactive:

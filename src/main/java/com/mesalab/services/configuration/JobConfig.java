@@ -20,6 +20,9 @@ public class JobConfig {
     public static final String IS_CANCELED= "is_canceled";
     public static final String DISCOVERY_FIELD= "discovery_field";
     public static final String DURATION_TIME= "duration_time";
+    public static final String QUERY_DATA_SOURCE = "query.data_source";
+    public static final String CUSTOM_FIELD_DISCOVERY_FIELDS = "custom.field_discovery.fields";
+    public static final String CUSTOM_FIELD_DISCOVERY_FILTER = "custom.field_discovery.filter";
 
     @NacosValue(value = "${job.interactive.timeout}", autoRefreshed = true)
     private int interactiveTimeout;
@@ -35,4 +38,8 @@ public class JobConfig {
     private int poolQueueCapacity;
     @NacosValue(value="${job.longPolling.enabled}", autoRefreshed = true)
     private boolean longPollingEnabled;
+    @NacosValue(value="${job.timeSlicing.enabled}", autoRefreshed = true)
+    private boolean timeSlicingEnabled;
+    @NacosValue(value="${job.timeSlicing.interval}", autoRefreshed = true)
+    private int timeSlicingInterval;
 }
