@@ -1,9 +1,8 @@
 package com.mesalab.qgw.model.api.udf;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -14,13 +13,11 @@ import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
-import com.mesalab.qgw.service.impl.ApiServiceImpl;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.Parenthesis;
@@ -136,10 +133,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 return results;
             }
 
-            if (StringUtil.isNotEmpty(dateRangeList) &&
-                    dateRangeList.size() > 2) {
-                dateRangeList = dateRangeList.subList(1, dateRangeList.size() - 1);
-            } else {
+            if (StringUtil.isNotEmpty(dateRangeList)
+                    && !whereTimeRange.isMinorThanEquals()
+                    && DateUtil.toInstant(DateUtils.convertStringToDate((whereTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS))
+                    .compareTo(DateUtil.toInstant(dateRangeList.get(dateRangeList.size() - 1))) == 0) {
+                dateRangeList.remove(dateRangeList.size() - 1);
+            }
+            if (StringUtil.isEmpty(dateRangeList)) {
                 return results;
             }
 
@@ -256,8 +256,10 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 }
                 if (operator.contains("<")) {
                     whereTimeRange.setEnd(query);
+                    whereTimeRange.setMinorThanEquals(operator.contains("="));
                 } else if (operator.contains(">")) {
                     whereTimeRange.setStart(query);
+                    whereTimeRange.setGreaterThanEquals(operator.contains("="));
                 }
             } else if (partitionKey.equals(right.toString())) {
                 String query;
@@ -270,8 +272,10 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 }
                 if (operator.contains("<")) {
                     whereTimeRange.setStart(query);
+                    whereTimeRange.setGreaterThanEquals(operator.contains("="));
                 } else if (operator.contains(">")) {
                     whereTimeRange.setEnd(query);
+                    whereTimeRange.setMinorThanEquals(operator.contains("="));
                 }
             }
         } else if (whereExpression instanceof Between) {
@@ -279,7 +283,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             Expression leftExpression = whereBetween.getLeftExpression();
             if (partitionKey.equals(leftExpression.toString())) {
                 whereTimeRange.setStart(whereBetween.getBetweenExpressionStart().toString());
+                whereTimeRange.setGreaterThanEquals(true);
                 whereTimeRange.setEnd(whereBetween.getBetweenExpressionEnd().toString());
+                whereTimeRange.setMinorThanEquals(true);
             }
         } else if (whereExpression instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) whereExpression;
@@ -297,25 +303,12 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     }
 
 
+    @Data
     private class WhereTimeRange {
         private String start;
+        private boolean greaterThanEquals;
         private String end;
-
-        public String getStart() {
-            return start;
-        }
-
-        public void setStart(String start) {
-            this.start = start;
-        }
-
-        public String getEnd() {
-            return end;
-        }
-
-        public void setEnd(String end) {
-            this.end = end;
-        }
+        private boolean minorThanEquals;
     }
 
 
