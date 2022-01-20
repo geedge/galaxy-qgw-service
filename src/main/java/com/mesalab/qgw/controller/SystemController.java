@@ -10,6 +10,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.service.SystemService;
+import com.mesalab.services.configuration.ThreadPoolMonitor;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,8 @@ public class SystemController {
     private static final Log log = LogFactory.get();
     @Autowired
     private SystemService systemService;
+    @Autowired
+    ThreadPoolMonitor threadPoolMonitor;
 
 
     @RequestMapping("/storage/quota")
@@ -101,12 +104,19 @@ public class SystemController {
     }
     @GetMapping(value = "encryption")
     public BaseResult getCiphertext(EncryptionInfo param) {
-        log.info("Plaintext encrypted,The plaintext argument is : {}",param);
-        if (StringUtil.isEmpty(param.getPassword())||StringUtil.isEmpty(param.getSalt())){
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Param password or salt cannot be empty", null );
+        log.info("Plaintext encrypted,The plaintext argument is : {}", param);
+        if (StringUtil.isEmpty(param.getPassword()) || StringUtil.isEmpty(param.getSalt())) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param password or salt cannot be empty", null);
         }
         return systemService.getCiphertext(param);
+    }
+
+    @GetMapping(value = "/clear/realJobQueue")
+    public BaseResult clearTaskQueue() {
+        log.info("Clear real job queue.");
+        threadPoolMonitor.clearQueue();
+        return BaseResultGenerator.success();
     }
 
 }
