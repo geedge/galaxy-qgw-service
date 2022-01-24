@@ -1658,6 +1658,14 @@
       "type": "int"
     },
     {
+      "name": "ssl_passthrough_reason",
+      "label": "SSL.Passthrough Reason",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
       "name": "ssl_server_side_latency",
       "label": "SSL.Server Side Latency(ms)",
       "type": "int"

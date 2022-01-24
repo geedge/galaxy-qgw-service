@@ -45,6 +45,7 @@
         "http_user_agent",
         "ssl_sni",
         "ssl_ja3_hash",
+        "ssl_passthrough_reason",
         "ssl_client_side_version",
         "ssl_server_side_version",
         "ssl_cert_issuer",
@@ -84,6 +85,7 @@
         "http_user_agent",
         "ssl_sni",
         "ssl_ja3_hash",
+        "ssl_passthrough_reason",
         "ssl_client_side_latency",
         "ssl_server_side_latency",
         "ssl_cert_issuer",
@@ -144,6 +146,7 @@
         "ssl_ja3_hash",
         "ssl_pinningst",
         "ssl_intercept_state",
+        "ssl_passthrough_reason",
         "ssl_client_side_version",
         "ssl_server_side_version",
         "ssl_cert_verify",
@@ -1731,6 +1734,11 @@
         ]
       },
       "type": "int"
+    },
+    {
+      "name": "ssl_passthrough_reason",
+      "label": "SSL.Passthrough Reason",
+      "type": "string"
     },
     {
       "name": "ssl_server_side_latency",

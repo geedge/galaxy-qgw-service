@@ -705,6 +705,7 @@
         "ssl_cn",
         "ssl_pinningst",
         "ssl_intercept_state",
+        "ssl_passthrough_reason",
         "ssl_server_side_latency",
         "ssl_client_side_latency",
         "ssl_server_side_version",
