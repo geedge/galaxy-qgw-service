@@ -2007,8 +2007,8 @@
       "type": "string"
     },
     {
-      "name": "sip_duration",
-      "label": "SIP.Duration",
+      "name": "sip_duration_s",
+      "label": "SIP.Duration(s)",
       "type": "int"
     },
     {

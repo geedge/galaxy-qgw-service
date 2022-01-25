@@ -1125,7 +1125,7 @@
         "sip_responder_sdp_media_port",
         "sip_responder_sdp_media_type",
         "sip_responder_sdp_content",
-        "sip_duration",
+        "sip_duration_s",
         "sip_bye"
       ],
       "default_columns": [
@@ -1560,7 +1560,7 @@
         "sip_responder_sdp_media_port",
         "sip_responder_sdp_media_type",
         "sip_responder_sdp_content",
-        "sip_duration",
+        "sip_duration_s",
         "sip_bye",
         "rtp_payload_type_c2s",
         "rtp_payload_type_s2c",

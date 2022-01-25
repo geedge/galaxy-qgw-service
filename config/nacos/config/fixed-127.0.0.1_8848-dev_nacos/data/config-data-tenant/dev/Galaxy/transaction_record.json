@@ -1486,9 +1486,9 @@
       "label": "SIP.Responder Content"
     },
     {
-      "name": "sip_duration",
+      "name": "sip_duration_s",
       "type": "int",
-      "label": "SIP.Duration"
+      "label": "SIP.Duration(s)"
     },
     {
       "name": "sip_bye",

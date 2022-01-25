@@ -36,7 +36,7 @@
         "sip_responder_description",
         "sip_user_agent",
         "sip_server",
-        "sip_duration",
+        "sip_duration_s",
         "sip_bye",
         "rtp_payload_type_c2s",
         "rtp_payload_type_s2c",
@@ -68,7 +68,7 @@
         "sip_responder_description",
         "sip_user_agent",
         "sip_server",
-        "sip_duration"
+        "sip_duration_s"
       ],
       "filters": [
         "common_address_type",
@@ -112,7 +112,7 @@
         "sip_responder_description",
         "sip_user_agent",
         "sip_server",
-        "sip_duration",
+        "sip_duration_s",
         "sip_bye",
         "rtp_payload_type_c2s",
         "rtp_payload_type_s2c",
@@ -1093,8 +1093,8 @@
       "type": "string"
     },
     {
-      "name": "sip_duration",
-      "label": "SIP.Duration",
+      "name": "sip_duration_s",
+      "label": "SIP.Duration(s)",
       "type": "int"
     },
     {
