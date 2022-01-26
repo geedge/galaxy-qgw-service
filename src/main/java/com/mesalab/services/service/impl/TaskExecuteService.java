@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import static com.mesalab.services.configuration.JobConfig.*;
 import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
 
 /**
@@ -37,14 +38,15 @@ import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
 @PropertySource(value = "classpath:job-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class TaskExecuteService implements EnvironmentAware {
     private static final Log log = LogFactory.get();
+    private static final int TOP_MAX = 28800;
     @Autowired
     Environment env;
     @Autowired
     ApiService apiService;
 
     @Async("taskExecutor")
-    public Future<Boolean> execute(String id, String logType, String filter, String field, long currentCount) {
-        BaseResult currentTop = queryTop(logType, filter, field);
+    public Future<Boolean> execute(String id, Map<String, Object> param, String newFilter, String field, long currentCount) {
+        BaseResult currentTop = queryTop(Double.parseDouble(param.get(QUERY_SAMPLE_RATIO).toString()), param.get(QUERY_DATA_SOURCE).toString(), newFilter, field);
         if (!currentTop.isSuccess()) {
             log.error("subTask query currentTopK Error: ", currentTop.getMessage());
             return new AsyncResult<>(false);
@@ -74,21 +76,20 @@ public class TaskExecuteService implements EnvironmentAware {
         return new AsyncResult<>(true);
     }
 
-    private BaseResult queryTop(String logType, String filter, String field) {
+    private BaseResult queryTop(Double sampleRatio, String logType, String filter, String field) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK")),
                 field, logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
         BaseResult currentTop = apiService.executeQuery(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).
-                query(sql).build());
+                query(sql).sampleRatio(sampleRatio).build());
         return currentTop;
     }
 
     private void updateResult(String id, String field, long currentCount, Object lastCount, List<Object> topList) {
         Map<String, Object> map = Maps.newHashMap();
-        map.put("topk", topList.size() > 28800 ? topList.subList(0, 28800) : topList);
+        map.put("topk", topList.size() > TOP_MAX ? topList.subList(0, TOP_MAX) : topList);
         map.put("distinct_count", Math.min(topList.size(), 100));
         map.put("count", currentCount + Long.parseLong(lastCount.toString()));
-
-        String result = JsonMapper.toJsonString(map).replace("'", "\\'").replaceAll("\\\"", "\\\\\"");
+        String result = JsonMapper.toJsonString(map).replace("\\n", " ").replace("\\r", " ").replace("\\t", " ");
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_RESULT")),
                 field, id, result));
     }

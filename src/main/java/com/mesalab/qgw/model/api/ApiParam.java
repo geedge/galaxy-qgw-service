@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.nutz.json.JsonIgnore;
 
 import java.io.Serializable;
 @Data
@@ -17,6 +16,7 @@ public class ApiParam implements Serializable {
     private String query;
     private String option;
     private String format;
+    private Double sampleRatio;
     private String schema;
     private String tableName;
     private String dbType;// 数据库类型

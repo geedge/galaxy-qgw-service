@@ -44,6 +44,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.mesalab.common.utils.TableFinder.SAMPLE_RATIO_FLAG;
+
 public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
     private static final Pattern pSUM = Pattern.compile("\\bsum\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -116,13 +118,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     @Override
     public String convertQuery(String sql) {
         return new Converter(sql).
-                generateStandard().generateDateFunction().generateSqlEncode().build();
+                generateStandard().generateDateFunction().replaceFlag().generateSqlEncode().build();
     }
 
     @Override
     public String getBestQuery() {
         return new Optimizer().generateQueryLimit().
-                generateSQL().generateSubQuery().generateTableAlias().generateApproximation().build();
+                generateSQL().generateSubQuery().generateTableAliasAndSample().generateApproximation().build();
     }
 
     @Override
@@ -312,6 +314,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             m.appendTail(sb);
             return sb.toString();
         }
+
+        public Converter replaceFlag() {
+            sql = sql.replace(SAMPLE_RATIO_FLAG, " sample " + param.getSampleRatio());
+            return this;
+        }
     }
 
 
@@ -404,11 +411,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          *
          * @return
          */
-        public Optimizer generateTableAlias() {
+        public Optimizer generateTableAliasAndSample() {
             try {
                 TableFinder tableFinder = new TableFinder();
                 Statement parse = CCJSqlParserUtil.parse(sql);
                 tableFinder.setDefaultAlias(true);
+                tableFinder.setSampleRatio(param.getSampleRatio());
                 tableFinder.addSchemaName(parse);
                 sql = String.valueOf(parse);
             } catch (JSQLParserException e) {
