@@ -1,4 +1,3 @@
-
 stages:
   - build
   - clean
@@ -13,7 +12,7 @@ build:
   only:
     - tags
   tags:
-    - GN-XXG-Server
+    - share
 
 clean:
   stage: clean
