@@ -13,7 +13,7 @@ build:
   only:
     - tags
   tags:
-    - GN-XXG-Server
+    - galaxy
 
 clean:
   stage: clean
@@ -25,7 +25,7 @@ clean:
   only:
     - tags
   tags:
-    - GN-XXG-Server
+    - galaxy
 deploy:
   stage: deploy
   script:
@@ -36,4 +36,4 @@ deploy:
   only:
     - tags
   tags:
-    - GN-XXG-Server
+    - galaxy
