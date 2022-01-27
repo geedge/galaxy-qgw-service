@@ -1,6 +1,5 @@
 package com.mesalab.common.utils;
 
-import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.expression.*;
@@ -58,12 +57,17 @@ import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.statement.upsert.Upsert;
 import net.sf.jsqlparser.statement.values.ValuesStatement;
 
+import static com.mesalab.qgw.service.impl.ApiServiceImpl.MAX_SAMPLE_RATIO;
+
 public class TableFinder implements SelectVisitor, FromItemVisitor, ExpressionVisitor, ItemsListVisitor, SelectItemVisitor, StatementVisitor {
 
-    private static MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("nacosMetadataService");
+    private static MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
 
     private static final String NOT_SUPPORTED_YET = "Not supported yet.";
     private boolean defaultAlias = false;
+    public static String SAMPLE_RATIO_FLAG = "___sampleRatio___";
+    private Double sampleRatio;
+    private int count = 0;
 
     public void addSchemaName(Statement statement) {
         statement.accept(this);
@@ -71,6 +75,10 @@ public class TableFinder implements SelectVisitor, FromItemVisitor, ExpressionVi
 
     public void setDefaultAlias(boolean bool) {
         this.defaultAlias = bool;
+    }
+
+    public void setSampleRatio(Double sampleRatio) {
+        this.sampleRatio = sampleRatio;
     }
 
     @Override
@@ -129,6 +137,13 @@ public class TableFinder implements SelectVisitor, FromItemVisitor, ExpressionVi
                 || defaultAlias && (StringUtil.isBlank(tableName.getAlias().getName()))) {
             Alias alias = new Alias(tableName.getName(), true);
             tableName.setAlias(alias);
+        }
+        if (++count == 1 && sampleRatio != MAX_SAMPLE_RATIO) {
+            if (tableName.getAlias() == null) {
+                tableName.setName(tableName.getName() + SAMPLE_RATIO_FLAG);
+            } else {
+                tableName.getAlias().setName(tableName.getAlias().getName() + SAMPLE_RATIO_FLAG);
+            }
         }
     }
 

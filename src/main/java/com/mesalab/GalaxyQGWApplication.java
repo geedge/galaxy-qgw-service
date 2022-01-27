@@ -27,6 +27,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class GalaxyQGWApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {
+        System.setProperty("jasypt.encryptor.password", "galaxy");
         SpringApplication.run(GalaxyQGWApplication.class, args);
     }
 

@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +61,7 @@ public abstract class Writer {
         String pocSQL = "";
         try {
             if (writer.getFile().exists()) {
-                return writer.getFile().getAbsolutePath();
+                writer.getFile().createNewFile();
             }
 
             List<String> rawLines = templateReader.readLines();
@@ -105,8 +107,8 @@ public abstract class Writer {
             writer.appendLines(resultLines);
             resultLines.clear();
             pocSQL = writer.getFile().getAbsolutePath();
-        } catch (IORuntimeException e) {
-            log.error("IORuntimeException:{}", e);
+        } catch (IORuntimeException | IOException e) {
+            log.error("Generate PocSQL Exception:{}", e);
         }
         return pocSQL;
     }
@@ -115,22 +117,45 @@ public abstract class Writer {
     @Value("${nacos.config.server-addr}")
     private String nacosServerAddr;
 
-    protected String buildSnapshotFilePath(String dataId) {
-        String localSnapshotPath = LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH.replaceAll("\\\\", "/");
-        StringBuilder filePath = new StringBuilder(localSnapshotPath);
-        filePath.append("/");
-        filePath.append(NacosConst.FIXED);
-        filePath.append(nacosServerAddr.replaceAll(":", "_")).append("-");
-        filePath.append(nacosConfig.getNamespace()).append(NacosConst.NACOS);
-        filePath.append("/");
+    protected String buildSnapshotDataFilePath(String dataId) {
+        StringBuilder filePath = new StringBuilder(buildPrefixPath());
         filePath.append(NacosConst.SNAPSHOT_TENANT);
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(nacosConfig.getNamespace());
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(nacosConfig.getGroup());
-        filePath.append("/");
+        filePath.append(File.separator);
         filePath.append(dataId);
         log.info("dataId:{} snapshot path:{}", dataId, filePath.toString());
+        return filePath.toString();
+    }
+
+    protected String buildLocalDataFilePath(String dataId) {
+        StringBuilder filePath = new StringBuilder(buildPrefixPath());
+        filePath.append(NacosConst.NACOS_LOCAL_DATA);
+        filePath.append(File.separator);
+        filePath.append(NacosConst.CONFIG_DATA_TENANT);
+        filePath.append(File.separator);
+        filePath.append(nacosConfig.getNamespace());
+        filePath.append(File.separator);
+        filePath.append(nacosConfig.getGroup());
+        filePath.append(File.separator);
+        filePath.append(dataId);
+        log.info("dataId:{} local data path:{}", dataId, filePath.toString());
+        return filePath.toString();
+    }
+
+    private String buildPrefixPath() {
+        StringBuilder filePath = new StringBuilder(LocalConfigInfoProcessor.LOCAL_SNAPSHOT_PATH);
+        filePath.append(File.separator);
+        filePath.append(NacosConst.FIXED);
+        filePath.append(NacosConst.RAMPANT);
+        nacosServerAddr = nacosServerAddr.replaceAll(NacosConst.COLON, NacosConst.UNDERLINE);
+        filePath.append(nacosServerAddr).append(NacosConst.RAMPANT);
+        filePath.append(nacosConfig.getNamespace());
+        filePath.append(NacosConst.UNDERLINE);
+        filePath.append(NacosConst.NACOS);
+        filePath.append(File.separator);
         return filePath.toString();
     }
 

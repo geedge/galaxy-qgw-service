@@ -1,0 +1,22 @@
+{
+  "type": "record",
+  "name": "top_urls_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "session_num",
+      "type": "long"
+    },
+    {
+      "name": "url",
+      "type": "string"
+    }
+  ]
+}

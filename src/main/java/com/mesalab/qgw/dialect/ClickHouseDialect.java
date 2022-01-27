@@ -1,6 +1,7 @@
 package com.mesalab.qgw.dialect;
 
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -13,10 +14,10 @@ import com.mesalab.common.base.DataTypeMapping;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
+import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.MetadataService;
-import com.mesalab.qgw.service.SystemService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.common.utils.TableFinder;
 import com.zdjizhi.utils.Encodes;
@@ -43,9 +44,12 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.mesalab.common.utils.TableFinder.SAMPLE_RATIO_FLAG;
+
 public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
     private static final Pattern pSUM = Pattern.compile("\\bsum\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pNullable = Pattern.compile("\\bNullable\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pAvg = Pattern.compile("\\bavg\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pMax = Pattern.compile("\\bmax\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pMin = Pattern.compile("\\bmin\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -59,15 +63,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("nacosMetadataService");
+    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
-    private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     public ApiParam param;
     public BaseResult baseResult;
 
     private final static double PERCENT_UP_LINE = 0.98;
     private final static double PERCENT_DOWN_LINE = 0.01;
+    private final static String DB_EXCEPTION_START = "e.displayText() = DB::Exception: ";
 
     private final static Map<String, String> metaMap = Maps.newHashMap();
 
@@ -114,13 +118,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     @Override
     public String convertQuery(String sql) {
         return new Converter(sql).
-                generateStandard().generateDateFunction().generateSqlEncode().build();
+                generateStandard().generateDateFunction().replaceFlag().generateSqlEncode().build();
     }
 
     @Override
     public String getBestQuery() {
         return new Optimizer().generateQueryLimit().
-                generateSQL().generateUniq().generateSubquery().build();
+                generateSQL().generateSubQuery().generateTableAliasAndSample().generateApproximation().build();
     }
 
     @Override
@@ -164,9 +168,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-   public BaseResult getProcesses() {
-        String sql = String.format("select elapsed,total_rows_approx,read_rows from `system`.processes where query_id='%s'", param.getQueryId());
+    public BaseResult getProcesses() {
+        String tableName = "processes";
+        String sql = String.format("select elapsed,total_rows_approx,read_rows from `system`.%s where query_id='%s'", tableName, param.getQueryId());
         param.setQuery(sql);
+        param.setTableName(tableName);
         BaseResult baseResult = generateBaseResult(sql, Optional.of("ok"));
         Map<String, Object> result = new HashMap<>(16);
         if (!baseResult.isSuccess()) {
@@ -203,7 +209,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             return metaList;
         }
         metaList = JsonPath.read(meta, "$");
-        metaList.forEach(x -> x.put("type", metaMap.get(x.get("type")) == null ? DataTypeMapping.STRING : metaMap.get(x.get("type"))));
+        metaList.forEach(x ->
+        {
+            String type = x.get("type");
+            Matcher matcher = pNullable.matcher(type);
+            if (matcher.find()) {
+                type = matcher.group(1);
+            }
+            x.put("type", metaMap.get(type) == null ? DataTypeMapping.STRING : metaMap.get(type));
+        });
         return metaList;
     }
 
@@ -217,13 +231,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         /**
          * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
-         * 1.集群模式子查询必须加库名、别名 (解决方法: 对sql统一处理添加库名、别名)
-         * 2.不支持 count(1) 需转为count(*)
-         * 3.针对非聚合SQL，非分组sql in/not in 替换为 Global in/not
+         * 1.不支持 count(1) 需转为count(*)
+         * 2.针对非聚合SQL，非分组sql in/not in 替换为 Global in/not
          * @return
          */
         public Converter generateStandard() {
-            sql = addTableName(sql);
             sql = generateCount(sql);
             sql = generateGlobalIn(sql);
             return this;
@@ -231,7 +243,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         /**
          * Desc:
-         *  IN 转换为 集群 Global IN 模式(针对聚合、分组sql除外)
+         *  IN 转换为 集群 Global IN 模式(针对聚合、分组)
          *
          * @param sql
          * @return {@link String}
@@ -265,19 +277,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             }
             m.appendTail(sb);
             return sb.toString();
-        }
-
-        private String addTableName(String sql) {
-            try {
-                TableFinder tableFinder = new TableFinder();
-                Statement parse = CCJSqlParserUtil.parse(sql);
-                tableFinder.setDefaultAlias(true);
-                tableFinder.addSchemaName(parse);
-                return String.valueOf(parse);
-            } catch (JSQLParserException e) {
-                log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Rewrite add tableName and Alias Error", e);
-            }
         }
 
         public Converter generateDateFunction() {
@@ -314,6 +313,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             }
             m.appendTail(sb);
             return sb.toString();
+        }
+
+        public Converter replaceFlag() {
+            sql = sql.replace(SAMPLE_RATIO_FLAG, " sample " + param.getSampleRatio());
+            return this;
         }
     }
 
@@ -361,7 +365,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 return;
             }
 
-            String orginInnerSql = innerSqlQuerySource.getSqlBody();
+            String originalInnerSql = innerSqlQuerySource.getSqlBody();
             String limitInnerSql = innerSqlQuerySource.getSqlBody();
 
             if (StringUtil.isNotBlank(innerSqlQuerySource.getLimit())) {
@@ -390,7 +394,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             }
 
             if (StringUtil.isNotEmpty(sqlQuerySource.getSubSqlQuerySources())) {
-                sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(orginInnerSql, limitInnerSql));
+                sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(originalInnerSql, limitInnerSql));
             }
 
         }
@@ -398,6 +402,27 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         public Optimizer generateSQL() {
             SQLQuerySource sqlQuerySource = param.getDbQuerySource();
             sql = sqlQuerySource.getSqlBody();
+            return this;
+        }
+
+        /**
+         * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
+         * 1.集群模式子查询必须加库名、别名 (解决方法: 对sql统一处理添加库名、别名)
+         *
+         * @return
+         */
+        public Optimizer generateTableAliasAndSample() {
+            try {
+                TableFinder tableFinder = new TableFinder();
+                Statement parse = CCJSqlParserUtil.parse(sql);
+                tableFinder.setDefaultAlias(true);
+                tableFinder.setSampleRatio(param.getSampleRatio());
+                tableFinder.addSchemaName(parse);
+                sql = String.valueOf(parse);
+            } catch (JSQLParserException e) {
+                log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Rewrite add tableName and Alias Error", e);
+            }
             return this;
         }
 
@@ -447,6 +472,24 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         /**
+         * Desc: 近似优化
+         * 1. uniq优化
+         * 2. TopN优化
+         *
+         * @param
+         * @return {@link Optimizer}
+         * @created by wWei
+         * @date 2021/8/9 3:19 下午
+         */
+        public Optimizer generateApproximation() {
+            if (!clickHouseHttpSource.isEnableApproximateOptimizer()) {
+                return this;
+            }
+            generateDistributedGroupBy().generateUniq();
+            return this;
+        }
+
+        /**
          * 事件索引子查询，目的提高日志查询检索性能:
          * 方式1.基于索引表
          * 方式2.基于分区键
@@ -456,7 +499,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          *
          * @return
          */
-        public Optimizer generateSubquery() {
+        public Optimizer generateSubQuery() {
 
             if (StringUtil.isBlank(param.getDbQuerySource().getExpr())) {
                 return this;
@@ -465,22 +508,38 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 return this;
             }
 
-            String indexTable = getAvaliableIndexTable();
+            String indexTable = getAvailableIndexTable();
             if (StringUtil.isNotBlank(indexTable)) {
-                sql = getSubqueryByIndexTable(indexTable);
+                sql = getSubQueryByIndexTable(indexTable);
             } else {
-                sql = getSubqueryByPartitionKey(sql);
+                sql = getSubQueryByPartitionKey(sql);
             }
             return this;
         }
 
+        /**
+         * Desc: 针对单条查询Top做优化
+         * settings distributed_group_by_no_merge=1
+         * If you set it to 1, then intermediate results from remote servers will not be merged.
+         * @param
+         * @return {@link Optimizer}
+         * @created by wWei
+         * @date 2021/7/28 9:37 上午
+         */
+        public Optimizer generateDistributedGroupBy() {
+            TopSQLVisitor topSQLVisitor = new TopSQLVisitor();
+            if (topSQLVisitor.isValid(sql)) {
+                sql = topSQLVisitor.rewrite();
+            }
+            return this;
+        }
 
         /**
          * 设置索引表子查询参数: 索引表有效性、索引表表名
          *
          * @return
          */
-        private String getAvaliableIndexTable() {
+        private String getAvailableIndexTable() {
             String indexTable = "";
             String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
             String[] indexTables = StringUtil.split(str, ",");
@@ -495,15 +554,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     continue;
                 }
 
-                BaseResult indexTableData = metadataService.getSchemaInfo("fields", tempIndexTable);
-                Schema indexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData.getData()));
+                Map indexTableData = metadataService.getSchemaInfo("fields", tempIndexTable);
+                Schema indexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData));
                 //判断二: order by 元素是否都在索引表中
                 if (!isValidOfOrderElementsInSchema(indexTableSchema)) {
                     continue;
                 }
 
-                BaseResult masterTableData = metadataService.getSchemaInfo("fields", param.getTableName());
-                Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData.getData()));
+                Map masterTableData = metadataService.getSchemaInfo("fields", param.getTableName());
+                Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData));
                 //判断三: where 条件列是否都在索引表中
                 setValidityByWhereExpressionsInSchema(param.getDbQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
                 if (getSubIndexValidFlag() && isExist(indexTableSchema.getFullName())) {
@@ -520,11 +579,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param indexTable
          * @return
          */
-        private String getSubqueryByIndexTable(String indexTable) {
+        private String getSubQueryByIndexTable(String indexTable) {
 
             String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
 
-            StringBuffer subQuery = getSubquerySql(primaryKey, indexTable);
+            String subQuery = getSubquerySql(primaryKey, indexTable);
             StringBuffer sb = new StringBuffer();
             sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(primaryKey).append(" in ( ").append(subQuery).append(")");
             if (StringUtil.isNotBlank(param.getDbQuerySource().getExpr())) {
@@ -545,13 +604,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param sql
          * @return
          */
-        private String getSubqueryByPartitionKey(String sql) {
+        private String getSubQueryByPartitionKey(String sql) {
             String partitionKey = getPartitionKey(param.getTableName());
             if (StringUtil.isBlank(partitionKey)) {
                 log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getTableName());
                 return sql;
             } else {
-                StringBuffer subQuery = getSubquerySql(partitionKey, param.getTableName());
+                String subQuery = getSubquerySql(partitionKey, param.getTableName());
+                subQuery = subQuery.replaceAll("\\\\","$0$0");
+                subQuery = subQuery.replaceAll("\\$","\\\\\\$");
                 Matcher m = pWhere.matcher(sql);
                 StringBuffer sb = new StringBuffer();
                 while (m.find()) {
@@ -570,8 +631,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param tableName
          * @return
          */
-        private StringBuffer getSubquerySql(String columnName, String tableName) {
-            StringBuffer subQuery = new StringBuffer();
+        private String getSubquerySql(String columnName, String tableName) {
+            StringBuilder subQuery = new StringBuilder();
 
             subQuery.append("select " + columnName + " from ").append(tableName)
                     .append(" where ").append(param.getDbQuerySource().getExpr());
@@ -607,7 +668,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             } else {
                 subQuery.append(" limit 0, " + engineConfigSource.getDefaultResultNum());
             }
-            return subQuery;
+            return subQuery.toString();
         }
 
         /**
@@ -938,7 +999,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
 
     private BaseResult build() {
-
         Object dataObject = baseResult.getData();
         if (baseResult.isSuccess()) {
             if (StringUtil.isBlank(baseResult.getMessage())) {
@@ -949,20 +1009,30 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             Map<String, Object> statistics = Maps.newLinkedHashMap();
             statistics.put("elapsed", Math.round(Double.parseDouble(String.valueOf(statisticMap.get("elapsed"))) * 1000));
             statistics.put("rows_read", statisticMap.get("rows_read"));
+            statistics.put("bytes_read", statisticMap.get("bytes_read"));
             baseResult.setData(resultMap.get("data"));
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
-        } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND,
-                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager" : String.valueOf(dataObject));
-        } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager" : String.valueOf(dataObject));
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception, Please contact Galaxy Data Platform Project manager " : String.valueOf(dataObject));
+            baseResult = BaseResultGenerator.failure((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? HttpStatus.SC_INTERNAL_SERVER_ERROR : baseResult.getStatus(),
+                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), simplyErrorMessage(dataObject));
         }
         return baseResult;
+    }
+
+    @Override
+    public String simplyErrorMessage(Object dataObject) {
+        String message = StringUtil.isNotEmpty(dataObject) ? String.valueOf(dataObject)
+                : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
+        int i = message.indexOf(DB_EXCEPTION_START);
+        i = i > 0 ? i + DB_EXCEPTION_START.length() : 0;
+        message = message.startsWith("Code: 47") ?
+                message.substring(i, !message.contains(" while ") ? message.length() : message.indexOf(" while "))
+                : message;
+        message = message.startsWith("Code: ") ?
+                message.substring(i, !message.contains("(version ") ? message.length() : message.indexOf("(version "))
+                : message;
+        return StrUtil.removeAllLineBreaks("SQL Execution Error: ".concat(message)).trim();
     }
 
     private boolean containAggregateFunction(String sql) {
@@ -1108,14 +1178,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      */
     private Map<String, String> executeHttpGet(String sql) {
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
-
         ClickHouseHttpQuery clickHouseHttpQuery = buildHttpQueryParameter(sql);
-
-        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
-                Encodes.urlDecode(clickHouseHttpQuery.getQueryParameter()));
-
+        log.info("DB engine is :{},execute http query is :{}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
+                Encodes.urlDecode(clickHouseHttpQuery.getQueryParameter()).replaceAll("password=(.*)&", "password=XXX&"));
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
-
         return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());
     }
 
@@ -1123,7 +1189,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
         StringBuilder queryParameterBuilder = new StringBuilder(1024);
         String dbName = metadataService.getDBNameByTableName(param.getTableName());
-
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
@@ -1132,7 +1197,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName).append("&")
-                    .append("query_id=").append(systemService.getQueryIdOfInternal(param.getResultId(), param.getQuery())).append("&");
+                    .append("query_id=").append(SQLHelper.getQueryId(param.getResultId(), param.getQuery())).append("&");
         } else {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
             queryParameterBuilder.append(getRealTimeAccount()).append("&")
@@ -1145,13 +1210,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     private String getRealTimeAccount() {
-        return new StringBuilder("user=").append(clickHouseHttpSource.getRealTimeAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccount().getPin()).toString();
+        return new StringBuilder("user=").append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).toString();
     }
 
     private String getLongTermAccount() {
-        return new StringBuilder("user=").append(clickHouseHttpSource.getLongTermAccount().getUsername()).append("&")
-                .append("password=").append(clickHouseHttpSource.getLongTermAccount().getPin()).toString();
+        return new StringBuilder("user=").append(clickHouseHttpSource.getLongTermAccountUserName()).append("&")
+                .append("password=").append(clickHouseHttpSource.getLongTermAccountPin()).toString();
     }
 
 }

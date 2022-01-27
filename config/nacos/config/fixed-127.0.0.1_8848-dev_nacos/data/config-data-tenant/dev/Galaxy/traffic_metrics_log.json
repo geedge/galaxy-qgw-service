@@ -1,0 +1,218 @@
+{
+  "type": "record",
+  "name": "traffic_metrics_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "allow_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "allow_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "allow_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "allow_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "allow_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "close_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "default_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "default_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "default_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "default_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "default_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "deny_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "deny_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "deny_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "deny_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "deny_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "device_id",
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "type": "long"
+    },
+    {
+      "name": "intercept_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "intercept_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "intercept_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "intercept_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "intercept_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "established_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "monitor_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "monitor_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "monitor_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "monitor_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "monitor_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "new_conn_num",
+      "type": "long"
+    },
+    {
+      "name": "total_in_bytes",
+      "type": "long"
+    },
+    {
+      "name": "total_in_packets",
+      "type": "long"
+    },
+    {
+      "name": "total_out_bytes",
+      "type": "long"
+    },
+    {
+      "name": "total_out_packets",
+      "type": "long"
+    },
+    {
+      "name": "alert_bytes",
+      "type": "long"
+    },
+    {
+      "name": "hijk_bytes",
+      "type": "long"
+    },
+    {
+      "name": "ins_bytes",
+      "type": "long"
+    },
+    {
+      "name": "intcp_allow_num",
+      "type": "long"
+    },
+    {
+      "name": "intcp_deny_num",
+      "type": "long"
+    },
+    {
+      "name": "intcp_hijk_num",
+      "type": "long"
+    },
+    {
+      "name": "intcp_ins_num",
+      "type": "long"
+    },
+    {
+      "name": "intcp_mon_num",
+      "type": "long"
+    },
+    {
+      "name": "intcp_rdirt_num",
+      "type": "long"
+    },
+    {
+      "name": "intcp_repl_num",
+      "type": "long"
+    },
+    {
+      "name": "maybe_pinning_num",
+      "type": "long"
+    },
+    {
+      "name": "not_pinning_num",
+      "type": "long"
+    },
+    {
+      "name": "pinning_num",
+      "type": "long"
+    },
+    {
+      "name": "ad_cc_bytes",
+      "type": "long"
+    },
+    {
+      "name": "ad_flood_bytes",
+      "type": "long"
+    },
+    {
+      "name": "ad_reflection_bytes",
+      "type": "long"
+    },
+    {
+      "name": "intcp_edit_elem_num",
+      "type": "long"
+    }
+  ]
+}

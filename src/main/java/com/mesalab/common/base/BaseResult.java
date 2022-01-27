@@ -34,12 +34,25 @@ public class BaseResult<T> implements Serializable {
 
     private Map<String, Object> statistics;
 
+    private Map<String, Object> job;
+
     private String formatType;
 
     private T meta;
 
     private T data;
 
+    public BaseResult(Integer status, String code, String queryKey, boolean success, String message, Map<String, Object> statistics, String formatType, T meta, T data) {
+        this.status = status;
+        this.code = code;
+        this.queryKey = queryKey;
+        this.success = success;
+        this.message = message;
+        this.statistics = statistics;
+        this.formatType = formatType;
+        this.meta = meta;
+        this.data = data;
+    }
 
     /**
      * 判断是否是成功结果

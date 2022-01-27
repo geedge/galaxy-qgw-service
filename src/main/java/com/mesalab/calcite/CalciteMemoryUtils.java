@@ -8,7 +8,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
 import com.mesalab.common.exception.BusinessException;
-import org.apache.calcite.jdbc.CalciteConnection;
+import com.zdjizhi.calcite.jdbc.CalciteConnection;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class CalciteMemoryUtils {
 
     static {
         try {
-            Class.forName("org.apache.calcite.jdbc.Driver");
+            Class.forName("com.zdjizhi.calcite.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             log.error("Calcite load driver error : {}", e);
         }

@@ -1,4 +1,6 @@
 package com.mesalab.qgw.monitor;
+
+import cn.hutool.core.util.StrUtil;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +25,16 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
     public RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
+    private final static String APP = "xxl-job-admin";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
-
+        if (StrUtil.contains(jobAdminHttpSource.getUrl(), "127.0.0.1")) {
+            builder.up()
+                    .withDetail("app", APP)
+                    .withDetail("message", "DISABLED");
+            return;
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -42,22 +50,22 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
                 int code = Integer.parseInt(String.valueOf(body.get("code")));
                 if (code == HttpStatus.SC_OK) {
                     builder.up()
-                            .withDetail("app", "xxl-job-admin")
+                            .withDetail("app", APP)
                             .withDetail("url", jobAdminHttpSource.getUrl())
                             .withDetail("message", "ok");
                 } else {
                     builder.down()
-                            .withDetail("app", "xxl-job-admin")
+                            .withDetail("app", APP)
                             .withDetail("message", body.get("msg") + ", status code " + code);
                 }
             } else {
                 builder.down()
-                        .withDetail("app", "xxl-job-admin")
+                        .withDetail("app", APP)
                         .withDetail("message", "error, status code " + responseEntity.getStatusCodeValue());
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", "xxl-job-admin")
+                    .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
 
         }

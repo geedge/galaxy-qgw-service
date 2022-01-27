@@ -1,0 +1,803 @@
+{
+  "type": "record",
+  "name": "sys_packet_capture_event",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "common_log_id",
+    "partition_key": "common_recv_time"
+  },
+  "fields": [
+    {
+      "name": "common_recv_time",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "format": {
+          "functions": "current_timestamp"
+        }
+      },
+      "label": "Receive Time"
+    },
+    {
+      "name": "common_log_id",
+      "type": "long",
+      "doc": {
+        "format": {
+          "functions": "snowflake_id"
+        }
+      },
+      "label": "Log ID"
+    },
+    {
+      "name": "common_policy_id",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Policy ID"
+    },
+    {
+      "name": "common_subscriber_id",
+      "type": "string",
+      "label": "Subscriber ID"
+    },
+    {
+      "name": "common_imei",
+      "type": "string",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "label": "IMEI"
+    },
+    {
+      "name": "common_imsi",
+      "type": "string",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "label": "IMSI"
+    },
+    {
+      "name": "common_phone_number",
+      "type": "string",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "label": "Phone Number"
+    },
+    {
+      "name": "common_client_ip",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        }
+      },
+      "label": "Client IP"
+    },
+    {
+      "name": "common_internal_ip",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        }
+      },
+      "label": "Internal IP"
+    },
+    {
+      "name": "common_client_port",
+      "type": "int",
+      "label": "Client Port"
+    },
+    {
+      "name": "common_l4_protocol",
+      "type": "string",
+      "label": "L4 Protocol"
+    },
+    {
+      "name": "common_address_type",
+      "type": "int",
+      "doc": {
+        "data": [
+          {
+            "code": "4",
+            "value": "ipv4"
+          },
+          {
+            "code": "6",
+            "value": "ipv6"
+          }
+        ]
+      },
+      "label": "Address Type"
+    },
+    {
+      "name": "common_server_ip",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        }
+      },
+      "label": "Server IP"
+    },
+    {
+      "name": "common_server_port",
+      "type": "int",
+      "label": "Server Port"
+    },
+    {
+      "name": "common_external_ip",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        }
+      },
+      "label": "External IP"
+    },
+    {
+      "name": "common_action",
+      "type": "int",
+      "doc": {
+        "data": [
+          {
+            "code": "0",
+            "value": "None"
+          },
+          {
+            "code": "1",
+            "value": "Monitor"
+          },
+          {
+            "code": "2",
+            "value": "Intercept"
+          },
+          {
+            "code": "16",
+            "value": "Deny"
+          },
+          {
+            "code": "128",
+            "value": "Allow"
+          }
+        ]
+      },
+      "label": "Action"
+    },
+    {
+      "name": "common_direction",
+      "type": "int",
+      "doc": {
+        "data": [
+          {
+            "code": "69",
+            "value": "outbound"
+          },
+          {
+            "code": "73",
+            "value": "inbound"
+          }
+        ]
+      },
+      "label": "Direction"
+    },
+    {
+      "name": "common_entrance_id",
+      "type": "int",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "label": "Entrance ID"
+    },
+    {
+      "name": "common_sled_ip",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        }
+      },
+      "label": "Sled IP"
+    },
+    {
+      "name": "common_client_location",
+      "type": "string",
+      "label": "Client Location"
+    },
+    {
+      "name": "common_client_asn",
+      "type": "string",
+      "label": "Client ASN"
+    },
+    {
+      "name": "common_server_location",
+      "type": "string",
+      "label": "Server Location"
+    },
+    {
+      "name": "common_server_asn",
+      "type": "string",
+      "label": "Server ASN"
+    },
+    {
+      "name": "common_sessions",
+      "type": "long",
+      "label": "Sessions"
+    },
+    {
+      "name": "common_c2s_pkt_num",
+      "type": "long",
+      "label": "Packets Sent"
+    },
+    {
+      "name": "common_s2c_pkt_num",
+      "type": "long",
+      "label": "Packets Received"
+    },
+    {
+      "name": "common_c2s_byte_num",
+      "type": "long",
+      "label": "Bytes Sent"
+    },
+    {
+      "name": "common_s2c_byte_num",
+      "type": "long",
+      "label": "Bytes Received"
+    },
+    {
+      "name": "common_c2s_pkt_diff",
+      "label": "Packets Sent(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_pkt_diff",
+      "label": "Packets Received(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_c2s_byte_diff",
+      "label": "Bytes Sent(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_s2c_byte_diff",
+      "label": "Bytes Received(Diff)",
+      "type": "long"
+    },
+    {
+      "name": "common_service",
+      "type": "int",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "label": "Service"
+    },
+    {
+      "name": "common_schema_type",
+      "type": "string",
+      "doc": {
+        "data": [
+          {
+            "code": "BASE",
+            "value": "BASE"
+          },
+          {
+            "code": "HTTP",
+            "value": "HTTP"
+          },
+          {
+            "code": "MAIL",
+            "value": "MAIL"
+          },
+          {
+            "code": "DNS",
+            "value": "DNS"
+          },
+          {
+            "code": "SSL",
+            "value": "SSL"
+          },
+          {
+            "code": "FTP",
+            "value": "FTP"
+          }
+        ],
+        "visibility": "hidden"
+      },
+      "label": "Schema Type"
+    },
+    {
+      "name": "common_user_tags",
+      "type": "string",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "label": "User Tags"
+    },
+    {
+      "name": "common_sub_action",
+      "type": "string",
+      "doc": {
+        "data": [
+          {
+            "code": "allow",
+            "value": "Allow"
+          },
+          {
+            "code": "deny",
+            "value": "Deny"
+          },
+          {
+            "code": "monitor",
+            "value": "Monitor"
+          },
+          {
+            "code": "replace",
+            "value": "Replace"
+          },
+          {
+            "code": "redirect",
+            "value": "Redirect"
+          },
+          {
+            "code": "insert",
+            "value": "Insert"
+          },
+          {
+            "code": "hijack",
+            "value": "Hijack"
+          }
+        ],
+        "visibility": "hidden"
+      },
+      "label": "Sub Action"
+    },
+    {
+      "name": "common_user_region",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "User Region"
+    },
+    {
+      "name": "common_device_id",
+      "type": "string",
+      "label": "Device ID"
+    },
+    {
+      "name": "common_egress_link_id",
+      "label": "Egress Link ID",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_ingress_link_id",
+      "label": "Ingress Link ID",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_isp",
+      "type": "string",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "label": "ISP"
+    },
+    {
+      "name": "common_device_tag",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden",
+        "format": {
+          "functions": "flattenSpec,flattenSpec",
+          "appendTo": "common_data_center,common_device_group",
+          "param": "$.tags[?(@.tag=='data_center')].value,$.tags[?(@.tag=='device_group')].value"
+        }
+      },
+      "label": "Device Tag"
+    },
+    {
+      "name": "common_data_center",
+      "label": "Data Center",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_device_group",
+      "label": "Device Group",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_app_behavior",
+      "label": "Application Behavior",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_encapsulation",
+      "type": "int",
+      "doc": {
+        "data": [
+          {
+            "code": "0",
+            "value": "Ethernet"
+          },
+          {
+            "code": "8",
+            "value": "PPP"
+          },
+          {
+            "code": "12",
+            "value": "CiscoHDLC"
+          }
+        ]
+      },
+      "label": "Encapsulation"
+    },
+    {
+      "name": "common_app_label",
+      "type": "string",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "label": "Application Label"
+    },
+    {
+      "name": "common_tunnels",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Tunnels"
+    },
+    {
+      "name": "common_protocol_label",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Protocol Label"
+    },
+    {
+      "name": "common_app_id",
+      "type": "string",
+      "label": "Application ID",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_userdefine_app_name",
+      "label": "User Define APP Name",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_app_surrogate_id",
+      "type": "string",
+      "label": "Surrogate ID",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_l7_protocol",
+      "type": "string",
+      "label": "L7 Protocol"
+    },
+    {
+      "name": "common_service_category",
+      "label": "FQDN Category",
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
+    },
+    {
+      "name": "common_start_time",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "hidden"
+      },
+      "label": "Start Time"
+    },
+    {
+      "name": "common_end_time",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "hidden"
+      },
+      "label": "End Time"
+    },
+    {
+      "name": "common_establish_latency_ms",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Establish Latency(ms)"
+    },
+    {
+      "name": "common_con_duration_ms",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Duration(ms)"
+    },
+    {
+      "name": "common_stream_dir",
+      "type": "int",
+      "doc": {
+        "data": [
+          {
+            "code": "1",
+            "value": "c2s"
+          },
+          {
+            "code": "2",
+            "value": "s2c"
+          },
+          {
+            "code": "3",
+            "value": "double"
+          }
+        ]
+      },
+      "label": "Stream Direction"
+    },
+    {
+      "name": "common_address_list",
+      "type": "string",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "label": "Address List"
+    },
+    {
+      "name": "common_has_dup_traffic",
+      "type": "int",
+      "doc": {
+        "data": [
+          {
+            "code": "0",
+            "value": "No"
+          },
+          {
+            "code": "1",
+            "value": "Yes"
+          }
+        ],
+        "visibility": "hidden"
+      },
+      "label": "Duplication Traffic"
+    },
+    {
+      "name": "common_stream_error",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Stream Error"
+    },
+    {
+      "name": "common_stream_trace_id",
+      "type": "long",
+      "label": "Session ID"
+    },
+    {
+      "name": "common_link_info_c2s",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Link Info(c2s)"
+    },
+    {
+      "name": "common_link_info_s2c",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Link Info(s2c)"
+    },
+    {
+      "name": "common_packet_capture_file",
+      "label": "Packet Capture File",
+      "doc": {
+        "visibility": "hidden",
+        "constraints": {
+          "type": "file"
+        }
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_c2s_ipfrag_num",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Fragmentation Packets(c2s)"
+    },
+    {
+      "name": "common_s2c_ipfrag_num",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Fragmentation Packets(s2c)"
+    },
+    {
+      "name": "common_c2s_tcp_lostlen",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Sequence Gap Loss(c2s)"
+    },
+    {
+      "name": "common_s2c_tcp_lostlen",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Sequence Gap Loss(s2c)"
+    },
+    {
+      "name": "common_c2s_tcp_unorder_num",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Unorder Packets(c2s)"
+    },
+    {
+      "name": "common_s2c_tcp_unorder_num",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Unorder Packets(s2c)"
+    },
+    {
+      "name": "common_c2s_pkt_retrans",
+      "type": "long",
+      "label": "Packet Retransmission(c2s)"
+    },
+    {
+      "name": "common_s2c_pkt_retrans",
+      "type": "long",
+      "label": "Packet Retransmission(s2c)"
+    },
+    {
+      "name": "common_c2s_byte_retrans",
+      "type": "long",
+      "label": "Byte Retransmission(c2s)"
+    },
+    {
+      "name": "common_s2c_byte_retrans",
+      "type": "long",
+      "label": "Byte Retransmission(s2c)"
+    },
+    {
+      "name": "common_tcp_client_isn",
+      "label": "TCP Client ISN",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_tcp_server_isn",
+      "label": "TCP Server ISN",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_first_ttl",
+      "type": "int",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "First TTL"
+    },
+    {
+      "name": "common_processing_time",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        }
+      },
+      "label": "Processing Time"
+    },
+    {
+      "name": "common_mirrored_pkts",
+      "label": "Mirrored Packets",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_mirrored_bytes",
+      "label": "Mirrored Bytes",
+      "type": "long",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "nic_name",
+      "type": "string",
+      "label": "Nic Name"
+    },
+    {
+      "name": "origin_source_mac",
+      "type": "string",
+      "label": "Origin Source Mac"
+    },
+    {
+      "name": "origin_dest_mac",
+      "type": "string",
+      "label": "Origin Dest Mac"
+    },
+    {
+      "name": "packet_url",
+      "type": "string",
+      "label": "Packet URL"
+    },
+    {
+      "name": "pcap_storage_task_id",
+      "type": "int",
+      "label": "Task ID"
+    },
+    {
+      "name": "pcap_storage_duration",
+      "type": "int",
+      "label": "Duration"
+    }
+  ]
+}

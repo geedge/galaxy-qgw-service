@@ -11,12 +11,14 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.http.HttpStatus;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import static com.mesalab.cn.common.enums.EngineTypeEnum.ANALYSIS_ENGINE;
 
 /**
  * @Date: 2020-07-20 18:10
@@ -30,7 +32,7 @@ public class DslValidate {
 
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
-    @Resource(name = "nacosMetadataService")
+    @Autowired
     private MetadataService metadataService;
 
     public void executeValidate(DSLObject dslObject) throws BusinessException {
@@ -47,9 +49,16 @@ public class DslValidate {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "DSLObject.query.dataEngine is invalid");
         }
-        if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.dataSource is invalid");
+        if(ANALYSIS_ENGINE.getEngine().equals(query.getDataEngine())){
+            if (StringUtil.isBlank(query.getDataSource())) {
+                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        "DSLObject.query.dataSource is invalid");
+            }
+        } else {
+            if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))) {
+                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        "DSLObject.query.dataSource is invalid");
+            }
         }
         DSLObject.Query.Parameters parameters = query.getParameters();
         if (StringUtil.isEmpty(parameters)) {

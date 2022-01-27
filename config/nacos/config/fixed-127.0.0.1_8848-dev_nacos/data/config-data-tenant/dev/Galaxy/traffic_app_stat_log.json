@@ -1,0 +1,42 @@
+{
+  "type": "record",
+  "name": "traffic_app_stat_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "app_name",
+      "type": "string"
+    },
+    {
+      "name": "sub_app_name",
+      "type": "string"
+    },
+    {
+      "name": "session_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
+    }
+  ]
+}

@@ -18,9 +18,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
 
+    static {
+        System.setProperty("jasypt.encryptor.password", "galaxy");
+    }
+
     @Before
     public void testBefore() {
         log.info("=================================================GALAXY QUERY GATEWAY BEGIN=================================================");
+
     }
 
     @Test

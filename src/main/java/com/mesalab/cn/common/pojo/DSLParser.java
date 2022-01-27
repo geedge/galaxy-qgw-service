@@ -1,6 +1,9 @@
 package com.mesalab.cn.common.pojo;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.mesalab.cn.common.constant.SqlKeywords;
+import com.mesalab.cn.common.enums.EngineTypeEnum;
 import com.mesalab.cn.common.enums.MatchTypeEnum;
 import com.mesalab.cn.service.CNService;
 import com.zdjizhi.utils.StringUtil;
@@ -9,6 +12,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.mesalab.cn.common.enums.EngineTypeEnum.ANALYSIS_ENGINE;
 
 /**
  * @Date: 2020-07-22 17:35
@@ -119,7 +125,7 @@ public abstract class DSLParser {
      * @Date: 2020/7/23 11:47
      * @return: java.lang.String
      **/
-    public String parseLike(String value, String type) {
+    public static String parseLike(String value, String type) {
         switch (MatchTypeEnum.getByType(type)) {
             case REGEX:
                 return parseRegex(value);//正则匹配
@@ -142,7 +148,7 @@ public abstract class DSLParser {
      * @Date: 2020/7/23 11:49
      * @return: java.lang.String
      **/
-    public String parseRegex(String value) {
+    public static String parseRegex(String value) {
         if (value.startsWith("$")) {
             //以$开头，不以*结尾，无论关键字其他位置是否包含表示匹配方式的字符*和$，即表示完整匹配
             value = value.replaceAll("\\$", "");
@@ -164,5 +170,27 @@ public abstract class DSLParser {
             return "'%" + value + "%'";
         }
     }
+    /**
+     * @Param [sorts, alias]
+     * @return java.lang.String
+     **/
+    public static String parseAQLSort(DSLObject dslObject, String alias) {
 
+       if(ANALYSIS_ENGINE.getEngine().equals(dslObject.getQuery().getDataEngine())) {
+           if (Objects.isNull(dslObject.getQuery().getParameters().getSort())) {
+               return "";
+           }
+           return dslObject.getQuery().getParameters().getSort().stream().map(x ->
+                Joiner.on(" ").join(alias.concat(".").concat(x.getFieldKey()), Objects.isNull(x.getType()) ? "" : x.getType())
+           ).filter(x -> StringUtil.isNotBlank(x)).collect(Collectors.joining(",", " sort ", " "));
+       }
+       return "";
+    }
+
+    public static String parseAQLLimit(DSLObject dslObject, Integer def) {
+        if (Objects.isNull(dslObject.getQuery().getParameters().getLimit())) {
+            return Joiner.on(" ").join(SqlKeywords.A_LIMIT, def);
+        }
+        return Joiner.on(" ").join(SqlKeywords.A_LIMIT, dslObject.getQuery().getParameters().getLimit());
+    }
 }

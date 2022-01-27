@@ -1,0 +1,78 @@
+{
+  "type": "record",
+  "name": "traffic_protocol_stat_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "protocol_id",
+      "type": "string"
+    },
+    {
+      "name": "isp",
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "type": "long"
+    },
+    {
+      "name": "data_center",
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "type": "string"
+    },
+    {
+      "name": "sessions",
+      "type": "long"
+    },
+    {
+      "name": "c2s_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_pkt_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_ipfrag_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_ipfrag_num",
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_lostlen",
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_lostlen",
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_unorder_num",
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_unorder_num",
+      "type": "long"
+    }
+  ]
+}

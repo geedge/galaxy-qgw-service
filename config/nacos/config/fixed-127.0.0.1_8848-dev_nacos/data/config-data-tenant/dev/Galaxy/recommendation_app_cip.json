@@ -1,0 +1,7 @@
+{
+  "type": "record",
+  "name": "recommendation_app_cip",
+  "namespace": "tsg_galaxy",
+  "fields": [
+  ]
+}

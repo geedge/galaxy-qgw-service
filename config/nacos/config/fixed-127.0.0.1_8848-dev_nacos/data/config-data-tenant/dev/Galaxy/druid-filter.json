@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "name": "druid-Raw",
+  "namespace": "druid",
+  "filters": [
+    {
+      "name":"@start",
+      "value": "'2021-10-19 10:00:00'"
+    },
+    {
+      "name":"@end",
+      "value": "'2021-10-20 11:00:00'"
+    },
+    {
+      "name":"@common_filter",
+      "value": [
+          "common_client_ip='192.168.44.21'and common_server_port=443"
+      ]
+    }
+  ]
+}

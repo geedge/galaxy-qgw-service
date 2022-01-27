@@ -6,17 +6,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
-import com.mesalab.qgw.service.MetadataService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class SchemaCacheUtils {
 
     private static final Log log = LogFactory.get();
-    private static final  MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
 
     private static LoadingCache<String, Object> loadingCache = CacheBuilder.newBuilder()
             .maximumSize(1000)
@@ -25,8 +20,7 @@ public class SchemaCacheUtils {
             .build(new CacheLoader<String, Object>() {
                 @Override
                 public Object load(String key) throws Exception{
-                    Object value = metadataService.getAllSchema();
-                     return value;
+                    return null;
                 }
 
             });

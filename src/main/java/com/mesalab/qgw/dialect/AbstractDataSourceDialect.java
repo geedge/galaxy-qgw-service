@@ -1,19 +1,11 @@
 package com.mesalab.qgw.dialect;
 
-
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.zdjizhi.utils.Encodes;
-import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
-import org.apache.calcite.rel.core.TableScan;
-
 import java.util.Optional;
 
 @Data
 public abstract class AbstractDataSourceDialect implements Dialect {
-
     abstract  void init();
 
     /**
@@ -40,6 +32,13 @@ public abstract class AbstractDataSourceDialect implements Dialect {
      * @return
      */
     abstract  String getSyntaxCheckQuery();
+
+    /**
+     * 简化规范异常信息展示。
+     * @return
+     */
+    abstract String simplyErrorMessage(Object object);
+
     /**
      * 解析并生成最终结果
      * @param sql
@@ -50,7 +49,6 @@ public abstract class AbstractDataSourceDialect implements Dialect {
 
     @Override
     final public BaseResult executeQuery() {
-
         init();
         String sql = convertQuery(getBestQuery());
         return generateBaseResult(sql, Optional.of("OK"));

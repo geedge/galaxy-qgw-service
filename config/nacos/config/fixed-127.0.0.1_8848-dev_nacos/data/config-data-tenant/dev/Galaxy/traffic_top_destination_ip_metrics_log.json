@@ -1,0 +1,46 @@
+{
+  "type": "record",
+  "name": "traffic_top_destination_ip_metrics_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "type": "long"
+    },
+    {
+      "name": "common_sled_ip",
+      "type": "string"
+    },
+    {
+      "name": "common_data_center",
+      "type": "string"
+    },
+    {
+      "name": "destination_ip",
+      "type": "string"
+    },
+    {
+      "name": "attack_type",
+      "type": "string"
+    },
+    {
+      "name": "session_rate",
+      "type": "long"
+    },
+    {
+      "name": "packet_rate",
+      "type": "long"
+    },
+    {
+      "name": "bit_rate",
+      "type": "long"
+    },
+    {
+      "name": "partition_num",
+      "type": "long"
+    }
+  ]
+}

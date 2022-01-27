@@ -1,21 +1,11 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.druid.sql.SQLUtils;
-import com.alibaba.druid.sql.ast.SQLExpr;
-import com.alibaba.druid.sql.ast.SQLLimit;
-import com.alibaba.druid.sql.ast.SQLStatement;
-import com.alibaba.druid.sql.ast.expr.SQLBinaryOpExpr;
-import com.alibaba.druid.sql.ast.expr.SQLBinaryOperator;
-import com.alibaba.druid.sql.ast.expr.SQLInSubQueryExpr;
 import com.alibaba.druid.sql.ast.statement.*;
-import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
-import com.alibaba.druid.stat.TableStat;
-import com.alibaba.druid.util.JdbcConstants;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -23,9 +13,9 @@ import com.mesalab.common.base.SchemaBase;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ReportCacheUtils;
-import com.mesalab.common.utils.SQLFunctionUtil;
-import com.mesalab.common.utils.SQLHelper;
-import com.mesalab.common.utils.SQLSyntaxParserUtil;
+import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.common.utils.sqlparser.SQLSyntaxParserUtil;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.dialect.FederationDialect;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -52,9 +42,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service("apiService")
 public class ApiServiceImpl implements ApiService {
@@ -63,7 +54,7 @@ public class ApiServiceImpl implements ApiService {
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
-    @Resource(name = "nacosMetadataService")
+    @Autowired
     private MetadataService metadataServiceTemp;
 
     private static MetadataService metadataService;
@@ -74,24 +65,25 @@ public class ApiServiceImpl implements ApiService {
     }
 
     public static final int MAX_PARSER_LEVEL = 5;
-
-    public static final String UNVALID_LIMIT_DESC = "NO LIMIT";
+    public static final double MAX_SAMPLE_RATIO = 1.0;
+    public static final double MIN_SAMPLE_RATIO = 0.0;
+    public static final String PARSER_EXCEPTION_CLASS_NAME = "net.sf.jsqlparser.parser.ParseException:";
+    public static final String PARSER_EXCEPTION_IDENTIFICATION = "Was expecting one of:";
+    public static final Pattern PATTERN_ANGLE_BRACKET = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE);
 
 
     @Override
     public BaseResult executeQuery(ApiParam param) {
-        if (StringUtil.isBlank(param.getQuery())) {
-            return BaseResultGenerator.success4Message("ok");
-        }
+        validateAndSetDefaultValue(param);
         Statement statement;
         try {
             statement = CCJSqlParserUtil.parse(param.getQuery());
         } catch (JSQLParserException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e.getCause());
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                    "SQL Syntax Error: " + simplyErrorMessage(String.valueOf(e.getCause())), null);
         }
-
-
         BaseResult baseResult;
+        log.debug("Request option ：{}, SQL ：{}", param.getOption(), param.getQuery());
         if (statement instanceof Select) {
             baseResult = executeSelectStatement(param);
         } else if (statement instanceof DescribeStatement) {
@@ -107,92 +99,11 @@ public class ApiServiceImpl implements ApiService {
         return baseResult;
     }
 
-
-    private BaseResult executeSelectStatement(ApiParam param) {
-
-        BaseResult baseResult = null;
-
-        if (QueryOptionEnum.SYNTAX_PARSE.getValue().equalsIgnoreCase(param.getOption())) {
-            return BaseResultGenerator.success(SQLSyntaxParserUtil.syntaxParse(param.getQuery()));
-        }
-
-        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-            baseResult = ReportCacheUtils.get(param.getResultId(), param.getQuery());
-            if (baseResult.isSuccess()) {
-                return baseResult;
-            } else {
-                log.warn("Long-Term Results not exist, execute real-time query: resultID-{}, sql-{}",
-                        param.getResultId(), StringUtil.strip(param.getQuery()));
-
-            }
-
-        }
-
-        Dialect dbDialect = parserSQL(param);
-
-        if (param.getOption().equalsIgnoreCase(QueryOptionEnum.SYNTAX_VALIDATION.getValue())) {
-            baseResult = dbDialect.executeSyntaxCheck();
-        } else {
-            baseResult = dbDialect.executeQuery();
-        }
-        baseResult = new FederationDialect(param, baseResult).executeQuery();
-        if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
-        }
-
-        return baseResult;
-    }
-
-    private Dialect parserSQL(ApiParam param) {
-        param.setTableName(validateAndGetTableName(param));
-        return parserAndGetDialect(param);
-    }
-
-
-    private Dialect parserAndGetDialect(ApiParam param) {
-        Dialect dialect = null;
-        String dbType = metadataService.getDBTypeByTableName(param.getTableName());
-        if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(dbType)) {
-            param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
-        } else if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(dbType)) {
-            param.setDbType(DBTypeEnum.DRUID.getValue());
-        } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
-        }
-        param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
-        convertQueryRecursive(param, parserSQLByAst(param.getQuery()));
-        dialect = getDialect(param);
-        return dialect;
-    }
-
-    private Dialect getDialect(ApiParam param) {
-        Dialect dialect;
-        try {
-            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
-                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType()) + "Dialect");
-            Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
-            dialect = (Dialect) constructor.newInstance(param);
-        } catch (ReflectiveOperationException | RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
-        }
-        return dialect;
-    }
-
-
-    /**
-     * 对请求参数进行验证
-     *
-     * @param param query:查询语句，统一小写
-     *              format：输出格式，默认为JSON
-     *              option：查询选项，默认为real-time
-     */
-    private String validateAndGetTableName(ApiParam param) {
-
+    private void validateAndSetDefaultValue(ApiParam param) {
         if (StringUtil.isBlank(param.getQuery())) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param Syntax Error: The SQL must be exists.", null);
         }
-
         if (StringUtil.isBlank(param.getOption())) {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
         }
@@ -206,17 +117,123 @@ public class ApiServiceImpl implements ApiService {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param Syntax Error: The option=long-term, must be reportId or resultId.", null);
         }
-
         if (StringUtil.isBlank(param.getFormat())) {
             param.setFormat(QueryFormatEnum.JSON.getValue());
+        }
+        if (StringUtil.isEmpty(param.getSampleRatio())) {
+            param.setSampleRatio(MAX_SAMPLE_RATIO);
+        } else {
+            if (param.getSampleRatio() < MIN_SAMPLE_RATIO || param.getSampleRatio() > MAX_SAMPLE_RATIO) {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        "Param Syntax Error: The sampleRatio, must range in [0-1].", null);
+            }
+
         }
         if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param Syntax Error: The format must be json or csv.", null);
         }
-
-        return SQLHelper.getTableName(param.getQuery());
     }
+
+    /**
+     * Desc: 简化JSQLParser语法异常信息
+     *
+     * @param message
+     * @return {@link String}
+     * @created by wWei
+     * @date 2021/4/26 9:49 上午
+     */
+    private String simplyErrorMessage(String message) {
+        if (StringUtil.isBlank(message)) {
+            return StringUtil.EMPTY;
+        }
+        message = message.replace(PARSER_EXCEPTION_CLASS_NAME, StringUtil.EMPTY);
+        int end = message.indexOf(PARSER_EXCEPTION_IDENTIFICATION);
+        message = message.substring(0, end < 0 ? message.length() : end);
+        message = StrUtil.removeAllLineBreaks(message);
+        Matcher matcher = PATTERN_ANGLE_BRACKET.matcher(message);
+        if (matcher.find()) {
+            message = matcher.replaceAll(StringUtil.EMPTY);
+        }
+        String[] split = message.split(" ");
+        StringBuilder stringBuilder = new StringBuilder(message.length());
+        for (String c : split) {
+            if (StringUtil.isBlank(c)) {
+                continue;
+            }
+            stringBuilder.append(" ").append(c);
+        }
+        return stringBuilder.toString().trim();
+    }
+
+    /**
+     * 为Select操作选择不同的执行动作，包含SQL解析(Syntax-parse)、SQL验证（Syntax-validation）、实时查询(Real-time)、长查询(Long-term)
+     * @param param 请求参数
+     * @return BaseResult 执行结果
+     */
+    private BaseResult executeSelectStatement(ApiParam param) {
+
+        if (QueryOptionEnum.SYNTAX_PARSE.getValue().equalsIgnoreCase(param.getOption())) {
+            return executeSyntaxParse(param);
+        } else if (QueryOptionEnum.SYNTAX_VALIDATION.getValue().equalsIgnoreCase(param.getOption())) {
+            return executeSyntaxValidation(param);
+        } else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+            return executeLongTermQuery(param);
+        } else {
+            return executeRealTimeQuery(param);
+        }
+
+    }
+
+    private BaseResult executeSyntaxParse(ApiParam param) {
+       return BaseResultGenerator.success(SQLSyntaxParserUtil.syntaxParse(param.getQuery()));
+    }
+
+    private BaseResult executeSyntaxValidation(ApiParam param) {
+        return new FederationDialect(param, getDBDialect(param).executeSyntaxCheck()).executeQuery();
+    }
+
+    private BaseResult executeLongTermQuery(ApiParam param) {
+        BaseResult baseResult = ReportCacheUtils.get(param.getResultId(), param.getQuery());
+        if (baseResult.isSuccess()) {
+            return baseResult;
+        } else {
+            log.info("Long-term Results not exist, execute real-time query: resultID-{}, sql-{}",
+                    param.getResultId(), StringUtil.strip(param.getQuery()));
+            return new FederationDialect(param, getDBDialect(param).executeQuery()).executeQuery();
+        }
+    }
+
+
+    private BaseResult executeRealTimeQuery(ApiParam param) {
+        return new FederationDialect(param, getDBDialect(param).executeQuery()).executeQuery();
+    }
+
+
+    private Dialect getDBDialect(ApiParam param) {
+        param.setTableName(SQLHelper.getTableName(param.getQuery()));
+        param.setDbType(metadataService.getDBTypeByTableName(param.getTableName()));
+        param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
+        convertQueryRecursive(param, parserSQLByAst(param.getQuery()));
+        return getReflectiveDialectObject(param);
+    }
+
+
+    private Dialect getReflectiveDialectObject(ApiParam param) {
+        Dialect dialect;
+        try {
+            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
+                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType()) + "Dialect");
+            Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
+            dialect = (Dialect) constructor.newInstance(param);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
+        }
+        return dialect;
+    }
+
+
+
 
 
     /**
@@ -384,7 +401,7 @@ public class ApiServiceImpl implements ApiService {
                         sqlQuerySource.setGroupByElement(parseSql.getGroupByElement());
                         sqlQuerySource.setAliasFields(parseSql.getAliasFields());
                     }
-                    sqlQuerySource.setLimit(UNVALID_LIMIT_DESC);
+                    sqlQuerySource.setLimit(SQLHelper.INVALID_LIMIT_DESC);
                 } else { //其它暂不支持
                     throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
                 }
@@ -497,7 +514,7 @@ public class ApiServiceImpl implements ApiService {
         SQLQuerySource dbQuerySource = new SQLQuerySource();
         dbQuerySource.setSqlBody(param.getQuery());
         param.setDbQuerySource(dbQuerySource);
-        Dialect dialect = getDialect(param);
+        Dialect dialect = getReflectiveDialectObject(param);
         BaseResult baseResult = dataEncapsulationOfSchema(dialect.executeAdministrativeQuery(), param);
 
         if (!baseResult.isSuccess()) {
@@ -533,7 +550,7 @@ public class ApiServiceImpl implements ApiService {
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
 
-        Dialect dialect = getDialect(param);
+        Dialect dialect = getReflectiveDialectObject(param);
         BaseResult result = dialect.executeAdministrativeQuery();
         if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), result.getMessage(), null);

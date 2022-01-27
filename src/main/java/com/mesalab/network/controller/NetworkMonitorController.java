@@ -1,23 +1,25 @@
 package com.mesalab.network.controller;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.dsl.DSLValidate;
 import com.mesalab.network.service.NetworkMonitorService;
-import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
-import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -34,27 +36,41 @@ public class NetworkMonitorController {
     @Autowired
     private NetworkMonitorService networkMonitorService;
     private static final String PROTOCOL = "protocol";
-    private static final HashSet<String> ROUTES = Sets.newHashSet();
-
-    static {
-        ROUTES.add(PROTOCOL);
-    }
 
     @PostMapping(value = "/traffic/v1/", produces = "application/json")
-    public BaseResult trafficDistribution(HttpServletRequest request, @Validated @RequestBody DSLObject dslObject) {
+    public BaseResult trafficStatistics(HttpServletRequest request, @Validated @RequestBody DSLObject dslObject) {
         Enumeration<String> parameterNames = request.getParameterNames();
+        List<String> params = Lists.newArrayList();
         while (parameterNames.hasMoreElements()) {
-            String param = parameterNames.nextElement();
-            if (!ROUTES.contains(StringUtil.lowerCase(param))
-                    || StringUtil.isNotEmpty(request.getParameter(param))) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Support：" + ROUTES, null);
-            }
-            log.debug("流量分布接口, 参数: queryString is {}, params is {}", param, dslObject);
-            dslValidate.executeValidate(dslObject);
-            if (PROTOCOL.equalsIgnoreCase(param)) {
-                return networkMonitorService.getTrafficDistributedInfo(dslObject);
-            }
+            params.add(StrUtil.trim(parameterNames.nextElement()).toLowerCase(Locale.ROOT));
         }
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Support：" + ROUTES, null);
+        if (params.contains(PROTOCOL)) {
+            log.debug("流量分布接口, 参数: queryString is {}, params is {}.", params, dslObject);
+            dslValidate.executeValidate(dslObject);
+            if (QueryType.PROTOCOL_TREE_SUMMARY.getValue()
+                    .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+                return networkMonitorService.buildProtocolTree(dslObject);
+            } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue()
+                    .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+                return networkMonitorService.buildProtocolDataRateSummary(dslObject);
+            }  else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+                return networkMonitorService.buildNetworkOverviewResult(dslObject);
+            } else {
+                return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
+            }
+        } else {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Support query parameter name：" + PROTOCOL, null);
+        }
+    }
+    enum QueryType {
+        PROTOCOL_TREE_SUMMARY("protocolTreeSummary"), PROTOCOL_DATA_RATE_SUMMARY("protocolDataRateSummary"), NETWORK_OVERVIEW_SUMMARY("networkOverviewSummary");
+        private final String value;
+        QueryType(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 }

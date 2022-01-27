@@ -1,5 +1,6 @@
 package com.mesalab.qgw.model.metadata;
 
+import com.clearspring.analytics.util.Lists;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,6 +17,6 @@ public class MetadataBean implements Serializable {
 
     private String namespace;
     private String group;
-    private List<String> tables;
+    private List<String> tables = Lists.newArrayList();
 
 }

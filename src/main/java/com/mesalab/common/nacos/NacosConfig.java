@@ -36,4 +36,13 @@ public class NacosConfig {
         properties.put(PropertyKeyConst.NAMESPACE, namespace);
         return properties;
     }
+
+    public Properties getPubProperties() {
+        Properties properties = new Properties();
+        properties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
+        properties.put(PropertyKeyConst.USERNAME, username);
+        properties.put(PropertyKeyConst.PASSWORD, password);
+        properties.put(PropertyKeyConst.NAMESPACE, NacosConst.NAMESPACE_PUBLIC);
+        return properties;
+    }
 }

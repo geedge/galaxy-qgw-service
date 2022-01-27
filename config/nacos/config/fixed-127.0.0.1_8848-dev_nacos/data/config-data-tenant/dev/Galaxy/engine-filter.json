@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "name": "Engine-Raw",
+  "namespace": "Engine",
+  "filters": [
+    {
+      "name":"@start",
+      "value": "'2021-10-19 10:00:00'"
+    },
+    {
+      "name":"@end",
+      "value": "'2021-10-20 11:00:00'"
+    },
+    {
+      "name":"@common_filter",
+      "value": [
+        "common_log_id=1153021139190754263",
+        "common_client_ip='36.189.226.21'",
+        "common_internal_ip='223.116.37.192'",
+        "common_server_ip='8.8.8.8'",
+        "common_external_ip='111.10.53.14'",
+        "common_client_port=52607",
+        "common_server_port=443",
+        "common_c2s_pkt_num>5",
+        "common_s2c_pkt_num>5",
+        "common_c2s_byte_num>100",
+        "common_s2c_byte_num<200",
+        "common_schema_type='DNS'",
+        "common_establish_latency_ms>200",
+        "common_con_duration_ms>10000",
+        "common_stream_trace_id=1153021139190754263",
+        "common_tcp_client_isn=2857077935",
+        "common_tcp_server_isn=0",
+        "http_domain='microsoft.com'",
+        "mail_account='abc@xx.com'",
+        "mail_subject='test'",
+        "dns_qname='qbwup.imtt.qq.com'",
+        "ssl_sni='note.youdao.com'",
+        "ssl_con_latency_ms>100",
+        "ssl_ja3_hash='a0e9f5d64349fb13191bc781f81f42e1'",
+        "common_client_ip='36.189.226.21' and common_server_ip='8.8.8.8'",
+        "common_server_ip='111.10.53.14' and common_server_port=443",
+        "mail_account like 'abc@%'",
+        "http_domain like '%baidu.com%'",
+        "ssl_sni like '%youdao.com'",
+        "common_client_ip in ('36.189.226.21','111.10.53.14')",
+        "common_server_port not in (80,443)",
+        "notEmpty(http_domain)",
+        "http_domain not like '%microsoft.com'"
+      ]
+    }
+  ]
+}

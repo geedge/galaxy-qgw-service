@@ -4,10 +4,13 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.service.SystemService;
+import com.mesalab.services.configuration.ThreadPoolMonitor;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +26,8 @@ public class SystemController {
     private static final Log log = LogFactory.get();
     @Autowired
     private SystemService systemService;
+    @Autowired
+    ThreadPoolMonitor threadPoolMonitor;
 
 
     @RequestMapping("/storage/quota")
@@ -85,15 +90,33 @@ public class SystemController {
         Object resultId, query;
         if (StringUtil.isEmpty(resultId = param.get("resultId"))
                 || StringUtil.isEmpty(query = param.get("query"))) {
-            return BaseResultGenerator.failure("resultId or query cannot be empty");
+
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param resultId or query cannot be empty", null);
         }
-        String queryId = systemService.getQueryIdOfExternal(resultId.toString(), query.toString());
+        String queryId = systemService.getQueryIdWithCatalog(resultId.toString(), query.toString());
 
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> map = new HashMap<>(16);
         map.put("queryId", queryId);
         result.add(map);
         return BaseResultGenerator.success(result);
+    }
+    @GetMapping(value = "encryption")
+    public BaseResult getCiphertext(EncryptionInfo param) {
+        log.info("Plaintext encrypted,The plaintext argument is : {}", param);
+        if (StringUtil.isEmpty(param.getPassword()) || StringUtil.isEmpty(param.getSalt())) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param password or salt cannot be empty", null);
+        }
+        return systemService.getCiphertext(param);
+    }
+
+    @GetMapping(value = "/clear/realJobQueue")
+    public BaseResult clearTaskQueue() {
+        log.info("Clear real job queue.");
+        threadPoolMonitor.clearQueue();
+        return BaseResultGenerator.success();
     }
 
 }

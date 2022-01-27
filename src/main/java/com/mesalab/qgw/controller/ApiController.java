@@ -7,11 +7,11 @@ import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
 import com.mesalab.qgw.service.ApiService;
 import com.zdjizhi.utils.JsonMapper;
-import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 
 @Slf4j
@@ -22,16 +22,29 @@ public class ApiController {
     @Autowired
     private ApiService apiService;
 
-    @RequestMapping("/")
-    @AuditLog("QGW QUERY SERVICE")
+    @GetMapping(value="/")
+    @AuditLog("ApiController.get")
     @CachedSubmitCheck
-    public BaseResult query(ApiParam apiParam) {
-
-        log.debug("Quest Params:{}", JsonMapper.toJsonString(apiParam));
-
-        if (StringUtil.isBlank(apiParam.getQuery()))
+    public BaseResult get(ApiParam apiParam) {
+        if (apiParam.queryParamIsNull())
             return BaseResultGenerator.success4Message("ok");
-
+        log.debug("Quest Params:{}", JsonMapper.toJsonString(apiParam));
         return apiService.executeQuery(apiParam);
+    }
+
+    @PostMapping(value = "/",
+            produces = "application/json;charset=utf-8")
+    @AuditLog("ApiController.post")
+    @CachedSubmitCheck
+    public BaseResult post(ApiParam apiParam) {
+
+        apiParam = Optional.ofNullable(apiParam).orElse(apiParam);
+
+        if (apiParam.queryParamIsNull()) {
+            return BaseResultGenerator.success4Message("ok");
+        }
+        log.debug("Quest Params:{}", JsonMapper.toJsonString(apiParam));
+        return apiService.executeQuery(apiParam);
+
     }
 }

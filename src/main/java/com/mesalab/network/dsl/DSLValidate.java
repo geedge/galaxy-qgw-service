@@ -3,6 +3,7 @@ package com.mesalab.network.dsl;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.knowledge.enums.RangeEnum;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
@@ -50,6 +51,10 @@ public class DSLValidate {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "query.Match type is invalid");
         }
+        if (!isValidRange(parameters.getRange())) {
+            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "query.Range type is invalid");
+        }
         if (!isValidIntervals(parameters.getIntervals())) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "query.Intervals is invalid");
@@ -77,20 +82,37 @@ public class DSLValidate {
      * 1.是否属于{@link MatchEnum}限定类型
      * 2.不能以*开始、或$结尾
      *
-     * @param matchList
+     * @param filterBeanList
      * @return
      */
-    private boolean isValidMatch(List<DSLObject.QueryBean.Parameters.MatchBean> matchList) {
-        if (CollectionUtils.isEmpty(matchList)) {
+    private boolean isValidMatch(List<DSLObject.QueryBean.Parameters.FilterBean> filterBeanList) {
+        if (CollectionUtils.isEmpty(filterBeanList)) {
             return true;
         }
-        for (DSLObject.QueryBean.Parameters.MatchBean matchBean : matchList) {
-            Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(matchBean.getType())), "match type is illegal");
-            for (String fieldValue : matchBean.getFieldValues()) {
+        for (DSLObject.QueryBean.Parameters.FilterBean match : filterBeanList) {
+            Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(match.getType())), "match type is illegal");
+            for (String fieldValue : match.getFieldValues()) {
                 if (fieldValue.startsWith("*") || fieldValue.endsWith("$")) {
                     throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Match fieldValues cannot startWith '*' or endWith '$'");
                 }
             }
+        }
+        return true;
+    }
+
+    /**
+     * 校验range:
+     * 1.是否属于{@link RangeEnum}限定类型
+     *
+     * @param filterBeanList
+     * @return
+     */
+    private boolean isValidRange(List<DSLObject.QueryBean.Parameters.FilterBean> filterBeanList) {
+        if (CollectionUtils.isEmpty(filterBeanList)) {
+            return true;
+        }
+        for (DSLObject.QueryBean.Parameters.FilterBean range : filterBeanList) {
+            Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(range.getType())), "range type is illegal");
         }
         return true;
     }

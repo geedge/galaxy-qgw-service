@@ -1,10 +1,10 @@
 package com.mesalab.qgw.benchmark.clickhouse;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
@@ -27,76 +27,31 @@ public class ClickhouseWriter extends Writer {
 
     private static final Log log = LogFactory.get();
 
-    private String ckFilterJson;
-
     @Autowired
     private NacosConfig nacosConfig;
 
     @Autowired
     private ConfigService configService;
 
-    @PostConstruct
-    public void init() {
-        initFilterJson();
-        log.info("Initializing ClickHouse Filter Complete");
-        initQueriesTemplate();
-        log.info("Initializing ClickHouse Queries Template Complete");
-    }
-
-    public void initFilterJson() {
-        try {
-            ckFilterJson = configService.getConfig(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
-            configService.addListener(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), new Listener() {
-                @Override
-                public Executor getExecutor() {
-                    return null;
-                }
-
-                @Override
-                public void receiveConfigInfo(String configInfo) {
-                    log.info("ReceiveConfigInfo ClickHouse Filter {}", configInfo);
-                    ckFilterJson = configInfo;
-                }
-            });
-        } catch (NacosException e) {
-            log.error("NacosException:{}", e);
-        }
-    }
-
-    private void initQueriesTemplate() {
-        try {
-            configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
-            configService.addListener(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), new Listener() {
-                @Override
-                public Executor getExecutor() {
-                    return null;
-                }
-
-                @Override
-                public void receiveConfigInfo(String configInfo) {
-                    log.info("ReceiveConfigInfo ClickHouse Queries Template {}", configInfo);
-                }
-            });
-        } catch (NacosException e) {
-            log.error("NacosException:{}", e);
-        }
-    }
-
+    @Override
     public String buildPocSQL() {
         String pocSql = "";
         try {
-            Map<String, List<String>> environment = getFilterOptions(ckFilterJson);
+            String filter = configService.getConfig(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
+            Map<String, List<String>> environment = getFilterOptions(filter);
 
-            FileReader templateReader = new FileReader(buildSnapshotFilePath(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID));
+            File templateFile = new File("benchmark" + File.separator + NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
+            String content = configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
+            templateFile = FileUtil.writeBytes(content.getBytes(), templateFile);
+            FileReader templateReader = new FileReader(templateFile);
 
-            FileWriter writer = new FileWriter(new File("").getCanonicalPath()
+            File file = FileUtil.writeBytes("".getBytes(), new File("").getCanonicalPath()
                     + File.separator + "benchmark" + File.separator + "ck_queries" + "_"
                     + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql");
+            FileWriter writer = FileWriter.create(file);
 
             pocSql = generatePocSQL(environment, templateReader, writer);
-
-
-        } catch (IOException e) {
+        } catch (IOException | NacosException e) {
             log.error("Not found file {}", e);
         }
         return pocSql;

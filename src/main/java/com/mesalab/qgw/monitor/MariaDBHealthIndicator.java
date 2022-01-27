@@ -1,14 +1,19 @@
 package com.mesalab.qgw.monitor;
 
+import cn.hutool.core.util.StrUtil;
+import com.alibaba.nacos.api.config.annotation.NacosValue;
+import com.google.common.base.Splitter;
 import com.jfinal.plugin.activerecord.Db;
+import com.mesalab.common.utils.TimeZoneUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+
 
 /**
  * @author wangwei
@@ -18,27 +23,40 @@ import java.util.List;
 @Component
 public class MariaDBHealthIndicator extends AbstractHealthIndicator {
 
-    @Value("${spring.datasource.url}")
+    @NacosValue("${spring.datasource.url}")
     private String url;
+    private final static String APP = "MariaDB";
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
+        if (StrUtil.contains(url, "127.0.0.1")) {
+            builder.up()
+                    .withDetail("app", APP)
+                    .withDetail("message", "DISABLED");
+            return;
+        }
         try {
             List<Object> query = Db.query("select 1");
             if (!CollectionUtils.isEmpty(query) && 1 == Long.parseLong(String.valueOf(query.get(0)))) {
+                String substring = url.substring(url.indexOf("?") + 1);
+                Map<String, String> map = Splitter.on("&").withKeyValueSeparator("=").split(substring);
+                String dbTimeZone = map.get("serverTimezone");
+                String timeZone = TimeZoneUtil.timeZoneTransition(dbTimeZone);
                 builder.up()
-                        .withDetail("app", "MariaDB")
+                        .withDetail("app", APP)
                         .withDetail("url", url)
-                        .withDetail("message", "ok");
+                        .withDetail("message", "ok")
+                        .withDetail("timeZone", timeZone);
+
             } else {
                 builder.down()
-                        .withDetail("app", "MariaDB")
+                        .withDetail("app", APP)
                         .withDetail("url", url)
                         .withDetail("message", "error, " + query);
             }
         } catch (RuntimeException e) {
             builder.down()
-                    .withDetail("app", "MariaDB")
+                    .withDetail("app", APP)
                     .withDetail("url", url)
                     .withDetail("message", "error, " + e.getMessage());
         }

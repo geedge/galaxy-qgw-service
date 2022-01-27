@@ -1,0 +1,71 @@
+{
+  "type": "record",
+  "name": "session_record_common_server_ip",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "common_log_id",
+    "index_key": "common_server_ip"
+  },
+  "fields": [
+    {
+      "name": "common_log_id",
+      "type": "long"
+    },
+    {
+      "name": "common_recv_time",
+      "type": "long"
+    },
+    {
+      "name": "common_server_ip",
+      "type": "string"
+    },
+    {
+      "name": "common_client_ip",
+      "type": "string"
+    },
+    {
+      "name": "common_sled_ip",
+      "type": "string"
+    },
+    {
+      "name": "common_entrance_id",
+      "type": "int"
+    },
+    {
+      "name": "common_subscriber_id",
+      "type": "string"
+    },
+    {
+      "name": "common_stream_trace_id",
+      "type": "long"
+    },
+    {
+      "name": "common_schema_type",
+      "type": "string"
+    },
+    {
+      "name": "common_client_port",
+      "type": "int"
+    },
+    {
+      "name": "common_server_port",
+      "type": "int"
+    },
+    {
+      "name": "common_app_label",
+      "type": "string"
+    },
+    {
+      "name": "common_direction",
+      "type": "int"
+    },
+    {
+      "name": "http_domain",
+      "type": "string"
+    },
+    {
+      "name": "ssl_sni",
+      "type": "string"
+    }
+  ]
+}

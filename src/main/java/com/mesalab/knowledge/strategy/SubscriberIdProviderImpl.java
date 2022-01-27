@@ -1,8 +1,8 @@
 package com.mesalab.knowledge.strategy;
 
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.knowledge.entity.DSLObject;
@@ -37,15 +37,25 @@ public class SubscriberIdProviderImpl implements QueryProvider {
 
         //1.构建查询语句 match like
         StringBuffer likeFilter = new StringBuffer();
+        StringBuffer intervalsb = new StringBuffer();
         Parameters parameters = dslQeruy.getParameters();
         if(!ObjectUtils.isEmpty(parameters)){
             likeFilter.append(Match.like(parameters.getMatch(), (m) -> m != null && "SUBSCRIBER_ID".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues())));
             limit = ObjectUtils.isEmpty(parameters.getLimit()) ? limit : parameters.getLimit();
+
+            //构建查询语句 intervals 时间
+            List<String> intervals = parameters.getIntervals();
+            if(!ObjectUtils.isEmpty(intervals)){
+                String[] times = intervals.get(0).split("/");
+                intervalsb.append(" filter e.LAST_FOUND_TIME >= ").append(DateUtils.convertStringToTimestamp(times[0], DateUtils.YYYY_MM_DD_HH24_MM_SS)).append(" and ").append("e.LAST_FOUND_TIME <").append(DateUtils.convertStringToTimestamp(times[1], DateUtils.YYYY_MM_DD_HH24_MM_SS));
+            }
         }
 
         StringBuffer aqlsb = new StringBuffer("for doc in SUBSCRIBER ");
         aqlsb.append(ObjectUtils.isEmpty(likeFilter) ? "" : likeFilter);
-        aqlsb.append(" let maxTime = (let times = (for v,e,p in 1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' return e.LAST_FOUND_TIME) return max(times)) ");
+        aqlsb.append(" let maxTime = (let times = (for v,e,p in 1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' ");
+        aqlsb.append(intervalsb);
+        aqlsb.append("return e.LAST_FOUND_TIME) return max(times)) ");
         aqlsb.append(" for v,e,p in 1..1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' ");
         aqlsb.append(" filter e.LAST_FOUND_TIME == maxTime[0] ");
         aqlsb.append(" limit ").append(limit);
@@ -75,10 +85,11 @@ public class SubscriberIdProviderImpl implements QueryProvider {
             if (Objects.isNull(ipEdges)||Objects.isNull(ipEdges.get("_to"))) {
                 newMap.put("IP", "");
             } else {
-                newMap.put("IP", CharMatcher.anyOf("IP/").trimLeadingFrom(String.valueOf(ipEdges.get("_to"))));
+                newMap.put("IP", StrUtil.removePrefix(String.valueOf(ipEdges.get("_to")),"IP/"));
             }
             list.add(newMap);
         }
         return list;
     }
+
 }

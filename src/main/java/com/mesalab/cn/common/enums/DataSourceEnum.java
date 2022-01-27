@@ -11,7 +11,11 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum DataSourceEnum {
-    TUNNEL("tunnel", "闭区间间隔");
+    TUNNEL("tunnel", "闭区间间隔"),
+    ENTITY_DETAIL_APP_VIEW("entity_detail_app_view", "根据app查询实体"),
+    ENTITY_DETAIL_DOMAIN_VIEW("entity_detail_domain_view", "根据domain查询实体"),
+    ENTITY_DETAIL_IP_VIEW("entity_detail_ip_view", "根据ip查询实体")
+    ;
 
     private String type;
     private String name;

@@ -1,10 +1,10 @@
 package com.mesalab.calcite;
 
 import com.mesalab.calcite.function.DateFunction;
-import org.apache.calcite.schema.Schema;
-import org.apache.calcite.schema.SchemaFactory;
-import org.apache.calcite.schema.SchemaPlus;
-import org.apache.calcite.schema.impl.ScalarFunctionImpl;
+import com.zdjizhi.calcite.schema.Schema;
+import com.zdjizhi.calcite.schema.SchemaFactory;
+import com.zdjizhi.calcite.schema.SchemaPlus;
+import com.zdjizhi.calcite.schema.impl.ScalarFunctionImpl;
 
 import java.util.Map;
 

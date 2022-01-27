@@ -1,15 +1,15 @@
 package com.mesalab.calcite;
 
 import com.mesalab.calcite.storage.Storage;
-import org.apache.calcite.DataContext;
-import org.apache.calcite.linq4j.AbstractEnumerable;
-import org.apache.calcite.linq4j.Enumerable;
-import org.apache.calcite.linq4j.Enumerator;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.schema.*;
-import org.apache.calcite.schema.impl.AbstractTable;
-import org.apache.calcite.sql.type.SqlTypeUtil;
+import com.zdjizhi.calcite.DataContext;
+import com.zdjizhi.calcite.linq4j.AbstractEnumerable;
+import com.zdjizhi.calcite.linq4j.Enumerable;
+import com.zdjizhi.calcite.linq4j.Enumerator;
+import com.zdjizhi.calcite.rel.type.RelDataType;
+import com.zdjizhi.calcite.rel.type.RelDataTypeFactory;
+import com.zdjizhi.calcite.schema.*;
+import com.zdjizhi.calcite.schema.impl.AbstractTable;
+import com.zdjizhi.calcite.sql.type.SqlTypeUtil;
 
 
 public class InMemoryTable extends AbstractTable implements ScannableTable {

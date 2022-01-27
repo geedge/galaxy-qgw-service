@@ -1,8 +1,8 @@
 package com.mesalab.common.plugin;
 
+import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.jfinal.plugin.druid.DruidPlugin;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -17,20 +17,19 @@ import javax.annotation.PostConstruct;
 @Component
 public class ActiveRecordInit {
 
-    @Value("${spring.datasource.url}")
+    @NacosValue("${spring.datasource.url}")
     private String url;
 
-    @Value("${spring.datasource.username}")
+    @NacosValue("${spring.datasource.username}")
     private String userName;
 
-    @Value("${spring.datasource.pin}")
+    @NacosValue("${spring.datasource.pin}")
     private String pin;
 
     @PostConstruct
     public void initDialect() {
         DruidPlugin dp = new DruidPlugin(url, userName, pin);
         ArpStartPlugin arp = new ArpStartPlugin(dp);
-        arp.addSqlTemplate("sql-temelate.sql");
         dp.start();
         arp.start();
         log.info("Initializing ActiveRecordPlugin Complete");

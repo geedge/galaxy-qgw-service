@@ -1,0 +1,46 @@
+package com.mesalab.services.configuration;
+
+import com.alibaba.nacos.api.config.annotation.NacosValue;
+import lombok.Data;
+import org.springframework.stereotype.Component;
+
+/**
+ * TODO
+ *
+ * @Classname TaskCfg
+ * @Date 2021/12/8 4:26 下午
+ * @Author wWei
+ */
+@Data
+@Component
+public class JobConfig {
+    public static final String COUNT = "count";
+    public static final String IS_DONE = "is_done";
+    public static final String DONE_PROGRESS = "done_progress";
+    public static final String IS_CANCELED= "is_canceled";
+    public static final String DISCOVERY_FIELD= "discovery_field";
+    public static final String DURATION_TIME= "duration_time";
+    public static final String QUERY_DATA_SOURCE = "query.data_source";
+    public static final String QUERY_SAMPLE_RATIO = "query.sample_ratio";
+    public static final String CUSTOM_FIELD_DISCOVERY_FIELDS = "custom.field_discovery.fields";
+    public static final String CUSTOM_FIELD_DISCOVERY_FILTER = "custom.field_discovery.filter";
+
+    @NacosValue(value = "${job.interactive.timeout}", autoRefreshed = true)
+    private int interactiveTimeout;
+    @NacosValue(value = "${job.response.timeout}", autoRefreshed = true)
+    private int responseTimeout;
+    @NacosValue(value = "${job.execution.timeout}", autoRefreshed = true)
+    private int executionTimeout;
+    @NacosValue(value = "${job.pool.corePoolSize}", autoRefreshed = true)
+    private int poolCorePoolSize;
+    @NacosValue(value = "${job.pool.maxPoolSize}", autoRefreshed = true)
+    private int poolMaxPoolSize;
+    @NacosValue(value = "${job.pool.queueCapacity}", autoRefreshed = true)
+    private int poolQueueCapacity;
+    @NacosValue(value="${job.longPolling.enabled}", autoRefreshed = true)
+    private boolean longPollingEnabled;
+    @NacosValue(value="${job.timeSlicing.enabled}", autoRefreshed = true)
+    private boolean timeSlicingEnabled;
+    @NacosValue(value="${job.timeSlicing.interval}", autoRefreshed = true)
+    private int timeSlicingInterval;
+}

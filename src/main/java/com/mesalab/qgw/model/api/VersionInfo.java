@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Data
 @Component
-@NacosConfigurationProperties(dataId = "version", groupId = "${nacos.config.group}", type = ConfigType.JSON, autoRefreshed = true)
+@NacosConfigurationProperties(dataId = "version.json", groupId = "${nacos.config.group}", type = ConfigType.JSON, autoRefreshed = true)
 public class VersionInfo {
 
     private String product;

@@ -1,6 +1,7 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 
 import java.util.List;
@@ -43,7 +44,7 @@ public interface SystemService {
     BaseResult deleteQueryTask(String queryId);
 
     /**
-     * Desc: 获取queryId(对外暴露)
+     * 构建查询唯一标识：Query ID，由 Catalog（数据库类型): resultID+query 组成。
      *
      * @param resultId
      * @param query
@@ -51,18 +52,7 @@ public interface SystemService {
      * @created by wWei
      * @date 2021/1/7 6:48 下午
      */
-    String getQueryIdOfExternal(String resultId, String query);
-
-    /**
-     * Desc: 获取queryId(数据库中实际使用的)
-     *
-     * @param resultId
-     * @param query
-     * @return {@link String}
-     * @created by wWei
-     * @date 2021/2/24 7:23 下午
-     */
-    String getQueryIdOfInternal(String resultId, String query);
+    String getQueryIdWithCatalog(String resultId, String query);
 
     /**
      * Desc: 通过queryId查询SQL任务执行状态
@@ -73,4 +63,13 @@ public interface SystemService {
      * @date 2021/1/7 6:49 下午
      */
     BaseResult getProcessesByQueryId(String queryId);
+    /**
+     * Desc: 通过queryId查询SQL任务执行状态
+     *
+     * @param queryId
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2021/1/7 6:49 下午
+     */
+    BaseResult getCiphertext(EncryptionInfo param);
 }

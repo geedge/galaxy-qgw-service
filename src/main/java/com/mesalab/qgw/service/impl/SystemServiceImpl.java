@@ -4,6 +4,7 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -13,28 +14,32 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.SQLHelper;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
+import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.SystemService;
+import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.http.HttpStatus;
-import org.apache.zookeeper.server.quorum.FastLeaderElection;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.Resource;
 import java.lang.reflect.AccessibleObject;
@@ -43,15 +48,17 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 @Service("systemService")
-public class SystemServiceImpl implements SystemService {
+@PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
+public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private static final Log log = LogFactory.get();
+    private Environment env;
     @Autowired
     private ApiService apiService;
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
     private HttpClientService httpClientService;
-    @Resource(name = "nacosMetadataService")
+    @Resource(name = "metadataService")
     private MetadataService metadataService;
     @Autowired
     HttpConfig httpConfig;
@@ -65,14 +72,7 @@ public class SystemServiceImpl implements SystemService {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         ApiParam param = new ApiParam();
-        param.setQuery("SELECT log_type, SUM(used_size) as used_size, SUM(max_size) * 7/10 as max_size, TIME_FORMAT(LATEST(last_storage) * 1000,'YYYY-MM-dd') as first_storage \n" +
-                "FROM ( \n" +
-                "  SELECT log_type, LATEST(used_size) as used_size, LATEST(max_size) as max_size, LATEST(last_storage) as last_storage\n" +
-                "  FROM sys_storage_log\n" +
-                "  WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '1' HOUR AND data_center != '' \n" +
-                "  GROUP BY data_center,log_type\n" +
-                ")\n" +
-                "GROUP BY log_type");
+        param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         BaseResult result = apiService.executeQuery(param);
         return resetBaseResult(result, "log_type");
     }
@@ -89,7 +89,7 @@ public class SystemServiceImpl implements SystemService {
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
             ApiParam param = new ApiParam();
-            String sql = String.format("select TIME_FORMAT(__time,'YYYY-MM-dd') as stat_time,log_type as type, sum(aggregate_size) as used_size from sys_storage_log where __time >= '%s' and __time < '%s' group by TIME_FORMAT(__time,'YYYY-MM-dd'), log_type", searchStartTime, searchEndTime);
+            String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
             param.setQuery(sql);
             BaseResult result = apiService.executeQuery(param);
             return resetBaseResult(result, "type");
@@ -153,7 +153,7 @@ public class SystemServiceImpl implements SystemService {
         } else {
             return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的日志类型: " + logType);
         }
-        list.forEach(o->o.setLogType(LogType.getLabelByValue(o.getLogType())));
+        list.forEach(o -> o.setLogType(LogType.getLabelByValue(o.getLogType())));
         return BaseResultGenerator.success("ok", list);
     }
 
@@ -164,25 +164,30 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Override
-    public String getQueryIdOfExternal(String resultId, String query) {
+    public String getQueryIdWithCatalog(String resultId, String query) {
         String tableName = SQLHelper.getTableName(query);
         String dbType = metadataService.getDBTypeByTableName(tableName);
-        return DigestUtil.md5Hex(dbType) +
-                queryIdSeparator +
-                DigestUtil.md5Hex(resultId + query.trim());
+        return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }
 
-    @Override
-    public String getQueryIdOfInternal(String resultId, String query) {
-        String queryId = getQueryIdOfExternal(resultId, query);
-        queryId = queryId.substring(queryId.indexOf(SystemServiceImpl.queryIdSeparator) + 1);
-        return queryId;
-    }
 
     @Override
     public BaseResult getProcessesByQueryId(String queryId) {
         Dialect dialect = buildAndGetDialect(queryId);
         return dialect.getProcesses();
+    }
+
+    @Override
+    public BaseResult getCiphertext(EncryptionInfo param) {
+        BaseResult baseResult;
+        BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
+        textEncryptor.setPassword(param.getSalt());
+        String encrypt = textEncryptor.encrypt(param.getPassword());
+        Map dataMap = new HashMap();
+        dataMap.put("password", param.getPassword());
+        dataMap.put("encrypted_password", encrypt);
+        baseResult = BaseResultGenerator.success("ok", Lists.newArrayList(dataMap));
+        return baseResult;
     }
 
     public Dialect buildAndGetDialect(String queryId) {
@@ -216,7 +221,6 @@ public class SystemServiceImpl implements SystemService {
         }
         return DBTypeEnum.CLICKHOUSE.getValue();
     }
-
 
 
     private boolean logTypeValid(List<StorageDeletionInfo> list) {
@@ -540,6 +544,11 @@ public class SystemServiceImpl implements SystemService {
             map.put(fieldName, value);
         }
         return map;
+    }
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.env = environment;
     }
 
 

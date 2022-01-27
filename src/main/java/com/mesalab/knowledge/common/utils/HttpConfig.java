@@ -60,5 +60,12 @@ public class HttpConfig {
      */
     @NacosValue(value = "${clickhouse.realTimeAccount.socketTimeOut}", autoRefreshed = true)
     private int ckRealTimeAccountSocketTimeOut;
+    /**
+     * Desc: Elasticsearch查询请求响应时间
+     */
+    @NacosValue(value = "${elasticsearch.socketTimeOut}", autoRefreshed = true)
+    private int elasticsearchSocketTimeOut;
+
+
 
 }

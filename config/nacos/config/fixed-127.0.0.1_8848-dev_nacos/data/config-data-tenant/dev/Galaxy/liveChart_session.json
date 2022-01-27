@@ -1,0 +1,169 @@
+{
+  "type": "record",
+  "name": "liveChart_session",
+  "in": "SESSION-RECORD",
+  "out": "TRAFFIC-PROTOCOL-STAT",
+  "task": "Protocol-Distribution",
+  "doc": {
+    "timestamp": {
+      "name": "stat_time",
+      "type": "long"
+    },
+    "dimensions": [
+      {
+        "name": "protocol_id",
+        "fieldName": "common_protocol_label",
+        "type": "string"
+      },
+      {
+        "name": "entrance_id",
+        "fieldName": "common_entrance_id",
+        "type": "string"
+      },
+      {
+        "name": "isp",
+        "fieldName": "common_isp",
+        "type": "string"
+      },
+      {
+        "name": "data_center",
+        "fieldName": "common_data_center",
+        "type": "string"
+      },
+      {
+        "name": "device_group",
+        "fieldName": "common_device_group",
+        "type": "string"
+      }
+    ],
+    "metrics": [
+      {
+        "function": "sum",
+        "name": "sessions",
+        "fieldName": "common_sessions",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "c2s_byte_num",
+        "fieldName": "common_c2s_byte_diff",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "s2c_byte_num",
+        "fieldName": "common_s2c_byte_diff",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "c2s_pkt_num",
+        "fieldName": "common_c2s_pkt_diff",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "s2c_pkt_num",
+        "fieldName": "common_s2c_pkt_diff",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "c2s_ipfrag_num",
+        "fieldName": "common_c2s_ipfrag_num",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "s2c_ipfrag_num",
+        "fieldName": "common_s2c_ipfrag_num",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "c2s_tcp_lostlen",
+        "fieldName": "common_c2s_tcp_lostlen",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "s2c_tcp_lostlen",
+        "fieldName": "common_s2c_tcp_lostlen",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "c2s_tcp_unorder_num",
+        "fieldName": "common_c2s_tcp_unorder_num",
+        "type": "long"
+      },
+      {
+        "function": "sum",
+        "name": "s2c_tcp_unorder_num",
+        "fieldName": "common_s2c_tcp_unorder_num",
+        "type": "long"
+      },
+      {
+        "function": "disCount",
+        "name": "unique_sip_num",
+        "fieldName": "common_server_ip",
+        "type": "long"
+      },
+      {
+        "function": "disCount",
+        "name": "unique_cip_num",
+        "fieldName": "common_client_ip",
+        "type": "long"
+      }
+    ],
+    "filters": [
+      {
+        "fieldName": "common_protocol_label",
+        "type": "notempty"
+      }
+    ],
+    "transforms": [
+      {
+        "function": "combination",
+        "name": "protocol_id",
+        "fieldName": "common_protocol_label",
+        "parameters": "common_l7_protocol,."
+      },
+      {
+        "function": "combination",
+        "name": "protocol_id",
+        "fieldName": "common_protocol_label",
+        "parameters": "common_app_label,."
+      },
+      {
+        "function": "flattenSpec",
+        "name": "data_center",
+        "fieldName": "common_device_tag",
+        "parameters": "$.tags[?(@.tag=='data_center')].value"
+      },
+      {
+        "function": "flattenSpec",
+        "name": "device_group",
+        "fieldName": "common_device_tag",
+        "parameters": "$.tags[?(@.tag=='device_group')].value"
+      },
+      {
+        "function": "hierarchy",
+        "name": "protocol_id",
+        "fieldName": "common_protocol_label",
+        "parameters": "."
+      }
+    ],
+    "action": [
+      {
+        "label": "Default",
+        "metrics": "sessions,c2s_byte_num,s2c_byte_num,c2s_pkt_num,s2c_pkt_num,c2s_ipfrag_num,s2c_ipfrag_num,c2s_tcp_lostlen,s2c_tcp_lostlen,c2s_tcp_unorder_num,s2c_tcp_unorder_num"
+      }
+    ],
+    "granularity": {
+      "type": "period",
+      "period": "15S"
+    }
+  },
+  "fields": []
+}

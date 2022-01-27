@@ -34,4 +34,15 @@ public class NacosConfiguration {
         }
         return configService;
     }
+
+    @Bean(name = "pubConfigService")
+    public ConfigService getPubConfigService() {
+        ConfigService configService = null;
+        try {
+            configService = NacosFactory.createConfigService(nacosConfig.getPubProperties());
+        } catch (NacosException e) {
+            log.error("NacosException:{}", e);
+        }
+        return configService;
+    }
 }

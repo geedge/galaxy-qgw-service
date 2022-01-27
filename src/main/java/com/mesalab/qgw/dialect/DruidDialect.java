@@ -1,17 +1,21 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.DataTypeMapping;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
+import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
@@ -41,6 +45,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     private int pageOffset;
+    private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "com.zdjizhi.calcite.runtime.CalciteContextException: ";
     private Stopwatch watch = Stopwatch.createUnstarted();
     public ApiParam param;
     public BaseResult baseResult;
@@ -130,7 +135,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private Map<String, String> executeHttpPost(String sql) {
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidQueryParam druidQueryParam = getDruidQueryParam(sql);
-        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
+        log.info("DB engine is :{},execute query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
         return httpClientService.httpPost(queryURL, JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
     }
@@ -140,7 +145,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-            druidQueryParam.getContext().put("sqlQueryId", systemService.getQueryIdOfInternal(param.getResultId(), param.getQuery()));
+            druidQueryParam.getContext().put("sqlQueryId", SQLHelper.getQueryId(param.getResultId(), param.getQuery()));
         }
         druidQueryParam.setResultFormat("object");
         return druidQueryParam;
@@ -186,20 +191,25 @@ public class DruidDialect extends AbstractDataSourceDialect {
             baseResult.setData(allResults);
             baseResult.setMeta(unifyMeta(allResults));
             baseResult.setStatistics(statistics);
-        } else if (baseResult.getStatus().equals(HttpStatus.SC_NOT_FOUND)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " : String.valueOf(dataObject));
-        } else if (baseResult.getStatus().equals(HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " : String.valueOf(dataObject));
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    StringUtil.isEmpty(dataObject) ? "System Runtime Exception,Please contact Galaxy Data Platform Project manager. " : String.valueOf(dataObject));
+            baseResult = BaseResultGenerator.failure(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                    simplyErrorMessage(dataObject));
         }
         return baseResult;
     }
 
-
+    @Override
+    public String simplyErrorMessage(Object dataObject) {
+        String message = String.valueOf(dataObject);
+        try {
+            message = StringUtil.isNotEmpty(dataObject) ? JsonPath.read(dataObject.toString(), "$.errorMessage")
+                    : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
+        } catch (JsonPathException e) {
+            log.error("Build error druid-errorMessage data is: {}", dataObject);
+        }
+        message = message.startsWith(CLAZZ_NAME_CALCITE_EXCEPTION) ? message.substring(CLAZZ_NAME_CALCITE_EXCEPTION.length()) : message;
+        return StrUtil.removeAllLineBreaks("SQL Execution Error: ".concat(message)).trim();
+    }
 
 
     /**

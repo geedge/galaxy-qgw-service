@@ -1,6 +1,6 @@
 package com.mesalab.calcite.storage;
 
-import org.apache.calcite.sql.type.SqlTypeName;
+import com.zdjizhi.calcite.sql.type.SqlTypeName;
 
 import java.util.*;
 

@@ -1,10 +1,14 @@
 package com.mesalab.network.service.impl;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.net.NetUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.collect.Iterables;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
@@ -12,23 +16,32 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
 import com.mesalab.knowledge.common.utils.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.knowledge.enums.RangeEnum;
+import com.mesalab.network.common.Constants;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.service.NetworkMonitorService;
-import com.mesalab.qgw.model.protocol.ProtocolTree;
+import com.mesalab.network.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.HttpStatus;
+import org.nutz.json.Json;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Nullable;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,7 +52,8 @@ import java.util.stream.Collectors;
  * @date 2020/6/30 4:24 下午
  */
 @Service("networkMonitorService")
-public class NetworkMonitorServiceImpl implements NetworkMonitorService {
+@PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
+public class NetworkMonitorServiceImpl implements NetworkMonitorService , EnvironmentAware {
     private static final Log log = LogFactory.get();
     @Autowired
     HttpClientService httpClientService;
@@ -47,41 +61,36 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     HttpConfig httpConfig;
     @Value("${server.port}")
     private int serverPort;
+    private Environment env;
     private static String localHostAddress;
-
-    private static final String PROTOCOL_NODE = "Protocols/";
-    private static final String PROTOCOL_ROOT_NODE = "ETHERNET";
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
     }
 
     @Override
-    public BaseResult getTrafficDistributedInfo(DSLObject dslObject) {
+    public BaseResult buildProtocolTree(DSLObject dslObject) {
         BaseResult baseResult;
-        String sql;
-        if (QueryType.PROTOCOL_TREE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            sql = generateProtocolTreeSql(dslObject.getQuery());
-            baseResult = getResultProtocolTree(sql);
-        } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            sql = generateProtocolDataRateSql(dslObject.getQuery());
-            baseResult = getProtocolDataRateSummary(sql);
-        } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-            sql = generateOverviewSummarySql(dslObject.getQuery());
-            Map<String, String> dataRateResult = executeQuery(sql);
-            String statSql = generateStatSql(dslObject.getQuery());
-            Map<String, String> statResult = executeQuery(statSql);
-            baseResult = buildNetworkOverviewResult(dataRateResult, statResult);
+        String sql = generateProtocolTreeSql(dslObject.getQuery(), env.getProperty("PROTOCOL_TREE_SUMMARY"));
+        Map<String, String> result = executeQuery(sql);
+        if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
+            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            List<Map> resultList = (List<Map>) resultMap.get("data");
+            if(StringUtil.isEmpty(resultList)) {
+                return BaseResultGenerator.success("ok", resultList, (Map) resultMap.get("statistics"));
+            }
+            List<ProtocolTree> protocolTreeList = buildHierarchicalStructure(buildFlatStructure(resultList));
+            baseResult = BaseResultGenerator.success("ok", protocolTreeList, (Map) resultMap.get("statistics"));
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
-        }
-        if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
+            baseResult = BaseResultGenerator.error(result.get("result"));
         }
         return baseResult;
     }
 
-    private BaseResult buildNetworkOverviewResult(Map<String, String> dataRateResult, Map<String, String> currentSessionResult) {
+    @Override
+    public BaseResult buildNetworkOverviewResult(DSLObject dslObject) {
+        Map<String, String> dataRateResult = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), env.getProperty("NETWORK_STATISTICS_SUMMARY")));
+        Map<String, String> currentSessionResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), env.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
         BaseResult baseResult;
         if (String.valueOf(HttpStatus.SC_OK).equals(currentSessionResult.get("status"))
                 && String.valueOf(HttpStatus.SC_OK).equals(dataRateResult.get("status"))) {
@@ -94,44 +103,58 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             if (!statData.isEmpty()) {
                 data.putAll(statData.get(0));
             }
-            if (statData.size() >= 2) {
-                data.put("current_sessions", statData.get(1).get("total_bytes"));
-            }
+
             if (!summaryData.isEmpty()) {
                 data.putAll(summaryData.get(0));
             }
-            long uniqClientIp = Long.parseLong(String.valueOf(data.get("uniq_client_ip") == null ? 0 : data.get("uniq_client_ip")));
-            long totalSessions = Long.parseLong(String.valueOf(data.get("total_sessions") == null ? 0 : data.get("total_sessions")));
-            long summaryTotalSessions = Long.parseLong(String.valueOf(data.get("summarySessions") == null ? 0 : data.get("summarySessions")));
-            long summaryTotalBytes = Long.parseLong(String.valueOf(data.get("summaryTotalBytes") == null ? 0 : data.get("summaryTotalBytes")));
-            long summaryTotalPackets = Long.parseLong(String.valueOf(data.get("summaryTotalPackets") == null ? 0 : data.get("summaryTotalPackets")));
-            long currentSessions = Long.parseLong(String.valueOf(data.get("current_sessions") == null ? 0 : data.get("current_sessions")));
-            long dataRate = Long.parseLong(String.valueOf(data.get("data_rate") == null ? 0 : data.get("data_rate")));
-            long totalBytes = Long.parseLong(String.valueOf(data.get("total_bytes") == null ? 0 : data.get("total_bytes")));
-            long totalUncategorizedBytes = Long.parseLong(String.valueOf(data.get("total_uncategorized_bytes") == null ? 0 : data.get("total_uncategorized_bytes")));
-            double totalUncategorizedPercent = summaryTotalBytes == 0 ? 0 : totalUncategorizedBytes * 1.0 / summaryTotalBytes;
-            long oneSidedConnections = Long.parseLong(String.valueOf(data.get("one_sided_connections") == null ? 0 : data.get("one_sided_connections")));
-            double oneSidedPercent = summaryTotalSessions == 0 ? 0 : oneSidedConnections * 1.0 / summaryTotalSessions;
-            long sequenceGapLossBytes = Long.parseLong(String.valueOf(data.get("sequence_gap_loss_bytes") == null ? 0 : data.get("sequence_gap_loss_bytes")));
-            double sequenceGapLossBytesPercent = sequenceGapLossBytes == 0 ? 0 : sequenceGapLossBytes * 1.0 / (summaryTotalBytes + sequenceGapLossBytes);
-            long fragmentationPackets = Long.parseLong(String.valueOf(data.get("fragmentation_packets") == null ? 0 : data.get("fragmentation_packets")));
-            double fragmentationPacketsPercent = summaryTotalPackets == 0 ? 0 : fragmentationPackets * 1.0 / summaryTotalPackets;
+            long uniqClientIp = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP)));
+            long totalSessions = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS)));
+            long totalBytes = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES)));
+            long totalPackets = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS)));
+            long totalUncategorizedBytes = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES)));
+            long oneSidedConnections = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS)));
+            long sequenceGapLossBytes = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES)));
+            long fragmentationPackets = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS)));
+
+            String totalUncategorizedPercent = totalBytes == 0 ? String.valueOf(0)
+                    : NumberUtil.div(BigDecimal.valueOf(totalUncategorizedBytes), BigDecimal.valueOf(totalBytes), 4).toPlainString();
+            String oneSidedPercent = totalSessions == 0 ? String.valueOf(0)
+                    : NumberUtil.div(BigDecimal.valueOf(oneSidedConnections), BigDecimal.valueOf(totalSessions), 4).toPlainString();
+            String sequenceGapLossBytesPercent = sequenceGapLossBytes == 0 ? String.valueOf(0)
+                    : NumberUtil.div(BigDecimal.valueOf(sequenceGapLossBytes), BigDecimal.valueOf(totalBytes + sequenceGapLossBytes), 4).toPlainString();
+            String fragmentationPacketsPercent = totalPackets == 0 ? String.valueOf(0)
+                    : NumberUtil.div(BigDecimal.valueOf(fragmentationPackets), BigDecimal.valueOf(totalPackets), 4).toPlainString();
+
+            long dynamicSessions = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS)));
+            long dynamicBytes = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES)));
+            long dataRate = Long.parseLong(String.valueOf(
+                    data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE)));
+
 
             List result = new ArrayList<>();
             Map resultMap = new LinkedHashMap<>();
-            resultMap.put("uniq_client_ip", uniqClientIp);
-            resultMap.put("total_sessions", totalSessions);
-            resultMap.put("current_sessions", currentSessions);
-            resultMap.put("data_rate", dataRate);
-            resultMap.put("total_bytes", totalBytes);
-            resultMap.put("total_uncategorized_bytes", totalUncategorizedBytes);
-            resultMap.put("total_uncategorized_percent", Double.parseDouble(String.format("%.4f", totalUncategorizedPercent)));
-            resultMap.put("one_sided_connections", oneSidedConnections);
-            resultMap.put("one_sided_percent", Double.parseDouble(String.format("%.4f", oneSidedPercent)));
-            resultMap.put("sequence_gap_loss_bytes", sequenceGapLossBytes);
-            resultMap.put("sequence_gap_loss_percent", Double.parseDouble(String.format("%.4f", sequenceGapLossBytesPercent)));
-            resultMap.put("fragmentation_packets", fragmentationPackets);
-            resultMap.put("fragmentation_percent", Double.parseDouble(String.format("%.4f", fragmentationPacketsPercent)));
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP, uniqClientIp);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, dynamicSessions);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE, dataRate);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, dynamicBytes);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES, totalUncategorizedBytes);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_PERCENT, totalUncategorizedPercent);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS, oneSidedConnections);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_PERCENT, oneSidedPercent);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES, sequenceGapLossBytes);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_PERCENT,  sequenceGapLossBytesPercent);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS, fragmentationPackets);
+            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PERCENT, fragmentationPacketsPercent);
             result.add(resultMap);
 
             Map statistics = (Map) summaryDataResult.get("statistics");
@@ -150,14 +173,16 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return baseResult;
     }
 
-    private BaseResult getProtocolDataRateSummary(String sql) {
+    @Override
+    public BaseResult buildProtocolDataRateSummary(DSLObject dslObject) {
         BaseResult baseResult;
+        String sql = generateProtocolDataRateSql(dslObject.getQuery(), env.getProperty("PROTOCOL_DATA_RATE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             data.forEach(o -> {
-                String[] protocolIds = String.valueOf(o.get("type")).split("/");
+                String[] protocolIds = String.valueOf(o.get("type")).split("\\.");
                 String protocolId = protocolIds[protocolIds.length - 1];
                 o.put("type", protocolId);
             });
@@ -168,95 +193,39 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return baseResult;
     }
 
-    private BaseResult getResultProtocolTree(String sql) {
-        BaseResult baseResult;
-        Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
-            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
-            List<ProtocolTree> listProtocol = getListProtocol(getProtocolTrees((List<Map>) resultMap.get("data")));
-            for (ProtocolTree protocolTree : listProtocol) {
-                List<ProtocolTree> ethernetCollect = protocolTree.getChildrens().stream().filter(
-                        p -> PROTOCOL_ROOT_NODE.equals(p.getName())).collect(Collectors.toList());
-                if (protocolTree.getChildrens().size() != ethernetCollect.size()) {
-                    protocolTree.setChildrens(ethernetCollect);
-                    protocolTree.setReceivedBytes(StringUtil.isEmpty(ethernetCollect.get(0)) ? 0 : ethernetCollect.get(0).getReceivedBytes());
-                    protocolTree.setSentBytes(StringUtil.isEmpty(ethernetCollect.get(0)) ? 0 : ethernetCollect.get(0).getSentBytes());
-                    log.warn("Protocol-Tree warn Exceptional data occurs and non-{} protocols are filtered out: {}", PROTOCOL_ROOT_NODE, protocolTree.getChildrens());
-                }
-            }
-            baseResult = BaseResultGenerator.success("ok", listProtocol, (Map) resultMap.get("statistics"));
-        } else {
-            baseResult = BaseResultGenerator.error(result.get("result"));
-        }
-        return baseResult;
-    }
-
-    private String generateStatSql(DSLObject.QueryBean queryParam) {
+    private String generateDynamicStatSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
-        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
-        return String.format("(SELECT SUM(c2s_byte_num + s2c_byte_num) as total_bytes, SUM(sessions) as total_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/((TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s'))/1000) AS data_rate " +
-                        "FROM traffic_protocol_stat_log " +
-                        "WHERE %s %s" +
-                        "AND protocol_id = '%s' LIMIT 1) " +
-                        "UNION ALL " +
-                        "( SELECT SUM(sessions), 0, 0 " +
-                        "FROM traffic_protocol_stat_log " +
-                        "WHERE %s %s" +
-                        "AND protocol_id = '%s' GROUP BY __time ORDER BY __time DESC LIMIT 1 ) ",
-                intervals[1], intervals[0], whereOfTime, whereOfExactly, PROTOCOL_ROOT_NODE,
-                whereOfTime, whereOfExactly, PROTOCOL_ROOT_NODE);
+        return String.format(sqlTemplate,
+                intervals[1], intervals[0], whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE,
+                whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE);
     }
 
-    private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam) {
+    private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
-        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
         String protocolStr = null;
-        List<DSLObject.QueryBean.Parameters.MatchBean> match = queryParam.getParameters().getMatch();
-        for (DSLObject.QueryBean.Parameters.MatchBean item : match) {
+        List<DSLObject.QueryBean.Parameters.FilterBean> match = queryParam.getParameters().getMatch();
+        for (DSLObject.QueryBean.Parameters.FilterBean item : match) {
             if (MatchEnum.PREFIX.getType().equals(item.getType())) {
                 String[] split = item.getFieldValues().get(0).split(",");
-                protocolStr = split[0].replaceFirst(PROTOCOL_NODE, "");
+                protocolStr = split[0].replaceFirst(Constants.PROTOCOL_TREE_ROOT_NAME + Constants.ENCAPSULATION_PATH_SEPARATOR, "");
             }
         }
-        return String.format("(" +
-                        "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
-                        "from %s " +
-                        "where %s %s and protocol_id = '%s' " +
-                        "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
-                        "order by stat_time asc" +
-                        ") " +
-                        "union all " +
-                        "(" +
-                        "SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes " +
-                        "from %s " +
-                        "where %s %s and protocol_id like CONCAT('%s','/%s') and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'/','')) + 1 + %s " +
-                        "group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id " +
-                        "order by stat_time asc) ",
+        return String.format(sqlTemplate,
                 queryParam.getParameters().getGranularity(), queryParam.getDataSource(), whereOfTime, whereOfExactly, protocolStr, queryParam.getParameters().getGranularity(),
                 queryParam.getParameters().getGranularity(), queryParam.getDataSource(), whereOfTime, whereOfExactly, protocolStr, "%",
-                protocolStr.length() - protocolStr.replaceAll("/", "").length(), queryParam.getParameters().getGranularity());
+                protocolStr.length() - protocolStr.replaceAll("\\.", "").length(), queryParam.getParameters().getGranularity());
 
     }
 
-    private String generateOverviewSummarySql(DSLObject.QueryBean queryParam) {
+    private String generateNetworkStatSummarySql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
 
-        return String.format("SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip, " +
-                        "SUM(one_sided_connections) AS one_sided_connections, " +
-                        "SUM(uncategorized_bytes) AS total_uncategorized_bytes, " +
-                        "SUM(fragmentation_packets) AS fragmentation_packets, " +
-                        "SUM(sequence_gap_loss) AS sequence_gap_loss_bytes, " +
-                        "SUM(s2c_byte_num+c2s_byte_num) AS summaryTotalBytes, " +
-                        "SUM(s2c_pkt_num+c2s_pkt_num) AS summaryTotalPackets, " +
-                        "SUM(sessions) AS summarySessions " +
-                        "FROM %s " +
-                        "WHERE %s" +
-                        " %s LIMIT 1 ",
-                queryParam.getDataSource(), whereOfTime, StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly);
+        return String.format(sqlTemplate,
+                queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
 
     private String getWhereOfTime(DSLObject.QueryBean.Parameters parameters) {
@@ -274,51 +243,62 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     }
 
     private String getWhereOfExactly(DSLObject.QueryBean.Parameters parameters) {
-        if (CollectionUtils.isEmpty(parameters.getMatch())) {
+        ArrayList<DSLObject.QueryBean.Parameters.FilterBean> list = Lists.newArrayList();
+        if (!CollectionUtils.isEmpty(parameters.getMatch())) {
+            list.addAll(parameters.getMatch());
+        }
+        if (!CollectionUtils.isEmpty(parameters.getRange())) {
+            list.addAll(parameters.getRange());
+        }
+        if (CollectionUtils.isEmpty(list)) {
             return StringUtil.EMPTY;
         }
         StringBuffer whereOfExactly = new StringBuffer();
-        List<DSLObject.QueryBean.Parameters.MatchBean> match = parameters.getMatch();
-        for (DSLObject.QueryBean.Parameters.MatchBean item : match) {
-            if (MatchEnum.EXACTLY.getType().equals(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                whereOfExactly.append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+        for (DSLObject.QueryBean.Parameters.FilterBean item : list) {
+            if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
+                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+            } else if (RangeEnum.EQ.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
+                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+            } else if (RangeEnum.NE.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
+                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" NOT IN ('").append(String.join("','", item.getFieldValues())).append("')");
             }
         }
         return whereOfExactly.toString();
     }
 
-    private String generateProtocolTreeSql(DSLObject.QueryBean queryParam) {
+    private String generateProtocolTreeSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
-        whereOfExactly = StringUtil.isBlank(whereOfExactly) ? "" : "AND " + whereOfExactly;
-        return String.format("SELECT protocol_id, SUM(sessions) as sessions,SUM(c2s_byte_num) as c2s_byte_num, SUM(c2s_pkt_num) as c2s_pkt_num, SUM(s2c_byte_num) as s2c_byte_num, SUM(s2c_pkt_num) as s2c_pkt_num " +
-                        "FROM %s " +
-                        "WHERE %s %s" +
-                        "GROUP BY protocol_id ",
+        return String.format(sqlTemplate,
                 queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
 
-    private List<ProtocolTree> getProtocolTrees(List<Map> data) {
-        Iterable<ProtocolTree> resultConcat = Iterables.concat(new ArrayList<>());
-        for (Map datum : data) {
-            String s = JsonMapper.toJsonString(datum);
-            List<ProtocolTree> nodes = parserRawData(s);
-            resultConcat = Iterables.concat(resultConcat, nodes);
+    @Override
+    public List<ProtocolTree> buildFlatStructure(List<Map> protocolData) {
+        List<ProtocolTree> nodes = Lists.newArrayList();
+        for (Map protocolMap : protocolData) {
+            ProtocolTree protocolTree = convertStringToObject(JsonMapper.toJsonString(protocolMap));
+            if(StringUtil.isNotEmpty(protocolTree)) {
+                nodes.add(protocolTree);
+            }
+
         }
-        List<ProtocolTree> listNodes = Lists.newArrayList(resultConcat);
-        ProtocolTree root = new ProtocolTree("Protocols", "Protocols", null);
-        List<ProtocolTree> roots = listNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
+        ProtocolTree root = new ProtocolTree(Constants.PROTOCOL_TREE_ROOT_NAME, Constants.PROTOCOL_TREE_ROOT_NAME, null);
+        Map<String,Long> protocolsAndApplications =  nodes.stream().collect(Collectors.groupingBy(ProtocolTree :: getName, Collectors.counting()));
+        root.addMetric(Constants.PROTOCOL_TREE_METRIC_ENCAPSULATION_PATHS, nodes.size());
+        root.addMetric(Constants.PROTOCOL_TREE_METRIC_PROTOCOLS_AND_APPLICATIONS, protocolsAndApplications.size());
+        List<ProtocolTree> roots = nodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
         roots.forEach(item -> {
             root.setSentBytes(root.getSentBytes() + item.getSentBytes());
             root.setReceivedBytes(root.getReceivedBytes() + item.getReceivedBytes());
+            root.setTotalSentBytes(root.getTotalSentBytes() + item.getSentBytes());
+            root.setTotalReceivedBytes(root.getTotalReceivedBytes() + item.getReceivedBytes());
         });
-
-        listNodes.forEach(item -> {
-            item.setId(PROTOCOL_NODE + item.getId());
+        nodes.forEach(item -> {
+            item.setId(Constants.PROTOCOL_TREE_ROOT_NAME + Constants.ENCAPSULATION_PATH_SEPARATOR + item.getId());
         });
-
-        listNodes.add(root);
-        return listNodes;
+        nodes.add(root);
+        return nodes;
     }
 
     private Map<String, String> executeQuery(String sql) {
@@ -333,28 +313,133 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     }
 
 
-    private List<ProtocolTree> parserRawData(String jsonString) {
-        List<ProtocolTree> lists = Lists.newArrayList();
-        Map<String, Object> results = (Map<String, Object>) JsonMapper.fromJsonString(jsonString, Map.class);
-        long sessions = Long.parseLong(results.get("sessions").toString());
-        long sentBytes = Long.parseLong(results.get("c2s_byte_num").toString());
-        long receivedBytes = Long.parseLong(results.get("s2c_byte_num").toString());
-        long sentPackets = Long.parseLong(results.get("c2s_pkt_num").toString());
-        long receivedPackets = Long.parseLong(results.get("s2c_pkt_num").toString());
-        String protocolId = results.get("protocol_id").toString();
-        List<String> protocolList = Lists.newArrayList(protocolId.split("/"));
-        ProtocolTree protocolTree = new ProtocolTree(protocolId, protocolList.size() <= 0 ? null : protocolList.get(protocolList.size() - 1), null);
-        protocolTree.setSentBytes(sentBytes);
-        protocolTree.setReceivedBytes(receivedBytes);
-        protocolTree.getMetrics().put("sentPackets", sentPackets);
-        protocolTree.getMetrics().put("receivedPackets", receivedPackets);
-        protocolTree.getMetrics().put("sessions", sessions);
-        lists.add(protocolTree);
-        return lists;
+    private ProtocolTree convertStringToObject(String protocolString) {
+        ProtocolTree protocolTree = null;
+        try {
+           Map<String, Object> results = (Map<String, Object>) JsonMapper.fromJsonString(protocolString, Map.class);
+           String protocolId = String.valueOf(results.get("protocol_id"));
+           if (StringUtil.isBlank(protocolId)) {
+               log.warn("Protocol ID is NULL {}", protocolString);
+               return null;
+           }
+           long sessions = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_SESSIONS)).orElse(0).toString());
+           long sentBytes = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_C2S_BYTE_NUM)).orElse(0).toString());
+           long receivedBytes = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_S2C_BYTE_NUM)).orElse(0).toString());
+           long sentPackets = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_C2S_PKT_NUM)).orElse(0).toString());
+           long receivedPackets = Long.parseLong(Optional.ofNullable(
+                   results.get(Constants.PROTOCOL_TREE_METRIC_S2C_PKT_NUM)).orElse(0).toString());
+           List<String> protocols = Splitter.on(Constants.ENCAPSULATION_PATH_SEPARATOR).omitEmptyStrings().splitToList(protocolId);
+           String protocolName = StringUtil.isNotEmpty(protocols) ? protocols.get(protocols.size()-1): null;
+           protocolTree = new ProtocolTree(protocolId, protocolName, null);
+           protocolTree.setSentBytes(sentBytes);
+           protocolTree.setReceivedBytes(receivedBytes);
+           protocolTree.getMetrics().put(Constants.PROTOCOL_TREE_METRIC_SENT_PACKETS, sentPackets);
+           protocolTree.getMetrics().put(Constants.PROTOCOL_TREE_METRIC_RECEIVED_PACKETS, receivedPackets);
+           protocolTree.getMetrics().put(Constants.PROTOCOL_TREE_METRIC_SESSIONS, sessions);
+       } catch (BusinessException e) {
+           log.error("Convert Json String to  Protocol Tree Object Error ", e);
+       }
+
+        return protocolTree;
     }
 
-    private List<ProtocolTree> getListProtocol(List<ProtocolTree> listNodes) {
-        Map<String, List<ProtocolTree>> resultMap = listNodes.stream().collect(Collectors.groupingBy(ProtocolTree::getId));
+    @Override
+    public List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes) {
+
+        List<ProtocolTree> targetNodes = groupByName(nodes);
+
+        targetNodes.sort(new Comparator<ProtocolTree>() {
+            @Override
+            public int compare(ProtocolTree o1, ProtocolTree o2) {
+                return (o2.getReceivedBytes() + o2.getSentBytes()) - (o1.getReceivedBytes() + o1.getSentBytes()) > 0 ? 1 : -1;
+            }
+        });
+        Map<String, List<ProtocolTree>> protocolMap = Maps.newLinkedHashMap();
+        List<ProtocolTree> roots = targetNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
+        protocolMap.put(Constants.PROTOCOLS_PARENT_ID, roots);
+        targetNodes.stream().filter(o -> StringUtil.isNotBlank(o.getParentId())).forEach(x->{
+            if (StringUtil.isEmpty(protocolMap.get(x.getParentId()))) {
+                protocolMap.put(x.getParentId(), Lists.newArrayList(x));
+            } else {
+                protocolMap.get(x.getParentId()).add(x);
+            }
+        });
+
+        List<ProtocolTree> protocolTreeList = TreeUtils.mergeTree(protocolMap, Constants.PROTOCOLS_PARENT_ID, ProtocolTree::getId, ProtocolTree::setChildrens);
+        for (ProtocolTree protocolTree : protocolTreeList) {
+            List<ProtocolTree> ethernetList = protocolTree.getChildrens().stream().filter(
+                    p -> Constants.PROTOCOL_ETHERNET_NODE.equals(p.getName())).collect(Collectors.toList());
+            if (protocolTree.getChildrens().size() != ethernetList.size()) {
+                protocolTree.setChildrens(ethernetList);
+                protocolTree.setReceivedBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getReceivedBytes());
+                protocolTree.setSentBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getSentBytes());
+                log.warn("Protocol Tree Exceptional data occurs and non-{} protocols are filtered out: {}", Constants.PROTOCOL_ETHERNET_NODE, protocolTree.getChildrens());
+            }
+        }
+
+        return protocolTreeList;
+
+    }
+
+    /**
+     *  基于Name聚合，统计Protocol和Application在全栈下的流量
+     * @param nodes
+     * @return
+     */
+    private List<ProtocolTree> groupByName(List<ProtocolTree> nodes) {
+        Map<String, List<ProtocolTree>> resultMap = nodes.stream()
+                .collect(Collectors.groupingBy(ProtocolTree::getName, Collectors.collectingAndThen(Collectors.toList(), protocolTreeList->{
+
+                    List<ProtocolTree> parentNodes = protocolTreeList.stream()
+                                .filter(p -> StringUtil.isBlank(p.getParentId()) || !Splitter.on(".").omitEmptyStrings().splitToList(p.getParentId()).contains(p.getName()))
+                                .collect(Collectors.toList());
+                    Map<String,Long> summedMetrics = Maps.newLinkedHashMap();
+                    Map<String,Long> totalBytesMetrics = Maps.newLinkedHashMap();
+                    totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES, 0L);
+                    totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES, 0L);
+
+                    parentNodes.stream().filter(p -> !p.getName().equalsIgnoreCase(Constants.PROTOCOL_TREE_ROOT_NAME)).forEach(protocolTree->{
+                        totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES, totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES) + protocolTree.getSentBytes());
+                        totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES, totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES) + protocolTree.getReceivedBytes());
+                        for (String key : protocolTree.getMetrics().keySet()) {
+                            String totalKey = StrUtil.upperFirstAndAddPre(key, "total");
+                            if (StringUtil.isEmpty(summedMetrics.get(totalKey))) {
+                                summedMetrics.put(totalKey, Long.valueOf(protocolTree.getMetrics().get(key).toString()));
+                            } else {
+                                summedMetrics.put(totalKey,  summedMetrics.get(totalKey)
+                                        + Long.parseLong(protocolTree.getMetrics().get(key).toString()));
+                            }
+                        }
+                    });
+
+                    protocolTreeList.stream().filter(p -> !p.getName().equalsIgnoreCase(Constants.PROTOCOL_TREE_ROOT_NAME)).forEach(protocolTree->{
+                        protocolTree.setTotalSentBytes(totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES));
+                        protocolTree.setTotalReceivedBytes(totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES));
+                        protocolTree.getMetrics().putAll(summedMetrics);
+                    });
+
+                    return protocolTreeList;
+                })));
+
+        List<ProtocolTree> protocolTreeList = Lists.newArrayList();
+        resultMap.values().forEach(o -> {
+            protocolTreeList.addAll(o);
+        });
+
+        return protocolTreeList;
+    }
+
+    /**
+     * 基于Protocol ID 进行二次聚合，已基于Druid group by protocol id 聚合。
+     * @param nodes
+     * @return
+     */
+    private List<ProtocolTree> groupByProtocolId(List<ProtocolTree> nodes) {
+        Map<String, List<ProtocolTree>> resultMap = nodes.stream().collect(Collectors.groupingBy(ProtocolTree::getId));
         Map<String, Object> mergeResultMap =
                 Maps.transformValues(resultMap, new com.google.common.base.Function<List<ProtocolTree>, Object>() {
                     @Nullable
@@ -366,44 +451,36 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         if (input.size() == 1) {
                             return input.get(0);
                         }
-                        ProtocolTree firstProtocolTree = input.get(0);
-                        ProtocolTree mergeProtocolTree = new ProtocolTree(firstProtocolTree.getId(), firstProtocolTree.getName(),
-                                firstProtocolTree.getParentId(), 0, 0);
-                        mergeProtocolTree.setMetrics(Maps.newLinkedHashMap());
-
+                        ProtocolTree mergedProtocolTree = new ProtocolTree(input.get(0).getId(), input.get(0).getName(),
+                                input.get(0).getParentId());
+                        Map<String,Object> summedMetrics = Maps.newLinkedHashMap();
                         for (ProtocolTree protocolTree : input) {
-                            mergeProtocolTree.setSentBytes(mergeProtocolTree.getSentBytes() + protocolTree.getSentBytes());
-                            mergeProtocolTree.setReceivedBytes(mergeProtocolTree.getReceivedBytes() + protocolTree.getReceivedBytes());
+                            mergedProtocolTree.setSentBytes(mergedProtocolTree.getSentBytes() + protocolTree.getSentBytes());
+                            mergedProtocolTree.setReceivedBytes(mergedProtocolTree.getReceivedBytes() + protocolTree.getReceivedBytes());
                             for (String key : protocolTree.getMetrics().keySet()) {
-                                if (StringUtil.isEmpty(mergeProtocolTree.getMetrics().get(key))) {
-                                    mergeProtocolTree.getMetrics().put(key, protocolTree.getMetrics().get(key));
+                                if (StringUtil.isEmpty(summedMetrics.get(key))) {
+                                    summedMetrics.put(key, protocolTree.getMetrics().get(key));
                                 } else {
-                                    long sumValue = Long.parseLong(mergeProtocolTree.getMetrics().get(key).toString())
+                                    long sumValue = Long.parseLong(summedMetrics.get(key).toString())
                                             + Long.parseLong(protocolTree.getMetrics().get(key).toString());
-                                    mergeProtocolTree.getMetrics().put(key, sumValue);
+                                    summedMetrics.put(key, sumValue);
                                 }
+
+
                             }
-
                         }
+                        mergedProtocolTree.setMetrics(summedMetrics);
 
-                        return mergeProtocolTree;
+                        return mergedProtocolTree;
                     }
                 });
-        List<ProtocolTree> mergeNodes = new ArrayList(mergeResultMap.values());
-        return TreeUtils.mergeTree(mergeNodes, ProtocolTree::getId, ProtocolTree::getParentId, ProtocolTree::setChildrens);
+        List<ProtocolTree> mergeResultList = new ArrayList(mergeResultMap.values());
+        return mergeResultList;
     }
 
-    enum QueryType {
 
-        PROTOCOL_TREE_SUMMARY("protocolTreeSummary"), PROTOCOL_DATA_RATE_SUMMARY("protocolDataRateSummary"), NETWORK_OVERVIEW_SUMMARY("networkOverviewSummary");
-        private final String value;
-
-        QueryType(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
+    @Override
+    public void setEnvironment(Environment environment) {
+        env = environment;
     }
 }

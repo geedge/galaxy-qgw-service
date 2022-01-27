@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.nutz.json.JsonIgnore;
 
 import java.io.Serializable;
 @Data
@@ -17,10 +16,11 @@ public class ApiParam implements Serializable {
     private String query;
     private String option;
     private String format;
+    private Double sampleRatio;
     private String schema;
     private String tableName;
     private String dbType;// 数据库类型
-    private String queryId;// 唯一查询标识
+    private String queryId;// SQL 语句的唯一标识
     private String dialectDBType; //方言数据库类型，用于SQL格式解析校验
     private String reportId;//离线统计报告唯一ID
     private String resultId;//离线统计报告结果ID
@@ -39,5 +39,9 @@ public class ApiParam implements Serializable {
 
     public void setResultId(String resultId) {
         this.resultId = resultId;
+    }
+
+    public  boolean queryParamIsNull() {
+        return StringUtil.isBlank(query);
     }
 }

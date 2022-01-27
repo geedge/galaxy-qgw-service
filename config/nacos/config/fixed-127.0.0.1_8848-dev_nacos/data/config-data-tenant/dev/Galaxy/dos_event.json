@@ -1,0 +1,344 @@
+{
+  "type": "record",
+  "name": "dos_event",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "log_id",
+    "partition_key": "start_time",
+    "functions": {
+      "aggregation": [
+        {
+          "name": "COUNT",
+          "label": "COUNT",
+          "function": "count(expr)"
+        },
+        {
+          "name": "COUNT_DISTINCT",
+          "label": "COUNT_DISTINCT",
+          "function": "count(distinct expr)"
+        },
+        {
+          "name": "AVG",
+          "label": "AVG",
+          "function": "avg(expr)"
+        },
+        {
+          "name": "SUM",
+          "label": "SUM",
+          "function": "sum(expr)"
+        },
+        {
+          "name": "MAX",
+          "label": "MAX",
+          "function": "max(expr)"
+        },
+        {
+          "name": "MIN",
+          "label": "MIN",
+          "function": "min(expr)"
+        }
+      ],
+      "operator": [
+        {
+          "name": "=",
+          "label": "=",
+          "function": "expr = value"
+        },
+        {
+          "name": "!=",
+          "label": "!=",
+          "function": "expr != value"
+        },
+        {
+          "name": ">",
+          "label": ">",
+          "function": "expr > value"
+        },
+        {
+          "name": "<",
+          "label": "<",
+          "function": "expr < value"
+        },
+        {
+          "name": ">=",
+          "label": ">=",
+          "function": "expr >= value"
+        },
+        {
+          "name": "<=",
+          "label": "<=",
+          "function": "expr <= value"
+        },
+        {
+          "name": "has",
+          "label": "HAS",
+          "function": "has(expr, value)"
+        },
+        {
+          "name": "in",
+          "label": "IN",
+          "function": "expr in (values)"
+        },
+        {
+          "name": "not in",
+          "label": "NOT IN",
+          "function": "expr not in (values)"
+        },
+        {
+          "name": "like",
+          "label": "LIKE",
+          "function": "expr like value"
+        },
+        {
+          "name": "not like",
+          "label": "NOT LIKE",
+          "function": "expr not like value"
+        },
+        {
+          "name": "notEmpty",
+          "label": "NOT EMPTY",
+          "function": "notEmpty(expr)"
+        },
+        {
+          "name": "empty",
+          "label": "EMPTY",
+          "function": "empty(expr)"
+        }
+      ]
+    },
+    "schema_query": {
+      "references": {
+        "aggregation": [
+          {
+            "type": "int",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          },
+          {
+            "type": "long",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          },
+          {
+            "type": "float",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          },
+          {
+            "type": "double",
+            "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          },
+          {
+            "type": "string",
+            "functions": "COUNT,COUNT_DISTINCT"
+          },
+          {
+            "type": "date",
+            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          },
+          {
+            "type": "timestamp",
+            "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+          }
+        ],
+        "operator": [
+          {
+            "type": "int",
+            "functions": "=,!=,>,<,>=,<=,in,not in"
+          },
+          {
+            "type": "long",
+            "functions": "=,!=,>,<,>=,<=,in,not in"
+          },
+          {
+            "type": "float",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "double",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "string",
+            "functions": "=,!=,in,not in,like,not like,notEmpty,empty"
+          },
+          {
+            "type": "date",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "timestamp",
+            "functions": "=,!=,>,<,>=,<="
+          },
+          {
+            "type": "array",
+            "functions": "has"
+          }
+        ]
+      }
+    },
+    "default_columns": [
+      "log_id",
+      "attack_type",
+      "source_ip_list",
+      "destination_ip",
+      "severity",
+      "start_time",
+      "end_time",
+      "packet_rate",
+      "bit_rate",
+      "session_rate"
+    ],
+    "internal_columns": [
+      "start_time",
+      "log_id",
+      "end_time"
+    ]
+  },
+  "fields": [
+    {
+      "name": "start_time",
+      "label": "Start Time",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "timestamp"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "end_time",
+      "label": "End Time",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "timestamp"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "log_id",
+      "label": "Log ID",
+      "doc": {
+        "format": {
+          "functions": "snowflake_id"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "attack_type",
+      "label": "Attack Type",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "TCP SYN Flood",
+            "value": "TCP SYN Flood"
+          },
+          {
+            "code": "UDP Flood",
+            "value": "UDP Flood"
+          },
+          {
+            "code": "ICMP Flood",
+            "value": "ICMP Flood"
+          },
+          {
+            "code": "DNS Flood",
+            "value": "DNS Flood"
+          }
+        ]
+      },
+      "type": "string"
+    },
+    {
+      "name": "severity",
+      "label": "Severity",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "Critical",
+            "value": "Critical"
+          },
+          {
+            "code": "Severe",
+            "value": "Severe"
+          },
+          {
+            "code": "Major",
+            "value": "Major"
+          },
+          {
+            "code": "Warning",
+            "value": "Warning"
+          },
+          {
+            "code": "Minor",
+            "value": "Minor"
+          }
+        ]
+      },
+      "type": "string"
+    },
+    {
+      "name": "conditions",
+      "label": "Conditions",
+      "type": "string"
+    },
+    {
+      "name": "destination_ip",
+      "label": "Destination IP",
+      "type": "string"
+    },
+    {
+      "name": "destination_country",
+      "label": "Destination Country",
+      "type": "string"
+    },
+    {
+      "name": "source_ip_list",
+      "label": "Source IPs",
+      "type": "string"
+    },
+    {
+      "name": "source_country_list",
+      "label": "Source Countries",
+      "type": "string"
+    },
+    {
+      "name": "session_rate",
+      "label": "Sessions/s",
+      "doc": {
+        "constraints": {
+          "type": "sessions/sec"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "packet_rate",
+      "label": "Packets/s",
+      "doc": {
+        "constraints": {
+          "type": "packets/sec"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "bit_rate",
+      "label": "Bits/s",
+      "doc": {
+        "constraints": {
+          "type": "bits/sec"
+        }
+      },
+      "type": "long"
+    }
+  ]
+}

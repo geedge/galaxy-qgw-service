@@ -7,11 +7,13 @@ import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.AuditServiceLog;
 import com.zdjizhi.utils.IPUtil;
 import com.zdjizhi.utils.StringUtil;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -22,6 +24,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Optional;
 
 
 @Aspect
@@ -46,63 +49,71 @@ public class AuditLogAspect {
         String method = request.getMethod();
         String remoteAddr = request.getRemoteAddr();
         String clientIp = IPUtil.getIpAddr(request);
-        String class_method = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
-        String param = Arrays.toString(joinPoint.getArgs());
+        String classMethod = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
+        Object paramObject = joinPoint.getArgs()[0];
 
         MethodSignature sign =  (MethodSignature)joinPoint.getSignature();
         Method method2 = sign.getMethod();
         AuditLog annotation = method2.getAnnotation(AuditLog.class);
-
         AuditServiceLog auditServiceLog =  new AuditServiceLog();
-        auditServiceLog.setUrl(url);
-        auditServiceLog.setMethod(method);
+        auditServiceLog.setAnnotation(annotation.value());
         auditServiceLog.setRemoteAddr(remoteAddr);
         auditServiceLog.setClientIp(clientIp);
-        auditServiceLog.setClassMethod(class_method);
+        auditServiceLog.setMethod(method);
         if (log.isDebugEnabled()) {
-            auditServiceLog.setParam(param);
+            auditServiceLog.setParam(Optional.ofNullable(paramObject).orElse("").toString());
+            auditServiceLog.setUrl(url);
+            auditServiceLog.setClassMethod(classMethod);
         }
-        auditServiceLog.setAnnotation(annotation.value());
-        String queryString = request.getQueryString();
-        auditServiceLog.setQueryKey(DigestUtil.md5Hex(StringUtil.isNotBlank(queryString) ? queryString : ""));
+
+        auditServiceLog.setCacheKey(DigestUtil.md5Hex(Optional.ofNullable(request.getQueryString()).orElse("")));
+
+        if (paramObject instanceof ApiParam) {
+            ApiParam  apiParam = (ApiParam) paramObject;
+            if (!apiParam.queryParamIsNull()) {
+                auditServiceLog.setQueryKey(SQLHelper.getQueryId(apiParam.getResultId(), apiParam.getQuery()));
+            }
+        }
+
+
 
         auditLog.set(auditServiceLog);
     }
 
     @AfterThrowing(value = "annotationPointCut()", throwing = "exception")
-    public void doAfterThrowingAdvice(JoinPoint joinPoint,Throwable exception){
-        log.error("Audit log [error]:" + joinPoint.getSignature().getName() + exception);
+    public void doAfterThrowingAdvice(JoinPoint joinPoint, Throwable exception){
+        AuditServiceLog logAfter =  auditLog.get();
+        logAfter.setQueryKey("");
+        logAfter.setParam(Arrays.toString(joinPoint.getArgs()));
+        log.error("Audit Log [error]:{}", JsonMapper.toJsonString(logAfter));
 
     }
 
 
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
-        ApiParam param = (ApiParam) joinPoint.getArgs()[0];
-        auditLog.get().setDbType(param.getDbType());
-
+       if (joinPoint.getArgs()[0] instanceof ApiParam) {
+           ApiParam param = (ApiParam) joinPoint.getArgs()[0];
+           auditLog.get().setDbType(param.getDbType());
+       }
     }
-
 
 
 
     @AfterReturning(returning = "result", pointcut = "annotationPointCut()")
     public void doAfterReturning(Object result) {
-
         AuditServiceLog logAfter =  auditLog.get();
-        if (StringUtil.isNotEmpty(result) ) {
-            QueryCacheUtils.put(logAfter.getQueryKey(), result);
+        if (StringUtil.isNotEmpty(result)) {
+            QueryCacheUtils.put(logAfter.getCacheKey(), result);
         }
-
         if(result instanceof BaseResult){
             BaseResult baseResult = (BaseResult) result;
             baseResult.setQueryKey(logAfter.getQueryKey());
         }
-
         Long exeTime = System.currentTimeMillis() - startTime.get();
         logAfter.setExeTime(exeTime);
 
-        log.info("Audit Log [completed]：" + JsonMapper.toJsonString(logAfter));
+        log.info("Audit Log [completed]:{}", JsonMapper.toJsonString(logAfter));
 
     }
 

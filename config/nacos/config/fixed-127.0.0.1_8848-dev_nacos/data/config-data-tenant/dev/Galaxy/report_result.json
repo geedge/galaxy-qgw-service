@@ -1,0 +1,7 @@
+{
+  "type": "record",
+  "name": "report_result",
+  "namespace": "tsg",
+  "fields": [
+  ]
+}

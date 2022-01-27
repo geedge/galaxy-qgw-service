@@ -1,27 +1,23 @@
 package com.mesalab.qgw.model.api.udf;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ConvertUtil;
-import com.mesalab.common.utils.SQLFunctionUtil;
+import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
-import com.mesalab.qgw.service.impl.ApiServiceImpl;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.Parenthesis;
@@ -40,7 +36,7 @@ import java.util.*;
 public class TIME_FLOOR_WITH_FILL implements UDF{
     private static final Log log = LogFactory.get();
     @Autowired
-    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("nacosMetadataService");
+    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private String name;
     private String timestamp;
@@ -93,8 +89,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     @Override
     public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
         List<Map<String, Object>>  targetResult = null;
-        String groupLabel= null;
+        List<String> groupLabels = Lists.newArrayList();
         String timeGranLabel = null;
+
 
         try {
             Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
@@ -106,7 +103,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                         groupDimension.get(groupKey).contains(timestamp)) {
                     timeGranLabel = groupKey;
                 } else {
-                    groupLabel = Joiner.on(ConvertUtil.GROUP_SEPRATOR).skipNulls().join(groupKey, groupLabel);
+                    groupLabels.add(groupKey);
                 }
 
             }
@@ -136,10 +133,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 return results;
             }
 
-            if (StringUtil.isNotEmpty(dateRangeList) &&
-                    dateRangeList.size() > 2) {
-                dateRangeList = dateRangeList.subList(1, dateRangeList.size() - 1);
-            } else {
+            if (StringUtil.isNotEmpty(dateRangeList)
+                    && !whereTimeRange.isMinorThanEquals()
+                    && DateUtil.toInstant(DateUtils.convertStringToDate((whereTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS))
+                    .compareTo(DateUtil.toInstant(dateRangeList.get(dateRangeList.size() - 1))) == 0) {
+                dateRangeList.remove(dateRangeList.size() - 1);
+            }
+            if (StringUtil.isEmpty(dateRangeList)) {
                 return results;
             }
 
@@ -151,36 +151,36 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
 
 
-            Map<String, Map<String, Map<String, Object>>> targetTimeseriesMap =  ConvertUtil.convertResultListToTimeseries(results,
-                    groupLabel, timeGranLabel);
+            Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap =  ConvertUtil.convertResultListToTimeSeries(results,
+                    groupLabels, timeGranLabel);
 
-            int actualSeriesNum = maxSeriesNum > targetTimeseriesMap.size() ? targetTimeseriesMap.size() : maxSeriesNum;
+            int actualSeriesNum = maxSeriesNum > targetTimeSeriesMap.size() ? targetTimeSeriesMap.size() : maxSeriesNum;
 
             if (actualSeriesNum > 0) {
 
-                Map<String, Map<String, Map<String, Object>>> limitTimeseriesMap = Maps.newLinkedHashMap();
+                Map<String, Map<String, Map<String, Object>>> limitTimeSeriesMap = Maps.newLinkedHashMap();
                 int i = 1;
-                for (Map.Entry<String, Map<String, Map<String, Object>>> entry: targetTimeseriesMap.entrySet()) {
-                    limitTimeseriesMap.put(entry.getKey(), entry.getValue());
+                for (Map.Entry<String, Map<String, Map<String, Object>>> entry: targetTimeSeriesMap.entrySet()) {
+                    limitTimeSeriesMap.put(entry.getKey(), entry.getValue());
                     if (++i > actualSeriesNum) {
                         break;
                     }
 
                 }
-                targetTimeseriesMap.clear();
-                targetTimeseriesMap.putAll(limitTimeseriesMap);
+                targetTimeSeriesMap.clear();
+                targetTimeSeriesMap.putAll(limitTimeSeriesMap);
             }
 
             if(StringUtil.isNotEmpty(dateRangeList)){
 
-                for (String key : targetTimeseriesMap.keySet()) {
-                    targetTimeseriesMap.put(key,ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeseriesMap.get(key), dateRangeList, fill.toString()));
+                for (String key : targetTimeSeriesMap.keySet()) {
+                    targetTimeSeriesMap.put(key,ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill.toString()));
                 }
             }
 
-            targetResult = ConvertUtil.convertTimeseriesToList(targetTimeseriesMap, groupLabel, timeGranLabel);
+            targetResult = ConvertUtil.convertTimeSeriesToList(targetTimeSeriesMap, groupLabels, timeGranLabel);
             if (StringUtil.isNotBlank(sqlQuerySource.getLimit())
-                    && !sqlQuerySource.getLimit().equalsIgnoreCase(ApiServiceImpl.UNVALID_LIMIT_DESC)
+                    && !sqlQuerySource.getLimit().equalsIgnoreCase(SQLHelper.INVALID_LIMIT_DESC)
                     && targetResult.size() > Integer.parseInt(sqlQuerySource.getLimit())) {
                 targetResult = targetResult.subList(0, Integer.parseInt(sqlQuerySource.getLimit()));
             }
@@ -256,8 +256,10 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 }
                 if (operator.contains("<")) {
                     whereTimeRange.setEnd(query);
+                    whereTimeRange.setMinorThanEquals(operator.contains("="));
                 } else if (operator.contains(">")) {
                     whereTimeRange.setStart(query);
+                    whereTimeRange.setGreaterThanEquals(operator.contains("="));
                 }
             } else if (partitionKey.equals(right.toString())) {
                 String query;
@@ -270,8 +272,10 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 }
                 if (operator.contains("<")) {
                     whereTimeRange.setStart(query);
+                    whereTimeRange.setGreaterThanEquals(operator.contains("="));
                 } else if (operator.contains(">")) {
                     whereTimeRange.setEnd(query);
+                    whereTimeRange.setMinorThanEquals(operator.contains("="));
                 }
             }
         } else if (whereExpression instanceof Between) {
@@ -279,7 +283,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             Expression leftExpression = whereBetween.getLeftExpression();
             if (partitionKey.equals(leftExpression.toString())) {
                 whereTimeRange.setStart(whereBetween.getBetweenExpressionStart().toString());
+                whereTimeRange.setGreaterThanEquals(true);
                 whereTimeRange.setEnd(whereBetween.getBetweenExpressionEnd().toString());
+                whereTimeRange.setMinorThanEquals(true);
             }
         } else if (whereExpression instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) whereExpression;
@@ -297,25 +303,12 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     }
 
 
+    @Data
     private class WhereTimeRange {
         private String start;
+        private boolean greaterThanEquals;
         private String end;
-
-        public String getStart() {
-            return start;
-        }
-
-        public void setStart(String start) {
-            this.start = start;
-        }
-
-        public String getEnd() {
-            return end;
-        }
-
-        public void setEnd(String end) {
-            this.end = end;
-        }
+        private boolean minorThanEquals;
     }
 
 

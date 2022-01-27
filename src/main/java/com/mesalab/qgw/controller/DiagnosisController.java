@@ -1,17 +1,19 @@
 package com.mesalab.qgw.controller;
 
+import cn.hutool.http.HttpStatus;
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.qgw.model.api.ApiParam;
+import com.mesalab.common.enums.DiagnosisOptionEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.DiagnosisService;
-import com.mesalab.qgw.service.impl.DiagnosisServiceImpl;
-import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Arrays;
 
 /**
  * Galaxy日志自动诊断接口
@@ -22,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DiagnosisController {
 
     @Autowired
-   private DiagnosisService diagnosisService;
+    private DiagnosisService diagnosisService;
 
     @RequestMapping(value = "/schema")
     public BaseResult validateSchema() {
@@ -35,14 +37,12 @@ public class DiagnosisController {
     }
 
     @RequestMapping(value = "/runSql")
-    public BaseResult executePocSql(String isSaved) {
-        if (StringUtil.isNotBlank(isSaved)) {
-            return diagnosisService.runPocSQL(Boolean.valueOf(isSaved));
-        } else {
-            return diagnosisService.runPocSQL(false);
+    public BaseResult executePocSql(String isSaved, @RequestParam(defaultValue = "validation") String option) throws BusinessException {
+        if (Arrays.stream(DiagnosisOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(option))) {
+            throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The option must be either validation or execution");
         }
-
-
+        return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved), option);
     }
 
     @RequestMapping({"/sql", "/sql/{dialect}/{queryNo}"})
