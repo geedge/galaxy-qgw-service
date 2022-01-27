@@ -12,7 +12,7 @@ build:
   only:
     - tags
   tags:
-    - GN-XXG-Server
+    - GN-XXG-Server-153
 
 clean:
   stage: clean
@@ -24,7 +24,7 @@ clean:
   only:
     - tags
   tags:
-    - GN-XXG-Server
+    - GN-XXG-Server-153
 deploy:
   stage: deploy
   script:
@@ -35,4 +35,4 @@ deploy:
   only:
     - tags
   tags:
-    - GN-XXG-Server
+    - GN-XXG-Server-153
