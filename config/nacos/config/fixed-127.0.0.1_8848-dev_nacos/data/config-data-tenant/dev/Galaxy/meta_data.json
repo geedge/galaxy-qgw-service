@@ -18,7 +18,8 @@
         "proxy_event",
         "dos_event",
         "active_defence_event",
-        "sys_packet_capture_event"
+        "sys_packet_capture_event",
+        "assessment_event"
       ]
     },
     {
