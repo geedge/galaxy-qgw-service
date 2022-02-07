@@ -1,4 +1,4 @@
- Release 350 (TSG-22.01)
+ Release 351 (TSG-22.01)
  * 新增密码加密接口，敏感数据加密(TSG-8835)
  * 扩展statistics统计，clickhouse增加选项bytes_read，显示执行SQL时所加载的字节数量
  * 扩展Live Chart，支持Encapsulation Paths和Protocols and Applications 数量统计(TSG-9061)

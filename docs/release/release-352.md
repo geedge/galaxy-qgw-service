@@ -1,1 +1,6 @@
  Release 352 (TSG-22.02)
+ * 优化Filed-Discovery功能，支持时间分片功能(TSG-9301)
+ * 修复粒度补全函数，解决TIME_FLOOR_WITH_FILL补全时首尾缺失BUG(TSG-9235)
+ * 完善Schema，sip_duration修正为sip_duration_s(TSG-9502)
+ * 扩展Schema，新增ssl_passthrough_reason字段(TSG-9299)
+ * 扩展Schema，新增评价文件事件日志(TSG-9472)
