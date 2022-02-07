@@ -37,6 +37,7 @@ import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
 @PropertySource(value = "classpath:job-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class TaskExecuteService implements EnvironmentAware {
     private static final Log log = LogFactory.get();
+    private static final int TOP_MAX = 28800;
     @Autowired
     Environment env;
     @Autowired
@@ -84,11 +85,11 @@ public class TaskExecuteService implements EnvironmentAware {
 
     private void updateResult(String id, String field, long currentCount, Object lastCount, List<Object> topList) {
         Map<String, Object> map = Maps.newHashMap();
-        map.put("topk", topList.size() > 28800 ? topList.subList(0, 28800) : topList);
+        map.put("topk", topList.size() > TOP_MAX ? topList.subList(0, TOP_MAX) : topList);
         map.put("distinct_count", Math.min(topList.size(), 100));
         map.put("count", currentCount + Long.parseLong(lastCount.toString()));
 
-        String result = JsonMapper.toJsonString(map).replace("'", "\\'").replaceAll("\\\"", "\\\\\"");
+        String result = JsonMapper.toJsonString(map).replace("\\n", " ").replace("\\r", " ").replace("\\t", " ");
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_RESULT")),
                 field, id, result));
     }
