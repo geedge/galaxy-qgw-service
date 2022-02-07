@@ -21,7 +21,6 @@ public class JobConfig {
     public static final String DISCOVERY_FIELD= "discovery_field";
     public static final String DURATION_TIME= "duration_time";
     public static final String QUERY_DATA_SOURCE = "query.data_source";
-    public static final String QUERY_SAMPLE_RATIO = "query.sample_ratio";
     public static final String CUSTOM_FIELD_DISCOVERY_FIELDS = "custom.field_discovery.fields";
     public static final String CUSTOM_FIELD_DISCOVERY_FILTER = "custom.field_discovery.filter";
 

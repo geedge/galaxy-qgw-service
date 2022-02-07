@@ -109,7 +109,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     private void executeJob(JobInfo jobInfo, Stopwatch watch, Map<String, Object> param, String newFilter) {
-        long currentCount = getCount(param, newFilter);
+        long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter);
         if (currentCount == 0 || isCancel(jobInfo.getId())) {
             return;
         }
@@ -120,7 +120,7 @@ public class JobExecuteService implements EnvironmentAware {
         List<Future<Boolean>> list = Lists.newArrayList();
         List<String> fields = (List<String>) param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FIELDS);
         for (String field : fields) {
-            list.add(taskExecuteService.execute(jobInfo.getId(), param, newFilter, field, currentCount));
+            list.add(taskExecuteService.execute(jobInfo.getId(), param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter, field, currentCount));
         }
         updateProcess(jobInfo, watch, fields, list);
     }
@@ -162,11 +162,10 @@ public class JobExecuteService implements EnvironmentAware {
         return false;
     }
 
-    private Long getCount(Map<String, Object> param, String filter) {
+    private Long getCount(String logType, String filter) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_LOG_COUNT")),
-                param.get(JobConfig.QUERY_DATA_SOURCE), StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
-        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql)
-                .sampleRatio(Double.parseDouble(param.get(JobConfig.QUERY_SAMPLE_RATIO).toString())).build());
+                logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
+        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
         if (baseResult.isSuccess()) {
             List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
             Object count = data.get(0).get("count");

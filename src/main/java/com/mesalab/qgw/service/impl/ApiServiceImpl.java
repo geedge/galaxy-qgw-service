@@ -65,8 +65,6 @@ public class ApiServiceImpl implements ApiService {
     }
 
     public static final int MAX_PARSER_LEVEL = 5;
-    public static final double MAX_SAMPLE_RATIO = 1.0;
-    public static final double MIN_SAMPLE_RATIO = 0.0;
     public static final String PARSER_EXCEPTION_CLASS_NAME = "net.sf.jsqlparser.parser.ParseException:";
     public static final String PARSER_EXCEPTION_IDENTIFICATION = "Was expecting one of:";
     public static final Pattern PATTERN_ANGLE_BRACKET = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE);
@@ -119,15 +117,6 @@ public class ApiServiceImpl implements ApiService {
         }
         if (StringUtil.isBlank(param.getFormat())) {
             param.setFormat(QueryFormatEnum.JSON.getValue());
-        }
-        if (StringUtil.isEmpty(param.getSampleRatio())) {
-            param.setSampleRatio(MAX_SAMPLE_RATIO);
-        } else {
-            if (param.getSampleRatio() < MIN_SAMPLE_RATIO || param.getSampleRatio() > MAX_SAMPLE_RATIO) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        "Param Syntax Error: The sampleRatio, must range in [0-1].", null);
-            }
-
         }
         if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
