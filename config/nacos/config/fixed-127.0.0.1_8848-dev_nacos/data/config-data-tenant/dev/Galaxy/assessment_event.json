@@ -43,6 +43,9 @@
     {
       "name": "features",
       "label": "Features",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "string"
     },
     {
