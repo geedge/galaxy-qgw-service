@@ -65,9 +65,11 @@ public class TaskExecuteService implements EnvironmentAware {
             List<Map> map = (List<Map>) lastTop.getData();
             if (StringUtil.isNotEmpty(map.get(0).get(field))) {
                 Map o = (Map) JsonMapper.fromJsonString(String.valueOf(map.get(0).get(field)), Map.class);
-                List<Map<String, Object>> topk = (List<Map<String, Object>>) o.get("topk");
-                lastCount = o.get("count");
-                data.addAll(topk);
+                if (StringUtil.isNotEmpty(o)) {
+                    List<Map<String, Object>> topk = (List<Map<String, Object>>) o.get("topk");
+                    lastCount = o.get("count");
+                    data.addAll(topk);
+                }
             }
         }
         List<Object> topResult = mergeSort(data);
@@ -89,7 +91,7 @@ public class TaskExecuteService implements EnvironmentAware {
         map.put("distinct_count", Math.min(topList.size(), 100));
         map.put("count", currentCount + Long.parseLong(lastCount.toString()));
 
-        String result = JsonMapper.toJsonString(map).replace("\\n", " ").replace("\\r", " ").replace("\\t", " ");
+        String result = JsonMapper.toJsonString(map).replace("\\n", " ").replace("\\r", " ").replace("\\t", " ").replace("'", "\\'").replaceAll("\\\"", "\\\\\"");;
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_RESULT")),
                 field, id, result));
     }

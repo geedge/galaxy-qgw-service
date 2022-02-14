@@ -103,6 +103,9 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             Object o = map.get(field);
             if (StringUtil.isNotEmpty(o)) {
                 Map fieldResult = (Map) JsonMapper.fromJsonString(String.valueOf(o), Map.class);
+                if (StringUtil.isEmpty(fieldResult)) {
+                    continue;
+                }
                 List<Object> topK = (List<Object>) fieldResult.get("topk");
                 fieldResult.put("topk", topK.size() > 10 ? topK.subList(0, 10) : topK);
                 result.put(field, fieldResult);
