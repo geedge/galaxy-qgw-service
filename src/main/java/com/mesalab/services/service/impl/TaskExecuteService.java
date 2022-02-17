@@ -2,6 +2,7 @@ package com.mesalab.services.service.impl;
 
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
@@ -10,7 +11,6 @@ import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -64,10 +64,10 @@ public class TaskExecuteService implements EnvironmentAware {
         if (StringUtil.isNotEmpty(lastTop.getData())) {
             List<Map> map = (List<Map>) lastTop.getData();
             if (StringUtil.isNotEmpty(map.get(0).get(field))) {
-                Map o = (Map) JsonMapper.fromJsonString(String.valueOf(map.get(0).get(field)), Map.class);
-                if (StringUtil.isNotEmpty(o)) {
-                    List<Map<String, Object>> topk = (List<Map<String, Object>>) o.get("topk");
-                    lastCount = o.get("count");
+                Map item = JSONUtil.toBean(String.valueOf(map.get(0).get(field)), Map.class);
+                if (StringUtil.isNotEmpty(item)) {
+                    List<Map<String, Object>> topk = (List<Map<String, Object>>) item.get("topk");
+                    lastCount = item.get("count");
                     data.addAll(topk);
                 }
             }
@@ -90,8 +90,7 @@ public class TaskExecuteService implements EnvironmentAware {
         map.put("topk", topList.size() > TOP_MAX ? topList.subList(0, TOP_MAX) : topList);
         map.put("distinct_count", Math.min(topList.size(), 100));
         map.put("count", currentCount + Long.parseLong(lastCount.toString()));
-
-        String result = JsonMapper.toJsonString(map).replace("\\n", " ").replace("\\r", " ").replace("\\t", " ").replace("'", "\\'").replaceAll("\\\"", "\\\\\"");;
+        String result = JSONUtil.toJsonStr(map).replace("'", "\\'").replace("\"", "\\\"");
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_RESULT")),
                 field, id, result));
     }

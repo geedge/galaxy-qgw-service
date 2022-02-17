@@ -1,6 +1,7 @@
 package com.mesalab.services.service.impl;
 
 import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
@@ -18,7 +19,6 @@ import com.mesalab.qgw.service.ApiService;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -100,9 +100,9 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         List<Map<String, Object>> resultList = Lists.newArrayList();
         for (String field : list) {
             Map<String, Object> result = Maps.newHashMap();
-            Object o = map.get(field);
-            if (StringUtil.isNotEmpty(o)) {
-                Map fieldResult = (Map) JsonMapper.fromJsonString(String.valueOf(o), Map.class);
+            Object item = map.get(field);
+            if (StringUtil.isNotEmpty(item)) {
+                Map fieldResult = JSONUtil.toBean(item.toString(), Map.class);
                 if (StringUtil.isEmpty(fieldResult)) {
                     continue;
                 }
