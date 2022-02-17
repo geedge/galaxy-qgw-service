@@ -5,3 +5,4 @@
  * 完善Schema，sip_duration修正为sip_duration_s(TSG-9502)
  * 扩展Schema，新增ssl_passthrough_reason字段(TSG-9299)
  * 扩展Schema，新增评价文件事件日志(TSG-9472)
+ * 修复Field Discovery部分字段显示null值(TSG-9638)
