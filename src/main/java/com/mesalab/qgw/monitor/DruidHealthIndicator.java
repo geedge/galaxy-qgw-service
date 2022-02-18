@@ -40,7 +40,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidHealthIndicator.DruidQueryParam druidQueryParam = new DruidHealthIndicator.DruidQueryParam();
 
-        druidQueryParam.setQuery("select TIME_FORMAT(CURRENT_DATE,'z') as timeZone");
+        druidQueryParam.setQuery("select TIME_FORMAT(CURRENT_DATE,'z') as timeZone, CURRENT_TIMESTAMP as curTimestamp");
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
         try {
@@ -52,11 +52,13 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 List body = (List) responseEntity.getBody();
                 String timeZone = String.valueOf(((Map) (body.get(0))).get("timeZone")).replaceAll(":", "");
+                String curDatetime = String.valueOf(((Map) (body.get(0))).get("curTimestamp"));
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", druidIoHttpSource.getUrl())
                         .withDetail("message", "ok")
-                        .withDetail("timeZone", timeZone);
+                        .withDetail("timeZone", timeZone)
+                        .withDetail("curTimestamp", curDatetime);
             } else {
                 builder.down()
                         .withDetail("app", APP)

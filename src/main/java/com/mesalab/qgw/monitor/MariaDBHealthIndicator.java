@@ -36,17 +36,17 @@ public class MariaDBHealthIndicator extends AbstractHealthIndicator {
             return;
         }
         try {
-            List<Object> query = Db.query("select 1");
-            if (!CollectionUtils.isEmpty(query) && 1 == Long.parseLong(String.valueOf(query.get(0)))) {
+            List<Object> query = Db.query("SELECT CURRENT_TIMESTAMP AS curTimestamp");
+            if (!CollectionUtils.isEmpty(query)) {
                 String substring = url.substring(url.indexOf("?") + 1);
                 Map<String, String> map = Splitter.on("&").withKeyValueSeparator("=").split(substring);
-                String dbTimeZone = map.get("serverTimezone");
-                String timeZone = TimeZoneUtil.timeZoneTransition(dbTimeZone);
+                String timeZone = TimeZoneUtil.timeZoneTransition(map.get("serverTimezone"));
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", url)
                         .withDetail("message", "ok")
-                        .withDetail("timeZone", timeZone);
+                        .withDetail("timeZone", timeZone)
+                        .withDetail("curTimestamp", query.get(0));
 
             } else {
                 builder.down()

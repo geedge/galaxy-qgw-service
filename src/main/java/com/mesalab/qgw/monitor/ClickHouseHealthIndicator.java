@@ -39,7 +39,7 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
                 .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
                 .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
-                .append("query=").append("select timezone() as timeZone")
+                .append("query=").append("select timezone() as timeZone, now() as curTimestamp")
                 .append(" FORMAT JSON ;");
         String url = queryURL + queryParamBuilder;
         try {
@@ -48,12 +48,14 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
                 Map body = (Map) responseEntity.getBody();
                 Map data = (Map) ((List) body.get("data")).get(0);
                 String dbTimeZone = data.get("timeZone").toString();
+                String curDatetime = data.get("curTimestamp").toString();
                 String timeZone = TimeZoneUtil.timeZoneTransition(dbTimeZone);
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", clickHouseHttpSource.getUrl())
                         .withDetail("message", "ok")
-                        .withDetail("timeZone", timeZone);
+                        .withDetail("timeZone", timeZone)
+                        .withDetail("curTimestamp", curDatetime);
             } else {
                 builder.down()
                         .withDetail("app", APP)

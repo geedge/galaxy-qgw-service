@@ -43,7 +43,7 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
         }
         String queryURL = URLUtil.normalize(elasticsearchHttpSource.getUrl() + "?format=json");
         QueryParam queryParam = new QueryParam();
-        queryParam.setQuery("select format(now(),'Z') as timeZone");
+        queryParam.setQuery("select format(now(),'Z') as timeZone, now() as curTimestamp");
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -53,11 +53,13 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 Map body = (Map) responseEntity.getBody();
                 String timeZone = ((List) ((List) body.get("rows")).get(0)).get(0).toString();
+                String curTimestamp = ((List) ((List) body.get("rows")).get(0)).get(1).toString();
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", elasticsearchHttpSource.getUrl())
                         .withDetail("message", "ok")
-                        .withDetail("timeZone", timeZone);
+                        .withDetail("timeZone", timeZone)
+                        .withDetail("curTimestamp", curTimestamp);
             } else {
                 builder.down()
                         .withDetail("app", APP)

@@ -28,6 +28,8 @@ public class GalaxyQGWApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {
         System.setProperty("jasypt.encryptor.password", "galaxy");
+        System.setProperty("JM.SNAPSHOT.PATH", "config");
+        System.setProperty("user.timezone", "UTC");
         SpringApplication.run(GalaxyQGWApplication.class, args);
     }
 
