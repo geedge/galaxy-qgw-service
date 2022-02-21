@@ -288,7 +288,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         public Converter generateSqlEncode() {
-            sql = Encodes.urlEncode(sql);
             return this;
         }
 
@@ -1170,33 +1169,33 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      */
     private Map<String, String> executeHttpGet(String sql) {
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
-        ClickHouseHttpQuery clickHouseHttpQuery = buildHttpQueryParameter(sql);
+        ClickHouseHttpQuery clickHouseHttpQuery = buildHttpQueryParameter();
         log.info("DB engine is :{},execute http query is :{}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
-                Encodes.urlDecode(clickHouseHttpQuery.getQueryParameter()).replaceAll("password=(.*)&", "password=XXX&"));
+                Encodes.urlDecode(clickHouseHttpQuery.getQueryParameter()).replaceAll("password=(.*?)&", "password=XXX&") + ". body sql is:" + sql);
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
-        return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());
+        return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase())
+                , clickHouseHttpQuery.getSocketTimeOut());
     }
 
-    private ClickHouseHttpQuery buildHttpQueryParameter(String sql) {
+    private ClickHouseHttpQuery buildHttpQueryParameter() {
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
         StringBuilder queryParameterBuilder = new StringBuilder(1024);
         String dbName = metadataService.getDBNameByTableName(param.getTableName());
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
-                    .append("database=").append(dbName).append("&");
+                    .append("database=").append(dbName);
         } else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName).append("&")
-                    .append("query_id=").append(SQLHelper.getQueryId(param.getResultId(), param.getQuery())).append("&");
+                    .append("query_id=").append(SQLHelper.getQueryId(param.getResultId(), param.getQuery()));
         } else {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
             queryParameterBuilder.append(getRealTimeAccount()).append("&")
-                    .append("database=").append(dbName).append("&");
+                    .append("database=").append(dbName);
         }
 
-        queryParameterBuilder.append("query=").append(sql).append(" FORMAT ").append(QueryFormatEnum.JSON.getValue().toUpperCase()).append(" ;");
         clickHouseHttpQuery.setQueryParameter(queryParameterBuilder.toString());
         return clickHouseHttpQuery;
     }
