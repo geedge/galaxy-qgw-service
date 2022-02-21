@@ -1421,6 +1421,11 @@
       "label": "DNS.RR"
     },
     {
+      "name": "dns_response_latency_ms",
+      "label": "DNS.Response Latency(ms)",
+      "type": "int"
+    },
+    {
       "name": "sip_call_id",
       "type": "string",
       "label": "SIP.Call-ID"

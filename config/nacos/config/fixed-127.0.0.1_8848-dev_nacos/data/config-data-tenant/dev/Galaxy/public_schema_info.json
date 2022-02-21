@@ -604,7 +604,8 @@
         "dns_qclass",
         "dns_cname",
         "dns_sub",
-        "dns_rr"
+        "dns_rr",
+        "dns_response_latency_ms"
       ],
       "default_columns": [
         "common_recv_time",

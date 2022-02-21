@@ -1578,6 +1578,11 @@
       "type": "string"
     },
     {
+      "name": "dns_response_latency_ms",
+      "label": "DNS.Response Latency(ms)",
+      "type": "int"
+    },
+    {
       "name": "ssl_version",
       "label": "SSL.Version",
       "doc": {

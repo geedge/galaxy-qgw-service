@@ -1659,6 +1659,14 @@
       "type": "string"
     },
     {
+      "name": "dns_response_latency_ms",
+      "label": "DNS.Response Latency(ms)",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "int"
+    },
+    {
       "name": "ssl_version",
       "label": "SSL.Version",
       "doc": {
