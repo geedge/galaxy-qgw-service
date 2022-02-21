@@ -417,14 +417,12 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         StringBuilder queryParamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
                 .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
-                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
-                .append("query=").append(ckQuery)
-                .append(" FORMAT JSON;");
+                .append("database=").append(clickHouseHttpSource.getDbName());
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
         clickHouseHttpQuery.setQueryParameter(queryParamBuilder.toString());
         log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), com.mesalab.common.utils.JsonMapper.toJsonString(clickHouseHttpQuery));
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
-        return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());
+        return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase()), clickHouseHttpQuery.getSocketTimeOut());
     }
 
 
