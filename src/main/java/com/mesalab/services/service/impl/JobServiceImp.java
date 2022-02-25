@@ -19,6 +19,7 @@ import com.mesalab.qgw.service.ApiService;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -83,6 +84,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             init(id, (List<String>) map.get("custom.field_discovery.fields"));
             jobExecuteService.addExecutor(id, map);
         }
+        log.info("Add Job, ID is {}, Params is {}", id, JsonMapper.toJsonString(map));
         return BaseResultGenerator.success("ok", build(id));
     }
 

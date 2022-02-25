@@ -7,7 +7,9 @@ import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
+import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
@@ -218,10 +220,14 @@ public class JobExecuteService implements EnvironmentAware {
                     if (comparison.getStringExpression().matches(">=|>")) {
                         if (comparison.getRightExpression() instanceof LongValue) {
                             interval.setStart(Long.parseLong(comparison.getRightExpression().toString()));
+                        } else {
+                            interval.setStart(getCriticalValue(comparison.getRightExpression().toString()));
                         }
                     } else if (comparison.getStringExpression().matches("<=|<")) {
                         if (comparison.getRightExpression() instanceof LongValue) {
                             interval.setEnd(Long.parseLong(comparison.getRightExpression().toString()));
+                        } else {
+                            interval.setEnd(getCriticalValue(comparison.getRightExpression().toString()));
                         }
                     }
                 }
@@ -229,10 +235,14 @@ public class JobExecuteService implements EnvironmentAware {
                     if (comparison.getStringExpression().matches(">=|>")) {
                         if (comparison.getLeftExpression() instanceof LongValue) {
                             interval.setEnd(Long.parseLong(comparison.getLeftExpression().toString()));
+                        } else {
+                            interval.setEnd(getCriticalValue(comparison.getLeftExpression().toString()));
                         }
                     } else if (comparison.getStringExpression().matches("<=|<")) {
                         if (comparison.getLeftExpression() instanceof LongValue) {
                             interval.setStart(Long.parseLong(comparison.getLeftExpression().toString()));
+                        } else {
+                            interval.setStart(getCriticalValue(comparison.getLeftExpression().toString()));
                         }
                     }
                 }
@@ -245,6 +255,10 @@ public class JobExecuteService implements EnvironmentAware {
             }
         }
         return interval;
+    }
+
+    private long getCriticalValue(String str) {
+        return Long.parseLong(SQLFunctionUtil.getQueryValue("toUnixTimestamp(" + str + ")", DBTypeEnum.CLICKHOUSE.getValue()));
     }
 
     @Data
