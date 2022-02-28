@@ -46,6 +46,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     ApiService apiService;
     @Autowired
     JobExecuteService jobExecuteService;
+    @Autowired
+    JobConfig jobCfg;
     private Environment env;
 
     @Autowired
@@ -80,6 +82,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         syntaxValidation(map);
         String id = DigestUtil.md5Hex(String.valueOf(map));
         if (!isExist(id)) {
+            log.info("Add Job, ID is {}, Params is {}", id, JsonMapper.toJsonString(map));
             init(id, (List<String>) map.get("custom.field_discovery.fields"));
             jobExecuteService.addExecutor(id, map);
         }
@@ -115,6 +118,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         job.put(JobConfig.IS_DONE, StringUtil.isEmpty(map.get(JobConfig.IS_DONE)) ? false : map.get(JobConfig.IS_DONE));
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
+        job.put(JobConfig.IS_ERROR, StringUtil.isEmpty(map.get(JobConfig.IS_ERROR)) ? false : map.get(JobConfig.IS_ERROR));
         return BaseResultGenerator.success(statistics, job, res);
     }
 
@@ -129,10 +133,15 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             return false;
         }
         Map<String, Object> map = data.get(0);
-        if (StringUtil.isEmpty(map.get("isCanceled"))) {
+        if (StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED))) {
             return false;
         }
-        return StringUtil.isNotEmpty(map.get("isCanceled")) && !(Boolean) map.get("isCanceled");
+        if ((Boolean) (map.get(JobConfig.IS_ERROR))
+                && System.currentTimeMillis() - (Long) map.get("last_query_time") > jobCfg.getInteractiveTimeout()) {
+            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_DELETE")), id));
+            return false;
+        }
+        return !(Boolean) map.get(JobConfig.IS_CANCELED);
     }
 
     private void init(String id, List<String> fields) {
@@ -148,7 +157,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), field));
             }
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")),
-                    id, false, 0, false, System.currentTimeMillis(), String.join(",", fields), 0, 0));
+                    id, false, 0, false, false, System.currentTimeMillis(), String.join(",", fields), 0, 0));
         }
     }
 

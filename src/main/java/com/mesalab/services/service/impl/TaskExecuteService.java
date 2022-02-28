@@ -10,6 +10,7 @@ import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import com.mesalab.services.configuration.JobConfig;
 import com.zdjizhi.utils.JsonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -49,9 +50,10 @@ public class TaskExecuteService implements EnvironmentAware {
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).
                 query(sql).build());
         if (!baseResult.isSuccess()) {
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
             log.error("subTask Error: ", baseResult.getMessage());
             return new AsyncResult<>(false);
-        }
+    }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         Map<String, Object> map = Maps.newHashMap();
         map.put("topk", data.size() > 10 ? data.subList(0, 10) : data);
