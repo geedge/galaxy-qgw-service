@@ -78,6 +78,7 @@ public class JobExecuteService implements EnvironmentAware {
                 executeJob(jobInfo, watch, param, param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FILTER).toString());
             }
         } catch (Exception e) {
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
             log.error(e, "execute job error: jobId-{}", id);
         } finally {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),

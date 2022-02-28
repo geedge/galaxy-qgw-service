@@ -11,6 +11,7 @@ import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import com.mesalab.services.configuration.JobConfig;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -47,6 +48,7 @@ public class TaskExecuteService implements EnvironmentAware {
     public Future<Boolean> execute(String id, String logType, String filter, String field, long currentCount) {
         BaseResult currentTop = queryTop(logType, filter, field);
         if (!currentTop.isSuccess()) {
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
             log.error("subTask query currentTopK Error: ", currentTop.getMessage());
             return new AsyncResult<>(false);
         }
@@ -57,6 +59,7 @@ public class TaskExecuteService implements EnvironmentAware {
                 .query(String.format("SELECT %s FROM job_result WHERE ROWKEY = '%s' LIMIT 1", field, id))
                 .build());
         if (!lastTop.isSuccess()) {
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
             log.error("subTask query lastTopK Error: ", lastTop.getMessage());
             return new AsyncResult<>(false);
         }
