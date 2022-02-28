@@ -1,1 +1,5 @@
  Release 353 (TSG-22.03)
+ * 修改时区为UTC，新增检测各组件时区及当前时间功能(TSG-9558)
+ * 修改CK查询方法，变更为HTTP POST方式(TSG-9639)
+ * 扩展Schema，DNS增加dns_response_latency_ms字段(TSG-9681)
+ * 修复field discovery功能滥用异常结果(TSG-9791)
