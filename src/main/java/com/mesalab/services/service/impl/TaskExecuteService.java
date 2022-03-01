@@ -93,7 +93,8 @@ public class TaskExecuteService implements EnvironmentAware {
         map.put("topk", topList.size() > TOP_MAX ? topList.subList(0, TOP_MAX) : topList);
         map.put("distinct_count", Math.min(topList.size(), 100));
         map.put("count", currentCount + Long.parseLong(lastCount.toString()));
-        String result = JSONUtil.toJsonStr(map).replace("'", "\\'").replace("\"", "\\\"");
+        String result = JSONUtil.toJsonStr(map).replace("'", "\\'").replace("\"", "\\\"")
+                .replace("\\n", "").replace("\\r", "");
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_RESULT")),
                 field, id, result));
     }

@@ -105,15 +105,17 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         for (String field : list) {
             Map<String, Object> result = Maps.newHashMap();
             Object item = map.get(field);
-            if (StringUtil.isNotEmpty(item)) {
+            if (StringUtil.isEmpty(item)) {
+               continue;
+            }
+            try {
                 Map fieldResult = JSONUtil.toBean(item.toString(), Map.class);
-                if (StringUtil.isEmpty(fieldResult)) {
-                    continue;
-                }
                 List<Object> topK = (List<Object>) fieldResult.get("topk");
                 fieldResult.put("topk", topK.size() > 10 ? topK.subList(0, 10) : topK);
                 result.put(field, fieldResult);
                 resultList.add(result);
+            } catch (RuntimeException e) {
+                log.error("parse jobId-{}, field-{} error, message is: {}", field, id, e.getMessage());
             }
         }
         HashMap<String, Object> statistics = Maps.newHashMap();
