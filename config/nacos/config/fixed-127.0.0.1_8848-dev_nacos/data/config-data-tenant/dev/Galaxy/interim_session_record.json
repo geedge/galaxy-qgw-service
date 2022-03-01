@@ -602,10 +602,6 @@
             "value": "FTP"
           },
           {
-            "code": "APP",
-            "value": "APP"
-          },
-          {
             "code": "SSH",
             "value": "SSH"
           },
