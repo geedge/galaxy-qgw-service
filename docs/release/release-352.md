@@ -6,3 +6,4 @@
  * 扩展Schema，新增ssl_passthrough_reason字段(TSG-9299)
  * 扩展Schema，新增评价文件事件日志(TSG-9472)
  * 修复Field Discovery部分字段显示null值(TSG-9638)
+ * 解决field discovery结果解析异常(TSG-9809)
