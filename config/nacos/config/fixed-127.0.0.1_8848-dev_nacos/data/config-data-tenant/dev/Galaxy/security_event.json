@@ -665,10 +665,6 @@
             "value": "RTP"
           },
           {
-            "code": "APP",
-            "value": "APP"
-          },
-          {
             "code": "SSH",
             "value": "SSH"
           },
