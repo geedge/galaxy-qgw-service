@@ -109,7 +109,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                continue;
             }
             try {
-                Map fieldResult = JSONUtil.toBean(item.toString(), Map.class);
+                Map fieldResult = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
                 List<Object> topK = (List<Object>) fieldResult.get("topk");
                 fieldResult.put("topk", topK.size() > 10 ? topK.subList(0, 10) : topK);
                 result.put(field, fieldResult);
