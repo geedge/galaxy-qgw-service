@@ -15,7 +15,7 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;

@@ -15,7 +15,7 @@ import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.*;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;

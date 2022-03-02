@@ -18,7 +18,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.EntityConfigSource;

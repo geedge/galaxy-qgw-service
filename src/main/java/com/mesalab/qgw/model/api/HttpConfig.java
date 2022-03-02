@@ -1,12 +1,14 @@
-package com.mesalab.knowledge.common.utils;
+package com.mesalab.qgw.model.api;
 
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
+
 @Data
 @Component
-public class HttpConfig {
+public class HttpConfig implements Serializable {
     /**
      * 最大连接数400
      */
@@ -65,6 +67,8 @@ public class HttpConfig {
      */
     @NacosValue(value = "${elasticsearch.socketTimeOut}", autoRefreshed = true)
     private int elasticsearchSocketTimeOut;
+
+
 
 
 

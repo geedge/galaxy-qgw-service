@@ -20,7 +20,7 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.TableColumnVisitor;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import com.mesalab.qgw.benchmark.engine.EngineWriter;
@@ -45,7 +45,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -64,18 +64,14 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private static final String AVRO_SUFFIX = ".avsc";
     private static final String METADATA_PREFIX = "Metadata/";
     private static final String SCHEMA_PREFIX = "Schema/";
-    private static final int DEFAULT_SERVER_PORT = 9999;
     private static final String DRUID_PREFIX = "druid_";
     private static final String CK_PREFIX = "ck_";
     private static final String ENGINE_PREFIX = "engine_";
     private static final String HBASE_PREFIX = "hbase_";
-
     @Autowired
     private HttpClientService httpClientService;
     @Autowired
     private HttpConfig httpConfig;
-    @Value("${server.port}")
-    private int serverPort;
     @Autowired
     private ClickhouseWriter clickhouseWriter;
     @Autowired
@@ -90,9 +86,12 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
     private MetadataService metadataService;
-
+    @Autowired
+    private Environment environment;
     private static final String localHostAddress = NetUtil.getLocalhostStr();
-
+    public String getPort(){
+        return environment.getProperty("local.server.port");
+    }
     /**
      * 验证Schema格式是否正确
      *
@@ -536,12 +535,9 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private Map<String, String> executeQuery(String sql, Map<String, Object> urlParam) {
         Map<String, String> resultMap = Maps.newHashMap();
         try {
-            if (serverPort == 0) {
-                serverPort = DEFAULT_SERVER_PORT;
-            }
             String param = URLUtil.buildQuery(urlParam, CharsetUtil.CHARSET_UTF_8);
             sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
-            String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");
+            String queryURL = URLUtil.normalize(localHostAddress + ":" + getPort() + "/?query=");
             int socketTimeOut = httpConfig.getServerResponseTimeOut();
             resultMap = httpClientService.httpGet(queryURL + sql + (StrUtil.isBlank(param) ? "" : "&" + param), socketTimeOut);
         } catch (UnsupportedEncodingException e) {

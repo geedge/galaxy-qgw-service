@@ -17,7 +17,7 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;

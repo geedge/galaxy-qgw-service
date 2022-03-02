@@ -4,7 +4,7 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;

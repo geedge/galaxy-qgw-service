@@ -20,6 +20,7 @@ public class GalaxyQGWApplicationTests {
 
     static {
         System.setProperty("jasypt.encryptor.password", "galaxy");
+        System.setProperty("JM.SNAPSHOT.PATH", "config");
     }
 
     @Before

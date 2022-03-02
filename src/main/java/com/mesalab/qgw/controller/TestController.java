@@ -5,7 +5,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.knowledge.common.config.ArangoConfig;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.DiagnosisService;
 import lombok.extern.slf4j.Slf4j;

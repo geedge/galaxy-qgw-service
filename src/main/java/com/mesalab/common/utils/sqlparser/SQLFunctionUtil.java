@@ -7,7 +7,7 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.StringUtil;
 import com.mesalab.common.utils.TimeZoneUtil;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
