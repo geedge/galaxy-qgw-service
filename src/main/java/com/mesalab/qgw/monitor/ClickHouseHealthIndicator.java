@@ -3,7 +3,6 @@ package com.mesalab.qgw.monitor;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.common.utils.TimeZoneUtil;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
@@ -49,12 +48,11 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
                 Map data = (Map) ((List) body.get("data")).get(0);
                 String dbTimeZone = data.get("timeZone").toString();
                 String curDatetime = data.get("curTimestamp").toString();
-                String timeZone = TimeZoneUtil.timeZoneTransition(dbTimeZone);
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", clickHouseHttpSource.getUrl())
                         .withDetail("message", "ok")
-                        .withDetail("timeZone", timeZone)
+                        .withDetail("timeZone", dbTimeZone)
                         .withDetail("curTimestamp", curDatetime);
             } else {
                 builder.down()

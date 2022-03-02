@@ -51,7 +51,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
 
             if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
                 List body = (List) responseEntity.getBody();
-                String timeZone = String.valueOf(((Map) (body.get(0))).get("timeZone")).replaceAll(":", "");
+                String timeZone = String.valueOf(((Map) (body.get(0))).get("timeZone"));
                 String curDatetime = String.valueOf(((Map) (body.get(0))).get("curTimestamp"));
                 builder.up()
                         .withDetail("app", APP)

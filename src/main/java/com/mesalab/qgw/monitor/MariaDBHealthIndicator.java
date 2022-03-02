@@ -4,8 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.google.common.base.Splitter;
 import com.jfinal.plugin.activerecord.Db;
-import com.mesalab.common.utils.TimeZoneUtil;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
@@ -40,7 +38,7 @@ public class MariaDBHealthIndicator extends AbstractHealthIndicator {
             if (!CollectionUtils.isEmpty(query)) {
                 String substring = url.substring(url.indexOf("?") + 1);
                 Map<String, String> map = Splitter.on("&").withKeyValueSeparator("=").split(substring);
-                String timeZone = TimeZoneUtil.timeZoneTransition(map.get("serverTimezone"));
+                String timeZone = map.get("serverTimezone");
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", url)
