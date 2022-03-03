@@ -125,6 +125,7 @@
           "common_con_duration_ms",
           "common_establish_latency_ms",
           "common_processing_time",
+          "common_ingestion_time",
           "common_entrance_id",
           "common_device_id",
           "common_egress_link_id",
@@ -258,6 +259,7 @@
       "common_recv_time",
       "common_log_id",
       "common_processing_time",
+      "common_ingestion_time",
       "common_tunnels",
       "common_packet_capture_file",
       "http_request_body",
@@ -1000,6 +1002,19 @@
         }
       },
       "label": "Processing Time"
+    },
+    {
+      "name": "common_ingestion_time",
+      "label": "Ingestion Time",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "format": {
+          "functions": "ingestion_time"
+        }
+      },
+      "type": "long"
     },
     {
       "name": "common_mirrored_pkts",
