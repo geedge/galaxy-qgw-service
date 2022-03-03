@@ -749,9 +749,25 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
+        },
+        "format": {
+          "functions": "current_timestamp"
         }
       },
       "label": "Processing Time"
+    },
+    {
+      "name": "common_ingestion_time",
+      "label": "Ingestion Time",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "format": {
+          "functions": "ingestion_time"
+        }
+      },
+      "type": "long"
     },
     {
       "name": "common_mirrored_pkts",
