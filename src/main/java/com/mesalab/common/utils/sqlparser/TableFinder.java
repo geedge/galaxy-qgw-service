@@ -1,5 +1,6 @@
-package com.mesalab.common.utils;
+package com.mesalab.common.utils.sqlparser;
 
+import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.expression.*;

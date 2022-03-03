@@ -45,7 +45,7 @@ public class AvroSchemaFormatTest extends GalaxyQGWApplicationTests {
     @Test
     public void testCheckSchema() {
         BaseResult baseResult = diagnosisService.validateSchema();
-        assertEquals("Schema格式错误！", String.valueOf(baseResult.getStatus()), String.valueOf(HttpStatus.SC_OK));
+        assertEquals("Schema format failure.", String.valueOf(baseResult.getStatus()), String.valueOf(HttpStatus.SC_OK));
     }
 
 }
