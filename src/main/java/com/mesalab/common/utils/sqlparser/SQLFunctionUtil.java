@@ -1670,8 +1670,8 @@ public class SQLFunctionUtil {
         String timestampExpr = fun.getParamsList().get(0);
         int interval = Integer.parseInt(fun.getParamsList().get(1));
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-            return String.format("length(arrayReduce('max', alphaTokens(replaceAll(replaceAll(toString(arrayMap(x->x>%s AND x<(%s+%s), arrayDifference(arraySort(groupUniqArray(%s))))),'1','a'),',','') ) )) * %s "
-                    , factor, interval, factor, timestampExpr, interval);
+            return String.format("length(arrayReduce('max', alphaTokens(replaceAll(replaceAll(toString(arrayMap(x-> x<(%s+%s), arrayDifference(arraySort(groupUniqArray(%s))))),'1','a'),',','') ) )) * %s "
+                    , interval, factor, timestampExpr, interval);
         }
         return fun.toString();
     }

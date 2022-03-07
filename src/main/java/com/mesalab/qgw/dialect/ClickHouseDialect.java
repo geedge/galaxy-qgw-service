@@ -694,7 +694,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private boolean isExist(String tableName) {
-            Map<String, String> result = executeHttpGet(String.format("select 1 from %s limit 1", tableName));
+            Map<String, String> result = executeHttpPost(String.format("select 1 from %s limit 1", tableName));
             if (result.get("status") == null || Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
                 log.warn("The table does not exist: {}", tableName);
                 return false;
@@ -969,7 +969,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     @Override
     public BaseResult generateBaseResult(String sql, Optional<String> message) {
 
-        Map<String, String> results = executeHttpGet(sql);
+        Map<String, String> results = executeHttpPost(sql);
 
         if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
 
@@ -1167,7 +1167,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @param sql SQL语句
      * @return
      */
-    private Map<String, String> executeHttpGet(String sql) {
+    private Map<String, String> executeHttpPost(String sql) {
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         ClickHouseHttpQuery clickHouseHttpQuery = buildHttpQueryParameter();
         log.info("DB engine is :{},execute http query is :{}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
