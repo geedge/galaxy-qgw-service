@@ -36,6 +36,7 @@ public class SQLFunctionUtil {
     public static final String IP_TO_GEO = "IP_TO_GEO";
     public static final String IP_TO_CITY = "IP_TO_CITY";
     public static final String IP_TO_COUNTRY = "IP_TO_COUNTRY";
+    public static final String MAX_DURATION = "MAX_DURATION";
 
     private static DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private static ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
@@ -46,6 +47,7 @@ public class SQLFunctionUtil {
      * 自定义函数
      */
     public static final Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pMaxDuration = Pattern.compile("\\b" + MAX_DURATION + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToGeo = Pattern.compile("\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCity = Pattern.compile("\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCountry = Pattern.compile("\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
@@ -197,6 +199,7 @@ public class SQLFunctionUtil {
     public static String translateUDF(String sql, String dbType) {
         String resultSql = sql;
         resultSql = translateByPattern(resultSql, dbType, pTimeFloorWithFill);
+        resultSql = translateByPattern(resultSql, dbType, pMaxDuration);
         resultSql = translateByPattern(resultSql, dbType, pIpToGeo);
         resultSql = translateByPattern(resultSql, dbType, pIpToCity);
         resultSql = translateByPattern(resultSql, dbType, pIpToCountry);
@@ -1556,6 +1559,8 @@ public class SQLFunctionUtil {
         String function = null;
         if (TIME_FLOOR_WITH_FILL.equals(fun.getName())) {
             function = translateTimeFloorWithFill(fun, dbType);
+        } else if (MAX_DURATION.equals(fun.getName())) {
+            function = translateDuration(fun, dbType);
         } else if (IP_TO_GEO.equals(fun.getName())) {
             function = translateIpToGeo(fun);
         } else if (IP_TO_CITY.equals(fun.getName())) {
@@ -1650,6 +1655,27 @@ public class SQLFunctionUtil {
         }
         return function.toString();
     }
+
+    /**
+     * Desc: 转义MAX_DURATION
+     *
+     * @param fun
+     * @param dbType
+     * @return {@link String}
+     * @created by wWei
+     * @date 2022/3/7 5:47 下午
+     */
+    private static String translateDuration(Function fun, String dbType) {
+        int factor = 60;
+        String timestampExpr = fun.getParamsList().get(0);
+        int interval = Integer.parseInt(fun.getParamsList().get(1));
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            return String.format("length(arrayReduce('max', alphaTokens(replaceAll(replaceAll(toString(arrayMap(x->x>%s AND x<(%s+%s), arrayDifference(arraySort(groupUniqArray(%s))))),'1','a'),',','') ) )) * %s "
+                    , factor, interval, factor, timestampExpr, interval);
+        }
+        return fun.toString();
+    }
+
 
     @Data
     static class Function {
