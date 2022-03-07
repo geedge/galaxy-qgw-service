@@ -1,19 +1,18 @@
 package com.mesalab.qgw.controller;
 
 import cn.hutool.core.thread.ThreadUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.common.utils.HttpHelper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.AuditServiceLog;
 import com.zdjizhi.utils.IPUtil;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -65,9 +64,7 @@ public class AuditLogAspect {
             auditServiceLog.setUrl(url);
             auditServiceLog.setClassMethod(classMethod);
         }
-
-        auditServiceLog.setCacheKey(DigestUtil.md5Hex(Optional.ofNullable(request.getQueryString()).orElse("")));
-
+        auditServiceLog.setCacheKey(HttpHelper.generateCacheKey(request));
         if (paramObject instanceof ApiParam) {
             ApiParam  apiParam = (ApiParam) paramObject;
             if (!apiParam.queryParamIsNull()) {

@@ -4,19 +4,18 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.cache.CacheStats;
+import com.mesalab.common.utils.HttpHelper;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
 
 @Component
 public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
@@ -31,8 +30,8 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
             CachedSubmitCheck submitCheck = handlerMethod.getMethodAnnotation(CachedSubmitCheck.class);
             if (StringUtil.isNotEmpty(submitCheck)) {
-                String cacheKey = generateCacheKey(request);
-                if(StringUtil.isBlank(cacheKey)) {
+                String cacheKey = HttpHelper.generateCacheKey(request);
+                if (StringUtil.isBlank(cacheKey)) {
                     return true;
                 }
                 Object result = QueryCacheUtils.get(cacheKey);
@@ -53,9 +52,6 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
     }
 
 
-    private String generateCacheKey(HttpServletRequest request) {
-        return DigestUtil.md5Hex(Optional.ofNullable(request.getQueryString()).orElse(""));
-    }
 
 
 
