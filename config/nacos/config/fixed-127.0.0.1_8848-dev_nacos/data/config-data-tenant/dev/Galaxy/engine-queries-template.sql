@@ -100,19 +100,21 @@ SELECT CONVERT_TZ('2019-09-09 09:09:09','GMT','MET') as test_time from proxy_eve
 SELECT CONVERT_TZ('2019-09-09 09:09:09','Europe/London','America/New_York') as test_time from proxy_event_hits_log limit 1
 --Q51.CONVERT_TZ (Druid) 03
 SELECT CONVERT_TZ(now(),'GMT','America/New_York') as test_time from proxy_event_hits_log limit 1
---Q53.CONVERT_TZ (clickhouse) 01
+--Q52.CONVERT_TZ (clickhouse) 01
 SELECT CONVERT_TZ('2019-09-09 09:09:09','GMT','MET') as test_time from session_record limit 1
---Q54.CONVERT_TZ (clickhouse) 02
+--Q53.CONVERT_TZ (clickhouse) 02
 SELECT CONVERT_TZ('2019-09-09 09:09:09','Europe/London','America/New_York') as test_time from session_record limit 1
---Q55.CONVERT_TZ (clickhouse) 03
+--Q54.CONVERT_TZ (clickhouse) 03
 SELECT CONVERT_TZ(now(),'GMT','America/New_York') as test_time from session_record limit 1
---Q57.CONVERT_TZ (hbase) 01
+--Q55.CONVERT_TZ (hbase) 01
 SELECT CONVERT_TZ('2019-09-09 09:09:09','GMT','MET') as test_time from report_result limit 1
---Q58.CONVERT_TZ (hbase) 02
+--Q56.CONVERT_TZ (hbase) 02
 SELECT CONVERT_TZ('2019-09-09 09:09:09','Europe/London','America/New_York') as test_time from report_result limit 1
---Q59.CONVERT_TZ (hbase) 03
+--Q57.CONVERT_TZ (hbase) 03
 SELECT CONVERT_TZ(now(),'GMT','America/New_York') as test_time from report_result limit 1
---Q61.CONVERT_TZ (elasticsearch)
-SELECT CONVERT_TZ('2019-09-09 09:09:09','Europe/London','America/New_York')as time from report_result limit 1
---Q62.Authentication failed(code 516)
+--Q58.CONVERT_TZ (elasticsearch)
+SELECT CONVERT_TZ('2019-09-09 09:09:09','Europe/London','America/New_York') as time from report_result limit 1
+--Q59.Authentication failed(code 516)
 SELECT toDateTime(common_recv_time) AS common_recv_time, common_log_id, common_subscriber_id, common_imei, common_imsi, common_phone_number, common_client_ip, common_internal_ip, common_client_port, common_l4_protocol, common_address_type, common_server_ip, common_server_port, common_external_ip, common_direction, common_sled_ip, common_client_location, common_client_asn, common_server_location, common_server_asn, common_sessions, common_c2s_pkt_num, common_s2c_pkt_num, common_c2s_byte_num, common_s2c_byte_num, common_c2s_pkt_diff, common_s2c_pkt_diff, common_c2s_byte_diff, common_s2c_byte_diff, common_schema_type, common_device_id, common_device_group, common_app_behavior, common_app_label, common_tunnels, common_protocol_label, common_l7_protocol, common_service_category, toDateTime(common_start_time) AS common_start_time, toDateTime(common_end_time) AS common_end_time, common_establish_latency_ms, common_con_duration_ms, common_stream_dir, common_stream_trace_id, common_c2s_ipfrag_num, common_s2c_ipfrag_num, common_c2s_tcp_lostlen, common_s2c_tcp_lostlen, common_c2s_tcp_unorder_num, common_s2c_tcp_unorder_num, common_c2s_pkt_retrans, common_s2c_pkt_retrans, common_c2s_byte_retrans, common_s2c_byte_retrans, common_tcp_client_isn, common_tcp_server_isn, toDateTime(common_processing_time) AS common_processing_time, http_url, http_host, http_domain, http_request_content_length, http_request_content_type, http_response_content_length, http_response_content_type, http_request_body, http_response_body, http_cookie, http_referer, http_user_agent, http_set_cookie, http_version, http_response_latency_ms, http_session_duration_ms, http_action_file_size, mail_protocol_type, mail_account, mail_from_cmd, mail_to_cmd, mail_from, mail_to, mail_cc, mail_bcc, mail_subject, mail_attachment_name, mail_eml_file, dns_message_id, dns_qr, dns_opcode, dns_aa, dns_tc, dns_rd, dns_ra, dns_rcode, dns_qdcount, dns_ancount, dns_nscount, dns_arcount, dns_qname, dns_qtype, dns_qclass, dns_sub, ssl_sni, ssl_cn, ssl_pinningst, ssl_intercept_state, ssl_server_side_latency, ssl_client_side_latency, ssl_server_side_version, ssl_client_side_version, ssl_cert_verify, ssl_error, ssl_con_latency_ms, ssl_ja3_hash, ssl_cert_issuer, ssl_cert_subject, quic_version, quic_sni, quic_user_agent, ftp_account, ftp_url, ftp_content, ftp_link_type, app_extra_info, sip_call_id, sip_originator_description, sip_responder_description, sip_user_agent, sip_server, sip_originator_sdp_connect_ip, sip_originator_sdp_media_port, sip_originator_sdp_media_type, sip_originator_sdp_content, sip_responder_sdp_connect_ip, sip_responder_sdp_media_port, sip_responder_sdp_media_type, sip_responder_sdp_content, sip_duration_s, sip_bye, rtp_payload_type_c2s, rtp_payload_type_s2c, rtp_pcap_path, rtp_originator_dir, ssh_version, ssh_auth_success, ssh_client_version, ssh_server_version, ssh_cipher_alg, ssh_mac_alg, ssh_compression_alg, ssh_kex_alg, ssh_host_key_alg, ssh_host_key, ssh_hassh, stratum_cryptocurrency, stratum_mining_pools, stratum_mining_program FROM tsg_galaxy_v3.interim_session_record AS interim_session_record WHERE common_recv_time >= toUnixTimestamp(@start) AND common_recv_time < toUnixTimestamp(@end) ORDER BY common_recv_time DESC LIMIT 43233, 20
+--Q60.Function MAX_DURATION
+SELECT destination_ip, IP_TO_GEO(destination_ip) AS destination_geo, MAX_DURATION(end_time,600) AS max_duration, any(destination_country) AS destination_country, groupUniqArray(arrayJoin(splitByString(',',source_country_list))) AS source_coutries,max(bit_rate) AS max_bit_rate,max(packet_rate) AS max_packet_rate,max(session_rate) AS max_session_rate,min(start_time) AS first_active_time,max(end_time) AS last_active_time,groupUniqArray(attack_type) AS attack_type,count(*) AS count from dos_event where start_time >= toUnixTimestamp(@start) AND start_time < toUnixTimestamp(@end) GROUP BY destination_ip ORDER BY count desc
