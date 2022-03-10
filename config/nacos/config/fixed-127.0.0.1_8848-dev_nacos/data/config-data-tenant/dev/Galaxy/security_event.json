@@ -1159,17 +1159,11 @@
     {
       "name": "http_request_line",
       "label": "HTTP.Request Line",
-      "doc": {
-        "visibility": "disabled"
-      },
       "type": "string"
     },
     {
       "name": "http_response_line",
       "label": "HTTP.Response Line",
-      "doc": {
-        "visibility": "disabled"
-      },
       "type": "string"
     },
     {

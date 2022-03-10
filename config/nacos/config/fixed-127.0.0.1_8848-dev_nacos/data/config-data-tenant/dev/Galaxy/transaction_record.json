@@ -1056,17 +1056,11 @@
     {
       "name": "http_request_line",
       "type": "string",
-      "doc": {
-        "visibility": "disabled"
-      },
       "label": "HTTP.Request Line"
     },
     {
       "name": "http_response_line",
       "type": "string",
-      "doc": {
-        "visibility": "disabled"
-      },
       "label": "HTTP.Response Line"
     },
     {

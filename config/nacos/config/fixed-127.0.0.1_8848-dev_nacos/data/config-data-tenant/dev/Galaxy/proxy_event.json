@@ -1089,16 +1089,10 @@
     {
       "name": "http_request_line",
       "label": "HTTP.Request Line",
-      "doc": {
-        "visibility": "disabled"
-      },
       "type": "string"
     },
     {
       "name": "http_response_line",
-      "doc": {
-        "visibility": "disabled"
-      },
       "label": "HTTP.Response Line",
       "type": "string"
     },
