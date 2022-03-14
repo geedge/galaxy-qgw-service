@@ -32,6 +32,7 @@ import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.MetadataService;
+import com.zdjizhi.utils.CommonUtil;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -41,6 +42,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
+import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -307,6 +309,15 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                                 + ",Query" + index + "," + queryResult.get("status") + "," + queryResult.get("message"), null);
                     }
                 }
+            }
+            if (StringUtil.isNotEmpty(infoMap)) {
+                double[] values = infoMap.values().stream().mapToDouble(value -> Double.valueOf(value)).sorted().toArray();
+                infoMap.put("Min", String.valueOf(CommonUtil.round(StatUtils.min(values),2)));
+                infoMap.put("Mean", String.valueOf(CommonUtil.round(StatUtils.mean(values),2)));
+                infoMap.put("Median", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 50),2)));
+                infoMap.put("P95", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 95),2)));
+                infoMap.put("P99", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 99),2)));
+                infoMap.put("MAX", String.valueOf(CommonUtil.round(StatUtils.max(values),2)));
             }
             resultMap.put(file.get().getName(), infoMap);
         } else {
