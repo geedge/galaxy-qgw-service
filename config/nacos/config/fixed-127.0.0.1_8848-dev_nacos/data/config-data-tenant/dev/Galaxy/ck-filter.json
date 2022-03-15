@@ -5,11 +5,11 @@
   "filters": [
     {
       "name":"@start",
-      "value": "'2021-10-19 10:00:00'"
+      "value": "now()-3600"
     },
     {
       "name":"@end",
-      "value": "'2021-10-20 11:00:00'"
+      "value": "now()"
     },
     {
       "name":"@common_filter",
