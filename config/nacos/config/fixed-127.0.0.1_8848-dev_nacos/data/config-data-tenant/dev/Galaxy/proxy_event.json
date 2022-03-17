@@ -1089,21 +1089,33 @@
     {
       "name": "http_request_line",
       "label": "HTTP.Request Line",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "string"
     },
     {
       "name": "http_response_line",
       "label": "HTTP.Response Line",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "string"
     },
     {
       "name": "http_request_header",
       "label": "HTTP.Request Header",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "string"
     },
     {
       "name": "http_response_header",
       "label": "HTTP.Response Header",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "string"
     },
     {
@@ -1248,11 +1260,17 @@
     {
       "name": "http_response_latency_ms",
       "label": "HTTP.Response Latency(ms)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "http_session_duration_ms",
       "label": "HTTP.Session Duration(ms)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
