@@ -4,8 +4,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.base.DataTypeMapping;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
@@ -28,8 +31,15 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class FederationDialect extends AbstractEngineDialect{
     private Stopwatch watch = Stopwatch.createUnstarted();
+    private static final Map<String, String> metaMap = Maps.newHashMap();
     public ApiParam param;
     public BaseResult baseResult;
+
+    static {
+        metaMap.put("BIGINT", DataTypeMapping.LONG);
+        metaMap.put("DOUBLE", DataTypeMapping.DOUBLE);
+        metaMap.put("VARCHAR", DataTypeMapping.STRING);
+    }
 
     public FederationDialect(ApiParam param, BaseResult result) {
         this.param = param;
@@ -78,7 +88,7 @@ public class FederationDialect extends AbstractEngineDialect{
                         (List<Map<String, String>>) baseResult.getMeta(),
                         (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
                 baseResult.setData(resultMap.get("data"));
-                baseResult.setMeta(resultMap.get("meta"));
+                baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             }
             log.debug("Calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
 
@@ -112,6 +122,19 @@ public class FederationDialect extends AbstractEngineDialect{
         return baseResult;
     }
 
+    private List<Map<String, String>> unifyMeta(Object meta) {
+        List<Map<String, String>> metaList = Lists.newArrayList();
+        if (StringUtil.isEmpty(meta)) {
+            return metaList;
+        }
+        metaList = JsonPath.read(meta, "$");
+        metaList.forEach(x ->
+        {
+            String type = x.get("type");
+            x.put("type", metaMap.get(type) == null ? DataTypeMapping.STRING : metaMap.get(type));
+        });
+        return metaList;
+    }
 
     @Override
     public void executeUDF() {

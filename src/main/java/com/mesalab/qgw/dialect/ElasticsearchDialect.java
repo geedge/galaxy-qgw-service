@@ -5,11 +5,13 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.base.DataTypeMapping;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -40,12 +42,21 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ElasticsearchHttpSource elasticsearchHttpSource = (ElasticsearchHttpSource) SpringContextUtil.getBean("elasticsearchHttpSource");
+    private static final Map<String, String> metaMap = Maps.newHashMap();
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private int pageOffset;
     public ApiParam param;
     public BaseResult baseResult;
 
     private Stopwatch watch = Stopwatch.createUnstarted();
+
+    static {
+        metaMap.put("long", DataTypeMapping.LONG);
+        metaMap.put("boolean", DataTypeMapping.BOOLEAN);
+        metaMap.put("float", DataTypeMapping.FLOAT);
+        metaMap.put("double", DataTypeMapping.DOUBLE);
+        metaMap.put("text", DataTypeMapping.STRING);
+    }
 
     public ElasticsearchDialect(ApiParam param) {
         this.param = param;
@@ -128,7 +139,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             statistics.put("rows_read", allResults.size());
             baseResult.setData(data);
-            baseResult.setMeta(allResults.get("columns"));
+            baseResult.setMeta(unifyMeta(allResults.get("columns")));
             baseResult.setStatistics(statistics);
         } else {
             baseResult = BaseResultGenerator.failure(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
@@ -152,6 +163,19 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         return list;
     }
 
+    private List<Map<String, String>> unifyMeta(Object meta) {
+        List<Map<String, String>> metaList = Lists.newArrayList();
+        if (StringUtil.isEmpty(meta)) {
+            return metaList;
+        }
+        metaList = JsonPath.read(meta, "$");
+        metaList.forEach(x ->
+        {
+            String type = x.get("type");
+            x.put("type", metaMap.get(type) == null ? DataTypeMapping.STRING : metaMap.get(type));
+        });
+        return metaList;
+    }
 
     @Override
     public boolean supportsLimit() {
