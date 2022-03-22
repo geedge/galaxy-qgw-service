@@ -1460,8 +1460,7 @@
       "doc": {
         "constraints": {
           "type": "file"
-        },
-        "visibility": "hidden"
+        }
       },
       "type": "string"
     },
