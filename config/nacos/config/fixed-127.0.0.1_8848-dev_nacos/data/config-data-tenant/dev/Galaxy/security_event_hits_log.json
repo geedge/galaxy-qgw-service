@@ -3,39 +3,60 @@
   "name": "security_event_hits_log",
   "namespace": "druid",
   "doc": {
-    "partition_key": "__time"
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
   },
   "fields": [
     {
       "name": "__time",
-      "type": "long"
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        }
+      }
     },
     {
       "name": "action",
+      "label": "Action",
       "type": "long"
     },
     {
       "name": "entrance_id",
+      "label": "Entrance ID",
       "type": "long"
     },
     {
       "name": "hits",
+      "label": "Hits",
       "type": "long"
     },
     {
       "name": "c2s_byte_num",
+      "label": "Bytes Sent",
       "type": "long"
     },
     {
       "name": "s2c_byte_num",
+      "label": "Bytes Received",
       "type": "long"
     },
     {
       "name": "isp",
+      "label": "ISP",
       "type": "string"
     },
     {
       "name": "policy_id",
+      "label": "Policy ID",
       "type": "long"
     }
   ]

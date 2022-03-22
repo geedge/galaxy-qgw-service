@@ -3,35 +3,68 @@
   "name": "sys_storage_log",
   "namespace": "druid",
   "doc": {
-    "partition_key": "__time"
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "filters": [
+        "data_center"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
   },
   "fields": [
     {
       "name": "__time",
-      "type": "long"
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        }
+      }
     },
     {
       "name": "log_type",
+      "label": "Log Type",
       "type": "string"
     },
     {
       "name": "data_center",
-      "type": "string"
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        }
+      }
     },
     {
       "name": "max_size",
+      "label": "Max Size",
       "type": "long"
     },
     {
       "name": "used_size",
+      "label": "Used Size",
       "type": "long"
     },
     {
       "name": "aggregate_size",
+      "label": "Aggregate Size",
       "type": "long"
     },
     {
       "name": "last_storage",
+      "label": "Last Storage",
       "type": "long"
     }
   ]

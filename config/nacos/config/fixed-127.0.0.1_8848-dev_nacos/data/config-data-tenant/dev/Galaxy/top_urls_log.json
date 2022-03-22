@@ -8,14 +8,22 @@
   "fields": [
     {
       "name": "__time",
-      "type": "long"
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        }
+      }
     },
     {
       "name": "session_num",
+      "label": "Sessions",
       "type": "long"
     },
     {
       "name": "url",
+      "label": "URL",
       "type": "string"
     }
   ]

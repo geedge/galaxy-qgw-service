@@ -3,43 +3,93 @@
   "name": "traffic_top_destination_ip_metrics_log",
   "namespace": "druid",
   "doc": {
-    "partition_key": "__time"
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "filters": [
+        "common_data_center"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
   },
   "fields": [
     {
       "name": "__time",
-      "type": "long"
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        }
+      }
     },
     {
       "name": "common_sled_ip",
+      "label": "Sled IP",
       "type": "string"
     },
     {
       "name": "common_data_center",
-      "type": "string"
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        }
+      }
     },
     {
       "name": "destination_ip",
+      "label": "Destination IP",
       "type": "string"
     },
     {
       "name": "attack_type",
+      "label": "Attack type",
       "type": "string"
     },
     {
       "name": "session_rate",
-      "type": "long"
+      "label": "Sessions/s",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "sessions/sec"
+        }
+      }
     },
     {
       "name": "packet_rate",
-      "type": "long"
+      "label": "Packets/s",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "packets/sec"
+        }
+      }
     },
     {
       "name": "bit_rate",
-      "type": "long"
+      "label": "Bits/s",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "bits/sec"
+        }
+      }
     },
     {
       "name": "partition_num",
+      "label": "Partition Num",
       "type": "long"
     }
   ]

@@ -3,215 +3,280 @@
   "name": "traffic_metrics_log",
   "namespace": "druid",
   "doc": {
-    "partition_key": "__time"
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
   },
   "fields": [
     {
       "name": "__time",
-      "type": "long"
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        }
+      }
     },
     {
       "name": "allow_conn_num",
+      "label": "Allow Conn Num",
       "type": "long"
     },
     {
       "name": "allow_in_bytes",
+      "label": "Allow Bytes(in)",
       "type": "long"
     },
     {
       "name": "allow_in_packets",
+      "label": "Allow Packets(in)",
       "type": "long"
     },
     {
       "name": "allow_out_bytes",
+      "label": "Allow Bytes(out)",
       "type": "long"
     },
     {
       "name": "allow_out_packets",
+      "label": "Allow Packets(out)",
       "type": "long"
     },
     {
       "name": "close_conn_num",
+      "label": "Close Conn Num",
       "type": "long"
     },
     {
       "name": "default_conn_num",
+      "label": "Default Conn Num",
       "type": "long"
     },
     {
       "name": "default_in_bytes",
+      "label": "Default Bytes(in)",
       "type": "long"
     },
     {
       "name": "default_in_packets",
+      "label": "Default Packets(in)",
       "type": "long"
     },
     {
       "name": "default_out_bytes",
+      "label": "Default Bytes(out)",
       "type": "long"
     },
     {
       "name": "default_out_packets",
+      "label": "Default Packets(out)",
       "type": "long"
     },
     {
       "name": "deny_conn_num",
+      "label": "Deny Conn Num",
       "type": "long"
     },
     {
       "name": "deny_in_bytes",
+      "label": "Deny Bytes(in)",
       "type": "long"
     },
     {
       "name": "deny_in_packets",
+      "label": "Deny Packets(in)",
       "type": "long"
     },
     {
       "name": "deny_out_bytes",
+      "label": "Deny Bytes(out)",
       "type": "long"
     },
     {
       "name": "deny_out_packets",
+      "label": "Deny Packets(out)",
       "type": "long"
     },
     {
       "name": "device_id",
+      "label": "Device ID",
       "type": "string"
     },
     {
       "name": "entrance_id",
+      "label": "Entrance ID",
       "type": "long"
     },
     {
       "name": "intercept_conn_num",
+      "label": "Intercept Conn Num",
       "type": "long"
     },
     {
       "name": "intercept_in_bytes",
+      "label": "Intercept Bytes(in)",
       "type": "long"
     },
     {
       "name": "intercept_in_packets",
+      "label": "Intercept Packets(in)",
       "type": "long"
     },
     {
       "name": "intercept_out_bytes",
+      "label": "Intercept Bytes(out)",
       "type": "long"
     },
     {
       "name": "intercept_out_packets",
+      "label": "Intercept Packets(out)",
       "type": "long"
     },
     {
       "name": "established_conn_num",
+      "label": "Established Conn Num",
       "type": "long"
     },
     {
       "name": "monitor_conn_num",
+      "label": "Monitor Conn Num",
       "type": "long"
     },
     {
       "name": "monitor_in_bytes",
+      "label": "Monitor Bytes(in)",
       "type": "long"
     },
     {
       "name": "monitor_in_packets",
+      "label": "Monitor Packets(in)",
       "type": "long"
     },
     {
       "name": "monitor_out_bytes",
+      "label": "Monitor Bytes(out)",
       "type": "long"
     },
     {
       "name": "monitor_out_packets",
+      "label": "Monitor Packets(out)",
       "type": "long"
     },
     {
       "name": "new_conn_num",
+      "label": "New Conn Num",
       "type": "long"
     },
     {
       "name": "total_in_bytes",
+      "label": "Total Bytes(in)",
       "type": "long"
     },
     {
       "name": "total_in_packets",
+      "label": "Total Packets(in)",
       "type": "long"
     },
     {
       "name": "total_out_bytes",
+      "label": "Total Bytes(out)",
       "type": "long"
     },
     {
       "name": "total_out_packets",
+      "label": "Total Packets(out)",
       "type": "long"
     },
     {
       "name": "alert_bytes",
+      "label": "Alert Bytes",
       "type": "long"
     },
     {
       "name": "hijk_bytes",
+      "label": "Hijk Bytes",
       "type": "long"
     },
     {
       "name": "ins_bytes",
+      "label": "Ins Bytes",
       "type": "long"
     },
     {
       "name": "intcp_allow_num",
+      "label": "Intcp Allow Num",
       "type": "long"
     },
     {
       "name": "intcp_deny_num",
+      "label": "Intcp Deny Num",
       "type": "long"
     },
     {
       "name": "intcp_hijk_num",
+      "label": "Intcp Hijk Num",
       "type": "long"
     },
     {
       "name": "intcp_ins_num",
+      "label": "Intcp Ins Num",
       "type": "long"
     },
     {
       "name": "intcp_mon_num",
+      "label": "Intcp Mon Num",
       "type": "long"
     },
     {
       "name": "intcp_rdirt_num",
+      "label": "Intcp Rdirt Num",
       "type": "long"
     },
     {
       "name": "intcp_repl_num",
+      "label": "Intcp Repl Num",
       "type": "long"
     },
     {
       "name": "maybe_pinning_num",
+      "label": "Maybe Pinning Num",
       "type": "long"
     },
     {
       "name": "not_pinning_num",
+      "label": "Not Pinning Num",
       "type": "long"
     },
     {
       "name": "pinning_num",
+      "label": "Pinning Num",
       "type": "long"
     },
     {
       "name": "ad_cc_bytes",
+      "label": "AD CC Bytes",
       "type": "long"
     },
     {
       "name": "ad_flood_bytes",
+      "label": "AD Flood Bytes",
       "type": "long"
     },
     {
       "name": "ad_reflection_bytes",
+      "label": "AD Reflection Bytes",
       "type": "long"
     },
     {
       "name": "intcp_edit_elem_num",
+      "label": "Intcp Edit Elem Num",
       "type": "long"
     }
   ]

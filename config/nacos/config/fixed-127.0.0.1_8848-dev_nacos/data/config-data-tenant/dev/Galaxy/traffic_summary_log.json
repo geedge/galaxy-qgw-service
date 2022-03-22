@@ -3,75 +3,129 @@
   "name": "traffic_summary_log",
   "namespace": "druid",
   "doc": {
-    "partition_key": "__time"
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "filters": [
+        "data_center",
+        "device_group"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
   },
   "fields": [
     {
       "name": "__time",
-      "type": "long"
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        }
+      }
     },
     {
       "name": "isp",
+      "label": "ISP",
       "type": "string"
     },
     {
       "name": "entrance_id",
+      "label": "Entrance ID",
       "type": "long"
     },
     {
       "name": "device_group",
-      "type": "string"
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        }
+      }
     },
     {
       "name": "data_center",
-      "type": "string"
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        }
+      }
     },
     {
       "name": "schema_type",
+      "label": "Schema Type",
       "type": "string"
     },
     {
       "name": "ip_object",
+      "label": "IP Object",
       "type": "string"
     },
     {
       "name": "sessions",
+      "label": "Sessions",
       "type": "long"
     },
     {
       "name": "c2s_pkt_num",
+      "label": "Packets Sent",
       "type": "long"
     },
     {
       "name": "s2c_pkt_num",
+      "label": "Packets Received",
       "type": "long"
     },
     {
       "name": "c2s_byte_num",
+      "label": "Bytes Sent",
       "type": "long"
     },
     {
       "name": "s2c_byte_num",
+      "label": "Bytes Received",
       "type": "long"
     },
     {
       "name": "one_sided_connections",
+      "label": "One Sided Connections",
       "type": "long"
     },
     {
       "name": "uncategorized_bytes",
+      "label": "Uncategorized Bytes",
       "type": "long"
     },
     {
       "name": "fragmentation_packets",
+      "label": "Fragmentation Packets",
       "type": "long"
     },
     {
       "name": "sequence_gap_loss",
+      "label": "Sequence Gap Loss",
       "type": "long"
     },
     {
       "name": "unorder_packets",
+      "label": "Unorder Packets",
       "type": "long"
     }
   ]
