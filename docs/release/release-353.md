@@ -7,4 +7,4 @@
  * 新增MAX_DURATION自定义函数(GAL-143)
  * 扩展Schema，显示http_request_line、http_response_line(TSG-9903)
  * 扩展Schema，修复Logs内部分模块字段展示有误(TSG-9998)
- * 修改log4j配置文件将日志时区统一管理
+ * 扩展Schema，修复Security Events和Proxy Events字段展示问题(TSG-10062)
