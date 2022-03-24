@@ -561,33 +561,21 @@
     {
       "name": "common_c2s_pkt_diff",
       "label": "Packets Sent(Diff)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
       "name": "common_s2c_pkt_diff",
       "label": "Packets Received(Diff)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
       "name": "common_c2s_byte_diff",
       "label": "Bytes Sent(Diff)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_diff",
       "label": "Bytes Received(Diff)",
-      "doc": {
-        "visibility": "hidden"
-      },
       "type": "long"
     },
     {
@@ -822,10 +810,7 @@
     {
       "name": "common_app_surrogate_id",
       "label": "Surrogate ID",
-      "type": "string",
-      "doc": {
-        "visibility": "hidden"
-      }
+      "type": "string"
     },
     {
       "name": "common_l7_protocol",
