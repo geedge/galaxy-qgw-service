@@ -8,3 +8,4 @@
  * 扩展Schema，显示http_request_line、http_response_line(TSG-9903)
  * 扩展Schema，修复Logs内部分模块字段展示有误(TSG-9998)
  * 扩展Schema，修复Security Events和Proxy Events字段展示问题(TSG-10062)
+ * 扩展Schema，修复Security Events中common_protocol_label不应显示问题(TSG-10082)
