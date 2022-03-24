@@ -43,3 +43,9 @@ DELETE FROM "tsg_galaxy"."job_result" WHERE ROWKEY = '%s'
 #sql("SYNTAX_VALIDATION")
 SELECT %s FROM %s WHERE %s LIMIT 1
 #end
+#sql("REPORT_INSERT")
+insert into report_result ( status, result_rows, create_time, excute_row, is_valid, excute_detail, result_name, query_sql, excute_process, issued_time, op_time, start_time, excute_time, end_time, job_uuid, is_send_notice, job_id, chart_id, op_user, time_granularity, is_display_traffic_trend, time_zone) values ( 0, 0, '%s', 0, 1, 'COMMIT', 'OFFLINE JOB', '%s', 0, '%s', '%s', '%s', 0, '%s', '%s', 0, 0, 0, 0, 0, 0, '%s')
+#end
+#sql("REPORT_STATUS")
+SELECT status, result_id, query_sql, excute_process, is_valid FROM report_result WHERE job_uuid = '%s' LIMIT 1
+#end

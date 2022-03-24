@@ -1,9 +1,15 @@
 package com.mesalab.services.controller;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.DeferredResultHolder;
+import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.zdjizhi.utils.StringUtil;
@@ -12,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.HashMap;
+
+import static com.mesalab.services.configuration.JobConfig.*;
 
 /**
  * TODO
@@ -29,19 +37,51 @@ public class JobController {
     JobService jobService;
     @Autowired
     JobConfig jobConfig;
+    @Autowired
+    MetadataService metadataService;
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
 
+    /**
+     * Desc: TODO
+     *
+     * @param reqBody
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2022/3/18 2:13 下午
+     */
     @PostMapping(value = "/jobs", produces = "application/json")
-    public BaseResult getJobId(@RequestBody HashMap<String, Object> reqBody) {
-        return jobService.getJobId(reqBody);
+    public BaseResult commitJob(@RequestBody HashMap<String, Object> reqBody) {
+        if (!reqBody.containsKey(JobConfig.KEY_QUERY_TYPE)) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The param must contain query.type", null);
+        }
+        if (!reqBody.containsKey(JobConfig.KEY_QUERY_DATA_SOURCE)) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The param must contain query.data_source", null);
+        }
+        String dataSource = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_DATA_SOURCE));
+        if (!metadataService.getAllTable().contains(dataSource)) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The param query.data_source illegal", null);
+        }
+        BaseResult baseResult;
+        String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
+        if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
+            baseResult = jobService.commitRealTimeJob(reqBody);
+        } else if (JobConfig.REPORT.equals(queryType)) {
+            baseResult = jobService.commitSavedQuery(reqBody);
+        } else {
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "Not Support");
+        }
+        return baseResult;
     }
 
     @GetMapping(value = "/jobs/{jobId}/field_discovery")
     public DeferredResult<BaseResult> longPollingResult(@PathVariable String jobId) {
         log.info("Long Polling Request,Job ID is {}", jobId);
-        BaseResult baseResult = jobService.getResult(jobId);
+        BaseResult baseResult = jobService.getResultFieldDiscovery(jobId);
         DeferredResult<BaseResult> deferredResult =
                 deferredResultHolder.newDeferredResult(jobId, jobConfig.getResponseTimeout(), baseResult);
         if (!jobConfig.isLongPollingEnabled()) {
@@ -49,7 +89,7 @@ public class JobController {
             return deferredResult;
         }
         deferredResult.onTimeout(() ->{
-            deferredResultHolder.handleDeferredData(deferredResult, jobService.getResult(jobId));
+            deferredResultHolder.handleDeferredData(deferredResult, jobService.getResultFieldDiscovery(jobId));
         });
 
         if (StringUtil.isNotEmpty(baseResult)
@@ -60,6 +100,17 @@ public class JobController {
         return deferredResult;
     }
 
+    @GetMapping(value = "/jobs/{jobId}/report")
+    public BaseResult getResultReport(@PathVariable String jobId) {
+        return jobService.getResultReport(jobId);
+    }
 
+    @GetMapping(value = "/jobs/{jobId}/status")
+    public BaseResult getStatus(@PathVariable String jobId) {
+        if (jobId.startsWith(DigestUtil.md5Hex16(REPORT).concat(DELIMIT))) {
+            return jobService.getReportStatus(jobId);
+        }
+        return BaseResultGenerator.success();
+    }
 
 }

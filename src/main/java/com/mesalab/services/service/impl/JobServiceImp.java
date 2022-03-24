@@ -1,11 +1,14 @@
 package com.mesalab.services.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.jfinal.plugin.activerecord.Db;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -13,12 +16,15 @@ import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +36,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.*;
+
+import static com.mesalab.services.configuration.JobConfig.KEY_CUSTOM_REPORT_SQL;
+import static com.mesalab.services.configuration.JobConfig.KEY_QUERY_SAMPLE_RATIO;
 
 /**
  * TODO
@@ -45,6 +54,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     private static final String URL_PREFIX = "jdbc:phoenix:";
     @Autowired
     ApiService apiService;
+    @Autowired
+    MetadataService metadataService;
     @Autowired
     JobExecuteService jobExecuteService;
     @Autowired
@@ -78,20 +89,79 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
 
     @Override
-    public BaseResult getJobId(HashMap<String, Object> map) {
-        validateRequestBody(map);
-        syntaxValidation(map);
-        String id = DigestUtil.md5Hex(String.valueOf(map));
+    public BaseResult commitRealTimeJob(HashMap<String, Object> map) {
+        validateFieldDiscovery(map);
+        String id = DigestUtil.md5Hex16(JobConfig.FIELD_DISCOVERY)
+                .concat(JobConfig.DELIMIT)
+                .concat(DigestUtil.md5Hex16(String.valueOf(map)));
         if (!isExist(id)) {
             log.info("Add Job, ID is {}, Params is {}", id, JsonMapper.toJsonString(map));
-            init(id, (List<String>) map.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FIELDS));
+            init(id, (List<String>) map.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS));
             jobExecuteService.addExecutor(id, map);
         }
-        return BaseResultGenerator.success("ok", build(id));
+        return BaseResultGenerator.success("ok", buildData(id));
     }
 
     @Override
-    public BaseResult getResult(String id) {
+    public BaseResult commitSavedQuery(HashMap<String, Object> map) {
+        validateReport(map);
+        map.put("UUID", System.currentTimeMillis());
+        String id = DigestUtil.md5Hex16(JobConfig.REPORT)
+                .concat(JobConfig.DELIMIT)
+                .concat(DigestUtil.md5Hex16(String.valueOf(map)));
+
+        String sql = JSONUtil.quote(map.get(KEY_CUSTOM_REPORT_SQL).toString(), false).replace("'", "\\'");
+        String currentDate = DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        sql = String.format(Objects.requireNonNull(env.getProperty("REPORT_INSERT")), currentDate, sql, currentDate, currentDate, currentDate, currentDate, id, TimeZone.getDefault().getID());
+        Db.update(sql);
+        return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildData(id));
+    }
+
+    @Override
+    public BaseResult getReportStatus(String jobId) {
+        List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("REPORT_STATUS")), jobId));
+        if(CollectionUtil.isEmpty(query)){
+            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), "not found job");
+        }
+        List<Object> list = Arrays.asList((Object[]) query.get(0));
+        HashMap<String, Object> job = new HashMap<>();
+        job.put("is_canceled", !BooleanUtil.toBoolean(String.valueOf(list.get(4))));
+        job.put("is_failed", Integer.parseInt(String.valueOf(list.get(0))) > 2);
+        job.put("done_progress", Math.min(Double.parseDouble(String.valueOf(list.get(3))) / 100, 1));
+        job.put("is_done", Integer.parseInt(String.valueOf(list.get(0))) > 1);
+        return BaseResultGenerator.success("ok", Lists.newArrayList(job));
+    }
+
+    @Override
+    public BaseResult getResultReport(String jobId) {
+        BaseResult reportStatus = getReportStatus(jobId);
+        BaseResult<Object> result;
+        if (reportStatus.isSuccess()) {
+            List<HashMap<String, Object>> data = (List<HashMap<String, Object>>) reportStatus.getData();
+            HashMap<String, Object> jobInfo = data.get(0);
+            boolean isDone = Boolean.parseBoolean(jobInfo.get(JobConfig.IS_DONE).toString());
+            boolean isCanceled = Boolean.parseBoolean(jobInfo.get(JobConfig.IS_CANCELED).toString());
+            boolean isFailed = Boolean.parseBoolean(jobInfo.get("is_failed").toString());
+            if (!isCanceled && isDone && !isFailed) {
+                List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("REPORT_STATUS")), jobId));
+                if (query.size() > 0) {
+                    Object[] o = (Object[]) query.get(0);
+                    List<Object> list = Arrays.asList(o);
+                    String resultId = String.valueOf(list.get(1));
+                    String querySql = String.valueOf(list.get(2));
+                    result = ReportCacheUtils.get(resultId, querySql);
+                    result.setJob(jobInfo);
+                    return result;
+                }
+            } else {
+                BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), "job unfinished");
+            }
+        }
+        return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "get job info error");
+    }
+
+    @Override
+    public BaseResult getResultFieldDiscovery(String id) {
         return buildResult(id);
     }
 
@@ -191,22 +261,27 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT_QUERY")), id, now));
     }
 
-    private void validateRequestBody(HashMap<String, Object> body) {
-        if (!body.containsKey("query.type")) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Param Syntax Error: The param must contain query.type", null);
-        }
-        if (!body.containsKey("query.data_source")) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Param Syntax Error: The param must contain query.data_source", null);
-        }
-        if (!body.containsKey("query.sample_ratio")) {
+    private void validateFieldDiscovery(HashMap<String, Object> body) {
+        if (!body.containsKey(KEY_QUERY_SAMPLE_RATIO)) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param Syntax Error: The param must contain query.sample_ratio", null);
         }
+        syntaxValidationFieldDiscovery(body);
     }
 
-    private void syntaxValidation(HashMap<String, Object> map) {
+    private void validateReport(HashMap<String, Object> map) {
+        ApiParam apiParam = ApiParam.builder().query(String.valueOf(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL)))
+                .option(QueryOptionEnum.SYNTAX_VALIDATION.getValue())
+                .build();
+        BaseResult baseResult = apiService.executeQuery(apiParam);
+        if (!baseResult.isSuccess()) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Job Validation Error: ".concat(baseResult.getMessage()), null);
+        }
+    }
+
+
+    private void syntaxValidationFieldDiscovery(HashMap<String, Object> map) {
         String syntaxValidation = env.getProperty("SYNTAX_VALIDATION");
         List field = (List) map.get("custom.field_discovery.fields");
         Object filter = map.get("custom.field_discovery.filter");
@@ -240,7 +315,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         return i == 1;
     }
 
-    private List build(String id) {
+    private List buildData(String id) {
         Map<String, Object> data = Maps.newHashMap();
         data.put("jobId", id);
         return Lists.newArrayList(data);

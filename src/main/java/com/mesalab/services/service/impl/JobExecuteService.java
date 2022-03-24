@@ -71,11 +71,11 @@ public class JobExecuteService implements EnvironmentAware {
         try {
             JobInfo jobInfo = new JobInfo(id);
             String partitionKey = metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
-            Interval interval = getInterval(param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FILTER).toString(), partitionKey);
+            Interval interval = getInterval(param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString(), partitionKey);
             if (jobCfg.isTimeSlicingEnabled() && interval.isValid()) {
                 executeSlicingJob(jobInfo, watch, param, interval, partitionKey);
             } else {
-                executeJob(jobInfo, watch, param, param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FILTER).toString());
+                executeJob(jobInfo, watch, param, param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString());
             }
         } catch (Exception e) {
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
@@ -98,12 +98,12 @@ public class JobExecuteService implements EnvironmentAware {
             if (start > interval.getStart()) {
                 interval.setEnd(start);
                 String newFilter = String.format("(%s) AND ( %s > %s AND %s <= %s)",
-                        param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FILTER),
+                        param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER),
                         partitionKey, interval.getEnd(), partitionKey, interval.getEnd() + jobCfg.getTimeSlicingInterval());
                 executeJob(jobInfo, watch, param, newFilter);
             } else {
                 String where = String.format("(%s) AND (%s >= %s AND %s <= %s)",
-                        param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FILTER),
+                        param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER),
                         partitionKey, interval.getStart(), partitionKey, interval.getEnd());
                 executeJob(jobInfo, watch, param, where);
                 break;
@@ -121,7 +121,7 @@ public class JobExecuteService implements EnvironmentAware {
                 "count", jobInfo.getId(), count));
         jobInfo.setCount(count);
         List<Future<Boolean>> list = Lists.newArrayList();
-        List<String> fields = (List<String>) param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FIELDS);
+        List<String> fields = (List<String>) param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         for (String field : fields) {
             list.add(taskExecuteService.execute(jobInfo.getId(), param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter, field, currentCount));
         }

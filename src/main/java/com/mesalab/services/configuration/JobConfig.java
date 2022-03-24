@@ -22,8 +22,18 @@ public class JobConfig {
     public static final String DISCOVERY_FIELD= "discovery_field";
     public static final String DURATION_TIME= "duration_time";
     public static final String QUERY_DATA_SOURCE = "query.data_source";
-    public static final String CUSTOM_FIELD_DISCOVERY_FIELDS = "custom.field_discovery.fields";
-    public static final String CUSTOM_FIELD_DISCOVERY_FILTER = "custom.field_discovery.filter";
+
+    public static final String DELIMIT = "-";
+    public static final String REPORT= "report";
+    public static final String FIELD_DISCOVERY= "field_discovery";
+
+    public static final String KEY_CUSTOM_FIELD_DISCOVERY_FIELDS = "custom.field_discovery.fields";
+    public static final String KEY_CUSTOM_FIELD_DISCOVERY_FILTER = "custom.field_discovery.filter";
+    public static final String KEY_CUSTOM_REPORT_SQL = "custom.report.sql";
+    public static final String KEY_QUERY_TYPE = "query.type";
+    public static final String KEY_QUERY_DATA_SOURCE = "query.data_source";
+    public static final String KEY_QUERY_SAMPLE_RATIO = "query.sample_ratio";
+
 
     @NacosValue(value = "${job.interactive.timeout}", autoRefreshed = true)
     private int interactiveTimeout;
