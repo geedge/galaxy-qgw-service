@@ -5,6 +5,8 @@ import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
 
+import java.util.TimeZone;
+
 /**
  * TODO
  *
@@ -18,8 +20,7 @@ public class JVMHealthIndicator extends AbstractHealthIndicator {
     protected void doHealthCheck(Health.Builder builder) throws Exception {
         builder.up()
                 .withDetail("app", "JVM")
-                .withDetail("timeZone", System.getProperty("user.timezone"))
+                .withDetail("timeZone", TimeZone.getDefault().getID())
                 .withDetail("curTimestamp", DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ss:SSS'Z'"));
-
     }
 }

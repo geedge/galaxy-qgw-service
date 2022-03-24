@@ -3,13 +3,13 @@ package com.mesalab;
 import com.mesalab.qgw.interceptor.QuerySubmitInterceptor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.TimeZone;
 
 /**
  * spring-boot-seed启动主程序
@@ -29,7 +29,7 @@ public class GalaxyQGWApplication implements WebMvcConfigurer {
     public static void main(String[] args) {
         System.setProperty("jasypt.encryptor.password", "galaxy");
         System.setProperty("JM.SNAPSHOT.PATH", "config");
-        System.setProperty("user.timezone", "UTC");
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         SpringApplication.run(GalaxyQGWApplication.class, args);
     }
 
