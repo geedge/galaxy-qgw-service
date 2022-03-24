@@ -129,7 +129,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 dateRangeList = Lists.newArrayList(Iterables.concat(leftDateRange, rightDateRange));
 
             } else {
-                log.warn("SQL中时间条件不完整[startTime:{} - endTime:{}],补全功能无效!", whereTimeRange.getStart(), whereTimeRange.getEnd());
+                log.warn("The time range is empty [startTime:{},endTime:{}], so the time series data cannot be filled.", whereTimeRange.getStart(), whereTimeRange.getEnd());
                 return results;
             }
 

@@ -37,7 +37,7 @@ public class DiagnosisController {
     }
 
     @RequestMapping(value = "/runSql")
-    public BaseResult executePocSql(String isSaved, @RequestParam(defaultValue = "validation") String option) throws BusinessException {
+    public BaseResult executePocSql(String isSaved, @RequestParam(defaultValue = "parse") String option) throws BusinessException {
         if (Arrays.stream(DiagnosisOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(option))) {
             throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param Syntax Error: The option must be either validation or execution");

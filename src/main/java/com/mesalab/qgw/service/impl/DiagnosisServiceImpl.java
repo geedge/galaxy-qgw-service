@@ -3,10 +3,7 @@ package com.mesalab.qgw.service.impl;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
-import cn.hutool.core.net.NetUtil;
-import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -30,6 +27,7 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpQuery;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
+import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.CommonUtil;
@@ -49,11 +47,8 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -74,6 +69,10 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private HttpClientService httpClientService;
     @Autowired
     private HttpConfig httpConfig;
+
+    @Autowired
+    private ApiService apiService;
+
     @Autowired
     private ClickhouseWriter clickhouseWriter;
     @Autowired
@@ -88,12 +87,6 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
     private MetadataService metadataService;
-    @Autowired
-    private Environment environment;
-    private static final String localHostAddress = NetUtil.getLocalhostStr();
-    public String getPort(){
-        return environment.getProperty("local.server.port");
-    }
     /**
      * 验证Schema格式是否正确
      *
@@ -160,18 +153,30 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, Map<String, String>> hbaseResult;
         try {
             Stopwatch watch = Stopwatch.createStarted();
-
             Optional<File> druidTestFile = Optional.of(new File(druidWriter.buildPocSQL()));
-            druidResult = executePocSqlByDatasource(druidTestFile, isSaved, option);
-
             Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
-            clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, option);
-
             Optional<File> hbaseTestFile = Optional.of(new File(hbaseWriter.buildPocSQL()));
-            hbaseResult = executePocSqlByDatasource(hbaseTestFile, isSaved, option);
-
             Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
-            engineResult = executePocSqlByDatasource(engineTestFile, isSaved, option);
+
+            if (DiagnosisOptionEnum.PARSE.getValue().equalsIgnoreCase(option)) {
+                druidResult = executeSyntaxCheckByDatasource(druidTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+                clickhouseResult = executeSyntaxCheckByDatasource(ckTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+                hbaseResult = executeSyntaxCheckByDatasource(hbaseTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+                engineResult = executeSyntaxCheckByDatasource(engineTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+            } else if (DiagnosisOptionEnum.VALIDATION.getValue().equalsIgnoreCase(option)) {
+                druidResult = executeSyntaxCheckByDatasource(druidTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+                clickhouseResult = executeSyntaxCheckByDatasource(ckTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+                hbaseResult = executeSyntaxCheckByDatasource(hbaseTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+                engineResult = executeSyntaxCheckByDatasource(engineTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+            } else if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
+                druidResult = executePocSqlByDatasource(druidTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+                clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+                hbaseResult = executePocSqlByDatasource(hbaseTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+                engineResult = executePocSqlByDatasource(engineTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+            } else {
+                throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "The option is not supported.");
+            }
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
@@ -212,8 +217,6 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
         try {
             Stopwatch watch = Stopwatch.createStarted();
-
-
             if (testFile.isPresent()) {
                 if (!testFile.get().isFile()) {
                     log.warn("UnKnow File " + testFile.get());
@@ -232,25 +235,51 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         return result;
     }
 
+    /**
+     * 对各个数据库引擎的测试集SQL进行语法解析或验证
+     * @param file
+     * @param queryOption
+     * @return
+     */
+    private Map<String, Map<String, String>> executeSyntaxCheckByDatasource(Optional<File> file, String queryOption) {
+        Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
+        Map<String, String> infoMap = Maps.newLinkedHashMap();
+        if (file.isPresent() && file.get().isFile()) {
+            List<String> rawLines = new FileReader(file.get()).readLines();
+            int index = 0;
+            for (String line : rawLines) {
+                index++;
+                if (Strings.isNullOrEmpty(line)) {
+                    continue;
+                }
+                Stopwatch watch = Stopwatch.createStarted();
+                BaseResult queryResult = getBaseResultByEngine(ApiParam.builder().option(queryOption).query(line).build());
+                if (StringUtil.isEmpty(queryResult.getStatistics())) {
+                    Map<String, Object> statistics = Maps.newLinkedHashMap();
+                    statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+                    queryResult.setStatistics(statistics);
+                }
+                processQueryResult(file, infoMap, null, index, queryResult);
+            }
+            resultMap.put(file.get().getName(), buildQueryTimeMetric(infoMap));
+        } else {
+            log.error("File is not exist or is a directory.");
+        }
+        return resultMap;
+
+    }
 
     /**
      * 执行POC SQL测试集，并返回执行结果
      *
-     * @param file    sql 查询语句列表
+     * @param file   sql 查询语句列表
      * @param isSaved 是否保存查询结果
-     * @param option  SQL诊断方式
+     * @param queryOption  SQL诊断方式
      * @return
      */
-    private Map<String, Map<String, String>> executePocSqlByDatasource(Optional<File> file, boolean isSaved, String option) {
+    private Map<String, Map<String, String>> executePocSqlByDatasource(Optional<File> file, boolean isSaved, String queryOption) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newLinkedHashMap();
-        Map<String, Object> paramMap = Maps.newHashMap();
-        if (DiagnosisOptionEnum.VALIDATION.getValue().equalsIgnoreCase(option)) {
-            paramMap.put("option", QueryOptionEnum.SYNTAX_VALIDATION.getValue());
-        } else if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
-            paramMap.put("option", QueryOptionEnum.REAL_TIME.getValue());
-        }
-        paramMap.put("format", QueryFormatEnum.CSV.getValue());
         FileWriter writer = null;
         int index = 0;
         if (file.isPresent() && file.get().isFile()) {
@@ -259,6 +288,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             if (isSaved) {
                 writer = new FileWriter(file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat");
             }
+
             if (StringUtil.lowerCase(benchFileName).startsWith(DRUID_PREFIX)) {
                 for (String line : rawLines) {
                     index++;
@@ -266,7 +296,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         continue;
                     }
                     BaseResult queryResult = generateDruidBaseResult(line);
-                    resultProcess(file, infoMap, writer, index, queryResult);
+                    processQueryResult(file, infoMap, writer, index, queryResult);
                 }
             } else if (StringUtil.lowerCase(benchFileName).startsWith(CK_PREFIX)) {
                 for (String line : rawLines) {
@@ -275,7 +305,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         continue;
                     }
                     BaseResult queryResult = generateClickHouseBaseResult(line);
-                    resultProcess(file, infoMap, writer, index, queryResult);
+                    processQueryResult(file, infoMap, writer, index, queryResult);
                 }
             } else if (StringUtil.lowerCase(benchFileName).startsWith(HBASE_PREFIX)) {
                 for (String line : rawLines) {
@@ -284,7 +314,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         continue;
                     }
                     BaseResult queryResult = generateHbaseBaseResult(line);
-                    resultProcess(file, infoMap, writer, index, queryResult);
+                    processQueryResult(file, infoMap, writer, index, queryResult);
                 }
             } else if (StringUtil.lowerCase(benchFileName).startsWith(ENGINE_PREFIX)) {
                 for (String line : rawLines) {
@@ -292,41 +322,33 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                     if (Strings.isNullOrEmpty(line)) {
                         continue;
                     }
-                    Map<String, String> queryResult = executeQuery(line, paramMap);
-                    int statusCode = Integer.parseInt(queryResult.get("status").trim());
-                    if (statusCode == HttpStatus.SC_OK) {
-                        if (writer != null) {
-                            writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "\n");
-                            writer.append(JsonPath.read(queryResult.get("result"), "$.meta") + "\n");
-                            writer.append(JsonPath.read(queryResult.get("result"), "$.data") + "\n");
-                        }
-                        infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
-                    } else if (statusCode == HttpStatus.SC_GATEWAY_TIMEOUT || statusCode == HttpStatus.SC_BAD_GATEWAY) {
-                        infoMap.put("Query" + index, "status:" + queryResult.get("status") + ",message:" + queryResult.get("message"));
-
-                    } else {
-                        throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), file.get().getName()
-                                + ",Query" + index + "," + queryResult.get("status") + "," + queryResult.get("message"), null);
-                    }
+                    BaseResult queryResult = getBaseResultByEngine(
+                            ApiParam.builder().option(queryOption).format(QueryFormatEnum.CSV.getValue()).query(line).build());
+                    processQueryResult(file, infoMap, writer, index, queryResult);
                 }
             }
-            if (StringUtil.isNotEmpty(infoMap)) {
-                double[] values = infoMap.values().stream().mapToDouble(value -> Double.valueOf(value)).sorted().toArray();
-                infoMap.put("Min", String.valueOf(CommonUtil.round(StatUtils.min(values),2)));
-                infoMap.put("Mean", String.valueOf(CommonUtil.round(StatUtils.mean(values),2)));
-                infoMap.put("Median", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 50),2)));
-                infoMap.put("P95", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 95),2)));
-                infoMap.put("P99", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 99),2)));
-                infoMap.put("MAX", String.valueOf(CommonUtil.round(StatUtils.max(values),2)));
-            }
-            resultMap.put(file.get().getName(), infoMap);
+
+            resultMap.put(file.get().getName(), buildQueryTimeMetric(infoMap));
         } else {
-            log.error("File is not exist or is directory.");
+            log.error("File is not exist or is a directory.");
         }
         return resultMap;
     }
 
-    private void resultProcess(Optional<File> file, Map<String, String> infoMap, FileWriter writer, int index, BaseResult queryResult) {
+    private Map<String, String> buildQueryTimeMetric(Map<String, String> infoMap) {
+        if (StringUtil.isNotEmpty(infoMap)) {
+            double[] values = infoMap.values().stream().mapToDouble(value -> Double.valueOf(value)).sorted().toArray();
+            infoMap.put("Min", String.valueOf(CommonUtil.round(StatUtils.min(values),2)));
+            infoMap.put("Mean", String.valueOf(CommonUtil.round(StatUtils.mean(values),2)));
+            infoMap.put("Median", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 50),2)));
+            infoMap.put("P95", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 95),2)));
+            infoMap.put("P99", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 99),2)));
+            infoMap.put("MAX", String.valueOf(CommonUtil.round(StatUtils.max(values),2)));
+        }
+        return infoMap;
+    }
+
+    private void processQueryResult(Optional<File> file, Map<String, String> infoMap, FileWriter writer, int index, BaseResult queryResult) {
         int statusCode = Integer.parseInt(queryResult.getStatus().toString());
         if (statusCode == HttpStatus.SC_OK) {
             if (writer != null) {
@@ -429,6 +451,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                 .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName());
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
+        clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
         clickHouseHttpQuery.setQueryParameter(queryParamBuilder.toString());
         log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), com.mesalab.common.utils.JsonMapper.toJsonString(clickHouseHttpQuery));
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
@@ -497,15 +520,14 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         for (String tableName : tables) {
             Schema schema = metadataService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
-            Map<String, String> result = executeQuery("describe " + tableName, null);
-            if (HttpStatus.SC_OK != Integer.parseInt(result.get("status"))
-                    || Integer.parseInt(JsonPath.read(result.get("result"), "$.status").toString()) != HttpStatus.SC_OK) {
-                log.error("查询表结构失败：" + result.get("result"));
+            BaseResult baseResult = getBaseResultByEngine(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
+            if (HttpStatus.SC_OK != baseResult.getStatus()) {
+                log.error("查询表结构失败：" + baseResult.getMessage());
                 throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
                         " The Table[" + tableName + "] Structure query failed", null);
             }
-            List<Map<String, Object>> dbFields = JsonPath.read(result.get("result"), "$.data.fields.*");
+            List<Map<String, Object>> dbFields = JsonPath.read(JsonMapper.toJsonString(baseResult.getData()), "$.fields.*");
 
             Map<String, Object> dbFieldMap = Maps.newHashMap();
             dbFields.stream().forEach(objectMap -> {
@@ -535,27 +557,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             }
 
         }
-
-
         resultMap.put(METADATA_PREFIX + dbName, infoMap);
-
         return resultMap;
     }
 
 
-    private Map<String, String> executeQuery(String sql, Map<String, Object> urlParam) {
-        Map<String, String> resultMap = Maps.newHashMap();
-        try {
-            String param = URLUtil.buildQuery(urlParam, CharsetUtil.CHARSET_UTF_8);
-            sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
-            String queryURL = URLUtil.normalize(localHostAddress + ":" + getPort() + "/?query=");
-            int socketTimeOut = httpConfig.getServerResponseTimeOut();
-            resultMap = httpClientService.httpGet(queryURL + sql + (StrUtil.isBlank(param) ? "" : "&" + param), socketTimeOut);
-        } catch (UnsupportedEncodingException e) {
-            log.error("Unsupported Encoding error: ", e);
-        }
-
-        return resultMap;
+    private BaseResult getBaseResultByEngine(ApiParam apiParam) {
+        return apiService.executeQuery(apiParam);
     }
 
 

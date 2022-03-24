@@ -63,7 +63,7 @@ clickhouse:
   realTimeAccount:
     username: ENC(Ao/e/87KQ8vOabP81PV/i4f/wvgztdKW)
     pin: ENC(KtRdLd84bYGGgk/Uv3+lUQFSxBfQ9ctJ)
-    socketTimeOut: 60000
+    socketTimeOut: 120000
   longTermAccount:
     username: ENC(lgnlVXRIN8qNh+B0scCBKp9QMID22Nc7)
     pin: ENC(AkmSSo5VBw6TOz+AXhorb+tmuLn3WANm)

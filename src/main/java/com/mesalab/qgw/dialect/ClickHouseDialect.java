@@ -139,7 +139,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     public String getSyntaxCheckQuery() {
         String sql = param.getDbQuerySource().getSqlBody();
         try {
-            sql = String.valueOf(parserAndUpdateSql(sql));
+            sql = String.valueOf(convertSampleSql(sql));
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
@@ -1041,6 +1041,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
 
     /**
+     * 通过递归方式将原SQL转换为样例SQL
      * 做数据集限制:
      *  1. 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
      *  2. 对where添加：OR 1=1
@@ -1050,7 +1051,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @return
      * @throws JSQLParserException
      */
-    private SelectBody parserAndUpdateSql(String sql) throws JSQLParserException {
+    private SelectBody convertSampleSql(String sql) throws JSQLParserException {
         Statement parse = CCJSqlParserUtil.parse(sql);
         if (parse instanceof Select) {
             Select select = (Select) parse;
@@ -1060,21 +1061,21 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 FromItem fromItem = plainSelect.getFromItem();
                 if (fromItem instanceof SubSelect) {
                     SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
-                    subSelect.setSelectBody(parserAndUpdateSql(subSelect.getSelectBody().toString()));
+                    subSelect.setSelectBody(convertSampleSql(subSelect.getSelectBody().toString()));
                 } else if (fromItem instanceof Table) {
                     Table table = (Table) fromItem;
-                    plainSelect.setFromItem(generateDataSetSql(table.getName(), table.getAlias() != null ? table.getAlias().getName() : table.getName()));
+                    plainSelect.setFromItem(generateSampleDatasetSql(table.getName(), table.getAlias() != null ? table.getAlias().getName() : table.getName()));
                 }
                 if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
-                    plainSelect.setWhere(generateDateSetWhere(plainSelect.getWhere().toString()));
+                    plainSelect.setWhere(generateDatasetWhereSql(plainSelect.getWhere().toString()));
                 }
-                parseWhereAndUpdate(plainSelect.getWhere());
+                convertWhereForSampleSql(plainSelect.getWhere());
                 return plainSelect;
             } else if (selectBody instanceof SetOperationList) {
                 SetOperationList setOperationList = (SetOperationList) selectBody;
                 List<SelectBody> selects = setOperationList.getSelects();
                 for (int i = 0; i < selects.size(); i++) {
-                    selects.set(i, parserAndUpdateSql(selects.get(i).toString()));
+                    selects.set(i, convertSampleSql(selects.get(i).toString()));
                 }
                 return setOperationList;
             } else {
@@ -1090,48 +1091,48 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @param whereExpression
      * @throws JSQLParserException
      */
-    private void parseWhereAndUpdate(Expression whereExpression) throws JSQLParserException {
+    private void convertWhereForSampleSql(Expression whereExpression) throws JSQLParserException {
         if (whereExpression instanceof ComparisonOperator) {
             ComparisonOperator whereOperator = (ComparisonOperator) whereExpression;
             Expression left = whereOperator.getLeftExpression();
-            setSelectBody(left);
+            setSampleSelectBody(left);
             Expression right = whereOperator.getRightExpression();
-            setSelectBody(right);
+            setSampleSelectBody(right);
         } else if (whereExpression instanceof InExpression) {
             InExpression inExpression = (InExpression) whereExpression;
             Expression leftExpression = inExpression.getLeftExpression();
-            setSelectBody(leftExpression);
+            setSampleSelectBody(leftExpression);
             ItemsList rightItemsList = inExpression.getRightItemsList();
             if (rightItemsList instanceof SubSelect) {
                 SubSelect subSelect = (SubSelect) rightItemsList;
-                setSelectBody(subSelect);
+                setSampleSelectBody(subSelect);
             }
         } else if (whereExpression instanceof Between) {
             Between whereBetween = (Between) whereExpression;
             Expression betweenExpressionStart = whereBetween.getBetweenExpressionStart();
-            setSelectBody(betweenExpressionStart);
+            setSampleSelectBody(betweenExpressionStart);
             Expression betweenExpressionEnd = whereBetween.getBetweenExpressionEnd();
-            setSelectBody(betweenExpressionEnd);
+            setSampleSelectBody(betweenExpressionEnd);
         } else if (whereExpression instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) whereExpression;
-            parseWhereAndUpdate(whereAnd.getLeftExpression());
-            parseWhereAndUpdate(whereAnd.getRightExpression());
+            convertWhereForSampleSql(whereAnd.getLeftExpression());
+            convertWhereForSampleSql(whereAnd.getRightExpression());
         } else if (whereExpression instanceof OrExpression) {
             OrExpression whereOr = (OrExpression) whereExpression;
-            parseWhereAndUpdate(whereOr.getLeftExpression());
-            parseWhereAndUpdate(whereOr.getRightExpression());
+            convertWhereForSampleSql(whereOr.getLeftExpression());
+            convertWhereForSampleSql(whereOr.getRightExpression());
         } else if (whereExpression instanceof Parenthesis) {
             Parenthesis whereExpressionParenthesis = (Parenthesis) whereExpression;
             Expression expression = whereExpressionParenthesis.getExpression();
-            parseWhereAndUpdate(expression);
+            convertWhereForSampleSql(expression);
         }
     }
 
-    private void setSelectBody(Expression expression) throws JSQLParserException {
+    private void setSampleSelectBody(Expression expression) throws JSQLParserException {
         if (expression instanceof SubSelect) {
             SubSelect subSelect = (SubSelect) expression;
             SelectBody selectBody = subSelect.getSelectBody();
-            subSelect.setSelectBody(parserAndUpdateSql(selectBody.toString()));
+            subSelect.setSelectBody(convertSampleSql(selectBody.toString()));
         }
     }
 
@@ -1143,18 +1144,17 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @return
      * @throws JSQLParserException
      */
-    private FromItem generateDataSetSql(String tableName, String alias) throws JSQLParserException {
-        String sql = String.format("SELECT 1 FROM (SELECT * FROM %s  LIMIT %s ) as %s ",
-                tableName, 100, alias);
+    private FromItem generateSampleDatasetSql(String tableName, String alias) throws JSQLParserException {
+        String sql = StrUtil.format("SELECT 1 FROM (SELECT * FROM  {} where rand() % 100 = 0  LIMIT {} ) as {} ",
+                tableName, 1000, alias);
         Statement parse = CCJSqlParserUtil.parse(sql);
         Select select = (Select) parse;
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
         return plainSelect.getFromItem();
     }
 
-    private Expression generateDateSetWhere(String where) throws JSQLParserException {
-        String sql = String.format("SELECT * FROM tableName WHERE  %s %s ",
-                where, "OR 1=1");
+    private Expression generateDatasetWhereSql(String where) throws JSQLParserException {
+        String sql = String.format("SELECT * FROM tableName WHERE  %s %s ", where, "OR 1=1");
         Statement parse = CCJSqlParserUtil.parse(sql);
         Select select = (Select) parse;
         PlainSelect selectBody = (PlainSelect) select.getSelectBody();
