@@ -26,82 +26,82 @@
     },
     {
       "name": "allow_conn_num",
-      "label": "Allow Conn Num",
+      "label": "Allow Sessions",
       "type": "long"
     },
     {
       "name": "allow_in_bytes",
-      "label": "Allow Bytes(in)",
+      "label": "Allow Bytes(Ingress)",
       "type": "long"
     },
     {
       "name": "allow_in_packets",
-      "label": "Allow Packets(in)",
+      "label": "Allow Packets(Ingress)",
       "type": "long"
     },
     {
       "name": "allow_out_bytes",
-      "label": "Allow Bytes(out)",
+      "label": "Allow Bytes(Egress)",
       "type": "long"
     },
     {
       "name": "allow_out_packets",
-      "label": "Allow Packets(out)",
+      "label": "Allow Packets(Egress)",
       "type": "long"
     },
     {
       "name": "close_conn_num",
-      "label": "Close Conn Num",
+      "label": "Closed Sessions",
       "type": "long"
     },
     {
       "name": "default_conn_num",
-      "label": "Default Conn Num",
+      "label": "Default Sessions",
       "type": "long"
     },
     {
       "name": "default_in_bytes",
-      "label": "Default Bytes(in)",
+      "label": "Default Bytes(Ingress)",
       "type": "long"
     },
     {
       "name": "default_in_packets",
-      "label": "Default Packets(in)",
+      "label": "Default Packets(Ingress)",
       "type": "long"
     },
     {
       "name": "default_out_bytes",
-      "label": "Default Bytes(out)",
+      "label": "Default Bytes(Egress)",
       "type": "long"
     },
     {
       "name": "default_out_packets",
-      "label": "Default Packets(out)",
+      "label": "Default Packets(Egress)",
       "type": "long"
     },
     {
       "name": "deny_conn_num",
-      "label": "Deny Conn Num",
+      "label": "Deny Sessions",
       "type": "long"
     },
     {
       "name": "deny_in_bytes",
-      "label": "Deny Bytes(in)",
+      "label": "Deny Bytes(Ingress)",
       "type": "long"
     },
     {
       "name": "deny_in_packets",
-      "label": "Deny Packets(in)",
+      "label": "Deny Packets(Ingress)",
       "type": "long"
     },
     {
       "name": "deny_out_bytes",
-      "label": "Deny Bytes(out)",
+      "label": "Deny Bytes(Egress)",
       "type": "long"
     },
     {
       "name": "deny_out_packets",
-      "label": "Deny Packets(out)",
+      "label": "Deny Packets(Egress)",
       "type": "long"
     },
     {
@@ -112,86 +112,89 @@
     {
       "name": "entrance_id",
       "label": "Entrance ID",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "long"
     },
     {
       "name": "intercept_conn_num",
-      "label": "Intercept Conn Num",
+      "label": "Intercept Sessions",
       "type": "long"
     },
     {
       "name": "intercept_in_bytes",
-      "label": "Intercept Bytes(in)",
+      "label": "Intercept Bytes(Ingress)",
       "type": "long"
     },
     {
       "name": "intercept_in_packets",
-      "label": "Intercept Packets(in)",
+      "label": "Intercept Packets(Ingress)",
       "type": "long"
     },
     {
       "name": "intercept_out_bytes",
-      "label": "Intercept Bytes(out)",
+      "label": "Intercept Bytes(Egress)",
       "type": "long"
     },
     {
       "name": "intercept_out_packets",
-      "label": "Intercept Packets(out)",
+      "label": "Intercept Packets(Egress)",
       "type": "long"
     },
     {
       "name": "established_conn_num",
-      "label": "Established Conn Num",
+      "label": "Established Sessions",
       "type": "long"
     },
     {
       "name": "monitor_conn_num",
-      "label": "Monitor Conn Num",
+      "label": "Monitor Sessions",
       "type": "long"
     },
     {
       "name": "monitor_in_bytes",
-      "label": "Monitor Bytes(in)",
+      "label": "Monitor Bytes(Ingress)",
       "type": "long"
     },
     {
       "name": "monitor_in_packets",
-      "label": "Monitor Packets(in)",
+      "label": "Monitor Packets(Ingress)",
       "type": "long"
     },
     {
       "name": "monitor_out_bytes",
-      "label": "Monitor Bytes(out)",
+      "label": "Monitor Bytes(Egress)",
       "type": "long"
     },
     {
       "name": "monitor_out_packets",
-      "label": "Monitor Packets(out)",
+      "label": "Monitor Packets(Egress)",
       "type": "long"
     },
     {
       "name": "new_conn_num",
-      "label": "New Conn Num",
+      "label": "New Sessions",
       "type": "long"
     },
     {
       "name": "total_in_bytes",
-      "label": "Total Bytes(in)",
+      "label": "Total Bytes(Ingress)",
       "type": "long"
     },
     {
       "name": "total_in_packets",
-      "label": "Total Packets(in)",
+      "label": "Total Packets(Ingress)",
       "type": "long"
     },
     {
       "name": "total_out_bytes",
-      "label": "Total Bytes(out)",
+      "label": "Total Bytes(Egress)",
       "type": "long"
     },
     {
       "name": "total_out_packets",
-      "label": "Total Packets(out)",
+      "label": "Total Packets(Egress)",
       "type": "long"
     },
     {
@@ -201,62 +204,62 @@
     },
     {
       "name": "hijk_bytes",
-      "label": "Hijk Bytes",
+      "label": "Hijack Bytes",
       "type": "long"
     },
     {
       "name": "ins_bytes",
-      "label": "Ins Bytes",
+      "label": "Insert Bytes",
       "type": "long"
     },
     {
       "name": "intcp_allow_num",
-      "label": "Intcp Allow Num",
+      "label": "Intercept Allow Sessions",
       "type": "long"
     },
     {
       "name": "intcp_deny_num",
-      "label": "Intcp Deny Num",
+      "label": "Intercept Deny Sessions",
       "type": "long"
     },
     {
       "name": "intcp_hijk_num",
-      "label": "Intcp Hijk Num",
+      "label": "Intercept Hijack Sessions",
       "type": "long"
     },
     {
       "name": "intcp_ins_num",
-      "label": "Intcp Ins Num",
+      "label": "Intercept Insert Sessions",
       "type": "long"
     },
     {
       "name": "intcp_mon_num",
-      "label": "Intcp Mon Num",
+      "label": "Intercept Monitor Sessions",
       "type": "long"
     },
     {
       "name": "intcp_rdirt_num",
-      "label": "Intcp Rdirt Num",
+      "label": "Intercept Redirect Sessions",
       "type": "long"
     },
     {
       "name": "intcp_repl_num",
-      "label": "Intcp Repl Num",
+      "label": "Intercept Replace Sessions",
       "type": "long"
     },
     {
       "name": "maybe_pinning_num",
-      "label": "Maybe Pinning Num",
+      "label": "Maybe Pinning Sessions",
       "type": "long"
     },
     {
       "name": "not_pinning_num",
-      "label": "Not Pinning Num",
+      "label": "Not Pinning Sessions",
       "type": "long"
     },
     {
       "name": "pinning_num",
-      "label": "Pinning Num",
+      "label": "Pinning Sessions",
       "type": "long"
     },
     {
@@ -276,7 +279,7 @@
     },
     {
       "name": "intcp_edit_elem_num",
-      "label": "Intcp Edit Elem Num",
+      "label": "Intercept Edit Element Sessions",
       "type": "long"
     }
   ]

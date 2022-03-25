@@ -27,11 +27,37 @@
     {
       "name": "action",
       "label": "Action",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "Monitor"
+          },
+          {
+            "code": "2",
+            "value": "Intercept"
+          },
+          {
+            "code": "16",
+            "value": "Deny"
+          },
+          {
+            "code": "128",
+            "value": "Allow"
+          }
+        ]
+      },
       "type": "long"
     },
     {
       "name": "entrance_id",
       "label": "Entrance ID",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "long"
     },
     {
@@ -52,6 +78,9 @@
     {
       "name": "isp",
       "label": "ISP",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "string"
     },
     {

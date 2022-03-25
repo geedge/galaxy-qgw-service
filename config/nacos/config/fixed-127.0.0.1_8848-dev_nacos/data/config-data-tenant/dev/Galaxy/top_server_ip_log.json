@@ -25,8 +25,38 @@
       }
     },
     {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        }
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        }
+      }
+    },
+    {
       "name": "destination",
-      "label": "Destination",
+      "label": "Server IP",
       "type": "string"
     },
     {

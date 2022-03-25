@@ -8,10 +8,6 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
-      "filters": [
-        "data_center",
-        "device_group"
-      ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
@@ -31,11 +27,17 @@
     {
       "name": "isp",
       "label": "ISP",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "string"
     },
     {
       "name": "entrance_id",
       "label": "Entrance ID",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "long"
     },
     {
@@ -71,6 +73,49 @@
     {
       "name": "schema_type",
       "label": "Schema Type",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "BASE",
+            "value": "BASE"
+          },
+          {
+            "code": "MAIL",
+            "value": "MAIL"
+          },
+          {
+            "code": "DNS",
+            "value": "DNS"
+          },
+          {
+            "code": "HTTP",
+            "value": "HTTP"
+          },
+          {
+            "code": "SSL",
+            "value": "SSL"
+          },
+          {
+            "code": "QUIC",
+            "value": "QUIC"
+          },
+          {
+            "code": "FTP",
+            "value": "FTP"
+          },
+          {
+            "code": "SSH",
+            "value": "SSH"
+          },
+          {
+            "code": "Stratum",
+            "value": "Stratum"
+          }
+        ]
+      },
       "type": "string"
     },
     {

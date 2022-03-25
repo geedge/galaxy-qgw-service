@@ -32,11 +32,17 @@
     {
       "name": "isp",
       "label": "ISP",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "string"
     },
     {
       "name": "entrance_id",
       "label": "Entrance ID",
+      "doc": {
+        "visibility": "disabled"
+      },
       "type": "long"
     },
     {
@@ -51,7 +57,46 @@
     },
     {
       "name": "sub_action",
-      "label": "Sub Action",
+      "label": "Action",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": [
+          {
+            "code": "allow",
+            "value": "Allow"
+          },
+          {
+            "code": "deny",
+            "value": "Deny"
+          },
+          {
+            "code": "monitor",
+            "value": "Monitor"
+          },
+          {
+            "code": "replace",
+            "value": "Replace"
+          },
+          {
+            "code": "redirect",
+            "value": "Redirect"
+          },
+          {
+            "code": "insert",
+            "value": "Insert"
+          },
+          {
+            "code": "hijack",
+            "value": "Hijack"
+          },
+          {
+            "code": "edit_element",
+            "value": "Edit Element"
+          }
+        ]
+      },
       "type": "string"
     },
     {
