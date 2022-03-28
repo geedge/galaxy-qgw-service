@@ -1,0 +1,7 @@
+{
+  "type": "record",
+  "name": "job_result",
+  "namespace": "tsg_galaxy",
+  "fields": [
+  ]
+}

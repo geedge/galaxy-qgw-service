@@ -25,12 +25,30 @@
       }
     },
     {
+      "name": "isp",
+      "label": "ISP",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "label": "Entrance ID",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "policy_id",
+      "label": "Policy ID",
+      "type": "long"
+    },
+    {
       "name": "action",
       "label": "Action",
       "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
         "data": [
           {
             "code": "1",
@@ -53,14 +71,6 @@
       "type": "long"
     },
     {
-      "name": "entrance_id",
-      "label": "Entrance ID",
-      "doc": {
-        "visibility": "disabled"
-      },
-      "type": "long"
-    },
-    {
       "name": "hits",
       "label": "Hits",
       "type": "long"
@@ -73,19 +83,6 @@
     {
       "name": "s2c_byte_num",
       "label": "Bytes Received",
-      "type": "long"
-    },
-    {
-      "name": "isp",
-      "label": "ISP",
-      "doc": {
-        "visibility": "disabled"
-      },
-      "type": "string"
-    },
-    {
-      "name": "policy_id",
-      "label": "Policy ID",
       "type": "long"
     }
   ]

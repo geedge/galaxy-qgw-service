@@ -17,14 +17,14 @@
       }
     },
     {
-      "name": "session_num",
-      "label": "Sessions",
-      "type": "long"
-    },
-    {
       "name": "url",
       "label": "URL",
       "type": "string"
+    },
+    {
+      "name": "session_num",
+      "label": "Sessions",
+      "type": "long"
     }
   ]
 }

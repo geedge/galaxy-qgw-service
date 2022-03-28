@@ -25,32 +25,26 @@
       }
     },
     {
-      "name": "device_group",
-      "label": "Device Group",
-      "type": "string",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
-        "data": {
-          "$ref": "device_tag.json#",
-          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
-          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        }
-      }
-    },
-    {
       "name": "data_center",
       "label": "Data Center",
       "type": "string",
       "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
         "data": {
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        }
+      }
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
         }
       }
     },
@@ -65,9 +59,14 @@
       "type": "long"
     },
     {
-      "name": "order_by",
-      "label": "Order By",
-      "type": "string"
+      "name": "c2s_byte_num",
+      "label": "Bytes Sent",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "label": "Bytes Received",
+      "type": "long"
     },
     {
       "name": "c2s_pkt_num",
@@ -80,14 +79,9 @@
       "type": "long"
     },
     {
-      "name": "c2s_byte_num",
-      "label": "Bytes Sent",
-      "type": "long"
-    },
-    {
-      "name": "s2c_byte_num",
-      "label": "Bytes Received",
-      "type": "long"
+      "name": "order_by",
+      "label": "Order By",
+      "type": "string"
     }
   ]
 }

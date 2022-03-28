@@ -25,6 +25,19 @@
       }
     },
     {
+      "name": "device_id",
+      "label": "Device ID",
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "label": "Entrance ID",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "long"
+    },
+    {
       "name": "allow_conn_num",
       "label": "Allow Sessions",
       "type": "long"
@@ -102,19 +115,6 @@
     {
       "name": "deny_out_packets",
       "label": "Deny Packets(Egress)",
-      "type": "long"
-    },
-    {
-      "name": "device_id",
-      "label": "Device ID",
-      "type": "string"
-    },
-    {
-      "name": "entrance_id",
-      "label": "Entrance ID",
-      "doc": {
-        "visibility": "disabled"
-      },
       "type": "long"
     },
     {

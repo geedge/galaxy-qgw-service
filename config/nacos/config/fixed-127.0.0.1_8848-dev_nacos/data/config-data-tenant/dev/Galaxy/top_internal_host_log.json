@@ -25,28 +25,10 @@
       }
     },
     {
-      "name": "device_group",
-      "label": "Device Group",
-      "type": "string",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
-        "data": {
-          "$ref": "device_tag.json#",
-          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
-          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        }
-      }
-    },
-    {
       "name": "data_center",
       "label": "Data Center",
       "type": "string",
       "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
         "data": {
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
@@ -55,8 +37,35 @@
       }
     },
     {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        }
+      }
+    },
+    {
+      "name": "source",
+      "label": "Internal IP",
+      "type": "string"
+    },
+    {
+      "name": "session_num",
+      "label": "Sessions",
+      "type": "long"
+    },
+    {
       "name": "c2s_byte_num",
       "label": "Bytes Sent",
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "label": "Bytes Received",
       "type": "long"
     },
     {
@@ -65,28 +74,13 @@
       "type": "long"
     },
     {
-      "name": "order_by",
-      "label": "Order By",
-      "type": "string"
-    },
-    {
-      "name": "s2c_byte_num",
-      "label": "Bytes Received",
-      "type": "long"
-    },
-    {
       "name": "s2c_pkt_num",
       "label": "Packets Received",
       "type": "long"
     },
     {
-      "name": "session_num",
-      "label": "Sessions",
-      "type": "long"
-    },
-    {
-      "name": "source",
-      "label": "Internal IP",
+      "name": "order_by",
+      "label": "Order By",
       "type": "string"
     }
   ]

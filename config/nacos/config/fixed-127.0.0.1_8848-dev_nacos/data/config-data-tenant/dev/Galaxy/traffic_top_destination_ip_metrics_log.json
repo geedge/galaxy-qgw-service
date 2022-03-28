@@ -28,24 +28,21 @@
       }
     },
     {
-      "name": "common_sled_ip",
-      "label": "Sled IP",
-      "type": "string"
-    },
-    {
       "name": "common_data_center",
       "label": "Data Center",
       "type": "string",
       "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
         "data": {
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
         }
       }
+    },
+    {
+      "name": "common_sled_ip",
+      "label": "Sled IP",
+      "type": "string"
     },
     {
       "name": "destination_ip",

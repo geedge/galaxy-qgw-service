@@ -25,11 +25,6 @@
       }
     },
     {
-      "name": "action",
-      "label": "Action",
-      "type": "long"
-    },
-    {
       "name": "isp",
       "label": "ISP",
       "doc": {
@@ -56,12 +51,14 @@
       "type": "long"
     },
     {
+      "name": "action",
+      "label": "Action",
+      "type": "long"
+    },
+    {
       "name": "sub_action",
       "label": "Action",
       "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
         "data": [
           {
             "code": "allow",
@@ -100,6 +97,11 @@
       "type": "string"
     },
     {
+      "name": "ip_object",
+      "label": "IP Object",
+      "type": "string"
+    },
+    {
       "name": "country",
       "label": "Country",
       "type": "string"
@@ -118,11 +120,6 @@
       "name": "s2c_byte_num",
       "label": "Bytes Received",
       "type": "long"
-    },
-    {
-      "name": "ip_object",
-      "label": "IP Object",
-      "type": "string"
     }
   ]
 }

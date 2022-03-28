@@ -28,24 +28,21 @@
       }
     },
     {
-      "name": "log_type",
-      "label": "Log Type",
-      "type": "string"
-    },
-    {
       "name": "data_center",
       "label": "Data Center",
       "type": "string",
       "doc": {
-        "constraints": {
-          "operator_functions": "=,!="
-        },
         "data": {
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
         }
       }
+    },
+    {
+      "name": "log_type",
+      "label": "Log Type",
+      "type": "string"
     },
     {
       "name": "max_size",
