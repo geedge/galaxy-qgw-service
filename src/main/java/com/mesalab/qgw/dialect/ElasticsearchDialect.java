@@ -19,13 +19,9 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
-import com.mesalab.qgw.model.api.HttpConfig;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
-import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
-import lombok.Data;
 import org.apache.http.HttpStatus;
 
 import java.util.*;
@@ -42,6 +38,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private ElasticsearchHttpSource elasticsearchHttpSource = (ElasticsearchHttpSource) SpringContextUtil.getBean("elasticsearchHttpSource");
+    private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private static final Map<String, String> metaMap = Maps.newHashMap();
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private int pageOffset;
@@ -79,7 +76,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     @Override
     String getBestQuery() {
-        return param.getSql();
+        return new Optimizer().generateQueryLimit().generateSQL().build();
     }
 
     @Override
@@ -194,15 +191,16 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     private Map<String, String> executeHttpGet(String sql) {
         String queryURL = URLUtil.normalize(elasticsearchHttpSource.getUrl() + "?format=json");
-        QueryParam queryParam = getQueryParam(sql);
+        HashMap<String, Object> queryParam = getQueryParam(sql);
         log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.ELASTICSEARCH.getValue(),
                 JsonMapper.toJsonString(queryParam));
         return httpClientService.httpPost(queryURL, JsonMapper.toJsonString(queryParam), httpConfig.getElasticsearchSocketTimeOut());
     }
 
-    private QueryParam getQueryParam(String sql) {
-        QueryParam queryParam = new QueryParam();
-        queryParam.setQuery(sql);
+    private HashMap<String, Object> getQueryParam(String sql) {
+        HashMap<String, Object> queryParam = Maps.newHashMap();
+        queryParam.put("query", sql);
+        queryParam.put("fetch_size", engineConfigSource.getMaxCacheNum());
         return queryParam;
     }
 
@@ -245,8 +243,73 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         }
     }
 
-    @Data
-    class QueryParam {
-        private String query;
+    class Optimizer {
+        String sql = null;
+        /**
+         * 对SQL最内层的结果数据集进行限制
+         * 参见查询网关系统参数：engine.maxCacheNum
+         *
+         * @return
+         */
+        public Optimizer generateQueryLimit() {
+            setDefaultResultRows(StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
+            setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+            return this;
+        }
+        public Optimizer generateSQL() {
+            SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+            sql = sqlQuerySource.getSqlBody();
+            return this;
+        }
+
+        public String build() {
+            return sql;
+        }
+
+        private void setDefaultResultRows(SQLQuerySource sqlQuerySource, int defaultResultRows) {
+            if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
+                sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody() + " limit " + defaultResultRows);
+                sqlQuerySource.setLimit(String.valueOf(defaultResultRows));
+            }
+        }
+
+        /**
+         * 设置最大缓存数据集
+         *
+         * @param sqlQuerySource
+         * @return
+         */
+        private void setMaxCacheResultRows(SQLQuerySource sqlQuerySource, int maxCacheResultRows) {
+            SQLQuerySource innerSqlQuerySource = sqlQuerySource;
+            while (StringUtil.isNotEmpty(innerSqlQuerySource.getSubSelect())) {
+                innerSqlQuerySource = innerSqlQuerySource.getSubSqlQuerySources().get(0);
+            }
+            if (!innerSqlQuerySource.isEnableLimit()) {
+                return;
+            }
+            String originalInnerSql = innerSqlQuerySource.getSqlBody();
+            String limitInnerSql = innerSqlQuerySource.getSqlBody();
+            if (StringUtil.isNotBlank(innerSqlQuerySource.getLimit())) {
+                String[] limits = innerSqlQuerySource.getLimit().split(",");
+                if (Integer.valueOf(limits[limits.length - 1]) > maxCacheResultRows) {
+                    limits[limits.length - 1] = String.valueOf(maxCacheResultRows);
+                    if (limits.length == 2) {
+                        limitInnerSql = SQLHelper.getLimitString(limitInnerSql, Integer.valueOf(limits[0]), Integer.valueOf(limits[1]));
+                    } else {
+                        limitInnerSql = SQLHelper.getLimitString(limitInnerSql, 0, Integer.valueOf(limits[0]));
+                    }
+
+                    innerSqlQuerySource.setLimit(String.join(",", limits).toString());
+                    innerSqlQuerySource.setSqlBody(limitInnerSql);
+                }
+            } else {
+                limitInnerSql = innerSqlQuerySource.getSqlBody() + " limit " + maxCacheResultRows;
+                innerSqlQuerySource.setLimit(String.valueOf(maxCacheResultRows));
+                innerSqlQuerySource.setSqlBody(limitInnerSql);
+            }
+            if (StringUtil.isNotEmpty(sqlQuerySource.getSubSqlQuerySources())) {
+                sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(originalInnerSql, limitInnerSql));
+            }
+        }
     }
 }
