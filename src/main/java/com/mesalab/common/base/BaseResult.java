@@ -60,7 +60,7 @@ public class BaseResult<T> implements Serializable {
      * @return 是否为成功结果
      */
     public boolean isSuccess() {
-        return ResultStatusEnum.SUCCESS.getCode() == this.status;
+        return this.status >= ResultStatusEnum.SUCCESS.getCode() && this.status < 300;
     }
 
 }

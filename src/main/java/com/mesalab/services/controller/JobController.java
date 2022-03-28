@@ -43,14 +43,6 @@ public class JobController {
     @Autowired
     private DeferredResultHolder deferredResultHolder;
 
-    /**
-     * Desc: TODO
-     *
-     * @param reqBody
-     * @return {@link BaseResult}
-     * @created by wWei
-     * @date 2022/3/18 2:13 下午
-     */
     @PostMapping(value = "/jobs", produces = "application/json")
     public BaseResult commitJob(@RequestBody HashMap<String, Object> reqBody) {
         if (!reqBody.containsKey(JobConfig.KEY_QUERY_TYPE)) {
@@ -69,7 +61,7 @@ public class JobController {
         BaseResult baseResult;
         String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
-            baseResult = jobService.commitRealTimeJob(reqBody);
+            baseResult = jobService.commitAdHocQuery(reqBody);
         } else if (JobConfig.REPORT.equals(queryType)) {
             baseResult = jobService.commitSavedQuery(reqBody);
         } else {
@@ -113,4 +105,11 @@ public class JobController {
         return BaseResultGenerator.success();
     }
 
+    @DeleteMapping(value = "/jobs/{jobId}")
+    public BaseResult cancelledJob(@PathVariable String jobId) {
+        if (jobId.startsWith(DigestUtil.md5Hex16(REPORT).concat(DELIMIT))) {
+            return jobService.cancelledReportJob(jobId);
+        }
+        return BaseResultGenerator.success();
+    }
 }

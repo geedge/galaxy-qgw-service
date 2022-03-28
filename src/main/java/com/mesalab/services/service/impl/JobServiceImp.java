@@ -89,7 +89,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
 
     @Override
-    public BaseResult commitRealTimeJob(HashMap<String, Object> map) {
+    public BaseResult commitAdHocQuery(HashMap<String, Object> map) {
         validateFieldDiscovery(map);
         String id = DigestUtil.md5Hex16(JobConfig.FIELD_DISCOVERY)
                 .concat(JobConfig.DELIMIT)
@@ -158,6 +158,13 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             }
         }
         return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "get job info error");
+    }
+
+    @Override
+    public BaseResult cancelledReportJob(String jobId) {
+        Db.update(String.format(Objects.requireNonNull(env.getProperty("REPORT_UPDATE")), "is_valid", 0, jobId));
+        BaseResult<Object> accepted = BaseResultGenerator.success(ResultStatusEnum.ACCEPTED.getCode(), "Accepted", null);
+        return BaseResultGenerator.success(ResultStatusEnum.ACCEPTED.getCode(), "Accepted", null);
     }
 
     @Override

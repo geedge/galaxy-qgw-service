@@ -12,14 +12,14 @@ import java.util.HashMap;
  */
 public interface JobService {
     /**
-     * Desc: 获取jobId
+     * Desc: 提交实时任务
      *
      * @param map
      * @return {@link Object}
      * @created by wWei
      * @date 2021/11/24 5:15 下午
      */
-    BaseResult commitRealTimeJob(HashMap<String, Object> map);
+    BaseResult commitAdHocQuery(HashMap<String, Object> map);
 
     /**
      * Desc: 获取FieldDiscovery结果
@@ -32,7 +32,7 @@ public interface JobService {
     BaseResult getResultFieldDiscovery(String jobId);
 
     /**
-     * Desc: 离线任务
+     * Desc: 提交离线任务
      *
      * @param reqBody
      * @return {@link Object}
@@ -52,7 +52,7 @@ public interface JobService {
     BaseResult getReportStatus(String jobId);
 
     /**
-     * Desc: 获取离线任务结果
+     * Desc: 获取Report结果
      *
      * @param jobId
      * @return {@link BaseResult}
@@ -60,4 +60,14 @@ public interface JobService {
      * @date 2022/3/24 3:39 下午
      */
     BaseResult getResultReport(String jobId);
+
+    /**
+     * Desc: 取消Report任务
+     *
+     * @param jobId
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2022/3/28 5:29 下午
+     */
+    BaseResult cancelledReportJob(String jobId);
 }

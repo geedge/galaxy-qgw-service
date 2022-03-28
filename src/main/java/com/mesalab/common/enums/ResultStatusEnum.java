@@ -18,6 +18,7 @@ public enum ResultStatusEnum {
      */
     SUCCESS(200, "成功"),
     CREATED(201, "创建"),
+    ACCEPTED(202, "接受"),
     FAIL(400, "失败"),
     NOT_FOUND(404, "不存在"),
     REQUEST_URI_TOO_LONG(414, "请求URI太长"),

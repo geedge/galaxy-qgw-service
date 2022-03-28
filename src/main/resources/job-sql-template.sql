@@ -49,3 +49,6 @@ insert into report_result ( status, result_rows, create_time, excute_row, is_val
 #sql("REPORT_STATUS")
 SELECT status, result_id, query_sql, excute_process, is_valid FROM report_result WHERE job_uuid = '%s' LIMIT 1
 #end
+#sql("REPORT_UPDATE")
+UPDATE report_result SET %s = %s  WHERE job_uuid = '%s'
+#end
