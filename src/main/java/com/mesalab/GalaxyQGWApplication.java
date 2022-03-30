@@ -26,11 +26,20 @@ import java.util.TimeZone;
 @SpringBootApplication
 public class GalaxyQGWApplication implements WebMvcConfigurer {
 
+    private static final String TIMEZONE = "UTC";
+
     public static void main(String[] args) {
+        init();
+        SpringApplication.run(GalaxyQGWApplication.class, args);
+    }
+
+    public static void init() {
         System.setProperty("jasypt.encryptor.password", "galaxy");
         System.setProperty("JM.SNAPSHOT.PATH", "config");
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        SpringApplication.run(GalaxyQGWApplication.class, args);
+        // java.util.Date
+        TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
+        // joda.time.DateTime
+        System.setProperty("user.timezone", TIMEZONE);
     }
 
     @Override
