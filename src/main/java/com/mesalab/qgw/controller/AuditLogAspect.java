@@ -1,12 +1,12 @@
 package com.mesalab.qgw.controller;
 
 import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.HttpHelper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
@@ -65,15 +65,7 @@ public class AuditLogAspect {
             auditServiceLog.setClassMethod(classMethod);
         }
         auditServiceLog.setCacheKey(HttpHelper.generateCacheKey(request));
-        if (paramObject instanceof ApiParam) {
-            ApiParam  apiParam = (ApiParam) paramObject;
-            if (!apiParam.queryParamIsNull()) {
-                auditServiceLog.setQueryKey(SQLHelper.getQueryId(apiParam.getResultId(), apiParam.getQuery()));
-            }
-        }
-
-
-
+        auditServiceLog.setQueryKey(DigestUtil.md5Hex(StringUtil.createUUID()));
         auditLog.set(auditServiceLog);
     }
 
