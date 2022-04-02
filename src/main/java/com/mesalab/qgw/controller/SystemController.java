@@ -94,7 +94,7 @@ public class SystemController {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param resultId or query cannot be empty", null);
         }
-        String queryId = systemService.getQueryIdWithCatalog(resultId.toString(), query.toString());
+        String queryId = systemService.getQueryId(resultId.toString(), query.toString());
 
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> map = new HashMap<>(16);

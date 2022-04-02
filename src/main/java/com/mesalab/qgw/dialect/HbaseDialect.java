@@ -199,12 +199,12 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public BaseResult executeKillQuery() {
+    public BaseResult executeKillQuery(String queryId) {
         return BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "not support");
     }
 
     @Override
-    public BaseResult getProcesses() {
+    public BaseResult getProcesses(String queryId) {
         return BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "not support");
     }
 

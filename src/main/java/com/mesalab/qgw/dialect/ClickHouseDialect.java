@@ -3,6 +3,7 @@ package com.mesalab.qgw.dialect;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
@@ -148,8 +149,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public BaseResult executeKillQuery() {
-        String killSql = String.format("kill query where query_id ='%s'", param.getQueryId());
+    public BaseResult executeKillQuery(String queryId) {
+        String killSql = StrUtil.format("kill query where query_id ='{}'", queryId);
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryParamBuilder = new StringBuilder(getLongTermAccount()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
@@ -166,9 +167,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public BaseResult getProcesses() {
+    public BaseResult getProcesses(String queryId) {
         String tableName = "processes";
-        String sql = String.format("select elapsed,total_rows_approx,read_rows from `system`.%s where query_id='%s'", tableName, param.getQueryId());
+        String sql = StrUtil.format("select elapsed,total_rows_approx,read_rows from system.{} where query_id='{}'", tableName, queryId);
         param.setQuery(sql);
         param.setTableName(tableName);
         BaseResult baseResult = generateBaseResult(sql, Optional.of("ok"));
@@ -1188,14 +1189,14 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         } else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
-                    .append("database=").append(dbName).append("&")
-                    .append("query_id=").append(SQLHelper.getQueryId(param.getResultId(), param.getQuery()));
+                    .append("database=").append(dbName);
         } else {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
             queryParameterBuilder.append(getRealTimeAccount()).append("&")
                     .append("database=").append(dbName);
         }
-
+        queryParameterBuilder.append("&").append("query_id=")
+                .append(StringUtil.isNotBlank(param.getQueryId()) ? param.getQueryId() : DigestUtil.md5Hex(StringUtil.createUUID()));
         clickHouseHttpQuery.setQueryParameter(queryParameterBuilder.toString());
         return clickHouseHttpQuery;
     }

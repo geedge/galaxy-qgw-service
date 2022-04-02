@@ -52,7 +52,7 @@ public interface SystemService {
      * @created by wWei
      * @date 2021/1/7 6:48 下午
      */
-    String getQueryIdWithCatalog(String resultId, String query);
+    String getQueryId(String resultId, String query);
 
     /**
      * Desc: 通过queryId查询SQL任务执行状态
@@ -66,7 +66,7 @@ public interface SystemService {
     /**
      * Desc: 通过queryId查询SQL任务执行状态
      *
-     * @param queryId
+     * @param param
      * @return {@link BaseResult}
      * @created by wWei
      * @date 2021/1/7 6:49 下午

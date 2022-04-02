@@ -37,21 +37,21 @@ public interface Dialect {
     /**
      * Desc: 取消查询
      *
-     * @param
+     * @param queryId
      * @return {@link BaseResult}
      * @created by wWei
      * @date 2021/2/24 11:18 上午
      */
-    BaseResult executeKillQuery();
+    BaseResult executeKillQuery(String queryId);
 
     /**
      * Desc: 获取查询进度
      *
-     * @param
+     * @param queryId
      * @return {@link BaseResult}
      * @created by wWei
      * @date 2021/2/24 5:01 下午
      */
-    BaseResult getProcesses();
+    BaseResult getProcesses(String queryId);
 
 }

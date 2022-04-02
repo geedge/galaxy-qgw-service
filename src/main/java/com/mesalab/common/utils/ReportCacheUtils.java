@@ -1,5 +1,6 @@
 package com.mesalab.common.utils;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
@@ -57,7 +58,7 @@ public class ReportCacheUtils {
         ApiServiceImpl apiService = new ApiServiceImpl();
         ApiParam param = new ApiParam();
         StringBuffer sb = new StringBuffer();
-        String rowKey = SQLHelper.getQueryId(id, query);
+        String rowKey = DigestUtil.md5Hex(id + query.trim());
         sb.append("select ").append(hBaseAPISource.getColumnName());
         sb.append(" from ").append(hBaseAPISource.getDbName()).append(".").append(hBaseAPISource.getTableName());
         sb.append(" where ").append("ROWKEY=").append("\'" + rowKey + "\'");

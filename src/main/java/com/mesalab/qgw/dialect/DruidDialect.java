@@ -2,6 +2,7 @@ package com.mesalab.qgw.dialect;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
@@ -43,7 +44,6 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
-    private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     private int pageOffset;
     private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "com.zdjizhi.calcite.runtime.CalciteContextException: ";
     private Stopwatch watch = Stopwatch.createUnstarted();
@@ -108,10 +108,10 @@ public class DruidDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public BaseResult executeKillQuery() {
+    public BaseResult executeKillQuery(String queryId) {
         String url = druidIoHttpSource.getUrl();
         url = url.substring(0, url.indexOf("/"));
-        String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(param.getQueryId());
+        String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(queryId);
         Map<String, String> map = httpClientService.httpDelete(deleteUrl, 1000);
         if (Integer.parseInt(map.get("status")) == HttpStatus.SC_OK
                 || Integer.parseInt(map.get("status")) == HttpStatus.SC_ACCEPTED) {
@@ -122,7 +122,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public BaseResult getProcesses() {
+    public BaseResult getProcesses(String queryId) {
         return BaseResultGenerator.success4Message("ok");
     }
 
@@ -144,9 +144,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         DruidQueryParam druidQueryParam = new DruidQueryParam();
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
-        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-            druidQueryParam.getContext().put("sqlQueryId", SQLHelper.getQueryId(param.getResultId(), param.getQuery()));
-        }
+        druidQueryParam.getContext().put("sqlQueryId", StringUtil.isNotBlank(param.getQueryId()) ? param.getQueryId() : DigestUtil.md5Hex(StringUtil.createUUID()));
         druidQueryParam.setResultFormat("object");
         return druidQueryParam;
     }

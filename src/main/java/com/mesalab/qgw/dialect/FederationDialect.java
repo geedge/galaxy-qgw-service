@@ -59,12 +59,12 @@ public class FederationDialect extends AbstractEngineDialect{
     }
 
     @Override
-    final public BaseResult executeKillQuery() {
+    final public BaseResult executeKillQuery(String queryId) {
         return null;
     }
 
     @Override
-    final public BaseResult getProcesses(){
+    final public BaseResult getProcesses(String queryId){
         return null;
     }
 

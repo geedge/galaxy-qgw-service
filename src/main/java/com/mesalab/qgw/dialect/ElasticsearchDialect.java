@@ -179,12 +179,12 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public BaseResult executeKillQuery() {
+    public BaseResult executeKillQuery(String queryId) {
         return null;
     }
 
     @Override
-    public BaseResult getProcesses() {
+    public BaseResult getProcesses(String queryId) {
         return null;
     }
 

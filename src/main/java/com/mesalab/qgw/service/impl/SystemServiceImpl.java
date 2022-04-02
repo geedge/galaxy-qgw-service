@@ -160,11 +160,11 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     @Override
     public BaseResult deleteQueryTask(String queryId) {
         Dialect dialect = buildAndGetDialect(queryId);
-        return dialect.executeKillQuery();
+        return dialect.executeKillQuery(queryId);
     }
 
     @Override
-    public String getQueryIdWithCatalog(String resultId, String query) {
+    public String getQueryId(String resultId, String query) {
         String tableName = SQLHelper.getTableName(query);
         String dbType = metadataService.getDBTypeByTableName(tableName);
         return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
@@ -174,7 +174,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     @Override
     public BaseResult getProcessesByQueryId(String queryId) {
         Dialect dialect = buildAndGetDialect(queryId);
-        return dialect.getProcesses();
+        return dialect.getProcesses(queryId);
     }
 
     @Override
@@ -193,7 +193,6 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public Dialect buildAndGetDialect(String queryId) {
         ApiParam apiParam = new ApiParam();
         apiParam.setDbType(parseDBType(queryId));
-        apiParam.setQueryId(queryId.substring(queryId.indexOf(queryIdSeparator) + 1));
         return getDialect(apiParam);
     }
 

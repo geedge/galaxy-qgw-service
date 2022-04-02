@@ -26,6 +26,7 @@ import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.model.api.udf.UDFElements;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.SystemService;
 import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.BinaryExpression;
@@ -56,6 +57,8 @@ public class ApiServiceImpl implements ApiService {
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
     private MetadataService metadataServiceTemp;
+    @Autowired
+    private SystemService systemService;
 
     private static MetadataService metadataService;
 
@@ -121,6 +124,9 @@ public class ApiServiceImpl implements ApiService {
         if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param Syntax Error: The format must be json or csv.", null);
+        }
+        if (StringUtil.isBlank(param.getQueryId())) {
+            param.setQueryId(systemService.getQueryId(param.getResultId(), param.getQuery()));
         }
     }
 
