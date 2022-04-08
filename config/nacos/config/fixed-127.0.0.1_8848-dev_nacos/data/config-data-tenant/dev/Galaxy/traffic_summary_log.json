@@ -29,6 +29,9 @@
       "label": "Data Center",
       "type": "string",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
         "data": {
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
@@ -41,6 +44,9 @@
       "label": "Device Group",
       "type": "string",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
         "data": {
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
@@ -51,22 +57,23 @@
     {
       "name": "isp",
       "label": "ISP",
+      "type": "string",
       "doc": {
         "visibility": "disabled"
-      },
-      "type": "string"
+      }
     },
     {
       "name": "entrance_id",
       "label": "Entrance ID",
+      "type": "long",
       "doc": {
         "visibility": "disabled"
-      },
-      "type": "long"
+      }
     },
     {
       "name": "schema_type",
       "label": "Schema Type",
+      "type": "string",
       "doc": {
         "data": [
           {
@@ -106,8 +113,7 @@
             "value": "Stratum"
           }
         ]
-      },
-      "type": "string"
+      }
     },
     {
       "name": "ip_object",

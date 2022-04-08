@@ -27,18 +27,18 @@
     {
       "name": "isp",
       "label": "ISP",
+      "type": "string",
       "doc": {
         "visibility": "disabled"
-      },
-      "type": "string"
+      }
     },
     {
       "name": "entrance_id",
       "label": "Entrance ID",
+      "type": "long",
       "doc": {
         "visibility": "disabled"
-      },
-      "type": "long"
+      }
     },
     {
       "name": "hits",
@@ -48,7 +48,12 @@
     {
       "name": "policy_id",
       "label": "Policy ID",
-      "type": "long"
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        }
+      }
     },
     {
       "name": "action",
@@ -57,8 +62,12 @@
     },
     {
       "name": "sub_action",
-      "label": "Action",
+      "label": "Sub Action",
+      "type": "string",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
         "data": [
           {
             "code": "allow",
@@ -93,8 +102,7 @@
             "value": "Edit Element"
           }
         ]
-      },
-      "type": "string"
+      }
     },
     {
       "name": "ip_object",

@@ -32,10 +32,10 @@
     {
       "name": "entrance_id",
       "label": "Entrance ID",
+      "type": "long",
       "doc": {
         "visibility": "disabled"
-      },
-      "type": "long"
+      }
     },
     {
       "name": "allow_conn_num",

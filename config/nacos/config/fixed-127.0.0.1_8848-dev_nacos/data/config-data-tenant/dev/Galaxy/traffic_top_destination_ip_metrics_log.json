@@ -32,6 +32,9 @@
       "label": "Data Center",
       "type": "string",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
         "data": {
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
