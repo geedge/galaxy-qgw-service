@@ -1,0 +1,11 @@
+{
+  "namespace": "system",
+  "type": "record",
+  "name": "processes",
+  "fields": [
+    {
+      "name": "query_id",
+      "type": "string"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.text.StrFormatter;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -18,10 +19,7 @@ import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.sqlparser.SQLSyntaxParserUtil;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.dialect.FederationDialect;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
-import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.mesalab.qgw.model.api.udf.UDFElements;
 import com.mesalab.qgw.service.ApiService;
@@ -56,15 +54,19 @@ public class ApiServiceImpl implements ApiService {
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
+    private HBaseAPISource hBaseAPISource;
+    @Autowired
     private MetadataService metadataServiceTemp;
     @Autowired
-    private SystemService systemService;
+    private SystemService systemServiceTemp;
 
     private static MetadataService metadataService;
+    private static SystemService systemService;
 
     @PostConstruct
     private void initMetadataService() {
         metadataService = this.metadataServiceTemp;
+        systemService = this.systemServiceTemp;
     }
 
     public static final int MAX_PARSER_LEVEL = 5;
@@ -125,9 +127,6 @@ public class ApiServiceImpl implements ApiService {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param Syntax Error: The format must be json or csv.", null);
         }
-        if (StringUtil.isBlank(param.getQueryId())) {
-            param.setQueryId(systemService.getQueryId(param.getResultId(), param.getQuery()));
-        }
     }
 
     /**
@@ -162,12 +161,15 @@ public class ApiServiceImpl implements ApiService {
     }
 
     /**
-     * 为Select操作选择不同的执行动作，包含SQL解析(Syntax-parse)、SQL验证（Syntax-validation）、实时查询(Real-time)、长查询(Long-term)
+     * 1.设置默认queryID
+     * 2.为Select操作选择不同的执行动作，包含SQL解析(Syntax-parse)、SQL验证（Syntax-validation）、实时查询(Real-time)、长查询(Long-term)
      * @param param 请求参数
      * @return BaseResult 执行结果
      */
     private BaseResult executeSelectStatement(ApiParam param) {
-
+        if (StringUtil.isBlank(param.getQueryId())) {
+            param.setQueryId(systemService.getQueryId(param.getResultId(), param.getQuery()));
+        }
         if (QueryOptionEnum.SYNTAX_PARSE.getValue().equalsIgnoreCase(param.getOption())) {
             return executeSyntaxParse(param);
         } else if (QueryOptionEnum.SYNTAX_VALIDATION.getValue().equalsIgnoreCase(param.getOption())) {
@@ -501,6 +503,10 @@ public class ApiServiceImpl implements ApiService {
             param.setDbType(DBTypeEnum.DRUID.getValue());
             param.setDialectDBType(DBTypeEnum.DRUID.getValue());
             param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
+        } else if (DBTypeEnum.HBASE.getValue().equalsIgnoreCase(dbType)) {
+            param.setDbType(DBTypeEnum.HBASE.getValue());
+            param.setDialectDBType(DBTypeEnum.HBASE.getValue());
+            param.setQuery(StrFormatter.format("SELECT COLUMN_NAME as \"name\", DATA_TYPE as \"type\" FROM SYSTEM.CATALOG WHERE TABLE_NAME= '{}' AND COLUMN_NAME  IS NOT NULL", tableName));
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
         }
@@ -537,6 +543,9 @@ public class ApiServiceImpl implements ApiService {
             param.setDbType(DBTypeEnum.DRUID.getValue());
             param.setDialectDBType(DBTypeEnum.DRUID.getValue());
             param.setQuery("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE'");
+        } if (hBaseAPISource.getDbName().equalsIgnoreCase(param.getSchema())) {
+            param.setDbType(DBTypeEnum.HBASE.getValue());
+            param.setDialectDBType(DBTypeEnum.HBASE.getValue());
         } else if (StringUtil.isBlank(param.getSchema())) {
             BaseResult result = getAllTables();
             return result;

@@ -1,0 +1,2 @@
+--Q01.Network Throughput
+SELECT TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(common_recv_time),'PT36S','zero') AS stat_time,ROUND(SUM(common_c2s_byte_num)/36) AS bytes_sent_rate,ROUND(SUM(common_s2c_byte_num)/36) AS bytes_received_rate,ROUND(SUM(common_c2s_byte_num + common_s2c_byte_num)/36) AS bytes_rate FROM session_record_cn WHERE common_recv_time >= toUnixTimestamp(@start) AND common_recv_time < toUnixTimestamp(@end) GROUP BY stat_time

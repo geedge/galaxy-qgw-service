@@ -9,6 +9,7 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -17,16 +18,12 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.TableColumnVisitor;
-import com.mesalab.qgw.model.api.HttpConfig;
+import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import com.mesalab.qgw.benchmark.engine.EngineWriter;
 import com.mesalab.qgw.benchmark.hbase.HbaseWriter;
 import com.mesalab.qgw.dialect.HbaseDialect;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.ClickHouseHttpQuery;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.MetadataService;
@@ -65,6 +62,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private static final String CK_PREFIX = "ck_";
     private static final String ENGINE_PREFIX = "engine_";
     private static final String HBASE_PREFIX = "hbase_";
+    private static final String HBASE_DBNAME2 = "tsg_galaxy";
+
     @Autowired
     private HttpClientService httpClientService;
     @Autowired
@@ -86,6 +85,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
+    private HBaseAPISource hBaseAPISource;
+    @Autowired
     private MetadataService metadataService;
     /**
      * 验证Schema格式是否正确
@@ -98,14 +99,20 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         try {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
+            List<Object> data = Lists.newArrayList();
             Map<String, Map<String, String>> clickhouseResult = parseSchemaByDatasource(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
-            Map<String, Map<String, String>> mergeResult = Stream
-                    .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<String, Map<String, String>> hbaseResult = parseSchemaByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
+            Map<String, Map<String, String>> hbase2Result = parseSchemaByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
+
+            data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
-            result = BaseResultGenerator.success("Avro Schema Validation Success.", mergeResult, statistics);
+            result = BaseResultGenerator.success("Avro Schema Validation Success.", data, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -126,13 +133,19 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         try {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
+            List<Object> data = Lists.newArrayList();
             Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
-            Map<String, Map<String, String>> mergeResult = Stream
-                    .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
+            Map<String, Map<String, String>> hbase2Result = checkMetadataByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
+
+            data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", mergeResult, statistics);
+            result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,

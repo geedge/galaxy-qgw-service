@@ -1,0 +1,37 @@
+{
+  "type": "record",
+  "name": "relation_account_framedip",
+  "namespace": "tsg_galaxy",
+  "fields": [
+    {
+      "name":"ROWKEY",
+      "label":"Row Key",
+      "type":"string"
+    },
+    {
+      "name":"acct_status_type",
+      "label":"Acct Status Type",
+      "type":"string"
+    },
+    {
+      "name":"first_found_time",
+      "label":"First Found Time",
+      "type":"long"
+    },
+    {
+      "name":"last_update_time",
+      "label":"Last Update Time",
+      "type":"long"
+    },
+    {
+      "name":"framed_ip",
+      "label":"Framed IP",
+      "type":"string"
+    },
+    {
+      "name":"account",
+      "label":"Account",
+      "type":"string"
+    }
+  ]
+}

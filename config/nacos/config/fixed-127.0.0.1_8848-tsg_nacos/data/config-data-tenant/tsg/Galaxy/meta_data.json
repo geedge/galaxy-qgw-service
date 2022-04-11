@@ -23,15 +23,6 @@
       ]
     },
     {
-      "namespace": "elasticsearch",
-      "group": "ELASTICSEARCH_GROUP",
-      "tables": [
-        "ip",
-        "app",
-        "domain"
-      ]
-    },
-    {
       "namespace": "system",
       "group": "CLICKHOUSE_GROUP",
       "tables": [

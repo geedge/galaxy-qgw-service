@@ -1,7 +1,0 @@
-{
-  "type": "record",
-  "name": "app",
-  "namespace": "elasticsearch",
-  "fields": [
-  ]
-}

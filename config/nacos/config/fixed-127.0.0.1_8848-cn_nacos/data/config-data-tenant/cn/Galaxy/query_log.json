@@ -1,0 +1,11 @@
+{
+  "namespace": "system",
+  "type": "record",
+  "name": "query_log",
+  "fields": [
+    {
+      "name": "query_id",
+      "type": "string"
+    }
+  ]
+}

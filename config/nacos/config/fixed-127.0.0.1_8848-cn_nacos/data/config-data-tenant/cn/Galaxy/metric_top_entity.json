@@ -1,0 +1,140 @@
+{
+  "type": "record",
+  "name": "metric_top_entity",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "common_recv_time"
+  },
+  "fields": [
+	{
+		"name":"common_recv_time",
+		"label":"Receive Time",
+		"type":"long"
+	},
+	{
+		"name":"common_c2s_pkt_num",
+		"label":"Packets Sent",
+		"type":"long"
+	},
+	{
+		"name":"common_c2s_byte_num",
+		"label":"Bytes Sent",
+		"type":"long"
+	},
+	{
+		"name":"common_s2c_pkt_num",
+		"label":"Packets Received",
+		"type":"long"
+	},
+	{
+		"name":"common_s2c_byte_num",
+		"label":"Bytes Received",
+		"type":"long"
+	},
+	{
+		"name":"common_sessions",
+		"label":"Sessions",
+		"type":"long"
+	},
+	{
+		"name":"common_c2s_tcp_lostlen",
+		"label":"Sequence Gap Loss(c2s)",
+		"type":"long"
+	},
+	{
+		"name":"common_s2c_tcp_lostlen",
+		"label":"Sequence Gap Loss(s2c)",
+		"type":"long"
+	},
+	{
+		"name":"common_c2s_tcp_unorder_num",
+		"label":"Unorder Packets(c2s)",
+		"type":"long"
+	},
+	{
+		"name":"common_s2c_tcp_unorder_num",
+		"label":"Unorder Packets(s2c)",
+		"type":"long"
+	},
+	{
+		"name":"common_c2s_byte_retrans",
+		"label":"Byte Retransmission(c2s)",
+		"type":"long"
+	},
+	{
+		"name":"common_s2c_byte_retrans",
+		"label":"Byte Retransmission(s2c)",
+		"type":"long"
+	},
+	{
+		"name":"common_c2s_pkt_retrans",
+		"label":"Packet Retransmission(c2s)",
+		"type":"long"
+	},
+	{
+		"name":"common_s2c_pkt_retrans",
+		"label":"Packet Retransmission(s2c)",
+		"type":"long"
+	},
+	{
+		"name":"common_establish_latency_ms",
+		"label":"Establish Latency(ms)",
+		"type":"long"
+	},
+	{
+		"name":"common_client_ip",
+		"label":"Client IP",
+		"type":"string"
+	},
+	{
+		"name":"common_server_ip",
+		"label":"Server IP",
+		"type":"string"
+	},
+	{
+		"name":"domain",
+		"label":"Domain",
+		"type":"string"
+	},
+	{
+		"name":"common_app_label",
+		"label":"Application Label",
+		"type":"string"
+	},
+	{
+		"name":"group_by",
+		"label":"GROUP BY",
+		"type":"string"
+	},
+	{
+		"name":"order_by",
+		"label":"ORDER BY",
+		"type":"string"
+	},
+	{
+		"name":"time_granularity",
+		"label":"Time Granularity",
+		"type":"long"
+	},
+	{
+		"name":"http_response_latency_ms",
+		"label":"HTTP.Response Latency(ms)",
+		"type":"long"
+	},
+	{
+		"name":"ssl_con_latency_ms",
+		"label":"SSL.Connection Latency(ms)",
+		"type":"long"
+	},
+	{
+		"name":"packet_loss",
+		"label":"Packet Loss",
+		"type":"double"
+	},
+	{
+		"name":"packet_retrans",
+		"label":"Packet Retrans",
+		"type":"double"
+	}
+  ]
+}

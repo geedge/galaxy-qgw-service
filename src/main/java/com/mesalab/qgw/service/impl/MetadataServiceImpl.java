@@ -55,12 +55,6 @@ public class MetadataServiceImpl implements MetadataService {
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
-    private DruidIoHttpSource druidIoHttpSource;
-    @Autowired
-    private ElasticsearchHttpSource elasticsearchHttpSource;
-    @Autowired
-    private HBaseAPISource hBaseAPISource;
-    @Autowired
     public MetadataConfig metadataConfig;
 
     private Map<String, Schema> schemaCache = Maps.newHashMap();

@@ -1,0 +1,48 @@
+{
+  "metadata": [
+    {
+      "namespace": "cyber_narrator_galaxy",
+      "group": "CLICKHOUSE_GROUP",
+      "tables": [
+        "session_record_cn",
+        "metric_map",
+        "metric_top_entity"
+      ]
+    },
+    {
+      "namespace": "elasticsearch",
+      "group": "ELASTICSEARCH_GROUP",
+      "tables": [
+        "security_event",
+        "performance_event",
+        "entity_info"        
+      ]
+    },
+    {
+      "namespace": "system",
+      "group": "CLICKHOUSE_GROUP",
+      "tables": [
+        "query_log_cluster",
+        "tables_cluster",
+        "columns_cluster",
+        "disks_cluster",
+        "parts_cluster",
+        "processes",
+        "query_log"
+      ]
+    },
+    {
+      "namespace":"tsg",
+      "group":"HBASE_GROUP",
+      "tables":[
+        "report_result"
+      ]
+    },
+    {
+      "namespace": "tsg_galaxy",
+      "group": "HBASE_GROUP",
+      "tables": [
+      ]
+    }
+  ]
+}
