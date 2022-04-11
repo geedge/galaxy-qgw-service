@@ -22,13 +22,7 @@
       "namespace": "system",
       "group": "CLICKHOUSE_GROUP",
       "tables": [
-        "query_log_cluster",
-        "tables_cluster",
-        "columns_cluster",
-        "disks_cluster",
-        "parts_cluster",
-        "processes",
-        "query_log"
+        "processes"
       ]
     },
     {
