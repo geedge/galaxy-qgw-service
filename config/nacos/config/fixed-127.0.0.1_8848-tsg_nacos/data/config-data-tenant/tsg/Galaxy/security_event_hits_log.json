@@ -46,7 +46,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,in"
         }
       }
     },
@@ -56,7 +56,7 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,in"
         },
         "data": [
           {
