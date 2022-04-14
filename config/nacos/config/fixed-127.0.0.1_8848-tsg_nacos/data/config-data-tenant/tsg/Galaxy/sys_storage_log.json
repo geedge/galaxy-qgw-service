@@ -33,7 +33,7 @@
       "type": "string",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!=,in,not in"
+          "operator_functions": "=,in"
         },
         "data": {
           "$ref": "device_tag.json#",
