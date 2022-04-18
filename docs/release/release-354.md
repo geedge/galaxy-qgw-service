@@ -4,4 +4,5 @@
 * 更改故障诊断SQL测试集默认选项，由validation改为parse
 * 扩展Schema，完善Metrics的schema(TSG-9984)
 * 扩展Schema，Metrics schema支持Device Group与 Data Center(TSG-10086)
+* 扩展Schema，安全事件日志中schema_type增加BASE选项(TSG-10249)
 
