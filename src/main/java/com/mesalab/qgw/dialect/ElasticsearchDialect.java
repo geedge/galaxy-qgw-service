@@ -1,7 +1,6 @@
 package com.mesalab.qgw.dialect;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
@@ -15,15 +14,22 @@ import com.mesalab.common.base.DataTypeMapping;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.*;
-import com.mesalab.qgw.service.impl.HttpClientService;
+import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.HttpStatus;
+import org.apache.http.util.EntityUtils;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
+import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -36,10 +42,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class ElasticsearchDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
-    private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private ElasticsearchHttpSource elasticsearchHttpSource = (ElasticsearchHttpSource) SpringContextUtil.getBean("elasticsearchHttpSource");
     private static final Map<String, String> metaMap = Maps.newHashMap();
-    private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
+    private RestClient restClient = (RestClient) SpringContextUtil.getBean("restClient");
     private int pageOffset;
     public ApiParam param;
     public BaseResult baseResult;
@@ -102,14 +106,18 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     @Override
     BaseResult generateBaseResult(String sql, Optional<String> message) {
+        Request request = new Request("POST", "/_sql?format=json");
+        request.setJsonEntity(JsonMapper.toJsonString(getQueryParam(sql)));
+        Response response;
+        try {
+            response = restClient.performRequest(request);
+            ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
+            baseResult = BaseResultGenerator.generate(HttpStatus.SC_OK, ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
+                    (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
 
-        Map<String, String> results = executeHttpGet(sql);
-        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
-                    (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
-        } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, param.getFormat());
+        } catch (IOException e) {
+            log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), simplyErrorMessage(e.getMessage()), null);
         }
         return build();
     }
@@ -188,14 +196,6 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         return null;
     }
 
-    private Map<String, String> executeHttpGet(String sql) {
-        String queryURL = URLUtil.normalize(elasticsearchHttpSource.getUrl() + "?format=json");
-        HashMap<String, Object> queryParam = getQueryParam(sql);
-        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.ELASTICSEARCH.getValue(),
-                JsonMapper.toJsonString(queryParam));
-        return httpClientService.httpPost(queryURL, JsonMapper.toJsonString(queryParam), httpConfig.getElasticsearchSocketTimeOut());
-    }
-
     private HashMap<String, Object> getQueryParam(String sql) {
         HashMap<String, Object> queryParam = Maps.newHashMap();
         queryParam.put("query", sql);
@@ -206,7 +206,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
                 int rowNum = Integer.valueOf(limits[1].trim());
                 queryParam.put("fetch_size", offset + rowNum);
             } else {
-                queryParam.put("fetch_size", param.getDbQuerySource().getLimit());
+                queryParam.put("fetch_size", Math.max(1, Long.parseLong(param.getDbQuerySource().getLimit())));
             }
         }
         return queryParam;
