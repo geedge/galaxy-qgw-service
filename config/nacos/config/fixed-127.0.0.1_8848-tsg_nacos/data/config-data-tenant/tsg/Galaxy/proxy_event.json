@@ -210,6 +210,9 @@
       },
       "DoH": {
         "$ref": "public_schema_info.json#/schema_type/DoH"
+      },
+      "RDP": {
+        "$ref": "public_schema_info.json#/schema_type/RDP"
       }
     },
     "default_columns": [
@@ -1536,6 +1539,126 @@
     {
       "name": "doh_rr",
       "label": "DoH.RR",
+      "type": "string"
+    },
+    {
+      "name": "rdp_cookie",
+      "label": "RDP.Cookie",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_security_protocol",
+      "label": "RDP.Security Protocol",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_channels",
+      "label": "RDP.Client Channels",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_keyboard_layout",
+      "label": "RDP.Keyboard Layout",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_version",
+      "label": "RDP.Client Version",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_name",
+      "label": "RDP.Client Name",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_product_id",
+      "label": "RDP.Client Product ID",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_desktop_width",
+      "label": "RDP. Desktop Width",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_desktop_height",
+      "label": "RDP.Desktop Height",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_requested_color_depth",
+      "label": "RDP.Requested Color Depth",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_certificate_type",
+      "label": "RDP.Certificate Type",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_certificate_count",
+      "label": "RDP.Certificate Count",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "rdp_certificate_permanent",
+      "label": "RDP.Certificate Permanent",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "rdp_encryption_level",
+      "label": "RDP.Encryption Level",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rdp_encryption_method",
+      "label": "RDP.Encryption Method",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "string"
     }
   ]

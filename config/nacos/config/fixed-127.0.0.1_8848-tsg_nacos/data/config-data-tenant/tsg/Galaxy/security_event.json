@@ -303,6 +303,9 @@
       },
       "Stratum": {
         "$ref": "public_schema_info.json#/schema_type/Stratum"
+      },
+      "RDP": {
+        "$ref": "public_schema_info.json#/schema_type/RDP"
       }
     },
     "default_columns": [
@@ -2370,6 +2373,81 @@
     {
       "name": "stratum_mining_program",
       "label": "Mining Program",
+      "type": "string"
+    },
+    {
+      "name": "rdp_cookie",
+      "label": "RDP.Cookie",
+      "type": "string"
+    },
+    {
+      "name": "rdp_security_protocol",
+      "label": "RDP.Security Protocol",
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_channels",
+      "label": "RDP.Client Channels",
+      "type": "string"
+    },
+    {
+      "name": "rdp_keyboard_layout",
+      "label": "RDP.Keyboard Layout",
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_version",
+      "label": "RDP.Client Version",
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_name",
+      "label": "RDP.Client Name",
+      "type": "string"
+    },
+    {
+      "name": "rdp_client_product_id",
+      "label": "RDP.Client Product ID",
+      "type": "string"
+    },
+    {
+      "name": "rdp_desktop_width",
+      "label": "RDP. Desktop Width",
+      "type": "string"
+    },
+    {
+      "name": "rdp_desktop_height",
+      "label": "RDP.Desktop Height",
+      "type": "string"
+    },
+    {
+      "name": "rdp_requested_color_depth",
+      "label": "RDP.Requested Color Depth",
+      "type": "string"
+    },
+    {
+      "name": "rdp_certificate_type",
+      "label": "RDP.Certificate Type",
+      "type": "string"
+    },
+    {
+      "name": "rdp_certificate_count",
+      "label": "RDP.Certificate Count",
+      "type": "int"
+    },
+    {
+      "name": "rdp_certificate_permanent",
+      "label": "RDP.Certificate Permanent",
+      "type": "int"
+    },
+    {
+      "name": "rdp_encryption_level",
+      "label": "RDP.Encryption Level",
+      "type": "string"
+    },
+    {
+      "name": "rdp_encryption_method",
+      "label": "RDP.Encryption Method",
       "type": "string"
     }
   ]
