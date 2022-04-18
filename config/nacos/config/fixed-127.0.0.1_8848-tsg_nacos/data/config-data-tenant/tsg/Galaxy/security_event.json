@@ -623,6 +623,10 @@
         },
         "data": [
           {
+            "code": "BASE",
+            "value": "BASE"
+          },
+          {
             "code": "HTTP",
             "value": "HTTP"
           },
