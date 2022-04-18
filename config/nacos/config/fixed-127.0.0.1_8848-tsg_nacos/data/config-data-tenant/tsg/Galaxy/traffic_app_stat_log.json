@@ -57,7 +57,12 @@
     {
       "name": "app_name",
       "label": "APP Name",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        }
+      }
     },
     {
       "name": "session_num",
