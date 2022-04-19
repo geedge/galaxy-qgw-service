@@ -613,6 +613,10 @@
           {
             "code": "Stratum",
             "value": "Stratum"
+          },
+          {
+            "code": "RDP",
+            "value": "RDP"
           }
         ]
       },
