@@ -44,7 +44,7 @@ public interface SystemService {
     BaseResult deleteQueryTask(String queryId);
 
     /**
-     * 构建查询唯一标识：Query ID，由 Catalog（数据库类型): resultID+query 组成。
+     * 自定义查询ID: 由 Catalog（数据库类型): resultID+query 组成。
      *
      * @param resultId
      * @param query
@@ -52,7 +52,7 @@ public interface SystemService {
      * @created by wWei
      * @date 2021/1/7 6:48 下午
      */
-    String getQueryId(String resultId, String query);
+    String getCustomQueryId(String resultId, String query);
 
     /**
      * Desc: 通过queryId查询SQL任务执行状态

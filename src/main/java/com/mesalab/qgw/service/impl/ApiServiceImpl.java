@@ -167,14 +167,12 @@ public class ApiServiceImpl implements ApiService {
      * @return BaseResult 执行结果
      */
     private BaseResult executeSelectStatement(ApiParam param) {
-        if (StringUtil.isBlank(param.getQueryId())) {
-            param.setQueryId(systemService.getQueryId(param.getResultId(), param.getQuery()));
-        }
         if (QueryOptionEnum.SYNTAX_PARSE.getValue().equalsIgnoreCase(param.getOption())) {
             return executeSyntaxParse(param);
         } else if (QueryOptionEnum.SYNTAX_VALIDATION.getValue().equalsIgnoreCase(param.getOption())) {
             return executeSyntaxValidation(param);
         } else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+            param.setQueryId(systemService.getCustomQueryId(param.getResultId(), param.getQuery()));
             return executeLongTermQuery(param);
         } else {
             return executeRealTimeQuery(param);
