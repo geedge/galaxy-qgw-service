@@ -2366,17 +2366,17 @@
     },
     {
       "name": "stratum_cryptocurrency",
-      "label": "Cryptocurrency",
+      "label": "Stratum.Cryptocurrency",
       "type": "string"
     },
     {
       "name": "stratum_mining_pools",
-      "label": "Mining Pools",
+      "label": "Stratum.Mining Pools",
       "type": "string"
     },
     {
       "name": "stratum_mining_program",
-      "label": "Mining Program",
+      "label": "Stratum.Mining Program",
       "type": "string"
     },
     {
