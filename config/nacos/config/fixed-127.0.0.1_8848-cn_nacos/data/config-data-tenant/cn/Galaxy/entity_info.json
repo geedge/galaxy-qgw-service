@@ -217,8 +217,8 @@
       "type": "string"
     },
     {
-      "name": "domain_icp_cite_license",
-      "label": "domain icp cite license",
+      "name": "domain_icp_site_license",
+      "label": "domain icp site license",
       "type": "string"
     },
     {

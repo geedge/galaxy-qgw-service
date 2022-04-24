@@ -193,7 +193,7 @@
 		"type":"long"
 	},
 	{
-		"name":"http_response_lantency_ms",
+		"name":"http_response_latency_ms",
 		"label":"HTTP.Response Latency(ms)",
 		"type":"long"
 	},
