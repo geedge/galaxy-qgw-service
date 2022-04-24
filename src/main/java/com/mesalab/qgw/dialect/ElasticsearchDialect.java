@@ -89,7 +89,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     @Override
     String getSyntaxCheckQuery() {
-        return null;
+        return param.getQuery();
     }
 
     @Override

@@ -17,7 +17,9 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.sqlparser.TableColumnVisitor;
+import com.mesalab.qgw.benchmark.elasticsearch.ElasticSearchWriter;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
@@ -41,8 +43,13 @@ import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.util.EntityUtils;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +69,9 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private static final String CK_PREFIX = "ck_";
     private static final String ENGINE_PREFIX = "engine_";
     private static final String HBASE_PREFIX = "hbase_";
+    private static final String ES_PREFIX = "es_";
     private static final String HBASE_DBNAME2 = "tsg_galaxy";
+    private RestClient restClient = (RestClient) SpringContextUtil.getBean("restClient");
 
     @Autowired
     private HttpClientService httpClientService;
@@ -81,11 +90,15 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     @Autowired
     private HbaseWriter hbaseWriter;
     @Autowired
+    private ElasticSearchWriter elasticSearchWriter;
+    @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
     private HBaseAPISource hBaseAPISource;
+    @Autowired
+    private ElasticsearchHttpSource elasticsearchHttpSource;
     @Autowired
     private MetadataService metadataService;
     /**
@@ -104,11 +117,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbaseResult = parseSchemaByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbase2Result = parseSchemaByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
+            Map<String, Map<String, String>> elasticsearchResult = parseSchemaByDatasource(elasticsearchHttpSource.getDbname(), metadataService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(elasticsearchResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
@@ -138,11 +153,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbase2Result = checkMetadataByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
+            Map<String, Map<String, String>> elasticsearchResult = checkMetadataByDatasource(elasticsearchHttpSource.getDbname(), metadataService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(elasticsearchResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
@@ -164,28 +181,33 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, Map<String, String>> clickhouseResult;
         Map<String, Map<String, String>> druidResult;
         Map<String, Map<String, String>> hbaseResult;
+        Map<String, Map<String, String>> elasticsearchResult;
         try {
             Stopwatch watch = Stopwatch.createStarted();
             Optional<File> druidTestFile = Optional.of(new File(druidWriter.buildPocSQL()));
             Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
             Optional<File> hbaseTestFile = Optional.of(new File(hbaseWriter.buildPocSQL()));
             Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
+            Optional<File> esTestFile = Optional.of(new File(elasticSearchWriter.buildPocSQL()));
 
             if (DiagnosisOptionEnum.PARSE.getValue().equalsIgnoreCase(option)) {
                 druidResult = executeSyntaxCheckByDatasource(druidTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
                 clickhouseResult = executeSyntaxCheckByDatasource(ckTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
                 hbaseResult = executeSyntaxCheckByDatasource(hbaseTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
                 engineResult = executeSyntaxCheckByDatasource(engineTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+                elasticsearchResult = executeSyntaxCheckByDatasource(esTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
             } else if (DiagnosisOptionEnum.VALIDATION.getValue().equalsIgnoreCase(option)) {
                 druidResult = executeSyntaxCheckByDatasource(druidTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
                 clickhouseResult = executeSyntaxCheckByDatasource(ckTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
                 hbaseResult = executeSyntaxCheckByDatasource(hbaseTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
                 engineResult = executeSyntaxCheckByDatasource(engineTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+                elasticsearchResult = executeSyntaxCheckByDatasource(esTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
             } else if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
                 druidResult = executePocSqlByDatasource(druidTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
                 clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
                 hbaseResult = executePocSqlByDatasource(hbaseTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
                 engineResult = executePocSqlByDatasource(engineTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+                elasticsearchResult = executePocSqlByDatasource(esTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
             } else {
                 throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
                         ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "The option is not supported.");
@@ -197,6 +219,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), hbaseResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergeResult = Stream.concat(mergeResult.entrySet().stream(), elasticsearchResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
@@ -339,6 +363,15 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                             ApiParam.builder().option(queryOption).format(QueryFormatEnum.CSV.getValue()).query(line).build());
                     processQueryResult(file, infoMap, writer, index, queryResult);
                 }
+            } else if (StringUtil.lowerCase(benchFileName).startsWith(ES_PREFIX)) {
+                for (String line : rawLines) {
+                    index++;
+                    if (Strings.isNullOrEmpty(line)) {
+                        continue;
+                    }
+                    BaseResult queryResult = generateElasticSearchBaseResult(line);
+                    processQueryResult(file, infoMap, writer, index, queryResult);
+                }
             }
 
             resultMap.put(file.get().getName(), buildQueryTimeMetric(infoMap));
@@ -434,7 +467,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private BaseResult generateClickHouseBaseResult(String sql) {
         BaseResult baseResult;
         Object dataObject;
-        Map<String, String> results = clickHouseExecuteHttpGet(sql);
+        Map<String, String> results = clickHouseExecuteHttpPost(sql);
         if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
                     com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
@@ -456,7 +489,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         return baseResult;
     }
 
-    private Map<String, String> clickHouseExecuteHttpGet(String sql) {
+    private Map<String, String> clickHouseExecuteHttpPost(String sql) {
         String ckQuery = Encodes.urlEncode(sql);
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryParamBuilder = new StringBuilder("user=")
@@ -469,6 +502,34 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), com.mesalab.common.utils.JsonMapper.toJsonString(clickHouseHttpQuery));
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
         return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase()), clickHouseHttpQuery.getSocketTimeOut());
+    }
+
+    private BaseResult generateElasticSearchBaseResult(String sql) {
+        BaseResult baseResult;
+        Object dataObject;
+        Stopwatch watch = Stopwatch.createUnstarted();
+        watch.start();
+        Request request = new Request("POST", "/_sql?format=json");
+        HashMap<String, Object> queryParam = Maps.newHashMap();
+        queryParam.put("query", sql);
+        request.setJsonEntity(JsonMapper.toJsonString(queryParam));
+        Response response;
+        try {
+            response = restClient.performRequest(request);
+            ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
+            baseResult = BaseResultGenerator.generate(HttpStatus.SC_OK, ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
+                    (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+        } catch (IOException e) {
+            log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), e.getMessage(), null);
+        }
+        dataObject = baseResult.getData();
+        Map<String, Object> resultMap = (Map<String, Object>) dataObject;
+        Map<String, Object> statistics = Maps.newLinkedHashMap();
+        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+        baseResult.setData(resultMap);
+        baseResult.setStatistics(statistics);
+        return baseResult;
     }
 
 
