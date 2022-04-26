@@ -139,7 +139,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             List<String> list = Lists.newArrayList(start.concat("/").concat(end));
             query.getParameters().setIntervals(list);
         }
-        query.setLimit(StringUtil.isEmpty(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getActiveClientIP() ? String.valueOf(entityConfigSource.getActiveClientIP()) : query.getLimit());
+        query.setLimit(StringUtil.isEmpty(query.getLimit()) ? String.valueOf(entityConfigSource.getActiveClientIP()) : query.getLimit());
     }
 
     public boolean isValid(BaseResult baseResult, String[] intervals) {
@@ -216,19 +216,19 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         String datasource = query.getDataSource();
 
         String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, timeInterval,
-                StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopServerIPByTCPSession() ? entityConfigSource.getTopServerIPByTCPSession() : query.getLimit());
+                StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByTCPSession() : query.getLimit());
         Map<String, String> tcpSessionResult = executeQuery(tcpSessionSql);
 
         String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
-                StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopServerIPByTCPUniqClientIP() ? entityConfigSource.getTopServerIPByTCPUniqClientIP() : query.getLimit());
+                StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByTCPUniqClientIP() : query.getLimit());
         Map<String, String> tcpClientIpResult = executeQuery(tcpClientIpsSql);
 
         String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval,
-                StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopServerIPByUDPBySession() ? entityConfigSource.getTopServerIPByUDPBySession() : query.getLimit());
+                StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByUDPBySession() : query.getLimit());
         Map<String, String> udpSessionResult = executeQuery(udpSessionSql);
 
         String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
-                StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopServerIPByUDPUniqClientIP() ? entityConfigSource.getTopServerIPByUDPUniqClientIP() : query.getLimit());
+                StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByUDPUniqClientIP() : query.getLimit());
         Map<String, String> udpClientIpsResult = executeQuery(udpClientIpsSql);
 
         if (!String.valueOf(HttpStatus.SC_OK).equals(tcpSessionResult.get("status"))
@@ -344,7 +344,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     public String generateTopSNI(ComDSLObject.Query query, String fileSql) {
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
-        return String.format(fileSql, datasource, timeInterval, StringUtil.isBlank(query.getLimit()) || Integer.parseInt(query.getLimit()) > entityConfigSource.getTopSNI() ? entityConfigSource.getTopSNI() : query.getLimit());
+        return String.format(fileSql, datasource, timeInterval, StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopSNI() : query.getLimit());
     }
 
     private Map<String, String> executeQuery(String sql) {
