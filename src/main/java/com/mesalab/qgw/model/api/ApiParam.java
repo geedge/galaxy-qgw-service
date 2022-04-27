@@ -1,12 +1,7 @@
 package com.mesalab.qgw.model.api;
 
 import com.zdjizhi.utils.StringUtil;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.nutz.json.JsonIgnore;
-
+import lombok.*;
 import java.io.Serializable;
 @Data
 @Builder
@@ -16,6 +11,7 @@ public class ApiParam implements Serializable {
 
     private String query;
     private String option;
+    private Boolean sampled;
     private String format;
     private String schema;
     private String tableName;
@@ -39,6 +35,10 @@ public class ApiParam implements Serializable {
 
     public void setResultId(String resultId) {
         this.resultId = resultId;
+    }
+
+    public void setIsSampled(Boolean isSampled) {
+        this.sampled = isSampled;
     }
 
     public  boolean queryParamIsNull() {

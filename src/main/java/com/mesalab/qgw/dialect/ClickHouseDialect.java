@@ -1,6 +1,7 @@
 package com.mesalab.qgw.dialect;
 
 
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
@@ -1006,7 +1007,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else {
-            baseResult = BaseResultGenerator.failure((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? HttpStatus.SC_INTERNAL_SERVER_ERROR : baseResult.getStatus(),
+            throw new BusinessException((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? HttpStatus.SC_INTERNAL_SERVER_ERROR : baseResult.getStatus(),
                     ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), simplyErrorMessage(dataObject));
         }
         return baseResult;
@@ -1069,6 +1070,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 }
                 if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
                     plainSelect.setWhere(generateDatasetWhereSql(plainSelect.getWhere().toString()));
+                }
+                if (StringUtil.isNotEmpty(plainSelect.getHaving())) {
+                    plainSelect.setHaving(generateDatasetWhereSql(plainSelect.getHaving().toString()));
                 }
                 convertWhereForSampleSql(plainSelect.getWhere());
                 return plainSelect;
@@ -1147,7 +1151,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      */
     private FromItem generateSampleDatasetSql(String tableName, String alias) throws JSQLParserException {
         String sql = StrUtil.format("SELECT 1 FROM (SELECT * FROM {} LIMIT {} ) as {} ",
-                tableName, 100, alias);
+                tableName, BooleanUtil.isTrue(param.getSampled()) ? 100 : 0, alias);
         Statement parse = CCJSqlParserUtil.parse(sql);
         Select select = (Select) parse;
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();

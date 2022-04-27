@@ -26,6 +26,11 @@ public interface Dialect {
      */
     BaseResult executeQuery();
 
+    /**
+     * 执行抽样查询操作
+     * @return
+     */
+    BaseResult executeSampleQuery();
 
     /**
      * 执行数据库系统管理操作，包含 Show/Describe等

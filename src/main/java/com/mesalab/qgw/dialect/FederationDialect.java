@@ -13,12 +13,17 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.*;
 
 
 import javax.annotation.Nullable;
@@ -45,13 +50,44 @@ public class FederationDialect extends AbstractEngineDialect{
         this.param = param;
         this.baseResult = result;
     }
+
     @Override
     public void init() {
         if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-            param.setQuery(param.getEngineQuerySource().getSqlBody());
+            param.setSql(param.getEngineQuerySource().getSqlBody());
+        } else {
+            param.setSql(null);
         }
     }
 
+    @Override
+    public String getFederateQuery() {
+        return param.getSql();
+    }
+
+    @Override
+    public String getSampleQuery() {
+        String sql = param.getSql();
+        if (!isExecute()) {
+            return sql;
+        }
+        try {
+            sql = String.valueOf(convertSampleSql(sql));
+        } catch (JSQLParserException e) {
+            log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
+                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+        }
+        return sql;
+    }
+
+    @Override
+    public String getSyntaxCheckQuery() {
+        String sql = param.getSql();
+        if (!isExecute()) {
+            return sql;
+        }
+        return SQLHelper.getLimitString(sql, 0, 0);
+    }
 
     @Override
     public boolean supportsLimit() {
@@ -70,33 +106,29 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public boolean isExecute() {
-        return baseResult.isSuccess() ? true : false ;
+        return StringUtil.isNotEmpty(param.getEngineQuerySource());
     }
 
 
     @Override
-    public BaseResult generateBaseResult() {
+    public BaseResult generateBaseResult(String sql) {
         try {
-           if (!isExecute()) {
-               return baseResult;
-           }
-
             watch.start();
-            if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
+            if (isExecute()) {
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
                 Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableName(),
                         (List<Map<String, String>>) baseResult.getMeta(),
-                        (List<Map<String, Object>>) baseResult.getData(), param.getQuery());
+                        (List<Map<String, Object>>) baseResult.getData(), sql);
                 baseResult.setData(resultMap.get("data"));
                 baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             }
-            log.debug("Calcite execute time :" + watch.elapsed().toMillis()/1000 + "s");
+            log.debug("Calcite execute time :" + watch.elapsed().toMillis() / 1000 + "s");
 
         } catch (BusinessException ex) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                     ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute memory-query error：", ex);
         }
-        return  build();
+        return build();
     }
 
 
@@ -138,16 +170,13 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public void executeUDF() {
-        if (isExecute()) {
-            SQLQuerySource sqlQuerySource = param.getDbQuerySource();
-            Set<UDF> udfSet = sqlQuerySource.getUdfSet();
-            for (UDF udf : udfSet) {
-                List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,
-                        (List<Object>) baseResult.getData());
-                baseResult.setData(targetResult);
-            }
+        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+        Set<UDF> udfSet = sqlQuerySource.getUdfSet();
+        for (UDF udf : udfSet) {
+            List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,
+                    (List<Object>) baseResult.getData());
+            baseResult.setData(targetResult);
         }
-
     }
 
 
@@ -173,10 +202,53 @@ public class FederationDialect extends AbstractEngineDialect{
         baseResult.setMeta(Joiner.on(",").useForNull("").join(metas));
     }
 
+    /**
+     * Desc: where、having至无效：添加 OR 1=1
+     *
+     * @param sql
+     * @return {@link SelectBody}
+     * @created by wWei
+     * @date 2022/4/27 5:18 下午
+     */
+    private SelectBody convertSampleSql(String sql) throws JSQLParserException {
+        Statement parse = CCJSqlParserUtil.parse(sql);
+        if (parse instanceof Select) {
+            Select select = (Select) parse;
+            SelectBody selectBody = select.getSelectBody();
+            if (selectBody instanceof PlainSelect) {
+                PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+                FromItem fromItem = plainSelect.getFromItem();
+                if (fromItem instanceof SubSelect) {
+                    SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
+                    subSelect.setSelectBody(convertSampleSql(subSelect.getSelectBody().toString()));
+                }
+                if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
+                    plainSelect.setWhere(generateDatasetWhereSql(plainSelect.getWhere().toString()));
+                }
+                if (StringUtil.isNotEmpty(plainSelect.getHaving())) {
+                    plainSelect.setHaving(generateDatasetWhereSql(plainSelect.getHaving().toString()));
+                }
+                return plainSelect;
+            } else if (selectBody instanceof SetOperationList) {
+                SetOperationList setOperationList = (SetOperationList) selectBody;
+                List<SelectBody> selects = setOperationList.getSelects();
+                for (int i = 0; i < selects.size(); i++) {
+                    selects.set(i, convertSampleSql(selects.get(i).toString()));
+                }
+                return setOperationList;
+            } else {
+                throw new BusinessException("Only support selectBody operation: PlainSelect or SetOperationList");
+            }
+        }
+        throw new BusinessException("Only support statement operation as select");
+    }
 
-
-
-
-
+    private Expression generateDatasetWhereSql(String where) throws JSQLParserException {
+        String sql = String.format("SELECT * FROM tableName WHERE  %s %s ", where, "OR 1=1");
+        Statement parse = CCJSqlParserUtil.parse(sql);
+        Select select = (Select) parse;
+        PlainSelect selectBody = (PlainSelect) select.getSelectBody();
+        return selectBody.getWhere();
+    }
 
 }

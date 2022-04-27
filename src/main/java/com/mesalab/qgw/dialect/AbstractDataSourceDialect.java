@@ -55,6 +55,13 @@ public abstract class AbstractDataSourceDialect implements Dialect {
     }
 
     @Override
+    final public BaseResult executeSampleQuery() {
+        init();
+        String sql = convertQuery(getSyntaxCheckQuery());
+        return generateBaseResult(sql, Optional.of("OK"));
+    }
+
+    @Override
     final public BaseResult executeSyntaxCheck() {
         init();
         String originSQL = getOriginQuery();

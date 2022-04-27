@@ -71,7 +71,6 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private static final String HBASE_PREFIX = "hbase_";
     private static final String ES_PREFIX = "es_";
     private static final String HBASE_DBNAME2 = "tsg_galaxy";
-    private RestClient restClient = (RestClient) SpringContextUtil.getBean("restClient");
 
     @Autowired
     private HttpClientService httpClientService;
@@ -97,6 +96,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
     private HBaseAPISource hBaseAPISource;
+    @Autowired
+    private RestClient restClient;
     @Autowired
     private ElasticsearchHttpSource elasticsearchHttpSource;
     @Autowired

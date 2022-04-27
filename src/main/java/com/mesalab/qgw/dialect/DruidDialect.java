@@ -1,5 +1,6 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
@@ -22,7 +23,6 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.mesalab.qgw.service.SystemService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
@@ -99,7 +99,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     public String getSyntaxCheckQuery() {
         String sql = param.getDbQuerySource().getSqlBody();
         try {
-            sql = String.valueOf(parserAndUpdateSql(sql));
+            sql = String.valueOf(convertSampleSql(sql));
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
@@ -190,7 +190,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(allResults));
             baseResult.setStatistics(statistics);
         } else {
-            baseResult = BaseResultGenerator.failure(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+            throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
                     simplyErrorMessage(dataObject));
         }
         return baseResult;
@@ -217,7 +217,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @return
      * @throws JSQLParserException
      */
-    private SelectBody parserAndUpdateSql(String sql) throws JSQLParserException {
+    private SelectBody convertSampleSql(String sql) throws JSQLParserException {
         Statement parse = CCJSqlParserUtil.parse(sql);
         if (parse instanceof Select) {
             Select select = (Select) parse;
@@ -227,7 +227,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 FromItem fromItem = plainSelect.getFromItem();
                 if (fromItem instanceof SubSelect) {
                     SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
-                    subSelect.setSelectBody(parserAndUpdateSql(subSelect.getSelectBody().toString()));
+                    subSelect.setSelectBody(convertSampleSql(subSelect.getSelectBody().toString()));
                 } else if (fromItem instanceof Table) {
                     plainSelect.setWhere(generateDataSetSql());
                     return plainSelect;
@@ -237,7 +237,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 SetOperationList setOperationList = (SetOperationList) selectBody;
                 List<SelectBody> selects = setOperationList.getSelects();
                 for (int i = 0; i < selects.size(); i++) {
-                    selects.set(i, parserAndUpdateSql(selects.get(i).toString()));
+                    selects.set(i, convertSampleSql(selects.get(i).toString()));
                 }
                 return setOperationList;
             } else {
@@ -255,7 +255,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private Expression generateDataSetSql() throws JSQLParserException {
-        String sql = String.format("SELECT * FROM tableName WHERE %s >= CURRENT_TIMESTAMP - INTERVAL '%s' HOUR ", param.getDbQuerySource().getPartitionKey(), 12);
+        String sql = String.format("SELECT * FROM tableName WHERE %s >= CURRENT_TIMESTAMP - INTERVAL '%s' HOUR ", param.getDbQuerySource().getPartitionKey(), BooleanUtil.isTrue(param.getSampled()) ? 12 : 0);
         Statement parse = CCJSqlParserUtil.parse(sql);
         Select select = (Select) parse;
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();

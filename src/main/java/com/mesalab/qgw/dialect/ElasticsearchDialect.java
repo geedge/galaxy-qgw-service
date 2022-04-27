@@ -146,7 +146,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(allResults.get("columns")));
             baseResult.setStatistics(statistics);
         } else {
-            baseResult = BaseResultGenerator.failure(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+            throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
                     simplyErrorMessage(dataObject));
         }
         return baseResult;

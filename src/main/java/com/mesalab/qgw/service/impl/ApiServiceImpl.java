@@ -1,6 +1,7 @@
 package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.text.StrFormatter;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -185,7 +186,7 @@ public class ApiServiceImpl implements ApiService {
     }
 
     private BaseResult executeSyntaxValidation(ApiParam param) {
-        return new FederationDialect(param, getDBDialect(param).executeSyntaxCheck()).executeQuery();
+        return new FederationDialect(param, getDBDialect(param).executeSyntaxCheck()).executeSyntaxCheck();
     }
 
     private BaseResult executeLongTermQuery(ApiParam param) {
@@ -201,7 +202,11 @@ public class ApiServiceImpl implements ApiService {
 
 
     private BaseResult executeRealTimeQuery(ApiParam param) {
-        return new FederationDialect(param, getDBDialect(param).executeQuery()).executeQuery();
+        if (BooleanUtil.isTrue(param.getSampled())) {
+            return new FederationDialect(param, getDBDialect(param).executeSampleQuery()).executeSampleQuery();
+        } else {
+            return new FederationDialect(param, getDBDialect(param).executeQuery()).executeQuery();
+        }
     }
 
 
