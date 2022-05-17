@@ -785,10 +785,7 @@
     {
       "name": "common_app_id",
       "label": "Application ID",
-      "type": "string",
-      "doc": {
-        "visibility": "hidden"
-      }
+      "type": "string"
     },
     {
       "name": "common_userdefine_app_name",
