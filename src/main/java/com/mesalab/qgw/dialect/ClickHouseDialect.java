@@ -541,9 +541,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             }
             for (String tempIndexTable : indexTables) {
 
-                String indexKey = metadataService.getValueByKeyInSchemaDoc(tempIndexTable, "index_key");
+                List<String> indexKey = metadataService.getIndexKey(tempIndexTable);
                 //判断一: where 是否包含索引键
-                if (!param.getDbQuerySource().getExpr().contains(indexKey)) {
+                if (StringUtil.isEmpty(indexKey) || !param.getDbQuerySource().getExpr().contains(indexKey.get(0))) {
                     continue;
                 }
 

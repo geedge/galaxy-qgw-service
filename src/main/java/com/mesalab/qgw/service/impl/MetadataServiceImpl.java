@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONUtil;
@@ -8,9 +9,12 @@ import cn.hutool.log.LogFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
 import com.alibaba.nacos.api.exception.NacosException;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -88,6 +92,18 @@ public class MetadataServiceImpl implements MetadataService {
             partitionKey = StringUtil.isEmpty(partition_key) ? StringUtil.EMPTY : partition_key.toString();
         }
         return partitionKey;
+    }
+
+    @Override
+    public List<String> getIndexKey(String tableName) {
+        List<String> indexKey = Lists.newArrayList();
+        Schema schema = getSchemaByName(tableName);
+        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        if (StringUtil.isNotEmpty(doc)) {
+            Object partition_key = doc.get("index_key");
+            indexKey = StringUtil.isEmpty(partition_key) ? indexKey : (List<String>) partition_key;
+        }
+        return indexKey;
     }
 
     @Override
@@ -187,6 +203,73 @@ public class MetadataServiceImpl implements MetadataService {
             log.error("NacosException:{}", e);
         }
         return schema;
+    }
+
+    @Override
+    public BaseResult updateSchema(String name, Map<String, Object> paramMap) {
+        try {
+            String content = configService.getConfig(name.concat(".json"), nacosConfig.getGroup(), 3000);
+            updateSchema(name, paramMap, content);
+            String indexTable = getValueByKeyInSchemaDoc(name, "index_table");
+            if (StringUtil.isNotBlank(indexTable)) {
+                List<String> list = Splitter.on(",").omitEmptyStrings().splitToList(indexTable);
+                for (String item : list) {
+                    String config = configService.getConfig(item.concat(".json"), nacosConfig.getGroup(), 3000);
+                    updateSchema(item, paramMap, config);
+                }
+            }
+            return BaseResultGenerator.success4Message("ok");
+        } catch (NacosException e) {
+            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), e.getMessage());
+        }
+    }
+
+    private boolean updateSchema(String name, Map<String, Object> paramMap, String content) throws NacosException {
+        if (StringUtil.isNotEmpty(content)) {
+            Map<String, Object> data = (Map<String, Object>) JsonMapper.fromJsonString(content, Map.class);
+            data.put("doc", rewriteDoc("ttl", data.get("doc"), paramMap.get("doc")));
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) data.get("fields");
+            List<String> indexKey = getIndexKey(name);
+            for (Map<String, Object> field : fields) {
+                if (!indexKey.contains(field.get("name"))) {
+                    field.put("doc", rewriteDoc("ttl", field.get("doc"), JsonPath.read(JsonMapper.toJsonString(paramMap), "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
+                }
+                field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(JsonMapper.toJsonString(paramMap), "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
+            }
+            content = JsonMapper.toJsonString(data);
+            log.info("push Schema, content is: {}", content);
+            return configService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), content);
+        } else {
+            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.UNKNOW_ERROR.getCode(), "get Schema Error");
+        }
+    }
+
+    /**
+     * Desc: 重写[tables |field].doc
+     * @param key
+     * @param original
+     * @param param
+     * @return {@link Map< String, Object>}
+     * @created by wWei
+     * @date 2022/5/17 10:02 上午
+     */
+    private Map<String, Object> rewriteDoc(String key, Object original, Object param) {
+        List<Object> paramValue;
+        Map<String, Object> doc = Maps.newHashMap();
+        if (StringUtil.isNotEmpty(original)) {
+            doc = (Map<String, Object>) original;
+        }
+        if (StringUtil.isNotEmpty(param) && StringUtil.isNotEmpty(paramValue = JsonPath.read(param, "$.[?(@." + key + " != null)]" + key))) {
+            Object value = paramValue.get(0);
+            if (NumberUtil.isNumber(value.toString())) {
+                doc.put(key, Long.parseLong(value.toString()));
+            } else {
+                doc.put(key, value.toString());
+            }
+        } else {
+            doc.remove(key);
+        }
+        return doc;
     }
 
     private void addMetadataListener() {
