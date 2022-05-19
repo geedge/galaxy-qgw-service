@@ -5,6 +5,11 @@
   "doc": {
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
+    "index_key": [
+      "common_log_id",
+      "common_recv_time",
+      "common_policy_id"
+    ],
     "index_table": "session_record_common_client_ip,session_record_common_server_ip,session_record_http_domain",
     "functions": {
       "$ref": "public_schema_info.json#/functions"

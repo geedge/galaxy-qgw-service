@@ -5,6 +5,10 @@
   "doc": {
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
+    "index_key": [
+      "common_log_id",
+      "common_recv_time"
+    ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     }

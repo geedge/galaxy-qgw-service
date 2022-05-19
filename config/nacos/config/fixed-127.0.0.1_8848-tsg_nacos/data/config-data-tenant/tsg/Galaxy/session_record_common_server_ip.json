@@ -4,7 +4,11 @@
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "common_log_id",
-    "index_key": "common_server_ip"
+    "index_key": [
+      "common_server_ip",
+      "common_client_ip",
+      "common_recv_time"
+    ]
   },
   "fields": [
     {
