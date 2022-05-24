@@ -2,6 +2,13 @@
   "type": "record",
   "name": "radius_onff_log",
   "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "partition_key": "common_recv_time",
+    "index_key": [
+      "account",
+      "event_timestamp"
+    ]
+  },
   "fields": [
     {
       "name": "event_timestamp",
