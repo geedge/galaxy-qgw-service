@@ -1,7 +1,6 @@
 package com.mesalab.qgw.controller;
 
 import cn.hutool.core.util.NumberUtil;
-import com.clearspring.analytics.util.Lists;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -28,7 +27,6 @@ public class MetadataController {
     private MetadataService metadataService;
 
     private final static List<String> VISIBILITY = Arrays.asList("enabled", "hidden", "disabled");
-    private final static List<String> TABLES_TTL = Arrays.asList("security_event", "proxy_event", "session_record", "radius_record", "sys_packet_capture_event", "active_defence_event", "interim_session_record", "transaction_record", "gtpc_record", "voip_record", "dos_event");
 
 
     @RequestMapping("/schema/v1/{type}/{name}")
@@ -53,7 +51,7 @@ public class MetadataController {
     }
 
     private void validationParam(String name, Map<String, Object> obj) {
-        if (!TABLES_TTL.contains(name)) {
+        if (!metadataService.getAllTable().contains(name)) {
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), name + " not support setting TTL");
         }
         String param = JsonMapper.toJsonString(obj);

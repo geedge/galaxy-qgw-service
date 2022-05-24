@@ -238,7 +238,7 @@ public class MetadataServiceImpl implements MetadataService {
             }
             content = JsonMapper.toJsonString(data);
             log.info("push Schema, content is: {}", content);
-            return configService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), content);
+            return configService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.UNKNOW_ERROR.getCode(), "get Schema Error");
         }
