@@ -48,7 +48,7 @@
     },
     {
       "name":"duration_ms",
-      "label":"duration(ms)",
+      "label":"duration (ms)",
       "doc":{
         "allow_query": false
       },
