@@ -255,22 +255,34 @@
     },
     {
       "name": "common_c2s_pkt_diff",
-      "label": "Packets Sent(Diff)",
+      "label": "Packets Sent (Delta)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_pkt_diff",
-      "label": "Packets Received(Diff)",
+      "label": "Packets Received (Delta)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_byte_diff",
-      "label": "Bytes Sent(Diff)",
+      "label": "Bytes Sent (Delta)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_diff",
-      "label": "Bytes Received(Diff)",
+      "label": "Bytes Received (Delta)",
+      "doc": {
+        "visibility": "hidden"
+      },
       "type": "long"
     },
     {
@@ -559,7 +571,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Establish Latency(ms)"
+      "label": "TCP Handshake Latency (ms)"
     },
     {
       "name": "common_con_duration_ms",
@@ -567,7 +579,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Duration(ms)"
+      "label": "Duration (ms)"
     },
     {
       "name": "common_stream_dir",
@@ -635,7 +647,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Link Info(c2s)"
+      "label": "Link Info (c2s)"
     },
     {
       "name": "common_link_info_s2c",
@@ -643,7 +655,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Link Info(s2c)"
+      "label": "Link Info (s2c)"
     },
     {
       "name": "common_packet_capture_file",
@@ -662,7 +674,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Fragmentation Packets(c2s)"
+      "label": "Fragmentation Packets (c2s)"
     },
     {
       "name": "common_s2c_ipfrag_num",
@@ -670,7 +682,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Fragmentation Packets(s2c)"
+      "label": "Fragmentation Packets (s2c)"
     },
     {
       "name": "common_c2s_tcp_lostlen",
@@ -678,7 +690,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Sequence Gap Loss(c2s)"
+      "label": "Sequence Gap Loss (c2s)"
     },
     {
       "name": "common_s2c_tcp_lostlen",
@@ -686,7 +698,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Sequence Gap Loss(s2c)"
+      "label": "Sequence Gap Loss (s2c)"
     },
     {
       "name": "common_c2s_tcp_unorder_num",
@@ -694,7 +706,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Unorder Packets(c2s)"
+      "label": "Unordered Packets (c2s)"
     },
     {
       "name": "common_s2c_tcp_unorder_num",
@@ -702,27 +714,27 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Unorder Packets(s2c)"
+      "label": "Unordered Packets (s2c)"
     },
     {
       "name": "common_c2s_pkt_retrans",
       "type": "long",
-      "label": "Packet Retransmission(c2s)"
+      "label": "Packet Retransmission (c2s)"
     },
     {
       "name": "common_s2c_pkt_retrans",
       "type": "long",
-      "label": "Packet Retransmission(s2c)"
+      "label": "Packet Retransmission (s2c)"
     },
     {
       "name": "common_c2s_byte_retrans",
       "type": "long",
-      "label": "Byte Retransmission(c2s)"
+      "label": "Byte Retransmission (c2s)"
     },
     {
       "name": "common_s2c_byte_retrans",
       "type": "long",
-      "label": "Byte Retransmission(s2c)"
+      "label": "Byte Retransmission (s2c)"
     },
     {
       "name": "common_tcp_client_isn",
