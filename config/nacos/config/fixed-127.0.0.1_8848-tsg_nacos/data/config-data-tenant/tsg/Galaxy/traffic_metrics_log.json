@@ -44,22 +44,22 @@
     },
     {
       "name": "allow_in_bytes",
-      "label": "Allow Bytes(Ingress)",
+      "label": "Allow Bytes (Ingress)",
       "type": "long"
     },
     {
       "name": "allow_in_packets",
-      "label": "Allow Packets(Ingress)",
+      "label": "Allow Packets (Ingress)",
       "type": "long"
     },
     {
       "name": "allow_out_bytes",
-      "label": "Allow Bytes(Egress)",
+      "label": "Allow Bytes (Egress)",
       "type": "long"
     },
     {
       "name": "allow_out_packets",
-      "label": "Allow Packets(Egress)",
+      "label": "Allow Packets (Egress)",
       "type": "long"
     },
     {
@@ -74,22 +74,22 @@
     },
     {
       "name": "default_in_bytes",
-      "label": "Default Bytes(Ingress)",
+      "label": "Default Bytes (Ingress)",
       "type": "long"
     },
     {
       "name": "default_in_packets",
-      "label": "Default Packets(Ingress)",
+      "label": "Default Packets (Ingress)",
       "type": "long"
     },
     {
       "name": "default_out_bytes",
-      "label": "Default Bytes(Egress)",
+      "label": "Default Bytes (Egress)",
       "type": "long"
     },
     {
       "name": "default_out_packets",
-      "label": "Default Packets(Egress)",
+      "label": "Default Packets (Egress)",
       "type": "long"
     },
     {
@@ -99,22 +99,22 @@
     },
     {
       "name": "deny_in_bytes",
-      "label": "Deny Bytes(Ingress)",
+      "label": "Deny Bytes (Ingress)",
       "type": "long"
     },
     {
       "name": "deny_in_packets",
-      "label": "Deny Packets(Ingress)",
+      "label": "Deny Packets (Ingress)",
       "type": "long"
     },
     {
       "name": "deny_out_bytes",
-      "label": "Deny Bytes(Egress)",
+      "label": "Deny Bytes (Egress)",
       "type": "long"
     },
     {
       "name": "deny_out_packets",
-      "label": "Deny Packets(Egress)",
+      "label": "Deny Packets (Egress)",
       "type": "long"
     },
     {
@@ -124,22 +124,22 @@
     },
     {
       "name": "intercept_in_bytes",
-      "label": "Intercept Bytes(Ingress)",
+      "label": "Intercept Bytes (Ingress)",
       "type": "long"
     },
     {
       "name": "intercept_in_packets",
-      "label": "Intercept Packets(Ingress)",
+      "label": "Intercept Packets (Ingress)",
       "type": "long"
     },
     {
       "name": "intercept_out_bytes",
-      "label": "Intercept Bytes(Egress)",
+      "label": "Intercept Bytes (Egress)",
       "type": "long"
     },
     {
       "name": "intercept_out_packets",
-      "label": "Intercept Packets(Egress)",
+      "label": "Intercept Packets (Egress)",
       "type": "long"
     },
     {
@@ -154,22 +154,22 @@
     },
     {
       "name": "monitor_in_bytes",
-      "label": "Monitor Bytes(Ingress)",
+      "label": "Monitor Bytes (Ingress)",
       "type": "long"
     },
     {
       "name": "monitor_in_packets",
-      "label": "Monitor Packets(Ingress)",
+      "label": "Monitor Packets (Ingress)",
       "type": "long"
     },
     {
       "name": "monitor_out_bytes",
-      "label": "Monitor Bytes(Egress)",
+      "label": "Monitor Bytes (Egress)",
       "type": "long"
     },
     {
       "name": "monitor_out_packets",
-      "label": "Monitor Packets(Egress)",
+      "label": "Monitor Packets (Egress)",
       "type": "long"
     },
     {
@@ -179,22 +179,22 @@
     },
     {
       "name": "total_in_bytes",
-      "label": "Total Bytes(Ingress)",
+      "label": "Total Bytes (Ingress)",
       "type": "long"
     },
     {
       "name": "total_in_packets",
-      "label": "Total Packets(Ingress)",
+      "label": "Total Packets (Ingress)",
       "type": "long"
     },
     {
       "name": "total_out_bytes",
-      "label": "Total Bytes(Egress)",
+      "label": "Total Bytes (Egress)",
       "type": "long"
     },
     {
       "name": "total_out_packets",
-      "label": "Total Packets(Egress)",
+      "label": "Total Packets (Egress)",
       "type": "long"
     },
     {

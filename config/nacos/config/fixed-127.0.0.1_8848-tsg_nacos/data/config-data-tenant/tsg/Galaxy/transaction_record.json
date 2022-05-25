@@ -118,6 +118,8 @@
           "common_recv_time",
           "common_log_id",
           "common_stream_trace_id",
+          "common_address_type",
+          "common_schema_type",
           "common_direction",
           "common_stream_dir",
           "common_start_time",
@@ -192,8 +194,6 @@
           "common_mirrored_bytes"
         ],
         "other": [
-          "common_address_type",
-          "common_schema_type",
           "common_device_tag",
           "common_encapsulation",
           "common_tunnels",
@@ -531,7 +531,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Packets Sent(Diff)"
+      "label": "Packets Sent (Delta)"
     },
     {
       "name": "common_s2c_pkt_diff",
@@ -539,7 +539,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Packets Received(Diff)"
+      "label": "Packets Received (Delta)"
     },
     {
       "name": "common_c2s_byte_diff",
@@ -547,7 +547,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Bytes Sent(Diff)"
+      "label": "Bytes Sent (Delta)"
     },
     {
       "name": "common_s2c_byte_diff",
@@ -555,7 +555,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Bytes Received(Diff)"
+      "label": "Bytes Received (Delta)"
     },
     {
       "name": "common_service",
@@ -829,12 +829,12 @@
     {
       "name": "common_establish_latency_ms",
       "type": "long",
-      "label": "Establish Latency(ms)"
+      "label": "TCP Handshake Latency (ms)"
     },
     {
       "name": "common_con_duration_ms",
       "type": "long",
-      "label": "Duration(ms)"
+      "label": "Duration (ms)"
     },
     {
       "name": "common_stream_dir",
@@ -901,7 +901,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Link Info(c2s)"
+      "label": "Link Info (c2s)"
     },
     {
       "name": "common_link_info_s2c",
@@ -909,7 +909,7 @@
       "doc": {
         "visibility": "hidden"
       },
-      "label": "Link Info(s2c)"
+      "label": "Link Info (s2c)"
     },
     {
       "name": "common_packet_capture_file",
@@ -925,52 +925,52 @@
     {
       "name": "common_c2s_ipfrag_num",
       "type": "long",
-      "label": "Fragmentation Packets(c2s)"
+      "label": "Fragmentation Packets (c2s)"
     },
     {
       "name": "common_s2c_ipfrag_num",
       "type": "long",
-      "label": "Fragmentation Packets(s2c)"
+      "label": "Fragmentation Packets (s2c)"
     },
     {
       "name": "common_c2s_tcp_lostlen",
       "type": "long",
-      "label": "Sequence Gap Loss(c2s)"
+      "label": "Sequence Gap Loss (c2s)"
     },
     {
       "name": "common_s2c_tcp_lostlen",
       "type": "long",
-      "label": "Sequence Gap Loss(s2c)"
+      "label": "Sequence Gap Loss (s2c)"
     },
     {
       "name": "common_c2s_tcp_unorder_num",
       "type": "long",
-      "label": "Unorder Packets(c2s)"
+      "label": "Unordered Packets (c2s)"
     },
     {
       "name": "common_s2c_tcp_unorder_num",
       "type": "long",
-      "label": "Unorder Packets(s2c)"
+      "label": "Unordered Packets (s2c)"
     },
     {
       "name": "common_c2s_pkt_retrans",
       "type": "long",
-      "label": "Packet Retransmission(c2s)"
+      "label": "Packet Retransmission (c2s)"
     },
     {
       "name": "common_s2c_pkt_retrans",
       "type": "long",
-      "label": "Packet Retransmission(s2c)"
+      "label": "Packet Retransmission (s2c)"
     },
     {
       "name": "common_c2s_byte_retrans",
       "type": "long",
-      "label": "Byte Retransmission(c2s)"
+      "label": "Byte Retransmission (c2s)"
     },
     {
       "name": "common_s2c_byte_retrans",
       "type": "long",
-      "label": "Byte Retransmission(s2c)"
+      "label": "Byte Retransmission (s2c)"
     },
     {
       "name": "common_tcp_client_isn",
@@ -1227,12 +1227,12 @@
     {
       "name": "http_response_latency_ms",
       "type": "long",
-      "label": "HTTP.Response Latency(ms)"
+      "label": "HTTP.Response Latency (ms)"
     },
     {
       "name": "http_session_duration_ms",
       "type": "long",
-      "label": "HTTP.Session Duration(ms)"
+      "label": "HTTP.Session Duration (ms)"
     },
     {
       "name": "http_action_file_size",
@@ -1437,7 +1437,7 @@
     },
     {
       "name": "dns_response_latency_ms",
-      "label": "DNS.Response Latency(ms)",
+      "label": "DNS.Response Latency (ms)",
       "type": "int"
     },
     {
@@ -1508,7 +1508,7 @@
     {
       "name": "sip_duration_s",
       "type": "int",
-      "label": "SIP.Duration(s)"
+      "label": "SIP.Duration (s)"
     },
     {
       "name": "sip_bye",

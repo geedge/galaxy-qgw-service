@@ -100,32 +100,32 @@
     },
     {
       "name": "c2s_ipfrag_num",
-      "label": "Fragmentation Packets(c2s)",
+      "label": "Fragmentation Packets (c2s)",
       "type": "long"
     },
     {
       "name": "s2c_ipfrag_num",
-      "label": "Fragmentation Packets(s2c)",
+      "label": "Fragmentation Packets (s2c)",
       "type": "long"
     },
     {
       "name": "c2s_tcp_lostlen",
-      "label": "Sequence Gap Loss(c2s)",
+      "label": "Sequence Gap Loss (c2s)",
       "type": "long"
     },
     {
       "name": "s2c_tcp_lostlen",
-      "label": "Sequence Gap Loss(s2c)",
+      "label": "Sequence Gap Loss (s2c)",
       "type": "long"
     },
     {
       "name": "c2s_tcp_unorder_num",
-      "label": "Unorder Packets(c2s)",
+      "label": "Unordered Packets (c2s)",
       "type": "long"
     },
     {
       "name": "s2c_tcp_unorder_num",
-      "label": "Unorder Packets(s2c)",
+      "label": "Unordered Packets (s2c)",
       "type": "long"
     }
   ]
