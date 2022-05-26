@@ -5,3 +5,4 @@
 * 增加数据采样选项适配数据预览(TSG-10413)
 * 修改Schema会话和安全事件日志显示common_app_id字段(TSG-10637)
 * 修改Schema，修改部分字段描述及所属位置调整(TSG-10713)
+* 修改Schema, 会话日志、安全事件日志显示DNS.CNAME和DNS.RR(TSG-10724)
