@@ -1635,6 +1635,9 @@ public class SQLFunctionUtil {
         if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             String expr = fun.getParamsList().get(0);
             data = expr + " IS NOT NUll ";
+        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            String expr = fun.getParamsList().get(0);
+            data = expr + " IS NOT NULL" + " AND " + expr + "!=''";
         } else {
             data = parseFunDefaultValue(fun);
         }
@@ -1661,6 +1664,9 @@ public class SQLFunctionUtil {
         if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             String expr = fun.getParamsList().get(0);
             data = expr + " IS NUll ";
+        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            String expr = fun.getParamsList().get(0);
+            data = expr + " IS NUll" + " AND " + expr + "=''";
         } else {
             data = parseFunDefaultValue(fun);
         }
