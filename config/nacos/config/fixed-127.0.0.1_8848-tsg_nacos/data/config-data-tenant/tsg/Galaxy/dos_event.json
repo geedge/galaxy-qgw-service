@@ -205,7 +205,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -216,7 +217,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -226,7 +228,8 @@
       "doc": {
         "format": {
           "functions": "snowflake_id"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -254,7 +257,8 @@
             "code": "DNS Flood",
             "value": "DNS Flood"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -286,33 +290,49 @@
             "code": "Minor",
             "value": "Minor"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "conditions",
       "label": "Conditions",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "destination_ip",
       "label": "Destination IP",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "destination_country",
       "label": "Destination Country",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "source_ip_list",
       "label": "Source IPs",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "source_country_list",
       "label": "Source Countries",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -321,7 +341,8 @@
       "doc": {
         "constraints": {
           "type": "sessions/sec"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -331,7 +352,8 @@
       "doc": {
         "constraints": {
           "type": "packets/sec"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -341,7 +363,8 @@
       "doc": {
         "constraints": {
           "type": "bits/sec"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     }

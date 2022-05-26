@@ -21,7 +21,8 @@
         },
         "format": {
           "functions": "current_timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "label": "Receive Time"
     },
@@ -31,7 +32,8 @@
       "doc": {
         "format": {
           "functions": "snowflake_id"
-        }
+        },
+        "visibility": "enabled"
       },
       "label": "Log ID"
     },
@@ -46,6 +48,9 @@
     {
       "name": "common_subscriber_id",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Subscriber ID"
     },
     {
@@ -78,7 +83,8 @@
       "doc": {
         "constraints": {
           "type": "ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "label": "Client IP"
     },
@@ -88,18 +94,25 @@
       "doc": {
         "constraints": {
           "type": "ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "label": "Internal IP"
     },
     {
       "name": "common_client_port",
       "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Client Port"
     },
     {
       "name": "common_l4_protocol",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "L4 Protocol"
     },
     {
@@ -115,7 +128,8 @@
             "code": "6",
             "value": "ipv6"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "label": "Address Type"
     },
@@ -125,13 +139,17 @@
       "doc": {
         "constraints": {
           "type": "ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "label": "Server IP"
     },
     {
       "name": "common_server_port",
       "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Server Port"
     },
     {
@@ -140,7 +158,8 @@
       "doc": {
         "constraints": {
           "type": "ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "label": "External IP"
     },
@@ -169,7 +188,8 @@
             "code": "128",
             "value": "Allow"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "label": "Action"
     },
@@ -186,7 +206,8 @@
             "code": "73",
             "value": "inbound"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "label": "Direction"
     },
@@ -204,53 +225,81 @@
       "doc": {
         "constraints": {
           "type": "ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "label": "Sled IP"
     },
     {
       "name": "common_client_location",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Client Location"
     },
     {
       "name": "common_client_asn",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Client ASN"
     },
     {
       "name": "common_server_location",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Server Location"
     },
     {
       "name": "common_server_asn",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Server ASN"
     },
     {
       "name": "common_sessions",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Sessions"
     },
     {
       "name": "common_c2s_pkt_num",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Packets Sent"
     },
     {
       "name": "common_s2c_pkt_num",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Packets Received"
     },
     {
       "name": "common_c2s_byte_num",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Bytes Sent"
     },
     {
       "name": "common_s2c_byte_num",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Bytes Received"
     },
     {
@@ -384,6 +433,9 @@
     {
       "name": "common_device_id",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Device ID"
     },
     {
@@ -434,7 +486,8 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -449,7 +502,8 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
           "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -478,7 +532,8 @@
             "code": "12",
             "value": "CiscoHDLC"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "label": "Encapsulation"
     },
@@ -533,11 +588,17 @@
     {
       "name": "common_l7_protocol",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "L7 Protocol"
     },
     {
       "name": "common_service_category",
       "label": "FQDN Category",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": {
         "type": "array",
         "items": "int"
@@ -598,7 +659,8 @@
             "code": "3",
             "value": "double"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "label": "Stream Direction"
     },
@@ -639,6 +701,9 @@
     {
       "name": "common_stream_trace_id",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Session ID"
     },
     {
@@ -719,21 +784,33 @@
     {
       "name": "common_c2s_pkt_retrans",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Packet Retransmission (c2s)"
     },
     {
       "name": "common_s2c_pkt_retrans",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Packet Retransmission (s2c)"
     },
     {
       "name": "common_c2s_byte_retrans",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Byte Retransmission (c2s)"
     },
     {
       "name": "common_s2c_byte_retrans",
       "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Byte Retransmission (s2c)"
     },
     {
@@ -769,7 +846,8 @@
         },
         "format": {
           "functions": "current_timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "label": "Processing Time"
     },
@@ -782,7 +860,8 @@
         },
         "format": {
           "functions": "ingestion_time"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -805,31 +884,49 @@
     {
       "name": "nic_name",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Nic Name"
     },
     {
       "name": "origin_source_mac",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Origin Source Mac"
     },
     {
       "name": "origin_dest_mac",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Origin Dest Mac"
     },
     {
       "name": "packet_url",
       "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Packet URL"
     },
     {
       "name": "pcap_storage_task_id",
       "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Task ID"
     },
     {
       "name": "pcap_storage_duration",
       "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      },
       "label": "Duration"
     }
   ]

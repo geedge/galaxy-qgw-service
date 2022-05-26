@@ -21,7 +21,8 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
@@ -43,6 +44,9 @@
     {
       "name": "hits",
       "label": "Hits",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -52,12 +56,16 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
       "name": "action",
       "label": "Action",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -101,32 +109,48 @@
             "code": "edit_element",
             "value": "Edit Element"
           }
-        ]
+        ],
+        "visibility": "enabled"
       }
     },
     {
       "name": "ip_object",
       "label": "IP Object",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "country",
       "label": "Country",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "location",
       "label": "Location",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "c2s_byte_num",
       "label": "Bytes Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "s2c_byte_num",
       "label": "Bytes Received",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     }
   ]

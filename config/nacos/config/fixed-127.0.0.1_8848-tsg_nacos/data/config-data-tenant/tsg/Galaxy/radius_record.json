@@ -163,7 +163,8 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -173,7 +174,8 @@
       "doc": {
         "format": {
           "functions": "snowflake_id"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -188,6 +190,9 @@
     {
       "name": "common_subscriber_id",
       "label": "Subscriber ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -241,6 +246,9 @@
     {
       "name": "common_l4_protocol",
       "label": "L4 Protocol",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -259,7 +267,8 @@
             "code": "6",
             "value": "ipv6"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -273,13 +282,17 @@
         "format": {
           "functions": "geo_asn",
           "appendTo": "common_server_asn"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "common_server_port",
       "label": "Server Port",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
@@ -343,7 +356,8 @@
             "code": "73",
             "value": "inbound"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -361,7 +375,8 @@
       "doc": {
         "constraints": {
           "type": "ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -408,21 +423,33 @@
     {
       "name": "common_c2s_pkt_num",
       "label": "Packets Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_pkt_num",
       "label": "Packets Received",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -612,7 +639,8 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -627,7 +655,8 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
           "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -790,7 +819,8 @@
             "code": "3",
             "value": "double"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -827,6 +857,9 @@
     {
       "name": "common_stream_trace_id",
       "label": "Session ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -969,7 +1002,8 @@
         },
         "format": {
           "functions": "current_timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -982,7 +1016,8 @@
         },
         "format": {
           "functions": "ingestion_time"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -1034,7 +1069,8 @@
             "code": "11",
             "value": "Access-Challenge"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -1045,13 +1081,17 @@
         "format": {
           "functions": "get_value",
           "appendTo": "common_subscriber_id"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "radius_nas_ip",
       "label": "Nas IP",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1060,18 +1100,25 @@
       "doc": {
         "constraints": {
           "type": "ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "radius_session_timeout",
       "label": "Session Timeout",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_idle_timeout",
       "label": "Idle Timeout",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
@@ -1102,7 +1149,8 @@
             "code": "8",
             "value": "Accounting-Off"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -1186,108 +1234,169 @@
             "code": "18",
             "value": "Host Request"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
     {
       "name": "radius_event_timestamp",
       "label": "Event Timestamp",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_service_type",
       "label": "Service Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_nas_port",
       "label": "Nas Port",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_framed_protocol",
       "label": "Framed Protocol",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_callback_number",
       "label": "Callback Number",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "radius_callback_id",
       "label": "Callback ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "radius_termination_action",
       "label": "Termination Action",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_called_station_id",
       "label": "Called Station ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "radius_calling_station_id",
       "label": "Calling Station ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "radius_acct_delay_time",
       "label": "Acct Delay Time",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_acct_session_id",
       "label": "Acct Session ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "radius_acct_multi_session_id",
       "label": "Acct Multi Session ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "radius_acct_input_octets",
       "label": "Acct Input Octets",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "radius_acct_output_octets",
       "label": "Acct Output Octets",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "radius_acct_input_packets",
       "label": "Acct Input Packets",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "radius_acct_output_packets",
       "label": "Acct Output Packets",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "radius_acct_session_time",
       "label": "Acct Session Time",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_acct_link_count",
       "label": "Acct Link Count",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_acct_interim_interval",
       "label": "Acct Interim Interval",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "radius_acct_authentic",
       "label": "Acct Authentic",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     }
   ]

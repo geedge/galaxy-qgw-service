@@ -24,7 +24,8 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
@@ -39,32 +40,48 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
       "name": "log_type",
       "label": "Log Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "max_size",
       "label": "Max Size",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "used_size",
       "label": "Used Size",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "aggregate_size",
       "label": "Aggregate Size",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "last_storage",
       "label": "Last Storage",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     }
   ]

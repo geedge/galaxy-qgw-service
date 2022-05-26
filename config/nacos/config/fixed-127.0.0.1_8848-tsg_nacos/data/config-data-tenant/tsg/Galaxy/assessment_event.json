@@ -20,7 +20,8 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -30,18 +31,25 @@
       "doc": {
         "format": {
           "functions": "snowflake_id"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
     {
       "name": "lot_number",
       "label": "Lot Number",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "file_name",
       "label": "File Name",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -55,16 +63,25 @@
     {
       "name": "assessment_type",
       "label": "Assessment Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "size",
       "label": "Size",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "file_checksum_sha",
       "label": "SHA256",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -73,7 +90,8 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -83,7 +101,8 @@
       "doc": {
         "constraints": {
           "type": "file"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     }

@@ -13,17 +13,24 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
       "name": "url",
       "label": "URL",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "session_num",
       "label": "Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     }
   ]

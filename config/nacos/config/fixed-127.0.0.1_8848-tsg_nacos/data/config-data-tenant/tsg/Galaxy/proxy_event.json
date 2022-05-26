@@ -250,7 +250,8 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -260,33 +261,49 @@
       "doc": {
         "format": {
           "functions": "snowflake_id"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
     {
       "name": "common_policy_id",
       "label": "Policy ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_subscriber_id",
       "label": "Subscriber ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_imei",
       "label": "IMEI",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_imsi",
       "label": "IMSI",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_phone_number",
       "label": "Phone Number",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -299,7 +316,8 @@
         "format": {
           "functions": "geo_asn,radius_match",
           "appendTo": "common_client_asn,common_subscriber_id"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -313,18 +331,25 @@
         "format": {
           "functions": "if",
           "param": "$.common_direction=69,$.common_client_ip,$.common_server_ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "common_client_port",
       "label": "Client Port",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "common_l4_protocol",
       "label": "L4 Protocol",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -343,7 +368,8 @@
             "code": "6",
             "value": "ipv6"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -357,13 +383,17 @@
         "format": {
           "functions": "geo_asn",
           "appendTo": "common_server_asn"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "common_server_port",
       "label": "Server Port",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
@@ -376,7 +406,8 @@
         "format": {
           "functions": "if",
           "param": "$.common_direction=73,$.common_client_ip,$.common_server_ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -412,7 +443,8 @@
             "code": "128",
             "value": "Allow"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -432,7 +464,8 @@
             "code": "73",
             "value": "inbound"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -450,28 +483,41 @@
       "doc": {
         "constraints": {
           "type": "ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "common_client_location",
       "label": "Client Location",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_client_asn",
       "label": "Client ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_server_location",
       "label": "Server Location",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_server_asn",
       "label": "Server ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -481,7 +527,8 @@
         "format": {
           "functions": "set_value",
           "param": "1"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -504,11 +551,17 @@
     {
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -567,7 +620,8 @@
             "code": "DoH",
             "value": "DoH"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -619,7 +673,8 @@
             "code": "edit_element",
             "value": "Edit Element"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -634,6 +689,9 @@
     {
       "name": "common_device_id",
       "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -684,7 +742,8 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -699,7 +758,8 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
           "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -792,7 +852,8 @@
           "path": "/v1/category/dict",
           "key": "categoryId",
           "value": "categoryName"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": {
         "type": "array",
@@ -806,7 +867,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -821,7 +883,8 @@
         "format": {
           "functions": "get_value",
           "appendTo": "common_recv_time"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -861,7 +924,8 @@
             "code": "3",
             "value": "double"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -898,6 +962,9 @@
     {
       "name": "common_stream_trace_id",
       "label": "Session ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -1040,7 +1107,8 @@
         },
         "format": {
           "functions": "current_timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -1053,7 +1121,8 @@
         },
         "format": {
           "functions": "ingestion_time"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -1076,6 +1145,9 @@
     {
       "name": "http_url",
       "label": "HTTP.URL",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1085,13 +1157,17 @@
         "format": {
           "functions": "sub_domain",
           "appendTo": "http_domain"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "http_domain",
       "label": "HTTP.Domain",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1137,11 +1213,17 @@
     {
       "name": "http_request_content_length",
       "label": "HTTP.Request Content Length",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_request_content_type",
       "label": "HTTP.Request Content Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1155,11 +1237,17 @@
     {
       "name": "http_response_content_length",
       "label": "HTTP.Response Content Length",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_response_content_type",
       "label": "HTTP.Response Content Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1169,7 +1257,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "file"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1180,7 +1269,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "file"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1227,16 +1317,25 @@
     {
       "name": "http_cookie",
       "label": "HTTP.Cookie",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_referer",
       "label": "HTTP.Referer",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_user_agent",
       "label": "HTTP.User Agent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1258,11 +1357,17 @@
     {
       "name": "http_set_cookie",
       "label": "HTTP.Set Cookie",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_version",
       "label": "HTTP.Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1284,16 +1389,25 @@
     {
       "name": "http_action_file_size",
       "label": "HTTP.Action File Size",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_url",
       "label": "DoH.URL",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "doh_host",
       "label": "DoH.Host",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1315,16 +1429,25 @@
     {
       "name": "doh_cookie",
       "label": "DoH.Cookie",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "doh_referer",
       "label": "DoH.Referer",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "doh_user_agent",
       "label": "DoH.User Agent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1354,11 +1477,17 @@
     {
       "name": "doh_version",
       "label": "DoH.Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "doh_message_id",
       "label": "DoH.Message ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
@@ -1377,7 +1506,8 @@
             "code": "1",
             "value": "REESPONSE"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -1405,58 +1535,89 @@
             "code": "5",
             "value": "UPDATE"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
     {
       "name": "doh_aa",
       "label": "DoH.AA",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_tc",
       "label": "DoH.TC",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_rd",
       "label": "DoH.RD",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_ra",
       "label": "DoH.RA",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_rcode",
       "label": "DoH.RCODE",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_qdcount",
       "label": "DoH.QDCOUNT",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_ancount",
       "label": "DoH.ANCOUNT",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_nscount",
       "label": "DoH.NSCOUNT",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_arcount",
       "label": "DoH.ARCOUNT",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_qname",
       "label": "DoH.QNAME",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1507,18 +1668,25 @@
             "code": "28",
             "value": "AAAA"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
     {
       "name": "doh_qclass",
       "label": "DoH.QCLASS",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "doh_cname",
       "label": "DoH.CNAME",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1537,13 +1705,17 @@
             "code": "2",
             "value": "DNSSEC"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
     {
       "name": "doh_rr",
       "label": "DoH.RR",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {

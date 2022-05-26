@@ -24,7 +24,8 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
@@ -39,22 +40,32 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
       "name": "common_sled_ip",
       "label": "Sled IP",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "destination_ip",
       "label": "Destination IP",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "attack_type",
       "label": "Attack type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -64,7 +75,8 @@
       "doc": {
         "constraints": {
           "type": "sessions/sec"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
@@ -74,7 +86,8 @@
       "doc": {
         "constraints": {
           "type": "packets/sec"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
@@ -84,12 +97,16 @@
       "doc": {
         "constraints": {
           "type": "bits/sec"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
       "name": "partition_num",
       "label": "Partition Num",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     }
   ]

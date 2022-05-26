@@ -13,63 +13,108 @@
   "fields": [
     {
       "name": "common_log_id",
-      "type": "long"
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_recv_time",
-      "type": "long"
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_server_ip",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_client_ip",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_sled_ip",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_entrance_id",
-      "type": "int"
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_subscriber_id",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_stream_trace_id",
-      "type": "long"
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_schema_type",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_client_port",
-      "type": "int"
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_server_port",
-      "type": "int"
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_app_label",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "common_direction",
-      "type": "int"
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "http_domain",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      }
     },
     {
       "name": "ssl_sni",
-      "type": "string"
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      }
     }
   ]
 }

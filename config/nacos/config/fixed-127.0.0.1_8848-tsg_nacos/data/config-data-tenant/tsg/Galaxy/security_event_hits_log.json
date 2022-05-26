@@ -21,7 +21,8 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
@@ -47,7 +48,8 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
-        }
+        },
+        "visibility": "enabled"
       }
     },
     {
@@ -75,22 +77,32 @@
             "code": "128",
             "value": "Allow"
           }
-        ]
+        ],
+        "visibility": "enabled"
       }
     },
     {
       "name": "hits",
       "label": "Hits",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "c2s_byte_num",
       "label": "Bytes Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "s2c_byte_num",
       "label": "Bytes Received",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     }
   ]

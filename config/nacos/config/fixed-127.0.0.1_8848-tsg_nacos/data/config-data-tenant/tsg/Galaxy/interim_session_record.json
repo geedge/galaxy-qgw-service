@@ -298,7 +298,8 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -308,7 +309,8 @@
       "doc": {
         "format": {
           "functions": "snowflake_id"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -323,21 +325,33 @@
     {
       "name": "common_subscriber_id",
       "label": "Subscriber ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_imei",
       "label": "IMEI",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_imsi",
       "label": "IMSI",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_phone_number",
       "label": "Phone Number",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -350,7 +364,8 @@
         "format": {
           "functions": "geo_asn,radius_match",
           "appendTo": "common_client_asn,common_subscriber_id"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -364,18 +379,25 @@
         "format": {
           "functions": "if",
           "param": "$.common_direction=69,$.common_client_ip,$.common_server_ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "common_client_port",
       "label": "Client Port",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "common_l4_protocol",
       "label": "L4 Protocol",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -394,7 +416,8 @@
             "code": "6",
             "value": "ipv6"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -408,13 +431,17 @@
         "format": {
           "functions": "geo_asn",
           "appendTo": "common_server_asn"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "common_server_port",
       "label": "Server Port",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
@@ -427,7 +454,8 @@
         "format": {
           "functions": "if",
           "param": "$.common_direction=73,$.common_client_ip,$.common_server_ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -480,7 +508,8 @@
             "code": "73",
             "value": "inbound"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -498,73 +527,113 @@
       "doc": {
         "constraints": {
           "type": "ip"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "common_client_location",
       "label": "Client Location",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_client_asn",
       "label": "Client ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_server_location",
       "label": "Server Location",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_server_asn",
       "label": "Server ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_sessions",
       "label": "Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_pkt_num",
       "label": "Packets Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_pkt_num",
       "label": "Packets Received",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_pkt_diff",
       "label": "Packets Sent (Delta)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_pkt_diff",
       "label": "Packets Received (Delta)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_byte_diff",
       "label": "Bytes Sent (Delta)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_diff",
       "label": "Bytes Received (Delta)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -623,7 +692,8 @@
             "code": "RDP",
             "value": "RDP"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -684,6 +754,9 @@
     {
       "name": "common_device_id",
       "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -734,7 +807,8 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
           "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -749,13 +823,17 @@
           "$ref": "device_tag.json#",
           "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
           "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "common_app_behavior",
       "label": "Application Behavior",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -775,21 +853,33 @@
     {
       "name": "common_app_label",
       "label": "Application Label",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_tunnels",
       "label": "Tunnels",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_protocol_label",
       "label": "Protocol Label",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "common_app_id",
       "label": "Application ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -811,6 +901,9 @@
     {
       "name": "common_l7_protocol",
       "label": "L7 Protocol",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -824,7 +917,8 @@
           "path": "/v1/category/dict",
           "key": "categoryId",
           "value": "categoryName"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": {
         "type": "array",
@@ -838,7 +932,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -853,18 +948,25 @@
         "format": {
           "functions": "get_value",
           "appendTo": "common_recv_time"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
     {
       "name": "common_establish_latency_ms",
       "label": "TCP Handshake Latency (ms)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_con_duration_ms",
       "label": "Duration (ms)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -887,7 +989,8 @@
             "code": "3",
             "value": "double"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -924,6 +1027,9 @@
     {
       "name": "common_stream_trace_id",
       "label": "Session ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -956,61 +1062,97 @@
     {
       "name": "common_c2s_ipfrag_num",
       "label": "Fragmentation Packets (c2s)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_ipfrag_num",
       "label": "Fragmentation Packets (s2c)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_tcp_lostlen",
       "label": "Sequence Gap Loss (c2s)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_tcp_lostlen",
       "label": "Sequence Gap Loss (s2c)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_tcp_unorder_num",
       "label": "Unordered Packets (c2s)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_tcp_unorder_num",
       "label": "Unordered Packets (s2c)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_pkt_retrans",
       "label": "Packet Retransmission (c2s)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_pkt_retrans",
       "label": "Packet Retransmission (s2c)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_c2s_byte_retrans",
       "label": "Byte Retransmission (c2s)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_s2c_byte_retrans",
       "label": "Byte Retransmission (s2c)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_tcp_client_isn",
       "label": "TCP Client ISN",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "common_tcp_server_isn",
       "label": "TCP Server ISN",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
@@ -1030,7 +1172,8 @@
         },
         "format": {
           "functions": "current_timestamp"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -1043,7 +1186,8 @@
         },
         "format": {
           "functions": "ingestion_time"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -1066,6 +1210,9 @@
     {
       "name": "http_url",
       "label": "HTTP.URL",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1075,23 +1222,33 @@
         "format": {
           "functions": "sub_domain",
           "appendTo": "http_domain"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "http_domain",
       "label": "HTTP.Domain",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_request_line",
       "label": "HTTP.Request Line",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_response_line",
       "label": "HTTP.Response Line",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1121,11 +1278,17 @@
     {
       "name": "http_request_content_length",
       "label": "HTTP.Request Content Length",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_request_content_type",
       "label": "HTTP.Request Content Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1139,11 +1302,17 @@
     {
       "name": "http_response_content_length",
       "label": "HTTP.Response Content Length",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_response_content_type",
       "label": "HTTP.Response Content Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1153,7 +1322,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "file"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1164,7 +1334,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "file"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1211,16 +1382,25 @@
     {
       "name": "http_cookie",
       "label": "HTTP.Cookie",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_referer",
       "label": "HTTP.Referer",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_user_agent",
       "label": "HTTP.User Agent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1242,46 +1422,73 @@
     {
       "name": "http_set_cookie",
       "label": "HTTP.Set Cookie",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_version",
       "label": "HTTP.Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "http_response_latency_ms",
       "label": "HTTP.Response Latency (ms)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "http_session_duration_ms",
       "label": "HTTP.Session Duration (ms)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "long"
     },
     {
       "name": "http_action_file_size",
       "label": "HTTP.Action File Size",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "mail_protocol_type",
       "label": "Mail.Protocol Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "mail_account",
       "label": "Mail.Account",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "mail_from_cmd",
       "label": "Mail.From CMD",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "mail_to_cmd",
       "label": "Mail.To CMD",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1290,7 +1497,8 @@
       "doc": {
         "constraints": {
           "type": "email"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1300,18 +1508,25 @@
       "doc": {
         "constraints": {
           "type": "email"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "mail_cc",
       "label": "Mail.CC",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "mail_bcc",
       "label": "Mail.BCC",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1321,7 +1536,8 @@
         "format": {
           "functions": "decode_of_base64",
           "param": "$.mail_subject_charset"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1356,7 +1572,8 @@
         "format": {
           "functions": "decode_of_base64",
           "param": "$.mail_attachment_name_charset"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1383,7 +1600,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "file"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1398,6 +1616,9 @@
     {
       "name": "dns_message_id",
       "label": "DNS.Message ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
@@ -1416,7 +1637,8 @@
             "code": "1",
             "value": "RESPONSE"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -1444,58 +1666,89 @@
             "code": "5",
             "value": "UPDATE"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
     {
       "name": "dns_aa",
       "label": "DNS.AA",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "dns_tc",
       "label": "DNS.TC",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "dns_rd",
       "label": "DNS.RD",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "dns_ra",
       "label": "DNS.RA",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "dns_rcode",
       "label": "DNS.RCODE",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "dns_qdcount",
       "label": "DNS.QDCOUNT",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "dns_ancount",
       "label": "DNS.ANCOUNT",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "dns_nscount",
       "label": "DNS.NSCOUNT",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "dns_arcount",
       "label": "DNS.ARCOUNT",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "dns_qname",
       "label": "DNS.QNAME",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1546,13 +1799,17 @@
             "code": "28",
             "value": "AAAA"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
     {
       "name": "dns_qclass",
       "label": "DNS.QCLASS",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
@@ -1579,7 +1836,8 @@
             "code": "2",
             "value": "DNSSEC"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -1594,6 +1852,9 @@
     {
       "name": "dns_response_latency_ms",
       "label": "DNS.Response Latency (ms)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
@@ -1611,7 +1872,8 @@
         "format": {
           "functions": "sub_domain",
           "appendTo": "http_domain"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1626,6 +1888,9 @@
     {
       "name": "ssl_cn",
       "label": "SSL.CN",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1648,7 +1913,8 @@
             "code": "2",
             "value": "Maybe Pinning"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -1672,7 +1938,8 @@
             "code": "2",
             "value": "Shutdown"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -1687,21 +1954,33 @@
     {
       "name": "ssl_server_side_latency",
       "label": "SSL.Server Side Latency (ms)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "ssl_client_side_latency",
       "label": "SSL.Client Side Latency (ms)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "ssl_server_side_version",
       "label": "SSL.Server Side Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssl_client_side_version",
       "label": "SSL.Client Side Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1720,18 +1999,25 @@
             "code": "1",
             "value": "Yes"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
     {
       "name": "ssl_error",
       "label": "SSL.Error",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssl_con_latency_ms",
       "label": "SSL.Handshake Latency (ms)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
@@ -1745,6 +2031,9 @@
     {
       "name": "ssl_ja3_hash",
       "label": "SSL.JA3 hash",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1753,7 +2042,8 @@
       "doc": {
         "constraints": {
           "type": "items"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -1763,13 +2053,17 @@
       "doc": {
         "constraints": {
           "type": "items"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "quic_version",
       "label": "QUIC.Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1779,33 +2073,49 @@
         "format": {
           "functions": "sub_domain",
           "appendTo": "http_domain"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
     {
       "name": "quic_user_agent",
       "label": "QUIC.User Agent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ftp_account",
       "label": "FTP.Account",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ftp_url",
       "label": "FTP.URL",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ftp_content",
       "label": "FTP.Content",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ftp_link_type",
       "label": "FTP.Link Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -1883,81 +2193,129 @@
     {
       "name": "app_extra_info",
       "label": "APP.Extra Info",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_call_id",
       "label": "SIP.Call-ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_originator_description",
       "label": "SIP.Originator",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_responder_description",
       "label": "SIP.Responder",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_user_agent",
       "label": "SIP.User-Agent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_server",
       "label": "SIP.Server",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_originator_sdp_connect_ip",
       "label": "SIP.Originator IP",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_originator_sdp_media_port",
       "label": "SIP.Originator Port",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "sip_originator_sdp_media_type",
       "label": "SIP.Originator Media Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_originator_sdp_content",
       "label": "SIP.Originator Content",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_responder_sdp_connect_ip",
       "label": "SIP.Responder IP",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_responder_sdp_media_port",
       "label": "SIP.Responder Port",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "sip_responder_sdp_media_type",
       "label": "SIP.Responder Media Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_responder_sdp_content",
       "label": "SIP.Responder Content",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "sip_duration_s",
       "label": "SIP.Duration (s)",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "sip_bye",
       "label": "SIP.Bye",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
@@ -2076,7 +2434,8 @@
             "code": "34",
             "value": "H263"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -2196,7 +2555,8 @@
             "code": "34",
             "value": "H263"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -2207,7 +2567,8 @@
         "allow_query": "false",
         "constraints": {
           "type": "files"
-        }
+        },
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -2231,153 +2592,241 @@
             "code": "2",
             "value": "s2c"
           }
-        ]
+        ],
+        "visibility": "enabled"
       },
       "type": "int"
     },
     {
       "name": "ssh_version",
       "label": "SSH.Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_auth_success",
       "label": "SSH.Authentication Result",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_client_version",
       "label": "SSH.Client Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_server_version",
       "label": "SSH.Server Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_cipher_alg",
       "label": "SSH.Encryption Algorithm",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_mac_alg",
       "label": "SSH.Signing Algorithm",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_compression_alg",
       "label": "SSH.Compression Algorithm",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_kex_alg",
       "label": "SSH. Key Exchange Algorithm",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_host_key_alg",
       "label": "SSH.Server Host Key Algorithm",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_host_key",
       "label": "SSH.Server Key Fingerprint",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "ssh_hassh",
       "label": "SSH.HASSH",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "stratum_cryptocurrency",
       "label": "Stratum.Cryptocurrency",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "stratum_mining_pools",
       "label": "Stratum.Mining Pools",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "stratum_mining_program",
       "label": "Stratum.Mining Program",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_cookie",
       "label": "RDP.Cookie",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_security_protocol",
       "label": "RDP.Security Protocol",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_client_channels",
       "label": "RDP.Client Channels",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_keyboard_layout",
       "label": "RDP.Keyboard Layout",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_client_version",
       "label": "RDP.Client Version",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_client_name",
       "label": "RDP.Client Name",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_client_product_id",
       "label": "RDP.Client Product ID",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_desktop_width",
       "label": "RDP. Desktop Width",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_desktop_height",
       "label": "RDP.Desktop Height",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_requested_color_depth",
       "label": "RDP.Requested Color Depth",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_certificate_type",
       "label": "RDP.Certificate Type",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_certificate_count",
       "label": "RDP.Certificate Count",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "rdp_certificate_permanent",
       "label": "RDP.Certificate Permanent",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "int"
     },
     {
       "name": "rdp_encryption_level",
       "label": "RDP.Encryption Level",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     },
     {
       "name": "rdp_encryption_method",
       "label": "RDP.Encryption Method",
+      "doc": {
+        "visibility": "enabled"
+      },
       "type": "string"
     }
   ]
