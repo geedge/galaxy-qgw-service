@@ -1,6 +1,7 @@
 package com.mesalab;
 
 import com.mesalab.qgw.interceptor.QuerySubmitInterceptor;
+import com.zdjizhi.utils.StringUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -9,6 +10,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.List;
 import java.util.TimeZone;
 
 /**
@@ -36,10 +40,15 @@ public class GalaxyQGWApplication implements WebMvcConfigurer {
     public static void init() {
         System.setProperty("jasypt.encryptor.password", "galaxy");
         System.setProperty("JM.SNAPSHOT.PATH", "config");
-        // java.util.Date
-        TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
-        // joda.time.DateTime
-        System.setProperty("user.timezone", TIMEZONE);
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> inputArguments = runtimeMxBean.getInputArguments();
+        long count = inputArguments.stream().filter(o -> o.contains("user.timezone")).count();
+        if (count == 0 && StringUtil.isEmpty(System.getenv().get("TZ"))) {
+            // java.util.Date
+            TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
+            // joda.time.DateTime
+            System.setProperty("user.timezone", TIMEZONE);
+        }
     }
 
     @Override
