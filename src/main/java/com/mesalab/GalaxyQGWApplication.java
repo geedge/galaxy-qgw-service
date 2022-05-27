@@ -42,8 +42,8 @@ public class GalaxyQGWApplication implements WebMvcConfigurer {
         System.setProperty("JM.SNAPSHOT.PATH", "config");
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> inputArguments = runtimeMxBean.getInputArguments();
-        long count = inputArguments.stream().filter(o -> o.contains("user.timezone")).count();
-        if (count == 0 && StringUtil.isEmpty(System.getenv().get("TZ"))) {
+        if (inputArguments.stream().noneMatch(o -> o.contains("user.timezone"))
+                && StringUtil.isEmpty(System.getenv().get("TZ"))) {
             // java.util.Date
             TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
             // joda.time.DateTime
