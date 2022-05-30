@@ -22,7 +22,8 @@
       "namespace": "system",
       "group": "CLICKHOUSE_GROUP",
       "tables": [
-        "processes"
+        "processes",
+        "columns_cluster"
       ]
     },
     {

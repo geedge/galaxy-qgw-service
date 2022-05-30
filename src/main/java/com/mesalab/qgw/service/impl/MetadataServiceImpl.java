@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
@@ -22,9 +23,11 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
+import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -32,6 +35,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.SchemaParseException;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -56,7 +60,11 @@ public class MetadataServiceImpl implements MetadataService {
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
+    private ApiService apiService;
+    @Autowired
     public MetadataConfig metadataConfig;
+    @Autowired
+    Environment environment;
 
     private Map<String, Schema> schemaCache = Maps.newHashMap();
     private Map<String, String> originalCache = Maps.newHashMap();
@@ -297,6 +305,8 @@ public class MetadataServiceImpl implements MetadataService {
                 StringUtil.isNotEmpty(schema.getDoc())) {
             log.error("{} schema's doc isn't jsonString and won't convert: {}", name, schema.getDoc());
         }
+        List<Map> data = getStorageSize(name);
+        schemaDoc = fillSchemaStorageSize(schemaDoc, data);
         if (StringUtil.isNotEmpty(schemaDoc)) {
             resultMap.put("doc", schemaDoc);
         }
@@ -304,6 +314,7 @@ public class MetadataServiceImpl implements MetadataService {
         Map mapDoc;
         for (Map next : fields) {
             mapDoc = (Map) JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
+            mapDoc = fillFieldStorageSize(data, mapDoc, next);
             if (StringUtil.isNotEmpty(mapDoc)) {
                 next.put("doc", mapDoc);
             }
@@ -313,6 +324,56 @@ public class MetadataServiceImpl implements MetadataService {
         }
         fillReference(resultMap, name);
         return resultMap;
+    }
+
+    private Map fillSchemaStorageSize(Map schemaDoc, List<Map> data) {
+        if (CollectionUtil.isEmpty(data)) {
+            return schemaDoc;
+        }
+        if (StringUtil.isEmpty(schemaDoc)) {
+            schemaDoc = Maps.newHashMap();
+        }
+        long total = 0;
+        for (Map datum : data) {
+            total += Long.parseLong(String.valueOf(datum.get("bytes")));
+        }
+        schemaDoc.put("size", total);
+        return schemaDoc;
+    }
+
+    private Map fillFieldStorageSize(List<Map> data, Map mapDoc, Map next) {
+        if (CollectionUtil.isEmpty(data)) {
+            return mapDoc;
+        }
+        if (StringUtil.isEmpty(mapDoc)) {
+            mapDoc = Maps.newHashMap();
+        }
+        try {
+            List<Object> name = JsonPath.read(data, "$.[?(@.field == \"" + next.get("name") + "\")].bytes");
+            mapDoc.put("size", Long.parseLong(String.valueOf(name.get(0))));
+        } catch (RuntimeException e) {
+            log.error("fill {} field storage size error, message is: {}", next.get("name"), e.getMessage());
+        }
+        return mapDoc;
+    }
+
+    private List<Map> getStorageSize(String name) {
+        try {
+            List<String> symbols = (List<String>) loadTables(clickHouseHttpSource.getDbName()).get("symbols");
+            String sql = null;
+            if (symbols.contains(name)) {
+                sql = String.format(Objects.requireNonNull(environment.getProperty("SCHEMA_STORAGE_SIZE")), name);
+            }
+            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : apiService.executeQuery(ApiParam.builder().query(sql).build());
+            if (baseResult.isSuccess()) {
+                return (List<Map>) baseResult.getData();
+            } else {
+                log.error("get {} schema storage size error on DB.", name);
+            }
+        } catch (RuntimeException ex) {
+            log.error("get {} schema storage size error on DB, message is {}", name, ex.getMessage());
+        }
+        return Lists.newArrayList();
     }
 
     /**

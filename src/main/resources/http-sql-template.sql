@@ -57,3 +57,7 @@ SELECT client_ip_list AS client_ip,last_update_time FROM tsg_galaxy.recommendati
 #sql("RELATION_SUBSCRIBER_ID")
 SELECT account AS SUBSCRIBER_ID,framed_ip AS IP,first_found_time AS FIRST_FOUND_TIME,last_update_time AS LAST_FOUND_TIME FROM tsg_galaxy.relation_account_framedip WHERE 1=1 %s AND acct_status_type != 2 LIMIT %s
 #end
+
+#sql("SCHEMA_STORAGE_SIZE")
+SELECT name AS field, IFNULL(SUM(data_compressed_bytes), 0) AS bytes FROM columns_cluster WHERE table = '%s_local' GROUP BY name ORDER BY bytes DESC
+#end
