@@ -1621,7 +1621,7 @@
       "name": "dns_cname",
       "type": "string",
       "doc": {
-        "visibility": "disabled"
+        "visibility": "enabled"
       },
       "label": "DNS.CNAME"
     },
@@ -1650,7 +1650,7 @@
       "name": "dns_rr",
       "type": "string",
       "doc": {
-        "visibility": "disabled"
+        "visibility": "enabled"
       },
       "label": "DNS.RR"
     },
