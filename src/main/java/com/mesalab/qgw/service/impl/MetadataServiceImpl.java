@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -121,7 +122,7 @@ public class MetadataServiceImpl implements MetadataService {
         if (StringUtil.isNotEmpty(doc)) {
             Object value = doc.get(key);
             if (value instanceof Map) {
-                return JsonMapper.toJsonString(value);
+                return JSONUtil.toJsonStr(JSONUtil.parseObj(value));
             } else {
                 return StringUtil.isEmpty(value) ? StringUtil.EMPTY : value.toString();
             }
@@ -240,11 +241,11 @@ public class MetadataServiceImpl implements MetadataService {
             List<String> indexKey = getIndexKey(name);
             for (Map<String, Object> field : fields) {
                 if (!indexKey.contains(field.get("name"))) {
-                    field.put("doc", rewriteDoc("ttl", field.get("doc"), JsonPath.read(JsonMapper.toJsonString(paramMap), "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
+                    field.put("doc", rewriteDoc("ttl", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
                 }
-                field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(JsonMapper.toJsonString(paramMap), "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
+                field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
             }
-            content = JsonMapper.toJsonString(data);
+            content = JSONUtil.toJsonStr(JSONUtil.parseObj(data));
             log.info("push Schema, content is: {}", content);
             return configService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
@@ -262,17 +263,23 @@ public class MetadataServiceImpl implements MetadataService {
      * @date 2022/5/17 10:02 上午
      */
     private Map<String, Object> rewriteDoc(String key, Object original, Object param) {
-        List<Object> paramValue;
         Map<String, Object> doc = Maps.newHashMap();
         if (StringUtil.isNotEmpty(original)) {
             doc = (Map<String, Object>) original;
         }
-        if (StringUtil.isNotEmpty(param) && StringUtil.isNotEmpty(paramValue = JsonPath.read(param, "$.[?(@." + key + " != null)]" + key))) {
-            Object value = paramValue.get(0);
-            if (NumberUtil.isNumber(value.toString())) {
+        Map<String, Object> paramDoc = Maps.newHashMap();
+        if (param instanceof Map) {
+            paramDoc = (Map<String, Object>) param;
+        } else if (param instanceof List) {
+            List item = (List) param;
+            paramDoc = (Map<String, Object>) item.get(0);
+        }
+        if (paramDoc.containsKey(key)) {
+            Object value = paramDoc.get(key);
+            if (NumberUtil.isNumber(String.valueOf(value))) {
                 doc.put(key, Long.parseLong(value.toString()));
             } else {
-                doc.put(key, value.toString());
+                doc.put(key, value);
             }
         } else {
             doc.remove(key);
@@ -529,7 +536,7 @@ public class MetadataServiceImpl implements MetadataService {
             schemaMap = (Map) JsonMapper.fromJsonString(configInfo, Map.class);
             Object docSchema;
             if (StringUtil.isNotEmpty(docSchema = schemaMap.get("doc"))) {
-                schemaMap.put("doc", JsonMapper.toJsonString(docSchema));
+                schemaMap.put("doc", JSONUtil.toJsonStr(JSONUtil.parseObj(docSchema)));
             }
             Object fieldsObj;
             if (StringUtil.isNotEmpty(fieldsObj = schemaMap.get("fields"))) {
@@ -539,12 +546,12 @@ public class MetadataServiceImpl implements MetadataService {
                     if (StringUtil.isEmpty(docField = next.get("doc"))) {
                         continue;
                     }
-                    next.put("doc", JsonMapper.toJsonString(docField));
+                    next.put("doc", JSONUtil.toJsonStr(JSONUtil.parseObj(docField)));
                 }
             }
         } catch (JSONException | SchemaParseException | ClassCastException e) {
             log.error("update Schema error: {}", e);
         }
-        return new Schema.Parser().parse(JSONUtil.toJsonStr(schemaMap));
+        return new Schema.Parser().parse(JSONUtil.toJsonStr(JSONUtil.parseObj(schemaMap)));
     }
 }
