@@ -5,6 +5,7 @@
   "doc": {
     "primary_key": "log_id",
     "partition_key": "start_time",
+    "ttl": null,
     "index_key": [
       "log_id",
       "start_time",
@@ -206,7 +207,8 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "long"
     },
@@ -218,7 +220,8 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "long"
     },
@@ -229,7 +232,8 @@
         "format": {
           "functions": "snowflake_id"
         },
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "long"
     },
@@ -258,7 +262,8 @@
             "value": "DNS Flood"
           }
         ],
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "string"
     },
@@ -291,7 +296,8 @@
             "value": "Minor"
           }
         ],
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "string"
     },
@@ -299,7 +305,8 @@
       "name": "conditions",
       "label": "Conditions",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "string"
     },
@@ -307,7 +314,8 @@
       "name": "destination_ip",
       "label": "Destination IP",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "string"
     },
@@ -315,7 +323,8 @@
       "name": "destination_country",
       "label": "Destination Country",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "string"
     },
@@ -323,7 +332,8 @@
       "name": "source_ip_list",
       "label": "Source IPs",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "string"
     },
@@ -331,7 +341,8 @@
       "name": "source_country_list",
       "label": "Source Countries",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "string"
     },
@@ -342,7 +353,8 @@
         "constraints": {
           "type": "sessions/sec"
         },
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "long"
     },
@@ -353,7 +365,8 @@
         "constraints": {
           "type": "packets/sec"
         },
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "long"
     },
@@ -364,7 +377,8 @@
         "constraints": {
           "type": "bits/sec"
         },
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "ttl": null
       },
       "type": "long"
     }
