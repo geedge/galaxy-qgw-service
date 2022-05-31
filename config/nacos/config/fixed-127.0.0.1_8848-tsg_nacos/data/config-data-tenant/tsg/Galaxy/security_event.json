@@ -985,7 +985,7 @@
       "name": "common_app_id",
       "label": "Application ID",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
