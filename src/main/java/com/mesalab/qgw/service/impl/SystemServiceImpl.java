@@ -15,7 +15,6 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -61,8 +60,6 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private HttpClientService httpClientService;
     @Resource(name = "metadataService")
     private MetadataService metadataService;
-    @Autowired
-    private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     HttpConfig httpConfig;
 
@@ -313,33 +310,11 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             Map dataByHandler = getDataByHandler(jobHandler);
             XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
             baseResult = executeTriggerAndUpdate(xxlJobInfo);
-            if (baseResult.isSuccess() && LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(info.getLogType())) {
-                updateSchema(info);
-            }
         }
         if (!baseResult.getStatus().equals(HttpStatus.SC_OK)) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务数据配额设置任务执行失败", null);
         }
         return baseResult;
-    }
-
-    private void updateSchema(StorageDeletionInfo info) {
-        Map schemaInfo = metadataService.getSchemaInfo("tables", clickHouseHttpSource.getDbName());
-        Object symbols = schemaInfo.get("symbols");
-        if (StringUtil.isNotEmpty(schemaInfo)) {
-            List<String> list = (List) symbols;
-            for (String str : list) {
-                Map schemaMap = metadataService.getSchemaInfo("fields", str);
-                Object doc = schemaMap.get("doc");
-                Map<String, Object> map = Maps.newHashMap();
-                if (StringUtil.isNotEmpty(doc)) {
-                    map = (Map<String, Object>) doc;
-                }
-                map.put("ttl", 24 * 60 * 60 * info.getMaxDays());
-                schemaMap.put("doc", map);
-                metadataService.updateSchema(str, schemaMap);
-            }
-        }
     }
 
     private String getDeleteAllHandlerByLogType(String logType) {

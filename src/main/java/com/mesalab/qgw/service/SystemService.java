@@ -23,9 +23,7 @@ public interface SystemService {
     BaseResult dailyTrendOfStorage(String searchStartTime, String searchEndTime);
 
     /**
-     * 数据配额设置：
-     *  1. 调度任务
-     *  2. schema TTL设置
+     * 数据配额设置
      * @param list
      * @return
      */
