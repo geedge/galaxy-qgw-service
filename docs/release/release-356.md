@@ -2,3 +2,6 @@
  * 扩展Schema，完善Schema索引键Index Key(TSG-10670)
  * 增强Schema，适配UI渲染默认指定字段visibility属性(TSG-10694)
  * 修改Schema，事务日志默认显示DNS.CNAME和DNS.RR(TSG-10746)
+ * 扩展Schema, 定义DNS协议相关属性的数据字典(TSG-10744)
+ * 扩展Schema, 元数据接口支持展示table、field储存占用大小(TSG-10491)
+ * 新增Schema更新接口, 支持设置最大存储时间及visibility属性(TSG-10493)
