@@ -3,7 +3,7 @@
   "name": "radius_onff_log",
   "namespace": "tsg_galaxy_v3",
   "doc": {
-    "partition_key": "common_recv_time",
+    "partition_key": "event_timestamp",
     "index_key": [
       "account",
       "event_timestamp"
