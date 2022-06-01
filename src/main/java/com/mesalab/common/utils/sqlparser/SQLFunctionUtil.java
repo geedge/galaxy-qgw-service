@@ -1350,15 +1350,7 @@ public class SQLFunctionUtil {
             return sql;
         }
         StringBuffer sb = new StringBuffer();
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-            Matcher mStrDateTime = pStrDateTime.matcher(sql);
-            while (mStrDateTime.find()) {
-                String innerValue = mStrDateTime.group(1) + " toDateTime#[" + mStrDateTime.group(2) + "#]";
-                mStrDateTime.appendReplacement(sb, innerValue);
-            }
-            mStrDateTime.appendTail(sb);
-            sql = sb.toString();
-        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
 
             Matcher mNowFun = pNow.matcher(sql);
             while (mNowFun.find()) {
@@ -1367,16 +1359,6 @@ public class SQLFunctionUtil {
             }
             mNowFun.appendTail(sb);
             sql = sb.toString();
-
-            Matcher mStrDateTime = pStrDateTime.matcher(sql);
-            sb = new StringBuffer();
-            while (mStrDateTime.find()) {
-                String innerValue = mStrDateTime.group(1) + " TIMESTAMP " + mStrDateTime.group(2);
-                mStrDateTime.appendReplacement(sb, innerValue);
-            }
-            mStrDateTime.appendTail(sb);
-            sql = sb.toString();
-
 
             Matcher matcher = pCKTimeStamp.matcher(sql);
             sb = new StringBuffer();

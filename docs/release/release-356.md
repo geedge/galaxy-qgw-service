@@ -5,3 +5,4 @@
  * 扩展Schema, 定义DNS协议相关属性的数据字典(TSG-10744)
  * 扩展Schema, 元数据接口支持展示table、field储存占用大小(TSG-10491)
  * 新增Schema更新接口, 支持设置最大存储时间及visibility属性(TSG-10493)
+ * 修复SQL时间字符串可与long类型自动转换问题(TSG-10734)
