@@ -460,7 +460,7 @@
             "value": "Allow"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -671,7 +671,7 @@
     },
     {
       "name": "common_sub_action",
-      "label": "Sub Action",
+      "label": "Action",
       "doc": {
         "constraints": {
           "operator_functions": "=,!="

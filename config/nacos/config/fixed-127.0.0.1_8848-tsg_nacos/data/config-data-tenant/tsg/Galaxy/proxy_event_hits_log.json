@@ -64,13 +64,13 @@
       "name": "action",
       "label": "Action",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "type": "long"
     },
     {
       "name": "sub_action",
-      "label": "Sub Action",
+      "label": "Action",
       "type": "string",
       "doc": {
         "constraints": {
