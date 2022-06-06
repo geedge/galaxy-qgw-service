@@ -369,7 +369,7 @@ public class MetadataServiceImpl implements MetadataService {
             List<String> symbols = (List<String>) loadTables(clickHouseHttpSource.getDbName()).get("symbols");
             String sql = null;
             if (symbols.contains(name)) {
-                sql = String.format(Objects.requireNonNull(environment.getProperty("SCHEMA_STORAGE_SIZE")), name);
+                sql = String.format(Objects.requireNonNull(environment.getProperty("SCHEMA_STORAGE_SIZE")), name, clickHouseHttpSource.getDbName());
             }
             BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : apiService.executeQuery(ApiParam.builder().query(sql).build());
             if (baseResult.isSuccess()) {

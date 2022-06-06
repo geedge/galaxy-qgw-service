@@ -72,4 +72,14 @@ public interface SystemService {
      * @date 2021/1/7 6:49 下午
      */
     BaseResult getCiphertext(EncryptionInfo param);
+
+    /**
+     * Desc: 一致性校验
+     *
+     * @param
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2022/6/5 9:24 下午
+     */
+    BaseResult consistencyCheck();
 }

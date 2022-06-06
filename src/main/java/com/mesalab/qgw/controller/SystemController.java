@@ -119,4 +119,12 @@ public class SystemController {
         return BaseResultGenerator.success();
     }
 
+    @GetMapping(value = "/monitor/info/consistency/{property}")
+    public BaseResult monitorCluster(@PathVariable String property) {
+        log.warn("consistency check interface, param is: property is {}", property);
+        if ("ttl".equalsIgnoreCase(property)) {
+            return systemService.consistencyCheck();
+        }
+        return BaseResultGenerator.failure();
+    }
 }

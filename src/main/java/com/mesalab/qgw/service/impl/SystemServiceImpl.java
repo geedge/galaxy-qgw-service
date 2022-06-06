@@ -1,20 +1,21 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.JobHandlerEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -33,6 +34,8 @@ import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
@@ -45,12 +48,16 @@ import javax.annotation.Resource;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service("systemService")
 @PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private static final Log log = LogFactory.get();
+    private static Pattern pTTL = Pattern.compile(".*toIntervalSecond\\((\\d+)\\)", Pattern.CASE_INSENSITIVE);
     private Environment env;
     @Autowired
     private ApiService apiService;
@@ -62,6 +69,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private MetadataService metadataService;
     @Autowired
     HttpConfig httpConfig;
+    @Autowired
+    ClickHouseHttpSource clickHouseHttpSource;
 
     public final static String queryIdSeparator = ":";
 
@@ -189,6 +198,96 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         dataMap.put("encrypted_password", encrypt);
         baseResult = BaseResultGenerator.success("ok", Lists.newArrayList(dataMap));
         return baseResult;
+    }
+
+    @Override
+    public BaseResult consistencyCheck() {
+        Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
+        List<String> symbols = (List<String>) tables.get("symbols");
+        Map<String, Map<String, Object>> changeSchemaDocTTl = Maps.newHashMap();
+        try {
+            for (String tableName : symbols) {
+                Map schemaMap = metadataService.getSchemaInfo("fields", tableName);
+                Object tableTTLInSchema = StringUtil.EMPTY;
+                if (StringUtil.isNotEmpty(schemaMap)) {
+                    if (schemaMap.containsKey("doc")) {
+                        Map<String, Object> schemaHasDoc = (Map<String, Object>) schemaMap.get("doc");
+                        if (schemaHasDoc.containsKey("ttl")) {
+                            tableTTLInSchema = schemaHasDoc.get("ttl").toString();
+                        }
+                    }
+                }
+                String getTableDdlsql = String.format(Objects.requireNonNull(env.getProperty("TABLE_TTL")), tableName, clickHouseHttpSource.getDbName());
+                BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(getTableDdlsql).build());
+                if (!baseResult.isSuccess()) {
+                    log.error(" query table TTL error: {}", baseResult.getMessage());
+                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), baseResult.getMessage());
+                }
+
+                Object tableTTLInDB = StringUtil.EMPTY;
+                HashMap<String, Object> map = Maps.newHashMap();
+                List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+                for (Map<String, Object> datum : data) {
+                    tableTTLInDB = datum.get("table_ttl");
+                    Matcher matcher = pTTL.matcher(String.valueOf(tableTTLInDB));
+                    if (matcher.find()) {
+                        tableTTLInDB = matcher.group(1);
+                    }
+                }
+                if (!tableTTLInDB.equals(tableTTLInSchema)) {
+                    map.put("table", tableTTLInDB.toString().concat("!=").concat(tableTTLInSchema.toString()));
+                }
+                Map<String, String> map1 = executeHttpGetOfCK("describe " + tableName + "_local");
+                List<Map<String, Object>> list = Lists.newArrayList();
+                if (Integer.parseInt(map1.get("status")) == HttpStatus.SC_OK) {
+                    List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
+                    for (Map<String, Object> field : fields) {
+                        Object read = JsonPath.read(map1, "$.result");
+                        List<Object> fieldList = JsonPath.read(JSONUtil.toJsonStr(JSONUtil.parseObj(read)), "$.data[?(@.name == \"" + field.get("name") + "\")].ttl_expression");
+                        Object tableFieldTTLInSchema = StringUtil.EMPTY;
+                        Object tableFieldTTLInDB = StringUtil.EMPTY;
+                        if (StringUtil.isNotEmpty(field.get("doc"))) {
+                            Map<String, Object> doc = (Map<String, Object>) field.get("doc");
+                            tableFieldTTLInSchema = StringUtil.isEmpty(doc.get("ttl")) ? tableFieldTTLInSchema : doc.get("ttl");
+                        }
+                        Matcher matcher = pTTL.matcher(String.valueOf(fieldList.get(0)));
+                        if (matcher.find()) {
+                            tableFieldTTLInDB = matcher.group(1);
+                        }
+                        if (!tableFieldTTLInSchema.toString().equals(tableFieldTTLInDB.toString())) {
+                            Map<String, Object> item = Maps.newHashMap();
+                            item.put(field.get("name").toString(), tableFieldTTLInSchema.toString().concat("!=").concat(tableFieldTTLInDB.toString()));
+                            list.add(item);
+                        }
+                    }
+                    if (!list.isEmpty()) {
+                        map.put("fields", list);
+                    }
+                } else {
+                    log.error(" query table field TTL error: {}", baseResult.getMessage());
+                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), map1.toString());
+                }
+                changeSchemaDocTTl.put(tableName, map);
+            }
+        } catch (RuntimeException ex) {
+            log.error(" schema TTL check error: {}", ex.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), ex.getMessage());
+        }
+        return BaseResultGenerator.success(Lists.newArrayList(changeSchemaDocTTl));
+    }
+
+    private Map<String, String> executeHttpGetOfCK(String sql) {
+        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
+        StringBuilder queryparamBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
+                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
+                .append("query=").append(sql)
+                .append(" FORMAT JSON;");
+        List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
+        int socketTimeOut = httpConfig.getCkRealTimeAccountSocketTimeOut();
+        Map<String, String> stringStringMap = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
+        return stringStringMap;
     }
 
     public Dialect buildAndGetDialect(String queryId) {
