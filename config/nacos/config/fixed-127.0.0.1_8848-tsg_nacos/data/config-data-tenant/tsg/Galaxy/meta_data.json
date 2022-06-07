@@ -33,6 +33,8 @@
         "parts_cluster",
         "processes",
         "query_log",
+        "tables",
+        "clusters",
         "distributed_ddl_queue"
       ]
     },
@@ -66,9 +68,9 @@
       ]
     },
     {
-      "namespace": "tsg",
-      "group": "HBASE_GROUP",
-      "tables": [
+      "namespace":"tsg",
+      "group":"HBASE_GROUP",
+      "tables":[
         "report_result"
       ]
     },
