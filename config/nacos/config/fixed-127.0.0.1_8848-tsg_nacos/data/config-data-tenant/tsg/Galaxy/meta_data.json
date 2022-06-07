@@ -32,7 +32,8 @@
         "disks_cluster",
         "parts_cluster",
         "processes",
-        "query_log"
+        "query_log",
+        "distributed_ddl_queue"
       ]
     },
     {
