@@ -7,3 +7,4 @@
  * 新增Schema更新接口, 支持设置最大存储时间及visibility属性(TSG-10493)
  * 修复SQL时间字符串可与long类型自动转换问题(TSG-10734)
  * 增强Schema，对Proxy Events相关表的Action与Sub Action优化显示(TSG-10742)
+ * 新增储存配额一致性校验接口，对Schema列TTL和ClickHouse数据库DDL列TTL一致性进行校验(TSG-10494)
