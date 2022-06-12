@@ -202,8 +202,11 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
 
     @Override
     public BaseResult consistencyCheck() {
+        List<Map<String, Object>> dataList = Lists.newArrayList();
+        Map<String, Object> logDiff = Maps.newHashMap();
         Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
         List<String> symbols = (List<String>) tables.get("symbols");
+        logDiff.put("logType", LogType.TRAFFIC_LOGS.getValue());
         Map<String, Map<String, Object>> changeSchemaDocTTl = Maps.newHashMap();
         try {
             for (String tableName : symbols) {
@@ -213,7 +216,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                     if (schemaMap.containsKey("doc")) {
                         Map<String, Object> schemaHasDoc = (Map<String, Object>) schemaMap.get("doc");
                         if (schemaHasDoc.containsKey("ttl")) {
-                            tableTTLInSchema = schemaHasDoc.get("ttl").toString();
+                            tableTTLInSchema = StringUtil.isEmpty(schemaHasDoc.get("ttl")) ? tableTTLInSchema : schemaHasDoc.get("ttl").toString();
                         }
                     }
                 }
@@ -225,24 +228,22 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 }
 
                 Object tableTTLInDB = StringUtil.EMPTY;
-                HashMap<String, Object> map = Maps.newHashMap();
+                HashMap<String, Object> tableDiff = Maps.newHashMap();
                 List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
                 for (Map<String, Object> datum : data) {
-                    tableTTLInDB = datum.get("table_ttl");
-                    Matcher matcher = pTTL.matcher(String.valueOf(tableTTLInDB));
-                    if (matcher.find()) {
-                        tableTTLInDB = matcher.group(1);
-                    }
+                    Matcher matcher = pTTL.matcher(String.valueOf(datum.get("table_ttl")));
+                    tableTTLInDB = matcher.find() ? matcher.group(1) : tableTTLInDB;
                 }
                 if (!tableTTLInDB.equals(tableTTLInSchema)) {
-                    map.put("table", tableTTLInDB.toString().concat("!=").concat(tableTTLInSchema.toString()));
+                    tableDiff.put("last_ttl", StringUtil.isEmpty(tableTTLInSchema) ? null : tableTTLInSchema.toString());
+                    tableDiff.put("used_ttl", StringUtil.isEmpty(tableTTLInDB) ? null : tableTTLInDB.toString());
                 }
-                Map<String, String> map1 = executeHttpGetOfCK("describe " + tableName + "_local");
-                List<Map<String, Object>> list = Lists.newArrayList();
-                if (Integer.parseInt(map1.get("status")) == HttpStatus.SC_OK) {
+                Map<String, String> dBResult = executeHttpGetOfCK("describe " + tableName + "_local");
+                List<Map<String, Object>> fieldDiff = Lists.newArrayList();
+                if (Integer.parseInt(dBResult.get("status")) == HttpStatus.SC_OK) {
                     List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
                     for (Map<String, Object> field : fields) {
-                        Object read = JsonPath.read(map1, "$.result");
+                        Object read = JsonPath.read(dBResult, "$.result");
                         List<Object> fieldList = JsonPath.read(JSONUtil.toJsonStr(JSONUtil.parseObj(read)), "$.data[?(@.name == \"" + field.get("name") + "\")].ttl_expression");
                         Object tableFieldTTLInSchema = StringUtil.EMPTY;
                         Object tableFieldTTLInDB = StringUtil.EMPTY;
@@ -251,29 +252,36 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                             tableFieldTTLInSchema = StringUtil.isEmpty(doc.get("ttl")) ? tableFieldTTLInSchema : doc.get("ttl");
                         }
                         Matcher matcher = pTTL.matcher(String.valueOf(fieldList.get(0)));
-                        if (matcher.find()) {
-                            tableFieldTTLInDB = matcher.group(1);
-                        }
+                        tableFieldTTLInDB = matcher.find() ? matcher.group(1) : tableFieldTTLInDB;
                         if (!tableFieldTTLInSchema.toString().equals(tableFieldTTLInDB.toString())) {
                             Map<String, Object> item = Maps.newHashMap();
-                            item.put(field.get("name").toString(), tableFieldTTLInSchema.toString().concat("!=").concat(tableFieldTTLInDB.toString()));
-                            list.add(item);
+                            Map<String, Object> ttlDiff = Maps.newHashMap();
+                            ttlDiff.put("last_ttl", StringUtil.isEmpty(tableFieldTTLInSchema) ? null : tableFieldTTLInSchema.toString());
+                            ttlDiff.put("used_ttl", StringUtil.isEmpty(tableFieldTTLInDB) ? null : tableFieldTTLInDB.toString());
+                            item.put(field.get("name").toString(), ttlDiff);
+                            fieldDiff.add(item);
                         }
                     }
-                    if (!list.isEmpty()) {
-                        map.put("fields", list);
+                    if (!fieldDiff.isEmpty()) {
+                        tableDiff.put("fields", fieldDiff);
                     }
                 } else {
                     log.error(" query table field TTL error: {}", baseResult.getMessage());
-                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), map1.toString());
+                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), dBResult.toString());
                 }
-                changeSchemaDocTTl.put(tableName, map);
+                changeSchemaDocTTl.put(tableName, tableDiff);
+                logDiff.put("tables", Lists.newArrayList(changeSchemaDocTTl));
             }
         } catch (RuntimeException ex) {
             log.error(" schema TTL check error: {}", ex.getMessage());
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), ex.getMessage());
         }
-        return BaseResultGenerator.success(Lists.newArrayList(changeSchemaDocTTl));
+        if (changeSchemaDocTTl.size() != 0) {
+            dataList.add(logDiff);
+            return BaseResultGenerator.success("Log streaming settings unvalidated or failed", dataList);
+        } else {
+            return BaseResultGenerator.success("ok", dataList);
+        }
     }
 
     private Map<String, String> executeHttpGetOfCK(String sql) {
