@@ -1013,7 +1013,7 @@
       "name": "common_app_surrogate_id",
       "label": "Surrogate ID",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
