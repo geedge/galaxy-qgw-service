@@ -622,12 +622,21 @@
     },
     {
       "name": "common_userdefine_app_name",
-      "label": "User Define APP Name",
+      "label": "User Define App Name",
       "type": "string",
       "doc": {
         "visibility": "hidden",
         "ttl": null
       }
+    },
+    {
+      "name": "common_app_identify_info",
+      "label": "App Identity Info",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "common_app_surrogate_id",

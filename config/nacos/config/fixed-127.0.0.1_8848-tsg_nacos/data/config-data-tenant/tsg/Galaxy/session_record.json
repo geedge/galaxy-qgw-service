@@ -194,6 +194,7 @@
         "application": [
           "common_app_id",
           "common_userdefine_app_name",
+          "common_app_identify_info",
           "common_app_label",
           "common_app_surrogate_id",
           "common_l7_protocol",
@@ -954,7 +955,16 @@
     },
     {
       "name": "common_userdefine_app_name",
-      "label": "User Define APP Name",
+      "label": "User Define App Name",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_app_identify_info",
+      "label": "App Identity Info",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -965,7 +975,7 @@
       "name": "common_app_surrogate_id",
       "label": "Surrogate ID",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
