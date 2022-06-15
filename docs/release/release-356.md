@@ -10,3 +10,4 @@
  * 新增储存配额一致性校验接口，对Schema列TTL和ClickHouse数据库DDL列TTL一致性进行校验(TSG-10494)
  * 扩展Schema，增加公共字段common_app_identify_info(TSG-10853)
  * 修改Schema，对common_app_surrogate_id字段进行隐藏(TSG-10890)
+ * 扩展储存配额接口，存储配额同步更新Schema TTL(TSG-10635)

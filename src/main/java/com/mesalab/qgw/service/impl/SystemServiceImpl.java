@@ -414,14 +414,69 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         } else {
             jobHandler = getDeletePartHandlerByLogType(info.getLogType());
             executorParam.setMaxdays(info.getMaxDays());
-            Map dataByHandler = getDataByHandler(jobHandler);
-            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
-            baseResult = executeTriggerAndUpdate(xxlJobInfo);
+            Map oldData = getDataByHandler(jobHandler);
+            XxlJobInfo newData = setXxlJobInfoParam(oldData, executorParam);
+            baseResult = executeManageJob("update", newData);
+            if (baseResult.isSuccess() && LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(info.getLogType())) {
+                updateSchema(info, oldData);
+            }
+            if (baseResult.isSuccess()) {
+                baseResult = executeManageJob("trigger", newData);
+            }
         }
         if (!baseResult.getStatus().equals(HttpStatus.SC_OK)) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务数据配额设置任务执行失败", null);
         }
         return baseResult;
+    }
+
+    private void updateSchema(StorageDeletionInfo info, Map dataByHandler) {
+        Map<String, Map> previous = Maps.newHashMap();
+        try {
+            Map schemaInfo = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
+            Object tables = schemaInfo.get("symbols");
+            if (StringUtil.isEmpty(tables)) {
+                return;
+            }
+            long ttl = 24 * 60 * 60 * info.getMaxDays();
+            List<String> list = (List) tables;
+            for (String tableName : list) {
+                Map schemaMap = metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName);
+                previous.put(tableName, metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName));
+                Object schemaDoc = schemaMap.get("doc");
+                Map<String, Object> map = Maps.newHashMap();
+                if (StringUtil.isNotEmpty(schemaDoc)) {
+                    map = (Map<String, Object>) schemaDoc;
+                }
+                if (StringUtil.isEmpty(map.get("ttl")) || ttl < Long.parseLong(map.get("ttl").toString())) {
+                    map.put("ttl", ttl);
+                    schemaMap.put("doc", map);
+                }
+                List<Map<String, Object>> fields = JsonPath.read(schemaMap, "$.fields");
+                List<String> indexKey = metadataService.getIndexKey(tableName);
+                for (Map<String, Object> field : fields) {
+                    if (indexKey.contains(field.get("name").toString())) {
+                        continue;
+                    }
+                    Object doc = field.get("doc");
+                    if (StringUtil.isEmpty(doc)) {
+                        doc = Maps.newHashMap();
+                    }
+                    Map<String, Object> fieldDoc = (Map<String, Object>) doc;
+                    if (StringUtil.isEmpty(fieldDoc.get("ttl")) || ttl < Long.parseLong(fieldDoc.get("ttl").toString())) {
+                        fieldDoc.put("ttl", ttl);
+                        field.put("doc", fieldDoc);
+                    }
+                }
+                metadataService.updateSchema(tableName, schemaMap);
+            }
+        } catch (RuntimeException ex) {
+            for (String tableName : previous.keySet()) {
+                metadataService.updateSchema(tableName, previous.get(tableName));
+            }
+            executeManageJob("update", mapToBean(dataByHandler, XxlJobInfo.class));
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "up schema error in storage set ", ex.getMessage());
+        }
     }
 
     private String getDeleteAllHandlerByLogType(String logType) {
