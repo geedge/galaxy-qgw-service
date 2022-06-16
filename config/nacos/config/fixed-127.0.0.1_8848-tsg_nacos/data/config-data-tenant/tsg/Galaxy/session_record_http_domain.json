@@ -6,6 +6,7 @@
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
     "ttl": null,
+    "default_ttl": 2592000,
     "index_key": [
       "http_domain",
       "common_recv_time"
