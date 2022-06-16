@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
@@ -48,7 +49,7 @@ import javax.annotation.Resource;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,6 +59,7 @@ import java.util.regex.Pattern;
 public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private static Pattern pTTL = Pattern.compile(".*toIntervalSecond\\((\\d+)\\)", Pattern.CASE_INSENSITIVE);
+    private static final String trafficPort = "8123";
     private Environment env;
     @Autowired
     private ApiService apiService;
@@ -207,95 +209,138 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
         List<String> symbols = (List<String>) tables.get("symbols");
         logDiff.put("logType", LogType.TRAFFIC_LOGS.getValue());
-        Map<String, Map<String, Object>> changeSchemaDocTTl = Maps.newHashMap();
+        Map<String, Map<String, Object>> changeTTL = Maps.newHashMap();
+        List<String> ipPorts = getClusterAddressOfCK();
         try {
-            for (String tableName : symbols) {
-                Map schemaMap = metadataService.getSchemaInfo("fields", tableName);
-                Object tableTTLInSchema = StringUtil.EMPTY;
-                if (StringUtil.isNotEmpty(schemaMap)) {
-                    if (schemaMap.containsKey("doc")) {
-                        Map<String, Object> schemaHasDoc = (Map<String, Object>) schemaMap.get("doc");
-                        if (schemaHasDoc.containsKey("ttl")) {
-                            tableTTLInSchema = StringUtil.isEmpty(schemaHasDoc.get("ttl")) ? tableTTLInSchema : schemaHasDoc.get("ttl").toString();
-                        }
-                    }
+            for (String ipPort : ipPorts) {
+                if (!changeTTL.isEmpty()) {
+                    break;
                 }
-                String getTableDdlsql = String.format(Objects.requireNonNull(env.getProperty("TABLE_TTL")), tableName, clickHouseHttpSource.getDbName());
-                BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(getTableDdlsql).build());
-                if (!baseResult.isSuccess()) {
-                    log.error(" query table TTL error: {}", baseResult.getMessage());
-                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), baseResult.getMessage());
+                if (ipPort.startsWith("127.0.0.1")) {
+                    String url = clickHouseHttpSource.getUrl();
+                    ipPort = url.substring(url.indexOf("//") + 2, url.lastIndexOf(":") + 1).concat(trafficPort);
                 }
-
-                Object tableTTLInDB = StringUtil.EMPTY;
-                HashMap<String, Object> tableDiff = Maps.newHashMap();
-                List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-                for (Map<String, Object> datum : data) {
-                    Matcher matcher = pTTL.matcher(String.valueOf(datum.get("table_ttl")));
-                    tableTTLInDB = matcher.find() ? matcher.group(1) : tableTTLInDB;
-                }
-                if (!tableTTLInDB.equals(tableTTLInSchema)) {
-                    tableDiff.put("last_ttl", StringUtil.isEmpty(tableTTLInSchema) ? null : tableTTLInSchema.toString());
-                    tableDiff.put("used_ttl", StringUtil.isEmpty(tableTTLInDB) ? null : tableTTLInDB.toString());
-                }
-                Map<String, String> dBResult = executeHttpGetOfCK("describe " + tableName + "_local");
-                List<Map<String, Object>> fieldDiff = Lists.newArrayList();
-                if (Integer.parseInt(dBResult.get("status")) == HttpStatus.SC_OK) {
-                    List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
-                    for (Map<String, Object> field : fields) {
-                        Object read = JsonPath.read(dBResult, "$.result");
-                        List<Object> fieldList = JsonPath.read(JSONUtil.toJsonStr(JSONUtil.parseObj(read)), "$.data[?(@.name == \"" + field.get("name") + "\")].ttl_expression");
-                        Object tableFieldTTLInSchema = StringUtil.EMPTY;
-                        Object tableFieldTTLInDB = StringUtil.EMPTY;
-                        if (StringUtil.isNotEmpty(field.get("doc"))) {
-                            Map<String, Object> doc = (Map<String, Object>) field.get("doc");
-                            tableFieldTTLInSchema = StringUtil.isEmpty(doc.get("ttl")) ? tableFieldTTLInSchema : doc.get("ttl");
-                        }
-                        Matcher matcher = pTTL.matcher(String.valueOf(fieldList.get(0)));
-                        tableFieldTTLInDB = matcher.find() ? matcher.group(1) : tableFieldTTLInDB;
-                        if (!tableFieldTTLInSchema.toString().equals(tableFieldTTLInDB.toString())) {
-                            Map<String, Object> item = Maps.newHashMap();
-                            Map<String, Object> ttlDiff = Maps.newHashMap();
-                            ttlDiff.put("last_ttl", StringUtil.isEmpty(tableFieldTTLInSchema) ? null : tableFieldTTLInSchema.toString());
-                            ttlDiff.put("used_ttl", StringUtil.isEmpty(tableFieldTTLInDB) ? null : tableFieldTTLInDB.toString());
-                            item.put(field.get("name").toString(), ttlDiff);
-                            fieldDiff.add(item);
-                        }
-                    }
-                    if (!fieldDiff.isEmpty()) {
+                for (String tableName : symbols) {
+                    Map schemaMap = metadataService.getSchemaInfo("fields", tableName);
+                    Object tableTTLInSchema = getTableTTLInSchema(schemaMap);
+                    Map<String, Object> tableDiff = getTableDiff(ipPort, tableName, tableTTLInSchema);
+                    List fieldDiff = getFieldDiff(ipPort, tableName, schemaMap);
+                    if (CollectionUtil.isNotEmpty(fieldDiff)) {
                         tableDiff.put("fields", fieldDiff);
+
                     }
-                } else {
-                    log.error(" query table field TTL error: {}", baseResult.getMessage());
-                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), dBResult.toString());
+                    if (CollectionUtil.isNotEmpty(tableDiff)) {
+                        changeTTL.put(tableName, tableDiff);
+                        logDiff.put("tables", Lists.newArrayList(changeTTL));
+                        logDiff.put("address", Lists.newArrayList(ipPort));
+                    }
                 }
-                changeSchemaDocTTl.put(tableName, tableDiff);
-                logDiff.put("tables", Lists.newArrayList(changeSchemaDocTTl));
             }
         } catch (RuntimeException ex) {
             log.error(" schema TTL check error: {}", ex.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), ex.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), ex.getMessage(), ex);
         }
-        if (changeSchemaDocTTl.size() != 0) {
-            dataList.add(logDiff);
-            return BaseResultGenerator.success("Log streaming settings unvalidated or failed", dataList);
-        } else {
+        if (changeTTL.isEmpty()) {
             return BaseResultGenerator.success("ok", dataList);
         }
+        dataList.add(logDiff);
+        return BaseResultGenerator.success("Log streaming settings unvalidated or failed", dataList);
     }
 
-    private Map<String, String> executeHttpGetOfCK(String sql) {
-        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
-        StringBuilder queryparamBuilder = new StringBuilder("user=")
+    private Object getTableTTLInSchema(Map schemaMap) {
+        Object tableTTLInSchema = null;
+        if (StringUtil.isNotEmpty(schemaMap)) {
+            if (schemaMap.containsKey("doc")) {
+                Map<String, Object> schemaHasDoc = (Map<String, Object>) schemaMap.get("doc");
+                if (schemaHasDoc.containsKey("ttl")) {
+                    tableTTLInSchema = StringUtil.isEmpty(schemaHasDoc.get("ttl")) ? null : schemaHasDoc.get("ttl").toString();
+                }
+            }
+        }
+        return tableTTLInSchema;
+    }
+
+    private Map<String, Object> getTableDiff(String ipPort, String tableName, Object tableTTLInSchema) {
+        String sql = String.format(Objects.requireNonNull(env.getProperty("TABLE_TTL")), tableName, clickHouseHttpSource.getDbName());
+        Map<String, String> result = executeHttpGetOfCK(ipPort, sql, clickHouseHttpSource.getSystemDBName());
+        if (Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
+            log.error(" query table TTL error: {}", result.toString());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
+        }
+        Object tableTTLInDB = null;
+        Map<String, Object> tableDiff = Maps.newHashMap();
+        Map o = (Map)JsonMapper.fromJsonString(result.get("result"), Map.class);
+        Map<String, Object> resultMap = (Map<String, Object>) o;
+        for (Map<String, Object> datum : (List<Map<String, Object>>)resultMap.get("data")) {
+            Matcher matcher = pTTL.matcher(String.valueOf(datum.get("table_ttl")));
+            tableTTLInDB = matcher.find() ? matcher.group(1) : null;
+        }
+        if (!String.valueOf(tableTTLInDB).equals(String.valueOf(tableTTLInSchema))) {
+            tableDiff.put("last_ttl", StringUtil.isEmpty(tableTTLInSchema) ? null : tableTTLInSchema.toString());
+            tableDiff.put("used_ttl", StringUtil.isEmpty(tableTTLInDB) ? null : tableTTLInDB.toString());
+            log.warn("table ttl: {} not consistency.", tableName);
+        }
+        return tableDiff;
+    }
+
+    private List<Map<String, Object>> getFieldDiff(String ipPort, String tableName, Map<String, Object> schemaMap) {
+        List<Map<String, Object>> fieldDiff = Lists.newArrayList();
+        Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
+        if (Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
+            log.error(" query table field TTL error: {}", result.toString());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
+        }
+        List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
+        for (Map<String, Object> field : fields) {
+            Object read = JsonPath.read(result, "$.result");
+            List<Object> fieldList = JsonPath.read(JSONUtil.toJsonStr(JSONUtil.parseObj(read)), "$.data[?(@.name == \"" + field.get("name") + "\")].ttl_expression");
+            Object fieldTTLInSchema = null;
+            Object fieldTTLInDB;
+            if (StringUtil.isNotEmpty(field.get("doc"))) {
+                Map<String, Object> doc = (Map<String, Object>) field.get("doc");
+                fieldTTLInSchema = StringUtil.isEmpty(doc.get("ttl")) ? null : doc.get("ttl");
+            }
+            Matcher matcher = pTTL.matcher(String.valueOf(fieldList.get(0)));
+            fieldTTLInDB = matcher.find() ? matcher.group(1) : null;
+            if (String.valueOf(fieldTTLInSchema).equals(String.valueOf(fieldTTLInDB))) {
+                continue;
+            }
+            log.warn("field ttl: address {} {}-{} not consistency.", ipPort, tableName, field.get("name"));
+            Map<String, Object> ttlDiff = Maps.newHashMap();
+            ttlDiff.put("last_ttl", StringUtil.isEmpty(fieldTTLInSchema) ? null : fieldTTLInSchema.toString());
+            ttlDiff.put("used_ttl", StringUtil.isEmpty(fieldTTLInDB) ? null : fieldTTLInDB.toString());
+            if (fieldDiff.stream().noneMatch(o -> o.containsKey(field.get("name").toString()))) {
+                Map<String, Object> item = Maps.newHashMap();
+                item.put(field.get("name").toString(), ttlDiff);
+                fieldDiff.add(item);
+            }
+        }
+        return fieldDiff;
+    }
+
+    private List<String> getClusterAddressOfCK() {
+        List<String> endpointList = new ArrayList<>();
+        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
+        if (baseResult.isSuccess()) {
+            List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+            for (Map<String, Object> datum : data) {
+                endpointList.add(String.valueOf(datum.get("endpoint")));
+            }
+        }
+        return endpointList;
+    }
+
+    private Map<String, String> executeHttpGetOfCK(String ipPort, String sql, String dbName) {
+        String queryURL = URLUtil.normalize("http://" + ipPort + "/?");
+        StringBuilder paramBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
                 .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
-                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
+                .append("database=").append(dbName).append("&")
                 .append("query=").append(sql)
                 .append(" FORMAT JSON;");
-        List<NameValuePair> values = URLEncodedUtils.parse(queryparamBuilder.toString(), Charset.forName("UTF-8"));
+        List<NameValuePair> values = URLEncodedUtils.parse(paramBuilder.toString(), StandardCharsets.UTF_8);
         int socketTimeOut = httpConfig.getCkRealTimeAccountSocketTimeOut();
-        Map<String, String> stringStringMap = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
-        return stringStringMap;
+        return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
     }
 
     public Dialect buildAndGetDialect(String queryId) {
