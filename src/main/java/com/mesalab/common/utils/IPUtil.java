@@ -26,7 +26,11 @@ public class IPUtil {
     public static String getCountry(String ip) {
         return ipLookup.countryLookup(ip);
     }
-
-
+    public static String getISP(String ip) {
+        return ipLookup.ispLookup(ip);
+    }
+    public static String getOrganization(String ip) {
+        return ipLookup.organizationLookup(ip);
+    }
 
 }

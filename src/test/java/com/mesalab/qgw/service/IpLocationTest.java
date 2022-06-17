@@ -30,4 +30,16 @@ public class IpLocationTest extends GalaxyQGWApplicationTests {
 
     }
 
+    @Test
+    public void testIpToISP() {
+        log.info(IPUtil.getISP("157.255.77.80"));
+
+    }
+
+    @Test
+    public void testIpToOrganization() {
+        log.info(IPUtil.getOrganization("157.255.77.80"));
+
+    }
+
 }

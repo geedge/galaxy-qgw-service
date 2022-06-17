@@ -244,7 +244,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             return BaseResultGenerator.success("ok", dataList);
         }
         dataList.add(logDiff);
-        return BaseResultGenerator.success("Log streaming settings unvalidated or failed", dataList);
+        return BaseResultGenerator.success("Log streaming setting task not executed or failed", dataList);
     }
 
     private Object getTableTTLInSchema(Map schemaMap) {
