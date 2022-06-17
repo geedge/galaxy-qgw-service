@@ -62,16 +62,16 @@ project:
     email:
 ## ClickhHouse configuration
 clickhouse:
-  url: http://192.168.44.12:8124
+  url: http://192.168.44.12:8123
   dbname: tsg_galaxy_v3
   enableApproximateOptimizer: true
   realTimeAccount:
-    username: ENC(Ao/e/87KQ8vOabP81PV/i4f/wvgztdKW)
-    pin: ENC(KtRdLd84bYGGgk/Uv3+lUQFSxBfQ9ctJ)
+    username: ENC(hYFEuRJJWd93TZg5VbK/o3OXUmxI/irv)
+    pin: ENC(qUA355VopKSx6kwwwXZwqWWEYSu76Slz)
     socketTimeOut: 120000
   longTermAccount:
-    username: ENC(lgnlVXRIN8qNh+B0scCBKp9QMID22Nc7)
-    pin: ENC(AkmSSo5VBw6TOz+AXhorb+tmuLn3WANm)
+    username: ENC(z3gVlaa7Q4IMDqtUgvhwoJzKAkH1Uznc)
+    pin: ENC(LDEb2OekU7iZWiFw6pUYBSozVKP27r1y)
     socketTimeOut: 21700000
 ## Druid configuration
 druid:
