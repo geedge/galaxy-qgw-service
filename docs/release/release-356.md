@@ -12,3 +12,4 @@
  * 修改Schema，对common_app_surrogate_id字段进行隐藏(TSG-10890)
  * 扩展储存配额接口，存储配额同步更新Schema TTL(TSG-10635)
  * 扩展Schema，Traffic Log增加默认TTL(TSG-10968)
+ * 优化SNI推荐(TSG-10934)
