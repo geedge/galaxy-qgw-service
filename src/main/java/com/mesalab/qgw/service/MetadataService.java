@@ -18,6 +18,14 @@ public interface MetadataService {
     Map getSchemaInfo(String type, String name);
 
     /**
+     * 查询字典信息
+     *
+     * @param name
+     * @return
+     */
+    Object getCfg(String name);
+
+    /**
      * 根据表名获取partitionKey
      *
      * @param tableName

@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -68,7 +67,7 @@ public class MetadataServiceImpl implements MetadataService {
     Environment environment;
 
     private Map<String, Schema> schemaCache = Maps.newHashMap();
-    private Map<String, String> originalCache = Maps.newHashMap();
+    private Map<String, Object> originalCache = Maps.newHashMap();
     private final static String KEY_REF = "$ref";
     private final static String KEY = "key";
     private final static String VALUE = "value";
@@ -413,7 +412,8 @@ public class MetadataServiceImpl implements MetadataService {
         }
     }
 
-    private String getCfg(String cfgName) {
+    @Override
+    public Object getCfg(String cfgName) {
         if (originalCache.containsKey(cfgName)) {
             return originalCache.get(cfgName);
         }
@@ -456,7 +456,7 @@ public class MetadataServiceImpl implements MetadataService {
         String[] split = getRefStrArray(map);
         String jsonPath = getJsonPath(split);
         try {
-            String cfg = getCfg(getFileName(split, schemaName));
+            Object cfg = getCfg(getFileName(split, schemaName));
             data = JsonPath.read(cfg, jsonPath);
         } catch (RuntimeException e) {
             log.warn("read reference schema error: {}", e);

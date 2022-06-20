@@ -37,7 +37,7 @@ select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN
 #end
 
 #sql("ENTITY_TOP_SNI")
-select ssl_sni from %s where %s and notEmpty(ssl_sni) group by ssl_sni order by SUM (common_sessions) desc limit %s
+SELECT * FROM( (select ssl_sni, SUM(common_c2s_byte_num + common_s2c_byte_num) AS bytes, SUM(common_sessions) AS sessions from %s where %s and notEmpty(ssl_sni) group by ssl_sni order by SUM (common_sessions) desc limit %s) UNION ALL (select 'totals', SUM(common_c2s_byte_num + common_s2c_byte_num) AS bytes, SUM(common_sessions) AS sessions from %s where %s and notEmpty(ssl_sni) LIMIT 1)) ORDER BY sessions DESC;
 #end
 
 #sql("SYSTEM_STORAGE_QUOTA")

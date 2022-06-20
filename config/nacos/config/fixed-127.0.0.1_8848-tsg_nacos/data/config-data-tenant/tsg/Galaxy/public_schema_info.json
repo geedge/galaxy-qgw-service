@@ -30,6 +30,16 @@
         "name": "MIN",
         "label": "MIN",
         "function": "min(expr)"
+      },
+      {
+        "name": "MEDIAN",
+        "label": "MEDIAN",
+        "function": "median(expr)"
+      },
+      {
+        "name": "QUANTILE",
+        "label": "QUANTILE",
+        "function": "QUANTILE(expr,level)"
       }
     ],
     "operator": [
@@ -105,19 +115,19 @@
       "aggregation": [
         {
           "type": "int",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,QUANTILE"
         },
         {
           "type": "long",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,QUANTILE"
         },
         {
           "type": "float",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,QUANTILE"
         },
         {
           "type": "double",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,QUANTILE"
         },
         {
           "type": "string",

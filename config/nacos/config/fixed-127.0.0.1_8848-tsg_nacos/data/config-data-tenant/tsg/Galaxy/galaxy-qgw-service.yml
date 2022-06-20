@@ -95,7 +95,9 @@ service:
       TCPByUniqClientIP: 100000
       UDPBySession: 100000
       UDPByUniqClientIP: 40000
-    topSNI: 30000
+    topSNI:
+      defaultSize: 30000
+      dataset: 2000000
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.12:8529
