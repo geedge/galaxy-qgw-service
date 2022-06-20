@@ -457,7 +457,7 @@ public class MetadataServiceImpl implements MetadataService {
         String jsonPath = getJsonPath(split);
         try {
             Object cfg = getCfg(getFileName(split, schemaName));
-            data = JsonPath.read(cfg, jsonPath);
+            data = JsonPath.read(String.valueOf(cfg), jsonPath);
         } catch (RuntimeException e) {
             log.warn("read reference schema error: {}", e);
         }

@@ -258,8 +258,8 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     private Map<String, List<String>> getCDNInfo() {
         Object codeInfo = metadataService.getCfg("public_code_info.json");
         if (StringUtil.isNotEmpty(codeInfo)) {
-            Map<String, Map<String, List<String>>> a = (Map<String, Map<String, List<String>>>) JsonMapper.fromJsonString(codeInfo.toString(), Map.class);
-            return Maps.newHashMap(a.get("CDN"));
+            Map<String, Map<String, List<String>>> data = (Map<String, Map<String, List<String>>>) JsonMapper.fromJsonString(codeInfo.toString(), Map.class);
+            return Maps.newHashMap(data.get("CDN"));
         }
         return Maps.newHashMap();
     }
