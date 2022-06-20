@@ -454,12 +454,12 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             Map dataByHandler = getDataByHandler(jobHandler);
 
             StorageDeletionInfo storageDeletionInfoByHandler = getStorageDeletionInfoByHandler(logType, getDeletePartHandlerByLogType(logType));
-            executorParam.setMaxdays(storageDeletionInfoByHandler.getMaxDays());
+            executorParam.setMaxDays(storageDeletionInfoByHandler.getMaxDays());
             XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
             baseResult = executeTriggerAndUpdate(xxlJobInfo);
         } else {
             jobHandler = getDeletePartHandlerByLogType(info.getLogType());
-            executorParam.setMaxdays(info.getMaxDays());
+            executorParam.setMaxDays(info.getMaxDays());
             Map oldData = getDataByHandler(jobHandler);
             XxlJobInfo newData = setXxlJobInfoParam(oldData, executorParam);
             baseResult = executeManageJob("update", newData);
@@ -557,16 +557,11 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
      * @return
      */
     private StorageDeletionInfo getStorageDeletionInfoByHandler(String logType, String jobHandlerValue) {
-        StorageDeletionInfo storageDeletionInfo = new StorageDeletionInfo();
         Map trafficDate = getDataByHandler(jobHandlerValue);
         XxlJobInfo xxlJobInfo = mapToBean(trafficDate, XxlJobInfo.class);
-        Map executorParam = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), Map.class);
-        Object maxDays = executorParam.get("maxdays");
-        Object defaultMaxDays = executorParam.get("defaultMaxDays");
-        storageDeletionInfo.setLogType(logType);
-        storageDeletionInfo.setMaxDays(Integer.parseInt(String.valueOf(maxDays)));
-        storageDeletionInfo.setDefaultMaxDays(Integer.parseInt(String.valueOf(defaultMaxDays)));
-        return storageDeletionInfo;
+        StorageDeletionInfo executorParam = JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), StorageDeletionInfo.class);
+        executorParam.setLogType(logType);
+        return executorParam;
     }
 
     /**

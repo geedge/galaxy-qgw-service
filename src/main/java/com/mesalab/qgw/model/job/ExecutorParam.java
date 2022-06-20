@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class ExecutorParam {
 
-    private int maxdays;
+    private int maxDays;
 
     private Integer defaultMaxDays;
 }
