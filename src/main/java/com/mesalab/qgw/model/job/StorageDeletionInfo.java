@@ -12,5 +12,6 @@ public class StorageDeletionInfo {
 
     private String logType;
     private Integer maxDays;
+    private Integer defaultMaxDays;
 
 }

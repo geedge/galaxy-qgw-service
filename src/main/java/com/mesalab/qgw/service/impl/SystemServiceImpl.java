@@ -394,12 +394,14 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
      */
     private List<StorageDeletionInfo> preProcessOfLogType(List<StorageDeletionInfo> list) {
         if (list.size() == 1 && LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getLogType())) {
-            Integer maxDays = list.get(0).getMaxDays();
+            StorageDeletionInfo deletionInfo = list.get(0);
+            Integer maxDays = deletionInfo.getMaxDays();
+            Integer defaultMaxDays = deletionInfo.getDefaultMaxDays();
 
             list.clear();
-            list.add(new StorageDeletionInfo(LogType.TRAFFIC_LOGS.getValue(), maxDays));
-            list.add(new StorageDeletionInfo(LogType.REPORT_AND_METRICS.getValue(), maxDays));
-            list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays));
+            list.add(new StorageDeletionInfo(LogType.TRAFFIC_LOGS.getValue(), maxDays, defaultMaxDays));
+            list.add(new StorageDeletionInfo(LogType.REPORT_AND_METRICS.getValue(), maxDays, defaultMaxDays));
+            list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays, defaultMaxDays));
             return list;
         }
         list.forEach(o -> o.setLogType(LogType.getValueByLabel(o.getLogType())));
@@ -453,7 +455,6 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
 
             StorageDeletionInfo storageDeletionInfoByHandler = getStorageDeletionInfoByHandler(logType, getDeletePartHandlerByLogType(logType));
             executorParam.setMaxdays(storageDeletionInfoByHandler.getMaxDays());
-
             XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
             baseResult = executeTriggerAndUpdate(xxlJobInfo);
         } else {
@@ -561,8 +562,10 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         XxlJobInfo xxlJobInfo = mapToBean(trafficDate, XxlJobInfo.class);
         Map executorParam = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), Map.class);
         Object maxDays = executorParam.get("maxdays");
+        Object defaultMaxDays = executorParam.get("defaultMaxDays");
         storageDeletionInfo.setLogType(logType);
         storageDeletionInfo.setMaxDays(Integer.parseInt(String.valueOf(maxDays)));
+        storageDeletionInfo.setDefaultMaxDays(Integer.parseInt(String.valueOf(defaultMaxDays)));
         return storageDeletionInfo;
     }
 
@@ -698,6 +701,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
      */
     private XxlJobInfo setXxlJobInfoParam(Map data, ExecutorParam executorParam) {
         XxlJobInfo xxlJobInfo = mapToBean(data, XxlJobInfo.class);
+        ExecutorParam executor = JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), ExecutorParam.class);
+        executorParam.setDefaultMaxDays(executor.getDefaultMaxDays());
         xxlJobInfo.setExecutorParam(JsonMapper.toJsonString(executorParam));
         return xxlJobInfo;
     }
