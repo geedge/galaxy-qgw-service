@@ -107,11 +107,13 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         } else if (param.equalsIgnoreCase(EntityQueryType.TOPSERVERIP.getType())) {
             baseResult = getResultOfServerIP(comDSLObject.getQuery());
         } else if (param.equalsIgnoreCase(EntityQueryType.TOPSNI.getType())) {
-            fileSql = env.getProperty("ENTITY_TOP_SNI");
-            sql = generateTopSNI(comDSLObject.getQuery(), fileSql);
+            sql = generateTopSNI(comDSLObject.getQuery(), env.getProperty("ENTITY_TOP_SNI"));
             baseResult = query(sql);
+
+            String totalSQL = generateSNITotal(comDSLObject.getQuery(), env.getProperty("ENTITY_SNI_TOTAL"));
+            BaseResult baseResultTotal = query(totalSQL);
             int limit = StringUtil.isBlank(comDSLObject.getQuery().getLimit()) ? entityConfigSource.getTopSNIDefaultSize() : Integer.parseInt(comDSLObject.getQuery().getLimit());
-            baseResult = build(limit, baseResult);
+            baseResult = build(limit, baseResult, baseResultTotal);
         } else {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
         }
@@ -121,21 +123,16 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return baseResult;
     }
 
-    private BaseResult build(int limit, BaseResult baseResult) {
+    private BaseResult build(int limit, BaseResult baseResult, BaseResult baseResultTotal) {
+        if (!baseResult.isSuccess() || !baseResultTotal.isSuccess()) {
+            return baseResult.isSuccess() ? baseResultTotal : baseResult;
+        }
         Stopwatch watch = Stopwatch.createStarted();
-        if (!baseResult.isSuccess()) {
-            return baseResult;
-        }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+        List<Map<String, Object>> total = (List<Map<String, Object>>) baseResultTotal.getData();
+        long totalBytes = StringUtil.isEmpty(total.get(0).get("bytes")) ? 0 : Long.parseLong(total.get(0).get("bytes").toString());
+        long totalSessions = StringUtil.isEmpty(total.get(0).get("sessions")) ? 0 : Long.parseLong(total.get(0).get("sessions").toString());
         Map<String, List<String>> cnd = getCDNInfo();
-        long totalBytes = 0;
-        long totalSessions = 0;
-        if (!data.isEmpty()) {
-            Map<String, Object> map = data.get(0);
-            totalBytes = StringUtil.isEmpty(map.get("bytes")) ? 0 : Long.parseLong(map.get("bytes").toString());
-            totalSessions = StringUtil.isEmpty(map.get("sessions")) ? 0 : Long.parseLong(map.get("sessions").toString());
-            data.remove(0);
-        }
         Map<String, List<Map<String, Object>>> map = Maps.newHashMapWithExpectedSize(data.size() / 4);
         List<Map<String, Object>> cdnFilter = Lists.newArrayList();
         Iterator<Map<String, Object>> iterator = data.iterator();
@@ -233,9 +230,9 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
         baseResult.setMessage(StrUtil.format("Top {} SNI. is {}(of bytes), is {}(of sessions). is {}(of CND)",
                 result.size(),
-                NumberUtil.decimalFormat("#.##%", (bytesMerge * 1.0 / totalBytes)),
-                NumberUtil.decimalFormat("#.##%", (sessionsMerge * 1.0 / totalSessions)),
-                NumberUtil.decimalFormat("#.##%", countCDN * 1.0 / result.size())));
+                totalBytes == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (bytesMerge * 1.0 / totalBytes)),
+                totalSessions == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (sessionsMerge * 1.0 / totalSessions)),
+                result.size() == 0 ? "-" : NumberUtil.decimalFormat("#.##%", countCDN * 1.0 / result.size())));
         baseResult.setData(result);
         Map statistics = baseResult.getStatistics();
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS) + (StringUtil.isEmpty(statistics.get("elapsed")) ? 0 : Long.parseLong(statistics.get("elapsed").toString())));
@@ -495,7 +492,12 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     public String generateTopSNI(ComDSLObject.Query query, String fileSql) {
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
-        return String.format(fileSql, datasource, timeInterval, entityConfigSource.getTopSNIDataset(), datasource, timeInterval);
+        return String.format(fileSql, datasource, timeInterval, entityConfigSource.getTopSNIDataset());
+    }
+    public String generateSNITotal(ComDSLObject.Query query, String fileSql) {
+        String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
+        String datasource = query.getDataSource();
+        return String.format(fileSql, datasource, timeInterval);
     }
 
     private Map<String, String> executeQuery(String sql) {
