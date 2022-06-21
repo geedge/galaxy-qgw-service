@@ -14,3 +14,4 @@
  * 扩展储存配额接口，新增默认TTL属性(TSG-10987)
  * 扩展Schema，Traffic Log增加默认TTL(TSG-10968)
  * 优化SNI推荐(TSG-10934)
+ * 完善排序规则(TSG-11043)
