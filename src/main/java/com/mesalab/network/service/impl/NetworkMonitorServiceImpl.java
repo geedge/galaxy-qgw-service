@@ -347,10 +347,15 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
         List<ProtocolTree> targetNodes = groupByName(nodes);
 
-        targetNodes.sort(new Comparator<ProtocolTree>() {
-            @Override
-            public int compare(ProtocolTree o1, ProtocolTree o2) {
-                return (o2.getReceivedBytes() + o2.getSentBytes()) - (o1.getReceivedBytes() + o1.getSentBytes()) > 0 ? 1 : -1;
+        targetNodes.sort((o1, o2) -> {
+            long numThis = o1.getReceivedBytes() + o1.getSentBytes();
+            long numParam = o2.getReceivedBytes() + o2.getSentBytes();
+            if (numThis > numParam) {
+                return -1;
+            } else if (numThis < numParam) {
+                return 1;
+            } else {
+                return 0;
             }
         });
         Map<String, List<ProtocolTree>> protocolMap = Maps.newLinkedHashMap();
