@@ -132,6 +132,53 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         List<Map<String, Object>> total = (List<Map<String, Object>>) baseResultTotal.getData();
         long totalBytes = StringUtil.isEmpty(total.get(0).get("bytes")) ? 0 : Long.parseLong(total.get(0).get("bytes").toString());
         long totalSessions = StringUtil.isEmpty(total.get(0).get("sessions")) ? 0 : Long.parseLong(total.get(0).get("sessions").toString());
+        List<Map<String, Object>> result = mergeSNI(data);
+
+        //sort
+        result.sort((o1, o2) -> {
+            long numThis = StringUtil.isEmpty(o2.get("sessions")) ? 0 : Long.parseLong(o2.get("sessions").toString());
+            long numParam = StringUtil.isEmpty(o1.get("sessions")) ? 0 : Long.parseLong(o1.get("sessions").toString());
+            if (numThis > numParam) {
+                return 1;
+            } else if (numThis < numParam) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+
+        result = result.size() > limit ? result.subList(0, limit) : result;
+
+        long sessionsMerge = 0;
+        long bytesMerge = 0;
+        long countCDN = 0;
+
+        for (Map<String, Object> item : result) {
+            bytesMerge += StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
+            sessionsMerge += StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
+            if (BooleanUtil.toBoolean(String.valueOf(item.get("isCDN")))) {
+                countCDN++;
+            }
+            item.remove("sessions");
+            item.remove("bytes");
+            item.remove("isCDN");
+        }
+
+        baseResult.setMessage(StrUtil.format("Top {} SNI，{} of ssl bytes, {} of ssl sessions，{} CDNs",
+                result.size(),
+                totalBytes == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (bytesMerge * 1.0 / totalBytes)),
+                totalSessions == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (sessionsMerge * 1.0 / totalSessions)),
+                result.size() == 0 ? "-" : countCDN));
+        baseResult.setData(result);
+        Map statistics = baseResult.getStatistics();
+        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS) + (StringUtil.isEmpty(statistics.get("elapsed")) ? 0 : Long.parseLong(statistics.get("elapsed").toString())));
+        statistics.put("result_rows", result.size());
+        statistics.put("result_size", baseResult.getData().toString().getBytes().length);
+        return baseResult;
+    }
+
+    @Override
+    public List<Map<String, Object>> mergeSNI(List<Map<String, Object>> data) {
         Map<String, List<String>> cnd = getCDNInfo();
         Map<String, List<Map<String, Object>>> map = Maps.newHashMapWithExpectedSize(data.size() / 4);
         List<Map<String, Object>> cdnFilter = Lists.newArrayList();
@@ -152,7 +199,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             try {
                 key = FormatUtils.getTopPrivateDomain(FormatUtils.getDomain(name));
             } catch (RuntimeException outException) {
-                log.error("Parse top-level domain exceptions, exception domain names:" + datum);
+                log.warn("Parse top-level domain exceptions, exception domain names:" + datum);
             }
             //2. exception data
             if (StringUtil.isBlank(key)) {
@@ -207,45 +254,24 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             result.addAll(map.get(key));
         }
         result.addAll(cdnFilter);
-
-        //sort
-        result.sort((o1, o2) -> (StringUtil.isEmpty(o2.get("sessions")) ? 0 : Long.parseLong(o2.get("sessions").toString())
-                - (StringUtil.isEmpty(o1.get("sessions")) ? 0 : Long.parseLong(o1.get("sessions").toString())) > 0 ? 1 : -1));
-        result = result.size() > limit ? result.subList(0, limit) : result;
-
-        long sessionsMerge = 0;
-        long bytesMerge = 0;
-        long countCDN = 0;
-
-        for (Map<String, Object> item : result) {
-            bytesMerge += StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
-            sessionsMerge += StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
-            if (BooleanUtil.toBoolean(String.valueOf(item.get("isCDN")))) {
-                countCDN++;
-            }
-            item.remove("sessions");
-            item.remove("bytes");
-            item.remove("isCDN");
-        }
-
-        baseResult.setMessage(StrUtil.format("Top {} SNI. is {}(of bytes), is {}(of sessions). is {}(of CND)",
-                result.size(),
-                totalBytes == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (bytesMerge * 1.0 / totalBytes)),
-                totalSessions == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (sessionsMerge * 1.0 / totalSessions)),
-                result.size() == 0 ? "-" : NumberUtil.decimalFormat("#.##%", countCDN * 1.0 / result.size())));
-        baseResult.setData(result);
-        Map statistics = baseResult.getStatistics();
-        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS) + (StringUtil.isEmpty(statistics.get("elapsed")) ? 0 : Long.parseLong(statistics.get("elapsed").toString())));
-        statistics.put("result_rows", result.size());
-        statistics.put("result_size", baseResult.getData().toString().getBytes().length);
-        return baseResult;
+        return result;
     }
 
     private boolean inCDN(Map<String, List<String>> cnd, String name) {
         for (String key : cnd.keySet()) {
-            List<String> list = cnd.get(key);
-            if (list.stream().anyMatch(o -> (name.toLowerCase().endsWith(".".concat(o.toLowerCase())))
-                    || (name.equalsIgnoreCase(o)))) {
+            List<String> cdnList = cnd.get(key);
+            String[] parma = StrUtil.split(name, ".");
+            out:
+            for (String cdn : cdnList) {
+                String[] flag = StrUtil.split(cdn, ".");
+                if (flag.length > parma.length) {
+                    continue;
+                }
+                for (int i = 1; i <= flag.length; i++) {
+                    if (!String.valueOf(parma[parma.length - i]).toLowerCase().equals(String.valueOf(flag[flag.length - i]).toLowerCase())) {
+                        continue out;
+                    }
+                }
                 return true;
             }
         }

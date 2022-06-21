@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({EngineTest.class, ClickHouseTest.class, DruidTest.class, IpLocationTest.class,
-        ProtocolTreeTest.class, AvroSchemaDynamicTest.class, AvroSchemaFormatTest.class})
+        ProtocolTreeTest.class, TopEntityTest.class, AvroSchemaDynamicTest.class, AvroSchemaFormatTest.class})
 public class QGWSuiteTest {
 
 
