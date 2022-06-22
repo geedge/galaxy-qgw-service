@@ -179,7 +179,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
     @Override
     public List<Map<String, Object>> mergeSNI(List<Map<String, Object>> data) {
-        Map<String, List<String>> cnd = getCDNInfo();
+        Map<String, List<String>> cnd = cdnData(getCfgCDN());
         Map<String, List<Map<String, Object>>> map = Maps.newHashMapWithExpectedSize(data.size() / 4);
         List<Map<String, Object>> cdnFilter = Lists.newArrayList();
         Iterator<Map<String, Object>> iterator = data.iterator();
@@ -193,21 +193,14 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                 continue;
             }
             datum.put("isCDN", false);
-
-            //get topPrivateDomain
-            String key = null;
-            try {
-                key = FormatUtils.getTopPrivateDomain(FormatUtils.getDomain(name));
-            } catch (RuntimeException outException) {
-                log.warn("Parse top-level domain exceptions, exception domain names:" + datum);
-            }
+            String key = getTopPrivateDomain(name);
             //2. exception data
             if (StringUtil.isBlank(key)) {
                 map.put(name, Lists.newArrayList(datum));
                 continue;
             }
             //3. first add
-            if (!map.containsKey(key)) {
+            if (StringUtil.isEmpty(map.get(key))) {
                 datum.put("ssl_sni", FormatUtils.getDomain(name));
                 map.put(key, Lists.newArrayList(datum));
                 continue;
@@ -257,28 +250,59 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return result;
     }
 
-    private boolean inCDN(Map<String, List<String>> cnd, String name) {
-        for (String key : cnd.keySet()) {
-            List<String> cdnList = cnd.get(key);
-            String[] parma = StrUtil.split(name, ".");
-            out:
-            for (String cdn : cdnList) {
-                String[] flag = StrUtil.split(cdn, ".");
-                if (flag.length > parma.length) {
-                    continue;
-                }
-                for (int i = 1; i <= flag.length; i++) {
-                    if (!String.valueOf(parma[parma.length - i]).toLowerCase().equals(String.valueOf(flag[flag.length - i]).toLowerCase())) {
-                        continue out;
-                    }
-                }
-                return true;
+    public boolean inCDN(Map<String, List<String>> cdnMap, String name) {
+        String topPrivateDomain = getTopPrivateDomain(name);
+        List<String> list = cdnMap.get(topPrivateDomain);
+        if (StringUtil.isEmpty(list)) {
+            return false;
+        }
+        String[] parma = StrUtil.split(name, ".");
+        out:
+        for (String cdn : list) {
+            String[] flag = StrUtil.split(cdn, ".");
+            if (flag.length > parma.length) {
+                continue;
             }
+            for (int i = 1; i <= flag.length; i++) {
+                if (!String.valueOf(parma[parma.length - i]).toLowerCase().equals(String.valueOf(flag[flag.length - i]).toLowerCase())) {
+                    continue out;
+                }
+            }
+            return true;
         }
         return false;
     }
 
-    private Map<String, List<String>> getCDNInfo() {
+    public Map<String, List<String>> cdnData(Map<String, List<String>> cnd) {
+        Map<String, List<String>> map = Maps.newHashMap();
+        for (String key : cnd.keySet()) {
+            List<String> list = cnd.get(key);
+            if (StringUtil.isEmpty(list)) {
+                continue;
+            }
+            list.forEach(o -> {
+                String topPrivateDomain = getTopPrivateDomain(o);
+                if (StringUtil.isEmpty(map.get(topPrivateDomain))) {
+                    map.put(topPrivateDomain, Lists.newArrayList(o));
+                } else {
+                    map.get(topPrivateDomain).add(o);
+                }
+            });
+        }
+        return map;
+    }
+
+    private String getTopPrivateDomain(String domain) {
+        String topPrivateDomain = null;
+        try {
+            topPrivateDomain = FormatUtils.getTopPrivateDomain(domain);
+        } catch (RuntimeException outException) {
+            log.warn("Parse top-level domain exceptions, exception domain names:" + domain);
+        }
+        return topPrivateDomain;
+    }
+
+    private Map<String, List<String>> getCfgCDN() {
         Object codeInfo = metadataService.getCfg("public_code_info.json");
         if (StringUtil.isNotEmpty(codeInfo)) {
             Map<String, Map<String, List<String>>> data = (Map<String, Map<String, List<String>>>) JsonMapper.fromJsonString(codeInfo.toString(), Map.class);
