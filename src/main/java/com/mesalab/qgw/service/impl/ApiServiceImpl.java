@@ -83,8 +83,9 @@ public class ApiServiceImpl implements ApiService {
         try {
             statement = CCJSqlParserUtil.parse(param.getQuery());
         } catch (JSQLParserException e) {
+            log.error("SQL Syntax Error: {}",e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
-                    "SQL Syntax Error: " + simplyErrorMessage(String.valueOf(e.getCause())), null);
+                    "SQL Syntax Error: " + simplyErrorMessage(e.getMessage()), null);
         }
         BaseResult baseResult;
         log.debug("Request option ：{}, SQL ：{}", param.getOption(), param.getQuery());
@@ -227,7 +228,8 @@ public class ApiServiceImpl implements ApiService {
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
             dialect = (Dialect) constructor.newInstance(param);
         } catch (ReflectiveOperationException | RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
+            log.error("Dialect conversion instance exception:{}",e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Dialect conversion instance exception！", e);
         }
         return dialect;
     }
@@ -414,7 +416,7 @@ public class ApiServiceImpl implements ApiService {
 
 
         } catch (JSQLParserException | RuntimeException e) {
-            log.error("sqlParser error: ", e);
+            log.error("sqlParser error: {}", e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error:", e);
 
         }
@@ -472,7 +474,8 @@ public class ApiServiceImpl implements ApiService {
             UDFElements udfElements = new UDFElements(funName, expressions);
             udf = (UDF) constructor.newInstance(udfElements);
         } catch (ReflectiveOperationException | RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "自定义函数转换实例异常！", e);
+            log.error("Custom function conversion instance exception:{}",e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Custom function conversion instance exception！", e);
         }
         return udf;
     }
@@ -514,7 +517,8 @@ public class ApiServiceImpl implements ApiService {
             param.setDialectDBType(DBTypeEnum.HBASE.getValue());
             param.setQuery(StrFormatter.format("SELECT COLUMN_NAME as \"name\", DATA_TYPE as \"type\" FROM SYSTEM.CATALOG WHERE TABLE_NAME= '{}' AND COLUMN_NAME  IS NOT NULL", tableName));
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), param.getTableName() + " 表未在平台注册，请联系数据平台负责人", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                    param.getTableName() + " The form is not registered on the platform, please contact the person in charge of the data platform", null);
         }
 
         param.setFormat(QueryFormatEnum.JSON.getValue());

@@ -131,6 +131,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result = BaseResultGenerator.success("Avro Schema Validation Success.", data, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
+            log.error("Avro Schema Validation Fail:{}", e);
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                     ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "Avro Schema Validation Fail:", e);
 
@@ -166,6 +167,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
+            log.error("Metadata Validation Fail:{}", e);
             throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Metadata Validation Fail:", e);
         }
@@ -228,6 +230,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
+            log.error("Execute Poc SQL Fail:{}", e);
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
                     ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:", e);
         }
@@ -267,6 +270,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
+            log.error("Get Poc SQL Fail:{}", e);
             throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Get Poc SQL Fail:", e);
         }
@@ -597,7 +601,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             if (!dbName.equals(schema.getNamespace())) continue;
             BaseResult baseResult = getBaseResultByEngine(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
             if (HttpStatus.SC_OK != baseResult.getStatus()) {
-                log.error("查询表结构失败：" + baseResult.getMessage());
+                log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
                 throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
                         " The Table[" + tableName + "] Structure query failed", null);
@@ -619,7 +623,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             Map<String, Object> entriesOnlyOnLeft = difference.entriesOnlyOnLeft();
 
             if (entriesOnlyOnLeft.size() > 0) {
-                log.error("键只存在于左边Map的映射项:" + entriesOnlyOnLeft);
+                log.error("Schema Fields greater than Table Fields,Schema " + tableName + " exist fields :" + entriesOnlyOnLeft);
                 throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(),
                         " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft, null);

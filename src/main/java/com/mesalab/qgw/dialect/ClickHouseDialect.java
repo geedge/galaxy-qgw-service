@@ -985,7 +985,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), message.get(),
-                    results.get("result"), null, null, param.getFormat());
+                    results.get("message"), null, null, param.getFormat());
         }
         return build();
     }
@@ -1025,7 +1025,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         message = message.startsWith("Code: ") ?
                 message.substring(i, !message.contains("(version ") ? message.length() : message.indexOf("(version "))
                 : message;
-        return StrUtil.removeAllLineBreaks("SQL Execution Error: ".concat(message)).trim();
+        return StrUtil.removeAllLineBreaks("Execution Error: ".concat(message)).trim();
     }
 
     private boolean containAggregateFunction(String sql) {

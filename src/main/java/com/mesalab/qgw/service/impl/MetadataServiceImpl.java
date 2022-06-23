@@ -186,7 +186,8 @@ public class MetadataServiceImpl implements MetadataService {
     public Schema getSchemaByName(String tableName) {
         if (!getAllTable().contains(tableName)) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), tableName + " schema 未在平台注册，请联系数据平台负责人", null);
+                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                    tableName + " The schema is not registered on the platform, please contact the person in charge of the data platform", null);
         }
         Schema schema;
         if (!StrUtil.isBlankIfStr(schema = schemaCache.get(tableName))) {
@@ -196,7 +197,7 @@ public class MetadataServiceImpl implements MetadataService {
             String content = configService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
             if (StrUtil.isBlankIfStr(content)) {
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), tableName + " 获取Schema配置异常", null);
+                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), tableName + " Get Schema configuration exception", null);
             }
             schemaCache.put(tableName, schema = parseSchema(content));
             configService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {

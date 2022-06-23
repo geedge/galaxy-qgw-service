@@ -130,7 +130,7 @@ public class SQLHelper {
             }
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error.", e.getCause());
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error.", e);
         }
     }
 }

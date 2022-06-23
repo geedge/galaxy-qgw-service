@@ -357,7 +357,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
             dialect = (Dialect) constructor.newInstance(apiParam);
         } catch (ReflectiveOperationException | RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
+            log.error("Dialect conversion instance exception:{}", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Dialect conversion instance exception！", e);
         }
         return dialect;
     }
@@ -369,7 +370,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         if (queryId.contains(queryIdSeparator)) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "queryId 不在支持范围", null);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "queryId is not supported", null);
         }
         return DBTypeEnum.CLICKHOUSE.getValue();
     }
