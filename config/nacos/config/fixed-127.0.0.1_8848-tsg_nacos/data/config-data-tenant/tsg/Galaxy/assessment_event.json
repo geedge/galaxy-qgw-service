@@ -5,8 +5,6 @@
   "doc": {
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
-    "ttl": null,
-    "default_ttl": 2592000,
     "index_key": [
       "common_log_id",
       "common_recv_time"
@@ -23,8 +21,7 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -35,8 +32,7 @@
         "format": {
           "functions": "snowflake_id"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -44,8 +40,7 @@
       "name": "lot_number",
       "label": "Lot Number",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -53,8 +48,7 @@
       "name": "file_name",
       "label": "File Name",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -62,8 +56,7 @@
       "name": "features",
       "label": "Features",
       "doc": {
-        "visibility": "hidden",
-        "ttl": null
+        "visibility": "hidden"
       },
       "type": "string"
     },
@@ -71,8 +64,7 @@
       "name": "assessment_type",
       "label": "Assessment Type",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -80,8 +72,7 @@
       "name": "size",
       "label": "Size",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -89,8 +80,7 @@
       "name": "file_checksum_sha",
       "label": "SHA256",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -101,8 +91,7 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -113,8 +102,7 @@
         "constraints": {
           "type": "file"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     }

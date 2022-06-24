@@ -5,8 +5,6 @@
   "doc": {
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
-    "ttl": null,
-    "default_ttl": 2592000,
     "index_key": [
       "common_log_id",
       "common_recv_time",
@@ -155,8 +153,7 @@
         "format": {
           "functions": "current_timestamp"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -167,8 +164,7 @@
         "format": {
           "functions": "snowflake_id"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -176,8 +172,7 @@
       "name": "common_policy_id",
       "label": "Policy ID",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "long"
     },
@@ -195,8 +190,7 @@
             "value": "ipv6"
           }
         ],
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -204,8 +198,7 @@
       "name": "common_entrance_id",
       "label": "Entrance ID",
       "doc": {
-        "visibility": "disabled",
-        "ttl": null
+        "visibility": "disabled"
       },
       "type": "int"
     },
@@ -213,8 +206,7 @@
       "name": "common_device_id",
       "label": "Device ID",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -222,8 +214,7 @@
       "name": "common_egress_link_id",
       "label": "Egress Link ID",
       "doc": {
-        "visibility": "hidden",
-        "ttl": null
+        "visibility": "hidden"
       },
       "type": "int"
     },
@@ -231,8 +222,7 @@
       "name": "common_ingress_link_id",
       "label": "Ingress Link ID",
       "doc": {
-        "visibility": "hidden",
-        "ttl": null
+        "visibility": "hidden"
       },
       "type": "int"
     },
@@ -240,8 +230,7 @@
       "name": "common_user_region",
       "label": "User Region",
       "doc": {
-        "visibility": "hidden",
-        "ttl": null
+        "visibility": "hidden"
       },
       "type": "string"
     },
@@ -256,8 +245,7 @@
           "functions": "geo_ip_country,geo_asn",
           "appendTo": "ad_target_ip_location,ad_target_ip_asn"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -265,8 +253,7 @@
       "name": "ad_target_port",
       "label": "Target Port",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -274,8 +261,7 @@
       "name": "ad_cc_target_url",
       "label": "Target URL",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -283,8 +269,7 @@
       "name": "ad_target_ip_location",
       "label": "Target Location",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -292,8 +277,7 @@
       "name": "ad_target_ip_asn",
       "label": "Target ASN",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -301,8 +285,7 @@
       "name": "ad_protocol",
       "label": "Protocol",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -310,8 +293,7 @@
       "name": "ad_method",
       "label": "Method",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -319,8 +301,7 @@
       "name": "ad_claimed_src_ip_profile_id",
       "label": "Claimed Profile ID",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -328,8 +309,7 @@
       "name": "ad_reflector_profile_id",
       "label": "Reflector Profile ID",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -337,8 +317,7 @@
       "name": "ad_sent_pkt_num",
       "label": "Packets Sent",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -346,8 +325,7 @@
       "name": "ad_sent_byte_num",
       "label": "Bytes Sent",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -355,8 +333,7 @@
       "name": "ad_cc_initiate_connection_num",
       "label": "Initiate Numbers",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -364,8 +341,7 @@
       "name": "ad_cc_established_connection_num",
       "label": "Established Numbers",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -373,8 +349,7 @@
       "name": "ad_cc_rejected_connection_num",
       "label": "Rejected Numbers",
       "doc": {
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     },
@@ -385,8 +360,7 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "visibility": "enabled"
       },
       "type": "int"
     }
