@@ -15,3 +15,4 @@
  * 扩展Schema，Traffic Log增加默认TTL(TSG-10968)
  * 优化SNI推荐(TSG-10934)
  * 完善排序规则(TSG-11043)
+ * 对所有完整匹配的SNI，增加$ 通配符(GAL-195)

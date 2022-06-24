@@ -31,10 +31,7 @@ import com.mesalab.services.common.dsl.ComDSLParse;
 import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
-import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.FormatUtils;
-import com.zdjizhi.utils.StringUtil;
-import com.zdjizhi.utils.TimeConstants;
+import com.zdjizhi.utils.*;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -158,6 +155,9 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             sessionsMerge += StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
             if (BooleanUtil.toBoolean(String.valueOf(item.get("isCDN")))) {
                 countCDN++;
+            }
+            if (!StringUtil.startsWith(String.valueOf(item.get("ssl_sni")), "*")) {
+                item.replace("ssl_sni", "$".concat(String.valueOf(item.get("ssl_sni"))));
             }
             item.remove("sessions");
             item.remove("bytes");
