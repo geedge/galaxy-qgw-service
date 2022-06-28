@@ -1,7 +1,6 @@
 package com.mesalab.qgw.service;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
@@ -9,8 +8,6 @@ import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.network.service.NetworkMonitorService;
 import com.mesalab.services.service.EntityService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +27,7 @@ public class TopEntityTest extends GalaxyQGWApplicationTests {
     @Autowired
     EntityService entityService;
 
-    private List<Map<String, Object>> getLiveChartsData(String fileName) {
+    private List<Map<String, Object>> getEntityData(String fileName) {
         File file = new File("benchmark" + File.separator + "entity_dataset" + File.separator + fileName);
         List<String> list = FileUtil.readLines(file, CharsetUtil.UTF_8);
         List<Map<String, Object>> data = Lists.newArrayList();
@@ -51,7 +48,7 @@ public class TopEntityTest extends GalaxyQGWApplicationTests {
     @Test
     public void testCUCCSNIOutput() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        entityService.mergeSNI(getLiveChartsData("XJ-CUCC-SNI-Top200w.txt"));
+        entityService.mergeSNI(getEntityData("XJ-CUCC-SNI-Top200w.txt"));
         stopwatch.stop();
         long millis = stopwatch.elapsed(MILLISECONDS);
         log.info("time:{} ms", millis);
@@ -60,7 +57,7 @@ public class TopEntityTest extends GalaxyQGWApplicationTests {
     @Test
     public void testE21SNIOutput() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        entityService.mergeSNI(getLiveChartsData("E21-SNI-Top200w.txt"));
+        entityService.mergeSNI(getEntityData("E21-SNI-Top200w.txt"));
         stopwatch.stop();
         long millis = stopwatch.elapsed(MILLISECONDS);
         log.info("time:{} ms", millis);

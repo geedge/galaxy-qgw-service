@@ -96,7 +96,6 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     public BaseResult getEntityInfo(String param, ComDSLObject comDSLObject) {
 
         BaseResult baseResult;
-        String fileSql;
         String sql;
         if (param.equalsIgnoreCase(EntityQueryType.ACTIVECLIENTIP.getType())) {
             setDefaultValue(comDSLObject.getQuery());
@@ -156,7 +155,8 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             if (BooleanUtil.toBoolean(String.valueOf(item.get("isCDN")))) {
                 countCDN++;
             }
-            if (!StringUtil.startsWith(String.valueOf(item.get("ssl_sni")), "*")) {
+            if (!StringUtil.startsWith(String.valueOf(item.get("ssl_sni")), "*")
+                    && !StringUtil.startsWith(String.valueOf(item.get("ssl_sni")), "$")) {
                 item.replace("ssl_sni", "$".concat(String.valueOf(item.get("ssl_sni"))));
             }
             item.remove("sessions");
@@ -186,31 +186,42 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         while (iterator.hasNext()) {
             Map<String, Object> datum = iterator.next();
             String name = String.valueOf(datum.get("ssl_sni"));
-            //1. CND filter
-            if (inCDN(cnd, name)) {
-                datum.put("isCDN", true);
-                cdnFilter.add(datum);
-                continue;
-            }
-            datum.put("isCDN", false);
             String key = getTopPrivateDomain(name);
-            //2. exception data
+            datum.put("isCDN", false);
+
+            //1. filter exception data
             if (StringUtil.isBlank(key)) {
                 map.put(name, Lists.newArrayList(datum));
                 continue;
             }
-            //3. first add
+            String domain = FormatUtils.getDomain(name);
+
+            //2. filter CND
+            if (inCDN(cnd, domain)) {
+                datum.put("isCDN", true);
+                cdnFilter.add(datum);
+                continue;
+            }
+
+            //3 filter TopPrivateDomain
+            if (key.equalsIgnoreCase(domain)) {
+                datum.put("ssl_sni", domain);
+                map.put("$".concat(domain), Lists.newArrayList(datum));
+                continue;
+            }
+
+            //4. first add
             if (StringUtil.isEmpty(map.get(key))) {
-                datum.put("ssl_sni", FormatUtils.getDomain(name));
+                datum.put("ssl_sni", domain);
                 map.put(key, Lists.newArrayList(datum));
                 continue;
             }
 
-            //4. merge
+            //5. merge
             List<Map<String, Object>> mapList = map.get(key);
             for (Map<String, Object> item : mapList) {
                 List<String> domainBefore = Splitter.on(".").omitEmptyStrings().splitToList(String.valueOf(item.get("ssl_sni")));
-                List<String> domainAfter = Splitter.on(".").omitEmptyStrings().splitToList(FormatUtils.getDomain(name));
+                List<String> domainAfter = Splitter.on(".").omitEmptyStrings().splitToList(domain);
                 Stack<String> stackBefore = new Stack<>();
                 Stack<String> stackAfter = new Stack<>();
                 domainBefore.forEach(stackBefore::push);
@@ -222,7 +233,8 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                     if ("*".equals(levelAfter) || "*".equals(levelBefore)) {
                         break;
                     }
-                    if (!levelBefore.equalsIgnoreCase(levelAfter)) {
+                    if (!levelBefore.equalsIgnoreCase(levelAfter)
+                            || (stackBefore.isEmpty() || stackAfter.isEmpty())) {
                         break;
                     }
                     stack.push(levelBefore);
@@ -250,13 +262,13 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return result;
     }
 
-    public boolean inCDN(Map<String, List<String>> cdnMap, String name) {
-        String topPrivateDomain = getTopPrivateDomain(name);
+    public boolean inCDN(Map<String, List<String>> cdnMap, String domain) {
+        String topPrivateDomain = getTopPrivateDomain(domain);
         List<String> list = cdnMap.get(topPrivateDomain);
         if (StringUtil.isEmpty(list)) {
             return false;
         }
-        String[] parma = StrUtil.split(name, ".");
+        String[] parma = StrUtil.split(domain, ".");
         out:
         for (String cdn : list) {
             String[] flag = StrUtil.split(cdn, ".");
