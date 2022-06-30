@@ -2,15 +2,16 @@ package com.mesalab.qgw.controller;
 
 import cn.hutool.core.util.NumberUtil;
 import com.jayway.jsonpath.JsonPath;
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,7 +45,8 @@ public class MetadataController {
     public BaseResult updateSchema(@PathVariable String name, @RequestBody Map<String, Object> obj) {
         log.info("update Schema api, params is: {}-{}", name, obj);
         if (StringUtil.isBlank(name) || StringUtil.isEmpty(obj)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "schema param error");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.SCHEMA_PARAM_ERROR);
         }
         validationParam(name, obj);
         return metadataService.updateSchema(name, obj);
@@ -52,20 +54,21 @@ public class MetadataController {
 
     private void validationParam(String name, Map<String, Object> obj) {
         if (!metadataService.getAllTable().contains(name)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), name + " not support setting TTL");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), name + " not support setting TTL");
         }
         String param = JsonMapper.toJsonString(obj);
         if (!VISIBILITY.containsAll(JsonPath.read(param, "$.fields[?(@.doc.visibility != null)].doc.visibility"))) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "visibility value error");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.VISIBILITY_VALUE_ERROR);
         }
         List<Object> schemaDocTTL = JsonPath.read(param, "$.[?(@.doc.ttl != null)].doc.ttl");
         if (StringUtil.isNotEmpty(schemaDocTTL.stream().filter(o -> !(NumberUtil.isLong(String.valueOf(o)))).toArray())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "ttl value error");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),ErrorMessage.TTL_VALUE_ERROR);
         }
         List<Object> fieldDocTTL = JsonPath.read(param, "$.fields[?(@.doc.ttl != null)].doc.ttl");
         Object[] objects3 = fieldDocTTL.parallelStream().filter(o -> !NumberUtil.isLong(String.valueOf(o))).toArray();
         if (StringUtil.isNotEmpty(objects3)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "ttl value error");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),ErrorMessage.TTL_VALUE_ERROR);
         }
     }
 }

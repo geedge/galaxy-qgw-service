@@ -19,7 +19,6 @@ import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.RelationService;
 import com.zdjizhi.utils.DateUtils;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.EnvironmentAware;
@@ -68,7 +67,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
 
     private BaseResult formatResult(BaseResult baseResult) {
 
-        if (String.valueOf(HttpStatus.SC_OK).equals(String.valueOf(baseResult.getStatus()))) {
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(String.valueOf(baseResult.getStatus()))) {
             baseResult.setMeta(null);
             List<Map> resultList = new ObjectMapper().convertValue(baseResult.getData(), new TypeReference<List<Map>>() {
             });

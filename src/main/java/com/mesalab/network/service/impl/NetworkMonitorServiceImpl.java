@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
@@ -24,7 +25,6 @@ import com.mesalab.network.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -68,7 +68,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         BaseResult baseResult;
         String sql = generateProtocolTreeSql(dslObject.getQuery(), environment.getProperty("PROTOCOL_TREE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
             List<Map> resultList = (List<Map>) resultMap.get("data");
             if(StringUtil.isEmpty(resultList)) {
@@ -87,8 +87,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         Map<String, String> dataRateResult = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), environment.getProperty("NETWORK_STATISTICS_SUMMARY")));
         Map<String, String> currentSessionResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), environment.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
         BaseResult baseResult;
-        if (String.valueOf(HttpStatus.SC_OK).equals(currentSessionResult.get("status"))
-                && String.valueOf(HttpStatus.SC_OK).equals(dataRateResult.get("status"))) {
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(currentSessionResult.get("status"))
+                && String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataRateResult.get("status"))) {
             Map statDataResult = (Map) JsonMapper.fromJsonString(currentSessionResult.get("result"), Map.class);
             List<Map> statData = (List<Map>) statDataResult.get("data");
             Map summaryDataResult = (Map) JsonMapper.fromJsonString(dataRateResult.get("result"), Map.class);
@@ -173,7 +173,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         BaseResult baseResult;
         String sql = generateProtocolDataRateSql(dslObject.getQuery(), environment.getProperty("PROTOCOL_DATA_RATE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             data.forEach(o -> {

@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
-import org.apache.http.HttpStatus;
 
 
 import java.sql.*;
@@ -132,7 +131,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         watch.start();
         Map<String, Object> results = executeQuery(sql);
         int status = Integer.parseInt(String.valueOf(results.get("status")));
-        if (status == HttpStatus.SC_OK) {
+        if (status == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), QueryFormatEnum.JSON.getValue());
         } else {
@@ -186,7 +185,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
         statistics.put("result_size", dataList.toString().getBytes().length);
         statistics.put("result_rows", dataList.size());
-        result.put("status", HttpStatus.SC_OK);
+        result.put("status", ResultStatusEnum.SUCCESS.getCode());
         result.put("statistics", statistics);
         result.put("meta", metaDataList);
         result.put("data", dataList);

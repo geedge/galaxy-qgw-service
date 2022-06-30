@@ -22,7 +22,6 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.*;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
@@ -112,7 +111,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         try {
             response = restClient.performRequest(request);
             ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
-            baseResult = BaseResultGenerator.generate(HttpStatus.SC_OK, ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
+            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
                     (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
 
         } catch (IOException e) {

@@ -14,6 +14,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -33,7 +34,6 @@ import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaParseException;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -72,7 +72,6 @@ public class MetadataServiceImpl implements MetadataService {
     private final static String KEY = "key";
     private final static String VALUE = "value";
     private final static String CODE = "code";
-    private final static String NOT_FOUND = "Not found, check url please";
 
     @PostConstruct
     public void init() {
@@ -87,7 +86,7 @@ public class MetadataServiceImpl implements MetadataService {
         } else if (MetadataTypeEnum.FIELDS.getValue().equals(type)) {
             return loadFields(name);
         }
-        throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), NOT_FOUND);
+        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.NOT_FOUND);
     }
 
     @Override
@@ -229,7 +228,7 @@ public class MetadataServiceImpl implements MetadataService {
             }
             return BaseResultGenerator.success4Message("ok");
         } catch (NacosException e) {
-            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), e.getMessage());
         }
     }
 
@@ -249,7 +248,7 @@ public class MetadataServiceImpl implements MetadataService {
             log.info("push Schema, content is: {}", content);
             return configService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
-            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ResultCodeEnum.UNKNOW_ERROR.getCode(), "get Schema Error");
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "get Schema Error");
         }
     }
 
@@ -304,7 +303,7 @@ public class MetadataServiceImpl implements MetadataService {
     private Map loadFields(String name) {
         Schema schema = getSchemaByName(name);
         if (StringUtil.isEmpty(schema)) {
-            throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), NOT_FOUND);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.NOT_FOUND);
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
         Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
@@ -522,7 +521,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
         );
         if (tables.isEmpty()) {
-            throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), NOT_FOUND);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.NOT_FOUND);
         }
         date.put("type", "enum");
         date.put("name", name);

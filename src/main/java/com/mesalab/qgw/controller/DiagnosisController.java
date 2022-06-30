@@ -1,6 +1,7 @@
 package com.mesalab.qgw.controller;
 
 import cn.hutool.http.HttpStatus;
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.DiagnosisOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -40,7 +41,7 @@ public class DiagnosisController {
     public BaseResult executePocSql(String isSaved, @RequestParam(defaultValue = "parse") String option) throws BusinessException {
         if (Arrays.stream(DiagnosisOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(option))) {
             throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Param Syntax Error: The option must be either validation or execution");
+                    ErrorMessage.DIAGNOSIS_OPTION_ERROR);
         }
         return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved), option);
     }

@@ -1,13 +1,14 @@
 package com.mesalab.network.dsl;
 
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.http.HttpStatus;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
@@ -32,32 +33,32 @@ public class DSLValidate {
 
     public void executeValidate(DSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.DSL_OBJECT_IS_INVALID);
         }
         if (StringUtil.isEmpty(dslObject.getQuery())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.QUERY_IS_INVALID);
         }
         DSLObject.QueryBean.Parameters parameters = dslObject.getQuery().getParameters();
         if (StringUtil.isEmpty(parameters)) {
             return;
         }
         if (!isValidGranularity(parameters.getGranularity())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "query.Granularity value is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.GRANULARITY_VALUE_IS_INVALID);
         }
         if (!isValidMatch(parameters.getMatch())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "query.Match type is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.MATCH_IS_INVALID);
         }
         if (!isValidRange(parameters.getRange())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "query.Range type is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.RANGE_TYPE_IS_INVALID);
         }
         if (!isValidIntervals(parameters.getIntervals())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "query.Intervals is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.INTERVALS_TYPE_IS_INVALID);
         }
     }
 
@@ -90,10 +91,11 @@ public class DSLValidate {
             return true;
         }
         for (DSLObject.QueryBean.Parameters.FilterBean match : filterBeanList) {
-            Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(match.getType())), "match type is illegal");
+            Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(match.getType())), ErrorMessage.MATCH_FIELD_VALUES_ERROR);
             for (String fieldValue : match.getFieldValues()) {
                 if (fieldValue.startsWith("*") || fieldValue.endsWith("$")) {
-                    throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Match fieldValues cannot startWith '*' or endWith '$'");
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                            ErrorMessage.MATCH_FIELD_VALUES_ERROR);
                 }
             }
         }
@@ -129,15 +131,18 @@ public class DSLValidate {
             return true;
         }
         if (intervals.size() != 1) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Intervals param error");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         String[] split = intervals.get(0).split("/");
         if (split.length != 2) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Intervals param error");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         for (String dateTimeStr : split) {
             if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Time format should be: yyyy-MM-dd HH:mm:ss");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        ErrorMessage.TIME_FORMAT_ERROR);
             }
         }
         try {
@@ -146,7 +151,7 @@ public class DSLValidate {
                 throw new RuntimeException("Intervals value should be [start, end]");
             }
         } catch (RuntimeException e) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
         }
         return true;
     }

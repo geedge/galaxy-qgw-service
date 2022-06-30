@@ -1,14 +1,15 @@
 package com.mesalab.cn.component;
 
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.cn.common.enums.*;
 import com.mesalab.cn.common.pojo.DSLObject;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.http.HttpStatus;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,53 +38,53 @@ public class DslValidate {
 
     public void executeValidate(DSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.DSL_OBJECT_IS_INVALID);
         }
         DSLObject.Query query = dslObject.getQuery();
         if (StringUtil.isEmpty(query)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.QUERY_IS_INVALID);
         }
         if (StringUtil.isEmpty(EngineTypeEnum.getByEngine(query.getDataEngine()))) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.dataEngine is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.DATA_ENGINE_IS_INVALID);
         }
         if(ANALYSIS_ENGINE.getEngine().equals(query.getDataEngine())){
             if (StringUtil.isBlank(query.getDataSource())) {
-                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        "DSLObject.query.dataSource is invalid");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        ErrorMessage.DATASOURCE_IS_INVALID);
             }
         } else {
             if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))) {
-                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        "DSLObject.query.dataSource is invalid");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        ErrorMessage.DATASOURCE_IS_INVALID);
             }
         }
         DSLObject.Query.Parameters parameters = query.getParameters();
         if (StringUtil.isEmpty(parameters)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.parameters is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_IS_INVALID);
         }
         if (!isValidMatch(parameters.getMatch())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.Match type is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.MATCH_IS_INVALID);
         }
         if (!isValidRange(parameters.getRange())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.Range type is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.RANGE_TYPE_IS_INVALID);
         }
         if (!isValidDistinct(parameters.getDistinct())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.Distinct type is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.DISTINCT_TYPE_IS_INVALID);
         }
         if (!isValidIntervals(parameters.getIntervals())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.Intervals is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.INTERVALS_TYPE_IS_INVALID);
         }
         if (!isValidSort(parameters.getSort())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.Sort type is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.SORT_TYPE_IS_INVALID);
         }
      }
 
@@ -101,8 +102,8 @@ public class DslValidate {
         sort.forEach(o -> {
             if (!StringUtil.isBlank(o.getType())) {
                 if (StringUtil.isEmpty(SortTypeEnum.getByType(StringUtil.lowerCase(o.getType())))) {
-                    throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                            "Sort type is invalid");
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                            ErrorMessage.SORT_TYPE_IS_INVALID);
                 }
             }
         });
@@ -128,7 +129,8 @@ public class DslValidate {
         }
         for (String dateTimeStr : split) {
             if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Time format should be: yyyy-MM-dd HH:mm:ss");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        ErrorMessage.TIME_FORMAT_ERROR);
             }
         }
         try {
@@ -137,7 +139,7 @@ public class DslValidate {
                 throw new RuntimeException("Intervals value should be [start, end]");
             }
         } catch (RuntimeException e) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
         }
         return true;
     }
@@ -207,8 +209,8 @@ public class DslValidate {
     private void validLogicType(String logicType) {
         if (StringUtil.isNotBlank(logicType)) {
             if (StringUtil.isEmpty(LogicTypeEnum.getByType(StringUtil.lowerCase(logicType)))) {
-                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        "logicType is invalid");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        ErrorMessage.LOGIC_TYPE_IS_INVALID);
             }
         }
     }

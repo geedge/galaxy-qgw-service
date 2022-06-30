@@ -36,7 +36,6 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import org.apache.avro.Schema;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.util.CollectionUtils;
@@ -160,8 +159,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
 
         Map<String, String> map = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), 0);
-        if (Integer.parseInt(map.get("status")) == HttpStatus.SC_OK) {
-            return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null);
+        if (Integer.parseInt(map.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
+            return BaseResultGenerator.generate(ResultStatusEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
         }
@@ -697,7 +696,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          */
         private boolean isExist(String tableName) {
             Map<String, String> result = executeHttpPost(String.format("select 1 from %s limit 1", tableName));
-            if (result.get("status") == null || Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
+            if (result.get("status") == null || Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
                 log.warn("The table does not exist: {}", tableName);
                 return false;
             }
@@ -973,7 +972,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         Map<String, String> results = executeHttpPost(sql);
 
-        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
+        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
 
             baseResult = BaseResultGenerator.generate(
                     Integer.parseInt(results.get("status")),
@@ -1007,7 +1006,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else {
-            throw new BusinessException((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? HttpStatus.SC_INTERNAL_SERVER_ERROR : baseResult.getStatus(),
+            throw new BusinessException((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus(),
                     ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), simplyErrorMessage(dataObject));
         }
         return baseResult;

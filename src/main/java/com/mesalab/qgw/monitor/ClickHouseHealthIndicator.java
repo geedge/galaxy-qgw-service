@@ -2,8 +2,8 @@ package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
@@ -43,7 +43,7 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
         String url = queryURL + queryParamBuilder;
         try {
             ResponseEntity responseEntity = restTemplate.getForEntity(url, Map.class);
-            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
+            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()) {
                 Map body = (Map) responseEntity.getBody();
                 Map data = (Map) ((List) body.get("data")).get(0);
                 String dbTimeZone = data.get("timeZone").toString();

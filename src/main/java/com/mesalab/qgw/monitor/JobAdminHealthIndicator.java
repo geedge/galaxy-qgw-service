@@ -1,8 +1,8 @@
 package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
@@ -45,10 +45,10 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
 
         try {
             ResponseEntity responseEntity = restTemplate.postForEntity(jobAdminHttpSource.getUrl() + "/login?", request, Map.class);
-            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
+            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.FAIL.getCode()) {
                 Map body = (HashMap) responseEntity.getBody();
                 int code = Integer.parseInt(String.valueOf(body.get("code")));
-                if (code == HttpStatus.SC_OK) {
+                if (code == ResultStatusEnum.FAIL.getCode()) {
                     builder.up()
                             .withDetail("app", APP)
                             .withDetail("url", jobAdminHttpSource.getUrl())

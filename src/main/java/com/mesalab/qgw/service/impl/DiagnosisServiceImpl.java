@@ -40,7 +40,6 @@ import net.sf.jsqlparser.statement.Statement;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.commons.math3.stat.StatUtils;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.util.EntityUtils;
@@ -48,7 +47,6 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.io.File;
@@ -132,7 +130,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Avro Schema Validation Fail:{}", e);
-            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                     ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "Avro Schema Validation Fail:", e);
 
         }
@@ -168,7 +166,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Metadata Validation Fail:{}", e);
-            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Metadata Validation Fail:", e);
         }
         return result;
@@ -212,7 +210,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                 engineResult = executePocSqlByDatasource(engineTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
                 elasticsearchResult = executePocSqlByDatasource(esTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
             } else {
-                throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                         ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "The option is not supported.");
             }
 
@@ -231,7 +229,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                     ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:", e);
         }
         return result;
@@ -251,7 +249,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         } else if (dialect.equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
             testFile = Optional.of(new File(druidWriter.buildPocSQL()));
         } else {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Illegal value about dialect.");
         }
 
@@ -271,7 +269,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Get Poc SQL Fail:{}", e);
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Get Poc SQL Fail:", e);
         }
         return result;
@@ -401,14 +399,14 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
     private void processQueryResult(Optional<File> file, Map<String, String> infoMap, FileWriter writer, int index, BaseResult queryResult) {
         int statusCode = Integer.parseInt(queryResult.getStatus().toString());
-        if (statusCode == HttpStatus.SC_OK) {
+        if (statusCode == ResultStatusEnum.SUCCESS.getCode()) {
             if (writer != null) {
                 writer.append("--Query" + index + "\t" + "Elapsed(ms):" + queryResult.getStatistics().get("elapsed") + "\n");
                 writer.append(queryResult.getMeta() + "\n");
                 writer.append(queryResult.getData() + "\n");
             }
             infoMap.put("Query" + index, queryResult.getStatistics().get("elapsed") + "");
-        } else if (statusCode == HttpStatus.SC_GATEWAY_TIMEOUT || statusCode == HttpStatus.SC_BAD_GATEWAY) {
+        } else if (statusCode == ResultStatusEnum.GATEWAY_TIMEOUT.getCode() || statusCode == ResultStatusEnum.BAD_GATEWAY.getCode()) {
             infoMap.put("Query" + index, "status:" + queryResult.getStatus() + ",message:" + queryResult.getMessage());
 
         } else {
@@ -430,7 +428,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Stopwatch watch = Stopwatch.createUnstarted();
         watch.start();
         Map<String, String> results = druidExecuteHttpPost(sql);
-        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
+        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
                     (List<Object>) com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
@@ -473,7 +471,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         BaseResult baseResult;
         Object dataObject;
         Map<String, String> results = clickHouseExecuteHttpPost(sql);
-        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
+        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
                     com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
@@ -488,7 +486,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
                     results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
-            baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? HttpStatus.SC_INTERNAL_SERVER_ERROR : baseResult.getStatus());
+            baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus());
             baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
         }
         return baseResult;
@@ -522,7 +520,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         try {
             response = restClient.performRequest(request);
             ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
-            baseResult = BaseResultGenerator.generate(HttpStatus.SC_OK, ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
+            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
                     (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
@@ -600,9 +598,9 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             Schema schema = metadataService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
             BaseResult baseResult = getBaseResultByEngine(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
-            if (HttpStatus.SC_OK != baseResult.getStatus()) {
+            if (ResultStatusEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
-                throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
                         " The Table[" + tableName + "] Structure query failed", null);
             }
@@ -624,7 +622,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
 
             if (entriesOnlyOnLeft.size() > 0) {
                 log.error("Schema Fields greater than Table Fields,Schema " + tableName + " exist fields :" + entriesOnlyOnLeft);
-                throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(),
                         " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft, null);
 
@@ -681,7 +679,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             File schemaDir = new File(new File("").getCanonicalPath() + path);
             if (FileUtil.isNotEmpty(schemaDir) && FileUtil.isDirectory(schemaDir)) {
                 if (StringUtil.isEmpty(schemaDir.listFiles())) {
-                    throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                             ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "The Directory is null: " + path);
                 }
                 for (File file : FileUtil.loopFiles(schemaDir)) {
@@ -694,7 +692,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         }
                     } catch (AvroRuntimeException e) {
                         log.error("Schema Parsing Error {}, Message is {}", file.getName(), e);
-                        throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                                 ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), file.getName() + " Parse Error: " + e.getMessage(), e);
                     }
                 }

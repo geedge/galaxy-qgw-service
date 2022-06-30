@@ -3,10 +3,10 @@ package com.mesalab.qgw.monitor;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.google.common.collect.Maps;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import lombok.Data;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
@@ -49,7 +49,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
             HttpEntity request = new HttpEntity(JsonMapper.toJsonString(druidQueryParam), headers);
             ResponseEntity responseEntity = restTemplate.postForEntity(queryURL, request, Object.class);
 
-            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
+            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.FAIL.getCode()) {
                 List body = (List) responseEntity.getBody();
                 String timeZone = String.valueOf(((Map) (body.get(0))).get("timeZone"));
                 String curDatetime = String.valueOf(((Map) (body.get(0))).get("curTimestamp"));

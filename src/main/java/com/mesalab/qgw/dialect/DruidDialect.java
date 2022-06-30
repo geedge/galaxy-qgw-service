@@ -33,7 +33,6 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import org.apache.commons.compress.utils.Lists;
-import org.apache.http.HttpStatus;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -113,9 +112,9 @@ public class DruidDialect extends AbstractDataSourceDialect {
         url = url.substring(0, url.indexOf("/"));
         String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(queryId);
         Map<String, String> map = httpClientService.httpDelete(deleteUrl, 1000);
-        if (Integer.parseInt(map.get("status")) == HttpStatus.SC_OK
-                || Integer.parseInt(map.get("status")) == HttpStatus.SC_ACCEPTED) {
-            return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null);
+        if (Integer.parseInt(map.get("status")) == ResultStatusEnum.SUCCESS.getCode()
+                || Integer.parseInt(map.get("status")) == ResultStatusEnum.ACCEPTED.getCode()) {
+            return BaseResultGenerator.generate(ResultStatusEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
         }
@@ -155,7 +154,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
         Map<String, String> results = executeHttpPost(sql);
 
-        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
+        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
                     (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {

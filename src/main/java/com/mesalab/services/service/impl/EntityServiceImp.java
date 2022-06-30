@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
@@ -32,7 +33,6 @@ import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
 import com.zdjizhi.utils.*;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.EnvironmentAware;
@@ -334,8 +334,8 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                 baseResult = query(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
             }
         } else {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "ComDSLObject.query.parameters.match.type is invalid ( or is null)");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.MATCH_TYPE);
         }
         return baseResult;
     }
@@ -368,7 +368,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     private BaseResult formatResult(BaseResult baseResult, String limit) {
-        if (String.valueOf(HttpStatus.SC_OK).equals(String.valueOf(baseResult.getStatus()))) {
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(String.valueOf(baseResult.getStatus()))) {
             List<Object> alterationResultList = new ArrayList<>();
             List<Map> resultList = new ObjectMapper().convertValue(baseResult.getData(), new TypeReference<List<Map>>() {
             });
@@ -441,10 +441,10 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByUDPUniqClientIP() : query.getLimit());
         Map<String, String> udpClientIpsResult = executeQuery(udpClientIpsSql);
 
-        if (!String.valueOf(HttpStatus.SC_OK).equals(tcpSessionResult.get("status"))
-                || !String.valueOf(HttpStatus.SC_OK).equals(tcpClientIpResult.get("status"))
-                || !String.valueOf(HttpStatus.SC_OK).equals(udpSessionResult.get("status"))
-                || !String.valueOf(HttpStatus.SC_OK).equals(udpClientIpsResult.get("status"))) {
+        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(tcpSessionResult.get("status"))
+                || !String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(tcpClientIpResult.get("status"))
+                || !String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(udpSessionResult.get("status"))
+                || !String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(udpClientIpsResult.get("status"))) {
             return BaseResultGenerator.error(
                     "tcp by session result:" + tcpSessionResult
                             + "tcp by client ips result:" + tcpClientIpResult
@@ -541,7 +541,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     public BaseResult query(String sql) {
         BaseResult baseResult;
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));

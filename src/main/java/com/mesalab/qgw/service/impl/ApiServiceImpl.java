@@ -9,6 +9,7 @@ import com.alibaba.druid.sql.ast.statement.*;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.SchemaBase;
@@ -37,7 +38,6 @@ import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -85,7 +85,7 @@ public class ApiServiceImpl implements ApiService {
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: {}",e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
-                    "SQL Syntax Error: " + simplyErrorMessage(e.getMessage()), null);
+                    "SQL Syntax Error: " + simplyErrorMessage(e.getMessage()));
         }
         BaseResult baseResult;
         log.debug("Request option ：{}, SQL ：{}", param.getOption(), param.getQuery());
@@ -308,7 +308,7 @@ public class ApiServiceImpl implements ApiService {
                     sqlQuerySource.setTableName(tableName);
                     sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
                 } else {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Can't find table name.");
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), ErrorMessage.NOT_FOUNT_TABLE_NAME);
                 }
 
 
@@ -405,13 +405,13 @@ public class ApiServiceImpl implements ApiService {
                     }
                     sqlQuerySource.setLimit(SQLHelper.INVALID_LIMIT_DESC);
                 } else { //其它暂不支持
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error：Only support statement operation as select.");
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), ErrorMessage.ONLY_SUPPORT_SELECT);
                 }
 
 
             } else {
                 log.warn("Not support DML Parser");
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Only support statement operation as select.");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), ErrorMessage.ONLY_SUPPORT_SELECT);
             }
 
 
@@ -544,7 +544,7 @@ public class ApiServiceImpl implements ApiService {
     private BaseResult executeShowStatement(ApiParam param, ShowStatement showStatement) {
 
         if (showStatement != null && !"tables".equalsIgnoreCase(showStatement.getName())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error：不支持Show tables 之外的操作", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error: Operations other than Show tables are not supported", null);
         }
         if (clickHouseHttpSource.getDbName().equalsIgnoreCase(param.getSchema())) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
@@ -560,13 +560,13 @@ public class ApiServiceImpl implements ApiService {
             BaseResult result = getAllTables();
             return result;
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "schema name error", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ErrorMessage.SCHEMA_PARAM_ERROR, null);
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
 
         Dialect dialect = getReflectiveDialectObject(param);
         BaseResult result = dialect.executeAdministrativeQuery();
-        if (result.getStatus() == null || result.getStatus() != HttpStatus.SC_OK) {
+        if (result.getStatus() == null || result.getStatus() != ResultStatusEnum.FAIL.getCode()) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), result.getMessage(), null);
         }
         List tables = (ArrayList) result.getData();
@@ -610,12 +610,12 @@ public class ApiServiceImpl implements ApiService {
         List symbols = new ArrayList<>();
         String dbName = "";
         date.put("type", "enum");
-        if (ck.getStatus() != null && ck.getStatus() == HttpStatus.SC_OK) {
+        if (ck.getStatus() != null && ck.getStatus() == ResultStatusEnum.FAIL.getCode()) {
             Map ckDate = (Map) ck.getData();
             dbName += (String) ckDate.get("name");
             symbols.addAll((List) ckDate.get("symbols"));
         }
-        if (druid.getStatus() != null && druid.getStatus() == HttpStatus.SC_OK) {
+        if (druid.getStatus() != null && druid.getStatus() == ResultStatusEnum.FAIL.getCode()) {
             Map druidDate = (Map) druid.getData();
             if (!"".equals(dbName)) {
                 dbName += ",";
@@ -625,14 +625,14 @@ public class ApiServiceImpl implements ApiService {
         }
         date.put("name", dbName);
         date.put("symbols", symbols);
-        if (ck.getStatus() == HttpStatus.SC_OK) {
+        if (ck.getStatus() == ResultStatusEnum.FAIL.getCode()) {
             ck.setData(date);
             return ck;
-        } else if (druid.getStatus() == HttpStatus.SC_OK) {
+        } else if (druid.getStatus() == ResultStatusEnum.FAIL.getCode()) {
             druid.setData(date);
             return druid;
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "查询所有tables异常", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "Query all tables exception", null);
         }
     }
 

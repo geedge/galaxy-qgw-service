@@ -3,9 +3,12 @@ package com.mesalab.cn.common.pojo;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Joiner;
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.cn.common.constant.SqlKeywords;
 import com.mesalab.cn.common.enums.RangeTypeEnum;
 import com.mesalab.cn.service.CNService;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +43,8 @@ public class CNParser extends DSLParser {
             selectSql = buildSelectFromSql(dslObject, parameters);
             selectSql = parseQueryOfShareNet(dslObject, selectSql);
         } catch (RuntimeException e) {
-            throw new BusinessException("build SQL Exception " + e.getMessage(), e);
+            log.error("Build SQL Exception:{}",e);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), ErrorMessage.BUILD_SQL_ERROR + e.getMessage());
         }
         return selectSql;
     }
@@ -53,7 +57,8 @@ public class CNParser extends DSLParser {
             selectSql = buildSelectFromSql(dslObject, parameters);
             selectSql = parseQueryOfBannedApp(dslObject, selectSql);
         } catch (RuntimeException e) {
-            throw new BusinessException("build SQL Exception " + e.getMessage(), e);
+            log.error("Build SQL Exception:{}",e);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),ErrorMessage.BUILD_SQL_ERROR + e);
         }
         return selectSql;
     }

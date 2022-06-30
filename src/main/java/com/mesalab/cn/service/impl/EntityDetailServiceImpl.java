@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.cn.common.pojo.Condition;
 import com.mesalab.cn.common.pojo.DSLObject;
 import com.mesalab.cn.common.pojo.DSLParser;
@@ -17,10 +18,10 @@ import com.mesalab.cn.service.EntityDetailService;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.strategy.BaseQueryProvider;
 import org.apache.commons.compress.utils.Lists;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -176,7 +177,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         firstList.parallelStream().collect(Collectors.groupingBy(e -> Optional.ofNullable(e.get(DOMAIN)), Collectors.toList())).forEach(
                 (id, transfer) -> transfer.stream().reduce((a, b) -> a).ifPresent(distinctList::add));
 
-        List<Object> appleaf = new ArrayList<>();
+        List<Object> appLeaf = new ArrayList<>();
         for (Map first : distinctList) {
             List<Object> domainLeaf = new ArrayList<>();
             EntityDetail edDomain = toBean(first, firstAql.get(FIELD), firstAql.get(TYPE));
@@ -201,10 +202,10 @@ public class EntityDetailServiceImpl implements EntityDetailService {
                 domainLeaf.add(edServer);
             }
             edDomain.setLeaf(domainLeaf);
-            appleaf.add(edDomain);
+            appLeaf.add(edDomain);
         }
-        if (ObjectUtil.isNotEmpty(appleaf)) {
-            return EntityDetail.builder().name(condition).type(APP_NAME).leaf(appleaf).build();
+        if (ObjectUtil.isNotEmpty(appLeaf)) {
+            return EntityDetail.builder().name(condition).type(APP_NAME).leaf(appLeaf).build();
         }
         return null;
     }
@@ -509,24 +510,30 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     private void valid(DSLObject.Query.Parameters parameters) {
         DSLObject.Query.Parameters.Match match = parameters.getMatch();
         if (ObjectUtil.isEmpty(match)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match is required");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_IS_INVALID);
         }
         List<Condition> condition = match.getCondition();
         if (ObjectUtil.isEmpty(condition)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition is required");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_MATCH_CONDITION_IS_INVALID);
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldValues())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition.fieldValue is required");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_VALUE_IS_INVALID);
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldKey())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition.fieldKey is required");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
         }
         if (!(Arrays.asList(APP_NAME, DOMAIN, IP, DNS).contains(condition.get(0).getFieldKey()))) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition.fieldKey is illegal");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
         }
         Integer limit = parameters.getLimit();
         if(ObjectUtil.isNotEmpty(limit)&&!(limit>=0&&limit<=DEF_LIMIT)){
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.limit is 0-"+DEF_LIMIT);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    String.format(ErrorMessage.PARAMETERS_LIMIT_IS_INVALID, DEF_LIMIT));
         }
     }
     private boolean existServerIp(String ip){

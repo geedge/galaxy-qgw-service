@@ -10,6 +10,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.*;
@@ -34,7 +35,6 @@ import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
@@ -105,7 +105,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             BaseResult result = apiService.executeQuery(param);
             return resetBaseResult(result, "type");
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ErrorMessage.TIME_NOT_NULL, null);
         }
     }
 
@@ -122,13 +122,13 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult deleteStorage(List<StorageDeletionInfo> list) {
 
         if (!logTypeValid(list)) {
-            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "匹配失败, 请检查日志类型!");
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Match failed, please check log type!");
         }
 
         preProcessOfLogType(list);
 
         if (jobIsBusy(list)) {
-            return BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "任务繁忙中, 请稍后尝试!");
+            return BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(), "The task is busy, please try later!");
         }
 
         BaseResult baseResult = null;
@@ -162,7 +162,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_FILES_JOB_HANDLER.getValue());
             list.add(reportInfo);
         } else {
-            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的日志类型: " + logType);
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "No matching log type: " + logType);
         }
         list.forEach(o -> o.setLogType(LogType.getLabelByValue(o.getLogType())));
         return BaseResultGenerator.success("ok", list);
@@ -263,7 +263,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private Map<String, Object> getTableDiff(String ipPort, String tableName, Object tableTTLInSchema) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("TABLE_TTL")), tableName, clickHouseHttpSource.getDbName());
         Map<String, String> result = executeHttpGetOfCK(ipPort, sql, clickHouseHttpSource.getSystemDBName());
-        if (Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
+        if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table TTL error: {}", result.toString());
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
         }
@@ -286,7 +286,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private List<Map<String, Object>> getFieldDiff(String ipPort, String tableName, Map<String, Object> schemaMap) {
         List<Map<String, Object>> fieldDiff = Lists.newArrayList();
         Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
-        if (Integer.parseInt(result.get("status")) != HttpStatus.SC_OK) {
+        if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table field TTL error: {}", result.toString());
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
         }
@@ -429,10 +429,10 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         Map dataByHandler = getDataByHandler(handler);
         String id = String.valueOf(dataByHandler.get("id"));
         BaseResult result = queryJobStatusByJobId(Integer.parseInt(id));
-        if (result.getStatus().equals(HttpStatus.SC_LOCKED)) {
+        if (result.getStatus().equals(ResultStatusEnum.LOCKED.getCode())) {
             return true;
-        } else if (!result.getStatus().equals(HttpStatus.SC_OK)) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取任务状态异常: " + result.getMessage(), null);
+        } else if (!result.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get task status exception: " + result.getMessage(), null);
         }
         return false;
     }
@@ -471,8 +471,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 baseResult = executeManageJob("trigger", newData);
             }
         }
-        if (!baseResult.getStatus().equals(HttpStatus.SC_OK)) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务数据配额设置任务执行失败", null);
+        if (!baseResult.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Scheduled task data quota setting task execution failed", null);
         }
         return baseResult;
     }
@@ -580,15 +580,15 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private BaseResult executeTriggerAndUpdate(XxlJobInfo xxlJobInfo) {
         BaseResult baseResult;
         BaseResult resultExecute = executeManageJob("trigger", xxlJobInfo);
-        if (resultExecute.getStatus().equals(HttpStatus.SC_OK)) {
+        if (resultExecute.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
             BaseResult resultUpdate = executeManageJob("update", xxlJobInfo);
-            if (resultUpdate.getStatus().equals(HttpStatus.SC_OK)) {
+            if (resultUpdate.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
                 baseResult = BaseResultGenerator.success("ok", null);
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "更新任务失败: " + xxlJobInfo.getExecutorHandler());
+                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Update task failed:" + xxlJobInfo.getExecutorHandler());
             }
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "执行任务失败: " + xxlJobInfo.getExecutorHandler());
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Failed to execute task:" + xxlJobInfo.getExecutorHandler());
         }
         return baseResult;
     }
@@ -616,19 +616,19 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private BaseResult resultEncapsulationOfJob(Map<String, String> resultMap) {
         BaseResult baseResult;
         if (StringUtil.isEmpty(resultMap)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系调度平台方！");
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ErrorMessage.SERVICE_BUSY);
         } else {
-            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            if (resultMap.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
                 Map result = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(resultMap.get("result")), Map.class);
-                if (result.get("code").equals(HttpStatus.SC_OK)) {
+                if (result.get("code").equals(ResultStatusEnum.SUCCESS.getCode())) {
                     baseResult = BaseResultGenerator.success("ok", null);
-                } else if (result.get("code").equals(HttpStatus.SC_LOCKED)) {
-                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "Clear Task is Running.");
+                } else if (result.get("code").equals(ResultStatusEnum.LOCKED.getCode())) {
+                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(), "Clear Task is Running.");
                 } else {
-                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(result.get("msg")));
+                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), String.valueOf(result.get("msg")));
                 }
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Clear Task Failed.");
+                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Clear Task Failed.");
             }
         }
         return baseResult;
@@ -679,19 +679,19 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
                 append(handlerValue);
         Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
-        if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+        if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取或封装结果异常: " + resultPageList, null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get or package result exception: " + resultPageList, null);
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
                 return data.get(0);
             } else {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务无匹配executorHandler(" + handlerValue + ")的任务信息", null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "The scheduled task has no task information matching executorHandler (" + handlerValue + ")", null);
             }
         }
-        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取调度任务异常: " + resultPageList, null);
+        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get scheduled task exception: " + JsonMapper.toJsonString(resultPageList), null);
     }
 
     /**
