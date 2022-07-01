@@ -9,18 +9,18 @@ package com.mesalab.common.constant;
  */
 public class MessageConst {
 
-    public static final String SCHEMA_ERROR_TTL_VALUE = "Schema error: TTL value error.";
+    public static final String SCHEMA_ERROR_TTL_VALUE = "Schema error, invalid TTL value.";
 
-    public static final String SCHEMA_ERROR_VISIBILITY_VALUE = "Schema error: visibility value error.";
+    public static final String SCHEMA_ERROR_VISIBILITY_VALUE = "Schema error, invalid visibility value.";
 
     public static final String SCHEMA_PARAM_ERROR = "Schema param error.";
 
-    public final static String URL_NOT_FOUND = "Not found, Please make sure URL correctly.";
+    public final static String SCHEMA_URL_NOT_FOUND = "Schema URL not found, please check Nacos configurations.";
 
-    public static final String SQL_PARSE_ONLY_SUPPORT_SELECT = "Only support Select statement operation.";
+    public static final String SQL_PARSE_ONLY_SUPPORT_SELECT = "SQL parse failed, only support select statement operation.";
 
-    public static final String SQL_PARSE_ERROR_NOT_FOUNT_TABLE = "SQL parsing error: extract table name error.";
+    public static final String SQL_PARSE_ERROR_NOT_FOUNT_TABLE = "SQL parse failed, unable to parse table name.";
 
-    public static final String OPTION_ERROR_NOT_SUPPORT = "Option param error: This operation is not supported on the current platform.";
+    public static final String DIAGNOSIS_OPTION_ERROR = "Diagnosis param error, not support option value.";
 
 }
