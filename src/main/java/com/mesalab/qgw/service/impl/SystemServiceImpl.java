@@ -10,7 +10,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.*;
@@ -105,7 +104,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             BaseResult result = apiService.executeQuery(param);
             return resetBaseResult(result, "type");
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ErrorMessage.TIME_NOT_NULL, null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "start_time and end_time need to be filled in at the same time", null);
         }
     }
 
@@ -616,7 +615,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private BaseResult resultEncapsulationOfJob(Map<String, String> resultMap) {
         BaseResult baseResult;
         if (StringUtil.isEmpty(resultMap)) {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ErrorMessage.SERVICE_BUSY);
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "The service is busy, please contact the scheduling platform!");
         } else {
             if (resultMap.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
                 Map result = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(resultMap.get("result")), Map.class);

@@ -2,9 +2,9 @@ package com.mesalab.qgw.controller;
 
 import cn.hutool.core.util.NumberUtil;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.constant.MessageConst;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -46,7 +46,7 @@ public class MetadataController {
         log.info("update Schema api, params is: {}-{}", name, obj);
         if (StringUtil.isBlank(name) || StringUtil.isEmpty(obj)) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.SCHEMA_PARAM_ERROR);
+                    MessageConst.SCHEMA_PARAM_ERROR);
         }
         validationParam(name, obj);
         return metadataService.updateSchema(name, obj);
@@ -59,16 +59,16 @@ public class MetadataController {
         String param = JsonMapper.toJsonString(obj);
         if (!VISIBILITY.containsAll(JsonPath.read(param, "$.fields[?(@.doc.visibility != null)].doc.visibility"))) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.VISIBILITY_VALUE_ERROR);
+                    MessageConst.SCHEMA_ERROR_VISIBILITY_VALUE);
         }
         List<Object> schemaDocTTL = JsonPath.read(param, "$.[?(@.doc.ttl != null)].doc.ttl");
         if (StringUtil.isNotEmpty(schemaDocTTL.stream().filter(o -> !(NumberUtil.isLong(String.valueOf(o)))).toArray())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),ErrorMessage.TTL_VALUE_ERROR);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_ERROR_TTL_VALUE);
         }
         List<Object> fieldDocTTL = JsonPath.read(param, "$.fields[?(@.doc.ttl != null)].doc.ttl");
         Object[] objects3 = fieldDocTTL.parallelStream().filter(o -> !NumberUtil.isLong(String.valueOf(o))).toArray();
         if (StringUtil.isNotEmpty(objects3)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),ErrorMessage.TTL_VALUE_ERROR);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_ERROR_TTL_VALUE);
         }
     }
 }

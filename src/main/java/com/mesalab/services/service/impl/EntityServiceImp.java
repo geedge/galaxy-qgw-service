@@ -196,7 +196,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             }
             String domain = FormatUtils.getDomain(name);
 
-            //2. filter CND
+            //2. filter CDN
             if (inCDN(cnd, domain)) {
                 datum.put("isCDN", true);
                 cdnFilter.add(datum);

@@ -40,14 +40,6 @@ public class ErrorMessage {
 
     public static final String INTERVALS_PARAM_ERROR = "DSLObject.query.query.Intervals is invalid";
 
-    public static final String DIAGNOSIS_OPTION_ERROR = "Param Syntax Error: The option must be either validation or execution";
-
-    public static final String SCHEMA_PARAM_ERROR = "Schema param error";
-
-    public static final String VISIBILITY_VALUE_ERROR = "Visibility value error";
-
-    public static final String TTL_VALUE_ERROR = "Ttl value error";
-
     public static final String MATCH_TYPE = "DSLObject.query.parameters.match.type is invalid";
 
     public static final String SORT_FIELD_VALUES = "Sort field values is invalid";
@@ -56,20 +48,10 @@ public class ErrorMessage {
 
     public static final String MATCHING_SIGN = "error in matching sign. begin with * and do not end with * for suffix matching, end with * and do not begin with $ or * for prefix matching, begin with $ and do not end with * for exactly matching, begin with * and end with * or no wildcard for substring matching";
 
-    public static final String NOT_FOUNT_TABLE_NAME = "Can't find table name";
-
-    public static final String ONLY_SUPPORT_SELECT = "Only support statement operation as select";
-
-    public final static String NOT_FOUND = "Not found, check url please";
-
-    public final static String TIME_NOT_NULL = "start_time and end_time need to be filled in at the same time";
-
     public static final String TIME_FORMAT_ERROR = "Time format should be: yyyy-MM-dd HH:mm:ss";
 
     public static final String LOGIC_TYPE_IS_INVALID = "logicType is invalid";
 
     public static final String BUILD_SQL_ERROR = "Build SQL Exception:";
-
-    public static final String SERVICE_BUSY = "The service is busy, please contact the scheduling platform!";
 
 }

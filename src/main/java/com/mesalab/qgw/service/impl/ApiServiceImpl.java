@@ -9,10 +9,10 @@ import com.alibaba.druid.sql.ast.statement.*;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
-import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.base.SchemaBase;
+import com.mesalab.common.constant.MessageConst;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ReportCacheUtils;
@@ -308,7 +308,7 @@ public class ApiServiceImpl implements ApiService {
                     sqlQuerySource.setTableName(tableName);
                     sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
                 } else {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), ErrorMessage.NOT_FOUNT_TABLE_NAME);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), MessageConst.SQL_PARSE_ERROR_NOT_FOUNT_TABLE);
                 }
 
 
@@ -405,13 +405,13 @@ public class ApiServiceImpl implements ApiService {
                     }
                     sqlQuerySource.setLimit(SQLHelper.INVALID_LIMIT_DESC);
                 } else { //其它暂不支持
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), ErrorMessage.ONLY_SUPPORT_SELECT);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT);
                 }
 
 
             } else {
                 log.warn("Not support DML Parser");
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), ErrorMessage.ONLY_SUPPORT_SELECT);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT);
             }
 
 
@@ -560,7 +560,7 @@ public class ApiServiceImpl implements ApiService {
             BaseResult result = getAllTables();
             return result;
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ErrorMessage.SCHEMA_PARAM_ERROR, null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), MessageConst.SCHEMA_PARAM_ERROR, null);
         }
         param.setFormat(QueryFormatEnum.JSON.getValue());
 
