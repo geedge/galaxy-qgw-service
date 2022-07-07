@@ -29,5 +29,14 @@ public interface EntityService {
      * @date 2022/6/21 4:41 下午
      */
     List<Map<String, Object>> mergeSNI(List<Map<String, Object>> data);
+
+    /**
+     *
+     * @param domain
+     * @return boolean
+     * @Description 判断domain是否属于CDN域名列表
+     * @date 2022/7/7 17:52
+     */
+    boolean inCDN(String domain);
 }
 

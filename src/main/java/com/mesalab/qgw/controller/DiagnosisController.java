@@ -7,6 +7,7 @@ import com.mesalab.common.enums.DiagnosisOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.DiagnosisService;
+import com.mesalab.services.common.enums.EntityQueryType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Enumeration;
 
 /**
  * Galaxy日志自动诊断接口
@@ -51,4 +54,19 @@ public class DiagnosisController {
         return diagnosisService.getPocSQL(dialect, queryNo);
     }
 
+    @RequestMapping(value = "/entity")
+    public BaseResult getMessageInfo(HttpServletRequest request) {
+        Enumeration<String> parameterNames = request.getParameterNames();
+        while (parameterNames.hasMoreElements()) {
+            String param = parameterNames.nextElement();
+            log.info("Entity recommendation proportion statistical information interface, param is: {}", param);
+            if (!EntityQueryType.TOPSERVERIP.getType().equalsIgnoreCase(param) && !EntityQueryType.TOPSNI.getType().equalsIgnoreCase(param)) {
+                throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                        MessageConst.DIAGNOSIS_OPTION_ERROR);
+            }
+            return diagnosisService.getMessageInfo(param);
+        }
+        throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                MessageConst.DIAGNOSIS_OPTION_ERROR);
+    }
 }

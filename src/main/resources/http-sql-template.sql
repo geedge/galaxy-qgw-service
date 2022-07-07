@@ -21,7 +21,7 @@ select common_client_ip as client_ip from %s where %s %s AND notEmpty(common_cli
 #end
 
 #sql("ENTITY_UDP_SESSION")
-select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by sum(common_sessions) desc limit %s
+select common_server_ip as server_ip,sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by sessions desc limit %s
 #end
 
 #sql("ENTITY_UDP_UNIQ_CLIENT_IPS")
@@ -29,11 +29,35 @@ select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN
 #end
 
 #sql("ENTITY_TCP_SESSION")
-select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by sum(common_sessions) desc limit %s
+select common_server_ip as server_ip,sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by sessions desc limit %s
 #end
 
 #sql("ENTITY_TCP_UNIQ_CLIENT_IPS")
 select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit %s
+#end
+
+#sql("TOP_ENTITY_TCP_UNIQ_CLIENT_IPS")
+select uniq(common_client_ip) as client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) AND common_server_ip in (select common_server_ip from %s as cc where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by common_server_ip order by uniq(common_client_ip) desc limit %s)
+#end
+
+#sql("TOP_ENTITY_UDP_UNIQ_CLIENT_IPS")
+select uniq(common_client_ip) as client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) AND common_server_ip in (select common_server_ip from %s as cc where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) group by common_server_ip order by uniq(common_client_ip) desc limit %s)
+#end
+
+#sql("TOTAL_ENTITY_UDP_SESSION")
+select sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) limit 1
+#end
+
+#sql("TOTAL_ENTITY_UDP_UNIQ_CLIENT_IPS")
+select COUNT(DISTINCT(common_client_ip)) as uniq_client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) limit 1
+#end
+
+#sql("TOTAL_ENTITY_TCP_SESSION")
+select sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) limit 1
+#end
+
+#sql("TOTAL_ENTITY_TCP_UNIQ_CLIENT_IPS")
+select COUNT(DISTINCT(common_client_ip)) as uniq_client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) limit 1
 #end
 
 #sql("ENTITY_TOP_SNI")

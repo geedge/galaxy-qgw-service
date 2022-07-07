@@ -164,11 +164,11 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             item.remove("isCDN");
         }
 
-        baseResult.setMessage(StrUtil.format("Top {} SNI，{} of ssl bytes, {} of ssl sessions，{} CDNs",
+        baseResult.setMessage(StrUtil.format("Top {} SNI, {} of ssl bytes, {} of ssl sessions, {} popular CDNs",
                 result.size(),
                 totalBytes == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (bytesMerge * 1.0 / totalBytes)),
                 totalSessions == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (sessionsMerge * 1.0 / totalSessions)),
-                result.size() == 0 ? "-" : countCDN));
+                countCDN == 0 ? "-" : countCDN));
         baseResult.setData(result);
         Map statistics = baseResult.getStatistics();
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS) + (StringUtil.isEmpty(statistics.get("elapsed")) ? 0 : Long.parseLong(statistics.get("elapsed").toString())));
@@ -179,7 +179,6 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
     @Override
     public List<Map<String, Object>> mergeSNI(List<Map<String, Object>> data) {
-        Map<String, List<String>> cnd = cdnData(getCfgCDN());
         Map<String, List<Map<String, Object>>> map = Maps.newHashMapWithExpectedSize(data.size() / 4);
         List<Map<String, Object>> cdnFilter = Lists.newArrayList();
         Iterator<Map<String, Object>> iterator = data.iterator();
@@ -197,7 +196,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             String domain = FormatUtils.getDomain(name);
 
             //2. filter CDN
-            if (inCDN(cnd, domain)) {
+            if (inCDN(domain)) {
                 datum.put("isCDN", true);
                 cdnFilter.add(datum);
                 continue;
@@ -262,9 +261,11 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return result;
     }
 
-    public boolean inCDN(Map<String, List<String>> cdnMap, String domain) {
+    @Override
+    public boolean inCDN(String domain) {
         String topPrivateDomain = getTopPrivateDomain(domain);
-        List<String> list = cdnMap.get(topPrivateDomain);
+        Map<String, List<String>> cdnMap = getCfgCDN();
+        List<String> list = cdnData(cdnMap).get(topPrivateDomain);
         if (StringUtil.isEmpty(list)) {
             return false;
         }
@@ -285,10 +286,10 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return false;
     }
 
-    public Map<String, List<String>> cdnData(Map<String, List<String>> cnd) {
+    public Map<String, List<String>> cdnData(Map<String, List<String>> cdn) {
         Map<String, List<String>> map = Maps.newHashMap();
-        for (String key : cnd.keySet()) {
-            List<String> list = cnd.get(key);
+        for (String key : cdn.keySet()) {
+            List<String> list = cdn.get(key);
             if (StringUtil.isEmpty(list)) {
                 continue;
             }
@@ -496,7 +497,14 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
     public List<Map> getData(Map<String, String> result) {
         Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
-        return (List<Map>) resultMap.get("data");
+        List<Map<String, Object>> dataList = (List<Map<String, Object>>) resultMap.get("data");
+        List<Map> serverIpList = Lists.newArrayList();
+        for (Map item : dataList) {
+            Map<String, String> serverIpMap = Maps.newHashMap();
+            serverIpMap.put("server_ip", String.valueOf(item.get("server_ip")));
+            serverIpList.add(serverIpMap);
+        }
+        return serverIpList;
     }
 
     public String generateActiveClientIP(ComDSLObject.Query query, String fileSql, String limit) {
