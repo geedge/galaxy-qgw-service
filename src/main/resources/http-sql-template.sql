@@ -17,7 +17,7 @@ union all
 #end
 
 #sql("ENTITY_ACTIVE_CLIENT_IP")
-select common_client_ip as client_ip from %s where %s %s GROUP BY common_client_ip, common_app_label ORDER BY SUM (common_sessions) DESC LIMIT %s
+select common_client_ip as client_ip from %s where %s %s AND notEmpty(common_client_ip) GROUP BY common_client_ip, common_app_label ORDER BY SUM (common_sessions) DESC LIMIT %s
 #end
 
 #sql("ENTITY_UDP_SESSION")
