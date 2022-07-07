@@ -45,10 +45,10 @@ public class JobAdminHealthIndicator extends AbstractHealthIndicator {
 
         try {
             ResponseEntity responseEntity = restTemplate.postForEntity(jobAdminHttpSource.getUrl() + "/login?", request, Map.class);
-            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.FAIL.getCode()) {
+            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()) {
                 Map body = (HashMap) responseEntity.getBody();
                 int code = Integer.parseInt(String.valueOf(body.get("code")));
-                if (code == ResultStatusEnum.FAIL.getCode()) {
+                if (code == ResultStatusEnum.SUCCESS.getCode()) {
                     builder.up()
                             .withDetail("app", APP)
                             .withDetail("url", jobAdminHttpSource.getUrl())

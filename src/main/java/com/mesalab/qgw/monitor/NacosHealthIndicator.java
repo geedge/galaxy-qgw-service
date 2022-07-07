@@ -41,7 +41,7 @@ public class NacosHealthIndicator extends AbstractHealthIndicator {
         try {
 
             ResponseEntity responseEntity = restTemplate.getForEntity(URLUtil.normalize(nacosConfig.getServerAddr() + "/nacos/actuator/health"), Map.class);
-            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.FAIL.getCode()
+            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()
                     && "UP".equalsIgnoreCase(JsonPath.read(JSONUtil.toJsonStr(responseEntity.getBody()), "$.status"))) {
                 builder.up()
                         .withDetail("app", APP)

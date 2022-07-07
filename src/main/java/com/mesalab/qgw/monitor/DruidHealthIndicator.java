@@ -49,7 +49,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
             HttpEntity request = new HttpEntity(JsonMapper.toJsonString(druidQueryParam), headers);
             ResponseEntity responseEntity = restTemplate.postForEntity(queryURL, request, Object.class);
 
-            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.FAIL.getCode()) {
+            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()) {
                 List body = (List) responseEntity.getBody();
                 String timeZone = String.valueOf(((Map) (body.get(0))).get("timeZone"));
                 String curDatetime = String.valueOf(((Map) (body.get(0))).get("curTimestamp"));

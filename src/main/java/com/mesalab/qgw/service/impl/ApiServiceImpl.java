@@ -566,7 +566,7 @@ public class ApiServiceImpl implements ApiService {
 
         Dialect dialect = getReflectiveDialectObject(param);
         BaseResult result = dialect.executeAdministrativeQuery();
-        if (result.getStatus() == null || result.getStatus() != ResultStatusEnum.FAIL.getCode()) {
+        if (result.getStatus() == null || result.getStatus() != ResultStatusEnum.SUCCESS.getCode()) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), result.getMessage(), null);
         }
         List tables = (ArrayList) result.getData();
@@ -610,12 +610,12 @@ public class ApiServiceImpl implements ApiService {
         List symbols = new ArrayList<>();
         String dbName = "";
         date.put("type", "enum");
-        if (ck.getStatus() != null && ck.getStatus() == ResultStatusEnum.FAIL.getCode()) {
+        if (ck.getStatus() != null && ck.getStatus() == ResultStatusEnum.SUCCESS.getCode()) {
             Map ckDate = (Map) ck.getData();
             dbName += (String) ckDate.get("name");
             symbols.addAll((List) ckDate.get("symbols"));
         }
-        if (druid.getStatus() != null && druid.getStatus() == ResultStatusEnum.FAIL.getCode()) {
+        if (druid.getStatus() != null && druid.getStatus() == ResultStatusEnum.SUCCESS.getCode()) {
             Map druidDate = (Map) druid.getData();
             if (!"".equals(dbName)) {
                 dbName += ",";
@@ -625,10 +625,10 @@ public class ApiServiceImpl implements ApiService {
         }
         date.put("name", dbName);
         date.put("symbols", symbols);
-        if (ck.getStatus() == ResultStatusEnum.FAIL.getCode()) {
+        if (ck.getStatus() == ResultStatusEnum.SUCCESS.getCode()) {
             ck.setData(date);
             return ck;
-        } else if (druid.getStatus() == ResultStatusEnum.FAIL.getCode()) {
+        } else if (druid.getStatus() == ResultStatusEnum.SUCCESS.getCode()) {
             druid.setData(date);
             return druid;
         } else {
