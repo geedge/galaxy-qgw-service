@@ -386,15 +386,18 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         String topSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TOP_SNI")), datasource, timeInterval,
                 entityConfigSource.getTopSNIDefaultSize());
         List<Map> topSniResult = getData(apiService.executeQuery(queryBuild(topSniSql)));
+
         String totalSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_SNI_TOTAL")), datasource, timeInterval);
         List<Map> totalSniResult = getData(apiService.executeQuery(queryBuild(totalSniSql)));
+
         int cdnCount = 0;
         long topSniBytes = 0;
         long topSniSessions = 0;
         long totalSniBytes = StringUtil.isEmpty(totalSniResult.get(0).get("bytes")) ? 0 : Long.parseLong(totalSniResult.get(0).get("bytes").toString());
         long totalSniSessions = StringUtil.isEmpty(totalSniResult.get(0).get("sessions")) ? 0 : Long.parseLong(totalSniResult.get(0).get("sessions").toString());
+        Map<String, List<String>> cdnMap = entityService.buildDomainHashTable(getCfgCDN());
         for (Map item : topSniResult) {
-            if (entityService.inCDN(entityService.buildDomainHashTable(getCfgCDN()),String.valueOf(item.get("ssl_sni")))) {
+            if (entityService.inCDN(cdnMap, String.valueOf(item.get("ssl_sni")))) {
                 cdnCount++;
             }
             topSniBytes += StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
