@@ -55,18 +55,12 @@ public class DiagnosisController {
     }
 
     @RequestMapping(value = "/entity")
-    public BaseResult getMessageInfo(HttpServletRequest request) {
-        Enumeration<String> parameterNames = request.getParameterNames();
-        while (parameterNames.hasMoreElements()) {
-            String param = parameterNames.nextElement();
-            log.info("Entity recommendation proportion statistical information interface, param is: {}", param);
-            if (!EntityQueryType.TOPSERVERIP.getType().equalsIgnoreCase(param) && !EntityQueryType.TOPSNI.getType().equalsIgnoreCase(param)) {
-                throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        MessageConst.DIAGNOSIS_OPTION_ERROR);
-            }
-            return diagnosisService.getMessageInfo(param);
+    public BaseResult getMessageInfo(String option) {
+        log.info("Entity recommendation proportion statistical information interface, param is: {}", option);
+        if (!EntityQueryType.TOPSERVERIP.getType().equalsIgnoreCase(option) && !EntityQueryType.TOPSNI.getType().equalsIgnoreCase(option)) {
+            throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    MessageConst.DIAGNOSIS_OPTION_ERROR);
         }
-        throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                MessageConst.DIAGNOSIS_OPTION_ERROR);
+        return diagnosisService.getMessageInfo(option);
     }
 }

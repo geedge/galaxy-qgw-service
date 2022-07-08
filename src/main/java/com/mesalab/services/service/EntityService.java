@@ -32,11 +32,19 @@ public interface EntityService {
 
     /**
      *
+     * @param map
+     * @Description 构建域名Hash表
+     * @date 2022/7/8 13:56
+     */
+    Map<String, List<String>> buildDomainHashTable(Map<String, List<String>> map);
+
+    /**
+     *
      * @param domain
      * @return boolean
      * @Description 判断domain是否属于CDN域名列表
      * @date 2022/7/7 17:52
      */
-    boolean inCDN(String domain);
+    boolean inCDN(Map<String, List<String>> cdnMap, String domain);
 }
 

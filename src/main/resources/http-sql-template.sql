@@ -37,11 +37,11 @@ select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN
 #end
 
 #sql("TOP_ENTITY_TCP_UNIQ_CLIENT_IPS")
-select uniq(common_client_ip) as client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) AND common_server_ip in (select common_server_ip from %s as cc where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by common_server_ip order by uniq(common_client_ip) desc limit %s)
+select COUNT(DISTINCT(common_client_ip)) as client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) AND common_server_ip in (select common_server_ip from %s as cc where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by common_server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit %s)
 #end
 
 #sql("TOP_ENTITY_UDP_UNIQ_CLIENT_IPS")
-select uniq(common_client_ip) as client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) AND common_server_ip in (select common_server_ip from %s as cc where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) group by common_server_ip order by uniq(common_client_ip) desc limit %s)
+select COUNT(DISTINCT(common_client_ip)) as client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) AND common_server_ip in (select common_server_ip from %s as cc where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) group by common_server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit %s)
 #end
 
 #sql("TOTAL_ENTITY_UDP_SESSION")

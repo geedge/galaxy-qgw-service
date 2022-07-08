@@ -327,15 +327,15 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         List<Map> tcpSessionResult = getData(apiService.executeQuery(queryBuild(tcpSessionSql)));
 
         String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOP_ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
-                datasource, timeInterval, entityConfigSource.getTopServerIPByTCPSession());
+                datasource, timeInterval, entityConfigSource.getTopServerIPByTCPUniqClientIP());
         List<Map> tcpClientIpsResult = getData(apiService.executeQuery(queryBuild(tcpClientIpsSql)));
 
         String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval,
-                entityConfigSource.getTopServerIPByTCPSession());
+                entityConfigSource.getTopServerIPByUDPBySession());
         List<Map> udpSessionResult = getData(apiService.executeQuery(queryBuild(udpSessionSql)));
 
         String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOP_ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
-                datasource, timeInterval, entityConfigSource.getTopServerIPByTCPSession());
+                datasource, timeInterval, entityConfigSource.getTopServerIPByUDPUniqClientIP());
         List<Map> udpClientIpsResult = getData(apiService.executeQuery(queryBuild(udpClientIpsSql)));
 
         String tcpTotalSessionSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_TCP_SESSION")), datasource, timeInterval);
@@ -386,17 +386,15 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         String topSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TOP_SNI")), datasource, timeInterval,
                 entityConfigSource.getTopSNIDefaultSize());
         List<Map> topSniResult = getData(apiService.executeQuery(queryBuild(topSniSql)));
-
         String totalSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_SNI_TOTAL")), datasource, timeInterval);
         List<Map> totalSniResult = getData(apiService.executeQuery(queryBuild(totalSniSql)));
-
         int cdnCount = 0;
         long topSniBytes = 0;
         long topSniSessions = 0;
         long totalSniBytes = StringUtil.isEmpty(totalSniResult.get(0).get("bytes")) ? 0 : Long.parseLong(totalSniResult.get(0).get("bytes").toString());
         long totalSniSessions = StringUtil.isEmpty(totalSniResult.get(0).get("sessions")) ? 0 : Long.parseLong(totalSniResult.get(0).get("sessions").toString());
         for (Map item : topSniResult) {
-            if (entityService.inCDN(String.valueOf(item.get("ssl_sni")))) {
+            if (entityService.inCDN(entityService.buildDomainHashTable(getCfgCDN()),String.valueOf(item.get("ssl_sni")))) {
                 cdnCount++;
             }
             topSniBytes += StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
@@ -432,6 +430,15 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
     public List<Map> getData(BaseResult baseResult) {
         List<Map> dataList = (List<Map>) baseResult.getData();
         return dataList;
+    }
+
+    private Map<String, List<String>> getCfgCDN() {
+        Object codeInfo = metadataService.getCfg("public_code_info.json");
+        if (StringUtil.isNotEmpty(codeInfo)) {
+            Map<String, Map<String, List<String>>> data = (Map<String, Map<String, List<String>>>) com.mesalab.common.utils.JsonMapper.fromJsonString(codeInfo.toString(), Map.class);
+            return Maps.newHashMap(data.get("CDN"));
+        }
+        return Maps.newHashMap();
     }
 
     /**

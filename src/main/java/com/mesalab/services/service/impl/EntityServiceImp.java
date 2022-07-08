@@ -179,6 +179,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
     @Override
     public List<Map<String, Object>> mergeSNI(List<Map<String, Object>> data) {
+        Map<String, List<String>> cdn = buildDomainHashTable(getCfgCDN());
         Map<String, List<Map<String, Object>>> map = Maps.newHashMapWithExpectedSize(data.size() / 4);
         List<Map<String, Object>> cdnFilter = Lists.newArrayList();
         Iterator<Map<String, Object>> iterator = data.iterator();
@@ -196,7 +197,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             String domain = FormatUtils.getDomain(name);
 
             //2. filter CDN
-            if (inCDN(domain)) {
+            if (inCDN(cdn, domain)) {
                 datum.put("isCDN", true);
                 cdnFilter.add(datum);
                 continue;
@@ -262,10 +263,29 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     @Override
-    public boolean inCDN(String domain) {
+    public Map<String, List<String>> buildDomainHashTable(Map<String, List<String>> cdn) {
+        Map<String, List<String>> map = Maps.newHashMap();
+        for (String key : cdn.keySet()) {
+            List<String> list = cdn.get(key);
+            if (StringUtil.isEmpty(list)) {
+                continue;
+            }
+            list.forEach(o -> {
+                String topPrivateDomain = getTopPrivateDomain(o);
+                if (StringUtil.isEmpty(map.get(topPrivateDomain))) {
+                    map.put(topPrivateDomain, Lists.newArrayList(o));
+                } else {
+                    map.get(topPrivateDomain).add(o);
+                }
+            });
+        }
+        return map;
+    }
+
+    @Override
+    public boolean inCDN(Map<String, List<String>> cdnMap, String domain) {
         String topPrivateDomain = getTopPrivateDomain(domain);
-        Map<String, List<String>> cdnMap = getCfgCDN();
-        List<String> list = cdnData(cdnMap).get(topPrivateDomain);
+        List<String> list = cdnMap.get(topPrivateDomain);
         if (StringUtil.isEmpty(list)) {
             return false;
         }
@@ -284,25 +304,6 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             return true;
         }
         return false;
-    }
-
-    public Map<String, List<String>> cdnData(Map<String, List<String>> cdn) {
-        Map<String, List<String>> map = Maps.newHashMap();
-        for (String key : cdn.keySet()) {
-            List<String> list = cdn.get(key);
-            if (StringUtil.isEmpty(list)) {
-                continue;
-            }
-            list.forEach(o -> {
-                String topPrivateDomain = getTopPrivateDomain(o);
-                if (StringUtil.isEmpty(map.get(topPrivateDomain))) {
-                    map.put(topPrivateDomain, Lists.newArrayList(o));
-                } else {
-                    map.get(topPrivateDomain).add(o);
-                }
-            });
-        }
-        return map;
     }
 
     private String getTopPrivateDomain(String domain) {
