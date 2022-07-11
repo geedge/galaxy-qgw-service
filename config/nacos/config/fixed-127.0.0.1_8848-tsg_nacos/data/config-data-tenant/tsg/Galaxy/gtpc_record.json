@@ -17,26 +17,39 @@
     },
     "schema_query": {
       "dimensions": [
-        "common_server_ip",
-        "common_client_ip",
-        "common_internal_ip",
-        "common_external_ip",
-        "common_sled_ip",
-        "common_device_id",
-        "common_client_location",
-        "common_server_location",
-        "common_client_port",
-        "common_server_port",
-        "common_schema_type",
-        "common_l4_protocol",
-        "common_l7_protocol",
-        "common_data_center",
-        "common_device_group",
-        "common_app_behavior",
-        "common_client_asn",
-        "common_server_asn",
+        "common_stream_trace_id",
+        "common_direction",
+        "common_stream_dir",
         "common_start_time",
         "common_end_time",
+        "common_processing_time",
+        "common_ingestion_time",
+        "common_device_id",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_group",
+        "common_address_type",
+        "common_schema_type",
+        "common_action",
+        "common_sub_action",
+        "common_policy_id",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_client_port",
+        "common_client_location",
+        "common_client_asn",
+        "common_server_ip",
+        "common_external_ip",
+        "common_server_port",
+        "common_server_location",
+        "common_server_asn",
+        "common_app_identify_info",
+        "common_app_label",
+        "common_app_behavior",
+        "common_l7_protocol",
+        "common_protocol_label",
+        "common_service_category",
+        "common_l4_protocol",
         "gtp_version",
         "gtp_apn",
         "gtp_imei",
@@ -45,12 +58,33 @@
         "gtp_msg_type"
       ],
       "metrics": [
-        "common_server_ip",
+        "common_device_id",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_group",
+        "common_address_type",
+        "common_schema_type",
+        "common_action",
+        "common_sub_action",
+        "common_policy_id",
         "common_client_ip",
         "common_internal_ip",
+        "common_client_port",
+        "common_client_location",
+        "common_client_asn",
+        "common_subscriber_id",
+        "common_server_ip",
         "common_external_ip",
-        "common_sled_ip",
-        "common_device_id",
+        "common_server_port",
+        "common_server_location",
+        "common_server_asn",
+        "common_app_identify_info",
+        "common_app_label",
+        "common_app_behavior",
+        "common_l7_protocol",
+        "common_protocol_label",
+        "common_service_category",
+        "common_l4_protocol",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
         "common_c2s_byte_num",
@@ -58,12 +92,6 @@
         "common_sessions",
         "common_con_duration_ms",
         "common_establish_latency_ms",
-        "common_c2s_ipfrag_num",
-        "common_s2c_ipfrag_num",
-        "common_c2s_tcp_lostlen",
-        "common_s2c_tcp_lostlen",
-        "common_c2s_tcp_unorder_num",
-        "common_s2c_tcp_unorder_num",
         "gtp_version",
         "gtp_apn",
         "gtp_imei",
@@ -71,41 +99,46 @@
         "gtp_phone_number"
       ],
       "filters": [
-        "common_address_type",
-        "common_server_ip",
-        "common_client_ip",
-        "common_internal_ip",
-        "common_external_ip",
-        "common_client_port",
-        "common_server_port",
-        "common_client_location",
-        "common_server_location",
-        "common_c2s_pkt_num",
-        "common_s2c_pkt_num",
-        "common_c2s_byte_num",
-        "common_s2c_byte_num",
-        "common_c2s_ipfrag_num",
-        "common_s2c_ipfrag_num",
-        "common_c2s_tcp_lostlen",
-        "common_s2c_tcp_lostlen",
-        "common_c2s_tcp_unorder_num",
-        "common_s2c_tcp_unorder_num",
-        "common_l4_protocol",
-        "common_l7_protocol",
-        "common_stream_dir",
+        "common_stream_trace_id",
         "common_direction",
-        "common_data_center",
-        "common_device_group",
-        "common_app_behavior",
-        "common_sled_ip",
-        "common_device_id",
-        "common_schema_type",
-        "common_client_asn",
-        "common_server_asn",
+        "common_stream_dir",
         "common_start_time",
         "common_end_time",
         "common_con_duration_ms",
         "common_establish_latency_ms",
+        "common_processing_time",
+        "common_ingestion_time",
+        "common_device_id",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_group",
+        "common_address_type",
+        "common_schema_type",
+        "common_action",
+        "common_sub_action",
+        "common_policy_id",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_client_port",
+        "common_client_location",
+        "common_client_asn",
+        "common_subscriber_id",
+        "common_server_ip",
+        "common_external_ip",
+        "common_server_port",
+        "common_server_location",
+        "common_server_asn",
+        "common_app_identify_info",
+        "common_app_label",
+        "common_app_behavior",
+        "common_l7_protocol",
+        "common_protocol_label",
+        "common_service_category",
+        "common_l4_protocol",
+        "common_c2s_pkt_num",
+        "common_s2c_pkt_num",
+        "common_c2s_byte_num",
+        "common_s2c_byte_num",
         "gtp_version",
         "gtp_apn",
         "gtp_imei",
@@ -474,7 +507,7 @@
       "label": "Address Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -538,7 +571,7 @@
       "doc": {
         "visibility": "hidden",
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -571,7 +604,7 @@
       "label": "Direction",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -740,7 +773,7 @@
       "label": "Schema Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -865,7 +898,7 @@
       "label": "Data Center",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -882,7 +915,7 @@
       "label": "Device Group",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -908,7 +941,7 @@
       "label": "Encapsulation",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/common_encapsulation/data"
@@ -1063,7 +1096,7 @@
       "label": "Stream Direction",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -1098,7 +1131,7 @@
       "label": "Duplication Traffic",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/common_has_dup_traffic/data"
@@ -1389,7 +1422,7 @@
       "label": "Message Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {

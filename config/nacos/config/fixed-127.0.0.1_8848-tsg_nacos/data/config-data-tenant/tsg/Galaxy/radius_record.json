@@ -17,25 +17,140 @@
     },
     "schema_query": {
       "dimensions": [
+        "common_stream_trace_id",
+        "common_direction",
+        "common_stream_dir",
+        "common_start_time",
+        "common_end_time",
+        "common_processing_time",
+        "common_ingestion_time",
+        "common_device_id",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_group",
+        "common_address_type",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_client_port",
+        "common_client_location",
+        "common_client_asn",
+        "common_server_ip",
+        "common_external_ip",
+        "common_server_port",
+        "common_server_location",
+        "common_server_asn",
+        "common_l7_protocol",
+        "common_l4_protocol",
+        "common_subscriber_id",
         "radius_nas_ip",
         "radius_framed_ip",
-        "common_subscriber_id"
+        "radius_packet_type",
+        "radius_account",
+        "radius_acct_status_type",
+        "radius_acct_terminate_cause",
+        "radius_nas_port",
+        "radius_called_station_id",
+        "radius_calling_station_id",
+        "radius_acct_session_id",
+        "radius_acct_multi_session_id",
+        "radius_service_type",
+        "radius_acct_authentic"
       ],
       "metrics": [
-        "radius_framed_ip",
-        "radius_event_timestamp",
+        "common_device_id",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_group",
+        "common_address_type",
+        "common_schema_type",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_client_port",
+        "common_client_location",
+        "common_client_asn",
+        "common_subscriber_id",
+        "common_server_ip",
+        "common_external_ip",
+        "common_server_port",
+        "common_server_location",
+        "common_server_asn",
+        "common_l7_protocol",
+        "common_l4_protocol",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
         "common_c2s_byte_num",
-        "common_s2c_byte_num"
+        "common_s2c_byte_num",
+        "common_sessions",
+        "radius_framed_ip",
+        "radius_nas_ip",
+        "radius_account",
+        "radius_session_timeout",
+        "radius_idle_timeout",
+        "radius_nas_port",
+        "radius_event_timestamp",
+        "radius_acct_input_octets",
+        "radius_acct_output_octets",
+        "radius_acct_input_packets",
+        "radius_acct_output_packets",
+        "radius_acct_session_time",
+        "radius_acct_link_count",
+        "radius_acct_interim_interval"
       ],
       "filters": [
-        "radius_framed_ip",
+        "common_stream_trace_id",
+        "common_direction",
+        "common_stream_dir",
+        "common_start_time",
+        "common_end_time",
+        "common_con_duration_ms",
+        "common_establish_latency_ms",
+        "common_processing_time",
+        "common_ingestion_time",
+        "common_device_id",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_group",
+        "common_address_type",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_client_port",
+        "common_client_location",
+        "common_client_asn",
         "common_subscriber_id",
+        "common_server_ip",
+        "common_external_ip",
+        "common_server_port",
+        "common_server_location",
+        "common_server_asn",
+        "common_l7_protocol",
+        "common_l4_protocol",
+        "common_c2s_pkt_num",
+        "common_s2c_pkt_num",
+        "common_c2s_byte_num",
+        "common_s2c_byte_num",
+        "radius_framed_ip",
+        "radius_nas_ip",
+        "radius_account",
         "radius_packet_type",
+        "radius_acct_status_type",
+        "radius_acct_terminate_cause",
+        "radius_called_station_id",
+        "radius_calling_station_id",
         "radius_acct_session_id",
         "radius_acct_multi_session_id",
-        "radius_acct_status_type"
+        "radius_service_type",
+        "radius_acct_authentic",
+        "radius_session_timeout",
+        "radius_idle_timeout",
+        "radius_nas_port",
+        "radius_event_timestamp",
+        "radius_acct_input_octets",
+        "radius_acct_output_octets",
+        "radius_acct_input_packets",
+        "radius_acct_output_packets",
+        "radius_acct_session_time",
+        "radius_acct_link_count",
+        "radius_acct_interim_interval"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -270,7 +385,7 @@
       "label": "Address Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -327,7 +442,7 @@
       "doc": {
         "visibility": "hidden",
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -364,7 +479,7 @@
       "label": "Direction",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -533,7 +648,7 @@
       "label": "Schema Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -678,7 +793,7 @@
       "label": "Data Center",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -695,7 +810,7 @@
       "label": "Device Group",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -721,7 +836,7 @@
       "label": "Encapsulation",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/common_encapsulation/data"
@@ -874,7 +989,7 @@
       "label": "Stream Direction",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -909,7 +1024,7 @@
       "label": "Duplication Traffic",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/common_has_dup_traffic/data"
@@ -1137,7 +1252,7 @@
       "label": "Packet Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -1227,7 +1342,7 @@
       "label": "ACC Status Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -1261,7 +1376,7 @@
       "label": "Acct Terminate Cause",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {

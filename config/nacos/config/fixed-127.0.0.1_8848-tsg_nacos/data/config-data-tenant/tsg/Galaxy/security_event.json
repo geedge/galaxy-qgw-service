@@ -17,156 +17,428 @@
     },
     "schema_query": {
       "dimensions": [
-        "common_server_ip",
-        "common_client_ip",
-        "common_internal_ip",
-        "common_external_ip",
-        "common_policy_id",
-        "common_action",
-        "common_sled_ip",
-        "common_device_id",
-        "common_client_location",
-        "common_server_location",
-        "common_subscriber_id",
-        "common_client_port",
-        "common_server_port",
-        "common_schema_type",
-        "common_l4_protocol",
-        "common_l7_protocol",
-        "common_data_center",
-        "common_device_group",
-        "common_app_behavior",
-        "common_client_asn",
-        "common_server_asn",
-        "common_start_time",
-        "common_end_time",
-        "common_imei",
-        "common_imsi",
-        "common_phone_number",
-        "common_app_label",
-        "http_host",
-        "http_domain",
-        "http_url",
-        "http_cookie",
-        "http_referer",
-        "http_user_agent",
-        "ssl_sni",
-        "ssl_ja3_hash",
-        "ssl_passthrough_reason",
-        "ssl_client_side_version",
-        "ssl_server_side_version",
-        "ssl_cert_issuer",
-        "ssl_cert_subject",
-        "mail_account",
-        "mail_from",
-        "mail_to",
-        "quic_sni",
-        "quic_version"
-      ],
-      "metrics": [
-        "common_server_ip",
-        "common_client_ip",
-        "common_internal_ip",
-        "common_external_ip",
-        "common_subscriber_id",
-        "common_sled_ip",
-        "common_device_id",
-        "common_sessions",
-        "common_c2s_pkt_num",
-        "common_s2c_pkt_num",
-        "common_c2s_byte_num",
-        "common_s2c_byte_num",
-        "common_mirrored_pkts",
-        "common_mirrored_bytes",
-        "common_con_duration_ms",
-        "common_establish_latency_ms",
-        "common_imei",
-        "common_imsi",
-        "common_phone_number",
-        "common_app_label",
-        "http_host",
-        "http_domain",
-        "http_url",
-        "http_cookie",
-        "http_referer",
-        "http_user_agent",
-        "ssl_sni",
-        "ssl_ja3_hash",
-        "ssl_passthrough_reason",
-        "ssl_client_side_latency",
-        "ssl_server_side_latency",
-        "ssl_cert_issuer",
-        "ssl_cert_subject",
-        "mail_account",
-        "mail_from",
-        "mail_to",
-        "quic_sni"
-      ],
-      "filters": [
-        "common_policy_id",
-        "common_action",
-        "common_address_type",
-        "common_server_ip",
-        "common_client_ip",
-        "common_internal_ip",
-        "common_external_ip",
-        "common_client_port",
-        "common_server_port",
-        "common_client_location",
-        "common_server_location",
-        "common_subscriber_id",
-        "common_c2s_pkt_num",
-        "common_s2c_pkt_num",
-        "common_c2s_byte_num",
-        "common_s2c_byte_num",
-        "common_mirrored_pkts",
-        "common_mirrored_bytes",
-        "common_l4_protocol",
-        "common_l7_protocol",
-        "common_stream_dir",
-        "common_data_center",
-        "common_device_group",
-        "common_app_behavior",
-        "common_sled_ip",
-        "common_device_id",
+        "common_stream_trace_id",
         "common_direction",
-        "common_schema_type",
-        "common_client_asn",
-        "common_server_asn",
+        "common_stream_dir",
         "common_start_time",
         "common_end_time",
-        "common_con_duration_ms",
-        "common_establish_latency_ms",
+        "common_processing_time",
+        "common_ingestion_time",
+        "common_device_id",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_group",
+        "common_address_type",
+        "common_schema_type",
+        "common_action",
+        "common_sub_action",
+        "common_policy_id",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_client_port",
+        "common_client_location",
+        "common_client_asn",
+        "common_subscriber_id",
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_server_ip",
+        "common_external_ip",
+        "common_server_port",
+        "common_server_location",
+        "common_server_asn",
+        "common_app_identify_info",
         "common_app_label",
+        "common_app_behavior",
+        "common_l7_protocol",
+        "common_protocol_label",
+        "common_service_category",
+        "common_l4_protocol",
         "http_host",
         "http_domain",
         "http_url",
+        "http_sequence",
         "http_cookie",
+        "http_set_cookie",
         "http_referer",
         "http_user_agent",
         "http_request_content_type",
         "http_response_content_type",
+        "http_request_line",
+        "http_response_line",
+        "http_version",
+        "mail_protocol_type",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_attachment_name",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_rcode",
+        "dns_qname",
+        "dns_qtype",
+        "dns_qclass",
+        "ssl_version",
         "ssl_sni",
-        "ssl_ja3_hash",
+        "ssl_san",
+        "ssl_cn",
         "ssl_pinningst",
         "ssl_intercept_state",
         "ssl_passthrough_reason",
-        "ssl_client_side_version",
         "ssl_server_side_version",
-        "ssl_cert_verify",
-        "ssl_client_side_latency",
-        "ssl_server_side_latency",
+        "ssl_client_side_version",
+        "ssl_ja3_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "quic_sni",
+        "quic_version",
+        "quic_user_agent",
+        "ftp_account",
+        "ftp_url",
+        "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "ssh_version",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
+        "ssh_auth_success",
+        "ssh_client_version",
+        "ssh_server_version",
+        "ssh_cipher_alg",
+        "ssh_mac_alg",
+        "ssh_compression_alg",
+        "ssh_kex_alg",
+        "ssh_host_key_alg",
+        "ssh_host_key",
+        "ssh_hassh",
+        "stratum_cryptocurrency",
+        "stratum_mining_pools",
+        "stratum_mining_program",
+        "rdp_cookie",
+        "rdp_security_protocol",
+        "rdp_client_channels",
+        "rdp_keyboard_layout",
+        "rdp_client_version",
+        "rdp_client_name",
+        "rdp_client_product_id",
+        "rdp_certificate_type",
+        "rdp_encryption_level",
+        "rdp_encryption_method"
+      ],
+      "metrics": [
+        "common_device_id",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_group",
+        "common_address_type",
+        "common_schema_type",
+        "common_action",
+        "common_sub_action",
+        "common_policy_id",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_client_port",
+        "common_client_location",
+        "common_client_asn",
+        "common_subscriber_id",
+        "common_imei",
+        "common_imsi",
+        "common_phone_number",
+        "common_server_ip",
+        "common_external_ip",
+        "common_server_port",
+        "common_server_location",
+        "common_server_asn",
+        "common_app_identify_info",
+        "common_app_label",
+        "common_app_behavior",
+        "common_l7_protocol",
+        "common_protocol_label",
+        "common_service_category",
+        "common_l4_protocol",
+        "common_c2s_pkt_num",
+        "common_s2c_pkt_num",
+        "common_c2s_byte_num",
+        "common_s2c_byte_num",
+        "common_sessions",
+        "common_con_duration_ms",
+        "common_establish_latency_ms",
+        "common_c2s_ipfrag_num",
+        "common_s2c_ipfrag_num",
+        "common_c2s_tcp_lostlen",
+        "common_s2c_tcp_lostlen",
+        "common_c2s_tcp_unorder_num",
+        "common_s2c_tcp_unorder_num",
+        "common_c2s_pkt_retrans",
+        "common_s2c_pkt_retrans",
+        "common_c2s_byte_retrans",
+        "common_s2c_byte_retrans",
+        "http_host",
+        "http_domain",
+        "http_url",
+        "http_cookie",
+        "http_set_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_request_content_type",
+        "http_response_content_length",
+        "http_response_content_type",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "mail_protocol_type",
         "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
         "mail_from",
         "mail_to",
+        "mail_cc",
+        "mail_bcc",
         "mail_subject",
+        "mail_attachment_name",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_rcode",
+        "dns_qname",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_qdcount",
+        "dns_ancount",
+        "dns_nscount",
+        "dns_arcount",
+        "dns_response_latency_ms",
+        "ssl_version",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_pinningst",
+        "ssl_intercept_state",
+        "ssl_passthrough_reason",
+        "ssl_server_side_version",
+        "ssl_client_side_version",
+        "ssl_ja3_hash",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
+        "ssl_con_latency_ms",
         "quic_sni",
-        "quic_version"
+        "quic_version",
+        "quic_user_agent",
+        "ftp_account",
+        "ftp_url",
+        "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "sip_duration_s",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
+        "ssh_version",
+        "ssh_auth_success",
+        "ssh_client_version",
+        "ssh_server_version",
+        "ssh_cipher_alg",
+        "ssh_mac_alg",
+        "ssh_compression_alg",
+        "ssh_kex_alg",
+        "ssh_host_key_alg",
+        "ssh_host_key",
+        "ssh_hassh",
+        "stratum_cryptocurrency",
+        "stratum_mining_pools",
+        "stratum_mining_program",
+        "rdp_cookie",
+        "rdp_security_protocol",
+        "rdp_client_channels",
+        "rdp_keyboard_layout",
+        "rdp_client_version",
+        "rdp_client_name",
+        "rdp_client_product_id",
+        "rdp_certificate_type",
+        "rdp_encryption_level",
+        "rdp_encryption_method"
+      ],
+      "filters": [
+        "common_stream_trace_id",
+        "common_direction",
+        "common_stream_dir",
+        "common_start_time",
+        "common_end_time",
+        "common_con_duration_ms",
+        "common_establish_latency_ms",
+        "common_processing_time",
+        "common_ingestion_time",
+        "common_device_id",
+        "common_data_center",
+        "common_sled_ip",
+        "common_device_group",
+        "common_address_type",
+        "common_schema_type",
+        "common_action",
+        "common_sub_action",
+        "common_policy_id",
+        "common_client_ip",
+        "common_internal_ip",
+        "common_client_port",
+        "common_client_location",
+        "common_client_asn",
+        "common_subscriber_id",
+        "common_imei",
+        "common_imsi",
+        "common_phone_number",
+        "common_server_ip",
+        "common_external_ip",
+        "common_server_port",
+        "common_server_location",
+        "common_server_asn",
+        "common_app_identify_info",
+        "common_app_label",
+        "common_app_behavior",
+        "common_l7_protocol",
+        "common_protocol_label",
+        "common_service_category",
+        "common_l4_protocol",
+        "common_c2s_pkt_num",
+        "common_s2c_pkt_num",
+        "common_c2s_byte_num",
+        "common_s2c_byte_num",
+        "common_c2s_ipfrag_num",
+        "common_s2c_ipfrag_num",
+        "common_c2s_tcp_lostlen",
+        "common_s2c_tcp_lostlen",
+        "common_c2s_tcp_unorder_num",
+        "common_s2c_tcp_unorder_num",
+        "common_c2s_pkt_retrans",
+        "common_s2c_pkt_retrans",
+        "common_c2s_byte_retrans",
+        "common_s2c_byte_retrans",
+        "http_host",
+        "http_domain",
+        "http_url",
+        "http_request_line",
+        "http_response_line",
+        "http_request_body",
+        "http_response_body",
+        "http_sequence",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_request_content_type",
+        "http_response_content_length",
+        "http_response_content_type",
+        "http_set_cookie",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "mail_protocol_type",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_attachment_name",
+        "mail_eml_file",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_rcode",
+        "dns_qdcount",
+        "dns_ancount",
+        "dns_nscount",
+        "dns_arcount",
+        "dns_response_latency_ms",
+        "dns_qname",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_sub",
+        "dns_cname",
+        "dns_rr",
+        "ssl_version",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_pinningst",
+        "ssl_intercept_state",
+        "ssl_passthrough_reason",
+        "ssl_server_side_version",
+        "ssl_client_side_version",
+        "ssl_con_latency_ms",
+        "ssl_ja3_hash",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
+        "quic_sni",
+        "quic_version",
+        "quic_user_agent",
+        "ftp_account",
+        "ftp_url",
+        "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_originator_sdp_content",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "sip_responder_sdp_content",
+        "sip_duration_s",
+        "sip_bye",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
+        "ssh_version",
+        "ssh_auth_success",
+        "ssh_client_version",
+        "ssh_server_version",
+        "ssh_cipher_alg",
+        "ssh_mac_alg",
+        "ssh_compression_alg",
+        "ssh_kex_alg",
+        "ssh_host_key_alg",
+        "ssh_host_key",
+        "ssh_hassh",
+        "stratum_cryptocurrency",
+        "stratum_mining_pools",
+        "stratum_mining_program",
+        "rdp_cookie",
+        "rdp_security_protocol",
+        "rdp_client_channels",
+        "rdp_keyboard_layout",
+        "rdp_client_version",
+        "rdp_client_name",
+        "rdp_client_product_id",
+        "rdp_certificate_type",
+        "rdp_encryption_level",
+        "rdp_encryption_method"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -468,7 +740,7 @@
       "label": "Address Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -531,7 +803,7 @@
       "label": "Action",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -561,7 +833,7 @@
       "label": "Direction",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -734,7 +1006,7 @@
       "label": "Schema Type",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -903,7 +1175,7 @@
       "label": "Data Center",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -920,7 +1192,7 @@
       "label": "Device Group",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -946,7 +1218,7 @@
       "label": "Encapsulation",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/common_encapsulation/data"
@@ -1101,7 +1373,7 @@
       "label": "Stream Direction",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -1136,7 +1408,7 @@
       "label": "Duplication Traffic",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/common_has_dup_traffic/data"
@@ -1826,7 +2098,7 @@
       "label": "DNS.QR",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -1848,7 +2120,7 @@
       "label": "DNS.OPCODE",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -2038,7 +2310,7 @@
       "label": "DNS.QTYPE",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -2390,7 +2662,7 @@
       "label": "DNS.SUB",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -2470,7 +2742,7 @@
       "label": "SSL.Pinning",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -2496,7 +2768,7 @@
       "label": "SSL.Intercept State",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -2567,7 +2839,7 @@
       "label": "SSL.Certificate Verify",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -2941,7 +3213,7 @@
       "label": "RTP.Payload Type (c2s)",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -3063,7 +3335,7 @@
       "label": "RTP.Payload Type (s2c)",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {
@@ -3198,7 +3470,7 @@
       "label": "RTP.Direction",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": [
           {

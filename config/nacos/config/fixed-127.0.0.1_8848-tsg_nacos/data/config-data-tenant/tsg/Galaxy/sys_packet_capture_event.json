@@ -480,7 +480,7 @@
       "label": "Data Center",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -496,7 +496,7 @@
       "label": "Device Group",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,in,not in"
         },
         "data": {
           "$ref": "device_tag.json#",
