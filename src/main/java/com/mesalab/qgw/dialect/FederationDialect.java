@@ -146,13 +146,33 @@ public class FederationDialect extends AbstractEngineDialect{
             statisticMap.put("result_size", baseResult.getData().toString().getBytes().length);
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
-
+        extendMetaInfo(baseResult.getMeta());
         if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
             convertJsonToCSV();
         }
         baseResult.setFormatType(param.getFormat());
         log.debug("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
         return baseResult;
+    }
+
+    private void extendMetaInfo(Object meta) {
+        if (StringUtil.isEmpty(meta)) {
+            return;
+        }
+        List<Map<String, Object>> data = JsonPath.read(meta, "$");
+        SQLQuerySource querySource = StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource();
+        Map<String, String> groupDimension = querySource.getGroupDimension();
+        if (StringUtil.isEmpty(groupDimension)) {
+            return;
+        }
+        for (Map<String, Object> map : data) {
+            String field = String.valueOf(map.get("name"));
+            if (!groupDimension.containsKey(field) && !groupDimension.containsValue(field)) {
+                map.put("category", "Metric");
+            } else {
+                map.put("category", "Dimension");
+            }
+        }
     }
 
     private List<Map<String, String>> unifyMeta(Object meta) {
