@@ -78,6 +78,11 @@ public abstract class AbstractEngineDialect implements Dialect {
     }
 
     @Override
+    final public BaseResult executeExplainPlan() {
+        return  null;
+    }
+
+    @Override
     final public BaseResult executeSyntaxCheck() {
         init();
         executeUDF();
@@ -88,6 +93,7 @@ public abstract class AbstractEngineDialect implements Dialect {
     final public BaseResult executeAdministrativeQuery() {
         return  null;
     }
+
 
 
 

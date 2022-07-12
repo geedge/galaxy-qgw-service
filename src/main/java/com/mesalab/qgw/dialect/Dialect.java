@@ -27,6 +27,12 @@ public interface Dialect {
     BaseResult executeQuery();
 
     /**
+     * Shows the execution plan of a select statement.
+     * @return
+     */
+    BaseResult executeExplainPlan();
+
+    /**
      * 执行抽样查询操作
      * @return
      */

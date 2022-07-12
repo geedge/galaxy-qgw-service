@@ -77,7 +77,7 @@ clickhouse:
 druid:
   url: 192.168.44.12:8089/druid/v2/sql
   dbname: druid
-  socketTimeOut: 60000
+  socketTimeOut: 120000
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
@@ -102,8 +102,8 @@ service:
 arango:
   server: http://192.168.44.12:8529
   database: tsg_galaxy_v3
-  username: ENC(JOXDGmYr3whQrRIWAtdH5g==)
-  pin: ENC(2aICPa3rzF06/kSqBZ0e1edRrjRLmDhQ)
+  username: ENC(UyZxsi4PT6kQXJAep5qvQQ==)
+  pin: ENC(qUA355VopKSx6kwwwXZwqWWEYSu76Slz)
   jwturl: ${arango.server}/_db/${arango.database}/_open/auth
   queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
   maxrows: 10000
@@ -120,7 +120,7 @@ http:
     request:
       timeout: 10000
     response:
-      timeout: 60000
+      timeout: 120000
 ## job cfg
 job:
   timeSlicing:

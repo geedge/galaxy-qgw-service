@@ -127,7 +127,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public String getOriginQuery() {
+    public String getOriginalQuery() {
         return param.getQuery();
     }
 
@@ -137,15 +137,20 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @return
      */
     @Override
-    public String getSyntaxCheckQuery() {
-        String sql = param.getDbQuerySource().getSqlBody();
+    public String getSampleQuery() {
+        String sampleSQL = param.getDbQuerySource().getSqlBody();
         try {
-            sql = String.valueOf(convertSampleSql(sql));
+            sampleSQL = convertQuery(String.valueOf(convertSampleSql(sampleSQL)));
         } catch (JSQLParserException e) {
-            log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+            log.error("Sample sql error {}, execute original sql: {}, error is: {} ",
+                    sampleSQL, sampleSQL = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
-        return sql;
+        return sampleSQL;
+    }
+
+    @Override
+    String getExplainQuery() {
+        return "explain " + convertQuery(getBestQuery());
     }
 
     @Override

@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.ExplainStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -112,25 +113,33 @@ public class SQLHelper {
     public static String getTableName(String sql) {
         try {
             Statement statement = CCJSqlParserUtil.parse(sql);
+            Select selectStatement = null;
             if (statement instanceof Select) {
-                Select selectStatement = (Select) statement;
-                TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-                List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
-                if (StringUtil.isNotEmpty(tableList)) {
-                    String tableName = tableList.get(0);
-                    int i = tableName.lastIndexOf(".");
-                    return i < 0 ? tableName : tableName.substring(i + 1);
-                } else {
-                    log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}", sql);
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Get Table Name Error.", null);
-                }
+                selectStatement = (Select) statement;
+            } else if (statement instanceof ExplainStatement)  {
+                selectStatement = ((ExplainStatement)statement).getStatement();
             } else {
-                log.warn("Not support DML Parser");
+                log.error("Not support DML Parser");
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error, Not support DML Parser.", null);
             }
+
+            TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
+            List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
+            if (StringUtil.isNotEmpty(tableList)) {
+                String tableName = tableList.get(0);
+                int i = tableName.lastIndexOf(".");
+                return i < 0 ? tableName : tableName.substring(i + 1);
+            } else {
+                log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}", sql);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Get Table Name Error.", null);
+            }
+
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error.", e);
         }
     }
+
+
+
 }

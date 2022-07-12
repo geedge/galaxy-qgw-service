@@ -1,7 +1,12 @@
 package com.mesalab.qgw.dialect;
 
+import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
+import com.zdjizhi.utils.Encodes;
+import com.zdjizhi.utils.JsonMapper;
 import lombok.Data;
+
+import java.util.Map;
 import java.util.Optional;
 
 @Data
@@ -25,19 +30,42 @@ public abstract class AbstractDataSourceDialect implements Dialect {
      * 获取原始SQL语句，不做规则转换，直接下推
      * @return
      */
-    abstract  String getOriginQuery();
+    abstract  String getOriginalQuery();
 
     /**
-     * 获取用于语法检查的SQL，目标生成无Filter语句。
+     * 获取样例SQL，目标生成无Filter语句。
      * @return
      */
-    abstract  String getSyntaxCheckQuery();
+    abstract  String getSampleQuery();
+
+    /**
+     * get Explain Statement
+     * @return
+     */
+    abstract String getExplainQuery();
 
     /**
      * 简化规范异常信息展示。
      * @return
      */
     abstract String simplyErrorMessage(Object object);
+
+
+
+    @Override
+    final public BaseResult executeQuery() {
+        init();
+        String transformedSQL = convertQuery(getBestQuery());
+        return generateBaseResult(transformedSQL, Optional.of("OK"));
+    }
+
+    @Override
+    final public BaseResult executeSampleQuery() {
+        init();
+        String transformedSQL = getSampleQuery();
+
+        return generateBaseResult(transformedSQL, Optional.of("OK"));
+    }
 
     /**
      * 解析并生成最终结果
@@ -47,32 +75,32 @@ public abstract class AbstractDataSourceDialect implements Dialect {
      */
     abstract  BaseResult generateBaseResult(String sql, Optional<String> message);
 
-    @Override
-    final public BaseResult executeQuery() {
+
+    /**
+     * shows the execution plan of a select statement.
+     * @return
+     */
+    final public BaseResult executeExplainPlan() {
         init();
-        String sql = convertQuery(getBestQuery());
-        return generateBaseResult(sql, Optional.of("OK"));
+        String transformedSQL = getExplainQuery();
+        Map sqlMap = Maps.newHashMap();
+        sqlMap.put("OriginalSQL", Encodes.encodeBase64(getOriginalQuery().getBytes()));
+        sqlMap.put("transformedSQL", Encodes.encodeBase64(transformedSQL.getBytes()));
+        return generateBaseResult(transformedSQL, Optional.of(JsonMapper.toJsonString(sqlMap)));
     }
 
-    @Override
-    final public BaseResult executeSampleQuery() {
-        init();
-        String sql = convertQuery(getSyntaxCheckQuery());
-        return generateBaseResult(sql, Optional.of("OK"));
-    }
 
     @Override
     final public BaseResult executeSyntaxCheck() {
         init();
-        String originSQL = getOriginQuery();
-        String sql = convertQuery(getSyntaxCheckQuery());
-        return generateBaseResult(sql, Optional.of(originSQL));
+        String transformedSQL = getSampleQuery();
+        return generateBaseResult(transformedSQL, Optional.of(getOriginalQuery()));
     }
 
     @Override
     final public BaseResult executeAdministrativeQuery() {
         init();
-        String sql = getOriginQuery();
+        String sql = getOriginalQuery();
         return generateBaseResult(sql, Optional.of("OK"));
     }
 

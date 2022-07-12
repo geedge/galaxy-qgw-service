@@ -34,6 +34,7 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.DescribeStatement;
+import net.sf.jsqlparser.statement.ExplainStatement;
 import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
@@ -97,6 +98,8 @@ public class ApiServiceImpl implements ApiService {
         } else if (statement instanceof ShowStatement) {
             ShowStatement showStatement = (ShowStatement) statement;
             baseResult = executeShowStatement(param, showStatement);
+        } else if (statement instanceof ExplainStatement) {
+            baseResult = executeExplainStatement(param);
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
                     "SQL Syntax Error: Only support statement operations for select, show and describe.", null);
@@ -295,122 +298,121 @@ public class ApiServiceImpl implements ApiService {
         try {
 
             Statement statement = CCJSqlParserUtil.parse(sql);
+            Select selectStatement = null;
             if (statement instanceof Select) {
-                Select selectStatement = (Select) statement;
-                sqlQuerySource.setSqlBody(String.valueOf(selectStatement.getSelectBody()));
-                TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-                List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
-
-                if (StringUtil.isNotEmpty(tableList)) {
-                    String tableName = tableList.get(0);
-                    int i = tableName.lastIndexOf(".");
-                    tableName = i < 0 ? tableName : tableName.substring(i + 1);
-                    sqlQuerySource.setTableName(tableName);
-                    sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
-                } else {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), MessageConst.SQL_PARSE_ERROR_NOT_FOUNT_TABLE);
-                }
-
-
-                SelectBody body = selectStatement.getSelectBody();
-
-
-                if (body instanceof PlainSelect) { //单条查询
-
-                    PlainSelect select = (PlainSelect) body;
-
-                    FromItem fromItem = select.getFromItem();
-                    if (fromItem != null) {
-                        sqlQuerySource.setFromItem(fromItem.toString());
-                    }
-
-                    Expression where = select.getWhere();
-
-                    if (where != null) {
-                        sqlQuerySource.setExpr(where.toString());
-                        sqlQuerySource.setWhereExpression(where);
-                    }
-
-                    List<SelectItem> selectItemsList = select.getSelectItems();
-
-                    if (StringUtil.isNotEmpty(selectItemsList)) {
-                        String selectItemsString = Joiner.on(",").join(selectItemsList);
-                        sqlQuerySource.setSelectItems(selectItemsString);
-
-                    }
-
-                    for (SelectItem item : selectItemsList) {
-                        if (item instanceof SelectExpressionItem) {
-                            SelectExpressionItem expressionItem = ((SelectExpressionItem) item);
-                            if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
-                                String aliasName = expressionItem.getAlias().getName();
-                                if (aliasName.startsWith("\"") && aliasName.endsWith("\"")) {
-                                    aliasName = aliasName.substring(1, aliasName.length() - 1);
-                                }
-                                sqlQuerySource.getAliasFields().put(aliasName, expressionItem.getExpression().toString());
-                            } else {
-                                sqlQuerySource.getAliasFields().put(expressionItem.getExpression().toString(), expressionItem.getExpression().toString());
-                            }
-                            addUDFSet(sqlQuerySource.getUdfSet(), expressionItem.getExpression());//伪代码：后期需要在SQLQuerySource where对象中提取
-
-                        }
-                    }
-
-                    GroupByElement groupBy;
-                    if (StringUtil.isNotEmpty(groupBy = select.getGroupBy())) {
-                        sqlQuerySource.setGroupByElement(groupBy);
-                    }
-
-                    List<OrderByElement> orderByList = select.getOrderByElements();
-                    if (StringUtil.isNotEmpty(orderByList)) {
-                        String orderByString = Joiner.on(",").join(orderByList);
-                        sqlQuerySource.setOrderBy(orderByString);
-                        sqlQuerySource.setListOrderElement(orderByList);
-                    }
-
-
-                    FromItem subItem = select.getFromItem();
-
-                    if (subItem instanceof SubSelect) {
-                        SubSelect subSelect = (SubSelect) subItem;
-                        log.debug("存在子查询为: {}", subSelect);
-                        sqlQuerySource.setSubSelect(subSelect);
-                        sqlQuerySource.getSubSqlQuerySources().add(0, parserSQLByAst(String.valueOf(subSelect.getSelectBody())));
-                    }
-
-
-                    Limit limit = select.getLimit();
-
-
-                    if (limit != null) {
-
-                        if (StringUtil.isNotEmpty(limit.getOffset())) {
-                            sqlQuerySource.setLimit(StringUtil.setDefaultIfEmpty(limit.getOffset(), 0) + "," + limit.getRowCount());
-                        } else {
-                            sqlQuerySource.setLimit(String.valueOf(limit.getRowCount()));
-                        }
-                    }
-
-
-                } else if (body instanceof SetOperationList) { // 连接查询
-                    SetOperationList setOperationList = (SetOperationList) body;
-                    List<SelectBody> selects = setOperationList.getSelects();
-                    //暂时只解析第一个结构，不接受不相同的where
-                    if (StringUtil.isNotEmpty(selects)) {
-                        SQLQuerySource parseSql = parserSQLByAst(selects.get(0).toString());
-                        sqlQuerySource.setUdfSet(parseSql.getUdfSet());
-                        sqlQuerySource.setWhereExpression(parseSql.getWhereExpression());
-                        sqlQuerySource.setGroupByElement(parseSql.getGroupByElement());
-                        sqlQuerySource.setAliasFields(parseSql.getAliasFields());
-                    }
-                    sqlQuerySource.setLimit(SQLHelper.INVALID_LIMIT_DESC);
-                } else { //其它暂不支持
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT);
-                }
-
-
+                selectStatement = (Select) statement;
+            } else if (statement instanceof ExplainStatement) {
+                selectStatement = ((ExplainStatement) statement).getStatement();
             } else {
-                log.warn("Not support DML Parser");
+                log.error("Not support DML Parser");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT);
+            }
+
+            sqlQuerySource.setSqlBody(String.valueOf(selectStatement.getSelectBody()));
+            TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
+            List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
+
+            if (StringUtil.isNotEmpty(tableList)) {
+                String tableName = tableList.get(0);
+                int i = tableName.lastIndexOf(".");
+                tableName = i < 0 ? tableName : tableName.substring(i + 1);
+                sqlQuerySource.setTableName(tableName);
+                sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
+            } else {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), MessageConst.SQL_PARSE_ERROR_NOT_FOUNT_TABLE);
+            }
+
+            SelectBody body = selectStatement.getSelectBody();
+            if (body instanceof PlainSelect) { //单条查询
+
+                PlainSelect select = (PlainSelect) body;
+
+                FromItem fromItem = select.getFromItem();
+                if (fromItem != null) {
+                    sqlQuerySource.setFromItem(fromItem.toString());
+                }
+
+                Expression where = select.getWhere();
+
+                if (where != null) {
+                    sqlQuerySource.setExpr(where.toString());
+                    sqlQuerySource.setWhereExpression(where);
+                }
+
+                List<SelectItem> selectItemsList = select.getSelectItems();
+
+                if (StringUtil.isNotEmpty(selectItemsList)) {
+                    String selectItemsString = Joiner.on(",").join(selectItemsList);
+                    sqlQuerySource.setSelectItems(selectItemsString);
+
+                }
+
+                for (SelectItem item : selectItemsList) {
+                    if (item instanceof SelectExpressionItem) {
+                        SelectExpressionItem expressionItem = ((SelectExpressionItem) item);
+                        if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
+                            String aliasName = expressionItem.getAlias().getName();
+                            if (aliasName.startsWith("\"") && aliasName.endsWith("\"")) {
+                                aliasName = aliasName.substring(1, aliasName.length() - 1);
+                            }
+                            sqlQuerySource.getAliasFields().put(aliasName, expressionItem.getExpression().toString());
+                        } else {
+                            sqlQuerySource.getAliasFields().put(expressionItem.getExpression().toString(), expressionItem.getExpression().toString());
+                        }
+                        addUDFSet(sqlQuerySource.getUdfSet(), expressionItem.getExpression());//伪代码：后期需要在SQLQuerySource where对象中提取
+
+                    }
+                }
+
+                GroupByElement groupBy;
+                if (StringUtil.isNotEmpty(groupBy = select.getGroupBy())) {
+                    sqlQuerySource.setGroupByElement(groupBy);
+                }
+
+                List<OrderByElement> orderByList = select.getOrderByElements();
+                if (StringUtil.isNotEmpty(orderByList)) {
+                    String orderByString = Joiner.on(",").join(orderByList);
+                    sqlQuerySource.setOrderBy(orderByString);
+                    sqlQuerySource.setListOrderElement(orderByList);
+                }
+
+
+                FromItem subItem = select.getFromItem();
+
+                if (subItem instanceof SubSelect) {
+                    SubSelect subSelect = (SubSelect) subItem;
+                    log.debug("存在子查询为: {}", subSelect);
+                    sqlQuerySource.setSubSelect(subSelect);
+                    sqlQuerySource.getSubSqlQuerySources().add(0, parserSQLByAst(String.valueOf(subSelect.getSelectBody())));
+                }
+
+
+                Limit limit = select.getLimit();
+
+
+                if (limit != null) {
+
+                    if (StringUtil.isNotEmpty(limit.getOffset())) {
+                        sqlQuerySource.setLimit(StringUtil.setDefaultIfEmpty(limit.getOffset(), 0) + "," + limit.getRowCount());
+                    } else {
+                        sqlQuerySource.setLimit(String.valueOf(limit.getRowCount()));
+                    }
+                }
+
+
+            } else if (body instanceof SetOperationList) { // 连接查询
+                SetOperationList setOperationList = (SetOperationList) body;
+                List<SelectBody> selects = setOperationList.getSelects();
+                //暂时只解析第一个结构，不接受不相同的where
+                if (StringUtil.isNotEmpty(selects)) {
+                    SQLQuerySource parseSql = parserSQLByAst(selects.get(0).toString());
+                    sqlQuerySource.setUdfSet(parseSql.getUdfSet());
+                    sqlQuerySource.setWhereExpression(parseSql.getWhereExpression());
+                    sqlQuerySource.setGroupByElement(parseSql.getGroupByElement());
+                    sqlQuerySource.setAliasFields(parseSql.getAliasFields());
+                }
+                sqlQuerySource.setLimit(SQLHelper.INVALID_LIMIT_DESC);
+            } else { //其它暂不支持
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT);
             }
 
@@ -534,6 +536,10 @@ public class ApiServiceImpl implements ApiService {
         return baseResult;
     }
 
+    private BaseResult executeExplainStatement(ApiParam param) {
+        return getDBDialect(param).executeExplainPlan();
+    }
+
     /**
      * 执行show语句
      *
@@ -578,6 +584,11 @@ public class ApiServiceImpl implements ApiService {
         }
         return tablesResultEncapsulation(list, param.getSchema());
     }
+
+
+
+
+
 
     /**
      * 获取所有表信息

@@ -82,13 +82,18 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    String getOriginQuery() {
+    String getOriginalQuery() {
         return param.getQuery();
     }
 
     @Override
-    String getSyntaxCheckQuery() {
-        return param.getQuery();
+    String getSampleQuery() {
+        return convertQuery(param.getQuery());
+    }
+
+    @Override
+    String getExplainQuery() {
+        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "ES dialect unsupported EXPLAIN Syntax.", null);
     }
 
     @Override
