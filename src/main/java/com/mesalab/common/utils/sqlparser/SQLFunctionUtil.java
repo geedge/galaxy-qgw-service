@@ -97,6 +97,7 @@ public class SQLFunctionUtil {
 
     //other
     public static final Pattern pQuantile = Pattern.compile("\\WQUANTILE\\s*\\(");
+    public static final Pattern pMedian = Pattern.compile("\\WMEDIAN\\s*\\(");
     public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
     public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");
 
@@ -110,6 +111,7 @@ public class SQLFunctionUtil {
     public static String generateDateFunction(String sql, String dbType) {
         sql = translateCommonFun(sql, dbType);
         sql = parseQuantile(sql, dbType);
+        sql = parseMedian(sql, dbType);
         sql = parseMergepFunction(sql, dbType);
         sql = parseMarkDate(sql, dbType);
         sql = parseDateCalculateNum(sql, dbType);
@@ -427,6 +429,52 @@ public class SQLFunctionUtil {
             replaceValue = "PERCENTILE#[" + params.get(0) + "," + params.get(1) + "*100#]";
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             replaceValue = "APPROX_QUANTILE_DS#[" + params.get(0) + "," + params.get(1) + "#]";
+        }
+        return replaceValue;
+    }
+
+    public static String parseMedian(String sql, String dbType){
+        while (true) {
+            Matcher matcher = pMedian.matcher(sql);
+            if (!matcher.find()){
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseMedianReplace(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    public static String parseMedianReplace(String sqlParse, int num, String dbType){
+        Pattern pNumMedian = Pattern.compile("(MEDIAN)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)");
+        Matcher matcher = pNumMedian.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        if (matcher.find()) {
+            String group2 = matcher.group(2);
+            String replaceValue = group2;
+            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
+                replaceValue = medianReplaceByDB(group2, dbType);
+            }
+            matcher.appendReplacement(sb, replaceValue);
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
+
+    private static String medianReplaceByDB(String param, String dbType){
+        String replaceValue = null;
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            replaceValue = "median#[" + param + "#]";
+        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            replaceValue = "PERCENTILE#[" + param + "," + 0.5 + "*100#]";
+        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            replaceValue = "APPROX_QUANTILE_DS#[" + param + "," + 0.5 + "#]";
         }
         return replaceValue;
     }
