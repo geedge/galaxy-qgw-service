@@ -1,0 +1,437 @@
+{
+  "type": "record",
+  "name": "traffic_metrics_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "entrance_id",
+      "label": "Entrance ID",
+      "type": "long",
+      "doc": {
+        "visibility": "disabled"
+      }
+    },
+    {
+      "name": "allow_conn_num",
+      "label": "Allow Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "allow_in_bytes",
+      "label": "Allow Bytes (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "allow_in_packets",
+      "label": "Allow Packets (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "allow_out_bytes",
+      "label": "Allow Bytes (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "allow_out_packets",
+      "label": "Allow Packets (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "close_conn_num",
+      "label": "Closed Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "default_conn_num",
+      "label": "Default Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "default_in_bytes",
+      "label": "Default Bytes (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "default_in_packets",
+      "label": "Default Packets (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "default_out_bytes",
+      "label": "Default Bytes (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "default_out_packets",
+      "label": "Default Packets (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "deny_conn_num",
+      "label": "Deny Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "deny_in_bytes",
+      "label": "Deny Bytes (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "deny_in_packets",
+      "label": "Deny Packets (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "deny_out_bytes",
+      "label": "Deny Bytes (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "deny_out_packets",
+      "label": "Deny Packets (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intercept_conn_num",
+      "label": "Intercept Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intercept_in_bytes",
+      "label": "Intercept Bytes (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intercept_in_packets",
+      "label": "Intercept Packets (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intercept_out_bytes",
+      "label": "Intercept Bytes (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intercept_out_packets",
+      "label": "Intercept Packets (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "established_conn_num",
+      "label": "Established Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "monitor_conn_num",
+      "label": "Monitor Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "monitor_in_bytes",
+      "label": "Monitor Bytes (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "monitor_in_packets",
+      "label": "Monitor Packets (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "monitor_out_bytes",
+      "label": "Monitor Bytes (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "monitor_out_packets",
+      "label": "Monitor Packets (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_conn_num",
+      "label": "New Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "total_in_bytes",
+      "label": "Total Bytes (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "total_in_packets",
+      "label": "Total Packets (Ingress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "total_out_bytes",
+      "label": "Total Bytes (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "total_out_packets",
+      "label": "Total Packets (Egress)",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "alert_bytes",
+      "label": "Alert Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "hijk_bytes",
+      "label": "Hijack Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "ins_bytes",
+      "label": "Insert Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intcp_allow_num",
+      "label": "Intercept Allow Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intcp_deny_num",
+      "label": "Intercept Deny Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intcp_hijk_num",
+      "label": "Intercept Hijack Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intcp_ins_num",
+      "label": "Intercept Insert Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intcp_mon_num",
+      "label": "Intercept Monitor Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intcp_rdirt_num",
+      "label": "Intercept Redirect Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intcp_repl_num",
+      "label": "Intercept Replace Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "maybe_pinning_num",
+      "label": "Maybe Pinning Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "not_pinning_num",
+      "label": "Not Pinning Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "pinning_num",
+      "label": "Pinning Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "ad_cc_bytes",
+      "label": "AD CC Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "ad_flood_bytes",
+      "label": "AD Flood Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "ad_reflection_bytes",
+      "label": "AD Reflection Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intcp_edit_elem_num",
+      "label": "Intercept Edit Element Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

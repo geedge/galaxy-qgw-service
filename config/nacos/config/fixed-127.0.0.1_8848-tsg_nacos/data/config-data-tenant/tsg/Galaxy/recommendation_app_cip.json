@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "recommendation_app_cip",
+  "namespace": "tsg_galaxy",
+  "fields": [
+    {
+      "name": "ROWKEY",
+      "label": "Row Key",
+      "type": "string"
+    },
+    {
+      "name": "app_label",
+      "label": "APP Label",
+      "type": "string"
+    },
+    {
+      "name": "last_update_time",
+      "label": "Last Update Time",
+      "type": "long"
+    },
+    {
+      "name": "client_ip_list",
+      "label": "Client IP List",
+      "type": "string"
+    }
+  ]
+}

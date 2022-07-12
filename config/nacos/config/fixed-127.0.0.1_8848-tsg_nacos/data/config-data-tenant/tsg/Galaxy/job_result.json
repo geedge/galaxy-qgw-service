@@ -1,0 +1,42 @@
+{
+  "type": "record",
+  "name": "job_result",
+  "namespace": "tsg_galaxy",
+  "fields": [
+    {
+      "name": "ROWKEY",
+      "label": "Row Key",
+      "type": "string"
+    },
+    {
+      "name": "is_done",
+      "label": "Done",
+      "type": "boolean"
+    },
+    {
+      "name": "is_canceled",
+      "label": "Canceled",
+      "type": "boolean"
+    },
+    {
+      "name": "done_progress",
+      "label": "Progress",
+      "type": "double"
+    },
+    {
+      "name": "last_query_time",
+      "label": "Last Query Time",
+      "type": "long"
+    },
+    {
+      "name": "duration_time",
+      "label": "Duration Time",
+      "type": "long"
+    },
+    {
+      "name": "discovery_field",
+      "label": "Discovery Field",
+      "type": "string"
+    }
+  ]
+}

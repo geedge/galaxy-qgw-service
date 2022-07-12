@@ -23,7 +23,9 @@ public interface SystemService {
     BaseResult dailyTrendOfStorage(String searchStartTime, String searchEndTime);
 
     /**
-     * 数据配额设置
+     * 数据配额设置：
+     *  1. 调度任务
+     *  2. schema TTL设置
      * @param list
      * @return
      */
@@ -44,7 +46,7 @@ public interface SystemService {
     BaseResult deleteQueryTask(String queryId);
 
     /**
-     * 构建查询唯一标识：Query ID，由 Catalog（数据库类型): resultID+query 组成。
+     * 自定义查询ID: 由 Catalog（数据库类型): resultID+query 组成。
      *
      * @param resultId
      * @param query
@@ -52,7 +54,7 @@ public interface SystemService {
      * @created by wWei
      * @date 2021/1/7 6:48 下午
      */
-    String getQueryIdWithCatalog(String resultId, String query);
+    String getCustomQueryId(String resultId, String query);
 
     /**
      * Desc: 通过queryId查询SQL任务执行状态
@@ -66,10 +68,20 @@ public interface SystemService {
     /**
      * Desc: 通过queryId查询SQL任务执行状态
      *
-     * @param queryId
+     * @param param
      * @return {@link BaseResult}
      * @created by wWei
      * @date 2021/1/7 6:49 下午
      */
     BaseResult getCiphertext(EncryptionInfo param);
+
+    /**
+     * Desc: 一致性校验
+     *
+     * @param
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2022/6/5 9:24 下午
+     */
+    BaseResult consistencyCheck();
 }

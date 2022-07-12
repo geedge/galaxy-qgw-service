@@ -1,0 +1,368 @@
+{
+  "type": "record",
+  "name": "active_defence_event",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "common_log_id",
+    "partition_key": "common_recv_time",
+    "index_key": [
+      "common_log_id",
+      "common_recv_time",
+      "common_policy_id"
+    ],
+    "schema_query": {
+      "dimensions": [
+        "common_policy_id",
+        "ad_target_ip",
+        "ad_cc_target_url"
+      ],
+      "metrics": [
+        "ad_target_ip",
+        "ad_sent_byte_num",
+        "ad_sent_pkt_num",
+        "ad_cc_initiate_connection_num",
+        "ad_cc_established_connection_num",
+        "ad_cc_rejected_connection_num"
+      ],
+      "filters": [
+        "common_policy_id",
+        "ad_target_ip",
+        "ad_target_port",
+        "ad_protocol",
+        "common_address_type",
+        "ad_sent_byte_num",
+        "ad_sent_pkt_num",
+        "ad_cc_initiate_connection_num",
+        "ad_cc_established_connection_num",
+        "ad_cc_rejected_connection_num"
+      ]
+    },
+    "schema_type": {
+      "REFLECTION": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_address_type",
+          "common_device_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
+          "common_entrance_id",
+          "common_user_region",
+          "ad_method",
+          "ad_protocol",
+          "ad_target_ip",
+          "ad_target_port",
+          "ad_target_ip_location",
+          "ad_target_ip_asn",
+          "ad_reflector_profile_id",
+          "ad_sent_pkt_num",
+          "ad_sent_byte_num",
+          "ad_generate_time"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "ad_target_ip",
+          "ad_target_port",
+          "ad_reflector_profile_id",
+          "ad_sent_pkt_num",
+          "ad_sent_byte_num"
+        ]
+      },
+      "FLOOD": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_address_type",
+          "common_device_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
+          "common_entrance_id",
+          "common_user_region",
+          "ad_method",
+          "ad_protocol",
+          "ad_target_ip",
+          "ad_target_port",
+          "ad_target_ip_location",
+          "ad_target_ip_asn",
+          "ad_claimed_src_ip_profile_id",
+          "ad_sent_pkt_num",
+          "ad_sent_byte_num",
+          "ad_generate_time"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "ad_target_ip",
+          "ad_target_port",
+          "ad_claimed_src_ip_profile_id",
+          "ad_protocol"
+        ]
+      },
+      "CC": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_address_type",
+          "common_device_id",
+          "common_egress_link_id",
+          "common_ingress_link_id",
+          "common_entrance_id",
+          "common_user_region",
+          "ad_method",
+          "ad_protocol",
+          "ad_cc_target_url",
+          "ad_claimed_src_ip_profile_id",
+          "ad_cc_initiate_connection_num",
+          "ad_cc_established_connection_num",
+          "ad_cc_rejected_connection_num",
+          "ad_generate_time"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "ad_cc_target_url",
+          "ad_claimed_src_ip_profile_id",
+          "ad_protocol"
+        ]
+      }
+    },
+    "default_columns": [
+      "common_recv_time",
+      "common_log_id",
+      "common_policy_id",
+      "ad_target_ip",
+      "ad_target_port",
+      "ad_cc_target_url"
+    ]
+  },
+  "fields": [
+    {
+      "name": "common_recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "format": {
+          "functions": "current_timestamp"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_log_id",
+      "label": "Log ID",
+      "doc": {
+        "format": {
+          "functions": "snowflake_id"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_policy_id",
+      "label": "Policy ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_address_type",
+      "label": "Address Type",
+      "doc": {
+        "data": [
+          {
+            "code": "4",
+            "value": "ipv4"
+          },
+          {
+            "code": "6",
+            "value": "ipv6"
+          }
+        ],
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_entrance_id",
+      "label": "Entrance ID",
+      "doc": {
+        "visibility": "disabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_egress_link_id",
+      "label": "Egress Link ID",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_ingress_link_id",
+      "label": "Ingress Link ID",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_user_region",
+      "label": "User Region",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ad_target_ip",
+      "label": "Target IP",
+      "doc": {
+        "constraints": {
+          "type": "ip"
+        },
+        "format": {
+          "functions": "geo_ip_country,geo_asn",
+          "appendTo": "ad_target_ip_location,ad_target_ip_asn"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ad_target_port",
+      "label": "Target Port",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ad_cc_target_url",
+      "label": "Target URL",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ad_target_ip_location",
+      "label": "Target Location",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ad_target_ip_asn",
+      "label": "Target ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ad_protocol",
+      "label": "Protocol",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ad_method",
+      "label": "Method",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "ad_claimed_src_ip_profile_id",
+      "label": "Claimed Profile ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ad_reflector_profile_id",
+      "label": "Reflector Profile ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ad_sent_pkt_num",
+      "label": "Packets Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ad_sent_byte_num",
+      "label": "Bytes Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ad_cc_initiate_connection_num",
+      "label": "Initiate Numbers",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ad_cc_established_connection_num",
+      "label": "Established Numbers",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ad_cc_rejected_connection_num",
+      "label": "Rejected Numbers",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "ad_generate_time",
+      "label": "Generate Time",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      },
+      "type": "int"
+    }
+  ]
+}

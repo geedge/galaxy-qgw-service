@@ -1,6 +1,8 @@
 package com.mesalab.services.common.dsl;
 
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
@@ -8,7 +10,6 @@ import com.mesalab.knowledge.enums.SortEnum;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.http.HttpStatus;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
@@ -29,45 +30,45 @@ public class ComDSLValidate {
 
     public void validation(ComDSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.DSL_OBJECT_IS_INVALID);
         }
         ComDSLObject.Query query;
         if (StringUtil.isEmpty(query = dslObject.getQuery())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.QUERY_IS_INVALID);
         }
         if (StringUtil.isEmpty(query.getDataEngine())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.dataEngine is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.DATA_ENGINE_IS_INVALID);
         }
         if (StringUtil.isEmpty(query.getDataSource())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.dataSource is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.DATASOURCE_IS_INVALID);
         }
         ComDSLObject.Query.QueryBean parameters;
         if (StringUtil.isEmpty(parameters = query.getParameters())) {
             return;
         }
         if (!isValidGranularity(parameters.getGranularity())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "query.Granularity value is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.GRANULARITY_VALUE_IS_INVALID);
         }
         if (!isValidMatch(parameters.getMatch())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.query.Match type is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.MATCH_TYPE);
         }
         if (!isValidRange(parameters.getRange())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.query.Intervals is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         if (!isValidIntervals(parameters.getIntervals())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.query.Intervals is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         if (!isValidSort(parameters.getSort())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "DSLObject.query.query.Intervals is invalid");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.INTERVALS_PARAM_ERROR);
         }
     }
 
@@ -86,10 +87,10 @@ public class ComDSLValidate {
             return true;
         }
         for (ComDSLObject.Query.SortBean sortBean : sortList) {
-            Validate.isTrue(EnumUtils.isValidEnum(SortEnum.class, StringUtil.upperCase(sortBean.getType())), "sort type is illegal");
+            Validate.isTrue(EnumUtils.isValidEnum(SortEnum.class, StringUtil.upperCase(sortBean.getType())), ErrorMessage.SORT_TYPE_IS_INVALID);
             String fieldKey = sortBean.getFieldKey();
             if (StringUtil.isBlank(fieldKey)) {
-                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "sort fieldValues cannot null");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.SORT_FIELD_VALUES);
             }
         }
         return true;
@@ -100,10 +101,10 @@ public class ComDSLValidate {
             return true;
         }
         for (ComDSLObject.Query.FilterBean rangeBean : rangeList) {
-            Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(rangeBean.getType())), "range type is illegal");
+            Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(rangeBean.getType())), ErrorMessage.RANGE_TYPE_IS_INVALID);
             String fieldKey = rangeBean.getFieldKey();
             if (StringUtil.isBlank(fieldKey)) {
-                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "range fieldValues cannot null");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.RANGE_FIELD_VALUES);
             }
         }
         return true;
@@ -114,17 +115,17 @@ public class ComDSLValidate {
             return true;
         }
         for (ComDSLObject.Query.FilterBean matchBean : matchList) {
-            Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(matchBean.getType())), "match type is illegal");
+            Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(matchBean.getType())), ErrorMessage.MATCH_TYPE);
 
             if (MatchEnum.REGEX.getType().equals(matchBean.getType())) {
                 matchBean.getFieldValues().forEach(mv -> {
-                    org.apache.commons.lang3.Validate.isTrue(!(String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*")), "error in matching sign. begin with * and do not end with * for suffix matching, end with * and do not begin with $ or * for prefix matching, begin with $ and do not end with * for exactly matching, begin with * and end with * or no wildcard for substring matching");
+                    org.apache.commons.lang3.Validate.isTrue(!(String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*")), ErrorMessage.MATCHING_SIGN);
                 });
             }
 
             /*for (String fieldValue : matchBean.getFieldValues()) {
                 if (fieldValue.startsWith("*") || fieldValue.endsWith("$")) {
-                    throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Match fieldValues cannot startWith '*' or endWith '$'");
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Match fieldValues cannot startWith '*' or endWith '$'");
                 }
             }*/
         }
@@ -136,15 +137,15 @@ public class ComDSLValidate {
             return true;
         }
         if (intervalsBean.size() != 1) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Intervals param error");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         String[] split = intervalsBean.get(0).split("/");
         if (split.length != 2) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Intervals param error");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         for (String dateTimeStr : split) {
             if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Time format should be: yyyy-MM-dd HH:mm:ss");
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.TIME_FORMAT_ERROR);
             }
         }
         try {
@@ -153,7 +154,7 @@ public class ComDSLValidate {
                 throw new RuntimeException("Intervals value should be [start, end]");
             }
         } catch (RuntimeException e) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
         }
         return true;
     }

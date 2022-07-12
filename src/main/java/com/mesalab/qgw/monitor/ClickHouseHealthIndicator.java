@@ -2,9 +2,8 @@ package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.common.utils.TimeZoneUtil;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
@@ -39,21 +38,22 @@ public class ClickHouseHealthIndicator extends AbstractHealthIndicator {
                 .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
                 .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
-                .append("query=").append("select timezone() as timeZone")
+                .append("query=").append("select timezone() as timeZone, now() as curTimestamp")
                 .append(" FORMAT JSON ;");
         String url = queryURL + queryParamBuilder;
         try {
             ResponseEntity responseEntity = restTemplate.getForEntity(url, Map.class);
-            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
+            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()) {
                 Map body = (Map) responseEntity.getBody();
                 Map data = (Map) ((List) body.get("data")).get(0);
                 String dbTimeZone = data.get("timeZone").toString();
-                String timeZone = TimeZoneUtil.timeZoneTransition(dbTimeZone);
+                String curDatetime = data.get("curTimestamp").toString();
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", clickHouseHttpSource.getUrl())
                         .withDetail("message", "ok")
-                        .withDetail("timeZone", timeZone);
+                        .withDetail("timeZone", dbTimeZone)
+                        .withDetail("curTimestamp", curDatetime);
             } else {
                 builder.down()
                         .withDetail("app", APP)

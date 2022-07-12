@@ -37,7 +37,7 @@ public class DruidTest extends GalaxyQGWApplicationTests {
         Optional<File> ckTestFile =  Optional.of(new File(pocFile));
         if (ckTestFile.isPresent()) {
             if (!ckTestFile.get().isFile()) {
-                log.warn("UnKnow File " + ckTestFile.get());
+                log.warn("Not a file." + ckTestFile.get());
                 return;
             }
 

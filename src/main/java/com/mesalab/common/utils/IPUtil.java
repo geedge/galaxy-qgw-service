@@ -1,6 +1,6 @@
 package com.mesalab.common.utils;
 
-import com.zdjizhi.utils.IpLookup;
+import com.zdjizhi.utils.IpLookupV2;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -12,8 +12,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class IPUtil {
 
-    private static IpLookup ipLookup =  new IpLookup.Builder(true)
-            .build();
+    private static IpLookupV2 ipLookup =  new IpLookupV2.Builder(true).build();
 
     public static String getGeo(String ip) {
         return ipLookup.latLngLookup(ip);
@@ -26,7 +25,11 @@ public class IPUtil {
     public static String getCountry(String ip) {
         return ipLookup.countryLookup(ip);
     }
-
-
+    public static String getISP(String ip) {
+        return ipLookup.ispLookup(ip);
+    }
+    public static String getOrganization(String ip) {
+        return ipLookup.organizationLookup(ip);
+    }
 
 }

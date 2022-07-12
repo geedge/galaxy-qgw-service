@@ -16,12 +16,18 @@ public enum ResultStatusEnum {
      * NOT_FOUND： 404 不存在
      * SERVER_ERROR: 500 网络服务异常
      */
-    SUCCESS(200, "成功"),
-    FAIL(400, "失败"),
-    NOT_FOUND(404, "不存在"),
-    REQUEST_URI_TOO_LONG(414, "请求URI太长"),
-    REQ_FORBIDDEN(403, "重复请求"),
-    SERVER_ERROR(500, "服务异常");
+    SUCCESS(200, "Success"),
+    CREATED(201, "Create"),
+    ACCEPTED(202, "Accept"),
+    FAIL(400, "Fail"),
+    NOT_FOUND(404, "Not found"),
+    REQUEST_URI_TOO_LONG(414, "Request URI too long"),
+    REQ_FORBIDDEN(403, "Repeat request"),
+    LOCKED(423,"locked"),
+    BAD_GATEWAY(502, "Bad gateway"),
+    SERVICE_UNAVAILABLE (503,"Service unavailable"),
+    GATEWAY_TIMEOUT(504,"Gateway timeout"),
+    SERVER_ERROR(500,"Service exception");
 
     private int code;
 

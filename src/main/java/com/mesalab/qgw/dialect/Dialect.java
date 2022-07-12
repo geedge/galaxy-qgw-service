@@ -26,6 +26,17 @@ public interface Dialect {
      */
     BaseResult executeQuery();
 
+    /**
+     * Shows the execution plan of a select statement.
+     * @return
+     */
+    BaseResult executeExplainPlan();
+
+    /**
+     * 执行抽样查询操作
+     * @return
+     */
+    BaseResult executeSampleQuery();
 
     /**
      * 执行数据库系统管理操作，包含 Show/Describe等
@@ -37,21 +48,21 @@ public interface Dialect {
     /**
      * Desc: 取消查询
      *
-     * @param
+     * @param queryId
      * @return {@link BaseResult}
      * @created by wWei
      * @date 2021/2/24 11:18 上午
      */
-    BaseResult executeKillQuery();
+    BaseResult executeKillQuery(String queryId);
 
     /**
      * Desc: 获取查询进度
      *
-     * @param
+     * @param queryId
      * @return {@link BaseResult}
      * @created by wWei
      * @date 2021/2/24 5:01 下午
      */
-    BaseResult getProcesses();
+    BaseResult getProcesses(String queryId);
 
 }

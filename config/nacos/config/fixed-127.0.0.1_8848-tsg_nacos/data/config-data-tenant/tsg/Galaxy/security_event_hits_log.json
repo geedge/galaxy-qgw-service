@@ -1,0 +1,109 @@
+{
+  "type": "record",
+  "name": "security_event_hits_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "isp",
+      "label": "ISP",
+      "type": "string",
+      "doc": {
+        "visibility": "disabled"
+      }
+    },
+    {
+      "name": "entrance_id",
+      "label": "Entrance ID",
+      "type": "long",
+      "doc": {
+        "visibility": "disabled"
+      }
+    },
+    {
+      "name": "policy_id",
+      "label": "Policy ID",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "action",
+      "label": "Action",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "Monitor"
+          },
+          {
+            "code": "2",
+            "value": "Intercept"
+          },
+          {
+            "code": "16",
+            "value": "Deny"
+          },
+          {
+            "code": "128",
+            "value": "Allow"
+          }
+        ],
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "hits",
+      "label": "Hits",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_byte_num",
+      "label": "Bytes Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_byte_num",
+      "label": "Bytes Received",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

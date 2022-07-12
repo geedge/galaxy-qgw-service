@@ -48,7 +48,7 @@ public class SQLSyntaxParserUtil {
         List resultList = Lists.newArrayList();
         try {
             parseSQL(sql, resultList);
-            addTypeForSelectItems(sql, resultList);
+            //addTypeForSelectItems(sql, resultList);
         } catch (RuntimeException | JSQLParserException e) {
             log.error("syntax-parse: sql-" + sql + ", error: ", e);
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "SQL syntax-parse Error:", e);

@@ -1,7 +1,5 @@
 package com.mesalab.network.service.impl;
 
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
@@ -13,13 +11,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.network.common.Constants;
@@ -29,11 +25,7 @@ import com.mesalab.network.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.http.HttpStatus;
-import org.nutz.json.Json;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -53,16 +45,19 @@ import java.util.stream.Collectors;
  */
 @Service("networkMonitorService")
 @PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
-public class NetworkMonitorServiceImpl implements NetworkMonitorService , EnvironmentAware {
+public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     private static final Log log = LogFactory.get();
     @Autowired
     HttpClientService httpClientService;
     @Autowired
     HttpConfig httpConfig;
-    @Value("${server.port}")
-    private int serverPort;
-    private Environment env;
-    private static String localHostAddress;
+    @Autowired
+    Environment environment;
+    private static final String localHostAddress;
+
+    public String getPort(){
+        return environment.getProperty("local.server.port");
+    }
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
@@ -71,9 +66,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     @Override
     public BaseResult buildProtocolTree(DSLObject dslObject) {
         BaseResult baseResult;
-        String sql = generateProtocolTreeSql(dslObject.getQuery(), env.getProperty("PROTOCOL_TREE_SUMMARY"));
+        String sql = generateProtocolTreeSql(dslObject.getQuery(), environment.getProperty("PROTOCOL_TREE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
             List<Map> resultList = (List<Map>) resultMap.get("data");
             if(StringUtil.isEmpty(resultList)) {
@@ -89,11 +84,11 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
 
     @Override
     public BaseResult buildNetworkOverviewResult(DSLObject dslObject) {
-        Map<String, String> dataRateResult = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), env.getProperty("NETWORK_STATISTICS_SUMMARY")));
-        Map<String, String> currentSessionResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), env.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
+        Map<String, String> dataRateResult = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), environment.getProperty("NETWORK_STATISTICS_SUMMARY")));
+        Map<String, String> currentSessionResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), environment.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
         BaseResult baseResult;
-        if (String.valueOf(HttpStatus.SC_OK).equals(currentSessionResult.get("status"))
-                && String.valueOf(HttpStatus.SC_OK).equals(dataRateResult.get("status"))) {
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(currentSessionResult.get("status"))
+                && String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataRateResult.get("status"))) {
             Map statDataResult = (Map) JsonMapper.fromJsonString(currentSessionResult.get("result"), Map.class);
             List<Map> statData = (List<Map>) statDataResult.get("data");
             Map summaryDataResult = (Map) JsonMapper.fromJsonString(dataRateResult.get("result"), Map.class);
@@ -176,9 +171,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
     @Override
     public BaseResult buildProtocolDataRateSummary(DSLObject dslObject) {
         BaseResult baseResult;
-        String sql = generateProtocolDataRateSql(dslObject.getQuery(), env.getProperty("PROTOCOL_DATA_RATE_SUMMARY"));
+        String sql = generateProtocolDataRateSql(dslObject.getQuery(), environment.getProperty("PROTOCOL_DATA_RATE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(HttpStatus.SC_OK).equals(result.get("status"))) {
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             data.forEach(o -> {
@@ -307,7 +302,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
         } catch (UnsupportedEncodingException e) {
             log.error("sql Encode error: ", e);
         }
-        String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");
+        String queryURL = URLUtil.normalize(localHostAddress + ":" + getPort() + "/?query=");
         int socketTimeOut = httpConfig.getServerResponseTimeOut();
         return httpClientService.httpGet(queryURL + sql, socketTimeOut);
     }
@@ -352,10 +347,15 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
 
         List<ProtocolTree> targetNodes = groupByName(nodes);
 
-        targetNodes.sort(new Comparator<ProtocolTree>() {
-            @Override
-            public int compare(ProtocolTree o1, ProtocolTree o2) {
-                return (o2.getReceivedBytes() + o2.getSentBytes()) - (o1.getReceivedBytes() + o1.getSentBytes()) > 0 ? 1 : -1;
+        targetNodes.sort((o1, o2) -> {
+            long numThis = o1.getReceivedBytes() + o1.getSentBytes();
+            long numParam = o2.getReceivedBytes() + o2.getSentBytes();
+            if (numThis > numParam) {
+                return -1;
+            } else if (numThis < numParam) {
+                return 1;
+            } else {
+                return 0;
             }
         });
         Map<String, List<ProtocolTree>> protocolMap = Maps.newLinkedHashMap();
@@ -476,11 +476,5 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService , Enviro
                 });
         List<ProtocolTree> mergeResultList = new ArrayList(mergeResultMap.values());
         return mergeResultList;
-    }
-
-
-    @Override
-    public void setEnvironment(Environment environment) {
-        env = environment;
     }
 }

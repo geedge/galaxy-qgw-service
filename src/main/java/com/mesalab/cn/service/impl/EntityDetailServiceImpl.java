@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.cn.common.pojo.Condition;
 import com.mesalab.cn.common.pojo.DSLObject;
 import com.mesalab.cn.common.pojo.DSLParser;
@@ -17,10 +18,10 @@ import com.mesalab.cn.service.EntityDetailService;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.strategy.BaseQueryProvider;
 import org.apache.commons.compress.utils.Lists;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,9 +41,14 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     @Autowired
     BaseQueryProvider baseQueryProvider;
 
+    private static final String APP_VIEW = "entity_detail_app_view";
+    private static final String DOMAIN_VIEW = "entity_detail_domain_view";
+    private static final String IP_VIEW = "entity_detail_ip_view";
+    private static final String DNS_VIEW = "entity_detail_dns_view";
     private static final String APP_NAME = "app_name";
     private static final String DOMAIN = "domain";
     private static final String IP = "ip";
+    private static final String DNS = "dns";
     private static final String SERVER_IP = "server_ip";
     private static final String CLIENT_IP = "client_ip";
     private static final String STEP = "step";
@@ -96,6 +102,16 @@ public class EntityDetailServiceImpl implements EntityDetailService {
             "third", ImmutableMap.of(
                     "step", "1..1", "table", "R_USE_APP2DOMAIN", "direction", "to/", "field", "app_name",
                     "type", "app_name"));
+    private static final ImmutableMap<String, Map<String, String>> dnsView = ImmutableMap.<String, Map<String, String>>of(
+            "first", ImmutableMap.of(
+                    "step", "1..1", "table", "R_CNAME_DOMAIN2DOMAIN", "direction", "from/", "field", "domain",
+                    "type", "domain"),
+            "second", ImmutableMap.of(
+                    "step", "1..1", "table", "R_NS_DOMAIN2DOMAIN", "direction", "from/", "field", "domain",
+                    "type", "domain"),
+            "third", ImmutableMap.of(
+                    "step", "1..2", "table", "R_USE_DOMAIN2IP", "direction", "from/", "field", "ip",
+                    "type", "ip"));
 
     @Override
     public BaseResult entityDetailQuery(DSLObject dslObject) throws BusinessException {
@@ -106,22 +122,25 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     private BaseResult parserQuery(DSLObject dslObject) throws BusinessException {
         DSLObject.Query.Parameters parameters = dslObject.getQuery().getParameters();
         DSLObject.Query.Parameters.Match match = parameters.getMatch();
+        String dataSource = dslObject.getQuery().getDataSource();
         valid(parameters);
         List<Condition> condition = match.getCondition();
         String filter = String.valueOf(condition.get(0).getFieldValues().get(0));
-        String fieldKey = condition.get(0).getFieldKey();
         String sort = DSLParser.parseAQLSort(dslObject, "p");
         String limit = DSLParser.parseAQLLimit(dslObject, DEF_LIMIT);
 
         Object result = null;
-        switch (fieldKey) {
-            case APP_NAME:
+        switch (dataSource) {
+            case APP_VIEW:
                 result = queryByApp(filter, sort, limit);
                 break;
-            case DOMAIN:
+            case DOMAIN_VIEW:
                 result = queryByDomain(filter, sort, limit);
                 break;
-            case IP:
+            case DNS_VIEW:
+                result = queryByDNS(filter, sort, limit);
+                break;
+            case IP_VIEW:
                 if(existServerIp(filter)){
                     result = queryByServerIp(filter, sort, limit);
                 } else {
@@ -158,7 +177,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         firstList.parallelStream().collect(Collectors.groupingBy(e -> Optional.ofNullable(e.get(DOMAIN)), Collectors.toList())).forEach(
                 (id, transfer) -> transfer.stream().reduce((a, b) -> a).ifPresent(distinctList::add));
 
-        List<Object> appleaf = new ArrayList<>();
+        List<Object> appLeaf = new ArrayList<>();
         for (Map first : distinctList) {
             List<Object> domainLeaf = new ArrayList<>();
             EntityDetail edDomain = toBean(first, firstAql.get(FIELD), firstAql.get(TYPE));
@@ -183,10 +202,10 @@ public class EntityDetailServiceImpl implements EntityDetailService {
                 domainLeaf.add(edServer);
             }
             edDomain.setLeaf(domainLeaf);
-            appleaf.add(edDomain);
+            appLeaf.add(edDomain);
         }
-        if (ObjectUtil.isNotEmpty(appleaf)) {
-            return EntityDetail.builder().name(condition).type(APP_NAME).leaf(appleaf).build();
+        if (ObjectUtil.isNotEmpty(appLeaf)) {
+            return EntityDetail.builder().name(condition).type(APP_NAME).leaf(appLeaf).build();
         }
         return null;
     }
@@ -264,7 +283,6 @@ public class EntityDetailServiceImpl implements EntityDetailService {
                     serverMap.put("leaf", edLeaf);
                 }
             }
-
         }
 
         for (Map edServerMap : secondDistinctList) {
@@ -346,7 +364,6 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         }
         return null;
     }
-
     private Object queryByClientIp(String condition, String sort, String limit) throws BusinessException {
 
         Map<String, String> firstAql = clientIpView.get(FIRST);
@@ -378,6 +395,84 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         if (ObjectUtil.isNotEmpty(clientIpLeaf)) {
             return searchClientIp;
         }
+        return null;
+    }
+    private Object queryByDNS(String condition, String sort, String limit) throws BusinessException {
+
+        Map<String, String> firstAql = dnsView.get(FIRST);
+        Map<String, String> secondAql = dnsView.get(SECOND);
+        Map<String, String> thirdAql = dnsView.get(THIRD);
+
+        List<Map> firstEdges = execute(firstAql.get(STEP), firstAql.get(DIRECTION).concat(condition), firstAql.get(TABLE), sort, limit);
+        EntityDetail searchDomain = EntityDetail.builder().name(condition).type(DOMAIN).build();
+
+        List<Map<String, Object>> firstDistinctList = new ArrayList<>();
+        List<Object> domainLeaf = new ArrayList<>();
+        //cname去重并转为map,添加到domainleaf中
+        firstEdges.parallelStream()
+                .collect(Collectors.groupingBy(e -> Optional.ofNullable(e.get("cname")), Collectors.toList())).forEach(
+                (id, transfer) -> transfer.stream().reduce((a, b) -> a).ifPresent(a->firstDistinctList.add(BeanUtil.beanToMap(toBean(a, "cname", "domain")))));
+
+        //ns去重转为map,添加到domainleaf
+        List<Map> secondEdges = execute(secondAql.get(STEP), secondAql.get(DIRECTION).concat(condition), secondAql.get(TABLE), sort, limit);
+        secondEdges.parallelStream()
+                .collect(Collectors.groupingBy(e -> Optional.ofNullable(e.get("ns")), Collectors.toList())).forEach(
+                (id, transfer) -> transfer.stream().reduce((a, b) -> a)
+                        .ifPresent(a->firstDistinctList.add(BeanUtil.beanToMap(toBean(a, "ns", "domain")))));
+
+        //加入searchDomain
+        firstDistinctList.add(BeanUtil.beanToMap(searchDomain));
+
+        List<Map> domain1List = new ArrayList();
+        //2度查域名下的ip及ip相关域名
+        for (Map<String, Object> domains : firstDistinctList) {
+            List<Map> thirdEdges = execute(thirdAql.get(STEP), thirdAql.get(DIRECTION)+domains.get("name"), thirdAql.get(TABLE), sort, limit);
+            List<Map> ipDistinctList = new ArrayList();
+            List<Map> domain2List = new ArrayList();
+            //拆分2度结果跟1度结果
+            List<Map> ip2List = Lists.newArrayList();
+            for (Map edDomainMap : thirdEdges) {
+                //1度抽取域名相同的ip
+                if (condition.equals(String.valueOf(edDomainMap.get(DOMAIN)))) {
+                    ip2List.add(edDomainMap);
+                } else {
+                    //2度domain
+                    domain2List.add(edDomainMap);
+                }
+            }
+            ip2List.parallelStream()
+                    .collect(Collectors.groupingBy(e -> Optional.ofNullable(e.get(IP)), Collectors.toList())).forEach(
+                    (id, transfer) -> transfer.stream().reduce((a, b) -> a).ifPresent(ipDistinctList::add));
+            for (Map appMap : ipDistinctList) {
+                EntityDetail ed = toBean(appMap, IP, IP);
+                //2度domain的ip跟1度相同则为1度的叶子
+                for (Map domain : domain2List) {
+                    if (domain.get(IP)!=null&&domain.get(IP).equals(appMap.get(IP))) {
+                        EntityDetail domainEd = toBean(domain, DOMAIN, DOMAIN);
+                        List<Object> edLeaf = Lists.newArrayList();
+                        if (ed.getLeaf() != null) {
+                            edLeaf.addAll(ed.getLeaf());
+                        }
+                        edLeaf.add(domainEd);
+                        ed.setLeaf(edLeaf);
+                    }
+                }
+                //1度为查询条件域名的叶子
+                if(condition.equals(appMap.get("domain"))){
+                    domainLeaf.add(BeanUtil.beanToMap(ed));
+                } else {
+                    domain1List.add(BeanUtil.beanToMap(ed));
+                }
+            }
+            if(!condition.equals(domains.get("name"))){
+                domainLeaf.add(domains);
+            }
+        }
+        searchDomain.setLeaf(domainLeaf);
+        if (ObjectUtil.isNotEmpty(domainLeaf)) {
+            return searchDomain;
+        }
+
         return null;
     }
 
@@ -415,24 +510,30 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     private void valid(DSLObject.Query.Parameters parameters) {
         DSLObject.Query.Parameters.Match match = parameters.getMatch();
         if (ObjectUtil.isEmpty(match)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match is required");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_IS_INVALID);
         }
         List<Condition> condition = match.getCondition();
         if (ObjectUtil.isEmpty(condition)) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition is required");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_MATCH_CONDITION_IS_INVALID);
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldValues())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition.fieldValue is required");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_VALUE_IS_INVALID);
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldKey())) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition.fieldKey is required");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
         }
-        if (!(Arrays.asList(APP_NAME, DOMAIN, IP).contains(condition.get(0).getFieldKey()))) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.match.condition.fieldKey is illegal");
+        if (!(Arrays.asList(APP_NAME, DOMAIN, IP, DNS).contains(condition.get(0).getFieldKey()))) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
         }
         Integer limit = parameters.getLimit();
         if(ObjectUtil.isNotEmpty(limit)&&!(limit>=0&&limit<=DEF_LIMIT)){
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "DSLObject.query.parameters.limit is 0-"+DEF_LIMIT);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    String.format(ErrorMessage.PARAMETERS_LIMIT_IS_INVALID, DEF_LIMIT));
         }
     }
     private boolean existServerIp(String ip){

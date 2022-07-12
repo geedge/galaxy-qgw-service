@@ -1,5 +1,7 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONUtil;
@@ -8,9 +10,13 @@ import cn.hutool.log.LogFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
 import com.alibaba.nacos.api.exception.NacosException;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.constant.MessageConst;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -18,19 +24,18 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
-import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
-import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
+import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaParseException;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -55,21 +60,18 @@ public class MetadataServiceImpl implements MetadataService {
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
-    private DruidIoHttpSource druidIoHttpSource;
-    @Autowired
-    private ElasticsearchHttpSource elasticsearchHttpSource;
-    @Autowired
-    private HBaseAPISource hBaseAPISource;
+    private ApiService apiService;
     @Autowired
     public MetadataConfig metadataConfig;
+    @Autowired
+    Environment environment;
 
     private Map<String, Schema> schemaCache = Maps.newHashMap();
-    private Map<String, String> originalCache = Maps.newHashMap();
+    private Map<String, Object> originalCache = Maps.newHashMap();
     private final static String KEY_REF = "$ref";
     private final static String KEY = "key";
     private final static String VALUE = "value";
     private final static String CODE = "code";
-    private final static String NOT_FOUND = "Not found, check url please";
 
     @PostConstruct
     public void init() {
@@ -84,7 +86,7 @@ public class MetadataServiceImpl implements MetadataService {
         } else if (MetadataTypeEnum.FIELDS.getValue().equals(type)) {
             return loadFields(name);
         }
-        throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), NOT_FOUND);
+        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
     }
 
     @Override
@@ -100,13 +102,25 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     @Override
+    public List<String> getIndexKey(String tableName) {
+        List<String> indexKey = Lists.newArrayList();
+        Schema schema = getSchemaByName(tableName);
+        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        if (StringUtil.isNotEmpty(doc)) {
+            Object partition_key = doc.get("index_key");
+            indexKey = StringUtil.isEmpty(partition_key) ? indexKey : (List<String>) partition_key;
+        }
+        return indexKey;
+    }
+
+    @Override
     public String getValueByKeyInSchemaDoc(String tableName, String key) {
         Schema schema = getSchemaByName(tableName);
         Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
         if (StringUtil.isNotEmpty(doc)) {
             Object value = doc.get(key);
             if (value instanceof Map) {
-                return JsonMapper.toJsonString(value);
+                return JSONUtil.toJsonStr(JSONUtil.parseObj(value));
             } else {
                 return StringUtil.isEmpty(value) ? StringUtil.EMPTY : value.toString();
             }
@@ -171,7 +185,8 @@ public class MetadataServiceImpl implements MetadataService {
     public Schema getSchemaByName(String tableName) {
         if (!getAllTable().contains(tableName)) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), tableName + " schema 未在平台注册，请联系数据平台负责人", null);
+                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                    tableName + " The schema is not registered on the platform, please contact the person in charge of the data platform", null);
         }
         Schema schema;
         if (!StrUtil.isBlankIfStr(schema = schemaCache.get(tableName))) {
@@ -181,7 +196,7 @@ public class MetadataServiceImpl implements MetadataService {
             String content = configService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
             if (StrUtil.isBlankIfStr(content)) {
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), tableName + " 获取Schema配置异常", null);
+                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), tableName + " Get Schema configuration exception", null);
             }
             schemaCache.put(tableName, schema = parseSchema(content));
             configService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
@@ -196,6 +211,79 @@ public class MetadataServiceImpl implements MetadataService {
             log.error("NacosException:{}", e);
         }
         return schema;
+    }
+
+    @Override
+    public BaseResult updateSchema(String name, Map<String, Object> paramMap) {
+        try {
+            String content = configService.getConfig(name.concat(".json"), nacosConfig.getGroup(), 3000);
+            updateSchema(name, paramMap, content);
+            String indexTable = getValueByKeyInSchemaDoc(name, "index_table");
+            if (StringUtil.isNotBlank(indexTable)) {
+                List<String> list = Splitter.on(",").omitEmptyStrings().splitToList(indexTable);
+                for (String item : list) {
+                    String config = configService.getConfig(item.concat(".json"), nacosConfig.getGroup(), 3000);
+                    updateSchema(item, paramMap, config);
+                }
+            }
+            return BaseResultGenerator.success4Message("ok");
+        } catch (NacosException e) {
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), e.getMessage());
+        }
+    }
+
+    private boolean updateSchema(String name, Map<String, Object> paramMap, String content) throws NacosException {
+        if (StringUtil.isNotEmpty(content)) {
+            Map<String, Object> data = (Map<String, Object>) JsonMapper.fromJsonString(content, Map.class);
+            data.put("doc", rewriteDoc("ttl", data.get("doc"), paramMap.get("doc")));
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) data.get("fields");
+            List<String> indexKey = getIndexKey(name);
+            for (Map<String, Object> field : fields) {
+                if (!indexKey.contains(field.get("name"))) {
+                    field.put("doc", rewriteDoc("ttl", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
+                }
+                field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
+            }
+            content = JSONUtil.toJsonStr(JSONUtil.parseObj(data));
+            log.info("push Schema, content is: {}", content);
+            return configService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
+        } else {
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "get Schema Error");
+        }
+    }
+
+    /**
+     * Desc: 重写[tables |field].doc
+     * @param key
+     * @param original
+     * @param param
+     * @return {@link Map< String, Object>}
+     * @created by wWei
+     * @date 2022/5/17 10:02 上午
+     */
+    private Map<String, Object> rewriteDoc(String key, Object original, Object param) {
+        Map<String, Object> doc = Maps.newHashMap();
+        if (StringUtil.isNotEmpty(original)) {
+            doc = (Map<String, Object>) original;
+        }
+        Map<String, Object> paramDoc = Maps.newHashMap();
+        if (param instanceof Map) {
+            paramDoc = (Map<String, Object>) param;
+        } else if (param instanceof List) {
+            List item = (List) param;
+            paramDoc = (Map<String, Object>) item.get(0);
+        }
+        if (paramDoc.containsKey(key)) {
+            Object value = paramDoc.get(key);
+            if (NumberUtil.isNumber(String.valueOf(value))) {
+                doc.put(key, Long.parseLong(value.toString()));
+            } else {
+                doc.put(key, value);
+            }
+        } else {
+            doc.remove(key);
+        }
+        return doc;
     }
 
     private void addMetadataListener() {
@@ -215,7 +303,7 @@ public class MetadataServiceImpl implements MetadataService {
     private Map loadFields(String name) {
         Schema schema = getSchemaByName(name);
         if (StringUtil.isEmpty(schema)) {
-            throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), NOT_FOUND);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
         Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
@@ -223,6 +311,8 @@ public class MetadataServiceImpl implements MetadataService {
                 StringUtil.isNotEmpty(schema.getDoc())) {
             log.error("{} schema's doc isn't jsonString and won't convert: {}", name, schema.getDoc());
         }
+        List<Map> data = getStorageSize(name);
+        schemaDoc = fillSchemaStorageSize(schemaDoc, data);
         if (StringUtil.isNotEmpty(schemaDoc)) {
             resultMap.put("doc", schemaDoc);
         }
@@ -230,6 +320,7 @@ public class MetadataServiceImpl implements MetadataService {
         Map mapDoc;
         for (Map next : fields) {
             mapDoc = (Map) JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
+            mapDoc = fillFieldStorageSize(data, mapDoc, next);
             if (StringUtil.isNotEmpty(mapDoc)) {
                 next.put("doc", mapDoc);
             }
@@ -239,6 +330,56 @@ public class MetadataServiceImpl implements MetadataService {
         }
         fillReference(resultMap, name);
         return resultMap;
+    }
+
+    private Map fillSchemaStorageSize(Map schemaDoc, List<Map> data) {
+        if (CollectionUtil.isEmpty(data)) {
+            return schemaDoc;
+        }
+        if (StringUtil.isEmpty(schemaDoc)) {
+            schemaDoc = Maps.newHashMap();
+        }
+        long total = 0;
+        for (Map datum : data) {
+            total += Long.parseLong(String.valueOf(datum.get("bytes")));
+        }
+        schemaDoc.put("size", total);
+        return schemaDoc;
+    }
+
+    private Map fillFieldStorageSize(List<Map> data, Map mapDoc, Map next) {
+        if (CollectionUtil.isEmpty(data)) {
+            return mapDoc;
+        }
+        if (StringUtil.isEmpty(mapDoc)) {
+            mapDoc = Maps.newHashMap();
+        }
+        try {
+            List<Object> name = JsonPath.read(data, "$.[?(@.field == \"" + next.get("name") + "\")].bytes");
+            mapDoc.put("size", Long.parseLong(String.valueOf(name.get(0))));
+        } catch (RuntimeException e) {
+            log.error("fill {} field storage size error, message is: {}", next.get("name"), e.getMessage());
+        }
+        return mapDoc;
+    }
+
+    private List<Map> getStorageSize(String name) {
+        try {
+            List<String> symbols = (List<String>) loadTables(clickHouseHttpSource.getDbName()).get("symbols");
+            String sql = null;
+            if (symbols.contains(name)) {
+                sql = String.format(Objects.requireNonNull(environment.getProperty("SCHEMA_STORAGE_SIZE")), name, clickHouseHttpSource.getDbName());
+            }
+            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : apiService.executeQuery(ApiParam.builder().query(sql).build());
+            if (baseResult.isSuccess()) {
+                return (List<Map>) baseResult.getData();
+            } else {
+                log.error("get {} schema storage size error on DB.", name);
+            }
+        } catch (RuntimeException ex) {
+            log.error("get {} schema storage size error on DB, message is {}", name, ex.getMessage());
+        }
+        return Lists.newArrayList();
     }
 
     /**
@@ -271,7 +412,8 @@ public class MetadataServiceImpl implements MetadataService {
         }
     }
 
-    private String getCfg(String cfgName) {
+    @Override
+    public Object getCfg(String cfgName) {
         if (originalCache.containsKey(cfgName)) {
             return originalCache.get(cfgName);
         }
@@ -314,8 +456,8 @@ public class MetadataServiceImpl implements MetadataService {
         String[] split = getRefStrArray(map);
         String jsonPath = getJsonPath(split);
         try {
-            String cfg = getCfg(getFileName(split, schemaName));
-            data = JsonPath.read(cfg, jsonPath);
+            Object cfg = getCfg(getFileName(split, schemaName));
+            data = JsonPath.read(String.valueOf(cfg), jsonPath);
         } catch (RuntimeException e) {
             log.warn("read reference schema error: {}", e);
         }
@@ -379,7 +521,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
         );
         if (tables.isEmpty()) {
-            throw new BusinessException(HttpStatus.SC_NOT_FOUND, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), NOT_FOUND);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
         }
         date.put("type", "enum");
         date.put("name", name);
@@ -394,7 +536,7 @@ public class MetadataServiceImpl implements MetadataService {
             schemaMap = (Map) JsonMapper.fromJsonString(configInfo, Map.class);
             Object docSchema;
             if (StringUtil.isNotEmpty(docSchema = schemaMap.get("doc"))) {
-                schemaMap.put("doc", JsonMapper.toJsonString(docSchema));
+                schemaMap.put("doc", JSONUtil.toJsonStr(JSONUtil.parseObj(docSchema)));
             }
             Object fieldsObj;
             if (StringUtil.isNotEmpty(fieldsObj = schemaMap.get("fields"))) {
@@ -404,12 +546,12 @@ public class MetadataServiceImpl implements MetadataService {
                     if (StringUtil.isEmpty(docField = next.get("doc"))) {
                         continue;
                     }
-                    next.put("doc", JsonMapper.toJsonString(docField));
+                    next.put("doc", JSONUtil.toJsonStr(JSONUtil.parseObj(docField)));
                 }
             }
         } catch (JSONException | SchemaParseException | ClassCastException e) {
             log.error("update Schema error: {}", e);
         }
-        return new Schema.Parser().parse(JSONUtil.toJsonStr(schemaMap));
+        return new Schema.Parser().parse(JSONUtil.toJsonStr(JSONUtil.parseObj(schemaMap)));
     }
 }

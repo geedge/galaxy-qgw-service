@@ -1,0 +1,110 @@
+{
+  "type": "record",
+  "name": "assessment_event",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "common_log_id",
+    "partition_key": "common_recv_time",
+    "index_key": [
+      "common_log_id",
+      "common_recv_time"
+    ],
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    }
+  },
+  "fields": [
+    {
+      "name": "common_recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "common_log_id",
+      "label": "Log ID",
+      "doc": {
+        "format": {
+          "functions": "snowflake_id"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "lot_number",
+      "label": "Lot Number",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "file_name",
+      "label": "File Name",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "features",
+      "label": "Features",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "type": "string"
+    },
+    {
+      "name": "assessment_type",
+      "label": "Assessment Type",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "size",
+      "label": "Size",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "file_checksum_sha",
+      "label": "SHA256",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "assessment_date",
+      "label": "Assessment Date",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "assessment_file",
+      "label": "Assessment File",
+      "doc": {
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    }
+  ]
+}

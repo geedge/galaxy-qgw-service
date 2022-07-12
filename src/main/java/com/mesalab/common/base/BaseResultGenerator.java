@@ -54,6 +54,20 @@ public class BaseResultGenerator {
     }
 
     /**
+     * 操作成功响应结果，自定义状态码、自定义信息、数据
+     *
+     * @param status 自定义状态码
+     * @param message 自定义信息
+     * @param data    自定义数据
+     * @param <T>     自定义数据类型
+     * @return 响应结果
+     */
+    public static <T> BaseResult<T> success(final int status, final String message, final T data) {
+        return new BaseResult<>(status, ResultCodeEnum.EXECUTE_SUCCESS.getCode(),
+                null, true, message, null, null, null, data);
+    }
+
+    /**
      * 操作成功响应结果， 自定义数据及信息, 统计结果
      *
      * @param message    自定义信息

@@ -4,8 +4,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.json.JSONUtil;
 import com.jayway.jsonpath.JsonPath;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.nacos.NacosConfig;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
@@ -41,7 +41,7 @@ public class NacosHealthIndicator extends AbstractHealthIndicator {
         try {
 
             ResponseEntity responseEntity = restTemplate.getForEntity(URLUtil.normalize(nacosConfig.getServerAddr() + "/nacos/actuator/health"), Map.class);
-            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK
+            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()
                     && "UP".equalsIgnoreCase(JsonPath.read(JSONUtil.toJsonStr(responseEntity.getBody()), "$.status"))) {
                 builder.up()
                         .withDetail("app", APP)

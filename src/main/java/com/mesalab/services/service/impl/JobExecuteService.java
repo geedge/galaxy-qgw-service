@@ -7,7 +7,9 @@ import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
+import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
@@ -69,13 +71,14 @@ public class JobExecuteService implements EnvironmentAware {
         try {
             JobInfo jobInfo = new JobInfo(id);
             String partitionKey = metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
-            Interval interval = getInterval(param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FILTER).toString(), partitionKey);
+            Interval interval = getInterval(param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString(), partitionKey);
             if (jobCfg.isTimeSlicingEnabled() && interval.isValid()) {
                 executeSlicingJob(jobInfo, watch, param, interval, partitionKey);
             } else {
-                executeJob(jobInfo, watch, param, param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FILTER).toString());
+                executeJob(jobInfo, watch, param, param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString());
             }
         } catch (Exception e) {
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
             log.error(e, "execute job error: jobId-{}", id);
         } finally {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
@@ -95,12 +98,12 @@ public class JobExecuteService implements EnvironmentAware {
             if (start > interval.getStart()) {
                 interval.setEnd(start);
                 String newFilter = String.format("(%s) AND ( %s > %s AND %s <= %s)",
-                        param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FILTER),
+                        param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER),
                         partitionKey, interval.getEnd(), partitionKey, interval.getEnd() + jobCfg.getTimeSlicingInterval());
                 executeJob(jobInfo, watch, param, newFilter);
             } else {
                 String where = String.format("(%s) AND (%s >= %s AND %s <= %s)",
-                        param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FILTER),
+                        param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER),
                         partitionKey, interval.getStart(), partitionKey, interval.getEnd());
                 executeJob(jobInfo, watch, param, where);
                 break;
@@ -109,7 +112,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     private void executeJob(JobInfo jobInfo, Stopwatch watch, Map<String, Object> param, String newFilter) {
-        long currentCount = getCount(param, newFilter);
+        long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter);
         if (currentCount == 0 || isCancel(jobInfo.getId())) {
             return;
         }
@@ -118,9 +121,9 @@ public class JobExecuteService implements EnvironmentAware {
                 "count", jobInfo.getId(), count));
         jobInfo.setCount(count);
         List<Future<Boolean>> list = Lists.newArrayList();
-        List<String> fields = (List<String>) param.get(JobConfig.CUSTOM_FIELD_DISCOVERY_FIELDS);
+        List<String> fields = (List<String>) param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         for (String field : fields) {
-            list.add(taskExecuteService.execute(jobInfo.getId(), param, newFilter, field, currentCount));
+            list.add(taskExecuteService.execute(jobInfo.getId(), param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter, field, currentCount));
         }
         updateProcess(jobInfo, watch, fields, list);
     }
@@ -162,11 +165,10 @@ public class JobExecuteService implements EnvironmentAware {
         return false;
     }
 
-    private Long getCount(Map<String, Object> param, String filter) {
+    private Long getCount(String logType, String filter) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_LOG_COUNT")),
-                param.get(JobConfig.QUERY_DATA_SOURCE), StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
-        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql)
-                .sampleRatio(Double.parseDouble(param.get(JobConfig.QUERY_SAMPLE_RATIO).toString())).build());
+                logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
+        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
         if (baseResult.isSuccess()) {
             List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
             Object count = data.get(0).get("count");
@@ -219,10 +221,14 @@ public class JobExecuteService implements EnvironmentAware {
                     if (comparison.getStringExpression().matches(">=|>")) {
                         if (comparison.getRightExpression() instanceof LongValue) {
                             interval.setStart(Long.parseLong(comparison.getRightExpression().toString()));
+                        } else {
+                            interval.setStart(getCriticalValue(comparison.getRightExpression().toString()));
                         }
                     } else if (comparison.getStringExpression().matches("<=|<")) {
                         if (comparison.getRightExpression() instanceof LongValue) {
                             interval.setEnd(Long.parseLong(comparison.getRightExpression().toString()));
+                        } else {
+                            interval.setEnd(getCriticalValue(comparison.getRightExpression().toString()));
                         }
                     }
                 }
@@ -230,10 +236,14 @@ public class JobExecuteService implements EnvironmentAware {
                     if (comparison.getStringExpression().matches(">=|>")) {
                         if (comparison.getLeftExpression() instanceof LongValue) {
                             interval.setEnd(Long.parseLong(comparison.getLeftExpression().toString()));
+                        } else {
+                            interval.setEnd(getCriticalValue(comparison.getLeftExpression().toString()));
                         }
                     } else if (comparison.getStringExpression().matches("<=|<")) {
                         if (comparison.getLeftExpression() instanceof LongValue) {
                             interval.setStart(Long.parseLong(comparison.getLeftExpression().toString()));
+                        } else {
+                            interval.setStart(getCriticalValue(comparison.getLeftExpression().toString()));
                         }
                     }
                 }
@@ -246,6 +256,10 @@ public class JobExecuteService implements EnvironmentAware {
             }
         }
         return interval;
+    }
+
+    private long getCriticalValue(String str) {
+        return Long.parseLong(SQLFunctionUtil.getQueryValue("toUnixTimestamp(" + str + ")", DBTypeEnum.CLICKHOUSE.getValue()));
     }
 
     @Data

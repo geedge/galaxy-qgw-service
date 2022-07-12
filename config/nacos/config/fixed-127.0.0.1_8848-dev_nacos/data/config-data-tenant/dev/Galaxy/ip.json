@@ -1,7 +1,0 @@
-{
-  "type": "record",
-  "name": "ip",
-  "namespace": "elasticsearch",
-  "fields": [
-  ]
-}

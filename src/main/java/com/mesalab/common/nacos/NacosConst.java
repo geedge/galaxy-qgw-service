@@ -40,7 +40,7 @@ public class NacosConst {
 
     public static final String CK_FILTER_DATA_ID = "ck-filter.json";
 
-    public static final String CK_QUERIES_TEMPLATE_DATA_ID = "ck-queries-template.sql";
+    public static final String CK_QUERIES_TEMPLATE_DATA_ID  = "ck-queries-template.sql";
 
     public static final String DRUID_FILTER_DATA_ID = "druid-filter.json";
 
@@ -53,4 +53,8 @@ public class NacosConst {
     public static final String HBASE_FILTER_DATA_ID = "hbase-filter.json";
 
     public static final String HBASE_QUERIES_TEMPLATE_DATA_ID = "hbase-queries-template.sql";
+
+    public static final String ES_FILTER_DATA_ID = "es-filter.json";
+
+    public static final String ES_QUERIES_TEMPLATE_DATA_ID = "es-queries-template.sql";
 }

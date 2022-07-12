@@ -1,0 +1,37 @@
+{
+  "type": "record",
+  "name": "top_urls_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time"
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "url",
+      "label": "URL",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "session_num",
+      "label": "Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

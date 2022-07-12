@@ -48,7 +48,13 @@ public class EntityConfigSource {
     /**
      * 默认访问量最高SNI数量
      */
-    @NacosValue(value = "${service.entity.topSNI}", autoRefreshed = true)
-    private int topSNI;
+    @NacosValue(value = "${service.entity.topSNI.defaultSize}", autoRefreshed = true)
+    private int topSNIDefaultSize;
+
+    /**
+     * 待推荐SNI数据集
+     */
+    @NacosValue(value = "${service.entity.topSNI.dataset}", autoRefreshed = true)
+    private int topSNIDataset;
 
 }

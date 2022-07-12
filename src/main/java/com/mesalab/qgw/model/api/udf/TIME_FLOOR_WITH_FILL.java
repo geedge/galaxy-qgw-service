@@ -1,6 +1,7 @@
 package com.mesalab.qgw.model.api.udf;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Iterables;
@@ -129,7 +130,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 dateRangeList = Lists.newArrayList(Iterables.concat(leftDateRange, rightDateRange));
 
             } else {
-                log.warn("SQL中时间条件不完整[startTime:{} - endTime:{}],补全功能无效!", whereTimeRange.getStart(), whereTimeRange.getEnd());
+                log.warn("The time range is empty [startTime:{},endTime:{}], so the time series data cannot be filled.", whereTimeRange.getStart(), whereTimeRange.getEnd());
                 return results;
             }
 
@@ -187,6 +188,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
         } catch (Exception e) {
             log.error("Parser function : TIME_FLOOR_WITH_FILL error :{} ", e.toString());
+            return results;
         }
 
         return targetResult;
@@ -309,6 +311,20 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         private boolean greaterThanEquals;
         private String end;
         private boolean minorThanEquals;
+
+        public String getStart() {
+            if (NumberUtil.isNumber(this.start)) {
+                return DateUtils.convertTimestampToString(NumberUtil.parseLong(start), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            }
+            return start;
+        }
+
+        public String getEnd() {
+            if (NumberUtil.isNumber(this.end)) {
+                return DateUtils.convertTimestampToString(NumberUtil.parseLong(end), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+            }
+            return end;
+        }
     }
 
 

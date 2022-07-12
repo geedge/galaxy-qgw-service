@@ -17,5 +17,5 @@ public class ElasticsearchHttpSource implements Serializable {
 
     private String url;
     private String dbname;
-
+    private String socketTimeOut;
 }

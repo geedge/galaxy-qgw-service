@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-//clickhouse-benchmark  -i 93  --host 127.0.0.1 --port 9001 --user default --password "ceiec2019" --database tsg_galaxy_v3 < /root/session_record_queries_20210113203103.sql@EnableAutoConfiguration
+//clickhouse-benchmark  -i 93  --host 127.0.0.1 --port 9001 --user default --password "ceiec2019" --database tsg_galaxy_v3 < /root/session_record_queries_20210113203103.sql
 @EnableAutoConfiguration
 public class ClickHouseTest extends GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
@@ -40,7 +40,7 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
         Optional<File> ckTestFile =  Optional.of(new File(pocFile));
         if (ckTestFile.isPresent()) {
             if (!ckTestFile.get().isFile()) {
-                log.warn("UnKnow File " + ckTestFile.get());
+                log.warn("Not a file." + ckTestFile.get());
                 return;
             }
 

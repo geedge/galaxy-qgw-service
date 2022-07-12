@@ -7,7 +7,7 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.StringUtil;
 import com.mesalab.common.utils.TimeZoneUtil;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
@@ -36,6 +36,10 @@ public class SQLFunctionUtil {
     public static final String IP_TO_GEO = "IP_TO_GEO";
     public static final String IP_TO_CITY = "IP_TO_CITY";
     public static final String IP_TO_COUNTRY = "IP_TO_COUNTRY";
+    public static final String MAX_DURATION = "MAX_DURATION";
+
+    public static final String NOT_EMPTY = "notEmpty";
+    public static final String EMPTY = "empty";
 
     private static DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private static ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
@@ -46,6 +50,7 @@ public class SQLFunctionUtil {
      * 自定义函数
      */
     public static final Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pMaxDuration = Pattern.compile("\\b" + MAX_DURATION + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToGeo = Pattern.compile("\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCity = Pattern.compile("\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCountry = Pattern.compile("\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
@@ -70,6 +75,7 @@ public class SQLFunctionUtil {
     /**
      * 标准函数
      */
+    //time functions
     public static final Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateRelative = Pattern.compile("\\W(ADDDATE|DATE_ADD|DATE_SUB|SUBDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -85,10 +91,15 @@ public class SQLFunctionUtil {
     public static final Pattern pStrDateTime = Pattern.compile("(<|>|=|between|and)\\s*('\\d{4}-\\d{2}-\\d{2}\\s*\\d{2}:\\d{2}:\\d{2}')", Pattern.CASE_INSENSITIVE);
     public static final Pattern pMergeFunction = Pattern.compile("\\WDATE_FORMAT\\(FROM_UNIXTIME\\s*\\(\\s*FLOOR\\s*\\(\\s*UNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pYearFunNum = Pattern.compile("(YEAR)\\s*\\(", Pattern.CASE_INSENSITIVE);
-    public static final Pattern pQuantile = Pattern.compile("\\WQUANTILE\\s*\\(");
     public static final Pattern pTimeZone = Pattern.compile("\\W(CONVERT_TZ)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pTZFormat = Pattern.compile("\\+\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
+
+    //other
+    public static final Pattern pQuantile = Pattern.compile("\\WQUANTILE\\s*\\(");
+    public static final Pattern pMedian = Pattern.compile("\\WMEDIAN\\s*\\(");
+    public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
+    public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");
 
     /**
      * 解析mysql函数替换为对应数据库类型函数
@@ -98,8 +109,9 @@ public class SQLFunctionUtil {
      * @return
      */
     public static String generateDateFunction(String sql, String dbType) {
-        sql = translateUDF(sql, dbType);
+        sql = translateCommonFun(sql, dbType);
         sql = parseQuantile(sql, dbType);
+        sql = parseMedian(sql, dbType);
         sql = parseMergepFunction(sql, dbType);
         sql = parseMarkDate(sql, dbType);
         sql = parseDateCalculateNum(sql, dbType);
@@ -188,15 +200,45 @@ public class SQLFunctionUtil {
         return distributedGroupByFunction.get(sourceAggregateFunctionName);
     }
     /**
-     * 转义自定义函数
+     * 公共函数转义
      *
      * @param sql
      * @param dbType
      * @return
      */
-    public static String translateUDF(String sql, String dbType) {
-        String resultSql = sql;
+    public static String translateCommonFun(String sql, String dbType) {
+        String resultSql = translateUDF(dbType, sql);
+        resultSql = translateStrFun(dbType, resultSql);
+        return resultSql;
+    }
+
+    /**
+     * Desc: notEmpty、empty
+     *
+     * @param dbType
+     * @param resultSql
+     * @return {@link String}
+     * @created by wWei
+     * @date 2022/3/21 9:11 下午
+     */
+    private static String translateStrFun(String dbType, String resultSql) {
+        resultSql = translateByPattern(resultSql, dbType, pNotEmpty);
+        resultSql = translateByPattern(resultSql, dbType, pEmpty);
+        return resultSql;
+    }
+
+    /**
+     * Desc: 转义UDF
+     *
+     * @param dbType
+     * @param resultSql
+     * @return {@link String}
+     * @created by wWei
+     * @date 2022/3/21 9:02 下午
+     */
+    private static String translateUDF(String dbType, String resultSql) {
         resultSql = translateByPattern(resultSql, dbType, pTimeFloorWithFill);
+        resultSql = translateByPattern(resultSql, dbType, pMaxDuration);
         resultSql = translateByPattern(resultSql, dbType, pIpToGeo);
         resultSql = translateByPattern(resultSql, dbType, pIpToCity);
         resultSql = translateByPattern(resultSql, dbType, pIpToCountry);
@@ -386,7 +428,53 @@ public class SQLFunctionUtil {
         } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
             replaceValue = "PERCENTILE#[" + params.get(0) + "," + params.get(1) + "*100#]";
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-            replaceValue = "APPROX_QUANTILE#[" + params.get(0) + "," + params.get(1) + "#]";
+            replaceValue = "APPROX_QUANTILE_DS#[" + params.get(0) + "," + params.get(1) + "#]";
+        }
+        return replaceValue;
+    }
+
+    public static String parseMedian(String sql, String dbType){
+        while (true) {
+            Matcher matcher = pMedian.matcher(sql);
+            if (!matcher.find()){
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseMedianReplace(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    public static String parseMedianReplace(String sqlParse, int num, String dbType){
+        Pattern pNumMedian = Pattern.compile("(MEDIAN)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)");
+        Matcher matcher = pNumMedian.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        if (matcher.find()) {
+            String group2 = matcher.group(2);
+            String replaceValue = group2;
+            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
+                replaceValue = medianReplaceByDB(group2, dbType);
+            }
+            matcher.appendReplacement(sb, replaceValue);
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
+
+    private static String medianReplaceByDB(String param, String dbType){
+        String replaceValue = null;
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            replaceValue = "median#[" + param + "#]";
+        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            replaceValue = "PERCENTILE#[" + param + "," + 0.5 + "*100#]";
+        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            replaceValue = "APPROX_QUANTILE_DS#[" + param + "," + 0.5 + "#]";
         }
         return replaceValue;
     }
@@ -1310,15 +1398,7 @@ public class SQLFunctionUtil {
             return sql;
         }
         StringBuffer sb = new StringBuffer();
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-            Matcher mStrDateTime = pStrDateTime.matcher(sql);
-            while (mStrDateTime.find()) {
-                String innerValue = mStrDateTime.group(1) + " toDateTime#[" + mStrDateTime.group(2) + "#]";
-                mStrDateTime.appendReplacement(sb, innerValue);
-            }
-            mStrDateTime.appendTail(sb);
-            sql = sb.toString();
-        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
 
             Matcher mNowFun = pNow.matcher(sql);
             while (mNowFun.find()) {
@@ -1327,16 +1407,6 @@ public class SQLFunctionUtil {
             }
             mNowFun.appendTail(sb);
             sql = sb.toString();
-
-            Matcher mStrDateTime = pStrDateTime.matcher(sql);
-            sb = new StringBuffer();
-            while (mStrDateTime.find()) {
-                String innerValue = mStrDateTime.group(1) + " TIMESTAMP " + mStrDateTime.group(2);
-                mStrDateTime.appendReplacement(sb, innerValue);
-            }
-            mStrDateTime.appendTail(sb);
-            sql = sb.toString();
-
 
             Matcher matcher = pCKTimeStamp.matcher(sql);
             sb = new StringBuffer();
@@ -1553,17 +1623,84 @@ public class SQLFunctionUtil {
      * @return
      */
     private static String translateFunction(Function fun, String dbType) {
-        String function = null;
-        if (TIME_FLOOR_WITH_FILL.equals(fun.getName())) {
-            function = translateTimeFloorWithFill(fun, dbType);
-        } else if (IP_TO_GEO.equals(fun.getName())) {
-            function = translateIpToGeo(fun);
-        } else if (IP_TO_CITY.equals(fun.getName())) {
-            function = translateIpToCity(fun);
-        } else if (IP_TO_COUNTRY.equals(fun.getName())) {
-            function = translateIpToCountry(fun);
+        String data;
+        switch (fun.getName()){
+            case TIME_FLOOR_WITH_FILL:
+                data = translateTimeFloorWithFill(fun, dbType);
+                break;
+            case MAX_DURATION:
+                data = translateDuration(fun, dbType);
+                break;
+            case NOT_EMPTY:
+                data = translateNotEmpty(fun, dbType);
+                break;
+            case EMPTY:
+                data = translateEmpty(fun, dbType);
+                break;
+            case IP_TO_GEO:
+                data = translateIpToGeo(fun);
+                break;
+            case IP_TO_CITY:
+                data = translateIpToCity(fun);
+                break;
+            case IP_TO_COUNTRY:
+                data = translateIpToCountry(fun);
+                break;
+            default:
+                data = parseFunDefaultValue(fun);
         }
-        return function;
+        return data;
+    }
+    /**
+     * Desc: 转义notEmpty
+     *
+     * @param fun
+     * @param dbType
+     * @return {@link String}
+     * @created by wWei
+     * @date 2022/3/21 4:31 下午
+     */
+    private static String translateNotEmpty(Function fun, String dbType) {
+        String data;
+        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            String expr = fun.getParamsList().get(0);
+            data = expr + " IS NOT NUll ";
+        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            String expr = fun.getParamsList().get(0);
+            data = expr + " IS NOT NULL" + " AND " + expr + "!=''";
+        } else {
+            data = parseFunDefaultValue(fun);
+        }
+        return data;
+    }
+
+    private static String parseFunDefaultValue(Function fun) {
+        return String.format("%s#[%s#]",
+                fun.getName(),
+                StringUtils.join(fun.getParamsList().toArray(), ","));
+    }
+
+    /**
+     * Desc: 转义empty
+     *
+     * @param fun
+     * @param dbType
+     * @return {@link String}
+     * @created by wWei
+     * @date 2022/3/21 4:31 下午
+     */
+    private static String translateEmpty(Function fun, String dbType) {
+        String data;
+        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            String expr = fun.getParamsList().get(0);
+            data = expr + " IS NUll ";
+        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            String expr = fun.getParamsList().get(0);
+            data = expr + " IS NUll" + " AND " + expr + "=''";
+        } else {
+            data = parseFunDefaultValue(fun);
+        }
+        return data;
     }
 
     /**
@@ -1650,6 +1787,27 @@ public class SQLFunctionUtil {
         }
         return function.toString();
     }
+
+    /**
+     * Desc: 转义MAX_DURATION
+     *
+     * @param fun
+     * @param dbType
+     * @return {@link String}
+     * @created by wWei
+     * @date 2022/3/7 5:47 下午
+     */
+    private static String translateDuration(Function fun, String dbType) {
+        int factor = 60;
+        String timestampExpr = fun.getParamsList().get(0);
+        int interval = Integer.parseInt(fun.getParamsList().get(1));
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            return String.format("length(arrayReduce('max', alphaTokens(replaceAll(replaceAll(toString(arrayMap(x-> x<(%s+%s), arrayDifference(arraySort(groupUniqArray(%s))))),'1','a'),',','') ) )) * %s "
+                    , interval, factor, timestampExpr, interval);
+        }
+        return fun.toString();
+    }
+
 
     @Data
     static class Function {

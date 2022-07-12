@@ -1,0 +1,168 @@
+{
+  "type": "record",
+  "name": "performance_event",
+  "namespace": "elasticsearch",
+  "doc":{
+    "primary_key":"event_id",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query":{
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
+  },
+  "fields": [
+    {
+      "name":"event_id",
+      "label":"event id",
+      "doc":{
+        "allow_query": false
+      },
+      "type":"long"
+    },
+    {
+      "name":"event_key",
+      "label":"event key",
+      "doc":{
+        "allow_query": false
+      },
+      "type":"string"
+    },
+    {
+      "name":"start_time",
+      "label":"start time",
+      "doc":{
+        "allow_query": false
+      },
+      "type":"long"
+    },
+    {
+      "name":"end_time",
+      "label":"end time",
+      "doc":{
+        "allow_query": false
+      },
+      "type":"long"
+    },
+    {
+      "name":"duration_ms",
+      "label":"duration (ms)",
+      "doc":{
+        "allow_query": false
+      },
+      "type":"long"
+    },
+    {
+      "name":"event_severity",
+      "label":"event severity",
+      "type":"string"
+    },
+    {
+      "name":"event_type",
+      "label":"event type",
+      "type":"string"
+    },
+	{
+      "name":"entity_type",
+      "label":"entity type",
+      "type":"string"
+    },
+    {
+      "name":"client_ip",
+      "label":"client ip",
+      "type":"string"
+    },
+    {
+      "name":"client_location_country",
+      "label":"client country",
+      "type":"string"
+    },
+    {
+      "name":"client_location_province",
+      "label":"client province",
+      "type":"string"
+    },
+    {
+      "name":"client_location_region",
+      "label":"client region",
+      "type":"string"
+    },
+    {
+      "name":"client_asn",
+      "label":"client asn",
+      "type":"string"
+    },
+    {
+      "name":"server_ip",
+      "label":"server ip",
+      "type":"string"
+    },
+    {
+      "name":"server_location_country",
+      "label":"server country",
+      "type":"string"
+    },
+    {
+      "name":"server_location_province",
+      "label":"server province",
+      "type":"string"
+    },
+    {
+      "name":"server_location_region",
+      "label":"server region",
+      "type":"string"
+    },
+    {
+      "name":"server_asn",
+      "label":"server asn",
+      "type":"string"
+    },
+    {
+      "name":"domain",
+      "label":"domain",
+      "type":"string"
+    },
+    {
+      "name":"domain_category_name",
+      "label":"domain category name",
+      "type":"string"
+    },
+    {
+      "name":"domain_category_group",
+      "label":"domain category group",
+      "type":"string"
+    },
+    {
+      "name":"domain_reputation_score",
+      "label":"domain reputation score",
+      "type":"string"
+    },
+    {
+      "name":"domain_reputation_level",
+      "label":"domain reputation level",
+      "type":"string"
+    },
+    {
+      "name":"app_name",
+      "label":"app",
+      "type":"string"
+    },
+    {
+      "name":"app_category",
+      "label":"app category",
+      "type":"string"
+    },
+    {
+      "name":"app_subcategory",
+      "label":"app subcategory",
+      "type":"string"
+    },
+    {
+      "name":"app_risk",
+      "label":"app risk",
+      "type":"long"
+    }
+  ]
+}

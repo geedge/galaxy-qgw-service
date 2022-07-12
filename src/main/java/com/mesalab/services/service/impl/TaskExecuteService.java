@@ -2,6 +2,7 @@ package com.mesalab.services.service.impl;
 
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
@@ -10,7 +11,7 @@ import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.zdjizhi.utils.JsonMapper;
+import com.mesalab.services.configuration.JobConfig;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -24,7 +25,6 @@ import java.util.*;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static com.mesalab.services.configuration.JobConfig.*;
 import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
 
 /**
@@ -45,9 +45,10 @@ public class TaskExecuteService implements EnvironmentAware {
     ApiService apiService;
 
     @Async("taskExecutor")
-    public Future<Boolean> execute(String id, Map<String, Object> param, String newFilter, String field, long currentCount) {
-        BaseResult currentTop = queryTop(Double.parseDouble(param.get(QUERY_SAMPLE_RATIO).toString()), param.get(QUERY_DATA_SOURCE).toString(), newFilter, field);
+    public Future<Boolean> execute(String id, String logType, String filter, String field, long currentCount) {
+        BaseResult currentTop = queryTop(logType, filter, field);
         if (!currentTop.isSuccess()) {
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
             log.error("subTask query currentTopK Error: ", currentTop.getMessage());
             return new AsyncResult<>(false);
         }
@@ -58,6 +59,7 @@ public class TaskExecuteService implements EnvironmentAware {
                 .query(String.format("SELECT %s FROM job_result WHERE ROWKEY = '%s' LIMIT 1", field, id))
                 .build());
         if (!lastTop.isSuccess()) {
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
             log.error("subTask query lastTopK Error: ", lastTop.getMessage());
             return new AsyncResult<>(false);
         }
@@ -65,10 +67,12 @@ public class TaskExecuteService implements EnvironmentAware {
         if (StringUtil.isNotEmpty(lastTop.getData())) {
             List<Map> map = (List<Map>) lastTop.getData();
             if (StringUtil.isNotEmpty(map.get(0).get(field))) {
-                Map o = (Map) JsonMapper.fromJsonString(String.valueOf(map.get(0).get(field)), Map.class);
-                List<Map<String, Object>> topk = (List<Map<String, Object>>) o.get("topk");
-                lastCount = o.get("count");
-                data.addAll(topk);
+                Map item = JSONUtil.toBean(String.valueOf(map.get(0).get(field)), Map.class);
+                if (StringUtil.isNotEmpty(item)) {
+                    List<Map<String, Object>> topk = (List<Map<String, Object>>) item.get("topk");
+                    lastCount = item.get("count");
+                    data.addAll(topk);
+                }
             }
         }
         List<Object> topResult = mergeSort(data);
@@ -76,11 +80,11 @@ public class TaskExecuteService implements EnvironmentAware {
         return new AsyncResult<>(true);
     }
 
-    private BaseResult queryTop(Double sampleRatio, String logType, String filter, String field) {
+    private BaseResult queryTop(String logType, String filter, String field) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK")),
                 field, logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
         BaseResult currentTop = apiService.executeQuery(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).
-                query(sql).sampleRatio(sampleRatio).build());
+                query(sql).build());
         return currentTop;
     }
 
@@ -89,7 +93,7 @@ public class TaskExecuteService implements EnvironmentAware {
         map.put("topk", topList.size() > TOP_MAX ? topList.subList(0, TOP_MAX) : topList);
         map.put("distinct_count", Math.min(topList.size(), 100));
         map.put("count", currentCount + Long.parseLong(lastCount.toString()));
-        String result = JsonMapper.toJsonString(map).replace("\\n", " ").replace("\\r", " ").replace("\\t", " ");
+        String result = JSONUtil.quote(JSONUtil.toJsonStr(map), false).replace("'", "\\'");
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_RESULT")),
                 field, id, result));
     }

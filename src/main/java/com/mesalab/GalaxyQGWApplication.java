@@ -1,15 +1,19 @@
 package com.mesalab;
 
 import com.mesalab.qgw.interceptor.QuerySubmitInterceptor;
+import com.zdjizhi.utils.StringUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.List;
+import java.util.TimeZone;
 
 /**
  * spring-boot-seed启动主程序
@@ -26,9 +30,25 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 public class GalaxyQGWApplication implements WebMvcConfigurer {
 
+    private static final String TIMEZONE = "UTC";
+
     public static void main(String[] args) {
-        System.setProperty("jasypt.encryptor.password", "galaxy");
+        init();
         SpringApplication.run(GalaxyQGWApplication.class, args);
+    }
+
+    public static void init() {
+        System.setProperty("jasypt.encryptor.password", "galaxy");
+        System.setProperty("JM.SNAPSHOT.PATH", "config");
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> inputArguments = runtimeMxBean.getInputArguments();
+        if (inputArguments.stream().noneMatch(o -> o.contains("user.timezone"))
+                && StringUtil.isEmpty(System.getenv().get("TZ"))) {
+            // java.util.Date
+            TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
+            // joda.time.DateTime
+            System.setProperty("user.timezone", TIMEZONE);
+        }
     }
 
     @Override

@@ -3,10 +3,10 @@ package com.mesalab.qgw.monitor;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.google.common.collect.Maps;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import lombok.Data;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
@@ -40,7 +40,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidHealthIndicator.DruidQueryParam druidQueryParam = new DruidHealthIndicator.DruidQueryParam();
 
-        druidQueryParam.setQuery("select TIME_FORMAT(CURRENT_DATE,'z') as timeZone");
+        druidQueryParam.setQuery("select TIME_FORMAT(CURRENT_DATE,'z') as timeZone, CURRENT_TIMESTAMP as curTimestamp");
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
         try {
@@ -49,14 +49,16 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
             HttpEntity request = new HttpEntity(JsonMapper.toJsonString(druidQueryParam), headers);
             ResponseEntity responseEntity = restTemplate.postForEntity(queryURL, request, Object.class);
 
-            if (responseEntity.getStatusCodeValue() == HttpStatus.SC_OK) {
+            if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()) {
                 List body = (List) responseEntity.getBody();
-                String timeZone = String.valueOf(((Map) (body.get(0))).get("timeZone")).replaceAll(":", "");
+                String timeZone = String.valueOf(((Map) (body.get(0))).get("timeZone"));
+                String curDatetime = String.valueOf(((Map) (body.get(0))).get("curTimestamp"));
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", druidIoHttpSource.getUrl())
                         .withDetail("message", "ok")
-                        .withDetail("timeZone", timeZone);
+                        .withDetail("timeZone", timeZone)
+                        .withDetail("curTimestamp", curDatetime);
             } else {
                 builder.down()
                         .withDetail("app", APP)

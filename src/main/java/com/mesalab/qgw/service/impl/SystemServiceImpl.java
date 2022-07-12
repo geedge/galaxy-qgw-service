@@ -1,21 +1,23 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.JobHandlerEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.JobAdminHttpSource;
@@ -32,7 +34,8 @@ import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
@@ -45,12 +48,17 @@ import javax.annotation.Resource;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service("systemService")
 @PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private static final Log log = LogFactory.get();
+    private static Pattern pTTL = Pattern.compile(".*toIntervalSecond\\((\\d+)\\)", Pattern.CASE_INSENSITIVE);
+    private static final String trafficPort = "8123";
     private Environment env;
     @Autowired
     private ApiService apiService;
@@ -62,6 +70,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private MetadataService metadataService;
     @Autowired
     HttpConfig httpConfig;
+    @Autowired
+    ClickHouseHttpSource clickHouseHttpSource;
 
     public final static String queryIdSeparator = ":";
 
@@ -94,7 +104,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             BaseResult result = apiService.executeQuery(param);
             return resetBaseResult(result, "type");
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验：start_time 与 end_time 需同时填写", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "start_time and end_time need to be filled in at the same time", null);
         }
     }
 
@@ -111,13 +121,13 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult deleteStorage(List<StorageDeletionInfo> list) {
 
         if (!logTypeValid(list)) {
-            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "匹配失败, 请检查日志类型!");
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Match failed, please check log type!");
         }
 
         preProcessOfLogType(list);
 
         if (jobIsBusy(list)) {
-            return BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "任务繁忙中, 请稍后尝试!");
+            return BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(), "The task is busy, please try later!");
         }
 
         BaseResult baseResult = null;
@@ -151,7 +161,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             StorageDeletionInfo reportInfo = getStorageDeletionInfoByHandler(logType, JobHandlerEnum.DELETE_FILES_JOB_HANDLER.getValue());
             list.add(reportInfo);
         } else {
-            return BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "没有匹配的日志类型: " + logType);
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "No matching log type: " + logType);
         }
         list.forEach(o -> o.setLogType(LogType.getLabelByValue(o.getLogType())));
         return BaseResultGenerator.success("ok", list);
@@ -160,21 +170,22 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     @Override
     public BaseResult deleteQueryTask(String queryId) {
         Dialect dialect = buildAndGetDialect(queryId);
-        return dialect.executeKillQuery();
+        return dialect.executeKillQuery(queryId);
     }
 
     @Override
-    public String getQueryIdWithCatalog(String resultId, String query) {
+    public String getCustomQueryId(String resultId, String query) {
         String tableName = SQLHelper.getTableName(query);
         String dbType = metadataService.getDBTypeByTableName(tableName);
         return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }
 
 
+
     @Override
     public BaseResult getProcessesByQueryId(String queryId) {
         Dialect dialect = buildAndGetDialect(queryId);
-        return dialect.getProcesses();
+        return dialect.getProcesses(queryId);
     }
 
     @Override
@@ -190,10 +201,150 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         return baseResult;
     }
 
+    @Override
+    public BaseResult consistencyCheck() {
+        List<Map<String, Object>> dataList = Lists.newArrayList();
+        Map<String, Object> logDiff = Maps.newHashMap();
+        Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
+        List<String> symbols = (List<String>) tables.get("symbols");
+        logDiff.put("logType", LogType.TRAFFIC_LOGS.getValue());
+        Map<String, Map<String, Object>> changeTTL = Maps.newHashMap();
+        List<String> ipPorts = getClusterAddressOfCK();
+        try {
+            for (String ipPort : ipPorts) {
+                if (!changeTTL.isEmpty()) {
+                    break;
+                }
+                if (ipPort.startsWith("127.0.0.1")) {
+                    String url = clickHouseHttpSource.getUrl();
+                    ipPort = url.substring(url.indexOf("//") + 2, url.lastIndexOf(":") + 1).concat(trafficPort);
+                }
+                for (String tableName : symbols) {
+                    Map schemaMap = metadataService.getSchemaInfo("fields", tableName);
+                    Object tableTTLInSchema = getTableTTLInSchema(schemaMap);
+                    Map<String, Object> tableDiff = getTableDiff(ipPort, tableName, tableTTLInSchema);
+                    List fieldDiff = getFieldDiff(ipPort, tableName, schemaMap);
+                    if (CollectionUtil.isNotEmpty(fieldDiff)) {
+                        tableDiff.put("fields", fieldDiff);
+
+                    }
+                    if (CollectionUtil.isNotEmpty(tableDiff)) {
+                        changeTTL.put(tableName, tableDiff);
+                        logDiff.put("tables", Lists.newArrayList(changeTTL));
+                        logDiff.put("address", Lists.newArrayList(ipPort));
+                    }
+                }
+            }
+        } catch (RuntimeException ex) {
+            log.error(" schema TTL check error: {}", ex.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), ex.getMessage(), ex);
+        }
+        if (changeTTL.isEmpty()) {
+            return BaseResultGenerator.success("ok", dataList);
+        }
+        dataList.add(logDiff);
+        return BaseResultGenerator.success("Log streaming setting task not executed or failed", dataList);
+    }
+
+    private Object getTableTTLInSchema(Map schemaMap) {
+        Object tableTTLInSchema = null;
+        if (StringUtil.isNotEmpty(schemaMap)) {
+            if (schemaMap.containsKey("doc")) {
+                Map<String, Object> schemaHasDoc = (Map<String, Object>) schemaMap.get("doc");
+                if (schemaHasDoc.containsKey("ttl")) {
+                    tableTTLInSchema = StringUtil.isEmpty(schemaHasDoc.get("ttl")) ? null : schemaHasDoc.get("ttl").toString();
+                }
+            }
+        }
+        return tableTTLInSchema;
+    }
+
+    private Map<String, Object> getTableDiff(String ipPort, String tableName, Object tableTTLInSchema) {
+        String sql = String.format(Objects.requireNonNull(env.getProperty("TABLE_TTL")), tableName, clickHouseHttpSource.getDbName());
+        Map<String, String> result = executeHttpGetOfCK(ipPort, sql, clickHouseHttpSource.getSystemDBName());
+        if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
+            log.error(" query table TTL error: {}", result.toString());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
+        }
+        Object tableTTLInDB = null;
+        Map<String, Object> tableDiff = Maps.newHashMap();
+        Map o = (Map)JsonMapper.fromJsonString(result.get("result"), Map.class);
+        Map<String, Object> resultMap = (Map<String, Object>) o;
+        for (Map<String, Object> datum : (List<Map<String, Object>>)resultMap.get("data")) {
+            Matcher matcher = pTTL.matcher(String.valueOf(datum.get("table_ttl")));
+            tableTTLInDB = matcher.find() ? matcher.group(1) : null;
+        }
+        if (!String.valueOf(tableTTLInDB).equals(String.valueOf(tableTTLInSchema))) {
+            tableDiff.put("last_ttl", StringUtil.isEmpty(tableTTLInSchema) ? null : tableTTLInSchema.toString());
+            tableDiff.put("used_ttl", StringUtil.isEmpty(tableTTLInDB) ? null : tableTTLInDB.toString());
+            log.warn("table ttl: {} not consistency.", tableName);
+        }
+        return tableDiff;
+    }
+
+    private List<Map<String, Object>> getFieldDiff(String ipPort, String tableName, Map<String, Object> schemaMap) {
+        List<Map<String, Object>> fieldDiff = Lists.newArrayList();
+        Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
+        if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
+            log.error(" query table field TTL error: {}", result.toString());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
+        }
+        List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
+        for (Map<String, Object> field : fields) {
+            Object read = JsonPath.read(result, "$.result");
+            List<Object> fieldList = JsonPath.read(JSONUtil.toJsonStr(JSONUtil.parseObj(read)), "$.data[?(@.name == \"" + field.get("name") + "\")].ttl_expression");
+            Object fieldTTLInSchema = null;
+            Object fieldTTLInDB;
+            if (StringUtil.isNotEmpty(field.get("doc"))) {
+                Map<String, Object> doc = (Map<String, Object>) field.get("doc");
+                fieldTTLInSchema = StringUtil.isEmpty(doc.get("ttl")) ? null : doc.get("ttl");
+            }
+            Matcher matcher = pTTL.matcher(String.valueOf(fieldList.get(0)));
+            fieldTTLInDB = matcher.find() ? matcher.group(1) : null;
+            if (String.valueOf(fieldTTLInSchema).equals(String.valueOf(fieldTTLInDB))) {
+                continue;
+            }
+            log.warn("field ttl: address {} {}-{} not consistency.", ipPort, tableName, field.get("name"));
+            Map<String, Object> ttlDiff = Maps.newHashMap();
+            ttlDiff.put("last_ttl", StringUtil.isEmpty(fieldTTLInSchema) ? null : fieldTTLInSchema.toString());
+            ttlDiff.put("used_ttl", StringUtil.isEmpty(fieldTTLInDB) ? null : fieldTTLInDB.toString());
+            if (fieldDiff.stream().noneMatch(o -> o.containsKey(field.get("name").toString()))) {
+                Map<String, Object> item = Maps.newHashMap();
+                item.put(field.get("name").toString(), ttlDiff);
+                fieldDiff.add(item);
+            }
+        }
+        return fieldDiff;
+    }
+
+    private List<String> getClusterAddressOfCK() {
+        List<String> endpointList = new ArrayList<>();
+        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
+        if (baseResult.isSuccess()) {
+            List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+            for (Map<String, Object> datum : data) {
+                endpointList.add(String.valueOf(datum.get("endpoint")));
+            }
+        }
+        return endpointList;
+    }
+
+    private Map<String, String> executeHttpGetOfCK(String ipPort, String sql, String dbName) {
+        String queryURL = URLUtil.normalize("http://" + ipPort + "/?");
+        StringBuilder paramBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
+                .append("database=").append(dbName).append("&")
+                .append("query=").append(sql)
+                .append(" FORMAT JSON;");
+        List<NameValuePair> values = URLEncodedUtils.parse(paramBuilder.toString(), StandardCharsets.UTF_8);
+        int socketTimeOut = httpConfig.getCkRealTimeAccountSocketTimeOut();
+        return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
+    }
+
     public Dialect buildAndGetDialect(String queryId) {
         ApiParam apiParam = new ApiParam();
         apiParam.setDbType(parseDBType(queryId));
-        apiParam.setQueryId(queryId.substring(queryId.indexOf(queryIdSeparator) + 1));
         return getDialect(apiParam);
     }
 
@@ -205,7 +356,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
             dialect = (Dialect) constructor.newInstance(apiParam);
         } catch (ReflectiveOperationException | RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "方言转换实例异常！", e);
+            log.error("Dialect conversion instance exception:{}", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Dialect conversion instance exception！", e);
         }
         return dialect;
     }
@@ -217,7 +369,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         if (queryId.contains(queryIdSeparator)) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "queryId 不在支持范围", null);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "queryId is not supported", null);
         }
         return DBTypeEnum.CLICKHOUSE.getValue();
     }
@@ -242,12 +394,14 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
      */
     private List<StorageDeletionInfo> preProcessOfLogType(List<StorageDeletionInfo> list) {
         if (list.size() == 1 && LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getLogType())) {
-            Integer maxDays = list.get(0).getMaxDays();
+            StorageDeletionInfo deletionInfo = list.get(0);
+            Integer maxDays = deletionInfo.getMaxDays();
+            Integer defaultMaxDays = deletionInfo.getDefaultMaxDays();
 
             list.clear();
-            list.add(new StorageDeletionInfo(LogType.TRAFFIC_LOGS.getValue(), maxDays));
-            list.add(new StorageDeletionInfo(LogType.REPORT_AND_METRICS.getValue(), maxDays));
-            list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays));
+            list.add(new StorageDeletionInfo(LogType.TRAFFIC_LOGS.getValue(), maxDays, defaultMaxDays));
+            list.add(new StorageDeletionInfo(LogType.REPORT_AND_METRICS.getValue(), maxDays, defaultMaxDays));
+            list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays, defaultMaxDays));
             return list;
         }
         list.forEach(o -> o.setLogType(LogType.getValueByLabel(o.getLogType())));
@@ -274,10 +428,10 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         Map dataByHandler = getDataByHandler(handler);
         String id = String.valueOf(dataByHandler.get("id"));
         BaseResult result = queryJobStatusByJobId(Integer.parseInt(id));
-        if (result.getStatus().equals(HttpStatus.SC_LOCKED)) {
+        if (result.getStatus().equals(ResultStatusEnum.LOCKED.getCode())) {
             return true;
-        } else if (!result.getStatus().equals(HttpStatus.SC_OK)) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取任务状态异常: " + result.getMessage(), null);
+        } else if (!result.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get task status exception: " + result.getMessage(), null);
         }
         return false;
     }
@@ -300,21 +454,81 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             Map dataByHandler = getDataByHandler(jobHandler);
 
             StorageDeletionInfo storageDeletionInfoByHandler = getStorageDeletionInfoByHandler(logType, getDeletePartHandlerByLogType(logType));
-            executorParam.setMaxdays(storageDeletionInfoByHandler.getMaxDays());
-
+            executorParam.setMaxDays(storageDeletionInfoByHandler.getMaxDays());
             XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
             baseResult = executeTriggerAndUpdate(xxlJobInfo);
         } else {
             jobHandler = getDeletePartHandlerByLogType(info.getLogType());
-            executorParam.setMaxdays(info.getMaxDays());
-            Map dataByHandler = getDataByHandler(jobHandler);
-            XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
-            baseResult = executeTriggerAndUpdate(xxlJobInfo);
+            executorParam.setMaxDays(info.getMaxDays());
+            Map oldData = getDataByHandler(jobHandler);
+            XxlJobInfo newData = setXxlJobInfoParam(oldData, executorParam);
+            baseResult = executeManageJob("update", newData);
+            if (baseResult.isSuccess() && LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(info.getLogType())) {
+                updateSchema(info, oldData);
+            }
+            if (baseResult.isSuccess()) {
+                baseResult = executeManageJob("trigger", newData);
+            }
         }
-        if (!baseResult.getStatus().equals(HttpStatus.SC_OK)) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务数据配额设置任务执行失败", null);
+        if (!baseResult.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Scheduled task data quota setting task execution failed", null);
         }
         return baseResult;
+    }
+
+    private void updateSchema(StorageDeletionInfo info, Map dataByHandler) {
+        Map<String, Map> previous = Maps.newHashMap();
+        try {
+            Map schemaInfo = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
+            Object tables = schemaInfo.get("symbols");
+            if (StringUtil.isEmpty(tables)) {
+                return;
+            }
+            long ttl = 24 * 60 * 60 * info.getMaxDays();
+            List<String> list = (List) tables;
+            for (String tableName : list) {
+                Map schemaMap = metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName);
+                List<Object> schemaDocTTL = JsonPath.read(schemaMap, "$.[?(@.doc.ttl != null)].doc.ttl");
+                List<Object> schemaDocDefaultTTL = JsonPath.read(schemaMap, "$.[?(@.doc.default_ttl != null)].doc.default_ttl");
+                List<Object> fieldDocTTL = JsonPath.read(schemaMap, "$.fields[?(@.doc.ttl != null)].doc.ttl");
+                if (schemaDocDefaultTTL.isEmpty() && schemaDocTTL.isEmpty() && fieldDocTTL.isEmpty()) {
+                    continue;
+                }
+                previous.put(tableName, metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName));
+                Object schemaDoc = schemaMap.get("doc");
+                Map<String, Object> map = Maps.newHashMap();
+                if (StringUtil.isNotEmpty(schemaDoc)) {
+                    map = (Map<String, Object>) schemaDoc;
+                }
+                if (StringUtil.isEmpty(map.get("ttl")) || ttl < Long.parseLong(map.get("ttl").toString())) {
+                    map.put("ttl", ttl);
+                    schemaMap.put("doc", map);
+                }
+                List<Map<String, Object>> fields = JsonPath.read(schemaMap, "$.fields");
+                List<String> indexKey = metadataService.getIndexKey(tableName);
+                for (Map<String, Object> field : fields) {
+                    if (indexKey.contains(field.get("name").toString())) {
+                        continue;
+                    }
+                    Object doc = field.get("doc");
+                    if (StringUtil.isEmpty(doc)) {
+                        doc = Maps.newHashMap();
+                    }
+                    Map<String, Object> fieldDoc = (Map<String, Object>) doc;
+                    if (StringUtil.isEmpty(fieldDoc.get("ttl")) || ttl < Long.parseLong(fieldDoc.get("ttl").toString())) {
+                        fieldDoc.put("ttl", ttl);
+                        field.put("doc", fieldDoc);
+                    }
+                }
+                metadataService.updateSchema(tableName, schemaMap);
+            }
+        } catch (RuntimeException ex) {
+            for (String tableName : previous.keySet()) {
+                metadataService.updateSchema(tableName, previous.get(tableName));
+            }
+            executeManageJob("update", mapToBean(dataByHandler, XxlJobInfo.class));
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "up schema error in storage set ", ex.getMessage());
+        }
     }
 
     private String getDeleteAllHandlerByLogType(String logType) {
@@ -349,14 +563,11 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
      * @return
      */
     private StorageDeletionInfo getStorageDeletionInfoByHandler(String logType, String jobHandlerValue) {
-        StorageDeletionInfo storageDeletionInfo = new StorageDeletionInfo();
         Map trafficDate = getDataByHandler(jobHandlerValue);
         XxlJobInfo xxlJobInfo = mapToBean(trafficDate, XxlJobInfo.class);
-        Map executorParam = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), Map.class);
-        Object maxDays = executorParam.get("maxdays");
-        storageDeletionInfo.setLogType(logType);
-        storageDeletionInfo.setMaxDays(Integer.parseInt(String.valueOf(maxDays)));
-        return storageDeletionInfo;
+        StorageDeletionInfo executorParam = JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), StorageDeletionInfo.class);
+        executorParam.setLogType(logType);
+        return executorParam;
     }
 
     /**
@@ -368,15 +579,15 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private BaseResult executeTriggerAndUpdate(XxlJobInfo xxlJobInfo) {
         BaseResult baseResult;
         BaseResult resultExecute = executeManageJob("trigger", xxlJobInfo);
-        if (resultExecute.getStatus().equals(HttpStatus.SC_OK)) {
+        if (resultExecute.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
             BaseResult resultUpdate = executeManageJob("update", xxlJobInfo);
-            if (resultUpdate.getStatus().equals(HttpStatus.SC_OK)) {
+            if (resultUpdate.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
                 baseResult = BaseResultGenerator.success("ok", null);
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "更新任务失败: " + xxlJobInfo.getExecutorHandler());
+                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Update task failed:" + xxlJobInfo.getExecutorHandler());
             }
         } else {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "执行任务失败: " + xxlJobInfo.getExecutorHandler());
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Failed to execute task:" + xxlJobInfo.getExecutorHandler());
         }
         return baseResult;
     }
@@ -404,19 +615,19 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private BaseResult resultEncapsulationOfJob(Map<String, String> resultMap) {
         BaseResult baseResult;
         if (StringUtil.isEmpty(resultMap)) {
-            baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "服务繁忙，请联系调度平台方！");
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "The service is busy, please contact the scheduling platform!");
         } else {
-            if (resultMap.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+            if (resultMap.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
                 Map result = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(resultMap.get("result")), Map.class);
-                if (result.get("code").equals(HttpStatus.SC_OK)) {
+                if (result.get("code").equals(ResultStatusEnum.SUCCESS.getCode())) {
                     baseResult = BaseResultGenerator.success("ok", null);
-                } else if (result.get("code").equals(HttpStatus.SC_LOCKED)) {
-                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_LOCKED, "Clear Task is Running.");
+                } else if (result.get("code").equals(ResultStatusEnum.LOCKED.getCode())) {
+                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(), "Clear Task is Running.");
                 } else {
-                    baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, String.valueOf(result.get("msg")));
+                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), String.valueOf(result.get("msg")));
                 }
             } else {
-                baseResult = BaseResultGenerator.failure(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Clear Task Failed.");
+                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Clear Task Failed.");
             }
         }
         return baseResult;
@@ -467,19 +678,19 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 append("/jobinfo/pageList?jobGroup=-1&triggerStatus=-1&executorHandler=").
                 append(handlerValue);
         Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
-        if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(HttpStatus.SC_OK))) {
+        if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取或封装结果异常: " + resultPageList, null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get or package result exception: " + resultPageList, null);
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
                 return data.get(0);
             } else {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "调度任务无匹配executorHandler(" + handlerValue + ")的任务信息", null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "The scheduled task has no task information matching executorHandler (" + handlerValue + ")", null);
             }
         }
-        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "获取调度任务异常: " + resultPageList, null);
+        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get scheduled task exception: " + JsonMapper.toJsonString(resultPageList), null);
     }
 
     /**
@@ -491,6 +702,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
      */
     private XxlJobInfo setXxlJobInfoParam(Map data, ExecutorParam executorParam) {
         XxlJobInfo xxlJobInfo = mapToBean(data, XxlJobInfo.class);
+        ExecutorParam executor = JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), ExecutorParam.class);
+        executorParam.setDefaultMaxDays(executor.getDefaultMaxDays());
         xxlJobInfo.setExecutorParam(JsonMapper.toJsonString(executorParam));
         return xxlJobInfo;
     }

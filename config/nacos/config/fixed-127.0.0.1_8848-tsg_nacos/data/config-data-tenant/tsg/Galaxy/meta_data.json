@@ -1,0 +1,87 @@
+{
+  "metadata": [
+    {
+      "namespace": "tsg_galaxy_v3",
+      "group": "CLICKHOUSE_GROUP",
+      "tables": [
+        "radius_onff_log",
+        "session_record",
+        "session_record_common_client_ip",
+        "session_record_common_server_ip",
+        "session_record_http_domain",
+        "interim_session_record",
+        "transaction_record",
+        "radius_record",
+        "voip_record",
+        "gtpc_record",
+        "security_event",
+        "proxy_event",
+        "dos_event",
+        "active_defence_event",
+        "sys_packet_capture_event",
+        "assessment_event"
+      ]
+    },
+    {
+      "namespace": "system",
+      "group": "CLICKHOUSE_GROUP",
+      "tables": [
+        "query_log_cluster",
+        "tables_cluster",
+        "columns_cluster",
+        "disks_cluster",
+        "parts_cluster",
+        "processes",
+        "query_log",
+        "tables",
+        "clusters",
+        "distributed_ddl_queue"
+      ]
+    },
+    {
+      "namespace": "druid",
+      "group": "DRUID_GROUP",
+      "tables": [
+        "top_internal_host_log",
+        "top_client_ip_log",
+        "top_external_host_log",
+        "top_server_ip_log",
+        "top_website_domain_log",
+        "top_user_log",
+        "top_urls_log",
+        "proxy_event_hits_log",
+        "security_event_hits_log",
+        "traffic_summary_log",
+        "traffic_protocol_stat_log",
+        "traffic_metrics_log",
+        "traffic_app_stat_log",
+        "traffic_top_destination_ip_metrics_log",
+        "sys_storage_log"
+      ]
+    },
+    {
+      "namespace": "etl",
+      "group": "ETL_GROUP",
+      "tables": [
+        "liveChart_session",
+        "liveChart_interim"
+      ]
+    },
+    {
+      "namespace":"tsg",
+      "group":"HBASE_GROUP",
+      "tables":[
+        "report_result"
+      ]
+    },
+    {
+      "namespace": "tsg_galaxy",
+      "group": "HBASE_GROUP",
+      "tables": [
+        "relation_account_framedip",
+        "recommendation_app_cip",
+        "job_result"
+      ]
+    }
+  ]
+}

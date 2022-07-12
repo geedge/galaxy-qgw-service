@@ -218,7 +218,7 @@ public class JsonMapper extends ObjectMapper {
 	 * @param clazz
 	 * @return
 	 */
-	public static Object fromJsonString(String jsonString, Class<?> clazz) {
+	public static <T> T fromJsonString(String jsonString, Class<T> clazz) {
 		return JsonMapper.getInstance().fromJson(jsonString, clazz);
 	}
 

@@ -11,9 +11,12 @@ import lombok.Getter;
  */
 @Getter
 public enum DiagnosisOptionEnum {
-
     /**
-     * 验证SQL测试集，对数据源进行功能诊断
+     * 解析SQL测试集，用于SQL语法解析
+     */
+    PARSE("parse"),
+    /**
+     * 验证SQL测试集，用户各个数据库引擎SQL校验
      */
     VALIDATION("validation"),
     /**

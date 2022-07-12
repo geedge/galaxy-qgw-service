@@ -46,17 +46,17 @@ public class SystemController {
     public BaseResult storageDeletion(@RequestBody List<StorageDeletionInfo> list) {
         log.warn("数据配额设置, 参数: params is {}", list);
         if (StringUtil.isEmpty(list)) {
-            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), "未获取到参数");
+            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), "parameter not obtained");
         }
         for (StorageDeletionInfo info : list) {
             if (StringUtil.isBlank(info.getLogType()) || StringUtil.isBlank(String.valueOf(info.getMaxDays()))) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验: logType 与 maxDays 需同时填写", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "Parameter verification: logType and maxDays need to be filled in at the same time", null);
             }
             if ("ALL".equalsIgnoreCase(info.getLogType()) && list.size() != 1) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验: logType存在ALL时, 不能与其它类型共存", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "Parameter verification: When logType exists in ALL, it cannot coexist with other types", null);
             }
             if (!(info.getMaxDays() >= 0 && info.getMaxDays() <= 2000)) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "参数校验: logType非All: maxDays 必须是数值且[0-2000]", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "Parameter check: logType is not All: maxDays must be numeric and [0-2000]", null);
             }
         }
         return systemService.deleteStorage(list);
@@ -94,7 +94,7 @@ public class SystemController {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param resultId or query cannot be empty", null);
         }
-        String queryId = systemService.getQueryIdWithCatalog(resultId.toString(), query.toString());
+        String queryId = systemService.getCustomQueryId(resultId.toString(), query.toString());
 
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> map = new HashMap<>(16);
@@ -119,4 +119,9 @@ public class SystemController {
         return BaseResultGenerator.success();
     }
 
+    @GetMapping(value = "/storage/consistency")
+    public BaseResult monitorCluster() {
+        log.info("consistency check interface.");
+        return systemService.consistencyCheck();
+    }
 }

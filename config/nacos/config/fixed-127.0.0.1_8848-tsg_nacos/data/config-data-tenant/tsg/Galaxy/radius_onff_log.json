@@ -1,0 +1,62 @@
+{
+  "type": "record",
+  "name": "radius_onff_log",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "partition_key": "event_timestamp",
+    "index_key": [
+      "account",
+      "event_timestamp"
+    ]
+  },
+  "fields": [
+    {
+      "name": "event_timestamp",
+      "label": "Event Time",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "account",
+      "label": "Account",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "framed_ip",
+      "label": "Framed IP",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "acct_session_id",
+      "label": "Acct Session ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "acct_status_type",
+      "label": "Acct Status Type",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "acct_session_time",
+      "label": "Acct Session Time",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    }
+  ]
+}

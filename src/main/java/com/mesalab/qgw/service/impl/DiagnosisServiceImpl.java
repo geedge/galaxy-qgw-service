@@ -3,15 +3,15 @@ package com.mesalab.qgw.service.impl;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
-import cn.hutool.core.net.NetUtil;
-import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -20,38 +20,42 @@ import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.TableColumnVisitor;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.benchmark.elasticsearch.ElasticSearchWriter;
+import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import com.mesalab.qgw.benchmark.engine.EngineWriter;
 import com.mesalab.qgw.benchmark.hbase.HbaseWriter;
 import com.mesalab.qgw.dialect.HbaseDialect;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.ClickHouseHttpQuery;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
+import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.MetadataService;
-import com.zdjizhi.utils.Encodes;
-import com.zdjizhi.utils.JsonMapper;
-import com.zdjizhi.utils.StringUtil;
+import com.mesalab.services.common.enums.EntityQueryType;
+import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import com.mesalab.services.service.EntityService;
+import com.zdjizhi.utils.*;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
-import org.apache.http.HttpStatus;
+import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.util.EntityUtils;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -59,23 +63,27 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service("diagnosisService")
-public class DiagnosisServiceImpl implements DiagnosisService {
+@PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
+public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private static final String AVRO_SUFFIX = ".avsc";
     private static final String METADATA_PREFIX = "Metadata/";
     private static final String SCHEMA_PREFIX = "Schema/";
-    private static final int DEFAULT_SERVER_PORT = 9999;
     private static final String DRUID_PREFIX = "druid_";
     private static final String CK_PREFIX = "ck_";
     private static final String ENGINE_PREFIX = "engine_";
     private static final String HBASE_PREFIX = "hbase_";
+    private static final String ES_PREFIX = "es_";
+    private static final String HBASE_DBNAME2 = "tsg_galaxy";
 
     @Autowired
     private HttpClientService httpClientService;
     @Autowired
     private HttpConfig httpConfig;
-    @Value("${server.port}")
-    private int serverPort;
+
+    @Autowired
+    private ApiService apiService;
+
     @Autowired
     private ClickhouseWriter clickhouseWriter;
     @Autowired
@@ -85,13 +93,31 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     @Autowired
     private HbaseWriter hbaseWriter;
     @Autowired
+    private ElasticSearchWriter elasticSearchWriter;
+    @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
+    private HBaseAPISource hBaseAPISource;
+    @Autowired
+    private RestClient restClient;
+    @Autowired
+    private ElasticsearchHttpSource elasticsearchHttpSource;
+    @Autowired
     private MetadataService metadataService;
+    @Autowired
+    private EntityConfigSource entityConfigSourceTemp;
+    @Autowired
+    private EntityService entityService;
 
-    private static final String localHostAddress = NetUtil.getLocalhostStr();
+    @PostConstruct
+    public void init() {
+        entityConfigSource = this.entityConfigSourceTemp;
+    }
+
+    private Environment env;
+    private static EntityConfigSource entityConfigSource;
 
     /**
      * 验证Schema格式是否正确
@@ -104,17 +130,26 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         try {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
+            List<Object> data = Lists.newArrayList();
             Map<String, Map<String, String>> clickhouseResult = parseSchemaByDatasource(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
-            Map<String, Map<String, String>> mergeResult = Stream
-                    .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<String, Map<String, String>> hbaseResult = parseSchemaByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
+            Map<String, Map<String, String>> hbase2Result = parseSchemaByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
+            Map<String, Map<String, String>> elasticsearchResult = parseSchemaByDatasource(elasticsearchHttpSource.getDbname(), metadataService.getAllTable());
+
+            data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(elasticsearchResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
-            result = BaseResultGenerator.success("Avro Schema Validation Success.", mergeResult, statistics);
+            result = BaseResultGenerator.success("Avro Schema Validation Success.", data, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
-            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+            log.error("Avro Schema Validation Fail:{}", e);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                     ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "Avro Schema Validation Fail:", e);
 
         }
@@ -132,16 +167,25 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         try {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
+            List<Object> data = Lists.newArrayList();
             Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
-            Map<String, Map<String, String>> mergeResult = Stream
-                    .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
+            Map<String, Map<String, String>> hbase2Result = checkMetadataByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
+            Map<String, Map<String, String>> elasticsearchResult = checkMetadataByDatasource(elasticsearchHttpSource.getDbname(), metadataService.getAllTable());
+
+            data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            data.add(elasticsearchResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", mergeResult, statistics);
+            result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
-            throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+            log.error("Metadata Validation Fail:{}", e);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Metadata Validation Fail:", e);
         }
         return result;
@@ -157,20 +201,37 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Map<String, Map<String, String>> clickhouseResult;
         Map<String, Map<String, String>> druidResult;
         Map<String, Map<String, String>> hbaseResult;
+        Map<String, Map<String, String>> elasticsearchResult;
         try {
             Stopwatch watch = Stopwatch.createStarted();
-
             Optional<File> druidTestFile = Optional.of(new File(druidWriter.buildPocSQL()));
-            druidResult = executePocSqlByDatasource(druidTestFile, isSaved, option);
-
             Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
-            clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, option);
-
             Optional<File> hbaseTestFile = Optional.of(new File(hbaseWriter.buildPocSQL()));
-            hbaseResult = executePocSqlByDatasource(hbaseTestFile, isSaved, option);
-
             Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
-            engineResult = executePocSqlByDatasource(engineTestFile, isSaved, option);
+            Optional<File> esTestFile = Optional.of(new File(elasticSearchWriter.buildPocSQL()));
+
+            if (DiagnosisOptionEnum.PARSE.getValue().equalsIgnoreCase(option)) {
+                druidResult = executeSyntaxCheckByDatasource(druidTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+                clickhouseResult = executeSyntaxCheckByDatasource(ckTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+                hbaseResult = executeSyntaxCheckByDatasource(hbaseTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+                engineResult = executeSyntaxCheckByDatasource(engineTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+                elasticsearchResult = executeSyntaxCheckByDatasource(esTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
+            } else if (DiagnosisOptionEnum.VALIDATION.getValue().equalsIgnoreCase(option)) {
+                druidResult = executeSyntaxCheckByDatasource(druidTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+                clickhouseResult = executeSyntaxCheckByDatasource(ckTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+                hbaseResult = executeSyntaxCheckByDatasource(hbaseTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+                engineResult = executeSyntaxCheckByDatasource(engineTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+                elasticsearchResult = executeSyntaxCheckByDatasource(esTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
+            } else if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
+                druidResult = executePocSqlByDatasource(druidTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+                clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+                hbaseResult = executePocSqlByDatasource(hbaseTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+                engineResult = executePocSqlByDatasource(engineTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+                elasticsearchResult = executePocSqlByDatasource(esTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
+            } else {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "The option is not supported.");
+            }
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
@@ -179,12 +240,15 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), hbaseResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergeResult = Stream.concat(mergeResult.entrySet().stream(), elasticsearchResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+            log.error("Execute Poc SQL Fail:{}", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                     ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:", e);
         }
         return result;
@@ -204,15 +268,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         } else if (dialect.equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
             testFile = Optional.of(new File(druidWriter.buildPocSQL()));
         } else {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Illegal value about dialect.");
         }
 
 
         try {
             Stopwatch watch = Stopwatch.createStarted();
-
-
             if (testFile.isPresent()) {
                 if (!testFile.get().isFile()) {
                     log.warn("UnKnow File " + testFile.get());
@@ -225,31 +287,208 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
-            throw new BusinessException(HttpStatus.SC_BAD_REQUEST,
+            log.error("Get Poc SQL Fail:{}", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                     ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Get Poc SQL Fail:", e);
         }
         return result;
     }
 
+    /**
+     *
+     * @param param
+     * @Description 获取Entity推荐全网占比统计信息
+     * @author wanghao
+     * @date 2022/7/7 15:49
+     */
+    @Override
+    public BaseResult getMessageInfo(String param) {
+        BaseResult baseResult = null;
+        Map<String, String> data = Maps.newHashMap();
+        Map<String, Object> statistics = Maps.newLinkedHashMap();
+        Stopwatch watch = Stopwatch.createStarted();
+        String timeInterval = getTimeInterval(-24 * 60);
+        String datasource = "session_record";
+        if (EntityQueryType.TOPSERVERIP.getType().equalsIgnoreCase(param)) {
+            String message = getTopServerIpMessage(timeInterval, datasource);
+            data.put("message", message);
+        } else if (EntityQueryType.TOPSNI.getType().equalsIgnoreCase(param)) {
+            String message = getTopSniMessage(timeInterval, datasource);
+            data.put("message", message);
+        }
+        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+        baseResult = BaseResultGenerator.success("ok", data, statistics);
+        return baseResult;
+    }
+
+    private String getTopServerIpMessage(String timeInterval, String datasource) {
+        String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, timeInterval,
+                entityConfigSource.getTopServerIPByTCPSession());
+        List<Map> tcpSessionResult = getData(apiService.executeQuery(queryBuild(tcpSessionSql)));
+
+        String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOP_ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
+                datasource, timeInterval, entityConfigSource.getTopServerIPByTCPUniqClientIP());
+        List<Map> tcpClientIpsResult = getData(apiService.executeQuery(queryBuild(tcpClientIpsSql)));
+
+        String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval,
+                entityConfigSource.getTopServerIPByUDPBySession());
+        List<Map> udpSessionResult = getData(apiService.executeQuery(queryBuild(udpSessionSql)));
+
+        String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOP_ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
+                datasource, timeInterval, entityConfigSource.getTopServerIPByUDPUniqClientIP());
+        List<Map> udpClientIpsResult = getData(apiService.executeQuery(queryBuild(udpClientIpsSql)));
+
+        String tcpTotalSessionSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_TCP_SESSION")), datasource, timeInterval);
+        List<Map> tcpTotalSessionResult = getData(apiService.executeQuery(queryBuild(tcpTotalSessionSql)));
+
+        String tcpTotalClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
+        List<Map> tcpTotalClientIpResult = getData(apiService.executeQuery(queryBuild(tcpTotalClientIpsSql)));
+
+        String udpTotalSessionSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_UDP_SESSION")), datasource, timeInterval);
+        List<Map> udpTotalSessionResult = getData(apiService.executeQuery(queryBuild(udpTotalSessionSql)));
+
+        String udpTotalClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
+        List<Map> udpTotalClientIpsResult = getData(apiService.executeQuery(queryBuild(udpTotalClientIpsSql)));
+
+        long tcpSessions = 0;
+        long tcpClientIps = 0;
+        long udpSessions = 0;
+        long udpClientIps = 0;
+        long tcpTotalSessions = StringUtil.isEmpty(tcpTotalSessionResult.get(0).get("sessions")) ? 0 : Long.parseLong(tcpTotalSessionResult.get(0).get("sessions").toString());
+        long tcpTotalClientIps = StringUtil.isEmpty(tcpTotalClientIpResult.get(0).get("uniq_client_ips")) ? 0 : Long.parseLong(tcpTotalClientIpResult.get(0).get("uniq_client_ips").toString());
+        long udpTotalSessions = StringUtil.isEmpty(udpTotalSessionResult.get(0).get("sessions")) ? 0 : Long.parseLong(udpTotalSessionResult.get(0).get("sessions").toString());
+        long udpTotalClientIps = StringUtil.isEmpty(udpTotalClientIpsResult.get(0).get("uniq_client_ips")) ? 0 : Long.parseLong(udpTotalClientIpsResult.get(0).get("uniq_client_ips").toString());
+        for (Map item : tcpSessionResult) {
+            tcpSessions += StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
+        }
+        for (Map item : tcpClientIpsResult) {
+            tcpClientIps += StringUtil.isEmpty(item.get("client_ips")) ? 0 : Long.parseLong(item.get("client_ips").toString());
+        }
+        for (Map item : udpSessionResult) {
+            udpSessions += StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
+        }
+        for (Map item : udpClientIpsResult) {
+            udpClientIps += StringUtil.isEmpty(item.get("client_ips")) ? 0 : Long.parseLong(item.get("client_ips").toString());
+        }
+
+        String message = StrUtil.format("Top {} Server IPs, {} of TCP sessions; " +
+                        "Top {} Server IPs, {} of TCP uniq client ips; " +
+                        "Top {} Server IPs, {} of UDP(53,443) sessions; " +
+                        "Top {} Server IPs, {} of UDP uniq client ips",
+                entityConfigSource.getTopServerIPByTCPSession(), tcpTotalSessions == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (tcpSessions * 1.0) / tcpTotalSessions),
+                entityConfigSource.getTopServerIPByTCPUniqClientIP(), tcpTotalClientIps == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (tcpClientIps * 1.0) / tcpTotalClientIps),
+                entityConfigSource.getTopServerIPByUDPBySession(), udpTotalSessions == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (udpSessions * 1.0) / udpTotalSessions),
+                entityConfigSource.getTopServerIPByUDPUniqClientIP(), udpTotalClientIps == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (udpClientIps * 1.0) / udpTotalClientIps));
+        return message;
+    }
+
+    private String getTopSniMessage(String timeInterval, String datasource) {
+        String topSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TOP_SNI")), datasource, timeInterval,
+                entityConfigSource.getTopSNIDefaultSize());
+        List<Map> topSniResult = getData(apiService.executeQuery(queryBuild(topSniSql)));
+
+        String totalSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_SNI_TOTAL")), datasource, timeInterval);
+        List<Map> totalSniResult = getData(apiService.executeQuery(queryBuild(totalSniSql)));
+
+        int cdnCount = 0;
+        long topSniBytes = 0;
+        long topSniSessions = 0;
+        long totalSniBytes = StringUtil.isEmpty(totalSniResult.get(0).get("bytes")) ? 0 : Long.parseLong(totalSniResult.get(0).get("bytes").toString());
+        long totalSniSessions = StringUtil.isEmpty(totalSniResult.get(0).get("sessions")) ? 0 : Long.parseLong(totalSniResult.get(0).get("sessions").toString());
+        Map<String, List<String>> cdnMap = entityService.buildDomainHashTable(getCfgCDN());
+        for (Map item : topSniResult) {
+            if (entityService.inCDN(cdnMap, String.valueOf(item.get("ssl_sni")))) {
+                cdnCount++;
+            }
+            topSniBytes += StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
+            topSniSessions += StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
+        }
+
+        String message = StrUtil.format("Top {} SNI, {} of ssl bytes, {} of ssl sessions, {} popular CDNs",
+                entityConfigSource.getTopSNIDefaultSize(),
+                totalSniBytes == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (topSniBytes * 1.0) / totalSniBytes),
+                totalSniSessions == 0 ? "-" : NumberUtil.decimalFormat("#.##%", (topSniSessions * 1.0) / totalSniSessions),
+                cdnCount == 0 ? "-" : cdnCount);
+
+        return message;
+    }
+
+
+    private String getTimeInterval(int defaultInterval) {
+        Date now = new Date();
+        Date someMinute = DateUtils.getSomeMinute(now, defaultInterval);
+        String end = DateUtils.getFormatDate(now, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        String start = DateUtils.getFormatDate(someMinute, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        List<String> list = Lists.newArrayList(start.concat("/").concat(end));
+        StringBuilder timeInterval = new StringBuilder();
+        String[] intervals = getIntervals(list);
+        timeInterval.append("common_recv_time >= toDateTime('").append(intervals[0]).append("') AND common_recv_time< toDateTime('").append(intervals[1]).append("')");
+        return timeInterval.toString();
+    }
+
+    private String[] getIntervals(List<String> intervals) {
+        return intervals.get(0).split("/");
+    }
+
+    public List<Map> getData(BaseResult baseResult) {
+        List<Map> dataList = (List<Map>) baseResult.getData();
+        return dataList;
+    }
+
+    private Map<String, List<String>> getCfgCDN() {
+        Object codeInfo = metadataService.getCfg("public_code_info.json");
+        if (StringUtil.isNotEmpty(codeInfo)) {
+            Map<String, Map<String, List<String>>> data = (Map<String, Map<String, List<String>>>) com.mesalab.common.utils.JsonMapper.fromJsonString(codeInfo.toString(), Map.class);
+            return Maps.newHashMap(data.get("CDN"));
+        }
+        return Maps.newHashMap();
+    }
+
+    /**
+     * 对各个数据库引擎的测试集SQL进行语法解析或验证
+     * @param file
+     * @param queryOption
+     * @return
+     */
+    private Map<String, Map<String, String>> executeSyntaxCheckByDatasource(Optional<File> file, String queryOption) {
+        Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
+        Map<String, String> infoMap = Maps.newLinkedHashMap();
+        if (file.isPresent() && file.get().isFile()) {
+            List<String> rawLines = new FileReader(file.get()).readLines();
+            int index = 0;
+            for (String line : rawLines) {
+                index++;
+                if (Strings.isNullOrEmpty(line)) {
+                    continue;
+                }
+                Stopwatch watch = Stopwatch.createStarted();
+                BaseResult queryResult = getBaseResultByEngine(ApiParam.builder().option(queryOption).query(line).build());
+                if (StringUtil.isEmpty(queryResult.getStatistics())) {
+                    Map<String, Object> statistics = Maps.newLinkedHashMap();
+                    statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+                    queryResult.setStatistics(statistics);
+                }
+                processQueryResult(file, infoMap, null, index, queryResult);
+            }
+            resultMap.put(file.get().getName(), buildQueryTimeMetric(infoMap));
+        } else {
+            log.error("File is not exist or is a directory.");
+        }
+        return resultMap;
+
+    }
 
     /**
      * 执行POC SQL测试集，并返回执行结果
      *
-     * @param file    sql 查询语句列表
+     * @param file   sql 查询语句列表
      * @param isSaved 是否保存查询结果
-     * @param option  SQL诊断方式
+     * @param queryOption  SQL诊断方式
      * @return
      */
-    private Map<String, Map<String, String>> executePocSqlByDatasource(Optional<File> file, boolean isSaved, String option) {
+    private Map<String, Map<String, String>> executePocSqlByDatasource(Optional<File> file, boolean isSaved, String queryOption) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newLinkedHashMap();
-        Map<String, Object> paramMap = Maps.newHashMap();
-        if (DiagnosisOptionEnum.VALIDATION.getValue().equalsIgnoreCase(option)) {
-            paramMap.put("option", QueryOptionEnum.SYNTAX_VALIDATION.getValue());
-        } else if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
-            paramMap.put("option", QueryOptionEnum.REAL_TIME.getValue());
-        }
-        paramMap.put("format", QueryFormatEnum.CSV.getValue());
         FileWriter writer = null;
         int index = 0;
         if (file.isPresent() && file.get().isFile()) {
@@ -258,6 +497,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             if (isSaved) {
                 writer = new FileWriter(file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat");
             }
+
             if (StringUtil.lowerCase(benchFileName).startsWith(DRUID_PREFIX)) {
                 for (String line : rawLines) {
                     index++;
@@ -265,7 +505,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         continue;
                     }
                     BaseResult queryResult = generateDruidBaseResult(line);
-                    resultProcess(file, infoMap, writer, index, queryResult);
+                    processQueryResult(file, infoMap, writer, index, queryResult);
                 }
             } else if (StringUtil.lowerCase(benchFileName).startsWith(CK_PREFIX)) {
                 for (String line : rawLines) {
@@ -274,7 +514,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         continue;
                     }
                     BaseResult queryResult = generateClickHouseBaseResult(line);
-                    resultProcess(file, infoMap, writer, index, queryResult);
+                    processQueryResult(file, infoMap, writer, index, queryResult);
                 }
             } else if (StringUtil.lowerCase(benchFileName).startsWith(HBASE_PREFIX)) {
                 for (String line : rawLines) {
@@ -283,7 +523,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         continue;
                     }
                     BaseResult queryResult = generateHbaseBaseResult(line);
-                    resultProcess(file, infoMap, writer, index, queryResult);
+                    processQueryResult(file, infoMap, writer, index, queryResult);
                 }
             } else if (StringUtil.lowerCase(benchFileName).startsWith(ENGINE_PREFIX)) {
                 for (String line : rawLines) {
@@ -291,41 +531,51 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                     if (Strings.isNullOrEmpty(line)) {
                         continue;
                     }
-                    Map<String, String> queryResult = executeQuery(line, paramMap);
-                    int statusCode = Integer.parseInt(queryResult.get("status").trim());
-                    if (statusCode == HttpStatus.SC_OK) {
-                        if (writer != null) {
-                            writer.append("--Query" + index + "\t" + "Elapsed(ms):" + JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "\n");
-                            writer.append(JsonPath.read(queryResult.get("result"), "$.meta") + "\n");
-                            writer.append(JsonPath.read(queryResult.get("result"), "$.data") + "\n");
-                        }
-                        infoMap.put("Query" + index, JsonPath.read(queryResult.get("result"), "$.statistics.elapsed") + "");
-                    } else if (statusCode == HttpStatus.SC_GATEWAY_TIMEOUT || statusCode == HttpStatus.SC_BAD_GATEWAY) {
-                        infoMap.put("Query" + index, "status:" + queryResult.get("status") + ",message:" + queryResult.get("message"));
-
-                    } else {
-                        throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), file.get().getName()
-                                + ",Query" + index + "," + queryResult.get("status") + "," + queryResult.get("message"), null);
+                    BaseResult queryResult = getBaseResultByEngine(
+                            ApiParam.builder().option(queryOption).format(QueryFormatEnum.CSV.getValue()).query(line).build());
+                    processQueryResult(file, infoMap, writer, index, queryResult);
+                }
+            } else if (StringUtil.lowerCase(benchFileName).startsWith(ES_PREFIX)) {
+                for (String line : rawLines) {
+                    index++;
+                    if (Strings.isNullOrEmpty(line)) {
+                        continue;
                     }
+                    BaseResult queryResult = generateElasticSearchBaseResult(line);
+                    processQueryResult(file, infoMap, writer, index, queryResult);
                 }
             }
-            resultMap.put(file.get().getName(), infoMap);
+
+            resultMap.put(file.get().getName(), buildQueryTimeMetric(infoMap));
         } else {
-            log.error("File is not exist or is directory.");
+            log.error("File is not exist or is a directory.");
         }
         return resultMap;
     }
 
-    private void resultProcess(Optional<File> file, Map<String, String> infoMap, FileWriter writer, int index, BaseResult queryResult) {
+    private Map<String, String> buildQueryTimeMetric(Map<String, String> infoMap) {
+        if (StringUtil.isNotEmpty(infoMap)) {
+            double[] values = infoMap.values().stream().mapToDouble(value -> Double.valueOf(value)).sorted().toArray();
+            infoMap.put("Min", String.valueOf(CommonUtil.round(StatUtils.min(values),2)));
+            infoMap.put("Mean", String.valueOf(CommonUtil.round(StatUtils.mean(values),2)));
+            infoMap.put("Median", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 50),2)));
+            infoMap.put("P95", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 95),2)));
+            infoMap.put("P99", String.valueOf(CommonUtil.round(StatUtils.percentile(values, 99),2)));
+            infoMap.put("MAX", String.valueOf(CommonUtil.round(StatUtils.max(values),2)));
+        }
+        return infoMap;
+    }
+
+    private void processQueryResult(Optional<File> file, Map<String, String> infoMap, FileWriter writer, int index, BaseResult queryResult) {
         int statusCode = Integer.parseInt(queryResult.getStatus().toString());
-        if (statusCode == HttpStatus.SC_OK) {
+        if (statusCode == ResultStatusEnum.SUCCESS.getCode()) {
             if (writer != null) {
                 writer.append("--Query" + index + "\t" + "Elapsed(ms):" + queryResult.getStatistics().get("elapsed") + "\n");
                 writer.append(queryResult.getMeta() + "\n");
                 writer.append(queryResult.getData() + "\n");
             }
             infoMap.put("Query" + index, queryResult.getStatistics().get("elapsed") + "");
-        } else if (statusCode == HttpStatus.SC_GATEWAY_TIMEOUT || statusCode == HttpStatus.SC_BAD_GATEWAY) {
+        } else if (statusCode == ResultStatusEnum.GATEWAY_TIMEOUT.getCode() || statusCode == ResultStatusEnum.BAD_GATEWAY.getCode()) {
             infoMap.put("Query" + index, "status:" + queryResult.getStatus() + ",message:" + queryResult.getMessage());
 
         } else {
@@ -347,7 +597,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Stopwatch watch = Stopwatch.createUnstarted();
         watch.start();
         Map<String, String> results = druidExecuteHttpPost(sql);
-        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
+        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
                     (List<Object>) com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
@@ -389,8 +639,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private BaseResult generateClickHouseBaseResult(String sql) {
         BaseResult baseResult;
         Object dataObject;
-        Map<String, String> results = clickHouseExecuteHttpGet(sql);
-        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
+        Map<String, String> results = clickHouseExecuteHttpPost(sql);
+        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
                     com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
@@ -405,26 +655,53 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
                     results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
-            baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? HttpStatus.SC_INTERNAL_SERVER_ERROR : baseResult.getStatus());
+            baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus());
             baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
         }
         return baseResult;
     }
 
-    private Map<String, String> clickHouseExecuteHttpGet(String sql) {
+    private Map<String, String> clickHouseExecuteHttpPost(String sql) {
         String ckQuery = Encodes.urlEncode(sql);
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         StringBuilder queryParamBuilder = new StringBuilder("user=")
                 .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
                 .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
-                .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
-                .append("query=").append(ckQuery)
-                .append(" FORMAT JSON;");
+                .append("database=").append(clickHouseHttpSource.getDbName());
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
+        clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
         clickHouseHttpQuery.setQueryParameter(queryParamBuilder.toString());
         log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), com.mesalab.common.utils.JsonMapper.toJsonString(clickHouseHttpQuery));
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
-        return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), clickHouseHttpQuery.getSocketTimeOut());
+        return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase()), clickHouseHttpQuery.getSocketTimeOut());
+    }
+
+    private BaseResult generateElasticSearchBaseResult(String sql) {
+        BaseResult baseResult;
+        Object dataObject;
+        Stopwatch watch = Stopwatch.createUnstarted();
+        watch.start();
+        Request request = new Request("POST", "/_sql?format=json");
+        HashMap<String, Object> queryParam = Maps.newHashMap();
+        queryParam.put("query", sql);
+        request.setJsonEntity(JsonMapper.toJsonString(queryParam));
+        Response response;
+        try {
+            response = restClient.performRequest(request);
+            ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
+            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
+                    (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+        } catch (IOException e) {
+            log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), e.getMessage(), null);
+        }
+        dataObject = baseResult.getData();
+        Map<String, Object> resultMap = (Map<String, Object>) dataObject;
+        Map<String, Object> statistics = Maps.newLinkedHashMap();
+        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+        baseResult.setData(resultMap);
+        baseResult.setStatistics(statistics);
+        return baseResult;
     }
 
 
@@ -489,15 +766,14 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         for (String tableName : tables) {
             Schema schema = metadataService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
-            Map<String, String> result = executeQuery("describe " + tableName, null);
-            if (HttpStatus.SC_OK != Integer.parseInt(result.get("status"))
-                    || Integer.parseInt(JsonPath.read(result.get("result"), "$.status").toString()) != HttpStatus.SC_OK) {
-                log.error("查询表结构失败：" + result.get("result"));
-                throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+            BaseResult baseResult = getBaseResultByEngine(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
+            if (ResultStatusEnum.SUCCESS.getCode() != baseResult.getStatus()) {
+                log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
                         " The Table[" + tableName + "] Structure query failed", null);
             }
-            List<Map<String, Object>> dbFields = JsonPath.read(result.get("result"), "$.data.fields.*");
+            List<Map<String, Object>> dbFields = JsonPath.read(JsonMapper.toJsonString(baseResult.getData()), "$.fields.*");
 
             Map<String, Object> dbFieldMap = Maps.newHashMap();
             dbFields.stream().forEach(objectMap -> {
@@ -514,8 +790,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             Map<String, Object> entriesOnlyOnLeft = difference.entriesOnlyOnLeft();
 
             if (entriesOnlyOnLeft.size() > 0) {
-                log.error("键只存在于左边Map的映射项:" + entriesOnlyOnLeft);
-                throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                log.error("Schema Fields greater than Table Fields,Schema " + tableName + " exist fields :" + entriesOnlyOnLeft);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(),
                         " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft, null);
 
@@ -527,30 +803,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             }
 
         }
-
-
         resultMap.put(METADATA_PREFIX + dbName, infoMap);
-
         return resultMap;
     }
 
 
-    private Map<String, String> executeQuery(String sql, Map<String, Object> urlParam) {
-        Map<String, String> resultMap = Maps.newHashMap();
-        try {
-            if (serverPort == 0) {
-                serverPort = DEFAULT_SERVER_PORT;
-            }
-            String param = URLUtil.buildQuery(urlParam, CharsetUtil.CHARSET_UTF_8);
-            sql = URLEncoder.encode(sql, "utf-8").replaceAll("\\+", "%20");
-            String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?query=");
-            int socketTimeOut = httpConfig.getServerResponseTimeOut();
-            resultMap = httpClientService.httpGet(queryURL + sql + (StrUtil.isBlank(param) ? "" : "&" + param), socketTimeOut);
-        } catch (UnsupportedEncodingException e) {
-            log.error("Unsupported Encoding error: ", e);
-        }
-
-        return resultMap;
+    private BaseResult getBaseResultByEngine(ApiParam apiParam) {
+        return apiService.executeQuery(apiParam);
     }
 
 
@@ -589,7 +848,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             File schemaDir = new File(new File("").getCanonicalPath() + path);
             if (FileUtil.isNotEmpty(schemaDir) && FileUtil.isDirectory(schemaDir)) {
                 if (StringUtil.isEmpty(schemaDir.listFiles())) {
-                    throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                             ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "The Directory is null: " + path);
                 }
                 for (File file : FileUtil.loopFiles(schemaDir)) {
@@ -602,7 +861,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
                         }
                     } catch (AvroRuntimeException e) {
                         log.error("Schema Parsing Error {}, Message is {}", file.getName(), e);
-                        throw new BusinessException(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                                 ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), file.getName() + " Parse Error: " + e.getMessage(), e);
                     }
                 }
@@ -611,6 +870,11 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             log.error("The current directory {} does not exist.", path);
         }
         return schemas;
+    }
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.env = environment;
     }
 
     @Data

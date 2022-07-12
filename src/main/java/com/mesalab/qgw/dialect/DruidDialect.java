@@ -1,7 +1,9 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
@@ -16,12 +18,11 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.mesalab.qgw.service.SystemService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
@@ -32,7 +33,6 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import org.apache.commons.compress.utils.Lists;
-import org.apache.http.HttpStatus;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +43,6 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
-    private SystemService systemService = (SystemService) SpringContextUtil.getBean("systemService");
     private int pageOffset;
     private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "com.zdjizhi.calcite.runtime.CalciteContextException: ";
     private Stopwatch watch = Stopwatch.createUnstarted();
@@ -86,7 +85,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public String getOriginQuery() {
+    public String getOriginalQuery() {
         return param.getQuery();
     }
 
@@ -96,33 +95,38 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @return
      */
     @Override
-    public String getSyntaxCheckQuery() {
-        String sql = param.getDbQuerySource().getSqlBody();
+    public String getSampleQuery() {
+        String sampleSQL = param.getDbQuerySource().getSqlBody();
         try {
-            sql = String.valueOf(parserAndUpdateSql(sql));
+            sampleSQL = convertQuery(String.valueOf(convertSampleSql(sampleSQL)));
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+                    sampleSQL, sampleSQL = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
-        return sql;
+        return sampleSQL;
     }
 
     @Override
-    public BaseResult executeKillQuery() {
+    String getExplainQuery() {
+        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Druid dialect unsupported EXPLAIN Syntax.", null);
+    }
+
+    @Override
+    public BaseResult executeKillQuery(String queryId) {
         String url = druidIoHttpSource.getUrl();
         url = url.substring(0, url.indexOf("/"));
-        String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(param.getQueryId());
+        String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(queryId);
         Map<String, String> map = httpClientService.httpDelete(deleteUrl, 1000);
-        if (Integer.parseInt(map.get("status")) == HttpStatus.SC_OK
-                || Integer.parseInt(map.get("status")) == HttpStatus.SC_ACCEPTED) {
-            return BaseResultGenerator.generate(HttpStatus.SC_ACCEPTED, null, "ok", null, null, null, null);
+        if (Integer.parseInt(map.get("status")) == ResultStatusEnum.SUCCESS.getCode()
+                || Integer.parseInt(map.get("status")) == ResultStatusEnum.ACCEPTED.getCode()) {
+            return BaseResultGenerator.generate(ResultStatusEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), map.get("result"));
         }
     }
 
     @Override
-    public BaseResult getProcesses() {
+    public BaseResult getProcesses(String queryId) {
         return BaseResultGenerator.success4Message("ok");
     }
 
@@ -144,9 +148,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         DruidQueryParam druidQueryParam = new DruidQueryParam();
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
-        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
-            druidQueryParam.getContext().put("sqlQueryId", SQLHelper.getQueryId(param.getResultId(), param.getQuery()));
-        }
+        druidQueryParam.getContext().put("sqlQueryId", StringUtil.isNotBlank(param.getQueryId()) ? param.getQueryId() : DigestUtil.md5Hex(StringUtil.createUUID()));
         druidQueryParam.setResultFormat("object");
         return druidQueryParam;
     }
@@ -157,12 +159,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
         Map<String, String> results = executeHttpPost(sql);
 
-        if (Integer.parseInt(results.get("status")) == HttpStatus.SC_OK) {
+        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
                     (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
-                    results.get("result"), null, null, param.getFormat());
+                    StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         }
 
         return build();
@@ -192,7 +194,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(allResults));
             baseResult.setStatistics(statistics);
         } else {
-            baseResult = BaseResultGenerator.failure(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+            throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
                     simplyErrorMessage(dataObject));
         }
         return baseResult;
@@ -219,7 +221,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @return
      * @throws JSQLParserException
      */
-    private SelectBody parserAndUpdateSql(String sql) throws JSQLParserException {
+    private SelectBody convertSampleSql(String sql) throws JSQLParserException {
         Statement parse = CCJSqlParserUtil.parse(sql);
         if (parse instanceof Select) {
             Select select = (Select) parse;
@@ -229,7 +231,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 FromItem fromItem = plainSelect.getFromItem();
                 if (fromItem instanceof SubSelect) {
                     SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
-                    subSelect.setSelectBody(parserAndUpdateSql(subSelect.getSelectBody().toString()));
+                    subSelect.setSelectBody(convertSampleSql(subSelect.getSelectBody().toString()));
                 } else if (fromItem instanceof Table) {
                     plainSelect.setWhere(generateDataSetSql());
                     return plainSelect;
@@ -239,7 +241,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 SetOperationList setOperationList = (SetOperationList) selectBody;
                 List<SelectBody> selects = setOperationList.getSelects();
                 for (int i = 0; i < selects.size(); i++) {
-                    selects.set(i, parserAndUpdateSql(selects.get(i).toString()));
+                    selects.set(i, convertSampleSql(selects.get(i).toString()));
                 }
                 return setOperationList;
             } else {
@@ -257,7 +259,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private Expression generateDataSetSql() throws JSQLParserException {
-        String sql = String.format("SELECT * FROM tableName WHERE %s >= CURRENT_TIMESTAMP - INTERVAL '%s' HOUR ", param.getDbQuerySource().getPartitionKey(), 12);
+        String sql = String.format("SELECT * FROM tableName WHERE %s >= CURRENT_TIMESTAMP - INTERVAL '%s' HOUR ", param.getDbQuerySource().getPartitionKey(), BooleanUtil.isTrue(param.getSampled()) ? 12 : 0);
         Statement parse = CCJSqlParserUtil.parse(sql);
         Select select = (Select) parse;
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();

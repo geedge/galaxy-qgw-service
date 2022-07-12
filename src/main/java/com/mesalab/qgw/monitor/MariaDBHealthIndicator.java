@@ -4,8 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.google.common.base.Splitter;
 import com.jfinal.plugin.activerecord.Db;
-import com.mesalab.common.utils.TimeZoneUtil;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
@@ -36,17 +34,17 @@ public class MariaDBHealthIndicator extends AbstractHealthIndicator {
             return;
         }
         try {
-            List<Object> query = Db.query("select 1");
-            if (!CollectionUtils.isEmpty(query) && 1 == Long.parseLong(String.valueOf(query.get(0)))) {
+            List<Object> query = Db.query("SELECT CURRENT_TIMESTAMP AS curTimestamp");
+            if (!CollectionUtils.isEmpty(query)) {
                 String substring = url.substring(url.indexOf("?") + 1);
                 Map<String, String> map = Splitter.on("&").withKeyValueSeparator("=").split(substring);
-                String dbTimeZone = map.get("serverTimezone");
-                String timeZone = TimeZoneUtil.timeZoneTransition(dbTimeZone);
+                String timeZone = map.get("serverTimezone");
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", url)
                         .withDetail("message", "ok")
-                        .withDetail("timeZone", timeZone);
+                        .withDetail("timeZone", timeZone)
+                        .withDetail("curTimestamp", query.get(0));
 
             } else {
                 builder.down()

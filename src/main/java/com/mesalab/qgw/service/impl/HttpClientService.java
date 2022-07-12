@@ -3,8 +3,9 @@ package com.mesalab.qgw.service.impl;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.knowledge.common.utils.HttpConfig;
+import com.mesalab.qgw.model.api.HttpConfig;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
@@ -32,10 +33,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -95,8 +93,10 @@ public class HttpClientService {
             if (exception instanceof SSLHandshakeException) {// 不要重试SSL握手异常
                 return false;
             }
-            if (exception instanceof InterruptedIOException) {// 超时
-                return true;
+            if(exception instanceof SocketTimeoutException) {
+                if (exception.getMessage().contains("Read timed out")) {
+                    return false;
+                }
             }
             if (exception instanceof UnknownHostException) {// 目标服务器不可达
                 return false;
@@ -107,6 +107,11 @@ public class HttpClientService {
             if (exception instanceof SSLException) {// ssl握手异常
                 return false;
             }
+            if (exception instanceof InterruptedIOException) {// 超时
+                return true;
+            }
+
+
             HttpClientContext clientContext = HttpClientContext.adapt(context);
             HttpRequest request = clientContext.getRequest();
             // 如果请求是幂等的，就再次尝试
@@ -166,19 +171,19 @@ public class HttpClientService {
             resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
         } catch (ClientProtocolException e) {
             log.error("协议错误: {}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVICE_UNAVAILABLE.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (ParseException e) {
             log.error("解析错误: {}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVICE_UNAVAILABLE.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (IOException e) {
             log.error("IO错误: {}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.BAD_GATEWAY.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (Exception e) {
             log.error("其它错误: {}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVER_ERROR.getCode()));
             resultMap.put("message", e.getMessage());
         } finally {
             if (null != response) {
@@ -214,19 +219,19 @@ public class HttpClientService {
             resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
         } catch (ClientProtocolException e) {
             log.error("ClientProtocolException:{}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVICE_UNAVAILABLE.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (ParseException e) {
             log.error("ParseException:{}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVICE_UNAVAILABLE.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (IOException e) {
             log.error("IOException:{}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.BAD_GATEWAY.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (Exception e) {
             log.error("Exception:{}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVER_ERROR.getCode()));
             resultMap.put("message", e.getMessage());
         } finally {
             if (null != response) {
@@ -266,19 +271,19 @@ public class HttpClientService {
             resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
         } catch (ClientProtocolException e) {
             log.error("ClientProtocolException:{}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVICE_UNAVAILABLE.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (ParseException e) {
             log.error("ParseException:{}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVICE_UNAVAILABLE.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (IOException e) {
             log.error("IOException:{}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.BAD_GATEWAY.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (Exception e) {
             log.error("Exception:{}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVER_ERROR.getCode()));
             resultMap.put("message", e.getMessage());
         } finally {
             if (null != response) {
@@ -314,20 +319,20 @@ public class HttpClientService {
             resultMap.put("status", String.valueOf(response.getStatusLine().getStatusCode()));
             resultMap.put("result", EntityUtils.toString(entity, "UTF-8"));
         } catch (ClientProtocolException e) {
-            log.error("协议错误: {}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            log.error("ClientProtocolException: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVICE_UNAVAILABLE.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (ParseException e) {
-            log.error("解析错误: {}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_SERVICE_UNAVAILABLE));
+            log.error("ParseException: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVICE_UNAVAILABLE.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (IOException e) {
-            log.error("IO错误: {}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_BAD_GATEWAY));
+            log.error("IOException: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(ResultStatusEnum.BAD_GATEWAY.getCode()));
             resultMap.put("message", e.getMessage());
         } catch (Exception e) {
-            log.error("其它错误: {}", e.getMessage());
-            resultMap.put("status", String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+            log.error("Exception: {}", e.getMessage());
+            resultMap.put("status", String.valueOf(ResultStatusEnum.SERVER_ERROR.getCode()));
             resultMap.put("message", e.getMessage());
         } finally {
             if (null != response) {
@@ -335,7 +340,7 @@ public class HttpClientService {
                     EntityUtils.consumeQuietly(response.getEntity());
                     response.close();
                 } catch (IOException e) {
-                    log.error("释放链接错误: {}", e.getMessage());
+                    log.error("CloseConnectionException: {}", e.getMessage());
                 }
             }
         }
@@ -401,7 +406,7 @@ public class HttpClientService {
             HttpEntity entity = response.getEntity();
             // 获取响应信息
             msg = EntityUtils.toString(entity, "UTF-8");
-            if (statusCode != HttpStatus.SC_OK) {
+            if (statusCode != ResultStatusEnum.SUCCESS.getCode()) {
                 throw new BusinessException("Http get content is :" + msg);
             }
         } catch (URISyntaxException e) {
@@ -457,7 +462,7 @@ public class HttpClientService {
             HttpEntity entity = response.getEntity();
             // 获取响应信息
             msg = EntityUtils.toString(entity, "UTF-8");
-            if (statusCode != HttpStatus.SC_OK && statusCode != HttpStatus.SC_CREATED) {
+            if (statusCode != ResultStatusEnum.SUCCESS.getCode() && statusCode != ResultStatusEnum.CREATED.getCode()) {
                 throw new BusinessException(msg);
             }
         } catch (URISyntaxException e) {

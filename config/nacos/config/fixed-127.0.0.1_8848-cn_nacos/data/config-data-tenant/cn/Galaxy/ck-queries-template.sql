@@ -1,0 +1,4 @@
+--Q01.TOP 10 Active Client IP
+SELECT common_client_ip AS client_ip, SUM(common_sessions) as sessions, SUM(common_c2s_pkt_num + common_s2c_pkt_num) as packets, SUM(common_c2s_byte_num + common_s2c_byte_num) as bytes FROM metric_top_entity WHERE common_recv_time >= toUnixTimestamp(@start) AND common_recv_time < toUnixTimestamp(@end) AND group_by = 'common_client_ip' AND order_by = 'sessions' AND time_granularity = 60 GROUP BY client_ip ORDER BY sessions desc limit 10
+--Q02.Network Throughput
+SELECT toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(common_recv_time),INTERVAL 36 SECOND))) AS stat_time,ROUND(SUM(common_c2s_byte_num)/36) AS bytes_sent_rate,ROUND(SUM(common_s2c_byte_num)/36) AS bytes_received_rate,ROUND(SUM(common_c2s_byte_num + common_s2c_byte_num)/36) AS bytes_rate FROM session_record_cn WHERE common_recv_time >= toUnixTimestamp(@start) AND common_recv_time < toUnixTimestamp(@end) GROUP BY stat_time

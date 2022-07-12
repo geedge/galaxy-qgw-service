@@ -1,0 +1,113 @@
+{
+  "type": "record",
+  "name": "traffic_top_destination_ip_metrics_log",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "filters": [
+        "common_data_center"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "common_data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "common_sled_ip",
+      "label": "Sled IP",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "destination_ip",
+      "label": "Destination IP",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "attack_type",
+      "label": "Attack type",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "session_rate",
+      "label": "Sessions/s",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "sessions/sec"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "packet_rate",
+      "label": "Packets/s",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "packets/sec"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "bit_rate",
+      "label": "Bits/s",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "type": "bits/sec"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "partition_num",
+      "label": "Partition Num",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "name": "session_record_cn",
+  "namespace": "Clickhouse",
+  "filters": [
+    {
+      "name":"@start",
+      "value": "'2022-04-08 16:00:00'"
+    },
+    {
+      "name":"@end",
+      "value": "'2022-04-08 15:00:00'"
+    },
+    {
+      "name":"@common_filter",
+      "value": [
+        "common_client_ip='192.168.44.21'and common_server_port=443",
+        "common_server_ip='8.8.8.8' and common_server_port=443",
+        "http_domain like '%baidu%' and common_server_port=443",
+        "http_domain like '%baidu%'and common_server_port=443"
+      ]
+    },
+    {
+        "name":"@index_filter",
+        "value": [
+          "common_server_ip='8.8.8.8'",
+          "common_client_ip='192.168.44.21'",
+          "http_domain like '%baidu%'",
+          "common_sled_ip='%192.168%'",
+          "common_subscriber_id='%test%'"
+        ]
+    }
+  ]
+}

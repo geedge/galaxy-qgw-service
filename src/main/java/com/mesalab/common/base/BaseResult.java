@@ -53,7 +53,6 @@ public class BaseResult<T> implements Serializable {
         this.meta = meta;
         this.data = data;
     }
-
     /**
      * 判断是否是成功结果
      * JsonIgnore使之不在json序列化结果当中
@@ -61,7 +60,7 @@ public class BaseResult<T> implements Serializable {
      * @return 是否为成功结果
      */
     public boolean isSuccess() {
-        return ResultStatusEnum.SUCCESS.getCode() == this.status;
+        return this.status >= ResultStatusEnum.SUCCESS.getCode() && this.status < 300;
     }
 
 }
