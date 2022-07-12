@@ -30,6 +30,21 @@
         "name": "MIN",
         "label": "MIN",
         "function": "min(expr)"
+      },
+      {
+        "name": "MEDIAN",
+        "label": "MEDIAN",
+        "function": "MEDIAN(expr)"
+      },
+      {
+        "name": "QUANTILE",
+        "label": "QUANTILE",
+        "function": "QUANTILE(expr,level)"
+      },
+      {
+        "name": "TIME_FLOOR_WITH_FILL",
+        "label": "TIME_FLOOR_WITH_FILL",
+        "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
       }
     ],
     "operator": [
@@ -97,6 +112,26 @@
         "name": "empty",
         "label": "EMPTY",
         "function": "empty(expr)"
+      },
+      {
+        "name": "UNIX_TIMESTAMP",
+        "label": "UNIX_TIMESTAMP",
+        "function": "UNIX_TIMESTAMP(expr)"
+      },
+      {
+        "name": "FROM_UNIXTIME",
+        "label": "FROM_UNIXTIME",
+        "function": "FROM_UNIXTIME(expr)"
+      },
+      {
+        "name": "DATE_FORMAT",
+        "label": "DATE_FORMAT",
+        "function": "DATE_FORMAT(expr,format)"
+      },
+      {
+        "name": "CONVERT_TZ",
+        "label": "CONVERT_TZ",
+        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
       }
     ]
   },
@@ -105,19 +140,19 @@
       "aggregation": [
         {
           "type": "int",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,QUANTILE"
         },
         {
           "type": "long",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,QUANTILE"
         },
         {
           "type": "float",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,QUANTILE"
         },
         {
           "type": "double",
-          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN"
+          "functions": "COUNT,COUNT_DISTINCT,AVG,SUM,MAX,MIN,MEDIAN,QUANTILE"
         },
         {
           "type": "string",
