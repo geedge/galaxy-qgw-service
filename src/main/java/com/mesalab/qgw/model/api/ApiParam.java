@@ -15,8 +15,12 @@ public class ApiParam implements Serializable {
     private String format;
     private String schema;
     private String tableName;
+    /**
+     * @see com.mesalab.common.enums.DBTypeEnum
+     */
     private String dbType;// 数据库类型
     private String queryId;// SQL 语句的唯一标识
+
     private String dialectDBType; //方言数据库类型，用于SQL格式解析校验
     private String reportId;//离线统计报告唯一ID
     private String resultId;//离线统计报告结果ID

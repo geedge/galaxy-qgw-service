@@ -39,6 +39,7 @@ import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
+import org.apache.hbase.thirdparty.com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -96,8 +97,7 @@ public class ApiServiceImpl implements ApiService {
             DescribeStatement describeStatement = (DescribeStatement) statement;
             baseResult = executeDescStatement(param, describeStatement);
         } else if (statement instanceof ShowStatement) {
-            ShowStatement showStatement = (ShowStatement) statement;
-            baseResult = executeShowStatement(param, showStatement);
+            baseResult = executeShowStatement(param);
         } else if (statement instanceof ExplainStatement) {
             baseResult = executeExplainStatement(param);
         } else {
@@ -544,50 +544,11 @@ public class ApiServiceImpl implements ApiService {
      * 执行show语句
      *
      * @param param
-     * @param showStatement
      * @return
      */
-    private BaseResult executeShowStatement(ApiParam param, ShowStatement showStatement) {
-
-        if (showStatement != null && !"tables".equalsIgnoreCase(showStatement.getName())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "SQL Syntax Error: Operations other than Show tables are not supported", null);
-        }
-        if (clickHouseHttpSource.getDbName().equalsIgnoreCase(param.getSchema())) {
-            param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
-            param.setDialectDBType(DBTypeEnum.CLICKHOUSE.getValue());
-        } else if (druidIoHttpSource.getDbname().equalsIgnoreCase(param.getSchema())) {
-            param.setDbType(DBTypeEnum.DRUID.getValue());
-            param.setDialectDBType(DBTypeEnum.DRUID.getValue());
-            param.setQuery("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE'");
-        } if (hBaseAPISource.getDbName().equalsIgnoreCase(param.getSchema())) {
-            param.setDbType(DBTypeEnum.HBASE.getValue());
-            param.setDialectDBType(DBTypeEnum.HBASE.getValue());
-        } else if (StringUtil.isBlank(param.getSchema())) {
-            BaseResult result = getAllTables();
-            return result;
-        } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), MessageConst.SCHEMA_PARAM_ERROR, null);
-        }
-        param.setFormat(QueryFormatEnum.JSON.getValue());
-
-        Dialect dialect = getReflectiveDialectObject(param);
-        BaseResult result = dialect.executeAdministrativeQuery();
-        if (result.getStatus() == null || result.getStatus() != ResultStatusEnum.SUCCESS.getCode()) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), result.getMessage(), null);
-        }
-        List tables = (ArrayList) result.getData();
-        List<String> list = new ArrayList<>();
-        Iterator iterator = tables.iterator();
-        while (iterator.hasNext()) {
-            Map<String, String> next = (Map) iterator.next();
-            list.add(next.get("name"));
-        }
-        return tablesResultEncapsulation(list, param.getSchema());
+    private BaseResult executeShowStatement(ApiParam param) {
+        return getAllDatabaseTables(param);
     }
-
-
-
-
 
 
     /**
@@ -595,56 +556,57 @@ public class ApiServiceImpl implements ApiService {
      *
      * @return
      */
-    private BaseResult getAllTables() {
-        //查ck
-        ApiParam temp = new ApiParam();
-        temp.setQuery("show tables");
-        temp.setSchema(clickHouseHttpSource.getDbName());
-        BaseResult ck = new BaseResult();
-        try {
-            ck = executeShowStatement(temp, null);
-        } catch (RuntimeException e) {
-            log.info("tables: 查询clickhouse异常", e);
-        }
-
-        //查druid
-        BaseResult druid = new BaseResult();
-        temp = new ApiParam();
-        temp.setSchema(druidIoHttpSource.getDbname());
-        try {
-            druid = executeShowStatement(temp, null);
-        } catch (RuntimeException e) {
-            log.info("tables: 查询druid   异常", e);
-        }
-        //合并结果
-        Map<String, Object> date = new LinkedHashMap<>();
-        List symbols = new ArrayList<>();
-        String dbName = "";
-        date.put("type", "enum");
-        if (ck.getStatus() != null && ck.getStatus() == ResultStatusEnum.SUCCESS.getCode()) {
-            Map ckDate = (Map) ck.getData();
-            dbName += (String) ckDate.get("name");
-            symbols.addAll((List) ckDate.get("symbols"));
-        }
-        if (druid.getStatus() != null && druid.getStatus() == ResultStatusEnum.SUCCESS.getCode()) {
-            Map druidDate = (Map) druid.getData();
-            if (!"".equals(dbName)) {
-                dbName += ",";
+    private BaseResult getAllDatabaseTables(ApiParam apiParam) {
+        Map<String, Object> dataMap = new LinkedHashMap<>();
+        dataMap.put("type", "enum");
+        Arrays.stream(DBTypeEnum.values()).forEach(dbTypeEnum -> {
+            ApiParam dbParam = new ApiParam();
+            if (dbTypeEnum.getValue().equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
+                dbParam.setQuery("show tables");
+                dbParam.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
+                dbParam.setDialectDBType(SQLHelper.getDialectDBType(DBTypeEnum.CLICKHOUSE.getValue()));
+            } else if (dbTypeEnum.getValue().equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
+                dbParam.setQuery("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE'");
+                dbParam.setDbType(DBTypeEnum.DRUID.getValue());
+                dbParam.setDialectDBType(SQLHelper.getDialectDBType(DBTypeEnum.DRUID.getValue()));
+            } else {
+                return;
             }
-            dbName += (String) druidDate.get("name");
-            symbols.addAll((List) druidDate.get("symbols"));
-        }
-        date.put("name", dbName);
-        date.put("symbols", symbols);
-        if (ck.getStatus() == ResultStatusEnum.SUCCESS.getCode()) {
-            ck.setData(date);
-            return ck;
-        } else if (druid.getStatus() == ResultStatusEnum.SUCCESS.getCode()) {
-            druid.setData(date);
-            return druid;
-        } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "Query all tables exception", null);
-        }
+            dbParam.setFormat(QueryFormatEnum.JSON.getValue());
+            Dialect dialect = getReflectiveDialectObject(dbParam);
+            BaseResult queryResult = dialect.executeAdministrativeQuery();
+            if (queryResult.getStatus() == null || queryResult.getStatus() != ResultStatusEnum.SUCCESS.getCode()) {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), queryResult.getMessage(), null);
+            }
+            List tables = (ArrayList) queryResult.getData();
+            List<String> list = new ArrayList<>();
+            Iterator iterator = tables.iterator();
+            while (iterator.hasNext()) {
+                Map<String, String> next = (Map) iterator.next();
+                list.add(next.get("name"));
+            }
+            BaseResult result = encapsulationShowTables(list, dbParam.getDbType());
+
+            if (result.getStatus() != null && result.getStatus() == ResultStatusEnum.SUCCESS.getCode()) {
+                Map dbResultMap = (Map) result.getData();
+
+                if (StringUtil.isEmpty(dataMap.get("name"))) {
+                    dataMap.put("name", dbResultMap.get("name"));
+                } else {
+                    dataMap.put("name", Joiner.on(",").join(dataMap.get("name"),dbResultMap.get("name")));
+                }
+
+                if (StringUtil.isEmpty(dataMap.get("symbols"))) {
+                    dataMap.put("symbols", dbResultMap.get("symbols"));
+                } else {
+                    dataMap.put("symbols",  Lists.newArrayList(dataMap.get("symbols"), dbResultMap.get("symbols")));
+                }
+            }
+
+
+        });
+
+        return BaseResultGenerator.success("ok", dataMap);
     }
 
 
@@ -677,7 +639,7 @@ public class ApiServiceImpl implements ApiService {
      * @param tables
      * @return
      */
-    private BaseResult tablesResultEncapsulation(List tables, String database) {
+    private BaseResult encapsulationShowTables(List tables, String database) {
         List<String> list = new ArrayList<>();
         Map<String, Object> date = new LinkedHashMap<>();
         date.put("type", "enum");
@@ -685,8 +647,8 @@ public class ApiServiceImpl implements ApiService {
         Iterator iterator = tables.iterator();
         while (iterator.hasNext()) {
             list.add(String.valueOf(iterator.next()));
-            date.put("symbols", list);
         }
+        date.put("symbols", list);
         BaseResult<Map> baseResult = BaseResultGenerator.success("ok", null);
         baseResult.setData(date);
         return baseResult;

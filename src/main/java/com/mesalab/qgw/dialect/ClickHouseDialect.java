@@ -1189,12 +1189,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private ClickHouseHttpQuery buildHttpQueryParameter() {
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
         StringBuilder queryParameterBuilder = new StringBuilder(1024);
-        String dbName = metadataService.getDBNameByTableName(param.getTableName());
+        String dbName = StringUtil.isNotBlank(param.getTableName())
+                ? metadataService.getDBNameByTableName(param.getTableName()) : clickHouseHttpSource.getDbName();
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
-            clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
-            queryParameterBuilder.append(getLongTermAccount()).append("&")
-                    .append("database=").append(dbName);
-        } else if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+            param.setOption(QueryOptionEnum.LONG_TERM.getValue());
+        }
+
+       if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName);
