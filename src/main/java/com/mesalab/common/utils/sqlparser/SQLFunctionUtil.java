@@ -426,7 +426,7 @@ public class SQLFunctionUtil {
         } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
             replaceValue = "PERCENTILE#[" + params.get(0) + "," + params.get(1) + "*100#]";
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-            replaceValue = "APPROX_QUANTILE#[" + params.get(0) + "," + params.get(1) + "#]";
+            replaceValue = "APPROX_QUANTILE_DS#[" + params.get(0) + "," + params.get(1) + "#]";
         }
         return replaceValue;
     }
