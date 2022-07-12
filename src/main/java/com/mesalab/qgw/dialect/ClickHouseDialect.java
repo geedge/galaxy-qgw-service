@@ -47,18 +47,16 @@ import java.util.regex.Pattern;
 
 public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
-    private static final Pattern pSUM = Pattern.compile("\\bsum\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pNullable = Pattern.compile("\\bNullable\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pAvg = Pattern.compile("\\bavg\\s*\\(", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pMax = Pattern.compile("\\bmax\\s*\\(", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pMin = Pattern.compile("\\bmin\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pIn = Pattern.compile("(?<!\\bnot)\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern pNotIn = Pattern.compile("\\bnot\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pUniqCombined = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     private static final Pattern pGroupBy = Pattern.compile("\\bgroup\\s+by\\s+", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pCount = Pattern.compile("\\bcount\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pDistinct = Pattern.compile("\\b(DISTINCT)(\\(|\\s+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pAggregateFunSpecificOfCK = Pattern.compile("\\b(anyHeavy|anyLast|argMin|argMax|avgWeighted|topK|topKWeighted|groupArray|groupUniqArray|groupArrayInsertAt|groupArrayMovingAvg|groupArrayMovingSum|groupBitAnd|groupBitOr|groupBitXor|groupBitmap|groupBitmapAnd|groupBitmapOr|groupBitmapXor|sumWithOverflow|sumMap|minMap|maxMap|skewSamp|skewPop|kurtSamp|kurtPop|uniq|uniqExact|uniqCombined|uniqCombined64|uniqHLL12|quantile|quantiles|quantileExact|quantileExactLow|quantileExactHigh|quantileExactWeighted|quantileTiming|quantileTimingWeighted|quantileDeterministic|quantileTDigest|quantileTDigestWeighted|quantileBFloat16|quantileBFloat16Weighted|simpleLinearRegression|stochasticLinearRegression|stochasticLogisticRegression|categoricalInformationValue)\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
@@ -255,7 +253,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @date 2021/3/1 11:47 上午
          */
         public String generateGlobalIn(String sql) {
-            if (containAggregateFunction(sql) || containGroupBy(sql)) {
+            if (containAggregateFunction(sql) || containGroupBy(sql) || containDistinct(sql)) {
                 sql = generateIn(sql);
                 sql = generateNotIn(sql);
             }
@@ -501,7 +499,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (StringUtil.isBlank(param.getDbQuerySource().getExpr())) {
                 return this;
             }
-            if (containAggregateFunction(sql) || containGroupBy(sql)) {
+            if (containAggregateFunction(sql) || containGroupBy(sql) || containDistinct(sql)) {
                 return this;
             }
 
@@ -1033,15 +1031,16 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     private boolean containAggregateFunction(String sql) {
-        return (pCount.matcher(sql).find()
-                || pMax.matcher(sql).find()
-                || pSUM.matcher(sql).find()
-                || pMin.matcher(sql).find()
-                || pAvg.matcher(sql).find());
+        return (pAggregateFunStandard.matcher(sql).find()
+                || pAggregateFunSpecificOfCK.matcher(sql).find());
     }
 
     private boolean containGroupBy(String sql) {
         return pGroupBy.matcher(sql).find();
+    }
+
+    private boolean containDistinct(String sql) {
+        return pDistinct.matcher(sql).find();
     }
 
 
