@@ -124,3 +124,7 @@ SELECT destination_ip, IP_TO_GEO(destination_ip) AS destination_geo, MAX_DURATIO
 SELECT device_id from traffic_metrics_log where __time >= @start and __time < @end AND notEmpty(device_id) limit 10
 --Q63.empty(druid)
 SELECT device_id from traffic_metrics_log where __time >= @start and __time < @end AND empty(device_id) limit 10
+--Q64.QUANTILE(clickhouse)
+SELECT QUANTILE(common_c2s_byte_num) AS c2s FROM session_record WHERE common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) AND (common_l4_protocol IN ('IPv4_UDP', 'IPv6_UDP')) LIMIT 1
+--Q65.QUANTILE(druid)
+SELECT QUANTILE(established_conn_num, 0.6) FROM traffic_metrics_log WHERE __time >= @start AND __time < @end limit 1
