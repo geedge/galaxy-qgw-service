@@ -2,3 +2,5 @@
 * 修复实体推荐activeClientIp服务接口返回IP存在空值问题(TSG-11098)
 * 扩展故障诊断接口，新增Entity推荐全网占比统计信息接口(TSG-8740)
 * 修复健康监测接口(TSG-11212)
+* 完善CK优化查询规则(子查询、GlobalIn优化)(TSG-11305)
+* 修复DRUID分位数函数：替换过期函数APPROX_QUANTILE为APPROX_QUANTILE_DS(TSG-11305)
