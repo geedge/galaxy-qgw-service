@@ -223,6 +223,16 @@ public class JsonMapper extends ObjectMapper {
 	}
 
 	/**
+	 * JSON字符串转为集合对象
+	 * @param jsonString
+	 * @param collectionClass
+	 * @param elementClasses
+	 * @return
+	 */
+	public static <T> T fromJsonString(String jsonString,Class<?> collectionClass, Class<?>... elementClasses) {
+		return JsonMapper.getInstance().fromJson(jsonString, JsonMapper.getInstance().createCollectionType(collectionClass,elementClasses));
+	}
+	/**
 	 * JSON字符串转换为对象
 	 * 
 	 * @param jsonString

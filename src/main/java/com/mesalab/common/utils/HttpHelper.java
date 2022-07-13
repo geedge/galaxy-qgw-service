@@ -3,6 +3,7 @@ package com.mesalab.common.utils;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
@@ -28,11 +29,13 @@ public class HttpHelper {
         InputStream inputStream = null;
         BufferedReader reader = null;
         try {
-            inputStream = request.getInputStream();
-            reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            String line = "";
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
+            if (StringUtils.equals(request.getMethod(),"POST")){
+                inputStream = request.getInputStream();
+                reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+                String line = "";
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
             }
         } catch (IOException e) {
             log.error("IOException:{}", e.getMessage());

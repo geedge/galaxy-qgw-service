@@ -42,7 +42,7 @@ public class NacosConfig {
         properties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
         properties.put(PropertyKeyConst.USERNAME, username);
         properties.put(PropertyKeyConst.PASSWORD, password);
-        properties.put(PropertyKeyConst.NAMESPACE, NacosConst.NAMESPACE_PUBLIC);
+       // properties.put(PropertyKeyConst.NAMESPACE, NacosConst.NAMESPACE_PUBLIC);
         return properties;
     }
 }

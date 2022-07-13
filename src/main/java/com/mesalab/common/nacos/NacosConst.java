@@ -57,4 +57,6 @@ public class NacosConst {
     public static final String ES_FILTER_DATA_ID = "es-filter.json";
 
     public static final String ES_QUERIES_TEMPLATE_DATA_ID = "es-queries-template.sql";
+
+    public static final String KNOWLEDGE_BASE_DATA_ID = "knowledge_base.json";
 }
