@@ -8,6 +8,7 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.entity.KnowledgeBase;
 import com.mesalab.knowledge.service.impl.KnowledgeBaseService;
+import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,11 +39,25 @@ public class KnowledgeBaseController {
                                    KnowledgeBase knowledge) {
 
         try {
-            return knowledgeService.addKnowledge(file, knowledge, ip_location);
+            KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
+            return knowledgeService.addKnowledge(file, knowledgeBase, ip_location);
         } catch (BusinessException e) {
             log.error("更新知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to upload file:" + e.getErrorMessage());
         }
+    }
+
+    private KnowledgeBase validateKnowledge(KnowledgeBase knowledge) {
+        if (StringUtil.isEmpty(knowledge.getName())) {
+            throw new BusinessException("Name is required");
+        }
+        if (StringUtil.isEmpty(knowledge.getFormat())) {
+            throw new BusinessException("Format is required");
+        }
+        if (StringUtil.isEmpty(knowledge.getVersion())) {
+            knowledge.setVersion("null");
+        }
+        return knowledge;
     }
 
     @PutMapping

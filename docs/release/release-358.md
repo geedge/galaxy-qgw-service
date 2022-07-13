@@ -3,3 +3,4 @@
 * 增强Schema，优化report支持维度和枚举查询体验(TSG-11258)
 * ClickHouse Dialect 支持查看SQL 执行计划
 * 扩展SQL Function，聚合函数支持中位数和百分位数(TSG-10979)
+* 基于配置中心Nacos管理IP定位库(GAL-196)

@@ -33,8 +33,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private static final Log log = LogFactory.get();
 
 
-    @Autowired
-    private NacosConfig nacosConfig;
 
     @Autowired
     private ConfigService pubConfigService;
@@ -107,7 +105,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 String path = knowledgeBase.getPath();
                 Header header = new BasicHeader("token", hosConfig.getToken());
                 HttpClientUtils.httpDelete(path, header);
-                File file = new File("knowledgeDat".concat(File.separator).concat(knowledgeBase.getName()));
+                File file = new File("knowledge_base".concat(File.separator).concat(knowledgeBase.getName()));
                 if (file.exists()) {
                     file.delete();
                 }
@@ -210,7 +208,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                         InputStream inputStream = HttpClientUtils.httpGetInputStream(knowledgeBase.getPath(), header);
                         File file;
                         try {
-                            file = new File("knowledgeDat".concat(File.separator).concat(fileName));
+                            file = new File("knowledge_base".concat(File.separator).concat(fileName));
                             IoUtil.copy(inputStream, new FileOutputStream(file));
                         } catch (FileNotFoundException e) {
                             log.error("file not fount,:{}", e);
@@ -225,33 +223,33 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             String ipPrivateV6path;
             String asnV4path;
             String asnV6path;
-            if (new File("knowledgeDat" + File.separator + "ip_v4.mmdb").exists()) {
-                ipV4path = "knowledgeDat" + File.separator + "ip_v4.mmdb";
+            if (new File("knowledge_base" + File.separator + "ip_v4.mmdb").exists()) {
+                ipV4path = "knowledge_base" + File.separator + "ip_v4.mmdb";
             } else {
                 ipV4path = "dat" + File.separator + "ip_v4.mmdb";
             }
-            if (new File("knowledgeDat" + File.separator + "ip_v6.mmdb").exists()) {
-                ipV6path = "knowledgeDat" + File.separator + "ip_v6.mmdb";
+            if (new File("knowledge_base" + File.separator + "ip_v6.mmdb").exists()) {
+                ipV6path = "knowledge_base" + File.separator + "ip_v6.mmdb";
             } else {
                 ipV6path = "dat" + File.separator + "ip_v6.mmdb";
             }
-            if (new File("knowledgeDat" + File.separator + "ip_private_v4.mmdb").exists()) {
-                ipPrivateV4path = "knowledgeDat" + File.separator + "ip_private_v4.mmdb";
+            if (new File("knowledge_base" + File.separator + "ip_private_v4.mmdb").exists()) {
+                ipPrivateV4path = "knowledge_base" + File.separator + "ip_private_v4.mmdb";
             } else {
                 ipPrivateV4path = "dat" + File.separator + "ip_private_v4.mmdb";
             }
-            if (new File("knowledgeDat" + File.separator + "ip_private_v6.mmdb").exists()) {
-                ipPrivateV6path = "knowledgeDat" + File.separator + "ip_private_v6.mmdb";
+            if (new File("knowledge_base" + File.separator + "ip_private_v6.mmdb").exists()) {
+                ipPrivateV6path = "knowledge_base" + File.separator + "ip_private_v6.mmdb";
             } else {
                 ipPrivateV6path = "dat" + File.separator + "ip_private_v6.mmdb";
             }
-            if (new File("knowledgeDat" + File.separator + "asn_v4.mmdb").exists()) {
-                asnV4path = "knowledgeDat" + File.separator + "asn_v4.mmdb";
+            if (new File("knowledge_base" + File.separator + "asn_v4.mmdb").exists()) {
+                asnV4path = "knowledge_base" + File.separator + "asn_v4.mmdb";
             } else {
                 asnV4path = "dat" + File.separator + "asn_v4.mmdb";
             }
-            if (new File("knowledgeDat" + File.separator + "asn_v6.mmdb").exists()) {
-                asnV6path = "knowledgeDat" + File.separator + "asn_v6.mmdb";
+            if (new File("knowledge_base" + File.separator + "asn_v6.mmdb").exists()) {
+                asnV6path = "knowledge_base" + File.separator + "asn_v6.mmdb";
             } else {
                 asnV6path = "dat" + File.separator + "asn_v6.mmdb";
             }

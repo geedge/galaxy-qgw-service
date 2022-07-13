@@ -26,7 +26,7 @@ public class KnowledgeListener {
     private static final Log log = LogFactory.get();
 
     @Autowired
-    private ConfigService configService;
+    private ConfigService pubConfigService;
 
     @Autowired
     KnowledgeBaseServiceImpl knowledgeBaseService;
@@ -35,13 +35,13 @@ public class KnowledgeListener {
     private void KnowledgeListener() {
 
         try {
-            String content = configService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+            String content = pubConfigService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
             knowledgeBaseService.updateKnowledge(content);
-            configService.addListener(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, new AbstractListener() {
+            pubConfigService.addListener(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, new AbstractListener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     try {
-                        String content = configService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+                        String content = pubConfigService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
                         log.info("update knowledge {}", configInfo);
                         knowledgeBaseService.updateKnowledge(content);
                     } catch (NacosException e) {
