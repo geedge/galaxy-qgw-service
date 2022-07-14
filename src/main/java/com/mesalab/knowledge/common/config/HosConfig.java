@@ -25,10 +25,5 @@ public class HosConfig implements Serializable {
     @NacosValue("${hos.bucket}")
     private String bucket;
 
-    @NacosValue("${hos.accessKey}")
-    private String accessKey;
-
-    @NacosValue("${hos.secretKey}")
-    private String secretKey;
 
 }

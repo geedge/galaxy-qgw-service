@@ -208,7 +208,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                         InputStream inputStream = HttpClientUtils.httpGetInputStream(knowledgeBase.getPath(), header);
                         File file;
                         try {
-                            file = new File("knowledge_base".concat(File.separator).concat(fileName).concat(".").concat(knowledgeBase.getFormat()));
+                            file = new File("knowledge_base".concat(File.separator).concat(fileName));
                             IoUtil.copy(inputStream, new FileOutputStream(file));
                         } catch (FileNotFoundException e) {
                             log.error("file not fount,:{}", e);
