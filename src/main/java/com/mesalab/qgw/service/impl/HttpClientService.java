@@ -7,18 +7,17 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.zdjizhi.utils.StringUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -32,6 +31,7 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.*;
 import java.util.HashMap;
@@ -480,6 +480,167 @@ public class HttpClientService {
                     response.close();
                 } catch (IOException e) {
                     log.error("释放链接错误: {}", e.getMessage());
+                }
+            }
+        }
+        return msg;
+    }
+
+    /**
+     * PUT 请求
+     * @param url
+     * @param headers
+     * @return
+     */
+    public String httpPutStream(String url, InputStream in, int socketTimeout,Header... headers ) {
+        String msg = "-1";
+        // 获取客户端连接对象
+        CloseableHttpClient httpClient = getHttpClient(socketTimeout);
+        CloseableHttpResponse response = null;
+        try {
+
+            URL ul = new URL(url);
+            URI uri = new URI(ul.getProtocol(),null,  ul.getHost(),  ul.getPort(), ul.getPath(), ul.getQuery(), null);
+
+            log.info("http post uri:{} ", url);
+
+            HttpPut httpPut = new HttpPut(uri);
+            httpPut.setHeader("Content-Type", "application/octet-stream");
+            if (StringUtil.isNotEmpty(headers)) {
+                for (Header h : headers) {
+                    httpPut.addHeader(h);
+                    log.info("request header : {}",h);
+                }
+            }
+
+            httpPut.setEntity(new InputStreamEntity(in));
+
+            response = httpClient.execute(httpPut);
+            int statusCode = response.getStatusLine().getStatusCode();
+            // 获取响应实体
+            HttpEntity entity = response.getEntity();
+            // 获取响应信息
+            msg = EntityUtils.toString(entity, "UTF-8");
+
+            if (statusCode != ResultStatusEnum.SUCCESS.getCode()) {
+                throw new BusinessException(String.valueOf(statusCode), "Http put content is :" + msg);
+            }
+        } catch (URISyntaxException e) {
+            log.error("URI 转换错误: {}", e.getMessage());
+        } catch (ClientProtocolException e) {
+            log.error("协议错误: {}", e.getMessage());
+        } catch (ParseException e) {
+            log.error("解析错误: {}", e.getMessage());
+        } catch (IOException e) {
+            log.error("IO错误: {}", e.getMessage());
+        } finally {
+            if (null != response) {
+                try {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("释放链接错误: {}", e.getMessage());
+
+                }
+            }
+        }
+        return msg;
+    }
+
+    public InputStream httpGetInputStream(String url, int socketTimeout, Header... headers) {
+        InputStream result = null;
+        // 获取客户端连接对象
+        CloseableHttpClient httpClient = getHttpClient(socketTimeout);
+        // 创建GET请求对象
+        HttpGet httpGet = new HttpGet(url);
+        if (StringUtil.isNotEmpty(headers)) {
+            for (Header h : headers) {
+                httpGet.addHeader(h);
+                log.info("request header : {}",h);
+            }
+        }
+        CloseableHttpResponse response = null;
+
+        try {
+            // 执行请求
+            response = httpClient.execute(httpGet);
+            // 获取响应实体
+            result = IOUtils.toBufferedInputStream(response.getEntity().getContent());
+            // 获取响应信息
+            EntityUtils.consume(response.getEntity());
+        } catch (ClientProtocolException e) {
+            log.error("current file: {},Protocol error:{}", url, e.getMessage());
+
+        } catch (ParseException e) {
+            log.error("current file: {}, Parser error:{}", url, e.getMessage());
+
+        } catch (IOException e) {
+            log.error("current file: {},IO error:{}", url, e.getMessage());
+
+        } finally {
+            if (null != response) {
+                try {
+                    EntityUtils.consume(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("Release Connection error:{}", e.getMessage());
+
+                }
+            }
+            return result;
+        }
+    }
+
+    /**
+     * 发送http delete请求
+     */
+    public String httpDelete(String url, int socketTimeout, Header... headers){
+        String msg = "-1";
+        // 获取客户端连接对象
+        CloseableHttpClient httpClient = getHttpClient(socketTimeout);
+
+        // 创建POST请求对象
+        CloseableHttpResponse response = null;
+
+        try {
+            URL ul = new URL(url);
+
+            URI uri = new URI(ul.getProtocol(),null,  ul.getHost(),  ul.getPort(), ul.getPath(), ul.getQuery(), null);
+
+            log.info("http delete uri:{}", uri);
+
+            HttpDelete httpdelete = new HttpDelete(uri);
+            if (StringUtil.isNotEmpty(headers)) {
+                for (Header h : headers) {
+                    httpdelete.addHeader(h);
+                    log.info("request header : {}",h);
+                }
+            }
+            response = httpClient.execute(httpdelete);
+            int statusCode = response.getStatusLine().getStatusCode();
+            // 返回204，删除成功
+            if (statusCode != 204) {
+                throw new BusinessException(String.valueOf(statusCode), "Http post content is :" + msg);
+            }
+
+        } catch (URISyntaxException e) {
+            log.error("URI 转换错误: {}", e.getMessage());
+        } catch (ClientProtocolException e) {
+            log.error("协议错误: {}", e.getMessage());
+        } catch (ParseException e) {
+            log.error("解析错误: {}", e.getMessage());
+
+        } catch (IOException e) {
+            log.error("IO错误: {}", e.getMessage());
+
+        }finally{
+            if (null != response) {
+                try {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("释放链接错误: {}", e.getMessage());
+
                 }
             }
         }

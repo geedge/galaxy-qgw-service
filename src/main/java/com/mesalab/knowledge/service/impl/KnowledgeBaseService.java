@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @Date 2022/7/11
  */
 public interface KnowledgeBaseService {
-    BaseResult addKnowledge(MultipartFile file, KnowledgeBase knowledge, String ip_location);
+    BaseResult addKnowledge(MultipartFile file, KnowledgeBase knowledge);
 
     BaseResult knowledgeQuery();
 

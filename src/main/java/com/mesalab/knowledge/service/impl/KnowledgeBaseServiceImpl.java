@@ -9,12 +9,12 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
-import com.mesalab.common.utils.HttpClientUtils;
 import com.mesalab.common.utils.IPUtil;
 import com.mesalab.knowledge.common.config.HosConfig;
 import com.mesalab.knowledge.entity.*;
+import com.mesalab.network.common.Constants;
+import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -30,9 +30,8 @@ import java.util.*;
 
 @Service
 public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
+
     private static final Log log = LogFactory.get();
-
-
 
     @Autowired
     private ConfigService pubConfigService;
@@ -40,15 +39,18 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     @Autowired
     private HosConfig hosConfig;
 
+    @Autowired
+    private HttpClientService httpClientService;
+
     static Map<String, String> updateTime = new HashMap<>();
 
     @Override
-    public BaseResult addKnowledge(MultipartFile multipartFile, KnowledgeBase knowledge, String type) {
+    public BaseResult addKnowledge(MultipartFile multipartFile, KnowledgeBase knowledge) {
 
         List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
         try {
             String path = uploadFile(multipartFile);
-            KnowledgeBase knowledgeBase = setKnowledgeBase(knowledgeBaseList, knowledge, multipartFile, path, type, true);
+            KnowledgeBase knowledgeBase = setKnowledgeBase(knowledgeBaseList, knowledge, multipartFile, path, true);
             knowledgeBaseList.add(knowledgeBase);
             pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
         } catch (NacosException | IOException e) {
@@ -76,7 +78,10 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 if (StringUtil.equals(id, base.getId())) {
                     isExist = true;
                     String path = uploadFile(file);
-                    knowledgeBaseList.add(i, setKnowledgeBase(knowledgeBaseList, base, file, path, base.getType(), false));
+                    if (StringUtil.isNotEmpty(knowledgeBase.getVersion())) {
+                        base.setVersion(knowledgeBase.getVersion());
+                    }
+                    knowledgeBaseList.set(i, setKnowledgeBase(knowledgeBaseList, base, file, path, false));
                 }
             }
 
@@ -104,7 +109,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 isExist = true;
                 String path = knowledgeBase.getPath();
                 Header header = new BasicHeader("token", hosConfig.getToken());
-                HttpClientUtils.httpDelete(path, header);
+                httpClientService.httpDelete(path, 3000, header);
                 File file = new File("knowledge_base".concat(File.separator).concat(knowledgeBase.getName()));
                 if (file.exists()) {
                     file.delete();
@@ -141,11 +146,11 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     }
 
 
-    private KnowledgeBase setKnowledgeBase(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge, MultipartFile file, String path, String type, boolean b) throws IOException {
+    private KnowledgeBase setKnowledgeBase(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge, MultipartFile file, String path, boolean b) throws IOException {
 
 
         if (b) {
-            String id = DigestUtil.md5Hex16(type).concat("-")
+            String id = DigestUtil.md5Hex16(knowledge.getType()).concat("-")
                     .concat(DigestUtil.md5Hex16(knowledge.getName()
                             .concat(knowledge.getFormat())
                             .concat(knowledge.getVersion())));
@@ -160,7 +165,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
         knowledge.setPath(path);
         knowledge.setSha256(DigestUtil.sha256Hex(file.getBytes()));
-        knowledge.setType(type);
         knowledge.setSize(file.getSize());
         knowledge.setUpdateTime(DateUtils.getFormatDate(new Date(), "yyyy-MM-dd'T'HH:mm:sss"));
 
@@ -181,7 +185,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             log.error(e);
         }
         try (InputStream in = new ByteArrayInputStream(file.getBytes())) {
-            String res = HttpClientUtils.httpPutStream(assessmentFile, in, header);
+            String res = httpClientService.httpPutStream(assessmentFile, in, 3000, header);
             if ("-1".equals(res)) {
                 throw new BusinessException("send file to hos fail ");
             }
@@ -205,7 +209,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     String lastUpdateTime = KnowledgeBaseServiceImpl.updateTime.get(fileName);
                     if (!StringUtil.equals(updateTime, lastUpdateTime)) {
                         Header header = new BasicHeader("token", hosConfig.getToken());
-                        InputStream inputStream = HttpClientUtils.httpGetInputStream(knowledgeBase.getPath(), header);
+                        InputStream inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), 3000, header);
                         File file;
                         try {
                             file = new File("knowledge_base".concat(File.separator).concat(fileName));
@@ -223,41 +227,41 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             String ipPrivateV6path;
             String asnV4path;
             String asnV6path;
-            if (new File("knowledge_base" + File.separator + "ip_v4.mmdb").exists()) {
-                ipV4path = "knowledge_base" + File.separator + "ip_v4.mmdb";
+            if (new File("knowledge_base" + File.separator + Constants.IP_V4).exists()) {
+                ipV4path = "knowledge_base" + File.separator + Constants.IP_V4;
             } else {
-                ipV4path = "dat" + File.separator + "ip_v4.mmdb";
+                ipV4path = "dat" + File.separator + Constants.IP_V4;
             }
-            if (new File("knowledge_base" + File.separator + "ip_v6.mmdb").exists()) {
-                ipV6path = "knowledge_base" + File.separator + "ip_v6.mmdb";
+            if (new File("knowledge_base" + File.separator + Constants.IP_V6).exists()) {
+                ipV6path = "knowledge_base" + File.separator + Constants.IP_V6;
             } else {
-                ipV6path = "dat" + File.separator + "ip_v6.mmdb";
+                ipV6path = "dat" + File.separator + Constants.IP_V6;
             }
-            if (new File("knowledge_base" + File.separator + "ip_private_v4.mmdb").exists()) {
-                ipPrivateV4path = "knowledge_base" + File.separator + "ip_private_v4.mmdb";
+            if (new File("knowledge_base" + File.separator + Constants.IP_PRIVATE_V4).exists()) {
+                ipPrivateV4path = "knowledge_base" + File.separator + Constants.IP_PRIVATE_V4;
             } else {
-                ipPrivateV4path = "dat" + File.separator + "ip_private_v4.mmdb";
+                ipPrivateV4path = "dat" + File.separator + Constants.IP_PRIVATE_V4;
             }
-            if (new File("knowledge_base" + File.separator + "ip_private_v6.mmdb").exists()) {
-                ipPrivateV6path = "knowledge_base" + File.separator + "ip_private_v6.mmdb";
+            if (new File("knowledge_base" + File.separator + Constants.IP_PRIVATE_V6).exists()) {
+                ipPrivateV6path = "knowledge_base" + File.separator + Constants.IP_PRIVATE_V6;
             } else {
-                ipPrivateV6path = "dat" + File.separator + "ip_private_v6.mmdb";
+                ipPrivateV6path = "dat" + File.separator + Constants.IP_PRIVATE_V6;
             }
-            if (new File("knowledge_base" + File.separator + "asn_v4.mmdb").exists()) {
-                asnV4path = "knowledge_base" + File.separator + "asn_v4.mmdb";
+            if (new File("knowledge_base" + File.separator + Constants.ASN_V4).exists()) {
+                asnV4path = "knowledge_base" + File.separator + Constants.ASN_V4;
             } else {
-                asnV4path = "dat" + File.separator + "asn_v4.mmdb";
+                asnV4path = "dat" + File.separator + Constants.ASN_V4;
             }
-            if (new File("knowledge_base" + File.separator + "asn_v6.mmdb").exists()) {
-                asnV6path = "knowledge_base" + File.separator + "asn_v6.mmdb";
+            if (new File("knowledge_base" + File.separator + Constants.ASN_V6).exists()) {
+                asnV6path = "knowledge_base" + File.separator + Constants.ASN_V6;
             } else {
-                asnV6path = "dat" + File.separator + "asn_v6.mmdb";
+                asnV6path = "dat" + File.separator + Constants.ASN_V6;
             }
 
             IPUtil.initIpLookup(ipV4path, ipV6path, ipPrivateV4path, ipPrivateV6path, asnV4path, asnV6path);
         } else {
-            IPUtil.initIpLookup("dat" + File.separator + "ip_v4.mmdb", "dat" + File.separator + "ip_v6.mmdb", "dat" + File.separator + "ip_private_v4.mmdb",
-                    "dat" + File.separator + "ip_private_v6.mmdb", "dat" + File.separator + "asn_v4.mmdb", "dat" + File.separator + "asn_v6.mmdb");
+            IPUtil.initIpLookup("dat" + File.separator + Constants.IP_V4, "dat" + File.separator + Constants.IP_V6, "dat" + File.separator + Constants.IP_PRIVATE_V4,
+                    "dat" + File.separator + Constants.IP_PRIVATE_V6, "dat" + File.separator + Constants.ASN_V4, "dat" + File.separator + Constants.ASN_V6);
         }
     }
 }

@@ -15,4 +15,9 @@ nacos:
 logging:
   config: ./config/log4j2.xml
 
-
+#配置文件传输大小(上传文件大小:目前1个G)
+spring:
+  servlet:
+    multipart:
+      max-file-size: 1073741824
+      max-request-size: 1073741824

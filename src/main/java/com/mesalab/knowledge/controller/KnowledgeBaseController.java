@@ -8,10 +8,13 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.entity.KnowledgeBase;
 import com.mesalab.knowledge.service.impl.KnowledgeBaseService;
+import com.mesalab.network.common.Constants;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Arrays;
 
 
 @RestController
@@ -34,13 +37,13 @@ public class KnowledgeBaseController {
     }
 
 
-    @PostMapping(value = "/{ip_location}", produces = "application/json")
-    public BaseResult addKnowledge(@PathVariable String ip_location, @RequestParam("file") MultipartFile file,
+    @PostMapping(produces = "application/json")
+    public BaseResult addKnowledge(@RequestParam("file") MultipartFile file,
                                    KnowledgeBase knowledge) {
 
         try {
             KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
-            return knowledgeService.addKnowledge(file, knowledgeBase, ip_location);
+            return knowledgeService.addKnowledge(file, knowledgeBase);
         } catch (BusinessException e) {
             log.error("更新知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to upload file:" + e.getErrorMessage());
@@ -53,6 +56,12 @@ public class KnowledgeBaseController {
         }
         if (StringUtil.isEmpty(knowledge.getFormat())) {
             throw new BusinessException("Format is required");
+        }
+        if (!StringUtil.equals(knowledge.getType(),"ip_location")){
+            throw new BusinessException("ip_location is failed");
+        }
+        if (!Arrays.asList(Constants.IP_FILE_NAME_ARRAY).contains(knowledge.getName())){
+            throw new BusinessException("Name is failed");
         }
         if (StringUtil.isEmpty(knowledge.getVersion())) {
             knowledge.setVersion("null");
