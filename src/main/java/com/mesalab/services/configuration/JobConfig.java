@@ -17,10 +17,16 @@ public class JobConfig {
     public static final String COUNT = "count";
     public static final String IS_DONE = "is_done";
     public static final String DONE_PROGRESS = "done_progress";
-    public static final String IS_CANCELED= "is_canceled";
-    public static final String IS_ERROR= "is_error";
-    public static final String DISCOVERY_FIELD= "discovery_field";
-    public static final String DURATION_TIME= "duration_time";
+    public static final String IS_CANCELED = "is_canceled";
+    public static final String IS_ERROR = "is_error";
+    public static final String DURATION_TIME = "duration_time";
+    public static final String LAST_QUERY_TIME = "last_query_time";
+    public static final String JOB_PROPERTY = "job_property";
+    public static final String JOB_PROPERTY_TYPE = "type";
+    public static final String JOB_PROPERTY_RESULT_FIELD = "result_field";
+
+    public static final String DETAIL = "detail";
+
     public static final String QUERY_DATA_SOURCE = "query.data_source";
 
     public static final String DELIMIT = "-";

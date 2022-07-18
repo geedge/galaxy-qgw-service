@@ -45,10 +45,10 @@ public class TaskExecuteService implements EnvironmentAware {
     ApiService apiService;
 
     @Async("taskExecutor")
-    public Future<Boolean> execute(String id, String logType, String filter, String field, long currentCount) {
+    public Future<Boolean> executeFieldDiscovery(String id, String logType, String filter, String field, long currentCount) {
         BaseResult currentTop = queryTop(logType, filter, field);
         if (!currentTop.isSuccess()) {
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
             log.error("subTask query currentTopK Error: ", currentTop.getMessage());
             return new AsyncResult<>(false);
         }
@@ -56,18 +56,18 @@ public class TaskExecuteService implements EnvironmentAware {
 
         BaseResult lastTop = apiService.executeQuery(ApiParam.builder()
                 .option(QueryOptionEnum.REAL_TIME.getValue())
-                .query(String.format("SELECT %s FROM job_result WHERE ROWKEY = '%s' LIMIT 1", field, id))
+                .query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.FIELD_DISCOVERY, field, id))
                 .build());
         if (!lastTop.isSuccess()) {
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
             log.error("subTask query lastTopK Error: ", lastTop.getMessage());
             return new AsyncResult<>(false);
         }
         Object lastCount = 0;
         if (StringUtil.isNotEmpty(lastTop.getData())) {
             List<Map> map = (List<Map>) lastTop.getData();
-            if (StringUtil.isNotEmpty(map.get(0).get(field))) {
-                Map item = JSONUtil.toBean(String.valueOf(map.get(0).get(field)), Map.class);
+            if (StringUtil.isNotEmpty(map.get(0).get("value"))) {
+                Map item = JSONUtil.toBean(String.valueOf(map.get(0).get("value")), Map.class);
                 if (StringUtil.isNotEmpty(item)) {
                     List<Map<String, Object>> topk = (List<Map<String, Object>>) item.get("topk");
                     lastCount = item.get("count");
@@ -94,8 +94,7 @@ public class TaskExecuteService implements EnvironmentAware {
         map.put("distinct_count", Math.min(topList.size(), 100));
         map.put("count", currentCount + Long.parseLong(lastCount.toString()));
         String result = JSONUtil.quote(JSONUtil.toJsonStr(map), false).replace("'", "\\'");
-        executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_RESULT")),
-                field, id, result));
+        executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.FIELD_DISCOVERY, field, id, result));
     }
 
     private List<Object> mergeSort(List<Map<String, Object>> data) {

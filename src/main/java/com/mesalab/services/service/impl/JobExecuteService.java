@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
@@ -66,7 +67,7 @@ public class JobExecuteService implements EnvironmentAware {
     JobConfig jobCfg;
 
     @Async("jobExecutor")
-    public void addExecutor(String id, HashMap<String, Object> param) {
+    public void addExecutorFieldDiscovery(String id, HashMap<String, Object> param) {
         Stopwatch watch = Stopwatch.createStarted();
         try {
             JobInfo jobInfo = new JobInfo(id);
@@ -78,10 +79,10 @@ public class JobExecuteService implements EnvironmentAware {
                 executeJob(jobInfo, watch, param, param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString());
             }
         } catch (Exception e) {
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), JobConfig.IS_ERROR, id, true));
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
             log.error(e, "execute job error: jobId-{}", id);
         } finally {
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
+            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_PROGRESS")),
                     id, true, 1, watch.elapsed(TimeUnit.MILLISECONDS)));
         }
     }
@@ -117,13 +118,12 @@ public class JobExecuteService implements EnvironmentAware {
             return;
         }
         long count = jobInfo.getCount() + currentCount;
-        executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")),
-                "count", jobInfo.getId(), count));
+        executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.COUNT, jobInfo.getId(), count));
         jobInfo.setCount(count);
         List<Future<Boolean>> list = Lists.newArrayList();
         List<String> fields = (List<String>) param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         for (String field : fields) {
-            list.add(taskExecuteService.execute(jobInfo.getId(), param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter, field, currentCount));
+            list.add(taskExecuteService.executeFieldDiscovery(jobInfo.getId(), param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter, field, currentCount));
         }
         updateProcess(jobInfo, watch, fields, list);
     }
@@ -141,7 +141,7 @@ public class JobExecuteService implements EnvironmentAware {
                     ((1 - doneNum * 1.0 / fields.size()) / jobInfo.getTotalTimes())));
             if (v - process >= 0.1 && v < 1) {
                 process = v;
-                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSET_PROGRESS")),
+                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_PROGRESS")),
                         jobInfo.getId(), doneNum == fields.size(), v, watch.elapsed(TimeUnit.MILLISECONDS)));
             }
             if (doneNum >= fields.size()) {
@@ -151,30 +151,31 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     private boolean isCancel(String id) {
-        ApiParam build = ApiParam.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_TTL")), id)).
+        ApiParam build = ApiParam.builder().query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id)).
                 option(QueryOptionEnum.REAL_TIME.getValue()).build();
         BaseResult baseResult = apiService.executeQuery(build);
         if (baseResult.isSuccess() && (StringUtil.isNotEmpty(baseResult.getData()))) {
             List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
-            long statTime = Long.parseLong(list.get(0).get("stat_time").toString());
+            long statTime = Long.parseLong(list.get(0).get("value").toString());
             if ((System.currentTimeMillis() - statTime) > jobCfg.getInteractiveTimeout()) {
-                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPSERT_DETAIL")), "is_canceled", id, true));
+                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_CANCELED, id, true));
                 return true;
             }
         }
         return false;
     }
 
-    private Long getCount(String logType, String filter) {
+    private long getCount(String logType, String filter) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_LOG_COUNT")),
                 logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
-        if (baseResult.isSuccess()) {
-            List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-            Object count = data.get(0).get("count");
-            return Long.parseLong(count.toString());
+        if (!baseResult.isSuccess()) {
+            log.error("Job-get log count failed, message: {}", baseResult.getMessage());
+            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), "Job-get log count failed, message: " + baseResult.getMessage());
         }
-        return 0L;
+        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+        Object count = data.get(0).get("count");
+        return Long.parseLong(count.toString());
     }
 
     private DecimalFormat getDecimalFormat() {

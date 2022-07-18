@@ -90,14 +90,14 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     @Override
     public BaseResult commitAdHocQuery(HashMap<String, Object> map) {
-        validateFieldDiscovery(map);
+        validateAdHocQuery(map);
         String id = DigestUtil.md5Hex16(JobConfig.FIELD_DISCOVERY)
                 .concat(JobConfig.DELIMIT)
                 .concat(DigestUtil.md5Hex16(String.valueOf(map)));
         if (!isExist(id)) {
-            log.info("Add Job, ID is {}, Params is {}", id, JsonMapper.toJsonString(map));
+            log.info("Add Hoc Job, ID is {}, params is {}", id, JsonMapper.toJsonString(map));
             init(id, (List<String>) map.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS));
-            jobExecuteService.addExecutor(id, map);
+            jobExecuteService.addExecutorFieldDiscovery(id, map);
         }
         return BaseResultGenerator.success("ok", buildData(id));
     }
@@ -177,13 +177,15 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         updateQueryTime(id, System.currentTimeMillis());
         Map<String, Object> job = Maps.newHashMap();
         Map<String, Object> map = data.get(0);
-        String[] list = StringUtil.isEmpty(map.get(JobConfig.DISCOVERY_FIELD)) ? new String[0] : map.get(JobConfig.DISCOVERY_FIELD).toString().split(",");
+        Map jobProperty = (Map) JsonMapper.fromJsonString(map.get(JobConfig.JOB_PROPERTY).toString(), Map.class);
+        Object fields = jobProperty.get(JobConfig.JOB_PROPERTY_RESULT_FIELD);
+        String[] list = StringUtil.isEmpty(fields) ? new String[0] : fields.toString().split(",");
         List<Map<String, Object>> resultList = Lists.newArrayList();
         for (String field : list) {
             Map<String, Object> result = Maps.newHashMap();
             Object item = map.get(field);
             if (StringUtil.isEmpty(item)) {
-               continue;
+                continue;
             }
             try {
                 Map fieldResult = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
@@ -209,30 +211,29 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private boolean isExist(String id) {
-        String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_STATUS")), id);
+        String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_DETAIL")), id);
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
         if (!baseResult.isSuccess()) {
-            log.error("Query Job Status Error", baseResult.getMessage());
+            log.error("Query job status error: {}", baseResult.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "Query job status error: " + baseResult.getMessage(), null);
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-        if (StringUtil.isEmpty(data)) {
+        Map<String, Object> map;
+        if (StringUtil.isEmpty(data) || StringUtil.isEmpty(map = data.get(0)) || StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED))) {
             return false;
         }
-        Map<String, Object> map = data.get(0);
-        if (StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED))) {
-            return false;
-        }
-        if ((Boolean) (map.get(JobConfig.IS_ERROR))
-                && System.currentTimeMillis() - (Long) map.get("last_query_time") > jobCfg.getInteractiveTimeout()) {
+        long lastQuery = StringUtil.isEmpty(map.get(JobConfig.LAST_QUERY_TIME)) ? 0 : Long.parseLong(map.get(JobConfig.LAST_QUERY_TIME).toString());
+        if (BooleanUtil.toBoolean(String.valueOf(map.get(JobConfig.IS_ERROR)))
+                && (System.currentTimeMillis() - lastQuery) > jobCfg.getInteractiveTimeout()) {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_DELETE")), id));
             return false;
         }
-        return !(Boolean) map.get(JobConfig.IS_CANCELED);
+        return !BooleanUtil.toBoolean(String.valueOf(map.get(JobConfig.IS_CANCELED)));
     }
 
     private void init(String id, List<String> fields) {
         List<String> interim = Lists.newArrayList(fields);
-        ApiParam apiParam = ApiParam.builder().query(env.getProperty("JOB_RESULT_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build();
+        ApiParam apiParam = ApiParam.builder().query(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build();
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (baseResult.isSuccess()) {
             List<Map<String, Object>> meta = (List<Map<String, Object>>) baseResult.getMeta();
@@ -240,10 +241,13 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             meta.forEach(m -> metaName.add(m.get("name").toString()));
             interim.removeAll(metaName);
             for (String field : interim) {
-                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), field));
+                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), JobConfig.FIELD_DISCOVERY, field));
             }
+            Map<String, Object> param = Maps.newHashMap();
+            param.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY);
+            param.put(JobConfig.JOB_PROPERTY_RESULT_FIELD, String.join(",", fields));
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")),
-                    id, false, 0, false, false, System.currentTimeMillis(), String.join(",", fields), 0, 0));
+                    id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(param), 0, 0));
         }
     }
 
@@ -257,7 +261,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                     "get Job Result Error: ".concat(baseResult.getMessage()), null);
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-        if (StringUtil.isEmpty(data) || StringUtil.isEmpty(data.get(0).get(JobConfig.DISCOVERY_FIELD))) {
+        if (StringUtil.isEmpty(data) || StringUtil.isEmpty(data.get(0).get(JobConfig.JOB_PROPERTY))) {
             throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Not Found This Job: ".concat(id), null);
         }
@@ -265,10 +269,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private void updateQueryTime(String id, long now) {
-        executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT_QUERY")), id, now));
+        executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id, now));
     }
 
-    private void validateFieldDiscovery(HashMap<String, Object> body) {
+    private void validateAdHocQuery(HashMap<String, Object> body) {
         if (!body.containsKey(KEY_QUERY_SAMPLE_RATIO)) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Param Syntax Error: The param must contain query.sample_ratio", null);
