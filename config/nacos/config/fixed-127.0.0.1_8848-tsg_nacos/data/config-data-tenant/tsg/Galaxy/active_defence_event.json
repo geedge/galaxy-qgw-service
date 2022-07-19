@@ -150,9 +150,11 @@
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "current_timestamp"
-        },
+        "format": [
+          {
+            "function": "current_timestamp"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "long"
@@ -161,9 +163,11 @@
       "name": "common_log_id",
       "label": "Log ID",
       "doc": {
-        "format": {
-          "functions": "snowflake_id"
-        },
+        "format": [
+          {
+            "function": "snowflake_id"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "long"
@@ -241,10 +245,16 @@
         "constraints": {
           "type": "ip"
         },
-        "format": {
-          "functions": "geo_ip_country,geo_asn",
-          "appendTo": "ad_target_ip_location,ad_target_ip_asn"
-        },
+        "format": [
+          {
+            "function": "geo_ip_country",
+            "appendTo": "ad_target_ip_location"
+          },
+          {
+            "function": "geo_asn",
+            "appendTo": "ad_target_ip_asn"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "string"

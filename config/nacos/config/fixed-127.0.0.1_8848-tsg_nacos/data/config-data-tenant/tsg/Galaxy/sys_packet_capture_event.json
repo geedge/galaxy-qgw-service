@@ -19,9 +19,11 @@
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "current_timestamp"
-        },
+        "format": [
+          {
+            "function": "current_timestamp"
+          }
+        ],
         "visibility": "enabled"
       },
       "label": "Receive Time"
@@ -30,9 +32,11 @@
       "name": "common_log_id",
       "type": "long",
       "doc": {
-        "format": {
-          "functions": "snowflake_id"
-        },
+        "format": [
+          {
+            "function": "snowflake_id"
+          }
+        ],
         "visibility": "enabled"
       },
       "label": "Log ID"
@@ -467,11 +471,18 @@
       "type": "string",
       "doc": {
         "visibility": "hidden",
-        "format": {
-          "functions": "flattenSpec,flattenSpec",
-          "appendTo": "common_data_center,common_device_group",
-          "param": "$.tags[?(@.tag=='data_center')].value,$.tags[?(@.tag=='device_group')].value"
-        }
+        "format": [
+          {
+            "function": "flattenSpec",
+            "appendTo": "common_data_center",
+            "param": "$.tags[?(@.tag=='data_center')].value"
+          },
+          {
+            "function": "flattenSpec",
+            "appendTo": "common_device_group",
+            "param": "$.tags[?(@.tag=='device_group')].value"
+          }
+        ]
       },
       "label": "Device Tag"
     },
@@ -852,9 +863,11 @@
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "current_timestamp"
-        },
+        "format": [
+          {
+            "function": "current_timestamp"
+          }
+        ],
         "visibility": "enabled"
       },
       "label": "Processing Time"
@@ -866,9 +879,11 @@
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "ingestion_time"
-        },
+        "format": [
+          {
+            "function": "ingestion_time"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "long"
