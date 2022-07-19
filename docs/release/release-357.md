@@ -4,3 +4,4 @@
 * 修复健康监测接口(TSG-11212)
 * 完善CK优化查询规则(子查询、GlobalIn优化)(TSG-11305)
 * 修复DRUID分位数函数：替换过期函数APPROX_QUANTILE为APPROX_QUANTILE_DS(TSG-11305)
+* 修改Schema，http_action_file_size字段仅在Security/Proxy Events展示(TSG-11394)
