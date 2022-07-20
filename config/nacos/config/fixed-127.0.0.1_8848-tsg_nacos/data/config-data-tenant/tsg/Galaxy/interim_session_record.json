@@ -1728,7 +1728,7 @@
         "constraints": {
           "type": "file"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1741,7 +1741,7 @@
         "constraints": {
           "type": "file"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
