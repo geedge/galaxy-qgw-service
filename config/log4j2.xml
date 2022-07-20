@@ -48,6 +48,10 @@
         </RollingFile>
     </appenders>
     <loggers>
+
+        <logger name="org.apache.phoenix" level="info" additivity="false">
+            <AppenderRef ref="rollingFileAllAppender"/>
+        </logger>
         <root level="${LOG_LEVEL}">
             <appender-ref ref="consoleSystemOutAppender"/>
             <appender-ref ref="rollingFileAllAppender"/>
