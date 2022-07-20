@@ -1390,7 +1390,7 @@
         "constraints": {
           "type": "file"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "label": "HTTP.Request Body"
@@ -1403,7 +1403,7 @@
         "constraints": {
           "type": "file"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "label": "HTTP.Response Body"
@@ -1538,7 +1538,7 @@
       "name": "http_action_file_size",
       "type": "int",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "label": "HTTP.Action File Size"
