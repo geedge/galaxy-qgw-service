@@ -1538,7 +1538,7 @@
       "name": "http_action_file_size",
       "type": "int",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "label": "HTTP.Action File Size"
