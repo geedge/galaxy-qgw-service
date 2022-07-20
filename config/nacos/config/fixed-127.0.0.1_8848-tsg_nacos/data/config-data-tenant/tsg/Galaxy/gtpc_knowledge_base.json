@@ -1,0 +1,37 @@
+{
+  "type": "record",
+  "name": "gtpc_knowledge_base",
+  "namespace": "tsg_galaxy",
+  "fields": [
+    {
+      "name": "teid",
+      "label": "Teid",
+      "type": "int"
+    },
+    {
+      "name": "apn",
+      "label": "APN",
+      "type": "string"
+    },
+    {
+      "name": "phone_number",
+      "label": "Phone Number",
+      "type": "string"
+    },
+    {
+      "name": "imsi",
+      "label": "IMSI",
+      "type": "string"
+    },
+    {
+      "name": "imei",
+      "label": "IMEI",
+      "type": "string"
+    },
+    {
+      "name": "last_query_time",
+      "label": "Last Query Time",
+      "type": "int"
+    }
+  ]
+}

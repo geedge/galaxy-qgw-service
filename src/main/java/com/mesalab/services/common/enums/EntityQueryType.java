@@ -15,6 +15,7 @@ public enum EntityQueryType {
     ACTIVECLIENTIP("activeclientip"),
     TOPSERVERIP("topserverip"),
     TOPSNI("topsni"),
-    SUBSCRIBERIDPOOL("subscriberidpool");
+    SUBSCRIBERIDPOOL("subscriberidpool"),
+    GTPC("gtpc");
     private final String type;
 }

@@ -93,3 +93,7 @@ SELECT name AS field, IFNULL(SUM(data_compressed_bytes), 0) AS bytes FROM column
 #sql("TABLE_TTL")
 SELECT name, engine_full AS table_ttl FROM tables WHERE name ='%s_local' AND  database = '%s' AND engine ='MergeTree'
 #end
+
+#sql("GTPC_KNOWLEDGE_BASE")
+SELECT teid, apn ,phone_number,imsi,imei FROM tsg_galaxy.gtpc_knowledge_base WHERE 1=1 %s
+#end

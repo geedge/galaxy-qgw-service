@@ -80,7 +80,8 @@
       "tables": [
         "relation_account_framedip",
         "recommendation_app_cip",
-        "job_result"
+        "job_result",
+        "gtpc_knowledge_base"
       ]
     }
   ]
