@@ -2,7 +2,6 @@ package com.mesalab.services.service.impl;
 
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -30,9 +29,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 
@@ -59,7 +57,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
         } else if (param.equals(EntityQueryType.GTPC.getType())) {
             String querySql = generateQuerySql(comDSLObject.getQuery());
             ApiParam apiParam = ApiParam.builder().option("real-time").query(querySql).build();
-            baseResult = apiService.executeQuery(apiParam);
+            baseResult = deduplicationData(apiService.executeQuery(apiParam));
         } else {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
         }
@@ -68,6 +66,8 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
         }
         return baseResult;
     }
+
+
 
     private ApiParam queryBuild(ComDSLObject.Query query) {
         String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
@@ -80,7 +80,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     private String generateQuerySql(ComDSLObject.Query query) {
 
         String fieldWhere = parseMath(generateRowKey(query));
-        String sql = String.format(Objects.requireNonNull(env.getProperty("GTPC_KNOWLEDGE_BASE")), fieldWhere, ObjectUtil.isEmpty(query.getLimit()) ? entityConfigSource.getTopSNIDefaultSize() : query.getLimit());
+        String sql = String.format(Objects.requireNonNull(env.getProperty("GTPC_KNOWLEDGE_BASE")), fieldWhere, ObjectUtil.isEmpty(query.getLimit()) ? entityConfigSource.getTopGTPCDefaultSize() : query.getLimit());
         log.info("real time relation gtpc query sql: {}", sql);
         return sql;
     }
@@ -169,6 +169,17 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
         return baseResult;
     }
 
+    private BaseResult deduplicationData(BaseResult baseResult) {
+        Object data = baseResult.getData();
+        if (ObjectUtil.isNotEmpty(data)) {
+            List<Map<String, Object>> mapList = (List<Map<String, Object>>) data;
+            ArrayList<Map<String, Object>> collect = mapList.stream().collect(Collectors.collectingAndThen(
+                    Collectors.toCollection(() -> new TreeSet<>(
+                            Comparator.comparing(e -> e.get("phone_number") + ";" + e.get("imsi") + ";" + e.get("imei")))), ArrayList::new));
+            baseResult.setData(collect);
+        }
+        return baseResult;
+    }
     @Override
     public void setEnvironment(Environment environment) {
         this.env = environment;
