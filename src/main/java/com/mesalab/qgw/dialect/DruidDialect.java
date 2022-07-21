@@ -108,7 +108,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
     @Override
     String getExplainQuery() {
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Druid dialect unsupported EXPLAIN Syntax.", null);
+        return "EXPLAIN PLAN FOR " + convertQuery(getBestQuery());
     }
 
     @Override

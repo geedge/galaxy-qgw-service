@@ -1539,7 +1539,7 @@
         "constraints": {
           "type": "file"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "label": "HTTP.Request Body"
@@ -1552,7 +1552,7 @@
         "constraints": {
           "type": "file"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "label": "HTTP.Response Body"
