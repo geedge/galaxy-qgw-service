@@ -29,8 +29,8 @@
       "type": "string"
     },
     {
-      "name": "last_query_time",
-      "label": "Last Query Time",
+      "name": "last_update_time",
+      "label": "Last Update Time",
       "type": "int"
     }
   ]
