@@ -11,15 +11,13 @@ import com.zdjizhi.utils.StringUtil;
 public class IPUtil {
 
     private static IpLookupV2 ipLookup;
-    public static void initIpLookup(String ip_v4,String ip_v6,String ip_private_v4,String ip_private_v6,
-                                    String asn_v4,String asn_v6) {
+
+    public static void initIpLookup(String ip_v4,String ip_v6,String ip_private_v4,String ip_private_v6) {
         ipLookup = new IpLookupV2.Builder(true)
                 .loadDataFileV4(ip_v4)
                 .loadDataFileV6(ip_v6)
                 .loadDataFilePrivateV4(ip_private_v4)
-                .loadDataFilePrivateV4(ip_private_v6)
-                .loadAsnDataFileV4(asn_v4)
-                .loadAsnDataFileV6(asn_v6)
+                .loadDataFilePrivateV6(ip_private_v6)
                 .build();
     }
 

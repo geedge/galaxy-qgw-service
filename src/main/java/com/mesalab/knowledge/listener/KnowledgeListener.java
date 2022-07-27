@@ -5,16 +5,13 @@ import cn.hutool.log.LogFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
 import com.alibaba.nacos.api.exception.NacosException;
-import com.google.common.collect.Maps;
-import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
-import com.mesalab.knowledge.service.KnowledgeService;
 import com.mesalab.knowledge.service.impl.KnowledgeBaseServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.FileNotFoundException;
 
 /**
  * @Author wxs
@@ -29,6 +26,13 @@ public class KnowledgeListener {
     private ConfigService pubConfigService;
 
     @Autowired
+    private ConfigService configService;
+
+    @Value("${nacos.config.group}")
+    private String groupId;
+
+
+    @Autowired
     KnowledgeBaseServiceImpl knowledgeBaseService;
 
     @PostConstruct
@@ -36,18 +40,29 @@ public class KnowledgeListener {
 
         try {
             String content = pubConfigService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
-            knowledgeBaseService.updateKnowledge(content);
+            String versionInfo = configService.getConfig(NacosConst.KNOWLEDGE_VERSION_CONFIG, groupId, 3000);
+            knowledgeBaseService.updateKnowledge(versionInfo, content);
             pubConfigService.addListener(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, new AbstractListener() {
                 @Override
-                public void receiveConfigInfo(String configInfo) {
+                public void receiveConfigInfo(String content) {
                     try {
-                        String content = pubConfigService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
-                        log.info("update knowledge {}", configInfo);
-                        knowledgeBaseService.updateKnowledge(content);
+                        String versionInfo = configService.getConfig(NacosConst.KNOWLEDGE_VERSION_CONFIG, groupId, 3000);
+                        knowledgeBaseService.updateKnowledge(versionInfo, content);
                     } catch (NacosException e) {
                         log.error("Not found file {}", e);
                     }
+                }
+            });
 
+            configService.addListener(NacosConst.KNOWLEDGE_VERSION_CONFIG, groupId, new AbstractListener() {
+                @Override
+                public void receiveConfigInfo(String versionInfo) {
+                    try {
+                        String content = pubConfigService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, 3000);
+                        knowledgeBaseService.updateKnowledge(versionInfo, content);
+                    } catch (NacosException e) {
+                        log.error("Not found file {}", e);
+                    }
                 }
             });
         } catch (NacosException e) {

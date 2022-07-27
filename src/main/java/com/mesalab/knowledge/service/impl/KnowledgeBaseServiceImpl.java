@@ -197,71 +197,108 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     }
 
-    public void updateKnowledge(String content) {
+    public void updateKnowledge(String versionInfo, String content) {
 
-        if (StringUtil.isNotEmpty(content)) {
+        log.info("update knowledge Base version:{},update knowledge Base content:{}", versionInfo, content);
+
+        if (StringUtil.isEmpty(versionInfo) || StringUtil.isEmpty(content)) {
+            log.info("init ip location knowledge");
+            IPUtil.initIpLookup("dat" + File.separator + Constants.IP_V4, "dat" + File.separator + Constants.IP_V6, "dat" + File.separator + Constants.IP_PRIVATE_V4,
+                    "dat" + File.separator + Constants.IP_PRIVATE_V6);
+        } else {
+            KnowledgeVersion knowledgeVersion = com.mesalab.common.utils.JsonMapper.fromJsonString(versionInfo, KnowledgeVersion.class);
             List<KnowledgeBase> KnowledgeBaseList = com.mesalab.common.utils.JsonMapper.fromJsonString(content, List.class, KnowledgeBase.class);
-            for (KnowledgeBase knowledgeBase : KnowledgeBaseList) {
-                String type = knowledgeBase.getType();
-                if (StringUtil.equals(type, "ip_location")) {
-                    String fileName = knowledgeBase.getName().replace(knowledgeBase.getVersion(), "");
-                    String updateTime = knowledgeBase.getUpdateTime();
-                    String lastUpdateTime = KnowledgeBaseServiceImpl.updateTime.get(fileName);
-                    if (!StringUtil.equals(updateTime, lastUpdateTime)) {
-                        Header header = new BasicHeader("token", hosConfig.getToken());
-                        InputStream inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), 3000, header);
-                        File file;
-                        try {
-                            file = new File("knowledge_base".concat(File.separator).concat(fileName));
-                            IoUtil.copy(inputStream, new FileOutputStream(file));
-                        } catch (FileNotFoundException e) {
-                            log.error("file not fount,:{}", e);
-                        }
-                        KnowledgeBaseServiceImpl.updateTime.put(fileName, updateTime);
-                    }
+
+            List<KnowledgeVersion.Ip> ipLocation = knowledgeVersion.getIp_location();
+            if (StringUtil.isNotEmpty(ipLocation)) {
+                Map<String, String> map = queryFilePath(ipLocation, KnowledgeBaseList);
+                String ipV4path = map.get(Constants.IP_V4);
+                String ipV6path = map.get(Constants.IP_V6);
+                String ipPrivateV4path = map.get(Constants.IP_PRIVATE_V4);
+                String ipPrivateV6path = map.get(Constants.IP_PRIVATE_V6);
+                if (StringUtil.isEmpty(ipV4path)) {
+                    ipV4path = "dat" + File.separator + Constants.IP_V4;
+                }
+                if (StringUtil.isEmpty(ipV6path)) {
+                    ipV6path = "dat" + File.separator + Constants.IP_V6;
+                }
+                if (StringUtil.isEmpty(ipPrivateV4path)) {
+                    ipPrivateV4path = "dat" + File.separator + Constants.IP_PRIVATE_V4;
+                }
+                if (StringUtil.isEmpty(ipPrivateV6path)) {
+                    ipPrivateV6path = "dat" + File.separator + Constants.IP_PRIVATE_V6;
+                }
+                String isUpdate = KnowledgeBaseServiceImpl.updateTime.get("isUpdate");
+
+                if (StringUtil.isNotEmpty(isUpdate) && StringUtil.equals(isUpdate,"true")){
+                    log.info("update ip location knowledge");
+                    IPUtil.initIpLookup(ipV4path, ipV6path, ipPrivateV4path, ipPrivateV6path);
+                    KnowledgeBaseServiceImpl.updateTime.put("isUpdate","false");
+                } else {
+                    log.info("No update required");
+                }
+
+            } else {
+                log.info("init ip location knowledge");
+                IPUtil.initIpLookup("dat" + File.separator + Constants.IP_V4, "dat" + File.separator + Constants.IP_V6, "dat" + File.separator + Constants.IP_PRIVATE_V4,
+                        "dat" + File.separator + Constants.IP_PRIVATE_V6);
+            }
+        }
+    }
+
+    private void downloadFile(KnowledgeBase knowledgeBase) {
+
+        String name = knowledgeBase.getName();
+        String updateTime = knowledgeBase.getUpdateTime();
+        String lastUpdateTime = KnowledgeBaseServiceImpl.updateTime.get(name);
+        if (!StringUtil.equals(updateTime, lastUpdateTime)) {
+            Header header = new BasicHeader("token", hosConfig.getToken());
+            InputStream inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), 3000, header);
+            File file;
+            try {
+                file = new File("knowledge_base".concat(File.separator).concat(knowledgeBase.getVersion()).concat("-").concat(name));
+                IoUtil.copy(inputStream, new FileOutputStream(file));
+            } catch (FileNotFoundException e) {
+                log.error("file not fount,:{}", e);
+            }
+            KnowledgeBaseServiceImpl.updateTime.put(name, updateTime);
+            KnowledgeBaseServiceImpl.updateTime.put("isUpdate","true");
+        }
+    }
+
+    private Map<String, String> queryFilePath(List<KnowledgeVersion.Ip> ipList, List<KnowledgeBase> knowledgeBaseList) {
+
+        Map<String, String> map = new HashMap<>();
+        for (KnowledgeVersion.Ip ipLocation : ipList) {
+
+            KnowledgeVersion.Info ipV4BuiltIn = ipLocation.getIp_v4_built_in();
+            KnowledgeVersion.Info ipV4UserDefined = ipLocation.getIp_v4_user_defined();
+            KnowledgeVersion.Info ipV6BuiltIn = ipLocation.getIp_v6_built_in();
+            KnowledgeVersion.Info ipV6UserDefined = ipLocation.getIp_v6_user_defined();
+            for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
+                String version = knowledgeBase.getVersion();
+                String name = knowledgeBase.getName();
+                String path = "knowledge_base".concat(File.separator).concat(version).concat("-").concat(name);
+
+                if (StringUtil.equals(ipV4BuiltIn.getFile_name(), name)
+                        && StringUtil.equals(ipV4BuiltIn.getVersion(), version)) {
+                    map.put(Constants.IP_V4, path);
+                    downloadFile(knowledgeBase);
+                } else if (StringUtil.equals(ipV4UserDefined.getFile_name(), name)
+                        && StringUtil.equals(ipV4UserDefined.getVersion(), version)) {
+                    map.put(Constants.IP_PRIVATE_V4, path);
+                    downloadFile(knowledgeBase);
+                } else if (StringUtil.equals(ipV6BuiltIn.getFile_name(), name)
+                        && StringUtil.equals(ipV6BuiltIn.getVersion(), version)) {
+                    downloadFile(knowledgeBase);
+                    map.put(Constants.IP_V6, path);
+                } else if (StringUtil.equals(ipV6UserDefined.getFile_name(), name)
+                        && StringUtil.equals(ipV6UserDefined.getVersion(), version)) {
+                    map.put(Constants.IP_PRIVATE_V6, path);
+                    downloadFile(knowledgeBase);
                 }
             }
-            String ipV4path;
-            String ipV6path;
-            String ipPrivateV4path;
-            String ipPrivateV6path;
-            String asnV4path;
-            String asnV6path;
-            if (new File("knowledge_base" + File.separator + Constants.IP_V4).exists()) {
-                ipV4path = "knowledge_base" + File.separator + Constants.IP_V4;
-            } else {
-                ipV4path = "dat" + File.separator + Constants.IP_V4;
-            }
-            if (new File("knowledge_base" + File.separator + Constants.IP_V6).exists()) {
-                ipV6path = "knowledge_base" + File.separator + Constants.IP_V6;
-            } else {
-                ipV6path = "dat" + File.separator + Constants.IP_V6;
-            }
-            if (new File("knowledge_base" + File.separator + Constants.IP_PRIVATE_V4).exists()) {
-                ipPrivateV4path = "knowledge_base" + File.separator + Constants.IP_PRIVATE_V4;
-            } else {
-                ipPrivateV4path = "dat" + File.separator + Constants.IP_PRIVATE_V4;
-            }
-            if (new File("knowledge_base" + File.separator + Constants.IP_PRIVATE_V6).exists()) {
-                ipPrivateV6path = "knowledge_base" + File.separator + Constants.IP_PRIVATE_V6;
-            } else {
-                ipPrivateV6path = "dat" + File.separator + Constants.IP_PRIVATE_V6;
-            }
-            if (new File("knowledge_base" + File.separator + Constants.ASN_V4).exists()) {
-                asnV4path = "knowledge_base" + File.separator + Constants.ASN_V4;
-            } else {
-                asnV4path = "dat" + File.separator + Constants.ASN_V4;
-            }
-            if (new File("knowledge_base" + File.separator + Constants.ASN_V6).exists()) {
-                asnV6path = "knowledge_base" + File.separator + Constants.ASN_V6;
-            } else {
-                asnV6path = "dat" + File.separator + Constants.ASN_V6;
-            }
-
-            IPUtil.initIpLookup(ipV4path, ipV6path, ipPrivateV4path, ipPrivateV6path, asnV4path, asnV6path);
-        } else {
-            IPUtil.initIpLookup("dat" + File.separator + Constants.IP_V4, "dat" + File.separator + Constants.IP_V6, "dat" + File.separator + Constants.IP_PRIVATE_V4,
-                    "dat" + File.separator + Constants.IP_PRIVATE_V6, "dat" + File.separator + Constants.ASN_V4, "dat" + File.separator + Constants.ASN_V6);
         }
+        return map;
     }
 }

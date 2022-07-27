@@ -42,13 +42,9 @@ public class Constants {
     public static final String NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES = "dynamic_bytes";
     public static final String NETWORK_OVERVIEW_METRIC_DATA_RATE = "data_rate";
 
-    public static final String IP_V4 = "ip_v4.mmdb";
-    public static final String IP_V6 = "ip_v6.mmdb";
-    public static final String IP_PRIVATE_V4 = "ip_private_v4.mmdb";
-    public static final String IP_PRIVATE_V6 = "ip_private_v6.mmdb";
-    public static final String ASN_V4 = "asn_v4.mmdb";
-    public static final String ASN_V6 = "asn_v6.mmdb";
-
-    public static final String[] IP_FILE_NAME_ARRAY = {IP_V4, IP_V6, IP_PRIVATE_V4, IP_PRIVATE_V6, ASN_V4, ASN_V6};
+    public static final String IP_PRIVATE_V4 = "ip_v4_user_defined.mmdb";
+    public static final String IP_PRIVATE_V6 = "ip_v6_user_defined.mmdb";
+    public static final String IP_V4 = "ip_v4_built_in.mmdb";
+    public static final String IP_V6 = "ip_v6_built_in.mmdb";
 
 }

@@ -8,13 +8,10 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.entity.KnowledgeBase;
 import com.mesalab.knowledge.service.impl.KnowledgeBaseService;
-import com.mesalab.network.common.Constants;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Arrays;
 
 
 @RestController
@@ -50,25 +47,6 @@ public class KnowledgeBaseController {
         }
     }
 
-    private KnowledgeBase validateKnowledge(KnowledgeBase knowledge) {
-        if (StringUtil.isEmpty(knowledge.getName())) {
-            throw new BusinessException("Name is required");
-        }
-        if (StringUtil.isEmpty(knowledge.getFormat())) {
-            throw new BusinessException("Format is required");
-        }
-        if (!StringUtil.equals(knowledge.getType(),"ip_location")){
-            throw new BusinessException("ip_location is failed");
-        }
-        if (!Arrays.asList(Constants.IP_FILE_NAME_ARRAY).contains(knowledge.getName())){
-            throw new BusinessException("Name is failed");
-        }
-        if (StringUtil.isEmpty(knowledge.getVersion())) {
-            knowledge.setVersion("null");
-        }
-        return knowledge;
-    }
-
     @PutMapping
     public BaseResult updateKnowledge(@RequestPart(value = "file") MultipartFile file, KnowledgeBase knowledge) {
 
@@ -76,6 +54,17 @@ public class KnowledgeBaseController {
             return knowledgeService.updateKnowledge(file, knowledge);
         } catch (BusinessException e) {
             log.error("更新知识库失败:{}", e);
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to upload file:" + e.getErrorMessage());
+        }
+    }
+
+    @PatchMapping
+    public BaseResult patchKnowledge(@RequestPart(value = "file") MultipartFile file, KnowledgeBase knowledge) {
+
+        try {
+            return knowledgeService.updateKnowledge(file, knowledge);
+        } catch (BusinessException e) {
+            log.error("升级知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to upload file:" + e.getErrorMessage());
         }
     }
@@ -89,6 +78,22 @@ public class KnowledgeBaseController {
             log.error("删除知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to delete file:" + e.getErrorMessage());
         }
+    }
+
+    private KnowledgeBase validateKnowledge(KnowledgeBase knowledge) {
+        if (StringUtil.isEmpty(knowledge.getName())) {
+            throw new BusinessException("Name is required");
+        }
+        if (StringUtil.isEmpty(knowledge.getFormat())) {
+            throw new BusinessException("Format is required");
+        }
+        if (!StringUtil.equals(knowledge.getType(),"ip_location")){
+            throw new BusinessException("ip_location is failed");
+        }
+        if (StringUtil.isEmpty(knowledge.getVersion())) {
+            knowledge.setVersion("null");
+        }
+        return knowledge;
     }
 
 }
