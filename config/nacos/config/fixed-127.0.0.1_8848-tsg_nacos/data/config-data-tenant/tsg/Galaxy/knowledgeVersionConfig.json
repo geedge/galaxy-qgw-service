@@ -1,0 +1,22 @@
+{
+  "ip_location": [
+    {
+      "ip_v4_user_defined": {
+        "file_name": "ip_v4_user_defined.mmdb",
+        "version": "1.0.1"
+      },
+      "ip_v4_built_in": {
+        "file_name": "ip_v4_built_in.mmdb",
+        "version": "1.0.1"
+      },
+      "ip_v6_user_defined": {
+        "file_name": "ip_v6_user_defined.mmdb",
+        "version": "1.0.1"
+      },
+      "ip_v6_built_in": {
+        "file_name": "ip_v6_built_in.mmdb",
+        "version": "1.0.1"
+      }
+    }
+  ]
+}
