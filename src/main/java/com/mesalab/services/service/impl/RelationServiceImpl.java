@@ -57,7 +57,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
         } else if (param.equals(EntityQueryType.GTPC.getType())) {
             String querySql = generateQuerySql(comDSLObject.getQuery());
             ApiParam apiParam = ApiParam.builder().option("real-time").query(querySql).build();
-            baseResult = deduplicationData(apiService.executeQuery(apiParam));
+            baseResult = deduplicationData(apiService.executeQuery(apiParam),comDSLObject.getQuery());
         } else {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
         }
@@ -80,7 +80,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     private String generateQuerySql(ComDSLObject.Query query) {
 
         String fieldWhere = parseMath(generateRowKey(query));
-        String sql = String.format(Objects.requireNonNull(env.getProperty("GTPC_KNOWLEDGE_BASE")), fieldWhere, ObjectUtil.isEmpty(query.getLimit()) ? entityConfigSource.getTopGTPCDefaultSize() : query.getLimit());
+        String sql = String.format(Objects.requireNonNull(env.getProperty("GTPC_KNOWLEDGE_BASE")), fieldWhere, entityConfigSource.getTopGTPCDefaultSize());
         log.info("real time relation gtpc query sql: {}", sql);
         return sql;
     }
@@ -169,14 +169,20 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
         return baseResult;
     }
 
-    private BaseResult deduplicationData(BaseResult baseResult) {
+    private BaseResult deduplicationData(BaseResult baseResult, ComDSLObject.Query query) {
         Object data = baseResult.getData();
         if (ObjectUtil.isNotEmpty(data)) {
+
             List<Map<String, Object>> mapList = (List<Map<String, Object>>) data;
             ArrayList<Map<String, Object>> collect = mapList.stream().collect(Collectors.collectingAndThen(
                     Collectors.toCollection(() -> new TreeSet<>(
                             Comparator.comparing(e -> e.get("phone_number") + ";" + e.get("imsi") + ";" + e.get("imei")))), ArrayList::new));
-            baseResult.setData(collect);
+            String limit = query.getLimit();
+            if (StringUtil.isNotEmpty(limit) && Long.parseLong(limit) < collect.size()) {
+                baseResult.setData(collect.subList(0, Integer.parseInt(query.getLimit())));
+            } else {
+                baseResult.setData(collect);
+            }
         }
         return baseResult;
     }
