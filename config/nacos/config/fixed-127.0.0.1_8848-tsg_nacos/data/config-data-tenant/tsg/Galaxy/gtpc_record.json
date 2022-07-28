@@ -982,7 +982,14 @@
       "label": "Tunnels",
       "doc": {
         "visibility": "enabled",
-        "ttl": null
+        "ttl": null,
+        "format": [
+          {
+            "function": "gtpc_match",
+            "appendTo": "common_imsi,common_imei,common_phone_number",
+            "param": "$.[?(@.tunnels_schema_type=='GTP')].gtp_uplink_teid,$.[?(@.tunnels_schema_type=='GTP')].gtp_downlink_teid"
+          }
+        ]
       },
       "type": "string"
     },
