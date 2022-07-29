@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.text.StrFormatter;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
@@ -79,9 +80,10 @@ public class ApiServiceImpl implements ApiService {
         try {
             statement = CCJSqlParserUtil.parse(param.getQuery());
         } catch (JSQLParserException e) {
-            log.error("SQL Syntax Error: {}",e);
+            String message = getJSQLParserSimpleErrorMessage(e);
+            log.error("SQL Syntax Error: {}", message);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
-                    "SQL Syntax Error: " + simplyErrorMessage(e.getMessage()));
+                    "SQL Syntax Error: " + message);
         }
         BaseResult baseResult;
         log.debug("Request option ：{}, SQL ：{}", param.getOption(), param.getQuery());
@@ -128,18 +130,17 @@ public class ApiServiceImpl implements ApiService {
         }
     }
 
+
     /**
      * Desc: 简化JSQLParser语法异常信息
      *
-     * @param message
+     * @param e
      * @return {@link String}
      * @created by wWei
      * @date 2021/4/26 9:49 上午
      */
-    private String simplyErrorMessage(String message) {
-        if (StringUtil.isBlank(message)) {
-            return StringUtil.EMPTY;
-        }
+    private String getJSQLParserSimpleErrorMessage(Throwable e) {
+        String message = Joiner.on(" ").skipNulls().join(ExceptionUtil.getSimpleMessage(e), ExceptionUtil.getRootCauseMessage(e));
         message = message.replace(PARSER_EXCEPTION_CLASS_NAME, StringUtil.EMPTY);
         int end = message.indexOf(PARSER_EXCEPTION_IDENTIFICATION);
         message = message.substring(0, end < 0 ? message.length() : end);
