@@ -21,20 +21,32 @@ public class JobConfig {
     public static final String IS_ERROR = "is_error";
     public static final String DURATION_TIME = "duration_time";
     public static final String LAST_QUERY_TIME = "last_query_time";
+    public static final String STATISTICS_RESULT = "result";
     public static final String JOB_PROPERTY = "job_property";
     public static final String JOB_PROPERTY_TYPE = "type";
+    public static final String JOB_PROPERTY_SUB_TYPE = "sub_type";
+    public static final String JOB_PROPERTY_SUB_TYPE_TOP = "top";
+    public static final String JOB_PROPERTY_SUB_TYPE_RARE = "rare";
+    public static final String isASC = "isAsc";
+    public static final String JOB_PROPERTY_SUB_TYPE_TIMECHART = "timechart";
+    public static final String JOB_PROPERTY_MERGE = "merge";
+    public static final String AVG = "avg";
     public static final String JOB_PROPERTY_RESULT_FIELD = "result_field";
+    public static final String JOB_PROPERTY_LIMIT = "limit";
+    public static final String JOB_PROPERTY_ORDER = "order";
 
     public static final String DETAIL = "detail";
 
     public static final String QUERY_DATA_SOURCE = "query.data_source";
-
-    public static final String DELIMIT = "-";
     public static final String REPORT= "report";
     public static final String FIELD_DISCOVERY= "field_discovery";
+    public static final String STATISTICS= "statistics";
+
+    public static final String DELIMIT = "-";
 
     public static final String KEY_CUSTOM_FIELD_DISCOVERY_FIELDS = "custom.field_discovery.fields";
     public static final String KEY_CUSTOM_FIELD_DISCOVERY_FILTER = "custom.field_discovery.filter";
+    public static final String KEY_CUSTOM_STATISTICS_SQL = "custom.statistics.sql";
     public static final String KEY_CUSTOM_REPORT_SQL = "custom.report.sql";
     public static final String KEY_QUERY_TYPE = "query.type";
     public static final String KEY_QUERY_DATA_SOURCE = "query.data_source";

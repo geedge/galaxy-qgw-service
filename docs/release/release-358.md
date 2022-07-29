@@ -5,4 +5,5 @@
 * 扩展SQL Function，聚合函数支持中位数和百分位数(TSG-10979)
 * 基于配置中心Nacos管理IP定位库(GAL-196)
 * 修改Schema，Schema.field.doc.format 格式变更(TSG-11386)
-* GTP-C Mobile Identities和APNs相关TEID推荐接口功能开发(TSG-11251)
+* 新增推荐接口,GTP-C Mobile Identities和APNs相关TEID推荐接口功能开发(TSG-11251)
+* 扩展实时查询任务，查询任务增加实时统计功能(TSG-11021)

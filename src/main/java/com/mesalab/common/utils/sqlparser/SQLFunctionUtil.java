@@ -76,6 +76,7 @@ public class SQLFunctionUtil {
      * 标准函数
      */
     //time functions
+    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateRelative = Pattern.compile("\\W(ADDDATE|DATE_ADD|DATE_SUB|SUBDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);

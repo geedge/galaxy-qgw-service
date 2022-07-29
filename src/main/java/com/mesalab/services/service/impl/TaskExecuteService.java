@@ -5,7 +5,9 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -80,6 +82,39 @@ public class TaskExecuteService implements EnvironmentAware {
         return new AsyncResult<>(true);
     }
 
+    @Async("taskExecutor")
+    public Future<Boolean> executeStatistics(String id, String sql) {
+        BaseResult lastResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
+        BaseResult preResult = apiService.executeQuery(ApiParam.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
+        if (preResult.isSuccess() && lastResult.isSuccess()) {
+            List<Map<String, Object>> lastData = (List<Map<String, Object>>) lastResult.getData();
+            Map map = ((List<Map>) preResult.getData()).get(0);
+            Object preData;
+            List<Map<String, Object>> preDate = Lists.newArrayList();
+            Boolean isAsc = JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.isASC));
+            if (StringUtil.isNotEmpty(preData = map.get(JobConfig.STATISTICS_RESULT))) {
+                Map item = JSONUtil.toBean(preData.toString(), Map.class);
+                preDate = (List<Map<String, Object>>) item.get("value");
+                if (isAsc) {
+                    lastData.addAll(preDate);
+                } else {
+                    preDate.addAll(lastData);
+                }
+            }
+            List<Map<String, Object>> listPreMerge = lastData.size() > preDate.size() ? lastData : preDate;
+            String groupBy = JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.JOB_PROPERTY_RESULT_FIELD));
+            String subType = JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.JOB_PROPERTY_SUB_TYPE));
+            List listAfterMerge = JobConfig.JOB_PROPERTY_SUB_TYPE_TIMECHART.equals(subType) ? listPreMerge : mergeSortStatistics(listPreMerge, groupBy, JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.JOB_PROPERTY_ORDER)), isAsc);
+            Map<String, Object> valueMap = Maps.newHashMap();
+            valueMap.put("value", listAfterMerge);
+            String result = JSONUtil.quote(JSONUtil.toJsonStr(valueMap), false).replace("'", "\\'");
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.STATISTICS, "result", id, result));
+        } else {
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
+        }
+        return new AsyncResult<>(true);
+    }
+
     private BaseResult queryTop(String logType, String filter, String field) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK")),
                 field, logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
@@ -107,8 +142,31 @@ public class TaskExecuteService implements EnvironmentAware {
                     item.put("count", count);
                     return item;
                 }).collect(Collectors.toList());
-        List<Object> result = collect.stream().sorted(Comparator.comparingInt(x -> Integer.parseInt(String.valueOf(((Map) x).get("count")))).reversed()).collect(Collectors.toList());
-        return result;
+        return collect.stream().sorted(Comparator.comparingInt(x -> Integer.parseInt(String.valueOf(((Map) x).get("count")))).reversed()).collect(Collectors.toList());
+    }
+
+    private List<Object> mergeSortStatistics(List<Map<String, Object>> data, String name, String orderBy, boolean isAsc) {
+        List<Object> collect = merge(data, name, orderBy);
+        if (StringUtil.isEmpty(orderBy)) {
+            return collect;
+        }
+        return collect.stream().sorted(Comparator.comparingInt(x ->
+                (
+                        isAsc ? Integer.parseInt(String.valueOf(((Map) x).get(orderBy))) : -Integer.parseInt(String.valueOf(((Map) x).get(orderBy)))
+                )
+        ).reversed()).collect(Collectors.toList());
+    }
+
+    private List<Object> merge(List<Map<String, Object>> data, String name, String orderBy) {
+        return data.stream()
+                .collect(Collectors.groupingBy(group -> String.valueOf(group.get(name))))
+                .entrySet().stream().map(map -> {
+                    long count = map.getValue().stream().mapToInt(o -> Integer.parseInt(o.get(orderBy).toString())).sum();
+                    HashMap<String, Object> item = Maps.newHashMap();
+                    item.put(name, map.getKey());
+                    item.put(orderBy, count);
+                    return item;
+                }).collect(Collectors.toList());
     }
 
     @Override

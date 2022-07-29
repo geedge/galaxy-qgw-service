@@ -55,7 +55,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     private static final Pattern pGroupBy = Pattern.compile("\\bgroup\\s+by\\s+", Pattern.CASE_INSENSITIVE);
     private static final Pattern pDistinct = Pattern.compile("\\b(DISTINCT)(\\(|\\s+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp)\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pAggregateFunSpecificOfCK = Pattern.compile("\\b(anyHeavy|anyLast|argMin|argMax|avgWeighted|topK|topKWeighted|groupArray|groupUniqArray|groupArrayInsertAt|groupArrayMovingAvg|groupArrayMovingSum|groupBitAnd|groupBitOr|groupBitXor|groupBitmap|groupBitmapAnd|groupBitmapOr|groupBitmapXor|sumWithOverflow|sumMap|minMap|maxMap|skewSamp|skewPop|kurtSamp|kurtPop|uniq|uniqExact|uniqCombined|uniqCombined64|uniqHLL12|quantile|quantiles|quantileExact|quantileExactLow|quantileExactHigh|quantileExactWeighted|quantileTiming|quantileTimingWeighted|quantileDeterministic|quantileTDigest|quantileTDigestWeighted|quantileBFloat16|quantileBFloat16Weighted|simpleLinearRegression|stochasticLinearRegression|stochasticLogisticRegression|categoricalInformationValue)\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
@@ -1031,7 +1030,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     private boolean containAggregateFunction(String sql) {
-        return (pAggregateFunStandard.matcher(sql).find()
+        return (SQLFunctionUtil.pAggregateFunStandard.matcher(sql).find()
                 || pAggregateFunSpecificOfCK.matcher(sql).find());
     }
 

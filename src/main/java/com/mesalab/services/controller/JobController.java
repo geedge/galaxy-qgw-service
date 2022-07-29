@@ -45,24 +45,12 @@ public class JobController {
 
     @PostMapping(value = "/jobs", produces = "application/json")
     public BaseResult commitJob(@RequestBody HashMap<String, Object> reqBody) {
-        if (!reqBody.containsKey(JobConfig.KEY_QUERY_TYPE)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Param Syntax Error: The param must contain query.type", null);
-        }
-        if (!reqBody.containsKey(JobConfig.KEY_QUERY_DATA_SOURCE)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Param Syntax Error: The param must contain query.data_source", null);
-        }
-        String dataSource = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_DATA_SOURCE));
-        if (!metadataService.getAllTable().contains(dataSource)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Param Syntax Error: The param query.data_source illegal", null);
-        }
+        validateJobParams(reqBody);
         BaseResult baseResult;
-        String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
-        if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
+        String type = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
+        if (JobConfig.FIELD_DISCOVERY.equals(type) || STATISTICS.equals(type)) {
             baseResult = jobService.commitAdHocQuery(reqBody);
-        } else if (JobConfig.REPORT.equals(queryType)) {
+        } else if (JobConfig.REPORT.equals(type)) {
             baseResult = jobService.commitSavedQuery(reqBody);
         } else {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "Not Support");
@@ -70,17 +58,22 @@ public class JobController {
         return baseResult;
     }
 
-    @GetMapping(value = "/jobs/{jobId}/field_discovery")
-    public DeferredResult<BaseResult> longPollingResult(@PathVariable String jobId) {
+    @GetMapping(value = "/jobs/{jobId}/{queryType}")
+    public DeferredResult<BaseResult> longPollingResult(@PathVariable String jobId, @PathVariable String queryType) {
         log.info("Long Polling Request,Job ID is {}", jobId);
-        BaseResult baseResult = jobService.getResultFieldDiscovery(jobId);
+        BaseResult baseResult = null;
+        if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
+            baseResult = jobService.getResultFieldDiscovery(jobId);
+        } else if (JobConfig.STATISTICS.equals(queryType)) {
+            baseResult = jobService.getResultStatistics(jobId);
+        }
         DeferredResult<BaseResult> deferredResult =
                 deferredResultHolder.newDeferredResult(jobId, jobConfig.getResponseTimeout(), baseResult);
         if (!jobConfig.isLongPollingEnabled()) {
             deferredResultHolder.handleDeferredData(deferredResult, baseResult);
             return deferredResult;
         }
-        deferredResult.onTimeout(() ->{
+        deferredResult.onTimeout(() -> {
             deferredResultHolder.handleDeferredData(deferredResult, jobService.getResultFieldDiscovery(jobId));
         });
 
@@ -112,4 +105,23 @@ public class JobController {
         }
         return BaseResultGenerator.success();
     }
+
+
+
+    private void validateJobParams(HashMap<String, Object> reqBody) {
+        if (!reqBody.containsKey(JobConfig.KEY_QUERY_TYPE)) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The param must contain query.type", null);
+        }
+        if (!reqBody.containsKey(JobConfig.KEY_QUERY_DATA_SOURCE)) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The param must contain query.data_source", null);
+        }
+        String dataSource = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_DATA_SOURCE));
+        if (!metadataService.getAllTable().contains(dataSource)) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Param Syntax Error: The param query.data_source illegal", null);
+        }
+    }
+
 }

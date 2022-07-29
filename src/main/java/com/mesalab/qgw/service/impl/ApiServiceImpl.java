@@ -53,12 +53,6 @@ import java.util.regex.Pattern;
 public class ApiServiceImpl implements ApiService {
     private static final Log log = LogFactory.get();
     @Autowired
-    private ClickHouseHttpSource clickHouseHttpSource;
-    @Autowired
-    private DruidIoHttpSource druidIoHttpSource;
-    @Autowired
-    private HBaseAPISource hBaseAPISource;
-    @Autowired
     private MetadataService metadataServiceTemp;
     @Autowired
     private SystemService systemServiceTemp;

@@ -8,6 +8,7 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.jayway.jsonpath.JsonPath;
 import com.jfinal.plugin.activerecord.Db;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -17,6 +18,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ReportCacheUtils;
+import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.ApiService;
@@ -27,6 +29,14 @@ import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Alias;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.select.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
@@ -36,9 +46,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static com.mesalab.services.configuration.JobConfig.KEY_CUSTOM_REPORT_SQL;
-import static com.mesalab.services.configuration.JobConfig.KEY_QUERY_SAMPLE_RATIO;
 
 /**
  * TODO
@@ -91,13 +100,15 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult commitAdHocQuery(HashMap<String, Object> map) {
         validateAdHocQuery(map);
-        String id = DigestUtil.md5Hex16(JobConfig.FIELD_DISCOVERY)
-                .concat(JobConfig.DELIMIT)
-                .concat(DigestUtil.md5Hex16(String.valueOf(map)));
+        String id = DigestUtil.md5Hex16(String.valueOf(map.get(JobConfig.KEY_QUERY_TYPE)).toLowerCase()).concat(JobConfig.DELIMIT).concat(DigestUtil.md5Hex16(String.valueOf(map)));
         if (!isExist(id)) {
             log.info("Add Hoc Job, ID is {}, params is {}", id, JsonMapper.toJsonString(map));
-            init(id, (List<String>) map.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS));
-            jobExecuteService.addExecutorFieldDiscovery(id, map);
+            init(id, map);
+            if (JobConfig.FIELD_DISCOVERY.equals(map.get(JobConfig.KEY_QUERY_TYPE))) {
+                jobExecuteService.addExecutorFieldDiscovery(id, map);
+            } else if (JobConfig.STATISTICS.equals(map.get(JobConfig.KEY_QUERY_TYPE))) {
+                jobExecuteService.addExecutorStatistics(id, map);
+            }
         }
         return BaseResultGenerator.success("ok", buildData(id));
     }
@@ -110,7 +121,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 .concat(JobConfig.DELIMIT)
                 .concat(DigestUtil.md5Hex16(String.valueOf(map)));
 
-        String sql = JSONUtil.quote(map.get(KEY_CUSTOM_REPORT_SQL).toString(), false).replace("'", "\\'");
+        String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL).toString(), false).replace("'", "\\'");
         String currentDate = DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS);
         sql = String.format(Objects.requireNonNull(env.getProperty("REPORT_INSERT")), currentDate, sql, currentDate, currentDate, currentDate, currentDate, id, TimeZone.getDefault().getID());
         Db.update(sql);
@@ -169,10 +180,51 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     @Override
     public BaseResult getResultFieldDiscovery(String id) {
-        return buildResult(id);
+        return buildResultFieldDiscovery(id);
     }
 
-    private BaseResult<List<Map<String, Object>>> buildResult(String id) {
+    @Override
+    public BaseResult getResultStatistics(String id) {
+        return buildResultStatistics(id);
+    }
+
+    private BaseResult buildResultStatistics(String id) {
+        List<Map<String, Object>> data = validationData(id);
+        updateQueryTime(id, System.currentTimeMillis());
+        Map<String, Object> job = Maps.newHashMap();
+        Map<String, Object> map = data.get(0);
+        List<Map<String, Object>> resultList = Lists.newArrayList();
+        Object item = map.get(JobConfig.STATISTICS_RESULT);
+        if (StringUtil.isNotEmpty(item)) {
+            try {
+                Map<String, List<Map<String, Object>>> map1 = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
+                resultList = map1.get("value");
+                Map map2 = com.mesalab.common.utils.JsonMapper.fromJsonString(map.get(JobConfig.JOB_PROPERTY).toString(), Map.class);
+
+
+                if (map2.containsKey(JobConfig.JOB_PROPERTY_LIMIT)) {
+                    int limit = JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.JOB_PROPERTY_LIMIT));
+                    resultList = resultList.size() > limit ? resultList.subList(0, limit) : resultList;
+                }
+            } catch (RuntimeException e) {
+                log.error("parse jobId-{}, field-{} error, message is: {}", JobConfig.STATISTICS_RESULT, id, e.getMessage());
+            }
+        }
+
+        HashMap<String, Object> statistics = Maps.newHashMap();
+        statistics.put("elapsed", map.get(JobConfig.DURATION_TIME));
+        statistics.put("rows_read", resultList.size());
+        statistics.put("result_rows", resultList.size());
+        statistics.put("result_size", String.valueOf(resultList).getBytes().length);
+        job.put(JobConfig.COUNT, StringUtil.isEmpty(map.get(JobConfig.COUNT)) ? 0 : map.get(JobConfig.COUNT));
+        job.put(JobConfig.IS_DONE, StringUtil.isEmpty(map.get(JobConfig.IS_DONE)) ? false : map.get(JobConfig.IS_DONE));
+        job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
+        job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
+        job.put(JobConfig.IS_ERROR, StringUtil.isEmpty(map.get(JobConfig.IS_ERROR)) ? false : map.get(JobConfig.IS_ERROR));
+        return BaseResultGenerator.success(statistics, job, resultList);
+    }
+
+    private BaseResult<List<Map<String, Object>>> buildResultFieldDiscovery(String id) {
         List<Map<String, Object>> data = validationData(id);
         updateQueryTime(id, System.currentTimeMillis());
         Map<String, Object> job = Maps.newHashMap();
@@ -188,11 +240,11 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 continue;
             }
             try {
-                Map fieldResult = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
-                List<Object> topK = (List<Object>) fieldResult.get("topk");
-                fieldResult.put("topk", topK.size() > 10 ? topK.subList(0, 10) : topK);
-                result.put(field, fieldResult);
-                resultList.add(result);
+                    Map fieldResult = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
+                    List<Object> topK = (List<Object>) fieldResult.get("topk");
+                    fieldResult.put("topk", topK.size() > 10 ? topK.subList(0, 10) : topK);
+                    result.put(field, fieldResult);
+                    resultList.add(result);
             } catch (RuntimeException e) {
                 log.error("parse jobId-{}, field-{} error, message is: {}", field, id, e.getMessage());
             }
@@ -231,23 +283,118 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         return !BooleanUtil.toBoolean(String.valueOf(map.get(JobConfig.IS_CANCELED)));
     }
 
-    private void init(String id, List<String> fields) {
+    private void init(String id, HashMap<String, Object> body) {
+        Object type = body.get(JobConfig.KEY_QUERY_TYPE);
+        if (JobConfig.FIELD_DISCOVERY.equals(type)) {
+            initFieldDiscoveryJob(id, body);
+        } else if (JobConfig.STATISTICS.equals(type)) {
+            initStatisticsJob(id, body);
+        }
+    }
+
+    private void initStatisticsJob(String id, HashMap<String, Object> body) {
+        Map<String, Object> property = Maps.newLinkedHashMap();
+        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.STATISTICS);
+        buildJobPropertyStatistics(String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL)), property);
+        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
+    }
+
+    private void initFieldDiscoveryJob(String id, HashMap<String, Object> body) {
+        List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         List<String> interim = Lists.newArrayList(fields);
-        ApiParam apiParam = ApiParam.builder().query(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build();
-        BaseResult baseResult = apiService.executeQuery(apiParam);
-        if (baseResult.isSuccess()) {
-            List<Map<String, Object>> meta = (List<Map<String, Object>>) baseResult.getMeta();
-            List<String> metaName = new ArrayList<>();
-            meta.forEach(m -> metaName.add(m.get("name").toString()));
-            interim.removeAll(metaName);
-            for (String field : interim) {
-                execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), JobConfig.FIELD_DISCOVERY, field));
+        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build());
+        if (!baseResult.isSuccess()) {
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(),
+                    "Init job error: get field_discovery all column error, ".concat(baseResult.getMessage()), null);
+        }
+        List<Map<String, Object>> meta = (List<Map<String, Object>>) baseResult.getMeta();
+        List<String> metaName = new ArrayList<>();
+        meta.forEach(m -> metaName.add(m.get("name").toString()));
+        interim.removeAll(metaName);
+        for (String field : interim) {
+            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), JobConfig.FIELD_DISCOVERY, field));
+        }
+        Map<String, Object> param = Maps.newLinkedHashMap();
+        param.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY);
+        param.put(JobConfig.JOB_PROPERTY_RESULT_FIELD, String.join(",", fields));
+        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(param), 0, 0));
+    }
+
+    private void buildJobPropertyStatistics(String sql, Map<String, Object> property) {
+        net.sf.jsqlparser.statement.Statement statement = null;
+        try {
+            statement = CCJSqlParserUtil.parse(sql);
+            if (statement instanceof Select && ((Select) statement).getSelectBody() instanceof PlainSelect) {
+                PlainSelect plainSelect = (PlainSelect) ((Select) statement).getSelectBody();
+
+                Limit limit = plainSelect.getLimit();
+                if (StringUtil.isNotEmpty(limit) && limit.getRowCount() instanceof LongValue) {
+                    property.put(JobConfig.JOB_PROPERTY_LIMIT, Long.valueOf(limit.getRowCount().toString()));
+                }
+
+                List<SelectItem> selectItems = plainSelect.getSelectItems();
+                Map<String, String> fieldAlias = Maps.newHashMap();/** k=column,v=alias **/
+                selectItems.forEach(o -> {
+                    if (o instanceof SelectExpressionItem) {
+                        SelectExpressionItem selectExpressionItem = (SelectExpressionItem) o;
+                        Expression expression = selectExpressionItem.getExpression();
+                        Alias alias = selectExpressionItem.getAlias();
+                        fieldAlias.put(expression.toString(), StringUtil.isEmpty(alias) ? expression.toString() : alias.getName());
+                    }
+                });
+
+                property.put(JobConfig.isASC, true);
+                List<OrderByElement> orderByElements = plainSelect.getOrderByElements();
+                if (StringUtil.isNotEmpty(orderByElements)) {
+                    OrderByElement orderByElement = orderByElements.get(0);
+                    property.put(JobConfig.isASC, orderByElement.isAsc());
+                    String orderBy = orderByElement.getExpression().toString();
+                    property.put(JobConfig.JOB_PROPERTY_ORDER, fieldAlias.containsKey(orderBy) ? fieldAlias.get(orderBy) : orderBy);
+                }
+
+
+                //timeChart
+                List<SelectItem> functions = selectItems.stream().filter(o -> ((o instanceof SelectExpressionItem) && (((SelectExpressionItem) o).getExpression()) instanceof Function)).collect(Collectors.toList());
+                for (SelectItem selectItem : functions) {
+                    SelectExpressionItem select = ((SelectExpressionItem) selectItem);
+                    Expression expression = select.getExpression();
+                    if (expression instanceof Function) {
+                        Function function = ((Function) (expression));
+                        buildTimeChart(property, fieldAlias.get(select.getExpression().toString()), function);
+                    }
+                }
+                //top rare
+                List<SelectItem> column = selectItems.stream().filter(o -> ((o instanceof SelectExpressionItem) && (((SelectExpressionItem) o).getExpression()) instanceof Column)).collect(Collectors.toList());
+                for (SelectItem selectItem : column) {
+                    SelectExpressionItem select = (SelectExpressionItem) selectItem;
+                    if (BooleanUtil.toBoolean(property.get(JobConfig.isASC).toString())) {
+                        property.put(JobConfig.JOB_PROPERTY_SUB_TYPE, JobConfig.JOB_PROPERTY_SUB_TYPE_RARE);
+                    } else {
+                        property.put(JobConfig.JOB_PROPERTY_SUB_TYPE, JobConfig.JOB_PROPERTY_SUB_TYPE_TOP);
+                    }
+                    property.put(JobConfig.JOB_PROPERTY_RESULT_FIELD, fieldAlias.get(select.getExpression().toString()));
+                }
             }
-            Map<String, Object> param = Maps.newHashMap();
-            param.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY);
-            param.put(JobConfig.JOB_PROPERTY_RESULT_FIELD, String.join(",", fields));
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")),
-                    id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(param), 0, 0));
+        } catch (JSQLParserException | RuntimeException e) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Job Validation Error: ".concat(e.getMessage()), null);
+        }
+    }
+
+    private void buildTimeChart(Map<String, Object> param, String name, Function function) {
+        if (SQLFunctionUtil.TIME_FLOOR_WITH_FILL.equals(function.getName())) {
+            param.put(JobConfig.JOB_PROPERTY_SUB_TYPE, JobConfig.JOB_PROPERTY_SUB_TYPE_TIMECHART);
+            param.put(JobConfig.JOB_PROPERTY_RESULT_FIELD, name);
+        } else {
+            if (StringUtil.isEmpty(function.getParameters())) {
+                return;
+            }
+            List<Expression> expressions = function.getParameters().getExpressions();
+            for (Expression expression : expressions) {
+                if (expression instanceof Function) {
+                    buildTimeChart(param, name, (Function) expression);
+                }
+            }
         }
     }
 
@@ -273,11 +420,12 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private void validateAdHocQuery(HashMap<String, Object> body) {
-        if (!body.containsKey(KEY_QUERY_SAMPLE_RATIO)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Param Syntax Error: The param must contain query.sample_ratio", null);
+        Object type = body.get(JobConfig.KEY_QUERY_TYPE);
+        if (JobConfig.FIELD_DISCOVERY.equals(type)) {
+            syntaxValidationFieldDiscovery(body);
+        } else if (JobConfig.STATISTICS.equals(type)) {
+            syntaxValidationStatistics(body);
         }
-        syntaxValidationFieldDiscovery(body);
     }
 
     private void validateReport(HashMap<String, Object> map) {
@@ -299,6 +447,16 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         String validationSql = String.format(syntaxValidation, String.join(",", field), map.get("query.data_source"), StringUtil.isEmpty(filter) ? " 1 = 1" : filter);
         ApiParam apiParam = ApiParam.builder().query(validationSql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build();
         BaseResult baseResult = apiService.executeQuery(apiParam);
+        if (!baseResult.isSuccess()) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+                    "Job Validation Error: ".concat(baseResult.getMessage()), null);
+        }
+    }
+
+    private void syntaxValidationStatistics(HashMap<String, Object> body) {
+        String sql = String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL));
+
+        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
                     "Job Validation Error: ".concat(baseResult.getMessage()), null);
