@@ -1,8 +1,10 @@
 package com.mesalab.knowledge.entity;
 
+import com.alibaba.nacos.api.config.ConfigType;
+import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
+import com.alibaba.nacos.api.config.annotation.NacosValue;
 import lombok.Data;
-
-import java.util.List;
+import org.springframework.stereotype.Component;
 
 
 /**
@@ -10,26 +12,20 @@ import java.util.List;
  * @Date 2022/7/25
  */
 @Data
+@Component
+@NacosConfigurationProperties(dataId = "galaxy-qgw-service.yml", groupId = "${nacos.config.group}", type = ConfigType.YAML, autoRefreshed = true)
 public class KnowledgeVersion {
 
-    private List<Ip> ip_location;
+    @NacosValue(value = "${knowledge.ipLocation.ipV4.userDefined}", autoRefreshed = true)
+    private String ipV4UserDefined;
 
+    @NacosValue(value = "${knowledge.ipLocation.ipV4.builtIn}", autoRefreshed = true)
+    private String ipV4BuiltIn;
 
+    @NacosValue(value = "${knowledge.ipLocation.ipV6.userDefined}", autoRefreshed = true)
+    private String ipV6UserDefined;
 
-    @Data
-    public static class Ip {
-        private Info ip_v4_user_defined;
-
-        private Info ip_v6_user_defined;
-
-        private Info ip_v4_built_in;
-
-        private Info ip_v6_built_in;
-    }
-    @Data
-    public static class Info {
-        private String file_name;
-        private String version;
-    }
+    @NacosValue(value = "${knowledge.ipLocation.ipV6.builtIn}", autoRefreshed = true)
+    private String ipV6BuiltIn;
 
 }

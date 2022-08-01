@@ -17,14 +17,15 @@ public class KnowledgeBase {
 
     private String path;
 
-    private String updateTime;
-
     private Long size;
 
     private String format;
 
     private String sha256;
 
+    private String origin_url;
+
     private String version;
 
+    private String updateTime;
 }

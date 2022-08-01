@@ -151,3 +151,12 @@ hos:
   uri: http://192.168.44.12:9098/hos/
   bucket: knowledgeBase-hos-bucket/
   token: c21f969b5f03d33d43e04f8f136e7682
+## knowledge value 格式 name:版本
+knowledge:
+  ipLocation:
+    ipV4:
+      userDefined: ip_v4_user_defined.mmdb:1.0.1
+      builtIn: ip_v4_built_in.mmdb:1.0.1
+    ipV6:
+      userDefined: ip_v6_user_defined.mmdb:1.0.1
+      builtIn: ip_v6_built_in.mmdb:1.0.1

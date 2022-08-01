@@ -60,6 +60,5 @@ public class NacosConst {
 
     public static final String KNOWLEDGE_BASE_DATA_ID = "knowledge_base.json";
 
-    public static final String KNOWLEDGE_VERSION_CONFIG = "knowledgeVersionConfig.json";
 
 }

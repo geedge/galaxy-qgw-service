@@ -58,17 +58,6 @@ public class KnowledgeBaseController {
         }
     }
 
-    @PatchMapping
-    public BaseResult patchKnowledge(@RequestPart(value = "file") MultipartFile file, KnowledgeBase knowledge) {
-
-        try {
-            return knowledgeService.updateKnowledge(file, knowledge);
-        } catch (BusinessException e) {
-            log.error("升级知识库失败:{}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to upload file:" + e.getErrorMessage());
-        }
-    }
-
     @DeleteMapping
     public BaseResult deleteKnowledge(@RequestParam String id) {
 
@@ -83,6 +72,9 @@ public class KnowledgeBaseController {
     private KnowledgeBase validateKnowledge(KnowledgeBase knowledge) {
         if (StringUtil.isEmpty(knowledge.getName())) {
             throw new BusinessException("Name is required");
+        }
+        if (knowledge.getName().contains(":")){
+            throw new BusinessException("Name cannot contain ':'");
         }
         if (StringUtil.isEmpty(knowledge.getFormat())) {
             throw new BusinessException("Format is required");
