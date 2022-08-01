@@ -30,6 +30,7 @@
         "common_device_group",
         "common_address_type",
         "common_schema_type",
+        "common_namespace_id",
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
@@ -72,6 +73,7 @@
         "common_action",
         "common_sub_action",
         "common_policy_id",
+        "common_namespace_id",
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
@@ -136,6 +138,7 @@
         "common_action",
         "common_sub_action",
         "common_policy_id",
+        "common_namespace_id",
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
@@ -280,7 +283,8 @@
           "common_sub_action",
           "common_policy_id",
           "common_user_tags",
-          "common_user_region"
+          "common_user_region",
+          "common_namespace_id"
         ]
       }
     },
@@ -802,6 +806,14 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "common_namespace_id",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Namespace ID"
     },
     {
       "name": "common_device_id",
