@@ -10,7 +10,8 @@
     "index_key": [
       "common_log_id",
       "common_recv_time",
-      "common_policy_id"
+      "common_policy_id",
+      "common_namespace_id"
     ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"
