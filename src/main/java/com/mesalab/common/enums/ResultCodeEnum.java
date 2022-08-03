@@ -21,11 +21,12 @@ public enum ResultCodeEnum {
 
 
 
-    private  String code;
+    private String code;
     private String message;
 
     ResultCodeEnum(String code, String message) {
         this.code = code;
+        this.message = message;
     }
 
 }

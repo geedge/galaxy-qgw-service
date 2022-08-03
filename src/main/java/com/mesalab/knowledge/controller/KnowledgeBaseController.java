@@ -42,7 +42,7 @@ public class KnowledgeBaseController {
             KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
             return knowledgeService.addKnowledge(file, knowledgeBase);
         } catch (BusinessException e) {
-            log.error("更新知识库失败:{}", e);
+            log.error("发布知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to upload file:" + e.getErrorMessage());
         }
     }
