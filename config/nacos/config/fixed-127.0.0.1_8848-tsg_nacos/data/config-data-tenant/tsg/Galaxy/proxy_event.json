@@ -31,7 +31,6 @@
         "common_device_group",
         "common_address_type",
         "common_schema_type",
-        "common_action",
         "common_sub_action",
         "common_policy_id",
         "common_namespace_id",
@@ -865,6 +864,10 @@
           {
             "code": "edit_element",
             "value": "Edit Element"
+          },
+          {
+            "code": "run_script",
+            "value": "Run Script"
           }
         ],
         "visibility": "enabled",

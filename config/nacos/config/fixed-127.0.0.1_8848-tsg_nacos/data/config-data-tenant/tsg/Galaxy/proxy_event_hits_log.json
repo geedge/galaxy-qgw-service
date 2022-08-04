@@ -108,6 +108,10 @@
           {
             "code": "edit_element",
             "value": "Edit Element"
+          },
+          {
+            "code": "run_script",
+            "value": "Run Script"
           }
         ],
         "visibility": "enabled"
