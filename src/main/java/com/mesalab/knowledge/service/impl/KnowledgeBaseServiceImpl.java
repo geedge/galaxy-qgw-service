@@ -49,14 +49,12 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
         List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
         try {
-            String path = uploadFile(multipartFile);
-            KnowledgeBase knowledgeBase = setKnowledgeBase(knowledgeBaseList, knowledge, multipartFile, path, true);
-            updateLatestKnowledge(knowledgeBaseList, knowledgeBase);
-            knowledgeBaseList.add(knowledgeBase);
+            knowledgeBaseList = updateOrSaveKnowledgeBase(knowledgeBaseList, knowledge, multipartFile);
             pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
             Map map = new HashMap();
             map.put("id", knowledge.getId());
             return BaseResultGenerator.success(map);
+
         } catch (NacosException | IOException e) {
             log.error(e);
             throw new BusinessException(e.getMessage());
@@ -76,19 +74,14 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
         String id = knowledgeBase.getId();
         try {
+            String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
             boolean isExist = false;
             for (int i = 0; i < knowledgeBaseList.size(); i++) {
                 KnowledgeBase base = knowledgeBaseList.get(i);
                 if (StringUtil.equals(id, base.getId())) {
-                    if (StringUtil.equals(base.getVersion(), "latest")) {
-                        throw new BusinessException("This data cannot be modified");
-                    }
                     isExist = true;
-                    String path = uploadFile(file);
-                    KnowledgeBase knowledge = setKnowledgeBase(knowledgeBaseList, base, file, path, false);
-                    knowledgeBaseList.set(i, knowledge);
-                    updateLatestKnowledge(knowledgeBaseList, knowledge);
-                    break;
+                    base = setKnowledgeBase(file, sha256Hex, base);
+                    knowledgeBaseList.set(i, base);
                 }
             }
 
@@ -113,10 +106,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         boolean isExist = false;
         for (int i = 0; i < knowledgeBaseList.size(); i++) {
             KnowledgeBase knowledgeBase = knowledgeBaseList.get(i);
-            if (StringUtil.equals(id, knowledgeBase.getId())) {
-                if (StringUtil.equals(knowledgeBase.getVersion(), "latest")) {
-                    throw new BusinessException("This data cannot be modified");
-                }
+            if (StringUtil.equals(id, knowledgeBase.getId()) && !StringUtil.equals(knowledgeBase.getVersion(), "latest")) {
                 isExist = true;
                 String path = knowledgeBase.getPath();
                 Header header = new BasicHeader("token", hosConfig.getToken());
@@ -154,41 +144,61 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     }
 
 
-    private KnowledgeBase setKnowledgeBase(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge, MultipartFile file, String path, boolean b) throws IOException {
+    private KnowledgeBase setKnowledgeBase(MultipartFile file, String sha256Hex, KnowledgeBase knowledge) {
 
-
-        if (b) {
-            String id = DigestUtil.md5Hex16(knowledge.getType()).concat("-")
-                    .concat(DigestUtil.md5Hex16(knowledge.getName()
-                            .concat(knowledge.getFormat())
-                            .concat(knowledge.getVersion())));
-            for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
-                if (StringUtil.equals(id, knowledgeBase.getId())) {
-                    throw new BusinessException("name already exists");
-                }
-            }
-            knowledge.setId(id);
-
+        String id = knowledge.getId();
+        String date = DateUtils.getFormatDate(new Date(), "yyyy-MM-dd'T'HH:mm:sss");
+        String path = null;
+        if (StringUtil.isEmpty(path)) {
+            path = uploadFile(file, id);
         }
-
+        knowledge.setId(id);
         knowledge.setPath(path);
-        knowledge.setSha256(DigestUtil.sha256Hex(file.getBytes()));
+        knowledge.setSha256(sha256Hex);
         knowledge.setSize(file.getSize());
-        knowledge.setUpdateTime(DateUtils.getFormatDate(new Date(), "yyyy-MM-dd'T'HH:mm:sss"));
-
+        knowledge.setUpdateTime(date);
         return knowledge;
     }
 
+    private List<KnowledgeBase> updateOrSaveKnowledgeBase(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge, MultipartFile file) throws IOException {
 
-    public String uploadFile(MultipartFile file) {
+        String id = DigestUtil.md5Hex16(knowledge.getType()).concat("-")
+                .concat(DigestUtil.md5Hex16(knowledge.getName()
+                        .concat(knowledge.getFormat())
+                        .concat(knowledge.getVersion())));
+        String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
+        Boolean isExist = false;
+        knowledge.setId(id);
+        for (int i = 0; i < knowledgeBaseList.size(); i++) {
+            KnowledgeBase knowledgeBase = knowledgeBaseList.get(i);
+            // type + name + format + version 一致且sha256Hex值不一致时覆盖
+            if (StringUtil.equals(id, knowledgeBase.getId())) {
+                isExist = true;
+                if (!StringUtil.equals(sha256Hex, knowledgeBase.getSha256())) {
+                    knowledge = setKnowledgeBase(file, sha256Hex, knowledgeBase);
+                    updateLatestKnowledge(knowledgeBaseList, knowledge);
+                }
+            }
+        }
+        // 新增knowledgeBase
+        if (!isExist) {
+            setKnowledgeBase(file, sha256Hex, knowledge);
+            updateLatestKnowledge(knowledgeBaseList, knowledge);
+            knowledgeBaseList.add(knowledge);
+        }
+
+        return knowledgeBaseList;
+    }
+
+
+    public String uploadFile(MultipartFile file, String id) {
         String uri = hosConfig.getUri();
         String bucket = hosConfig.getBucket();
 
         Header header = new BasicHeader("token", hosConfig.getToken());
         String assessmentFile = null;
         try {
-            assessmentFile = uri.concat(bucket).concat(UUID.randomUUID().toString()).
-                    concat(Base64.getEncoder().encodeToString(file.getOriginalFilename().getBytes("UTF-8")));
+            assessmentFile = uri.concat(bucket).concat(Base64.getEncoder().encodeToString(id.getBytes("UTF-8")));
         } catch (UnsupportedEncodingException e) {
             log.error(e);
         }
@@ -350,6 +360,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         for (KnowledgeBase knowledge : knowledgeBaseList) {
             if (StringUtil.equals(knowledge.getName(), name) && StringUtil.equals(knowledge.getType(), type)
                     && StringUtil.equals(knowledge.getVersion(), "latest")) {
+                knowledge.setId(knowledgeBase.getId());
                 knowledge.setPath(knowledgeBase.getPath());
                 knowledge.setSize(knowledgeBase.getSize());
                 knowledge.setSha256(knowledgeBase.getSha256());
@@ -360,12 +371,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         }
         // 不存在则新增
         if (!isExistLatest) {
-            String latestId = DigestUtil.md5Hex16(type).concat("-")
-                    .concat(DigestUtil.md5Hex16(name
-                            .concat(knowledgeBase.getFormat())
-                            .concat("latest")));
             KnowledgeBase base = new KnowledgeBase();
-            base.setId(latestId);
+            base.setId(knowledgeBase.getId());
             base.setName(name);
             base.setType(type);
             base.setPath(knowledgeBase.getPath());

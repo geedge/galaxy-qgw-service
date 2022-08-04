@@ -13,7 +13,7 @@ public class IPUtil {
     private static IpLookupV2 ipLookup;
 
     public static void initIpLookup(String ip_v4,String ip_v6,String ip_private_v4,String ip_private_v6) {
-        ipLookup = new IpLookupV2.Builder(true)
+        ipLookup = new IpLookupV2.Builder(false)
                 .loadDataFileV4(ip_v4)
                 .loadDataFileV6(ip_v6)
                 .loadDataFilePrivateV4(ip_private_v4)
