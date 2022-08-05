@@ -137,7 +137,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 knowledgeBaseList = com.mesalab.common.utils.JsonMapper.fromJsonString(config, List.class, KnowledgeBase.class);
             }
         } catch (NacosException e) {
-            log.error("获取knowledge_base_hos_bucket.json失败:{}", e);
+            log.error("获取knowledge_base.json失败:{}", e);
             throw new BusinessException(e.getMessage());
         }
         return knowledgeBaseList;
@@ -254,7 +254,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             InputStream inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), 3000, header);
             File file;
             try {
-                file = new File("knowledge_base".concat(File.separator).concat(name));
+                file = new File("dat".concat(File.separator).concat(name));
                 IoUtil.copy(inputStream, new FileOutputStream(file));
                 log.info("knowledge download name :{},version:{}", name, knowledgeBase.getVersion());
             } catch (FileNotFoundException e) {
@@ -277,7 +277,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             String name = knowledgeBase.getName();
             String version = knowledgeBase.getVersion();
             String concat = name.concat(":").concat(version);
-            String path = "knowledge_base".concat(File.separator).concat(name);
+            String path = "dat".concat(File.separator).concat(name);
             if (StringUtil.equals(concat, ipV4BuiltIn)) {
                 map.put(Constants.IP_BUILT_IN_V4, path);
                 downloadFile(knowledgeBase);
@@ -305,46 +305,26 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             }
         }
 
-        // 知识库被删除时引用本地知识库文件
+        // 引用本地知识库文件
         String ipV4BuiltInPath = map.get(Constants.IP_BUILT_IN_V4);
         String ipV4UserDefinedPath = map.get(Constants.IP_USER_DEFINED_V4);
         String ipV6BuiltInPath = map.get(Constants.IP_BUILT_IN_V6);
         String ipV6UserDefinedPath = map.get(Constants.IP_USER_DEFINED_V6);
         if (StringUtil.isEmpty(ipV4BuiltInPath)) {
-            String path = "knowledge_base".concat(File.separator).concat(ipV4BuiltIn.substring(0, ipV4BuiltIn.indexOf(":") + 1));
-            if (new File(path).exists()) {
-                ipV4BuiltInPath = path;
-            } else {
-                ipV4BuiltInPath = "dat" + File.separator + Constants.IP_BUILT_IN_V4;
-            }
+            ipV4BuiltInPath = "dat" + File.separator + Constants.IP_BUILT_IN_V4;
             map.put(Constants.IP_BUILT_IN_V4, ipV4BuiltInPath);
         }
         if (StringUtil.isEmpty(ipV4UserDefinedPath)) {
-            String path = "knowledge_base".concat(File.separator).concat(ipV4UserDefined.substring(0, ipV4UserDefined.indexOf(":") + 1));
-            if (new File(path).exists()) {
-                ipV4UserDefinedPath = path;
-            } else {
-                ipV4UserDefinedPath = "dat" + File.separator + Constants.IP_BUILT_IN_V6;
-            }
+            ipV4UserDefinedPath = "dat" + File.separator + Constants.IP_BUILT_IN_V6;
             map.put(Constants.IP_USER_DEFINED_V4, ipV4UserDefinedPath);
         }
         if (StringUtil.isEmpty(ipV6BuiltInPath)) {
-            String path = "knowledge_base".concat(File.separator).concat(ipV6BuiltIn.substring(0, ipV6BuiltIn.indexOf(":") + 1));
-            if (new File(path).exists()) {
-                ipV6BuiltInPath = path;
-            } else {
-                ipV6BuiltInPath = "dat" + File.separator + Constants.IP_BUILT_IN_V6;
-            }
+            ipV6BuiltInPath = "dat" + File.separator + Constants.IP_BUILT_IN_V6;
             map.put(Constants.IP_BUILT_IN_V6, ipV6BuiltInPath);
         }
 
         if (StringUtil.isEmpty(ipV6UserDefinedPath)) {
-            String path = "knowledge_base".concat(File.separator).concat(ipV6UserDefined.substring(0, ipV6UserDefined.indexOf(":") + 1));
-            if (new File(path).exists()) {
-                ipV6UserDefinedPath = path;
-            } else {
-                ipV6UserDefinedPath = "dat" + File.separator + Constants.IP_BUILT_IN_V6;
-            }
+            ipV6UserDefinedPath = "dat" + File.separator + Constants.IP_BUILT_IN_V6;
             map.put(Constants.IP_USER_DEFINED_V6, ipV6UserDefinedPath);
         }
 
