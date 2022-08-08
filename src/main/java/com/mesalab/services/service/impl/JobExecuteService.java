@@ -125,7 +125,7 @@ public class JobExecuteService implements EnvironmentAware {
         Select parse = (Select) CCJSqlParserUtil.parse("SELECT 1 FROM table WHERE " + newFilter);
         PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
         Select parseSQL = (Select) CCJSqlParserUtil.parse(sql);
-        PlainSelect plainSelectSQL = (PlainSelect) parse.getSelectBody();
+        PlainSelect plainSelectSQL = (PlainSelect) parseSQL.getSelectBody();
         plainSelectSQL.setWhere(plainSelect.getWhere());
         List<Future<Boolean>> list = Lists.newArrayList(taskExecuteService.executeStatistics(jobInfo.getId(), parseSQL.toString()));
         updateProcess(jobInfo, watch, 1, list);

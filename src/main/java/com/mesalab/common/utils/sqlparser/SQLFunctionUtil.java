@@ -1502,7 +1502,7 @@ public class SQLFunctionUtil {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "toUnixTimestamp#[now#[#]#]";
                 } else {
-                    innerValue = "toUnixTimestamp#[ " + matcherParse.group(2) + "#]";
+                    innerValue = "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + matcherParse.group(2) + "#]#]#]";
                 }
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
@@ -1534,7 +1534,7 @@ public class SQLFunctionUtil {
         String innerValue = null;
         if (matcherParse.find()) {
             if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-                innerValue = "toStartOfDay#[toDateTime#[" + matcherParse.group(2) + "#]#]";
+                innerValue = "toStartOfDay#[parseDateTimeBestEffort#[toString#[" + matcherParse.group(2) + "#]#]#]";
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
                 innerValue = "TIME_FLOOR#[ TIMESTAMP " + matcherParse.group(2) + ",'P1D'#]";
             } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {

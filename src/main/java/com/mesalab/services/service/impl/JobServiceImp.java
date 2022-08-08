@@ -194,13 +194,14 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         Map<String, Object> job = Maps.newHashMap();
         Map<String, Object> map = data.get(0);
         List<Map<String, Object>> resultList = Lists.newArrayList();
+        List<Map<String, Object>> meta = Lists.newArrayList();
         Object item = map.get(JobConfig.STATISTICS_RESULT);
         if (StringUtil.isNotEmpty(item)) {
             try {
-                Map<String, List<Map<String, Object>>> map1 = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
-                resultList = map1.get("value");
+                Map<String, List<Map<String, Object>>> result = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
+                resultList = result.get("data");
+                 meta = result.get("meta");
                 Map map2 = com.mesalab.common.utils.JsonMapper.fromJsonString(map.get(JobConfig.JOB_PROPERTY).toString(), Map.class);
-
 
                 if (map2.containsKey(JobConfig.JOB_PROPERTY_LIMIT)) {
                     int limit = JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.JOB_PROPERTY_LIMIT));
@@ -221,7 +222,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
         job.put(JobConfig.IS_ERROR, StringUtil.isEmpty(map.get(JobConfig.IS_ERROR)) ? false : map.get(JobConfig.IS_ERROR));
-        return BaseResultGenerator.success(statistics, job, resultList);
+        return BaseResultGenerator.success(statistics, job, meta, resultList);
     }
 
     private BaseResult<List<Map<String, Object>>> buildResultFieldDiscovery(String id) {
@@ -259,7 +260,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
         job.put(JobConfig.IS_ERROR, StringUtil.isEmpty(map.get(JobConfig.IS_ERROR)) ? false : map.get(JobConfig.IS_ERROR));
-        return BaseResultGenerator.success(statistics, job, resultList);
+        return BaseResultGenerator.success(statistics, job, null, resultList);
     }
 
     private boolean isExist(String id) {
