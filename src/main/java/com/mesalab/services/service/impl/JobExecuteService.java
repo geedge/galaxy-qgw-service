@@ -1,7 +1,6 @@
 package com.mesalab.services.service.impl;
 
 
-import cn.hutool.core.math.MathUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -79,9 +78,9 @@ public class JobExecuteService implements EnvironmentAware {
             String partitionKey = metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
             Interval interval = getInterval("SELECT 1 FROM table WHERE " + param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString(), partitionKey);
             if (jobCfg.isTimeSlicingEnabled() && interval.isValid()) {
-                executeSlicingFieldDiscoveryJob(jobInfo, watch, param, interval, partitionKey);
+                executeSlicingFieldDiscoveryJob(jobInfo, param, interval, partitionKey);
             } else {
-                executeFieldDiscoveryJob(jobInfo, watch, param, param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString());
+                executeFieldDiscoveryJob(jobInfo, param, param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString());
             }
         } catch (Exception e) {
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
@@ -94,26 +93,25 @@ public class JobExecuteService implements EnvironmentAware {
 
     @Async("jobExecutor")
     public void addExecutorStatistics(String id, HashMap<String, Object> param) {
-        Stopwatch watch = Stopwatch.createStarted();
+        JobInfo jobInfo = new JobInfo(id);
         try {
-            JobInfo jobInfo = new JobInfo(id);
             String partitionKey = metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
             Interval interval = getInterval(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), partitionKey);
             if (jobCfg.isTimeSlicingEnabled() && interval.isValid()) {
-                executeSlicingStatisticsJob(jobInfo, watch, param, interval, partitionKey);
+                executeSlicingStatisticsJob(jobInfo, param, interval, partitionKey);
             } else {
-                executeStatisticsJob(jobInfo, watch, param, getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString());
+                executeStatisticsJob(jobInfo, param, getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString());
             }
         } catch (Exception e) {
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
             log.error(e, "execute job error: jobId-{}", id);
         } finally {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_PROGRESS")),
-                    id, true, 1, watch.elapsed(TimeUnit.MILLISECONDS)));
+                    id, true, 1, System.currentTimeMillis() - jobInfo.getStartTime()));
         }
     }
 
-    private void executeStatisticsJob(JobInfo jobInfo, Stopwatch watch, Map<String, Object> param, String newFilter) throws JSQLParserException {
+    private void executeStatisticsJob(JobInfo jobInfo, Map<String, Object> param, String newFilter) throws JSQLParserException {
         long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter);
         if (currentCount == 0 || isCancel(jobInfo.getId())) {
             return;
@@ -128,15 +126,16 @@ public class JobExecuteService implements EnvironmentAware {
         PlainSelect plainSelectSQL = (PlainSelect) parseSQL.getSelectBody();
         plainSelectSQL.setWhere(plainSelect.getWhere());
         List<Future<Boolean>> list = Lists.newArrayList(taskExecuteService.executeStatistics(jobInfo.getId(), parseSQL.toString()));
-        updateProcess(jobInfo, watch, 1, list);
+        waitAsyncResultAndUpdateProcess(jobInfo, list);
     }
 
-    private void executeSlicingFieldDiscoveryJob(JobInfo jobInfo, Stopwatch watch, Map<String, Object> param, Interval interval, String partitionKey) {
+    private void executeSlicingFieldDiscoveryJob(JobInfo jobInfo, Map<String, Object> param, Interval interval, String partitionKey) {
         jobInfo.setTotalTimes((int) ((interval.getEnd() - interval.getStart()) / jobCfg.getTimeSlicingInterval() + 1));
         while (true) {
             jobInfo.setCurrentTimes(jobInfo.getCurrentTimes() + 1);
-            if (watch.elapsed(TimeUnit.MILLISECONDS) > jobCfg.getExecutionTimeout()) {
+            if (jobInfo.isTimeout()) {
                 log.error("execute job timeout: job-{}", jobInfo);
+                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, jobInfo.getId(), true));
                 break;
             }
             long start = interval.getEnd() - jobCfg.getTimeSlicingInterval();
@@ -145,18 +144,18 @@ public class JobExecuteService implements EnvironmentAware {
                 String newFilter = String.format("(%s) AND ( %s > %s AND %s <= %s)",
                         param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER),
                         partitionKey, interval.getEnd(), partitionKey, interval.getEnd() + jobCfg.getTimeSlicingInterval());
-                executeFieldDiscoveryJob(jobInfo, watch, param, newFilter);
+                executeFieldDiscoveryJob(jobInfo, param, newFilter);
             } else {
                 String where = String.format("(%s) AND (%s >= %s AND %s <= %s)",
                         param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER),
                         partitionKey, interval.getStart(), partitionKey, interval.getEnd());
-                executeFieldDiscoveryJob(jobInfo, watch, param, where);
+                executeFieldDiscoveryJob(jobInfo, param, where);
                 break;
             }
         }
     }
 
-    private void executeSlicingStatisticsJob(JobInfo jobInfo, Stopwatch watch, Map<String, Object> param, Interval interval, String partitionKey) throws JSQLParserException {
+    private void executeSlicingStatisticsJob(JobInfo jobInfo, Map<String, Object> param, Interval interval, String partitionKey) throws JSQLParserException {
         List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
         String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
         String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBTypeEnum.CLICKHOUSE.getValue());
@@ -173,8 +172,9 @@ public class JobExecuteService implements EnvironmentAware {
         int totalTimes = new Double(Math.ceil((dateList.size() - 1) * 1.0 / step)).intValue();
         jobInfo.setTotalTimes(totalTimes);
         while (true) {
-            if (watch.elapsed(TimeUnit.MILLISECONDS) > jobCfg.getExecutionTimeout()) {
+            if (jobInfo.isTimeout()) {
                 log.error("execute job timeout: job-{}", jobInfo);
+                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, jobInfo.getId(), true));
                 break;
             }
             long end2 = Long.parseLong(interval.getEnd().toString());
@@ -185,19 +185,19 @@ public class JobExecuteService implements EnvironmentAware {
                 String newFilter = String.format("(%s) AND ( %s > %s AND %s <= %s)",
                         getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(),
                         partitionKey, interval.getEnd(), partitionKey, end2);
-                executeStatisticsJob(jobInfo, watch, param, newFilter);
+                executeStatisticsJob(jobInfo, param, newFilter);
             } else {
                 String where = String.format("(%s) AND (%s >= %s AND %s <= %s)",
                         getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(),
                         partitionKey, interval.getStart(), partitionKey, interval.getEnd());
-                executeStatisticsJob(jobInfo, watch, param, where);
+                executeStatisticsJob(jobInfo, param, where);
                 break;
             }
             jobInfo.setCurrentTimes(jobInfo.getCurrentTimes() + 1);
         }
     }
 
-    private void executeFieldDiscoveryJob(JobInfo jobInfo, Stopwatch watch, Map<String, Object> param, String newFilter) {
+    private void executeFieldDiscoveryJob(JobInfo jobInfo, Map<String, Object> param, String newFilter) {
         long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter);
         if (currentCount == 0 || isCancel(jobInfo.getId())) {
             return;
@@ -210,26 +210,28 @@ public class JobExecuteService implements EnvironmentAware {
         for (String field : fields) {
             list.add(taskExecuteService.executeFieldDiscovery(jobInfo.getId(), param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter, field, currentCount));
         }
-        updateProcess(jobInfo, watch, fields.size(), list);
+        waitAsyncResultAndUpdateProcess(jobInfo, list);
     }
 
-    private void updateProcess(JobInfo jobInfo, Stopwatch watch, int fieldSize, List<Future<Boolean>> list) {
-        double process = 0.0;
+    private void waitAsyncResultAndUpdateProcess(JobInfo jobInfo, List<Future<Boolean>> taskList) {
+        double taskCompletedProcess = 0;
         while (true) {
-            if (watch.elapsed(TimeUnit.MILLISECONDS) > jobCfg.getExecutionTimeout()) {
-                list.forEach(o -> o.cancel(true));
+            if (jobInfo.isTimeout()) {
+                log.error("execute job timeout: job-{}", jobInfo);
+                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, jobInfo.getId(), true));
+                taskList.forEach(o -> o.cancel(true));
                 break;
             }
-            int doneNum = list.stream().filter(Future::isDone).toArray().length;
+            long completedTaskCount = taskList.stream().filter(Future::isDone).count();
             DecimalFormat format = getDecimalFormat();
-            double v = Double.parseDouble(format.format(jobInfo.getCurrentTimes() * 1.0 / jobInfo.getTotalTimes() -
-                    ((1 - doneNum * 1.0 / fieldSize) / jobInfo.getTotalTimes())));
-            if (v - process >= 0.1 && v < 1) {
-                process = v;
+
+            double jobCompletedProcess = Double.parseDouble(format.format(jobInfo.getCurrentTimes() * 1.0 / jobInfo.getTotalTimes() - ((1 - completedTaskCount * 1.0 / taskList.size()) / jobInfo.getTotalTimes())));
+            if (jobCompletedProcess - taskCompletedProcess >= 0.1 && jobCompletedProcess < 1) {
+                taskCompletedProcess = jobCompletedProcess;
                 execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_PROGRESS")),
-                        jobInfo.getId(), doneNum == fieldSize, v, watch.elapsed(TimeUnit.MILLISECONDS)));
+                        jobInfo.getId(), false, jobCompletedProcess, System.currentTimeMillis() - jobInfo.startTime));
             }
-            if (doneNum >= fieldSize) {
+            if (completedTaskCount >= taskList.size()) {
                 break;
             }
         }
@@ -370,11 +372,17 @@ public class JobExecuteService implements EnvironmentAware {
     @Data
     class JobInfo {
         private String id;
+        private long startTime = System.currentTimeMillis();
         private long count = 0;
         private int totalTimes = 1;
         private int currentTimes = 1;
+
         public JobInfo(String id) {
             this.id = id;
+        }
+
+        public boolean isTimeout() {
+            return System.currentTimeMillis() - startTime > jobCfg.getExecutionTimeout();
         }
     }
 
