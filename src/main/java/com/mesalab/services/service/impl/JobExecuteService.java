@@ -177,20 +177,14 @@ public class JobExecuteService implements EnvironmentAware {
                 executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, jobInfo.getId(), true));
                 break;
             }
-            long end2 = Long.parseLong(interval.getEnd().toString());
             int index = (int) (jobInfo.currentTimes * step);
             long start = dateList.get(dateList.size() <= index ? dateList.size() - 1 : index).getTime() / 1000;
-            if (start > interval.getStart()) {
-                interval.setEnd(start);
-                String newFilter = String.format("(%s) AND ( %s > %s AND %s <= %s)",
-                        getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(),
-                        partitionKey, interval.getEnd(), partitionKey, end2);
-                executeStatisticsJob(jobInfo, param, newFilter);
-            } else {
-                String where = String.format("(%s) AND (%s >= %s AND %s <= %s)",
-                        getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(),
-                        partitionKey, interval.getStart(), partitionKey, interval.getEnd());
-                executeStatisticsJob(jobInfo, param, where);
+            long end = dateList.get((int) (index - step)).getTime() / 1000;
+            String newFilter = String.format("(%s) AND ( %s >= %s AND %s < %s)",
+                    getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(),
+                    partitionKey, start, partitionKey, end);
+            executeStatisticsJob(jobInfo, param, newFilter);
+            if (start <= interval.getStart()) {
                 break;
             }
             jobInfo.setCurrentTimes(jobInfo.getCurrentTimes() + 1);
