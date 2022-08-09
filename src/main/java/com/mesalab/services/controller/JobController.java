@@ -58,15 +58,11 @@ public class JobController {
         return baseResult;
     }
 
-    @GetMapping(value = "/jobs/{jobId}/{queryType}")
-    public DeferredResult<BaseResult> longPollingResult(@PathVariable String jobId, @PathVariable String queryType) {
+    @GetMapping(value = "/jobs/{jobId}/field_discovery")
+    public DeferredResult<BaseResult> longPollingFieldDiscoveryResult(@PathVariable String jobId) {
         log.info("Long Polling Request,Job ID is {}", jobId);
         BaseResult baseResult = null;
-        if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
-            baseResult = jobService.getResultFieldDiscovery(jobId);
-        } else if (JobConfig.STATISTICS.equals(queryType)) {
-            baseResult = jobService.getResultStatistics(jobId);
-        }
+        baseResult = jobService.getResultFieldDiscovery(jobId);
         DeferredResult<BaseResult> deferredResult =
                 deferredResultHolder.newDeferredResult(jobId, jobConfig.getResponseTimeout(), baseResult);
         if (!jobConfig.isLongPollingEnabled()) {
@@ -75,6 +71,29 @@ public class JobController {
         }
         deferredResult.onTimeout(() -> {
             deferredResultHolder.handleDeferredData(deferredResult, jobService.getResultFieldDiscovery(jobId));
+        });
+
+        if (StringUtil.isNotEmpty(baseResult)
+                && StringUtil.isNotEmpty(baseResult.getJob())
+                && Boolean.valueOf(String.valueOf(baseResult.getJob().get(JobConfig.IS_DONE)))) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+        }
+        return deferredResult;
+    }
+
+    @GetMapping(value = "/jobs/{jobId}/statistics")
+    public DeferredResult<BaseResult> longPollingStatisticsResult(@PathVariable String jobId) {
+        log.info("Long Polling Request,Job ID is {}", jobId);
+        BaseResult baseResult = null;
+        baseResult = jobService.getResultStatistics(jobId);
+        DeferredResult<BaseResult> deferredResult =
+                deferredResultHolder.newDeferredResult(jobId, jobConfig.getResponseTimeout(), baseResult);
+        if (!jobConfig.isLongPollingEnabled()) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+            return deferredResult;
+        }
+        deferredResult.onTimeout(() -> {
+            deferredResultHolder.handleDeferredData(deferredResult, jobService.getResultStatistics(jobId));
         });
 
         if (StringUtil.isNotEmpty(baseResult)

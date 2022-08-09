@@ -95,10 +95,9 @@ public class JobExecuteService implements EnvironmentAware {
     public void addExecutorStatistics(String id, HashMap<String, Object> param) {
         JobInfo jobInfo = new JobInfo(id);
         try {
-            String partitionKey = metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
-            Interval interval = getInterval(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), partitionKey);
+            Interval interval = getInterval(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString()));
             if (jobCfg.isTimeSlicingEnabled() && interval.isValid()) {
-                executeSlicingStatisticsJob(jobInfo, param, interval, partitionKey);
+                executeSlicingStatisticsJob(jobInfo, param, interval);
             } else {
                 executeStatisticsJob(jobInfo, param, getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString());
             }
@@ -155,7 +154,8 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private void executeSlicingStatisticsJob(JobInfo jobInfo, Map<String, Object> param, Interval interval, String partitionKey) throws JSQLParserException {
+    private void executeSlicingStatisticsJob(JobInfo jobInfo, Map<String, Object> param, Interval interval) throws JSQLParserException {
+        String partitionKey = metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
         List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
         String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
         String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBTypeEnum.CLICKHOUSE.getValue());
