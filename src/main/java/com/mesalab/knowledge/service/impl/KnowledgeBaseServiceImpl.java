@@ -253,12 +253,24 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             Header header = new BasicHeader("token", hosConfig.getToken());
             InputStream inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), 3000, header);
             File file;
+            FileOutputStream outputStream = null;
             try {
                 file = new File("dat".concat(File.separator).concat(name));
-                IoUtil.copy(inputStream, new FileOutputStream(file));
+                outputStream = new FileOutputStream(file);
+                IoUtil.copy(inputStream, outputStream);
                 log.info("knowledge download name :{},version:{}", name, knowledgeBase.getVersion());
             } catch (FileNotFoundException e) {
                 log.error("file not fount,:{}", e);
+            }
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            } catch (IOException e) {
+                log.error(e);
             }
             KnowledgeBaseServiceImpl.updateTime.put(name, updateTime);
             KnowledgeBaseServiceImpl.updateTime.put("isUpdate", "true");
