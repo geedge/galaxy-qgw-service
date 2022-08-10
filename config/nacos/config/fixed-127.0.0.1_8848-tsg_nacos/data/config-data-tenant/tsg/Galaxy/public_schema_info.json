@@ -198,7 +198,7 @@
         },
         {
           "type": "array",
-          "functions": "has"
+          "functions": "has,notEmpty,empty"
         }
       ]
     }

@@ -953,7 +953,7 @@
       "label": "FQDN Category",
       "doc": {
         "constraints": {
-          "operator_functions": "has"
+          "operator_functions": "has,notEmpty,empty"
         },
         "visibility": "disabled",
         "dict_location": {

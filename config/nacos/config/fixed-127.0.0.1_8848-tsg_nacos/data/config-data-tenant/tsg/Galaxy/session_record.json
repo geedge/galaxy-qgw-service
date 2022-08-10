@@ -1285,7 +1285,7 @@
       "label": "FQDN Category",
       "doc": {
         "constraints": {
-          "operator_functions": "has"
+          "operator_functions": "has,notEmpty,empty"
         },
         "dict_location": {
           "path": "/v1/category/dict",
