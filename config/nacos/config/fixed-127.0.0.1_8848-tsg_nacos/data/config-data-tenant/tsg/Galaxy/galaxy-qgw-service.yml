@@ -27,9 +27,9 @@ management:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.40.153:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false
+    url: jdbc:mysql://192.168.44.12:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=GMT&failOverReadOnly=false
     username: ENC(63aTpwv2vH0vPikW+3Jjig==)
-    pin: ENC(BTHcN+Ynlgxwoe5AExC1qg==)
+    pin: ENC(LDEb2OekU7iZWiFw6pUYBSozVKP27r1y)
 ## Hbase configuration
 hbase:
   zookeeperQuorum: 192.168.44.12:2181
