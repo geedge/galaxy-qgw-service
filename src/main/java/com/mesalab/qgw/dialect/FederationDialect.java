@@ -162,15 +162,12 @@ public class FederationDialect extends AbstractEngineDialect{
         List<Map<String, Object>> data = JsonPath.read(meta, "$");
         SQLQuerySource querySource = StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource();
         Map<String, String> groupDimension = querySource.getGroupDimension();
-        if (StringUtil.isEmpty(groupDimension)) {
-            return;
-        }
         for (Map<String, Object> map : data) {
             String field = String.valueOf(map.get("name"));
-            if (!groupDimension.containsKey(field) && !groupDimension.containsValue(field)) {
-                map.put("category", "Metric");
-            } else {
+            if (StringUtil.isNotEmpty(groupDimension) && ((groupDimension.containsKey(field) || groupDimension.containsValue(field)))) {
                 map.put("category", "Dimension");
+            } else {
+                map.put("category", "Metric");
             }
         }
     }
