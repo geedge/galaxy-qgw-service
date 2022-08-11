@@ -5,6 +5,7 @@ import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.io.IOUtils;
@@ -14,8 +15,14 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -27,38 +34,84 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.*;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class HttpClientService {
+
     private static final Log log = LogFactory.get();
+
     @Autowired
     private HttpConfig httpConfig;
 
-    //全局连接池对象
-    private PoolingHttpClientConnectionManager connectionManager;
+//    //全局连接池对象
+//    private PoolingHttpClientConnectionManager connectionManager;
+
+//    /**
+//     * 初始化连接池信息
+//     */
+//    @PostConstruct
+//    public void initConnectionManager() {
+//        if (connectionManager == null) {
+//            connectionManager = new PoolingHttpClientConnectionManager();
+//            // 整个连接池最大连接数
+//            connectionManager.setMaxTotal(httpConfig.getMaxConnectionNum());
+//            // 每路由最大连接数，默认值是2
+//            connectionManager.setDefaultMaxPerRoute(httpConfig.getMaxPerRoute());
+//        }
+//        log.info("Initializing PoolingHttpClientConnectionManager Complete");
+//    }
 
     /**
-     * 初始化连接池信息
+     * 在调用SSL之前需要重写验证方法，取消检测SSL
+     * 创建ConnectionManager，添加Connection配置信息
+     *
+     * @return HttpClient 支持https
      */
-    @PostConstruct
-    public void initConnectionManager() {
-        if (connectionManager == null) {
-            connectionManager = new PoolingHttpClientConnectionManager();
-            // 整个连接池最大连接数
-            connectionManager.setMaxTotal(httpConfig.getMaxConnectionNum());
-            // 每路由最大连接数，默认值是2
-            connectionManager.setDefaultMaxPerRoute(httpConfig.getMaxPerRoute());
+    private PoolingHttpClientConnectionManager getSslClientManager() {
+        try {
+            // 在调用SSL之前需要重写验证方法，取消检测SSL
+            X509TrustManager trustManager = new X509TrustManager() {
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+                @Override
+                public void checkClientTrusted(X509Certificate[] xcs, String str) {
+                }
+                @Override
+                public void checkServerTrusted(X509Certificate[] xcs, String str) {
+                }
+            };
+            SSLContext ctx = SSLContext.getInstance(SSLConnectionSocketFactory.TLS);
+            ctx.init(null, new TrustManager[]{trustManager}, null);
+            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE);
+            Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                    .register("http", PlainConnectionSocketFactory.INSTANCE)
+                    .register("https", socketFactory).build();
+            // 创建ConnectionManager，添加Connection配置信息
+            PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+            // 设置最大连接数
+            connManager.setMaxTotal(httpConfig.getMaxConnectionNum());
+            // 设置每个连接的路由数
+            connManager.setDefaultMaxPerRoute(httpConfig.getMaxPerRoute());
+            return connManager;
+        } catch (KeyManagementException e) {
+            log.error(e);
+            throw new BusinessException(e.getMessage());
+        } catch (NoSuchAlgorithmException e) {
+            log.error(e);
+            throw new BusinessException(e.getMessage());
         }
-        log.info("Initializing PoolingHttpClientConnectionManager Complete");
     }
 
     /**
@@ -144,7 +197,7 @@ public class HttpClientService {
                 .setRetryHandler(retry)
                 .setKeepAliveStrategy(myStrategy)
                 // 配置连接池管理对象
-                .setConnectionManager(connectionManager)
+                .setConnectionManager(getSslClientManager())
                 .build();
     }
 
