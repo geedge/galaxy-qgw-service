@@ -4,6 +4,11 @@
   "namespace": "tsg_galaxy",
   "fields": [
     {
+      "name": "ROWKEY",
+      "label": "Row Key",
+      "type": "string"
+    },
+    {
       "name": "teid",
       "label": "Teid",
       "type": "int"
@@ -34,10 +39,9 @@
       "type": "int"
     },
     {
-      "name": "On Off Type",
-      "label": "onff_type",
+      "name": "onff_type",
+      "label": "On Off Type",
       "type": "int"
     }
-
   ]
 }
