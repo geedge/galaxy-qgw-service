@@ -32,6 +32,12 @@
       "name": "last_update_time",
       "label": "Last Update Time",
       "type": "int"
+    },
+    {
+      "name": "On Off Type",
+      "label": "onff_type",
+      "type": "int"
     }
+
   ]
 }
