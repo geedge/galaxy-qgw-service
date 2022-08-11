@@ -163,7 +163,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "string"
+      "type": "int"
     }
   ]
 }

@@ -888,7 +888,7 @@
     },
     {
       "name": "common_namespace_id",
-      "type": "string",
+      "type": "int",
       "doc": {
         "visibility": "hidden"
       },
