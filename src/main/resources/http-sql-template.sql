@@ -95,5 +95,5 @@ SELECT name, engine_full AS table_ttl FROM tables WHERE name ='%s_local' AND  da
 #end
 
 #sql("GTPC_KNOWLEDGE_BASE")
-SELECT teid, apn, phone_number,imsi,imei FROM tsg_galaxy.gtpc_knowledge_base WHERE msg_type=1 %s order by last_update_time desc limit %s
+SELECT teid, apn, phone_number,imsi,imei FROM tsg_galaxy.gtpc_knowledge_base WHERE onff_type=1 %s order by last_update_time desc limit %s
 #end
