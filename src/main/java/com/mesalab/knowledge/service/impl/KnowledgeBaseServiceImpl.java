@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -65,7 +66,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     @Override
     public BaseResult knowledgeQuery() {
-        return BaseResultGenerator.success(queryKnowledgeBaseList());
+        List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
+        List<KnowledgeBase> list = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList());
+        return BaseResultGenerator.success(list);
     }
 
     @Override
@@ -198,7 +201,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         Header header = new BasicHeader("token", hosConfig.getToken());
         String assessmentFile = null;
         try {
-            assessmentFile = uri.concat(bucket).concat(Base64.getEncoder().encodeToString(id.getBytes("UTF-8")));
+            assessmentFile = uri.concat(bucket).concat("/").concat(Base64.getEncoder().encodeToString(id.getBytes("UTF-8")));
         } catch (UnsupportedEncodingException e) {
             log.error(e);
         }
