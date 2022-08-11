@@ -145,6 +145,10 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
            return false;
         }
 
+        if (selectItemExprList.size() > (groupByList.size() + functionList.size())) {
+            return false;
+        }
+
         List unsupportedFunctionList =  functionList.stream().filter(o ->
                 StringUtil.isBlank(SQLFunctionUtil.getDistributedGroupByFunction(o))).collect(Collectors.toList());
         if(unsupportedFunctionList.size() > 0) {
