@@ -8,7 +8,6 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.jayway.jsonpath.JsonPath;
 import com.jfinal.plugin.activerecord.Db;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -30,12 +29,9 @@ import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -46,7 +42,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
@@ -200,18 +195,11 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             try {
                 Map<String, List<Map<String, Object>>> result = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
                 resultList = result.get("data");
-                 meta = result.get("meta");
-                Map map2 = com.mesalab.common.utils.JsonMapper.fromJsonString(map.get(JobConfig.JOB_PROPERTY).toString(), Map.class);
-
-                if (map2.containsKey(JobConfig.JOB_PROPERTY_LIMIT)) {
-                    int limit = JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.JOB_PROPERTY_LIMIT));
-                    resultList = resultList.size() > limit ? resultList.subList(0, limit) : resultList;
-                }
+                meta = result.get("meta");
             } catch (RuntimeException e) {
                 log.error("parse jobId-{}, field-{} error, message is: {}", JobConfig.STATISTICS_RESULT, id, e.getMessage());
             }
         }
-
         HashMap<String, Object> statistics = Maps.newHashMap();
         statistics.put("elapsed", map.get(JobConfig.DURATION_TIME));
         statistics.put("rows_read", resultList.size());
@@ -294,9 +282,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private void initStatisticsJob(String id, HashMap<String, Object> body) {
-        Map<String, Object> property = Maps.newLinkedHashMap();
-        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.STATISTICS);
-        buildJobPropertyStatistics(String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL)), property);
+        Map<String, Object> property = buildJobPropertyStatistics(String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL)));
         execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
     }
 
@@ -321,82 +307,30 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(param), 0, 0));
     }
 
-    private void buildJobPropertyStatistics(String sql, Map<String, Object> property) {
-        net.sf.jsqlparser.statement.Statement statement = null;
+    private Map<String, Object> buildJobPropertyStatistics(String sql) {
+        Map<String, Object> property = Maps.newLinkedHashMap();
+        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.STATISTICS);
+        net.sf.jsqlparser.statement.Statement statement;
         try {
             statement = CCJSqlParserUtil.parse(sql);
             if (statement instanceof Select && ((Select) statement).getSelectBody() instanceof PlainSelect) {
                 PlainSelect plainSelect = (PlainSelect) ((Select) statement).getSelectBody();
 
-                Limit limit = plainSelect.getLimit();
-                if (StringUtil.isNotEmpty(limit) && limit.getRowCount() instanceof LongValue) {
-                    property.put(JobConfig.JOB_PROPERTY_LIMIT, Long.valueOf(limit.getRowCount().toString()));
+                /*group by*/
+                GroupByElement groupBy = plainSelect.getGroupBy();
+                if (StringUtil.isEmpty(groupBy)) {
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                            "statistics job init error, not support non-aggregate SQL is: " + sql, null);
                 }
-
-                List<SelectItem> selectItems = plainSelect.getSelectItems();
-                Map<String, String> fieldAlias = Maps.newHashMap();/** k=column,v=alias **/
-                selectItems.forEach(o -> {
-                    if (o instanceof SelectExpressionItem) {
-                        SelectExpressionItem selectExpressionItem = (SelectExpressionItem) o;
-                        Expression expression = selectExpressionItem.getExpression();
-                        Alias alias = selectExpressionItem.getAlias();
-                        fieldAlias.put(expression.toString(), StringUtil.isEmpty(alias) ? expression.toString() : alias.getName());
-                    }
-                });
-
-                property.put(JobConfig.isASC, true);
-                List<OrderByElement> orderByElements = plainSelect.getOrderByElements();
-                if (StringUtil.isNotEmpty(orderByElements)) {
-                    OrderByElement orderByElement = orderByElements.get(0);
-                    property.put(JobConfig.isASC, orderByElement.isAsc());
-                    String orderBy = orderByElement.getExpression().toString();
-                    property.put(JobConfig.JOB_PROPERTY_ORDER, fieldAlias.containsKey(orderBy) ? fieldAlias.get(orderBy) : orderBy);
-                }
-
-
-                //timeChart
-                List<SelectItem> functions = selectItems.stream().filter(o -> ((o instanceof SelectExpressionItem) && (((SelectExpressionItem) o).getExpression()) instanceof Function)).collect(Collectors.toList());
-                for (SelectItem selectItem : functions) {
-                    SelectExpressionItem select = ((SelectExpressionItem) selectItem);
-                    Expression expression = select.getExpression();
-                    if (expression instanceof Function) {
-                        Function function = ((Function) (expression));
-                        buildTimeChart(property, fieldAlias.get(select.getExpression().toString()), function);
-                    }
-                }
-                //top rare
-                List<SelectItem> column = selectItems.stream().filter(o -> ((o instanceof SelectExpressionItem) && (((SelectExpressionItem) o).getExpression()) instanceof Column)).collect(Collectors.toList());
-                for (SelectItem selectItem : column) {
-                    SelectExpressionItem select = (SelectExpressionItem) selectItem;
-                    if (BooleanUtil.toBoolean(property.get(JobConfig.isASC).toString())) {
-                        property.put(JobConfig.JOB_PROPERTY_SUB_TYPE, JobConfig.JOB_PROPERTY_SUB_TYPE_RARE);
-                    } else {
-                        property.put(JobConfig.JOB_PROPERTY_SUB_TYPE, JobConfig.JOB_PROPERTY_SUB_TYPE_TOP);
-                    }
-                    property.put(JobConfig.JOB_PROPERTY_RESULT_FIELD, fieldAlias.get(select.getExpression().toString()));
-                }
+            } else {
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                        "statistics job init error, not support, SQL is: " + sql, null);
             }
         } catch (JSQLParserException | RuntimeException e) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    "Job Validation Error: ".concat(e.getMessage()), null);
+                    "statistics job init error: ".concat(e.getMessage()), null);
         }
-    }
-
-    private void buildTimeChart(Map<String, Object> param, String name, Function function) {
-        if (SQLFunctionUtil.TIME_FLOOR_WITH_FILL.equals(function.getName())) {
-            param.put(JobConfig.JOB_PROPERTY_SUB_TYPE, JobConfig.JOB_PROPERTY_SUB_TYPE_TIMECHART);
-            param.put(JobConfig.JOB_PROPERTY_RESULT_FIELD, name);
-        } else {
-            if (StringUtil.isEmpty(function.getParameters())) {
-                return;
-            }
-            List<Expression> expressions = function.getParameters().getExpressions();
-            for (Expression expression : expressions) {
-                if (expression instanceof Function) {
-                    buildTimeChart(param, name, (Function) expression);
-                }
-            }
-        }
+        return property;
     }
 
     private List<Map<String, Object>> validationData(String id) {

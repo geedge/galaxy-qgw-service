@@ -85,30 +85,11 @@ public class TaskExecuteService implements EnvironmentAware {
     @Async("taskExecutor")
     public Future<Boolean> executeStatistics(String id, String sql) {
         BaseResult lastResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
-        BaseResult preResult = apiService.executeQuery(ApiParam.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
-        if (preResult.isSuccess() && lastResult.isSuccess()) {
+        if (lastResult.isSuccess()) {
             List<Map<String, Object>> lastData = (List<Map<String, Object>>) lastResult.getData();
             List<Map<String, Object>> meta = (List<Map<String, Object>>) lastResult.getMeta();
-            Map map = ((List<Map>) preResult.getData()).get(0);
-            Object preData;
-            List<Map<String, Object>> preDate = Lists.newArrayList();
-            Boolean isAsc = JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.isASC));
-            if (StringUtil.isNotEmpty(preData = map.get(JobConfig.STATISTICS_RESULT))) {
-                Map item = JSONUtil.toBean(preData.toString(), Map.class);
-                preDate = (List<Map<String, Object>>) item.get("data");
-                meta = (List<Map<String, Object>>) item.get("meta");
-                if (isAsc) {
-                    lastData.addAll(preDate);
-                } else {
-                    preDate.addAll(lastData);
-                }
-            }
-            List<Map<String, Object>> listPreMerge = lastData.size() > preDate.size() ? lastData : preDate;
-            String groupBy = JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.JOB_PROPERTY_RESULT_FIELD));
-            String subType = JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.JOB_PROPERTY_SUB_TYPE));
-            List listAfterMerge = JobConfig.JOB_PROPERTY_SUB_TYPE_TIMECHART.equals(subType) ? listPreMerge : mergeSortStatistics(listPreMerge, groupBy, JsonPath.read(JSONUtil.toJsonStr(map.get(JobConfig.JOB_PROPERTY)), "$.".concat(JobConfig.JOB_PROPERTY_ORDER)), isAsc);
             Map<String, Object> valueMap = Maps.newHashMap();
-            valueMap.put("data", listAfterMerge);
+            valueMap.put("data", lastData);
             valueMap.put("meta", meta);
             String result = JSONUtil.quote(JSONUtil.toJsonStr(valueMap), false).replace("'", "\\'");
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.STATISTICS, "result", id, result));
