@@ -37,6 +37,11 @@
       "name": "last_update_time",
       "label": "Last Update Time",
       "type": "int"
+    },
+    {
+      "name": "msg_type",
+      "label": "Message Type",
+      "type": "int"
     }
   ]
 }
