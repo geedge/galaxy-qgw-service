@@ -22,10 +22,10 @@ public class KnowledgeBaseController {
     KnowledgeBaseService knowledgeService;
 
     @GetMapping(produces = "application/json")
-    public BaseResult knowledgeQuery() {
+    public BaseResult queryKnowledge() {
 
         try {
-            return knowledgeService.knowledgeQuery();
+            return knowledgeService.queryKnowledge();
         } catch (BusinessException e) {
             log.error("查询知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to query:" + e.getErrorMessage());
@@ -35,12 +35,12 @@ public class KnowledgeBaseController {
 
 
     @PostMapping(produces = "application/json")
-    public BaseResult addKnowledge(@RequestParam("file") MultipartFile file,
+    public BaseResult publishKnowledge(@RequestParam("file") MultipartFile file,
                                    KnowledgeBase knowledge) {
 
         try {
             KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
-            return knowledgeService.addKnowledge(file, knowledgeBase);
+            return knowledgeService.publishKnowledge(file, knowledgeBase);
         } catch (BusinessException e) {
             log.error("发布知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to upload file:" + e.getErrorMessage());

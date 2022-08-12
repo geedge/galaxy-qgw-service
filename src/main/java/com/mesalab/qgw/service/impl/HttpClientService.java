@@ -5,7 +5,6 @@ import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.io.IOUtils;
@@ -562,7 +561,6 @@ public class HttpClientService {
             if (StringUtil.isNotEmpty(headers)) {
                 for (Header h : headers) {
                     httpPut.addHeader(h);
-                    log.info("request header : {}",h);
                 }
             }
 
@@ -609,7 +607,6 @@ public class HttpClientService {
         if (StringUtil.isNotEmpty(headers)) {
             for (Header h : headers) {
                 httpGet.addHeader(h);
-                log.info("request header : {}",h);
             }
         }
         CloseableHttpResponse response = null;
@@ -659,14 +656,12 @@ public class HttpClientService {
             URL ul = new URL(url);
 
             URI uri = new URI(ul.getProtocol(),null,  ul.getHost(),  ul.getPort(), ul.getPath(), ul.getQuery(), null);
-
             log.info("http delete uri:{}", uri);
 
             HttpDelete httpdelete = new HttpDelete(uri);
             if (StringUtil.isNotEmpty(headers)) {
                 for (Header h : headers) {
                     httpdelete.addHeader(h);
-                    log.info("request header : {}",h);
                 }
             }
             response = httpClient.execute(httpdelete);
@@ -682,10 +677,8 @@ public class HttpClientService {
             log.error("协议错误: {}", e.getMessage());
         } catch (ParseException e) {
             log.error("解析错误: {}", e.getMessage());
-
         } catch (IOException e) {
             log.error("IO错误: {}", e.getMessage());
-
         }finally{
             if (null != response) {
                 try {

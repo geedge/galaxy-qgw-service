@@ -9,9 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
  * @Date 2022/7/11
  */
 public interface KnowledgeBaseService {
-    BaseResult addKnowledge(MultipartFile file, KnowledgeBase knowledge);
+    BaseResult publishKnowledge(MultipartFile file, KnowledgeBase knowledge);
 
-    BaseResult knowledgeQuery();
+    BaseResult queryKnowledge();
 
     BaseResult updateKnowledge(MultipartFile file, KnowledgeBase knowledgeBase);
 
