@@ -16,11 +16,6 @@
         "type": "string"
       },
       {
-        "name": "entrance_id",
-        "fieldName": "common_entrance_id",
-        "type": "string"
-      },
-      {
         "name": "isp",
         "fieldName": "common_isp",
         "type": "string"

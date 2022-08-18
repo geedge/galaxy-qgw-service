@@ -66,14 +66,6 @@
       }
     },
     {
-      "name": "entrance_id",
-      "label": "Entrance ID",
-      "type": "long",
-      "doc": {
-        "visibility": "disabled"
-      }
-    },
-    {
       "name": "schema_type",
       "label": "Schema Type",
       "type": "string",

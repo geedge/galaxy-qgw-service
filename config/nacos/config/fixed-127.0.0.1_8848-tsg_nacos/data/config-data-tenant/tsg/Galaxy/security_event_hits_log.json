@@ -34,14 +34,6 @@
       }
     },
     {
-      "name": "entrance_id",
-      "label": "Entrance ID",
-      "type": "long",
-      "doc": {
-        "visibility": "disabled"
-      }
-    },
-    {
       "name": "policy_id",
       "label": "Policy ID",
       "type": "long",

@@ -46,14 +46,6 @@
       "type": "string"
     },
     {
-      "name": "entrance_id",
-      "label": "Entrance ID",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
       "name": "data_center",
       "label": "Data Center",
       "type": "string",

@@ -34,14 +34,6 @@
       "type": "string"
     },
     {
-      "name": "entrance_id",
-      "label": "Entrance ID",
-      "type": "long",
-      "doc": {
-        "visibility": "disabled"
-      }
-    },
-    {
       "name": "allow_conn_num",
       "label": "Allow Sessions",
       "doc": {
