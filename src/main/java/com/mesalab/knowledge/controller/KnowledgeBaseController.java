@@ -28,7 +28,7 @@ public class KnowledgeBaseController {
             return knowledgeService.queryKnowledge();
         } catch (BusinessException e) {
             log.error("查询知识库失败:{}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to query:" + e.getErrorMessage());
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Query knowledge error::" + e.getErrorMessage());
         }
 
     }
@@ -43,7 +43,7 @@ public class KnowledgeBaseController {
             return knowledgeService.publishKnowledge(file, knowledgeBase);
         } catch (BusinessException e) {
             log.error("发布知识库失败:{}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to upload file:" + e.getErrorMessage());
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Publish knowledge error:" + e.getErrorMessage());
         }
     }
 
@@ -54,7 +54,7 @@ public class KnowledgeBaseController {
             return knowledgeService.updateKnowledge(file, knowledge);
         } catch (BusinessException e) {
             log.error("更新知识库失败:{}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to upload file:" + e.getErrorMessage());
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Update knowledge error:" + e.getErrorMessage());
         }
     }
 
@@ -65,7 +65,7 @@ public class KnowledgeBaseController {
             return knowledgeService.deleteKnowledge(id);
         } catch (BusinessException e) {
             log.error("删除知识库失败:{}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "failed to delete file:" + e.getErrorMessage());
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Delete knowledge error:" + e.getErrorMessage());
         }
     }
 

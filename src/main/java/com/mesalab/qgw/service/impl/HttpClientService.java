@@ -446,8 +446,7 @@ public class HttpClientService {
         CloseableHttpClient httpClient = getHttpClient(httpConfig.getArangoSocketTimeOut());
         CloseableHttpResponse response = null;
         try {
-            URL ul = new URL(url);
-            URI uri = new URI(ul.getProtocol(), null, ul.getHost(), ul.getPort(), ul.getPath(), ul.getQuery(), null);
+            URI uri = new URI(url);
             log.info("http get uri {}", uri);
             // 创建GET请求对象
             HttpGet httpGet = new HttpGet(uri);
@@ -495,8 +494,7 @@ public class HttpClientService {
         CloseableHttpResponse response = null;
         try {
 
-            URL ul = new URL(url);
-            URI uri = new URI(ul.getProtocol(), null, ul.getHost(), ul.getPort(), ul.getPath(), ul.getQuery(), null);
+            URI uri = new URI(url);
             log.debug("http post uri:{}， http post body:{}", uri, requestBody);
             HttpPost httpPost = new HttpPost(uri);
             httpPost.setHeader("Content-Type", "application/json");
@@ -551,8 +549,7 @@ public class HttpClientService {
         CloseableHttpResponse response = null;
         try {
 
-            URL ul = new URL(url);
-            URI uri = new URI(ul.getProtocol(),null,  ul.getHost(),  ul.getPort(), ul.getPath(), ul.getQuery(), null);
+            URI uri = new URI(url);
 
             log.info("http post uri:{} ", url);
 
@@ -653,9 +650,7 @@ public class HttpClientService {
         CloseableHttpResponse response = null;
 
         try {
-            URL ul = new URL(url);
-
-            URI uri = new URI(ul.getProtocol(),null,  ul.getHost(),  ul.getPort(), ul.getPath(), ul.getQuery(), null);
+            URI uri = new URI(url);
             log.info("http delete uri:{}", uri);
 
             HttpDelete httpdelete = new HttpDelete(uri);
