@@ -58,6 +58,15 @@
       }
     },
     {
+      "name": "vsys_id",
+      "label": "VSYS ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
       "name": "destination",
       "label": "Server IP",
       "doc": {
