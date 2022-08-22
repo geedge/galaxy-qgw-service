@@ -157,14 +157,6 @@
         "visibility": "enabled"
       },
       "type": "long"
-    },
-    {
-      "name": "namespace_id",
-      "label": "Namespace ID",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "int"
     }
   ]
 }

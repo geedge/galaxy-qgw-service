@@ -435,14 +435,6 @@
       "label": "User Region"
     },
     {
-      "name": "common_namespace_id",
-      "type": "int",
-      "doc": {
-        "visibility": "hidden"
-      },
-      "label": "Namespace ID"
-    },
-    {
       "name": "common_device_id",
       "type": "string",
       "doc": {
