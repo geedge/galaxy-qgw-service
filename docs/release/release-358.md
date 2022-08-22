@@ -7,7 +7,6 @@
 * 修改Schema，Schema.field.doc.format 格式变更(TSG-11386)
 * 新增推荐接口,GTP-C Mobile Identities和APNs相关TEID推荐接口功能开发(TSG-11251)
 * 扩展实时查询任务，查询任务增加实时统计功能(TSG-11021)
-* 扩展Schema，增加公共字段common_namespace_id(TSG-11452)
 * 扩展Schema，Proxy 动作增加数据字典项Run Script(TSG-11522)
 * 修改Schema，修复FQDN Category字段无法使用notEmpty条件的问题(TSG-11622)
 * 修改Schema，将FQDN Category字段从维度列表、指标列表中移除(TSG-11619)
