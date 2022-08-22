@@ -10,4 +10,3 @@
 * 扩展Schema，Proxy 动作增加数据字典项Run Script(TSG-11522)
 * 修改Schema，修复FQDN Category字段无法使用notEmpty条件的问题(TSG-11622)
 * 修改Schema，将FQDN Category字段从维度列表、指标列表中移除(TSG-11619)
-* 扩展Schema，安全/代理事件Metrics表新增namespace_id字段(TSG-11651)
