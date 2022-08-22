@@ -172,16 +172,19 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     private BaseResult deduplicationData(BaseResult baseResult, ComDSLObject.Query query) {
         Object data = baseResult.getData();
         if (ObjectUtil.isNotEmpty(data)) {
-
             List<Map<String, Object>> mapList = (List<Map<String, Object>>) data;
             ArrayList<Map<String, Object>> collect = mapList.stream().collect(Collectors.collectingAndThen(
                     Collectors.toCollection(() -> new TreeSet<>(
-                            Comparator.comparing(e -> e.get("phone_number") + ";" + e.get("imsi") + ";" + e.get("imei")))), ArrayList::new));
+                            Comparator.comparing(e -> e.get("phone_number") + ";"))), ArrayList::new));
+            ArrayList<Map<String, Object>> list = collect.stream().collect(Collectors.collectingAndThen(
+                    Collectors.toCollection(() -> new TreeSet<>(
+                            Comparator.comparing(e -> e.get("phone_number") + ";" + e.get("imsi") + ";"))), ArrayList::new));
+
             String limit = query.getLimit();
-            if (StringUtil.isNotEmpty(limit) && Long.parseLong(limit) < collect.size()) {
-                baseResult.setData(collect.subList(0, Integer.parseInt(query.getLimit())));
+            if (StringUtil.isNotEmpty(limit) && Long.parseLong(limit) < list.size()) {
+                baseResult.setData(list.subList(0, Integer.parseInt(query.getLimit())));
             } else {
-                baseResult.setData(collect);
+                baseResult.setData(list);
             }
         }
         return baseResult;
