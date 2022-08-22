@@ -4,14 +4,19 @@
   "namespace": "tsg_galaxy",
   "fields": [
     {
+      "name": "uplink_teid",
+      "label": "Up Link Teid",
+      "type": "int"
+    },
+    {
+      "name": "downlink_teid",
+      "label": "Down Link Teid",
+      "type": "int"
+    },
+    {
       "name": "ROWKEY",
       "label": "Row Key",
       "type": "string"
-    },
-    {
-      "name": "teid",
-      "label": "Teid",
-      "type": "int"
     },
     {
       "name": "apn",
