@@ -188,14 +188,9 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     /**
 
      * 根据map中的某个key 去除List中重复的map
-
-     * @author  shijing
-
      * @param list
-
      * @param mapKey
-
-     * @return
+     * @return list
 
      */
 
