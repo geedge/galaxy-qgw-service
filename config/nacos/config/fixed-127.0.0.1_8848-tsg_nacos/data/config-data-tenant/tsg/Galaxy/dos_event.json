@@ -241,6 +241,16 @@
       "type": "long"
     },
     {
+      "name": "vsys_id",
+      "label": "VSYS ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
       "name": "attack_type",
       "label": "Attack Type",
       "doc": {
