@@ -30,7 +30,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 
@@ -173,17 +172,9 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
         Object data = baseResult.getData();
         if (ObjectUtil.isNotEmpty(data)) {
             List<Map<String, Object>> mapList = (List<Map<String, Object>>) data;
-
-            ArrayList<Map<String, Object>> deduplicationPhoneList = mapList.stream().collect(Collectors.collectingAndThen(
-                    Collectors.toCollection(() -> new TreeSet<>(
-                            Comparator.comparing(e -> e.get("phone_number") + ";"))), ArrayList::new));
-            ArrayList<Map<String, Object>> deduplicationIMSIList = deduplicationPhoneList.stream().collect(Collectors.collectingAndThen(
-                    Collectors.toCollection(() -> new TreeSet<>(
-                            Comparator.comparing(e ->e.get("imsi") + ";"))), ArrayList::new));
-
-            ArrayList<Map<String, Object>> list = deduplicationIMSIList.stream().collect(Collectors.collectingAndThen(
-                    Collectors.toCollection(() -> new TreeSet<>(
-                            Comparator.comparing(e -> e.get("teid") + ";"))), ArrayList::new));
+            List<Map<String, Object>> deduplicationPhoneList = removeRepeatMapByKey(mapList, "phone_number");
+            List<Map<String, Object>> deduplicationIMSIList = removeRepeatMapByKey(deduplicationPhoneList, "imsi");
+            List<Map<String, Object>> list = removeRepeatMapByKey(deduplicationIMSIList, "teid");
             String limit = query.getLimit();
             if (StringUtil.isNotEmpty(limit) && Long.parseLong(limit) < list.size()) {
                 baseResult.setData(list.subList(0, Integer.parseInt(query.getLimit())));
@@ -193,6 +184,58 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
         }
         return baseResult;
     }
+
+    /**
+
+     * 根据map中的某个key 去除List中重复的map
+
+     * @author  shijing
+
+     * @param list
+
+     * @param mapKey
+
+     * @return
+
+     */
+
+    public List<Map<String, Object>> removeRepeatMapByKey(List<Map<String, Object>> list, String mapKey) {
+
+        //把list中的数据转换成map,去掉同一id值多余数据，保留查找到第一个id值对应的数据
+
+        List<Map<String, Object>> listMap = new ArrayList<>();
+
+        Map<Object, Object> msp = new HashMap<>();
+
+        for (int i = list.size() - 1; i >= 0; i--) {
+            Map<String, Object> map = list.get(i);
+            Object id =  map.get(mapKey);
+            if (ObjectUtil.isNotEmpty(id)){
+                map.remove(mapKey);
+                msp.put(id, map);
+            } else {
+                listMap.add(map);
+            }
+        }
+
+        Set mspKey = msp.keySet();
+        for (Object key : mspKey) {
+            Map<String, Object> newMap = (Map<String, Object>) msp.get(key);
+            newMap.put(mapKey, key);
+            listMap.add(newMap);
+        }
+        Collections.sort(listMap, new Comparator<Map<String, Object>>() {
+            @Override
+            public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                Long name1 = Long.valueOf(o1.get("last_update_time").toString());
+                Long name2 = Long.valueOf(o2.get("last_update_time").toString());
+                return name2.compareTo(name1);
+            }
+        });
+        return listMap;
+
+    }
+
     @Override
     public void setEnvironment(Environment environment) {
         this.env = environment;

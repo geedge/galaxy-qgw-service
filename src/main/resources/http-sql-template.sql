@@ -95,5 +95,5 @@ SELECT name, engine_full AS table_ttl FROM tables WHERE name ='%s_local' AND  da
 #end
 
 #sql("GTPC_KNOWLEDGE_BASE")
-SELECT uplink_teid AS teid, apn, phone_number, imsi, imei, last_update_time FROM tsg_galaxy.gtpc_knowledge_base WHERE msg_type = 1 %s order by last_update_time desc limit %s
+SELECT uplink_teid AS teid, apn, phone_number, imsi, imei, last_update_time FROM tsg_galaxy.gtpc_knowledge_base WHERE msg_type = 1 and uplink_teid !=0 %s order by last_update_time desc limit %s
 #end
