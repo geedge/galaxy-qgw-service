@@ -78,17 +78,31 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
 
     private String generateQuerySql(ComDSLObject.Query query) {
 
-        String fieldWhere = parseMath(generateRowKey(query));
+        List<ComDSLObject.Query.FilterBean> match = query.getParameters().getMatch();
+        StringBuffer fieldWhere = new StringBuffer();
+        for (ComDSLObject.Query.FilterBean filterBean : match) {
+            match = new ArrayList<>();
+            if (StringUtil.equals(MatchEnum.REGEX.getType(), filterBean.getType())) {
+                Map<String, ComDSLObject.Query.FilterBean> map = transformData(filterBean);
+                for (Map.Entry<String, ComDSLObject.Query.FilterBean> entry : map.entrySet()) {
+                    ComDSLObject.Query.FilterBean bean = entry.getValue();
+                    match.add(generateRowKey(bean));
+                }
+                fieldWhere.append(parseMath(match));
+            } else {
+                match.add(filterBean);
+                fieldWhere.append(parseMath(match));
+            }
+
+        }
         String sql = String.format(Objects.requireNonNull(env.getProperty("GTPC_KNOWLEDGE_BASE")), fieldWhere, entityConfigSource.getTopGTPCDefaultSize());
         log.info("real time relation gtpc query sql: {}", sql);
         return sql;
     }
 
-    private ComDSLObject.Query generateRowKey(ComDSLObject.Query query) {
+    private ComDSLObject.Query.FilterBean generateRowKey(ComDSLObject.Query.FilterBean filterBean) {
 
-        List<ComDSLObject.Query.FilterBean> match = query.getParameters().getMatch();
 
-        for (ComDSLObject.Query.FilterBean filterBean : match) {
             //Phone Number,APN 倒排
             String fieldKey = filterBean.getFieldKey();
             List<String> fieldValues = filterBean.getFieldValues();
@@ -128,25 +142,62 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
                 filterBean.setFieldKey("ROWKEY");
                 filterBean.setType(MatchEnum.PREFIX.getType());
             }
-        }
 
-        return query;
+        return filterBean;
     }
 
-    public static String parseMath(ComDSLObject.Query query) {
-        if (ObjectUtil.isEmpty(query) || ObjectUtil.isEmpty(query.getParameters()) || ObjectUtil.isEmpty(query.getParameters().getMatch())) {
-            return StringUtil.EMPTY;
+    private Map<String, ComDSLObject.Query.FilterBean> transformData(ComDSLObject.Query.FilterBean filterBean) {
+
+        Map<String, ComDSLObject.Query.FilterBean> map = new HashMap<>();
+        List<String> fieldValues = filterBean.getFieldValues();
+        String fieldKey = filterBean.getFieldKey();
+        for (String value : fieldValues) {
+            String type = getTypeByValue(value);
+            String val =  value.replaceAll("\\$", "").replaceAll("\\*", "");
+            ComDSLObject.Query.FilterBean filter = map.get(type);
+            if (ObjectUtil.isEmpty(filter)) {
+                filter = new ComDSLObject.Query.FilterBean();
+                List<String> fieldValueList = new ArrayList<>();
+                filter.setType(type);
+                filter.setFieldKey(fieldKey);
+                fieldValueList.add(val);
+                filter.setFieldValues(fieldValueList);
+                map.put(type, filter);
+            } else {
+                filter.getFieldValues().add(val);
+            }
         }
-        List<ComDSLObject.Query.FilterBean> matches = query.getParameters().getMatch();
+        return map;
+    }
+
+    private String getTypeByValue(String value) {
+
+        String type;
+        if (value.startsWith("$")) {
+            type = MatchEnum.EXACTLY.getType();
+        } else if (value.startsWith("*") && !value.endsWith("*")) {
+            type = MatchEnum.SUFFIX.getType();
+        } else if (value.endsWith("*") && !value.startsWith("*")) {
+            type = MatchEnum.PREFIX.getType();
+        } else if (value.startsWith("*") && value.endsWith("*")) {
+            type = MatchEnum.SUBSTRING.getType();
+        } else {
+            type = MatchEnum.SUBSTRING.getType();
+        }
+        return type;
+
+    }
+
+    public static String parseMath(List<ComDSLObject.Query.FilterBean> matches) {
         return matches.stream().map(m -> {
             String fieldKey = m.getFieldKey();
             String type = m.getType();
             List<String> fieldValues = m.getFieldValues();
             return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
                 return ComDSLParse.parseLike(ComDSLParse.encode(v), type);
-            }).collect(joining(" or ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
+            }).collect(joining(" OR ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
 
-        }).collect(joining(" AND ", " AND( ", ")"));
+        }).collect(joining(" OR ", " AND( ", ")"));
     }
 
     private BaseResult formatResult(BaseResult baseResult) {
