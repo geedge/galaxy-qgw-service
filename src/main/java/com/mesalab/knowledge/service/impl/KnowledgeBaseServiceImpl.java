@@ -1,6 +1,5 @@
 package com.mesalab.knowledge.service.impl;
 
-import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
@@ -14,7 +13,6 @@ import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.knowledge.common.config.HosConfig;
 import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.entity.*;
-import com.mesalab.network.common.Constants;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.DateUtils;
@@ -51,15 +49,11 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     List<KnowledgeBase> knowledgeBaseList = new ArrayList<>();
 
-    Map<String, String> updateMap = new HashMap<>();
-
-
     @Override
     public BaseResult queryKnowledge() {
         List<KnowledgeBase> list = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList());
         return BaseResultGenerator.success(list);
     }
-
 
     @Override
     public BaseResult publishKnowledge(MultipartFile multipartFile, KnowledgeBase knowledge) {
@@ -236,112 +230,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
         return assessmentFile;
 
-    }
-
-    public Map<String, String> queryLoadKnowledgeInfo(String content, KnowledgeVersion knowledgeVersion) {
-
-        log.info("update knowledge Base version:{},update knowledge Base content:{}", knowledgeVersion, content);
-
-        if (StringUtil.isNotEmpty(knowledgeVersion) && StringUtil.isNotEmpty(content)) {
-            List<KnowledgeBase> KnowledgeBaseList = com.mesalab.common.utils.JsonMapper.fromJsonString(content, List.class, KnowledgeBase.class);
-            Map<String, String> map = queryFilePath(knowledgeVersion, KnowledgeBaseList);
-            return map;
-        }
-        return null;
-    }
-
-    private void download(KnowledgeBase knowledgeBase) {
-
-        String name = knowledgeBase.getName();
-        String updateTime = knowledgeBase.getUpdateTime();
-        String lastUpdateTime = updateMap.get(name);
-        if (!StringUtil.equals(updateTime, lastUpdateTime)) {
-            Header header = new BasicHeader(Constant.TOKEN, hosConfig.getToken());
-            File file;
-            FileOutputStream outputStream = null;
-            InputStream inputStream = null;
-            try {
-                inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), httpConfig.getServerResponseTimeOut(), header);
-                file = new File(Constant.DAT.concat(File.separator).concat(name));
-                outputStream = new FileOutputStream(file);
-                IoUtil.copy(inputStream, outputStream);
-                log.info("knowledge download name :{},version:{}", name, knowledgeBase.getVersion());
-            } catch (IOException e) {
-                log.error("file not fount,:{}", e);
-            } finally {
-                IoUtil.close(inputStream);
-                IoUtil.close(outputStream);
-            }
-            updateMap.put(name, updateTime);
-            updateMap.put("isUpdate", "true");
-        }
-    }
-
-    private Map<String, String> queryFilePath(KnowledgeVersion knowledgeVersion, List<KnowledgeBase> knowledgeBaseList) {
-
-        String ipV4BuiltIn = knowledgeVersion.getIpV4BuiltIn();
-        String ipV4UserDefined = knowledgeVersion.getIpV4UserDefined();
-        String ipV6BuiltIn = knowledgeVersion.getIpV6BuiltIn();
-        String ipV6UserDefined = knowledgeVersion.getIpV6UserDefined();
-
-        updateMap.put("isUpdate", "false");
-        Map<String, String> map = new HashMap<>();
-        for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
-            String name = knowledgeBase.getName();
-            String version = knowledgeBase.getVersion();
-            String concat = name.concat(":").concat(version);
-            String path = Constant.DAT.concat(File.separator).concat(name);
-            if (StringUtil.equals(concat, ipV4BuiltIn)) {
-                map.put(Constants.IP_BUILT_IN_V4, path);
-                download(knowledgeBase);
-            } else if (StringUtil.equals(concat, ipV4UserDefined)) {
-                map.put(Constants.IP_USER_DEFINED_V4, path);
-                download(knowledgeBase);
-            } else if (StringUtil.equals(concat, ipV6BuiltIn)) {
-                map.put(Constants.IP_BUILT_IN_V6, path);
-                download(knowledgeBase);
-            } else if (StringUtil.equals(concat, ipV6UserDefined)) {
-                map.put(Constants.IP_USER_DEFINED_V6, path);
-                download(knowledgeBase);
-            } else if (StringUtil.equals(name, ipV4BuiltIn) && StringUtil.equals(version, Constant.LATEST)) {
-                map.put(Constants.IP_BUILT_IN_V4, path);
-                download(knowledgeBase);
-            } else if (StringUtil.equals(name, ipV4UserDefined) && StringUtil.equals(version, Constant.LATEST)) {
-                map.put(Constants.IP_USER_DEFINED_V4, path);
-                download(knowledgeBase);
-            } else if (StringUtil.equals(name, ipV6BuiltIn) && StringUtil.equals(version, Constant.LATEST)) {
-                map.put(Constants.IP_BUILT_IN_V6, path);
-                download(knowledgeBase);
-            } else if (StringUtil.equals(name, ipV6UserDefined) && StringUtil.equals(version, Constant.LATEST)) {
-                map.put(Constants.IP_USER_DEFINED_V6, path);
-                download(knowledgeBase);
-            }
-        }
-
-        // 引用本地知识库文件
-        String ipV4BuiltInPath = map.get(Constants.IP_BUILT_IN_V4);
-        String ipV4UserDefinedPath = map.get(Constants.IP_USER_DEFINED_V4);
-        String ipV6BuiltInPath = map.get(Constants.IP_BUILT_IN_V6);
-        String ipV6UserDefinedPath = map.get(Constants.IP_USER_DEFINED_V6);
-        if (StringUtil.isEmpty(ipV4BuiltInPath)) {
-            ipV4BuiltInPath = Constant.DAT + File.separator + Constants.IP_BUILT_IN_V4;
-            map.put(Constants.IP_BUILT_IN_V4, ipV4BuiltInPath);
-        }
-        if (StringUtil.isEmpty(ipV4UserDefinedPath)) {
-            ipV4UserDefinedPath = Constant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
-            map.put(Constants.IP_USER_DEFINED_V4, ipV4UserDefinedPath);
-        }
-        if (StringUtil.isEmpty(ipV6BuiltInPath)) {
-            ipV6BuiltInPath = Constant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
-            map.put(Constants.IP_BUILT_IN_V6, ipV6BuiltInPath);
-        }
-
-        if (StringUtil.isEmpty(ipV6UserDefinedPath)) {
-            ipV6UserDefinedPath = Constant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
-            map.put(Constants.IP_USER_DEFINED_V6, ipV6UserDefinedPath);
-        }
-        map.put("isUpdate", updateMap.get("isUpdate"));
-        return map;
     }
 
 
