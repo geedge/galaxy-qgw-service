@@ -87,6 +87,15 @@
       }
     },
     {
+      "name": "common_vsys_id",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "default": 1
+    },
+    {
       "name": "common_client_port",
       "type": "int",
       "doc": {
