@@ -232,7 +232,6 @@
         "doh_ancount",
         "doh_nscount",
         "doh_arcount",
-        "doh_qname",
         "doh_qtype",
         "doh_qclass",
         "doh_sub",
