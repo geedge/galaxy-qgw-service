@@ -32,18 +32,18 @@ public class TopOuterSelectItemVisitor implements SelectItemVisitor {
         outerSelect.setHaving(innerSelect.getHaving());
         outerSelect.setOrderByElements(innerSelect.getOrderByElements());
 
-        Map<String, String> aliasExpr = Maps.newHashMap();
+        Map<String, String> exprAlias = Maps.newHashMap();
         for (SelectItem selectItem : innerSelect.getSelectItems()) {
             SelectExpressionItem item = (SelectExpressionItem) selectItem;
             Expression expression = item.getExpression();
             String alias = item.getAlias().getName();
-            aliasExpr.put(expression.toString(), alias);
+            exprAlias.put(expression.toString(), alias);
         }
         List<OrderByElement> orderByElements = innerSelect.getOrderByElements();
         for (OrderByElement orderByElement : orderByElements) {
-            if (aliasExpr.containsKey(orderByElement.getExpression().toString())) {
-                ExpressionRewrite funColumnVisitor = new ExpressionRewrite();
-                funColumnVisitor.replaceColumn(orderByElement.getExpression(), aliasExpr.get(orderByElement.getExpression().toString()));
+            String orderByStr = orderByElement.getExpression().toString();
+            if (exprAlias.containsKey(orderByStr)) {
+                orderByElement.getExpression().accept(SQLVisitorUtil.getVisitorOfRenameColumn(exprAlias.get(orderByStr)));
             }
         }
         outerSelect.setOrderByElements(innerSelect.getOrderByElements());

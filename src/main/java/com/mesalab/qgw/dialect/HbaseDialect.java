@@ -13,8 +13,8 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
-import com.mesalab.common.utils.sqlparser.TableColumnVisitor;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.HBaseAPISource;
@@ -23,7 +23,7 @@ import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.Select;
 
 
 import java.sql.*;
@@ -90,16 +90,14 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     @Override
     String convertQuery(String sql) {
         sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.HBASE.getValue());
-        Statement parse;
         try {
-            parse = CCJSqlParserUtil.parse(sql);
-        } catch (JSQLParserException e) {
+            Select select = (Select) CCJSqlParserUtil.parse(sql);
+            select.getSelectBody().accept(SQLVisitorUtil.getVisitorOfEscapeMetadataWithDoubleQuote());
+            return select.toString();
+        } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Converter SQL Syntax Error.", e);
         }
-        TableColumnVisitor visitor = new TableColumnVisitor();
-        visitor.surroundWithDoubleQuote(parse);
-        return parse.toString();
     }
 
     @Override

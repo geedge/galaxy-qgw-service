@@ -17,11 +17,11 @@ import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.*;
+import com.mesalab.qgw.controller.RewriteTable;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.mesalab.common.utils.sqlparser.TableFinder;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.JSQLParserException;
@@ -35,6 +35,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
+import net.sf.jsqlparser.util.deparser.ExpressionDeParser;
 import org.apache.avro.Schema;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -408,12 +409,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          */
         public Optimizer generateTableAlias() {
             try {
-                TableFinder tableFinder = new TableFinder();
-                Statement parse = CCJSqlParserUtil.parse(sql);
-                tableFinder.setDefaultAlias(true);
-                tableFinder.addSchemaName(parse);
-                sql = String.valueOf(parse);
-            } catch (JSQLParserException e) {
+                Select select = (Select) CCJSqlParserUtil.parse(sql);
+                ExpressionDeParser expressionDeParser = new ExpressionDeParser();
+                StringBuilder buffer = new StringBuilder();
+                RewriteTable deParser = new RewriteTable(expressionDeParser, buffer);
+                expressionDeParser.setSelectVisitor(deParser);
+                expressionDeParser.setBuffer(buffer);
+                select.getSelectBody().accept(deParser);
+                sql = buffer.toString();
+            } catch (JSQLParserException|RuntimeException e) {
                 log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Rewrite add tableName and Alias Error", e);
             }
@@ -769,17 +773,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
             if (where instanceof InExpression) {
                 InExpression whereIn = (InExpression) where;
-                ItemsList rightItemsList = whereIn.getRightItemsList();
-                if (rightItemsList instanceof SubSelect) {
+                if (whereIn.getRightExpression() instanceof SubSelect) {
                     setSubIndexValidFlag(false);
                     return;
                 }
-                String left;
-                if (!StringUtil.isEmpty(whereIn.getLeftExpression())) {
-                    left = String.valueOf(whereIn.getLeftExpression());
-                } else {
-                    left = String.valueOf(whereIn.getLeftItemsList());
-                }
+                String left = String.valueOf(whereIn.getLeftExpression());
                 if (!isFieldOfSchema(masterTableSchema, left) || !isFieldOfSchema(indexTableSchema, left)) {
                     setSubIndexValidFlag(false);
                     return;

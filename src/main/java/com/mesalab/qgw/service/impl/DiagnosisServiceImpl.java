@@ -19,7 +19,7 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.sqlparser.TableColumnVisitor;
+import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.qgw.benchmark.elasticsearch.ElasticSearchWriter;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
@@ -37,7 +37,7 @@ import com.zdjizhi.utils.*;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.Select;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.commons.math3.stat.StatUtils;
@@ -724,16 +724,14 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
     }
 
     private String converter(String sql) {
-        Statement parse;
         try {
-            parse = CCJSqlParserUtil.parse(sql);
-        } catch (JSQLParserException e) {
+            Select select = (Select) CCJSqlParserUtil.parse(sql);
+            select.getSelectBody().accept(SQLVisitorUtil.getVisitorOfEscapeMetadataWithDoubleQuote());
+            return select.toString();
+        } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Converter SQL Syntax Error.", e);
         }
-        TableColumnVisitor visitor = new TableColumnVisitor();
-        visitor.surroundWithDoubleQuote(parse);
-        return parse.toString();
     }
 
     private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {
