@@ -1,4 +1,4 @@
-package com.mesalab.knowledge.common.config;
+package com.mesalab.services.configuration;
 
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.mesalab.knowledge.service.impl;
+package com.mesalab.services.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.digest.DigestUtil;
@@ -10,11 +10,12 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConst;
-import com.mesalab.knowledge.common.config.HosConfig;
-import com.mesalab.knowledge.common.utils.Constant;
-import com.mesalab.knowledge.entity.*;
+import com.mesalab.services.common.entity.KnowledgeBase;
+import com.mesalab.services.common.entity.KnowledgeConstant;
+import com.mesalab.services.configuration.HosConfig;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.mesalab.services.service.KnowledgeBaseService;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -78,7 +79,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             String id = knowledgeBase.getId();
             for (int i = 0; i < knowledgeBaseList.size(); i++) {
                 KnowledgeBase base = knowledgeBaseList.get(i);
-                if (StringUtil.equals(id, base.getId()) && !StringUtil.equals(base.getVersion(), Constant.LATEST)) {
+                if (StringUtil.equals(id, base.getId()) && !StringUtil.equals(base.getVersion(), KnowledgeConstant.LATEST)) {
                     saveOrUpdateKnowledgeBase(base, file, "update");
                 }
             }
@@ -100,7 +101,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         int i = 0;
         for (; i < knowledgeBaseList.size(); i++) {
             knowledgeBase = knowledgeBaseList.get(i);
-            if (StringUtil.equals(id, knowledgeBase.getId()) && !StringUtil.equals(knowledgeBase.getVersion(), Constant.LATEST)) {
+            if (StringUtil.equals(id, knowledgeBase.getId()) && !StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)) {
                 isExist = true;
                 knowledgeBaseList.remove(i);
                 break;
@@ -108,7 +109,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         }
         if (isExist) {
             String path = knowledgeBase.getPath();
-            Header header = new BasicHeader(Constant.TOKEN, hosConfig.getToken());
+            Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
             String res = httpClientService.httpDelete(path, httpConfig.getServerResponseTimeOut(), header);
             if ("-1".equals(res)) {
                 throw new BusinessException("delete Knowledge error");
@@ -212,7 +213,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         String uri = hosConfig.getUri();
         String bucket = hosConfig.getBucket();
 
-        Header header = new BasicHeader(Constant.TOKEN, hosConfig.getToken());
+        Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
         String assessmentFile = null;
         try {
             assessmentFile = uri.concat("/").concat(bucket).concat("/").concat(Base64.getEncoder().encodeToString(id.getBytes("UTF-8")));
@@ -237,7 +238,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         KnowledgeBase base = new KnowledgeBase();
         BeanUtils.copyProperties(knowledgeBase, base);
         base.setUpdateTime(DateUtils.getFormatDate(new Date(), "yyyy-MM-dd'T'HH:mm:sss"));
-        base.setVersion(Constant.LATEST);
+        base.setVersion(KnowledgeConstant.LATEST);
         return base;
     }
 
@@ -249,7 +250,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
             KnowledgeBase knowledge = knowledgeBaseList.get(i);
             if (StringUtil.equals(knowledge.getName(), name) && StringUtil.equals(knowledge.getType(), type)
-                    && StringUtil.equals(knowledge.getVersion(), Constant.LATEST)) {
+                    && StringUtil.equals(knowledge.getVersion(), KnowledgeConstant.LATEST)) {
                 KnowledgeBase base = new KnowledgeBase();
                 BeanUtils.copyProperties(knowledge, base);
                 base.setId(knowledgeBase.getId());

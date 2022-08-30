@@ -1,4 +1,4 @@
-package com.mesalab.knowledge.listener;
+package com.mesalab.qgw.listener;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -10,10 +10,10 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.common.utils.IPUtil;
 import com.mesalab.common.utils.JsonMapper;
-import com.mesalab.knowledge.common.config.HosConfig;
-import com.mesalab.knowledge.common.utils.Constant;
-import com.mesalab.knowledge.entity.KnowledgeBase;
-import com.mesalab.knowledge.entity.KnowledgeVersion;
+import com.mesalab.services.common.entity.KnowledgeConstant;
+import com.mesalab.services.configuration.HosConfig;
+import com.mesalab.services.common.entity.KnowledgeBase;
+import com.mesalab.services.common.entity.KnowledgeVersion;
 import com.mesalab.network.common.Constants;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.service.impl.HttpClientService;
@@ -75,8 +75,8 @@ public class KnowledgeListener {
             loadKnowledge(map);
         } catch (RuntimeException | NacosException e) {
             log.error("Not found file {}", e);
-            IPUtil.initIpLookup(Constant.DAT + File.separator + Constants.IP_BUILT_IN_V4, Constant.DAT + File.separator + Constants.IP_BUILT_IN_V6, Constant.DAT + File.separator + Constants.IP_USER_DEFINED_V4,
-                    Constant.DAT + File.separator + Constants.IP_USER_DEFINED_V6);
+            IPUtil.initIpLookup(KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V4, KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V6, KnowledgeConstant.DAT + File.separator + Constants.IP_USER_DEFINED_V4,
+                    KnowledgeConstant.DAT + File.separator + Constants.IP_USER_DEFINED_V6);
         }
 
     }
@@ -89,8 +89,8 @@ public class KnowledgeListener {
                 @Override
                 public void receiveConfigInfo(String content) {
                     try {
-                        Map<String, String> map = queryLoadKnowledgeInfo(content, getKnowledgeVersion());
-                        loadKnowledge(map);
+                    Map<String, String> map = queryLoadKnowledgeInfo(content, getKnowledgeVersion());
+                    loadKnowledge(map);
                     } catch (NacosException e) {
                         log.error("Not found file {}", e);
                     }
@@ -156,8 +156,8 @@ public class KnowledgeListener {
                 log.info("No update required");
             }
         } else {
-            IPUtil.initIpLookup(Constant.DAT + File.separator + Constants.IP_BUILT_IN_V4, Constant.DAT + File.separator + Constants.IP_BUILT_IN_V6, Constant.DAT + File.separator + Constants.IP_USER_DEFINED_V4,
-                    Constant.DAT + File.separator + Constants.IP_USER_DEFINED_V6);
+            IPUtil.initIpLookup(KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V4, KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V6, KnowledgeConstant.DAT + File.separator + Constants.IP_USER_DEFINED_V4,
+                    KnowledgeConstant.DAT + File.separator + Constants.IP_USER_DEFINED_V6);
         }
     }
 
@@ -186,7 +186,7 @@ public class KnowledgeListener {
             String name = knowledgeBase.getName();
             String version = knowledgeBase.getVersion();
             String concat = name.concat(":").concat(version);
-            String path = Constant.DAT.concat(File.separator).concat(name);
+            String path = KnowledgeConstant.DAT.concat(File.separator).concat(name);
             if (StringUtil.equals(concat, ipV4BuiltIn)) {
                 map.put(Constants.IP_BUILT_IN_V4, path);
                 download(knowledgeBase);
@@ -199,16 +199,16 @@ public class KnowledgeListener {
             } else if (StringUtil.equals(concat, ipV6UserDefined)) {
                 map.put(Constants.IP_USER_DEFINED_V6, path);
                 download(knowledgeBase);
-            } else if (StringUtil.equals(name, ipV4BuiltIn) && StringUtil.equals(version, Constant.LATEST)) {
+            } else if (StringUtil.equals(name, ipV4BuiltIn) && StringUtil.equals(version, KnowledgeConstant.LATEST)) {
                 map.put(Constants.IP_BUILT_IN_V4, path);
                 download(knowledgeBase);
-            } else if (StringUtil.equals(name, ipV4UserDefined) && StringUtil.equals(version, Constant.LATEST)) {
+            } else if (StringUtil.equals(name, ipV4UserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST)) {
                 map.put(Constants.IP_USER_DEFINED_V4, path);
                 download(knowledgeBase);
-            } else if (StringUtil.equals(name, ipV6BuiltIn) && StringUtil.equals(version, Constant.LATEST)) {
+            } else if (StringUtil.equals(name, ipV6BuiltIn) && StringUtil.equals(version, KnowledgeConstant.LATEST)) {
                 map.put(Constants.IP_BUILT_IN_V6, path);
                 download(knowledgeBase);
-            } else if (StringUtil.equals(name, ipV6UserDefined) && StringUtil.equals(version, Constant.LATEST)) {
+            } else if (StringUtil.equals(name, ipV6UserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST)) {
                 map.put(Constants.IP_USER_DEFINED_V6, path);
                 download(knowledgeBase);
             }
@@ -220,20 +220,20 @@ public class KnowledgeListener {
         String ipV6BuiltInPath = map.get(Constants.IP_BUILT_IN_V6);
         String ipV6UserDefinedPath = map.get(Constants.IP_USER_DEFINED_V6);
         if (StringUtil.isEmpty(ipV4BuiltInPath)) {
-            ipV4BuiltInPath = Constant.DAT + File.separator + Constants.IP_BUILT_IN_V4;
+            ipV4BuiltInPath = KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V4;
             map.put(Constants.IP_BUILT_IN_V4, ipV4BuiltInPath);
         }
         if (StringUtil.isEmpty(ipV4UserDefinedPath)) {
-            ipV4UserDefinedPath = Constant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
+            ipV4UserDefinedPath = KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
             map.put(Constants.IP_USER_DEFINED_V4, ipV4UserDefinedPath);
         }
         if (StringUtil.isEmpty(ipV6BuiltInPath)) {
-            ipV6BuiltInPath = Constant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
+            ipV6BuiltInPath = KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
             map.put(Constants.IP_BUILT_IN_V6, ipV6BuiltInPath);
         }
 
         if (StringUtil.isEmpty(ipV6UserDefinedPath)) {
-            ipV6UserDefinedPath = Constant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
+            ipV6UserDefinedPath = KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
             map.put(Constants.IP_USER_DEFINED_V6, ipV6UserDefinedPath);
         }
         map.put("isUpdate", updateMap.get("isUpdate"));
@@ -246,13 +246,13 @@ public class KnowledgeListener {
         String updateTime = knowledgeBase.getUpdateTime();
         String lastUpdateTime = updateMap.get(name);
         if (!StringUtil.equals(updateTime, lastUpdateTime)) {
-            Header header = new BasicHeader(Constant.TOKEN, hosConfig.getToken());
+            Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
             File file;
             FileOutputStream outputStream = null;
             InputStream inputStream = null;
             try {
                 inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), httpConfig.getServerResponseTimeOut(), header);
-                file = new File(Constant.DAT.concat(File.separator).concat(name));
+                file = new File(KnowledgeConstant.DAT.concat(File.separator).concat(name));
                 outputStream = new FileOutputStream(file);
                 IoUtil.copy(inputStream, outputStream);
                 log.info("knowledge download name :{},version:{}", name, knowledgeBase.getVersion());

@@ -1,7 +1,7 @@
-package com.mesalab.knowledge.service.impl;
+package com.mesalab.services.service;
 
 import com.mesalab.common.base.BaseResult;
-import com.mesalab.knowledge.entity.KnowledgeBase;
+import com.mesalab.services.common.entity.KnowledgeBase;
 import org.springframework.web.multipart.MultipartFile;
 
 /**

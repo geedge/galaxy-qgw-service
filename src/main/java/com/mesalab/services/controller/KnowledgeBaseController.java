@@ -1,4 +1,4 @@
-package com.mesalab.knowledge.controller;
+package com.mesalab.services.controller;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -6,8 +6,8 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.knowledge.entity.KnowledgeBase;
-import com.mesalab.knowledge.service.impl.KnowledgeBaseService;
+import com.mesalab.services.common.entity.KnowledgeBase;
+import com.mesalab.services.service.KnowledgeBaseService;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

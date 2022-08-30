@@ -1,4 +1,4 @@
-package com.mesalab.knowledge.entity;
+package com.mesalab.services.common.entity;
 
 import lombok.Data;
 
