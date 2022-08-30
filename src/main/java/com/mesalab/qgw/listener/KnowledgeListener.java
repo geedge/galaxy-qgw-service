@@ -1,4 +1,4 @@
-package com.mesalab.knowledge.listener;
+package com.mesalab.qgw.listener;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ObjectUtil;
