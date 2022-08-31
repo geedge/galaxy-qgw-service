@@ -10,11 +10,11 @@ import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.qgw.model.api.HttpConfig;
+import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.entity.KnowledgeBase;
 import com.mesalab.services.common.entity.KnowledgeConstant;
 import com.mesalab.services.configuration.HosConfig;
-import com.mesalab.qgw.model.api.HttpConfig;
-import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.service.KnowledgeBaseService;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
@@ -84,7 +84,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 }
             }
             Map map = new HashMap();
-            map.put("id", knowledgeBase.getId());
+            map.put("id", id);
             return BaseResultGenerator.success(map);
         } catch (RuntimeException | NacosException | IOException e) {
             log.error(e);
@@ -98,31 +98,25 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         queryKnowledgeBaseList();
         boolean isExist = false;
         KnowledgeBase knowledgeBase = null;
-        int i = 0;
-        for (; i < knowledgeBaseList.size(); i++) {
+        for (int i = 0; i < knowledgeBaseList.size(); i++) {
             knowledgeBase = knowledgeBaseList.get(i);
             if (StringUtil.equals(id, knowledgeBase.getId()) && !StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)) {
+                try {
+                    saveOrUpdateKnowledgeBase(knowledgeBase, null, "delete");
+                } catch (IOException | NacosException e) {
+                    log.error(e);
+                    throw new BusinessException(e.getMessage());
+                }
                 isExist = true;
-                knowledgeBaseList.remove(i);
                 break;
             }
         }
         if (isExist) {
             String path = knowledgeBase.getPath();
             Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
-            String res = httpClientService.httpDelete(path, httpConfig.getServerResponseTimeOut(), header);
-            if ("-1".equals(res)) {
-                throw new BusinessException("delete Knowledge error");
-            }
+            httpClientService.httpDelete(path, httpConfig.getServerResponseTimeOut(), header);
         } else {
             throw new BusinessException("id not exist");
-        }
-        try {
-            pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
-        } catch (NacosException e) {
-            knowledgeBaseList.add(knowledgeBase);
-            log.error(e);
-            throw new BusinessException(e.getMessage());
         }
 
         Map map = new HashMap();
@@ -169,35 +163,42 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         List<KnowledgeBase> list = new ArrayList<>(knowledgeBaseList);
         Collections.copy(knowledgeBaseList, list);
 
-        String id = DigestUtil.md5Hex16(knowledge.getType())
-                .concat("-")
-                .concat(DigestUtil.md5Hex16(knowledge.getName()
-                        .concat(knowledge.getFormat())
-                        .concat(knowledge.getVersion())));
+        if (StringUtil.equals("delete", type)) {
+            knowledgeBaseList.remove(knowledge);
+        } else {
 
-        String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
-        Boolean isCreateKnowledge = true;
-        knowledge.setId(id);
-        for (int i = 0; i < knowledgeBaseList.size(); i++) {
-            KnowledgeBase knowledgeBase = knowledgeBaseList.get(i);
-            // type + name + format + version 一致且sha256Hex值不一致时覆盖
-            if (StringUtil.equals(id, knowledgeBase.getId())) {
-                isCreateKnowledge = false;
-                if (!StringUtil.equals(sha256Hex, knowledgeBase.getSha256())) {
-                    KnowledgeBase base = setKnowledgeBase(file, sha256Hex, knowledgeBase);
-                    updateLatestKnowledge(knowledgeBaseList, base);
-                    knowledgeBaseList.set(i, base);
+            String id = DigestUtil.md5Hex16(knowledge.getType())
+                    .concat("-")
+                    .concat(DigestUtil.md5Hex16(knowledge.getName()
+                            .concat(knowledge.getFormat())
+                            .concat(knowledge.getVersion())));
+
+            String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
+            Boolean isCreateKnowledge = true;
+            knowledge.setId(id);
+            for (int i = 0; i < knowledgeBaseList.size(); i++) {
+                KnowledgeBase knowledgeBase = knowledgeBaseList.get(i);
+                // type + name + format + version 一致且sha256Hex值不一致时覆盖
+                if (StringUtil.equals(id, knowledgeBase.getId())) {
+                    if (!StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)) {
+                        isCreateKnowledge = false;
+                    }
+                    if (!StringUtil.equals(sha256Hex, knowledgeBase.getSha256())) {
+                        KnowledgeBase base = setKnowledgeBase(file, sha256Hex, knowledgeBase);
+                        updateLatestKnowledge(knowledgeBaseList, base);
+                        knowledgeBaseList.set(i, base);
+                    }
                 }
             }
-        }
-        if (isCreateKnowledge && StringUtil.equals(type, "save")) {
-            KnowledgeBase knowledgeBase = setKnowledgeBase(file, sha256Hex, knowledge);
-            Boolean isCreateLatestKnowledge = updateLatestKnowledge(knowledgeBaseList, knowledgeBase);
-            if (isCreateLatestKnowledge) {
-                KnowledgeBase latestKnowledge = saveLatestKnowledge(knowledgeBase);
-                knowledgeBaseList.add(latestKnowledge);
+            if (isCreateKnowledge && StringUtil.equals(type, "save")) {
+                KnowledgeBase knowledgeBase = setKnowledgeBase(file, sha256Hex, knowledge);
+                Boolean isCreateLatestKnowledge = updateLatestKnowledge(knowledgeBaseList, knowledgeBase);
+                if (isCreateLatestKnowledge) {
+                    KnowledgeBase latestKnowledge = saveLatestKnowledge(knowledgeBase);
+                    knowledgeBaseList.add(latestKnowledge);
+                }
+                knowledgeBaseList.add(knowledgeBase);
             }
-            knowledgeBaseList.add(knowledgeBase);
         }
         try {
             pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
