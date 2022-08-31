@@ -40,11 +40,11 @@ public class RelationController {
             if (!EnumUtils.isValidEnum(EntityQueryType.class, StringUtil.upperCase(param))
                     ||StringUtil.isNotEmpty(request.getParameter(param))) {
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
+                        ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Not Support", null);
             }
             comDSLValidate.validation(dslObject);
             return relationService.getRealRelation(param, dslObject);
         }
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
+        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Not Support", null);
     }
 }

@@ -237,7 +237,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         } catch (RuntimeException ex) {
             log.error(" schema TTL check error: {}", ex.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), ex.getMessage(), ex);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), ex.getMessage(), ex);
         }
         if (changeTTL.isEmpty()) {
             return BaseResultGenerator.success("ok", dataList);
@@ -264,7 +264,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         Map<String, String> result = executeHttpGetOfCK(ipPort, sql, clickHouseHttpSource.getSystemDBName());
         if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table TTL error: {}", result.toString());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), result.toString());
         }
         Object tableTTLInDB = null;
         Map<String, Object> tableDiff = Maps.newHashMap();
@@ -287,7 +287,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
         if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table field TTL error: {}", result.toString());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), result.toString());
         }
         List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
         for (Map<String, Object> field : fields) {
@@ -357,7 +357,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             dialect = (Dialect) constructor.newInstance(apiParam);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}", e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Dialect conversion instance exception！", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Dialect conversion instance exception！", e);
         }
         return dialect;
     }
@@ -369,7 +369,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         if (queryId.contains(queryIdSeparator)) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "queryId is not supported", null);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "queryId is not supported", null);
         }
         return DBTypeEnum.CLICKHOUSE.getValue();
     }

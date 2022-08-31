@@ -86,7 +86,7 @@ public class MetadataServiceImpl implements MetadataService {
         } else if (MetadataTypeEnum.FIELDS.getValue().equals(type)) {
             return loadFields(name);
         }
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
     }
 
     @Override
@@ -185,7 +185,7 @@ public class MetadataServiceImpl implements MetadataService {
     public Schema getSchemaByName(String tableName) {
         if (!getAllTable().contains(tableName)) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
+                    ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     tableName + " The schema is not registered on the platform, please contact the person in charge of the data platform", null);
         }
         Schema schema;
@@ -196,7 +196,7 @@ public class MetadataServiceImpl implements MetadataService {
             String content = configService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
             if (StrUtil.isBlankIfStr(content)) {
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), tableName + " Get Schema configuration exception", null);
+                        ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), tableName + " Get Schema configuration exception", null);
             }
             schemaCache.put(tableName, schema = parseSchema(content));
             configService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
@@ -228,7 +228,7 @@ public class MetadataServiceImpl implements MetadataService {
             }
             return BaseResultGenerator.success4Message("ok");
         } catch (NacosException e) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
         }
     }
 
@@ -248,7 +248,7 @@ public class MetadataServiceImpl implements MetadataService {
             log.info("push Schema, content is: {}", content);
             return configService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "get Schema Error");
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "get Schema Error");
         }
     }
 
@@ -303,7 +303,7 @@ public class MetadataServiceImpl implements MetadataService {
     private Map loadFields(String name) {
         Schema schema = getSchemaByName(name);
         if (StringUtil.isEmpty(schema)) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
         Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
@@ -521,7 +521,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
         );
         if (tables.isEmpty()) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
         }
         date.put("type", "enum");
         date.put("name", name);

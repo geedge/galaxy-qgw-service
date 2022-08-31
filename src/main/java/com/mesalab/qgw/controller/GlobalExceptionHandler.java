@@ -20,7 +20,12 @@ public class GlobalExceptionHandler {
     private static final Log log = LogFactory.get();
 
 
-    @ExceptionHandler(AsyncRequestTimeoutException.class) //捕获特定异常
+    /**
+     * 捕获特定异常
+     * @param e
+     * @param request
+     */
+    @ExceptionHandler(AsyncRequestTimeoutException.class)
     public void handleAsyncRequestTimeoutException(AsyncRequestTimeoutException e, HttpServletRequest request) {
         log.info("Handle Async Request Timeout Exception");
     }
@@ -39,11 +44,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({BusinessException.class})
     public BaseResult handleBusinessException(BusinessException e, HttpServletRequest request, HttpServletResponse response) {
-        response.setStatus(e.getErrorStatus());
+        response.setStatus(e.getStatus());
         String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
-        String message = (null != e.getErrorMessage()) ? e.getErrorMessage() : ExceptionUtil.getRootCauseMessage(e);
+        String message = (null != e.getMessage()) ? e.getMessage() : ExceptionUtil.getRootCauseMessage(e);
         log.error("queryKey:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
-       return BaseResultGenerator.failure(e.getErrorStatus(), e.getErrorCode(), queryKey, message);
+       return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
     }
 
     private String getStackTrace(Exception e) {

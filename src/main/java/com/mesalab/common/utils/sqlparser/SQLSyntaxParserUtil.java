@@ -51,7 +51,7 @@ public class SQLSyntaxParserUtil {
             //addTypeForSelectItems(sql, resultList);
         } catch (RuntimeException | JSQLParserException e) {
             log.error("syntax-parse: sql-" + sql + ", error: ", e);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "SQL syntax-parse Error:", e);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL syntax-parse Error:", e);
         }
         return resultList;
     }
@@ -62,7 +62,7 @@ public class SQLSyntaxParserUtil {
         apiParam.setOption(QueryOptionEnum.SYNTAX_VALIDATION.getValue());
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "SQL syntax-validation Error:", null);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "SQL syntax-validation Error:", null);
         }
         List<Map<String, String>> meta = (List<Map<String, String>>) baseResult.getMeta();
         for (int i = 0; i < resultList.size(); i++) {

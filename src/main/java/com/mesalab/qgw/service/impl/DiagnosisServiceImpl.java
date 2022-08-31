@@ -150,7 +150,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } catch (RuntimeException e) {
             log.error("Avro Schema Validation Fail:{}", e);
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "Avro Schema Validation Fail:", e);
+                    ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), "Avro Schema Validation Fail:", e);
 
         }
         return result;
@@ -186,7 +186,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } catch (RuntimeException e) {
             log.error("Metadata Validation Fail:{}", e);
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Metadata Validation Fail:", e);
+                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Metadata Validation Fail:", e);
         }
         return result;
     }
@@ -230,7 +230,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
                 elasticsearchResult = executePocSqlByDatasource(esTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
             } else {
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "The option is not supported.");
+                        ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "The option is not supported.");
             }
 
             mergeResult = Stream
@@ -249,7 +249,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), "Execute Poc SQL Fail:", e);
+                    ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), "Execute Poc SQL Fail:", e);
         }
         return result;
     }
@@ -269,7 +269,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             testFile = Optional.of(new File(druidWriter.buildPocSQL()));
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Illegal value about dialect.");
+                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Illegal value about dialect.");
         }
 
 
@@ -289,7 +289,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } catch (RuntimeException e) {
             log.error("Get Poc SQL Fail:{}", e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Get Poc SQL Fail:", e);
+                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Get Poc SQL Fail:", e);
         }
         return result;
     }
@@ -579,7 +579,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             infoMap.put("Query" + index, "status:" + queryResult.getStatus() + ",message:" + queryResult.getMessage());
 
         } else {
-            throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), file.get().getName()
+            throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), file.get().getName()
                     + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage(), null);
         }
     }
@@ -598,7 +598,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         watch.start();
         Map<String, String> results = druidExecuteHttpPost(sql);
         if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
+            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), "ok",
                     (List<Object>) com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             List<Object> allResults = (List<Object>) dataObject;
@@ -608,7 +608,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             baseResult.setData(allResults);
             baseResult.setStatistics(statistics);
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), results.get("message"),
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), results.get("message"),
                     results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
@@ -641,7 +641,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         Object dataObject;
         Map<String, String> results = clickHouseExecuteHttpPost(sql);
         if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), "ok",
                     com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             Map<String, Object> resultMap = (Map<String, Object>) dataObject;
@@ -652,7 +652,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             baseResult.setData(resultMap.get("data"));
             baseResult.setStatistics(statistics);
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), null,
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), null,
                     results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus());
@@ -689,11 +689,11 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         try {
             response = restClient.performRequest(request);
             ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
-            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), "ok",
+            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), "ok",
                     (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), e.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), e.getMessage(), null);
         }
         dataObject = baseResult.getData();
         Map<String, Object> resultMap = (Map<String, Object>) dataObject;
@@ -730,7 +730,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Converter SQL Syntax Error.", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Converter SQL Syntax Error.", e);
         }
     }
 
@@ -768,7 +768,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             if (ResultStatusEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
+                        ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(),
                         " The Table[" + tableName + "] Structure query failed", null);
             }
             List<Map<String, Object>> dbFields = JsonPath.read(JsonMapper.toJsonString(baseResult.getData()), "$.fields.*");
@@ -790,7 +790,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             if (entriesOnlyOnLeft.size() > 0) {
                 log.error("Schema Fields greater than Table Fields,Schema " + tableName + " exist fields :" + entriesOnlyOnLeft);
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(),
+                        ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(),
                         " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft, null);
 
             }
@@ -847,7 +847,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             if (FileUtil.isNotEmpty(schemaDir) && FileUtil.isDirectory(schemaDir)) {
                 if (StringUtil.isEmpty(schemaDir.listFiles())) {
                     throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                            ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), "The Directory is null: " + path);
+                            ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), "The Directory is null: " + path);
                 }
                 for (File file : FileUtil.loopFiles(schemaDir)) {
                     try {
@@ -860,7 +860,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
                     } catch (AvroRuntimeException e) {
                         log.error("Schema Parsing Error {}, Message is {}", file.getName(), e);
                         throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                                ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), file.getName() + " Parse Error: " + e.getMessage(), e);
+                                ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), file.getName() + " Parse Error: " + e.getMessage(), e);
                     }
                 }
             }
