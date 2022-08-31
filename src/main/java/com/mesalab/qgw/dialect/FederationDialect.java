@@ -127,7 +127,7 @@ public class FederationDialect extends AbstractEngineDialect{
         } catch (BusinessException ex) {
             log.error("Engine execute memory-query error:{}", ex);
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute memory-query error：", ex);
+                    ResultCodeEnum.ENGINE_EXECUTION_EXCEPTION.getCode(), "Engine execute memory-query error：", ex);
         }
         return build();
     }

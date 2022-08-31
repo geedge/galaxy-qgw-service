@@ -43,11 +43,11 @@ public class KnowledgeController {
             if (!EnumUtils.isValidEnum(QueryTypeEnum.class, StringUtil.upperCase(param))
                     || StringUtil.isNotEmpty(request.getParameter(param))) {
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
+                        ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Not Support", null);
             }
             return knowledgeService.query(object);
         }
         throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
+                ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Not Support", null);
     }
 }

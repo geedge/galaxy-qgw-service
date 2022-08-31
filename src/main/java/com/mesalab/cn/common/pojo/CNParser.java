@@ -44,7 +44,7 @@ public class CNParser extends DSLParser {
             selectSql = parseQueryOfShareNet(dslObject, selectSql);
         } catch (RuntimeException e) {
             log.error("Build SQL Exception:{}",e);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), ErrorMessage.BUILD_SQL_ERROR + e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), ErrorMessage.BUILD_SQL_ERROR + e.getMessage());
         }
         return selectSql;
     }
@@ -58,7 +58,7 @@ public class CNParser extends DSLParser {
             selectSql = parseQueryOfBannedApp(dslObject, selectSql);
         } catch (RuntimeException e) {
             log.error("Build SQL Exception:{}",e);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),ErrorMessage.BUILD_SQL_ERROR + e);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(),ErrorMessage.BUILD_SQL_ERROR + e);
         }
         return selectSql;
     }

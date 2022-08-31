@@ -419,7 +419,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 sql = buffer.toString();
             } catch (JSQLParserException|RuntimeException e) {
                 log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Rewrite add tableName and Alias Error", e);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Rewrite add tableName and Alias Error", e);
             }
             return this;
         }
@@ -976,14 +976,14 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
             baseResult = BaseResultGenerator.generate(
                     Integer.parseInt(results.get("status")),
-                    ResultCodeEnum.EXECUTE_SUCCESS.getCode(),
+                    ResultCodeEnum.SUCCESS.getCode(),
                     message.get(),
                     JsonMapper.fromJsonString(results.get("result"), Map.class),
                     null,
                     null,
                     QueryFormatEnum.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), message.get(),
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), message.get(),
                     StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         }
         return build();
@@ -1007,7 +1007,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setStatistics(statistics);
         } else {
             throw new BusinessException((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus(),
-                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), simplyErrorMessage(dataObject));
+                    ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), simplyErrorMessage(dataObject));
         }
         return baseResult;
     }

@@ -45,7 +45,7 @@ public class MetadataController {
     public BaseResult updateSchema(@PathVariable String name, @RequestBody Map<String, Object> obj) {
         log.info("update Schema api, params is: {}-{}", name, obj);
         if (StringUtil.isBlank(name) || StringUtil.isEmpty(obj)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     MessageConst.SCHEMA_PARAM_ERROR);
         }
         validationParam(name, obj);
@@ -54,21 +54,21 @@ public class MetadataController {
 
     private void validationParam(String name, Map<String, Object> obj) {
         if (!metadataService.getAllTable().contains(name)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), name + " not support setting TTL");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), name + " not support setting TTL");
         }
         String param = JsonMapper.toJsonString(obj);
         if (!VISIBILITY.containsAll(JsonPath.read(param, "$.fields[?(@.doc.visibility != null)].doc.visibility"))) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     MessageConst.SCHEMA_ERROR_VISIBILITY_VALUE);
         }
         List<Object> schemaDocTTL = JsonPath.read(param, "$.[?(@.doc.ttl != null)].doc.ttl");
         if (StringUtil.isNotEmpty(schemaDocTTL.stream().filter(o -> !(NumberUtil.isLong(String.valueOf(o)))).toArray())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_ERROR_TTL_VALUE);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_ERROR_TTL_VALUE);
         }
         List<Object> fieldDocTTL = JsonPath.read(param, "$.fields[?(@.doc.ttl != null)].doc.ttl");
         Object[] objects3 = fieldDocTTL.parallelStream().filter(o -> !NumberUtil.isLong(String.valueOf(o))).toArray();
         if (StringUtil.isNotEmpty(objects3)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_ERROR_TTL_VALUE);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_ERROR_TTL_VALUE);
         }
     }
 }

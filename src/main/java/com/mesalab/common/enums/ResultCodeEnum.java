@@ -11,15 +11,14 @@ import lombok.Getter;
 @Getter
 public enum ResultCodeEnum {
 
-    EXECUTE_SUCCESS("200666", "Success"),
-    PARAM_SYNTAX_ERROR("400001", "Parameter check exception"),
-    SQL_SYNTAX_ERROR("400010", "SQL statement check exception"),
-    SQL_EXECUTION_ERROR("500001", "SQL execution exception"),
-    ENGINE_STATISTICS_ERROR("500010", "Engine calculation exception"),
-    ENGINE_PARSE_ERROR("500100", "Parse exception"),
-    UNKNOW_ERROR("555999", "Failed to execute");
+    SUCCESS("200666", "Success"),
+    ILLEGAL_ARGUMENT_EXCEPTION("400001", "Illegal argument exception"),
+    SQL_SYNTAX_PARSE_EXCEPTION("400010", "SQL syntax parse exception"),
+    SQL_EXECUTION_EXCEPTION("500001", "SQL execution exception"),
+    ENGINE_EXECUTION_EXCEPTION("500010", "Engine execution exception"),
 
-
+    ENGINE_SYNTAX_PARSE_EXCEPTION("500100", "Engine syntax parse exception"),
+    UNKNOW_EXCEPTION("555999", "Unknown exception");
 
     private String code;
     private String message;

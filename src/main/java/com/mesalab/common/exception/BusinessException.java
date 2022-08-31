@@ -18,40 +18,43 @@ import lombok.*;
 public class BusinessException extends RuntimeException {
 
     /**
-     * 异常代码
+     * 状态码
      */
     @Builder.Default
-    private int errorStatus = ResultStatusEnum.SERVER_ERROR.getCode();
+    private int status = ResultStatusEnum.SERVER_ERROR.getCode();
 
+    /**
+     * 业务码
+     */
     @Builder.Default
-    private String errorCode = ResultCodeEnum.UNKNOW_ERROR.getCode();
+    private String code = ResultCodeEnum.UNKNOW_EXCEPTION.getCode();
 
 
     /**
      * 异常信息
      */
-    private String errorMessage;
+    private String message;
 
-    public BusinessException(String errorMessage) {
-        super(errorMessage);
-        this.errorMessage = errorMessage;
+    public BusinessException(String message) {
+        super(message);
+        this.message = message;
     }
 
 
-    public BusinessException(String errorMessage, Throwable e) {
-        super(errorMessage, e);
+    public BusinessException(String message, Throwable e) {
+        super(message, e);
     }
 
-    public BusinessException(String errorCode, String errorMessage) {
-        super(errorMessage);
-        this.errorMessage = errorMessage;
-        this.errorCode = errorCode;
+    public BusinessException(String code, String message) {
+        super(message);
+        this.message = message;
+        this.code = code;
     }
 
-    public BusinessException(int errorStatus, String errorCode, String errorMessage, Throwable e) {
-        super(errorMessage, e);
-        this.errorStatus = errorStatus;
-        this.errorCode = errorCode;
+    public BusinessException(int status, String code, String message, Throwable e) {
+        super(message, e);
+        this.status = status;
+        this.code = code;
     }
 
 

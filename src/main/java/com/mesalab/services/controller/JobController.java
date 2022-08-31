@@ -129,16 +129,16 @@ public class JobController {
 
     private void validateJobParams(HashMap<String, Object> reqBody) {
         if (!reqBody.containsKey(JobConfig.KEY_QUERY_TYPE)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     "Param Syntax Error: The param must contain query.type", null);
         }
         if (!reqBody.containsKey(JobConfig.KEY_QUERY_DATA_SOURCE)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     "Param Syntax Error: The param must contain query.data_source", null);
         }
         String dataSource = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_DATA_SOURCE));
         if (!metadataService.getAllTable().contains(dataSource)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     "Param Syntax Error: The param query.data_source illegal", null);
         }
     }

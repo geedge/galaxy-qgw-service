@@ -43,7 +43,7 @@ public class DiagnosisController {
     @RequestMapping(value = "/runSql")
     public BaseResult executePocSql(String isSaved, @RequestParam(defaultValue = "parse") String option) throws BusinessException {
         if (Arrays.stream(DiagnosisOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(option))) {
-            throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     MessageConst.DIAGNOSIS_OPTION_ERROR);
         }
         return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved), option);
@@ -58,7 +58,7 @@ public class DiagnosisController {
     public BaseResult getMessageInfo(String option) {
         log.info("Entity recommendation proportion statistical information interface, param is: {}", option);
         if (!EntityQueryType.TOPSERVERIP.getType().equalsIgnoreCase(option) && !EntityQueryType.TOPSNI.getType().equalsIgnoreCase(option)) {
-            throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     MessageConst.DIAGNOSIS_OPTION_ERROR);
         }
         return diagnosisService.getMessageInfo(option);

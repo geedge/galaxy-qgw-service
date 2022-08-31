@@ -30,20 +30,20 @@ public class ComDSLValidate {
 
     public void validation(ComDSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.DSL_OBJECT_IS_INVALID);
         }
         ComDSLObject.Query query;
         if (StringUtil.isEmpty(query = dslObject.getQuery())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.QUERY_IS_INVALID);
         }
         if (StringUtil.isEmpty(query.getDataEngine())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.DATA_ENGINE_IS_INVALID);
         }
         if (StringUtil.isEmpty(query.getDataSource())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.DATASOURCE_IS_INVALID);
         }
         ComDSLObject.Query.QueryBean parameters;
@@ -51,23 +51,23 @@ public class ComDSLValidate {
             return;
         }
         if (!isValidGranularity(parameters.getGranularity())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.GRANULARITY_VALUE_IS_INVALID);
         }
         if (!isValidMatch(parameters.getMatch())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.MATCH_TYPE);
         }
         if (!isValidRange(parameters.getRange())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         if (!isValidIntervals(parameters.getIntervals())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         if (!isValidSort(parameters.getSort())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.INTERVALS_PARAM_ERROR);
         }
     }
@@ -90,7 +90,7 @@ public class ComDSLValidate {
             Validate.isTrue(EnumUtils.isValidEnum(SortEnum.class, StringUtil.upperCase(sortBean.getType())), ErrorMessage.SORT_TYPE_IS_INVALID);
             String fieldKey = sortBean.getFieldKey();
             if (StringUtil.isBlank(fieldKey)) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.SORT_FIELD_VALUES);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.SORT_FIELD_VALUES);
             }
         }
         return true;
@@ -104,7 +104,7 @@ public class ComDSLValidate {
             Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(rangeBean.getType())), ErrorMessage.RANGE_TYPE_IS_INVALID);
             String fieldKey = rangeBean.getFieldKey();
             if (StringUtil.isBlank(fieldKey)) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.RANGE_FIELD_VALUES);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.RANGE_FIELD_VALUES);
             }
         }
         return true;
@@ -137,15 +137,15 @@ public class ComDSLValidate {
             return true;
         }
         if (intervalsBean.size() != 1) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.INTERVALS_PARAM_ERROR);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         String[] split = intervalsBean.get(0).split("/");
         if (split.length != 2) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.INTERVALS_PARAM_ERROR);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.INTERVALS_PARAM_ERROR);
         }
         for (String dateTimeStr : split) {
             if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), ErrorMessage.TIME_FORMAT_ERROR);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.TIME_FORMAT_ERROR);
             }
         }
         try {
@@ -154,7 +154,7 @@ public class ComDSLValidate {
                 throw new RuntimeException("Intervals value should be [start, end]");
             }
         } catch (RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), e.getMessage());
         }
         return true;
     }

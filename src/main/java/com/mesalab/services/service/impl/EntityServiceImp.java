@@ -111,7 +111,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             int limit = StringUtil.isBlank(comDSLObject.getQuery().getLimit()) ? entityConfigSource.getTopSNIDefaultSize() : Integer.parseInt(comDSLObject.getQuery().getLimit());
             baseResult = build(limit, baseResult, baseResultTotal);
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
@@ -336,7 +336,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                 baseResult = query(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
             }
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.MATCH_TYPE);
         }
         return baseResult;

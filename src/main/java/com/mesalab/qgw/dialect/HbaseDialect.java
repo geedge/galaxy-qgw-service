@@ -96,7 +96,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Converter SQL Syntax Error.", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Converter SQL Syntax Error.", e);
         }
     }
 
@@ -117,7 +117,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     String getExplainQuery() {
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Hbase dialect unsupported EXPLAIN Syntax.", null);
+        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Hbase dialect unsupported EXPLAIN Syntax.", null);
     }
 
     @Override
@@ -135,10 +135,10 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         Map<String, Object> results = executeQuery(sql);
         int status = Integer.parseInt(String.valueOf(results.get("status")));
         if (status == ResultStatusEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
+            baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SUCCESS.getCode(), message.get(),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), QueryFormatEnum.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), String.valueOf(results.get("message")),
+            baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), String.valueOf(results.get("message")),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), param.getFormat());
         }
         return baseResult;
@@ -158,7 +158,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             return buildResult(resultSet);
         } catch (RuntimeException | SQLException e) {
             log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), simplyErrorMessage(e.getMessage()), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), simplyErrorMessage(e.getMessage()), null);
         } finally {
             close(resultSet, statement, conn);
         }

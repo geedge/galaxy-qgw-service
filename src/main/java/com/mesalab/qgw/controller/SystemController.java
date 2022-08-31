@@ -91,7 +91,7 @@ public class SystemController {
         if (StringUtil.isEmpty(resultId = param.get("resultId"))
                 || StringUtil.isEmpty(query = param.get("query"))) {
 
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     "Param resultId or query cannot be empty", null);
         }
         String queryId = systemService.getCustomQueryId(resultId.toString(), query.toString());
@@ -106,7 +106,7 @@ public class SystemController {
     public BaseResult getCiphertext(EncryptionInfo param) {
         log.info("Plaintext encrypted,The plaintext argument is : {}", param);
         if (StringUtil.isEmpty(param.getPassword()) || StringUtil.isEmpty(param.getSalt())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     "Param password or salt cannot be empty", null);
         }
         return systemService.getCiphertext(param);
