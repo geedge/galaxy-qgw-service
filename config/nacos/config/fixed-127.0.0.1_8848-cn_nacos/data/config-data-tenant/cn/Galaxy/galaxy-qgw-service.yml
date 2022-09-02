@@ -95,7 +95,11 @@ service:
       TCPByUniqClientIP: 100000
       UDPBySession: 100000
       UDPByUniqClientIP: 40000
-    topSNI: 30000
+    topSNI:
+      defaultSize: 30000
+      dataset: 2000000
+    gtpc:
+        defaultSize: 100000
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.55:8529
@@ -106,6 +110,20 @@ arango:
   queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
   maxrows: 10000
   socketTimeOut: 300000
+## hos cfg
+hos:
+  uri: http://127.0.0.1:9098/hos
+  bucket: knowledge_base_hos_bucket
+  token: c21f969b5f03d33d43e04f8f136e7682
+## knowledge value 格式 name:版本
+knowledge:
+  ipLocation:
+    ipV4:
+      userDefined: ip_v4_user_defined.mmdb:1.0.1
+      builtIn: ip_v4_built_in.mmdb:1.0.1
+    ipV6:
+      userDefined: ip_v6_user_defined.mmdb:1.0.1
+      builtIn: ip_v6_built_in.mmdb:1.0.1
 ## http pool config
 http:
   pool:
@@ -142,3 +160,4 @@ task:
     corePoolSize: 8
     maxPoolSize: 16
     queueCapacity: 1000
+

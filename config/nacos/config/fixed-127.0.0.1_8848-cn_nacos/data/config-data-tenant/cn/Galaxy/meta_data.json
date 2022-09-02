@@ -6,7 +6,16 @@
       "tables": [
         "session_record_cn",
         "metric_map",
-        "metric_top_entity"
+        "metric_top_entity",
+        "metric_ip",
+        "metric_region",
+        "metric_asn",
+        "metric_idc_renter",
+        "metric_application",
+        "metric_domain",
+        "metric_http_host",
+        "metric_ssl_sni",
+        "metric_protocol"
       ]
     },
     {
@@ -15,15 +24,14 @@
       "tables": [
         "security_event",
         "performance_event",
-        "entity_info"        
+        "entity_info"
       ]
     },
     {
       "namespace": "system",
       "group": "CLICKHOUSE_GROUP",
       "tables": [
-        "processes",
-        "columns_cluster"
+        "processes"
       ]
     },
     {
