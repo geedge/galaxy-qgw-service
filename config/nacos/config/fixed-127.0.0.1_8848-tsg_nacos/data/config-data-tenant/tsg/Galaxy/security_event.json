@@ -30,7 +30,6 @@
         "common_device_group",
         "common_address_type",
         "common_schema_type",
-        "common_vsys_id",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -148,7 +147,6 @@
         "common_device_group",
         "common_address_type",
         "common_schema_type",
-        "common_vsys_id",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -299,7 +297,6 @@
         "common_device_group",
         "common_address_type",
         "common_schema_type",
-        "common_vsys_id",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -454,7 +451,6 @@
           "common_stream_trace_id",
           "common_address_type",
           "common_schema_type",
-          "common_vsys_id",
           "common_direction",
           "common_stream_dir",
           "common_start_time",
@@ -1090,16 +1086,6 @@
         "ttl": null
       },
       "type": "string"
-    },
-    {
-      "name": "common_vsys_id",
-      "label": "VSYS ID",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "int",
-      "default": 1
     },
     {
       "name": "common_user_tags",
