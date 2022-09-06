@@ -1506,9 +1506,13 @@ public class SQLFunctionUtil {
                 }
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
-                    innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]";
+                    innerValue = "TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]/1000";
                 } else {
+                    if (matcherParse.group(2).equals("__time")) {
                     innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[ TIMESTAMP " + matcherParse.group(2) + "#]";
+                    } else {
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[ " + matcherParse.group(2) + "#]#]/1000";
+                    }
                 }
             } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
                 innerValue = "" + matcherParse.group(2) + "::datetime::bigint/1000";
