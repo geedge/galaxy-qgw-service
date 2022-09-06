@@ -26,15 +26,6 @@
       }
     },
     {
-      "name": "vsys_id",
-      "label": "VSYS ID",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "int",
-      "default": 1
-    },
-    {
       "name": "data_center",
       "label": "Data Center",
       "type": "string",
