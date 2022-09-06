@@ -96,6 +96,7 @@
         "ssl_ja3_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "dtls_sni",
         "quic_sni",
         "quic_version",
         "quic_user_agent",
@@ -236,6 +237,7 @@
         "ssl_cert_issuer",
         "ssl_cert_subject",
         "ssl_con_latency_ms",
+        "dtls_sni",
         "quic_sni",
         "quic_version",
         "quic_user_agent",
@@ -393,6 +395,7 @@
         "ssl_ja3_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "dtls_sni",
         "quic_sni",
         "quic_version",
         "quic_user_agent",
@@ -561,6 +564,9 @@
       },
       "SSL": {
         "$ref": "public_schema_info.json#/schema_type/SSL"
+      },
+      "DTLS": {
+        "$ref": "public_schema_info.json#/schema_type/DTLS"
       },
       "QUIC": {
         "$ref": "public_schema_info.json#/schema_type/QUIC"
@@ -1046,6 +1052,10 @@
           {
             "code": "SSL",
             "value": "SSL"
+          },
+          {
+            "code": "DTLS",
+            "value": "DTLS"
           },
           {
             "code": "QUIC",
@@ -2968,6 +2978,96 @@
           "type": "items"
         },
         "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_cookie",
+      "label": "DTLS.Cookie",
+      "doc": {
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_version",
+      "label": "DTLS.Version",
+      "doc": {
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_sni",
+      "label": "DTLS.SNI",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_san",
+      "label": "DTLS.SAN",
+      "doc": {
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_cn",
+      "label": "DTLS.CN",
+      "doc": {
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_con_latency_ms",
+      "label": "DTLS.Handshake Latency (ms)",
+      "doc": {
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dtls_ja3_fingerprint",
+      "label": "DTLS.JA3",
+      "doc": {
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_ja3_hash",
+      "label": "DTLS.JA3 hash",
+      "doc": {
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_cert_issuer",
+      "label": "DTLS.Issuer",
+      "doc": {
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dtls_cert_subject",
+      "label": "DTLS.Subject",
+      "doc": {
+        "visibility": "disabled",
         "ttl": null
       },
       "type": "string"
