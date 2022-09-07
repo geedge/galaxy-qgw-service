@@ -9,11 +9,11 @@ import org.springframework.web.multipart.MultipartFile;
  * @Date 2022/7/11
  */
 public interface KnowledgeBaseService {
-    BaseResult publishKnowledge(MultipartFile file, KnowledgeBase knowledge);
+    BaseResult publishKnowledge(MultipartFile file, KnowledgeBase knowledge) throws Exception;
 
     BaseResult queryKnowledge();
 
-    BaseResult updateKnowledge(MultipartFile file, KnowledgeBase knowledgeBase);
+    BaseResult updateKnowledge(MultipartFile file, KnowledgeBase knowledgeBase) throws Exception;
 
-    BaseResult deleteKnowledge(String id);
+    BaseResult deleteKnowledge(String id) throws Exception;
 }
