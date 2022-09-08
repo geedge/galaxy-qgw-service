@@ -31,17 +31,17 @@ public class ClickhouseWriter extends Writer {
     private NacosConfig nacosConfig;
 
     @Autowired
-    private ConfigService configService;
+    private ConfigService systemConfigService;
 
     @Override
     public String buildPocSQL() {
         String pocSql = "";
         try {
-            String filter = configService.getConfig(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
+            String filter = systemConfigService.getConfig(NacosConst.CK_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
             Map<String, List<String>> environment = getFilterOptions(filter);
 
             File templateFile = new File("benchmark" + File.separator + NacosConst.CK_QUERIES_TEMPLATE_DATA_ID);
-            String content = configService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
+            String content = systemConfigService.getConfig(NacosConst.CK_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
             templateFile = FileUtil.writeBytes(content.getBytes(), templateFile);
             FileReader templateReader = new FileReader(templateFile);
 

@@ -6,19 +6,16 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.mesalab.network.common.Constants;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.entity.KnowledgeBase;
 import com.mesalab.services.common.entity.KnowledgeConstant;
-import com.mesalab.services.common.entity.KnowledgeVersion;
+import com.mesalab.services.common.entity.IpLocationConfiguration;
 import com.mesalab.services.configuration.HosConfig;
 import com.zdjizhi.utils.IpLookupV2;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
-import org.springframework.beans.BeansException;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,11 +36,21 @@ public class IPUtil{
 
     private static IpLookupV2 ipLookup;
 
-    static Map<String, String> updateMap = new HashMap<>();
+    private static Map<String, String> updateMap = new HashMap<>();
 
     private static HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
     private static HosConfig hosConfig = (HosConfig) SpringContextUtil.getBean("hosConfig");
     private static HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
+
+    private IPUtil() {
+        initIpLookup(Constants.DAT + File.separator + Constants.IP_BUILT_IN_V4, Constants.DAT + File.separator + Constants.IP_BUILT_IN_V6, Constants.DAT + File.separator + Constants.IP_USER_DEFINED_V4,
+                Constants.DAT + File.separator + Constants.IP_USER_DEFINED_V6);
+    }
+
+    private static IPUtil instance = new IPUtil();
+    public static IPUtil getInstance() {
+       return instance;
+    }
 
 
     public void initIpLookup(String ip_v4, String ip_v6, String ip_private_v4, String ip_private_v6) {
@@ -55,28 +62,28 @@ public class IPUtil{
                 .build();
     }
 
-    public static String getGeo(String ip) {
+    public String getGeo(String ip) {
         return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.latLngLookup(ip);
     }
 
-    public static String getCityDetail(String ip) {
+    public String getCityDetail(String ip) {
         return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.cityLookupDetail(ip);
     }
 
-    public static String getCountry(String ip) {
+    public String getCountry(String ip) {
         return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.countryLookup(ip);
     }
 
-    public static String getISP(String ip) {
+    public String getISP(String ip) {
         return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.ispLookup(ip);
     }
 
-    public static String getOrganization(String ip) {
+    public String getOrganization(String ip) {
         return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.organizationLookup(ip);
     }
 
-    public void loadIpLocation(String content, KnowledgeVersion knowledgeVersion) throws NacosException {
-        Map<String, String> map = queryLoadKnowledgeInfo(content, knowledgeVersion);
+    public void loadIpLocation(String content, IpLocationConfiguration ipLocationConfiguration) throws NacosException {
+        Map<String, String> map = queryLoadKnowledgeInfo(content, ipLocationConfiguration);
         loadKnowledge(map);
     }
 
@@ -97,29 +104,29 @@ public class IPUtil{
                 log.info("No update required");
             }
         } else {
-            initIpLookup(KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V4, KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V6, KnowledgeConstant.DAT + File.separator + Constants.IP_USER_DEFINED_V4,
-                    KnowledgeConstant.DAT + File.separator + Constants.IP_USER_DEFINED_V6);
+            initIpLookup(Constants.DAT + File.separator + Constants.IP_BUILT_IN_V4, Constants.DAT + File.separator + Constants.IP_BUILT_IN_V6, Constants.DAT + File.separator + Constants.IP_USER_DEFINED_V4,
+                    Constants.DAT + File.separator + Constants.IP_USER_DEFINED_V6);
         }
     }
 
-    public Map<String, String> queryLoadKnowledgeInfo(String content, KnowledgeVersion knowledgeVersion) {
+    public Map<String, String> queryLoadKnowledgeInfo(String content, IpLocationConfiguration ipLocationConfiguration) {
 
-        log.info("update knowledge Base version:{},update knowledge Base content:{}", knowledgeVersion, content);
+        log.info("update knowledge Base version:{},update knowledge Base content:{}", ipLocationConfiguration, content);
 
-        if (StringUtil.isNotEmpty(knowledgeVersion) && StringUtil.isNotEmpty(content)) {
-            List<KnowledgeBase> KnowledgeBaseList = com.mesalab.common.utils.JsonMapper.fromJsonString(content, List.class, KnowledgeBase.class);
-            Map<String, String> map = queryFilePath(knowledgeVersion, KnowledgeBaseList);
+        if (StringUtil.isNotEmpty(ipLocationConfiguration) && StringUtil.isNotEmpty(content)) {
+            List<KnowledgeBase> KnowledgeBaseList = JsonMapper.fromJsonString(content, List.class, KnowledgeBase.class);
+            Map<String, String> map = queryFilePath(ipLocationConfiguration, KnowledgeBaseList);
             return map;
         }
         return null;
     }
 
-    private Map<String, String> queryFilePath(KnowledgeVersion knowledgeVersion, List<KnowledgeBase> knowledgeBaseList) {
+    private Map<String, String> queryFilePath(IpLocationConfiguration ipLocationConfiguration, List<KnowledgeBase> knowledgeBaseList) {
 
-        String ipV4BuiltIn = knowledgeVersion.getIpV4BuiltIn();
-        String ipV4UserDefined = knowledgeVersion.getIpV4UserDefined();
-        String ipV6BuiltIn = knowledgeVersion.getIpV6BuiltIn();
-        String ipV6UserDefined = knowledgeVersion.getIpV6UserDefined();
+        String ipV4BuiltIn = ipLocationConfiguration.getIpV4BuiltIn();
+        String ipV4UserDefined = ipLocationConfiguration.getIpV4UserDefined();
+        String ipV6BuiltIn = ipLocationConfiguration.getIpV6BuiltIn();
+        String ipV6UserDefined = ipLocationConfiguration.getIpV6UserDefined();
 
         updateMap.put("isUpdate", "false");
         Map<String, String> map = new HashMap<>();
@@ -127,7 +134,7 @@ public class IPUtil{
             String name = knowledgeBase.getName();
             String version = knowledgeBase.getVersion();
             String concat = name.concat(":").concat(version);
-            String path = KnowledgeConstant.DAT.concat(File.separator).concat(name).concat(".").concat(knowledgeBase.getFormat());
+            String path = Constants.DAT.concat(File.separator).concat(name).concat(".").concat(knowledgeBase.getFormat());
             if (StringUtil.equals(concat, ipV4BuiltIn)) {
                 map.put(Constants.IP_BUILT_IN_V4, path);
                 download(knowledgeBase);
@@ -161,20 +168,20 @@ public class IPUtil{
         String ipV6BuiltInPath = map.get(Constants.IP_BUILT_IN_V6);
         String ipV6UserDefinedPath = map.get(Constants.IP_USER_DEFINED_V6);
         if (StringUtil.isEmpty(ipV4BuiltInPath)) {
-            ipV4BuiltInPath = KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V4;
+            ipV4BuiltInPath = Constants.DAT + File.separator + Constants.IP_BUILT_IN_V4;
             map.put(Constants.IP_BUILT_IN_V4, ipV4BuiltInPath);
         }
         if (StringUtil.isEmpty(ipV4UserDefinedPath)) {
-            ipV4UserDefinedPath = KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
+            ipV4UserDefinedPath = Constants.DAT + File.separator + Constants.IP_BUILT_IN_V6;
             map.put(Constants.IP_USER_DEFINED_V4, ipV4UserDefinedPath);
         }
         if (StringUtil.isEmpty(ipV6BuiltInPath)) {
-            ipV6BuiltInPath = KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
+            ipV6BuiltInPath = Constants.DAT + File.separator + Constants.IP_BUILT_IN_V6;
             map.put(Constants.IP_BUILT_IN_V6, ipV6BuiltInPath);
         }
 
         if (StringUtil.isEmpty(ipV6UserDefinedPath)) {
-            ipV6UserDefinedPath = KnowledgeConstant.DAT + File.separator + Constants.IP_BUILT_IN_V6;
+            ipV6UserDefinedPath = Constants.DAT + File.separator + Constants.IP_BUILT_IN_V6;
             map.put(Constants.IP_USER_DEFINED_V6, ipV6UserDefinedPath);
         }
         map.put("isUpdate", updateMap.get("isUpdate"));
@@ -194,7 +201,7 @@ public class IPUtil{
             InputStream inputStream = null;
             try {
                 inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), httpConfig.getServerResponseTimeOut(), header);
-                file = new File(KnowledgeConstant.DAT.concat(File.separator).concat(name).concat(".").concat(format));
+                file = new File(Constants.DAT.concat(File.separator).concat(name).concat(".").concat(format));
                 outputStream = new FileOutputStream(file);
                 IoUtil.copy(inputStream, outputStream);
                 log.info("knowledge download name :{},version:{}", name, knowledgeBase.getVersion());
@@ -208,6 +215,8 @@ public class IPUtil{
             updateMap.put("isUpdate", "true");
         }
     }
+
+
 
 
 }

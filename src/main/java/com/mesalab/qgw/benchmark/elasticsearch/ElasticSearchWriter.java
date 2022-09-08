@@ -27,17 +27,17 @@ public class ElasticSearchWriter extends Writer {
     NacosConfig nacosConfig;
 
     @Autowired
-    ConfigService configService;
+    ConfigService systemConfigService;
 
     @Override
     public String buildPocSQL() {
         String pocSql = "";
         try {
-            String filter = configService.getConfig(NacosConst.ES_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
+            String filter = systemConfigService.getConfig(NacosConst.ES_FILTER_DATA_ID, nacosConfig.getGroup(), 3000);
             Map<String, List<String>> environment = getFilterOptions(filter);
 
             File templateFile = new File("benchmark" + File.separator + NacosConst.ES_QUERIES_TEMPLATE_DATA_ID);
-            String content = configService.getConfig(NacosConst.ES_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
+            String content = systemConfigService.getConfig(NacosConst.ES_QUERIES_TEMPLATE_DATA_ID, nacosConfig.getGroup(), 3000);
             templateFile = FileUtil.writeBytes(content.getBytes(), templateFile);
             FileReader templateReader = new FileReader(templateFile);
 
