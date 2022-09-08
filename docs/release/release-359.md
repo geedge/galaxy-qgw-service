@@ -4,3 +4,7 @@ Release 359 (TSG-22.09)
 * 优化GTPC知识库推荐接口(TSG-11758)
 * 升级JSQLParse解析工具至4.1版本
 * Galaxy初始化知识库新增ASN知识库(TSG-11868)
+* 扩展Schema，增加DTLS协议(TSG-11851)
+* 扩展健康检测接口，新增hos健康检测(TSG-11821)
+* 扩展Schema，支持公共字段common_tunnel_endpoint_a_desc、common_tunnel_endpoint_b_desc(TSG-11880)
+  
