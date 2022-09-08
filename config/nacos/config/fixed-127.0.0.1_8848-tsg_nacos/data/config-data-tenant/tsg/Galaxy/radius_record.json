@@ -41,6 +41,8 @@
         "common_server_asn",
         "common_l7_protocol",
         "common_l4_protocol",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_subscriber_id",
         "radius_nas_ip",
         "radius_framed_ip",
@@ -124,6 +126,8 @@
         "common_server_asn",
         "common_l7_protocol",
         "common_l4_protocol",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
         "common_c2s_byte_num",
@@ -242,6 +246,8 @@
           "common_link_info_c2s",
           "common_link_info_s2c",
           "common_packet_capture_file",
+          "common_tunnel_endpoint_a_desc",
+          "common_tunnel_endpoint_b_desc",
           "common_action",
           "common_sub_action",
           "common_policy_id",
@@ -268,7 +274,9 @@
       "common_log_id",
       "common_processing_time",
       "common_ingestion_time",
-      "common_packet_capture_file"
+      "common_packet_capture_file",
+      "common_tunnel_endpoint_a_desc",
+      "common_tunnel_endpoint_b_desc"
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
@@ -1098,6 +1106,24 @@
         "constraints": {
           "type": "file"
         },
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_tunnel_endpoint_a_desc",
+      "label": "Tunnel Endpoint A Description",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_tunnel_endpoint_b_desc",
+      "label": "Tunnel Endpoint B Description",
+      "doc": {
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
