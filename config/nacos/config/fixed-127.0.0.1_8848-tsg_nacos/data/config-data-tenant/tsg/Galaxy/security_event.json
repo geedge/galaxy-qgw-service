@@ -54,6 +54,8 @@
         "common_l7_protocol",
         "common_protocol_label",
         "common_l4_protocol",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "http_host",
         "http_domain",
         "http_url",
@@ -324,6 +326,8 @@
         "common_protocol_label",
         "common_service_category",
         "common_l4_protocol",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
         "common_c2s_byte_num",
@@ -545,7 +549,9 @@
           "common_stream_error",
           "common_link_info_c2s",
           "common_link_info_s2c",
-          "common_packet_capture_file"
+          "common_packet_capture_file",
+          "common_tunnel_endpoint_a_desc",
+          "common_tunnel_endpoint_b_desc"
         ]
       }
     },
@@ -614,6 +620,8 @@
       "common_userdefine_app_name",
       "common_tunnels",
       "common_packet_capture_file",
+      "common_tunnel_endpoint_a_desc",
+      "common_tunnel_endpoint_b_desc",
       "http_request_body",
       "http_response_body",
       "mail_eml_file",
@@ -1516,6 +1524,24 @@
         "constraints": {
           "type": "file"
         },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_tunnel_endpoint_a_desc",
+      "label": "Tunnel Endpoint A Description",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_tunnel_endpoint_b_desc",
+      "label": "Tunnel Endpoint B Description",
+      "doc": {
         "visibility": "enabled",
         "ttl": null
       },
