@@ -24,7 +24,7 @@ public class NacosConfiguration {
     @Autowired
     private NacosConfig nacosConfig;
 
-    @Bean(name = "configService")
+    @Bean(name = "systemConfigService")
     public ConfigService getConfigService() {
         ConfigService configService = null;
         try {

@@ -54,7 +54,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Autowired
     private NacosConfig nacosConfig;
     @Autowired
-    private ConfigService configService;
+    private ConfigService systemConfigService;
     @Autowired
     private ConfigService pubConfigService;
     @Autowired
@@ -193,13 +193,13 @@ public class MetadataServiceImpl implements MetadataService {
             return schema;
         }
         try {
-            String content = configService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
+            String content = systemConfigService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
             if (StrUtil.isBlankIfStr(content)) {
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), tableName + " Get Schema configuration exception", null);
             }
             schemaCache.put(tableName, schema = parseSchema(content));
-            configService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
+            systemConfigService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
@@ -216,13 +216,13 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public BaseResult updateSchema(String name, Map<String, Object> paramMap) {
         try {
-            String content = configService.getConfig(name.concat(".json"), nacosConfig.getGroup(), 3000);
+            String content = systemConfigService.getConfig(name.concat(".json"), nacosConfig.getGroup(), 3000);
             updateSchema(name, paramMap, content);
             String indexTable = getValueByKeyInSchemaDoc(name, "index_table");
             if (StringUtil.isNotBlank(indexTable)) {
                 List<String> list = Splitter.on(",").omitEmptyStrings().splitToList(indexTable);
                 for (String item : list) {
-                    String config = configService.getConfig(item.concat(".json"), nacosConfig.getGroup(), 3000);
+                    String config = systemConfigService.getConfig(item.concat(".json"), nacosConfig.getGroup(), 3000);
                     updateSchema(item, paramMap, config);
                 }
             }
@@ -246,7 +246,7 @@ public class MetadataServiceImpl implements MetadataService {
             }
             content = JSONUtil.toJsonStr(JSONUtil.parseObj(data));
             log.info("push Schema, content is: {}", content);
-            return configService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
+            return systemConfigService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "get Schema Error");
         }
@@ -288,7 +288,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     private void addMetadataListener() {
         try {
-            configService.addListener(NacosConst.META_DATA_ID, nacosConfig.getGroup(), new AbstractListener() {
+            systemConfigService.addListener(NacosConst.META_DATA_ID, nacosConfig.getGroup(), new AbstractListener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo metadata {}", configInfo);
@@ -424,9 +424,9 @@ public class MetadataServiceImpl implements MetadataService {
                 originalCache.put(cfgName, content);
                 return content;
             }
-            content = configService.getConfig(cfgName, nacosConfig.getGroup(), 3000);
+            content = systemConfigService.getConfig(cfgName, nacosConfig.getGroup(), 3000);
             originalCache.put(cfgName, content);
-            configService.addListener(cfgName, nacosConfig.getGroup(), new AbstractListener() {
+            systemConfigService.addListener(cfgName, nacosConfig.getGroup(), new AbstractListener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo Schema Fields {}", configInfo);

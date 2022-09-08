@@ -8,7 +8,7 @@ import lombok.Data;
  * @Date 2022/7/25
  */
 @Data
-public class KnowledgeVersion {
+public class IpLocationConfiguration {
 
     private String ipV4UserDefined;
 
