@@ -1267,7 +1267,7 @@
         "visibility": "hidden",
         "ttl": null
       },
-      "type": "hidden"
+      "type": "string"
     },
     {
       "name": "common_tunnel_endpoint_b_desc",
@@ -1276,7 +1276,7 @@
         "visibility": "hidden",
         "ttl": null
       },
-      "type": "hidden"
+      "type": "string"
     },
     {
       "name": "common_c2s_ipfrag_num",
