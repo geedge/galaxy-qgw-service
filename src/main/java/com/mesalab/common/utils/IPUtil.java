@@ -190,16 +190,16 @@ public class IPUtil{
 
     private void download(KnowledgeBase knowledgeBase) {
 
+        String id = knowledgeBase.getId();
         String name = knowledgeBase.getName();
-        String updateTime = knowledgeBase.getUpdateTime();
+        String sha256 = knowledgeBase.getSha256();
         String format = knowledgeBase.getFormat();
-        String lastUpdateTime = updateMap.get(name);
-        if (!StringUtil.equals(updateTime, lastUpdateTime)) {
-            Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
+        if (!StringUtil.equals(sha256, updateMap.get(id))) {
             File file;
             FileOutputStream outputStream = null;
             InputStream inputStream = null;
             try {
+                Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
                 inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), httpConfig.getServerResponseTimeOut(), header);
                 file = new File(Constants.DAT.concat(File.separator).concat(name).concat(".").concat(format));
                 outputStream = new FileOutputStream(file);
@@ -211,7 +211,7 @@ public class IPUtil{
                 IoUtil.close(inputStream);
                 IoUtil.close(outputStream);
             }
-            updateMap.put(name, updateTime);
+            updateMap.put(id, sha256);
             updateMap.put("isUpdate", "true");
         }
     }
