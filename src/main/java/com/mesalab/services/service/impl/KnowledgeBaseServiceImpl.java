@@ -85,6 +85,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             Map map = new HashMap();
             map.put("id", knowledgeBase.getId());
             return BaseResultGenerator.success(map);
+        } catch (Exception e) {
+            throw e;
         } finally {
             lock.release();
         }
@@ -122,6 +124,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
                 httpClientService.httpDelete(deletePath, httpConfig.getServerResponseTimeOut(), header);
             }
+        } catch (Exception e) {
+            throw e;
         } finally {
             lock.release();
         }
@@ -157,6 +161,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     throw new BusinessException("id not exist");
                 }
             }
+        } catch (Exception e) {
+            throw e;
         } finally {
             lock.release();
         }
@@ -195,19 +201,16 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         String path = uploadFile(file);
         String date = DateUtils.getFormatDate(new Date(), "yyyy-MM-dd'T'HH:mm:sss");
         String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
-        KnowledgeBase knowledgeBase = new KnowledgeBase();
-        BeanUtils.copyProperties(knowledge, knowledgeBase);
-        knowledgeBase.setId(id);
-        knowledgeBase.setPath(path);
-        knowledgeBase.setSha256(sha256Hex);
-        knowledgeBase.setVersion(version);
-        knowledgeBase.setSize(file.getSize());
-        knowledgeBase.setUpdateTime(date);
-        return knowledgeBase;
+        knowledge.setId(id);
+        knowledge.setPath(path);
+        knowledge.setSha256(sha256Hex);
+        knowledge.setVersion(version);
+        knowledge.setSize(file.getSize());
+        knowledge.setUpdateTime(date);
+        return knowledge;
     }
 
     private String queryLsatKnowledgeVersion(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge) {
-
 
         if (CollectionUtil.isNotEmpty(knowledgeBaseList)) {
             for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
@@ -221,7 +224,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         return null;
     }
 
-    private void saveKnowledgeBaseList(List<KnowledgeBase> knowledgeBaseList) throws Exception {
+    private void saveKnowledgeBaseList(List<KnowledgeBase> knowledgeBaseList) throws NacosException, InterruptedException {
 
         try {
             boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
@@ -240,7 +243,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 break;
             }
         }
-
     }
 
 
