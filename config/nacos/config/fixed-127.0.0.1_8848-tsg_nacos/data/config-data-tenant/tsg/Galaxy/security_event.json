@@ -1286,7 +1286,7 @@
           {
             "function": "gtpc_match",
             "appendTo": "common_imsi,common_imei,common_phone_number",
-            "param": "$.[?(@.tunnels_schema_type=='GTP')].gtp_uplink_teid,$.[?(@.tunnels_schema_type=='GTP')].gtp_downlink_teid"
+            "param": "$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_b2a_teid"
           }
         ]
       },
