@@ -2233,33 +2233,33 @@
   "tunnel_type": {
     "GTP": [
       {
-        "name": "gtp_sgw_ip",
-        "label": "S-GW IP",
+        "name": "gtp_endpoint_a_ip",
+        "label": "Endpoint A IP",
         "type": "string"
       },
       {
-        "name": "gtp_pgw_ip",
-        "label": "P-GW IP",
+        "name": "gtp_endpoint_b_ip",
+        "label": "Endpoint B IP",
         "type": "string"
       },
       {
-        "name": "gtp_sgw_port",
-        "label": "S-GW Port",
+        "name": "gtp_endpoint_a_port",
+        "label": "Endpoint A Port",
         "type": "int"
       },
       {
-        "name": "gtp_pgw_port",
-        "label": "P-GW Port",
+        "name": "gtp_endpoint_b_port",
+        "label": "Endpoint B Port",
         "type": "int"
       },
       {
-        "name": "gtp_uplink_teid",
-        "label": "Uplink TEID",
+        "name": "gtp_endpoint_a2b_teid",
+        "label": "Endpoint A2B TEID",
         "type": "long"
       },
       {
-        "name": "gtp_downlink_teid",
-        "label": "Downlink TEID",
+        "name": "gtp_endpoint_b2a_teid",
+        "label": "Endpoint B2A TEID",
         "type": "long"
       }
     ],
