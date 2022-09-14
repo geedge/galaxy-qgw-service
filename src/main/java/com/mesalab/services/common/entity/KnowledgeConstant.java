@@ -10,5 +10,5 @@ package com.mesalab.services.common.entity;
 public class KnowledgeConstant {
     public static final String LATEST = "latest";
     public static final String TOKEN = "token";
-    public static final String DAT = "dat";
+
 }

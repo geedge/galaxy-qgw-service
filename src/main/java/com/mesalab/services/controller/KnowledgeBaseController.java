@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.regex.Pattern;
+
 
 @RestController
 @RequestMapping(value = "/knowledge_base/v1")
@@ -41,7 +43,7 @@ public class KnowledgeBaseController {
         try {
             KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
             return knowledgeService.publishKnowledge(file, knowledgeBase);
-        } catch (BusinessException e) {
+        } catch (Exception e) {
             log.error("发布知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Publish knowledge error:" + e.getMessage());
         }
@@ -52,7 +54,7 @@ public class KnowledgeBaseController {
 
         try {
             return knowledgeService.updateKnowledge(file, knowledge);
-        } catch (BusinessException e) {
+        } catch (Exception e) {
             log.error("更新知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Update knowledge error:" + e.getMessage());
         }
@@ -63,7 +65,7 @@ public class KnowledgeBaseController {
 
         try {
             return knowledgeService.deleteKnowledge(id);
-        } catch (BusinessException e) {
+        } catch (Exception e) {
             log.error("删除知识库失败:{}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Delete knowledge error:" + e.getMessage());
         }
@@ -76,14 +78,11 @@ public class KnowledgeBaseController {
         if (knowledge.getName().contains(":")){
             throw new BusinessException("Name cannot contain ':'");
         }
+        if (knowledge.getName().contains(".")){
+            throw new BusinessException("Name cannot contain '.'");
+        }
         if (StringUtil.isEmpty(knowledge.getFormat())) {
             throw new BusinessException("Format is required");
-        }
-        if (!StringUtil.equals(knowledge.getType(),"ip_location")){
-            throw new BusinessException("ip_location is failed");
-        }
-        if (StringUtil.isEmpty(knowledge.getVersion())) {
-            knowledge.setVersion("null");
         }
         return knowledge;
     }
