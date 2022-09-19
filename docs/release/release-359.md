@@ -7,4 +7,4 @@ Release 359 (TSG-22.09)
 * 扩展Schema，增加DTLS协议(TSG-11851)
 * 扩展健康检测接口，新增hos健康检测(TSG-11821)
 * 扩展Schema，支持公共字段common_tunnel_endpoint_a_desc、common_tunnel_endpoint_b_desc(TSG-11880)
-  
+* 修复Dashboard瞬时流量值显示异常(TSG-11993)
