@@ -187,7 +187,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         for (String key : targetTimeSeriesMap.keySet()) {
             Map<String, Map<String, Object>> stringMapMap = targetTimeSeriesMap.get(key);
             for (String l : stringMapMap.keySet()) {
-                Date date = new Date(Long.parseLong(l) * 1000);
+                Date date = NumberUtil.isNumber(l) ? new Date(NumberUtil.parseLong(l) * 1000) : DateUtils.convertStringToDate(l, DateUtils.YYYY_MM_DD_HH24_MM_SS);
                 if (!dateRangeList.contains(date)) {
                     dateRangeList.add(date);
                 }
