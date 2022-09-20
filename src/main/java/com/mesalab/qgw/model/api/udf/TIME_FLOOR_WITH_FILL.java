@@ -89,17 +89,15 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     @Override
     public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
-        List<Map<String, Object>>  targetResult = null;
+        List<Map<String, Object>> targetResult = Lists.newArrayList();
         List<String> groupLabels = Lists.newArrayList();
         String timeGranLabel = null;
-
-
         try {
             Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
             if (results.isEmpty() || StringUtil.isBlank(fill) || StringUtil.isEmpty(groupDimension)) {
                 return results;
             }
-            for (String groupKey: groupDimension.keySet()) {
+            for (String groupKey : groupDimension.keySet()) {
                 if (groupDimension.get(groupKey).contains(name) &&
                         groupDimension.get(groupKey).contains(timestamp)) {
                     timeGranLabel = groupKey;
@@ -110,8 +108,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
 
             WhereTimeRange whereTimeRange = getWhereTimeRange(sqlQuerySource);
-            Date benchmarkDate = getBenchmarkDate((Map<String,Object>) results.get(0), timeGranLabel);
+            Date benchmarkDate = getBenchmarkDate((Map<String, Object>) results.get(0), timeGranLabel);
 
+            targetResult = fillResultBasedOnTimeSeries(results, groupLabels, timeGranLabel);
 
             List<Date> dateRangeList = null;
 
@@ -131,9 +130,8 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
             } else {
                 log.warn("The time range is empty [startTime:{},endTime:{}], so the time series data cannot be filled.", whereTimeRange.getStart(), whereTimeRange.getEnd());
-                return results;
+                return targetResult;
             }
-
             if (StringUtil.isNotEmpty(dateRangeList)
                     && !whereTimeRange.isMinorThanEquals()
                     && DateUtil.toInstant(DateUtils.convertStringToDate((whereTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS))
@@ -141,57 +139,67 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 dateRangeList.remove(dateRangeList.size() - 1);
             }
             if (StringUtil.isEmpty(dateRangeList)) {
-                return results;
+                return targetResult;
             }
-
-
-            int  maxSeriesNum =  engineConfigSource.getMaxCacheNum() / dateRangeList.size();
+            int maxSeriesNum = engineConfigSource.getMaxCacheNum() / dateRangeList.size();
             if (maxSeriesNum == 0) {
                 log.warn("初始时间范围超出系统设置，无法进行补全[getMaxCacheNum:{} - dateRangeNum:{}],补全功能无效!", engineConfigSource.getMaxCacheNum(), dateRangeList.size());
-                return results;
+                return targetResult;
             }
-
-
-            Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap =  ConvertUtil.convertResultListToTimeSeries(results,
+            Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap = ConvertUtil.convertResultListToTimeSeries(Lists.newArrayList(targetResult),
                     groupLabels, timeGranLabel);
-
-            int actualSeriesNum = maxSeriesNum > targetTimeSeriesMap.size() ? targetTimeSeriesMap.size() : maxSeriesNum;
-
+            int actualSeriesNum = Math.min(maxSeriesNum, targetTimeSeriesMap.size());
             if (actualSeriesNum > 0) {
-
                 Map<String, Map<String, Map<String, Object>>> limitTimeSeriesMap = Maps.newLinkedHashMap();
                 int i = 1;
-                for (Map.Entry<String, Map<String, Map<String, Object>>> entry: targetTimeSeriesMap.entrySet()) {
+                for (Map.Entry<String, Map<String, Map<String, Object>>> entry : targetTimeSeriesMap.entrySet()) {
                     limitTimeSeriesMap.put(entry.getKey(), entry.getValue());
                     if (++i > actualSeriesNum) {
                         break;
                     }
-
                 }
                 targetTimeSeriesMap.clear();
                 targetTimeSeriesMap.putAll(limitTimeSeriesMap);
             }
-
-            if(StringUtil.isNotEmpty(dateRangeList)){
-
+            if (StringUtil.isNotEmpty(dateRangeList)) {
                 for (String key : targetTimeSeriesMap.keySet()) {
-                    targetTimeSeriesMap.put(key,ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill.toString()));
+                    targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill.toString()));
                 }
             }
-
             targetResult = ConvertUtil.convertTimeSeriesToList(targetTimeSeriesMap, groupLabels, timeGranLabel);
+        } catch (Exception e) {
+            log.error("Parser function : TIME_FLOOR_WITH_FILL error :{} ", e.toString());
+            return results;
+        } finally {
             if (StringUtil.isNotBlank(sqlQuerySource.getLimit())
                     && !sqlQuerySource.getLimit().equalsIgnoreCase(SQLHelper.INVALID_LIMIT_DESC)
                     && targetResult.size() > Integer.parseInt(sqlQuerySource.getLimit())) {
                 targetResult = targetResult.subList(0, Integer.parseInt(sqlQuerySource.getLimit()));
             }
-
-        } catch (Exception e) {
-            log.error("Parser function : TIME_FLOOR_WITH_FILL error :{} ", e.toString());
-            return results;
         }
-
         return targetResult;
+    }
+
+    private List<Map<String, Object>> fillResultBasedOnTimeSeries(List<Object> results, List<String> groupLabels, String timeGranLabel) {
+        Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap = ConvertUtil.convertResultListToTimeSeries(results,
+                groupLabels, timeGranLabel);
+        List<Date> dateRangeList = Lists.newArrayList();
+        for (String key : targetTimeSeriesMap.keySet()) {
+            Map<String, Map<String, Object>> stringMapMap = targetTimeSeriesMap.get(key);
+            for (String l : stringMapMap.keySet()) {
+                Date date = new Date(Long.parseLong(l) * 1000);
+                if (!dateRangeList.contains(date)) {
+                    dateRangeList.add(date);
+                }
+            }
+        }
+        Collections.sort(dateRangeList);
+        if (StringUtil.isNotEmpty(dateRangeList)) {
+            for (String key : targetTimeSeriesMap.keySet()) {
+                targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill));
+            }
+        }
+        return ConvertUtil.convertTimeSeriesToList(targetTimeSeriesMap, groupLabels, timeGranLabel);
     }
 
 
