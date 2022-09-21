@@ -42,11 +42,6 @@ public class Constants {
     public static final String NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES = "dynamic_bytes";
     public static final String NETWORK_OVERVIEW_METRIC_DATA_RATE = "data_rate";
 
-    public static final String DAT = "dat";
-    public static final String IP_USER_DEFINED_V4 = "ip_v4_user_defined.mmdb";
-    public static final String IP_USER_DEFINED_V6 = "ip_v6_user_defined.mmdb";
-    public static final String IP_BUILT_IN_V4 = "ip_v4_built_in.mmdb";
-    public static final String IP_BUILT_IN_V6 = "ip_v6_built_in.mmdb";
 
 
 }
