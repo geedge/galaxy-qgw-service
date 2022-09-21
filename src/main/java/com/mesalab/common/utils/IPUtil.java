@@ -109,41 +109,41 @@ public class IPUtil {
 
         Map<String, String> pathMap = new HashMap<>();
 
-        KnowledgeBase ipV4BuiltInPath = map.get(KnowledgeConstant.IP_BUILT_IN_V4);
-        KnowledgeBase ipV4UserDefinedPath = map.get(KnowledgeConstant.IP_USER_DEFINED_V4);
-        KnowledgeBase ipV6BuiltInPath = map.get(KnowledgeConstant.IP_BUILT_IN_V6);
-        KnowledgeBase ipV6UserDefinedPath = map.get(KnowledgeConstant.IP_USER_DEFINED_V6);
-        if (StringUtil.isEmpty(ipV4BuiltInPath) || !new File(KnowledgeConstant.DAT.concat(File.separator).
-                concat(ipV4BuiltInPath.getName()).concat(".").concat(ipV4BuiltInPath.getFormat())).exists()) {
+        KnowledgeBase ipV4BuiltIn = map.get(KnowledgeConstant.IP_BUILT_IN_V4);
+        KnowledgeBase ipV4UserDefined = map.get(KnowledgeConstant.IP_USER_DEFINED_V4);
+        KnowledgeBase ipV6BuiltIn = map.get(KnowledgeConstant.IP_BUILT_IN_V6);
+        KnowledgeBase ipV6UserDefined = map.get(KnowledgeConstant.IP_USER_DEFINED_V6);
+        if (StringUtil.isEmpty(ipV4BuiltIn) || !new File(KnowledgeConstant.DAT.concat(File.separator).
+                concat(ipV4BuiltIn.getName()).concat(".").concat(ipV4BuiltIn.getFormat())).exists()) {
             log.error(KnowledgeConstant.IP_BUILT_IN_V4 + " : Configuration error");
-            pathMap.put(KnowledgeConstant.IP_BUILT_IN_V4, KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4);
+            pathMap.put(KnowledgeConstant.IP_BUILT_IN_V4, KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4_MMDB);
         } else {
             pathMap.put(KnowledgeConstant.IP_BUILT_IN_V4, KnowledgeConstant.DAT.concat(File.separator).
-                    concat(ipV4BuiltInPath.getName()).concat(".").concat(ipV4BuiltInPath.getFormat()));
+                    concat(ipV4BuiltIn.getName()).concat(".").concat(ipV4BuiltIn.getFormat()));
         }
-        if (StringUtil.isEmpty(ipV4UserDefinedPath) || !new File(KnowledgeConstant.DAT.concat(File.separator).
-                concat(ipV4BuiltInPath.getName()).concat(".").concat(ipV4UserDefinedPath.getFormat())).exists()) {
+        if (StringUtil.isEmpty(ipV4UserDefined) || !new File(KnowledgeConstant.DAT.concat(File.separator).
+                concat(ipV4UserDefined.getName()).concat(".").concat(ipV4UserDefined.getFormat())).exists()) {
             log.error(KnowledgeConstant.IP_USER_DEFINED_V4 + " : Configuration error");
-            pathMap.put(KnowledgeConstant.IP_USER_DEFINED_V4, KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V4);
+            pathMap.put(KnowledgeConstant.IP_USER_DEFINED_V4, KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V4_MMDB);
         } else {
             pathMap.put(KnowledgeConstant.IP_USER_DEFINED_V4, KnowledgeConstant.DAT.concat(File.separator).
-                    concat(ipV4UserDefinedPath.getName()).concat(".").concat(ipV4UserDefinedPath.getFormat()));
+                    concat(ipV4UserDefined.getName()).concat(".").concat(ipV4UserDefined.getFormat()));
         }
-        if (StringUtil.isEmpty(ipV6BuiltInPath) || !new File(KnowledgeConstant.DAT.concat(File.separator).
-                concat(ipV4BuiltInPath.getName()).concat(".").concat(ipV6BuiltInPath.getFormat())).exists()) {
+        if (StringUtil.isEmpty(ipV6BuiltIn) || !new File(KnowledgeConstant.DAT.concat(File.separator).
+                concat(ipV6BuiltIn.getName()).concat(".").concat(ipV6BuiltIn.getFormat())).exists()) {
             log.error(KnowledgeConstant.IP_BUILT_IN_V6 + " : Configuration error");
-            pathMap.put(KnowledgeConstant.IP_BUILT_IN_V6, KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V6);
+            pathMap.put(KnowledgeConstant.IP_BUILT_IN_V6, KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V6_MMDB);
         } else {
             pathMap.put(KnowledgeConstant.IP_BUILT_IN_V6, KnowledgeConstant.DAT.concat(File.separator).
-                    concat(ipV6BuiltInPath.getName()).concat(".").concat(ipV6BuiltInPath.getFormat()));
+                    concat(ipV6BuiltIn.getName()).concat(".").concat(ipV6BuiltIn.getFormat()));
         }
-        if (StringUtil.isEmpty(ipV6UserDefinedPath) || !new File(KnowledgeConstant.DAT.concat(File.separator).
-                concat(ipV4BuiltInPath.getName()).concat(".").concat(ipV6UserDefinedPath.getFormat())).exists()) {
+        if (StringUtil.isEmpty(ipV6UserDefined) || !new File(KnowledgeConstant.DAT.concat(File.separator).
+                concat(ipV6UserDefined.getName()).concat(".").concat(ipV6UserDefined.getFormat())).exists()) {
             log.error(KnowledgeConstant.IP_USER_DEFINED_V6 + " : Configuration error");
-            pathMap.put(KnowledgeConstant.IP_USER_DEFINED_V6, KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V6);
+            pathMap.put(KnowledgeConstant.IP_USER_DEFINED_V6, KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V6_MMDB);
         } else {
             pathMap.put(KnowledgeConstant.IP_USER_DEFINED_V6, KnowledgeConstant.DAT.concat(File.separator).
-                    concat(ipV6UserDefinedPath.getName()).concat(".").concat(ipV6UserDefinedPath.getFormat()));
+                    concat(ipV6UserDefined.getName()).concat(".").concat(ipV6UserDefined.getFormat()));
         }
         return pathMap;
     }
@@ -159,10 +159,10 @@ public class IPUtil {
                     ipV4path, ipV6path, ipPrivateV4path, ipPrivateV6path);
             initIpLookup(ipV4path, ipV6path, ipPrivateV4path, ipPrivateV6path);
         } else {
-            initIpLookup(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4,
-                    KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V6,
-                    KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V4,
-                    KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V6);
+            initIpLookup(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4_MMDB,
+                    KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V6_MMDB,
+                    KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V4_MMDB,
+                    KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V6_MMDB);
         }
     }
 
