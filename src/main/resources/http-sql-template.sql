@@ -87,11 +87,11 @@ SELECT account AS SUBSCRIBER_ID,framed_ip AS IP,first_found_time AS FIRST_FOUND_
 #end
 
 #sql("SCHEMA_STORAGE_SIZE")
-SELECT name AS field, IFNULL(SUM(data_compressed_bytes), 0) AS bytes FROM columns_cluster WHERE table = '%s_local' AND  database = '%s' GROUP BY name ORDER BY bytes DESC
+SELECT name AS field, IFNULL(SUM(data_compressed_bytes), 0) AS bytes FROM columns_cluster WHERE "table" = '%s_local' AND  "database" = '%s' GROUP BY name ORDER BY bytes DESC
 #end
 
 #sql("TABLE_TTL")
-SELECT name, engine_full AS table_ttl FROM tables WHERE name ='%s_local' AND  database = '%s' AND engine ='MergeTree'
+SELECT name, engine_full AS table_ttl FROM tables WHERE name ='%s_local' AND  "database" = '%s' AND "engine" ='MergeTree'
 #end
 
 #sql("GTPC_KNOWLEDGE_BASE")
