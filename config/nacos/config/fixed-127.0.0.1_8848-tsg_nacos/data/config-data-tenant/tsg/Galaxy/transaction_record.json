@@ -10,7 +10,8 @@
     "index_key": [
       "common_stream_trace_id",
       "common_recv_time",
-      "common_data_center"
+      "common_data_center",
+      "common_vsys_id"
     ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"

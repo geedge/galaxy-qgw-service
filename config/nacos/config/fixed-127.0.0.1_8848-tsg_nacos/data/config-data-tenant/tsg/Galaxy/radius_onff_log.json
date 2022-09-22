@@ -6,7 +6,8 @@
     "partition_key": "event_timestamp",
     "index_key": [
       "account",
-      "event_timestamp"
+      "event_timestamp",
+      "vsys_id"
     ]
   },
   "fields": [

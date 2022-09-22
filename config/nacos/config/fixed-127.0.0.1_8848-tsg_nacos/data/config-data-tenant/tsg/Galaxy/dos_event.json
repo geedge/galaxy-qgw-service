@@ -10,7 +10,8 @@
     "index_key": [
       "log_id",
       "start_time",
-      "destination_ip"
+      "destination_ip",
+      "vsys_id"
     ],
     "functions": {
       "aggregation": [

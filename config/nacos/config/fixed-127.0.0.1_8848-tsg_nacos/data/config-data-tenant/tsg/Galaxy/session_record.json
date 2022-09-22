@@ -10,7 +10,8 @@
     "index_key": [
       "common_log_id",
       "common_recv_time",
-      "common_policy_id"
+      "common_policy_id",
+      "common_vsys_id"
     ],
     "index_table": "session_record_common_client_ip,session_record_common_server_ip,session_record_http_domain",
     "functions": {
