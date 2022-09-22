@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.mesalab.cn.common.constant.SqlKeywords;
 import com.mesalab.cn.common.enums.EngineTypeEnum;
 import com.mesalab.cn.common.enums.MatchTypeEnum;
+import com.mesalab.cn.common.enums.RangeTypeEnum;
 import com.mesalab.cn.service.CNService;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,6 +118,7 @@ public abstract class DSLParser {
         return sql;
     }
 
+
     /**
      * @param value:
      * @param type:
@@ -137,6 +139,24 @@ public abstract class DSLParser {
                 return "'" + value + "'";//完全匹配
             case SUBSTRING:
                 return "'%" + value + "%'";//子串匹配
+        }
+        return "";
+    }
+
+    protected static String parseRange(String value, String type) {
+        switch (RangeTypeEnum.getByType(type)) {
+            case GT:
+                return ">" + value;
+            case LT:
+                return " < " + value;
+            case EQ:
+                return " = " + value;
+            case GE:
+                return " >= " + value;
+            case LE:
+                return " <= " + value;
+            case NE:
+                return " != " + value;
         }
         return "";
     }
@@ -170,21 +190,22 @@ public abstract class DSLParser {
             return "'%" + value + "%'";
         }
     }
+
     /**
-     * @Param [sorts, alias]
      * @return java.lang.String
+     * @Param [sorts, alias]
      **/
     public static String parseAQLSort(DSLObject dslObject, String alias) {
 
-       if(ANALYSIS_ENGINE.getEngine().equals(dslObject.getQuery().getDataEngine())) {
-           if (Objects.isNull(dslObject.getQuery().getParameters().getSort())) {
-               return "";
-           }
-           return dslObject.getQuery().getParameters().getSort().stream().map(x ->
-                Joiner.on(" ").join(alias.concat(".").concat(x.getFieldKey()), Objects.isNull(x.getType()) ? "" : x.getType())
-           ).filter(x -> StringUtil.isNotBlank(x)).collect(Collectors.joining(",", " sort ", " "));
-       }
-       return "";
+        if (ANALYSIS_ENGINE.getEngine().equals(dslObject.getQuery().getDataEngine())) {
+            if (Objects.isNull(dslObject.getQuery().getParameters().getSort())) {
+                return "";
+            }
+            return dslObject.getQuery().getParameters().getSort().stream().map(x ->
+                    Joiner.on(" ").join(alias.concat(".").concat(x.getFieldKey()), Objects.isNull(x.getType()) ? "" : x.getType())
+            ).filter(x -> StringUtil.isNotBlank(x)).collect(Collectors.joining(",", " sort ", " "));
+        }
+        return "";
     }
 
     public static String parseAQLLimit(DSLObject dslObject, Integer def) {

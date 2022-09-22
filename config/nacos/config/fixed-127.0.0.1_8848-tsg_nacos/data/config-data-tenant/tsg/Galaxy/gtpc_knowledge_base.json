@@ -4,6 +4,11 @@
   "namespace": "tsg_galaxy",
   "fields": [
     {
+      "name": "vsys_id",
+      "label": "System Id",
+      "type": "int"
+    },
+    {
       "name": "uplink_teid",
       "label": "Up Link Teid",
       "type": "int"

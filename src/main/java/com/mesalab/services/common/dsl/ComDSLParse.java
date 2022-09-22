@@ -51,6 +51,33 @@ public class ComDSLParse extends DSLParser {
         }).collect(joining(" AND ", " AND ", " "));
     }
 
+    public static String parseMath(List<ComDSLObject.Query.FilterBean> matches) {
+        return matches.stream().map(m -> {
+            String fieldKey = m.getFieldKey();
+            String type = m.getType();
+            List<String> fieldValues = m.getFieldValues();
+            return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
+                return ComDSLParse.parseLike(ComDSLParse.encode(v), type);
+            }).collect(joining(" OR ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
+
+        }).collect(joining(" OR ", " AND( ", ")"));
+    }
+
+    public static String parseRange(List<ComDSLObject.Query.FilterBean> matches) {
+        if (ObjectUtil.isNotEmpty(matches)){
+            return matches.stream().map(m -> {
+                String fieldKey = m.getFieldKey();
+                String type = m.getType();
+                List<String> fieldValues = m.getFieldValues();
+                return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
+                    return ComDSLParse.parseRange(ComDSLParse.encode(v), type);
+                }).collect(joining(" OR ".concat(fieldKey), fieldKey, " "));
+
+            }).collect(joining(" OR ", " AND( ", ")"));
+        }
+        return "";
+    }
+
     @Override
     public String parseSort(DSLObject dslObject, String sql) {
         return null;

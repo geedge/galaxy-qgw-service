@@ -90,13 +90,15 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
                     ComDSLObject.Query.FilterBean bean = entry.getValue();
                     match.add(generateRowKey(bean));
                 }
-                filter.append(parseMath(match));
+                filter.append(ComDSLParse.parseMath(match));
             } else {
                 match.add(generateRowKey(filterBean));
-                filter.append(parseMath(match));
+                filter.append(ComDSLParse.parseMath(match));
             }
 
         }
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
+
         StringBuffer sb = new StringBuffer(" AND (");
         List<String> list = match.stream().filter(e -> !StringUtil.equals(e.getFieldKey(), "ROWKEY")).map(e -> e.getFieldKey()).distinct().collect(Collectors.toList());
         for (String str : list) {
@@ -118,7 +120,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             fieldWhere = filter;
         }
 
-        String sql = String.format(Objects.requireNonNull(env.getProperty("GTPC_KNOWLEDGE_BASE")), fieldWhere, entityConfigSource.getTopGTPCDefaultSize());
+        String sql = String.format(Objects.requireNonNull(env.getProperty("GTPC_KNOWLEDGE_BASE")), range.concat(fieldWhere.toString()), entityConfigSource.getTopGTPCDefaultSize());
         log.info("real time relation gtpc query sql: {}", sql);
         return sql;
     }
@@ -210,18 +212,6 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
         }
         return type;
 
-    }
-
-    public static String parseMath(List<ComDSLObject.Query.FilterBean> matches) {
-        return matches.stream().map(m -> {
-            String fieldKey = m.getFieldKey();
-            String type = m.getType();
-            List<String> fieldValues = m.getFieldValues();
-            return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
-                return ComDSLParse.parseLike(ComDSLParse.encode(v), type);
-            }).collect(joining(" OR ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
-
-        }).collect(joining(" OR ", " AND( ", ")"));
     }
 
     private BaseResult formatResult(BaseResult baseResult) {
