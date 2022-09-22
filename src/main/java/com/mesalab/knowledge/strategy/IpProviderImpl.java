@@ -5,9 +5,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.entity.Parameters;
+import com.mesalab.knowledge.entity.Range;
 import com.mesalab.knowledge.entity.Sort;
+import com.mesalab.knowledge.enums.RangeEnum;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -36,11 +39,16 @@ public class IpProviderImpl implements QueryProvider {
         Parameters parameters = dslQeruy.getParameters();
         StringBuffer aqlsb = new StringBuffer();
         String sortAql = "";
+        StringBuffer rangesb = new StringBuffer();
         //需要条件  时间，limit
         if(!ObjectUtils.isEmpty(parameters)){
             limit = ObjectUtils.isEmpty(parameters.getLimit()) ? limit : parameters.getLimit();
-            List<Sort> sorts = parameters.getSort();
 
+            //构建range范围条件
+            List<Range> ranges = parameters.getRange();
+            rangesb.append(ObjectUtils.isEmpty(ranges)?"":" and "+ Range.getRangExp(ranges,"doc"));
+
+            List<Sort> sorts = parameters.getSort();
             if (Objects.nonNull(sorts)) {
                 sortAql = sorts.stream().map(x -> {
                     if ("BYTES_TOTAL".equals(x.getFieldKey())) {
@@ -54,6 +62,7 @@ public class IpProviderImpl implements QueryProvider {
         }
         aqlsb.append("for doc in IP ");
         aqlsb.append(" filter doc.COMMON_LINK_INFO != '' and doc.FIRST_FOUND_TIME > 0 ");
+        aqlsb.append(rangesb);
         aqlsb.append(StringUtil.isBlank(sortAql) ? "" : " sort " + sortAql);
         aqlsb.append(" limit ").append(limit);
         aqlsb.append(" return distinct doc");
@@ -74,6 +83,8 @@ public class IpProviderImpl implements QueryProvider {
             ip.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(Long.valueOf(String.valueOf(ip.get("FIRST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
             ip.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(Long.valueOf(String.valueOf(ip.get("LAST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
             ip.put("BYTES_TOTAL", Long.valueOf(String.valueOf(ip.get("CLIENT_BYTES_SUM"))) + Long.valueOf(String.valueOf(ip.get("SERVER_BYTES_SUM"))));
+
+            ip.put("VSYS_ID", ip.get("VSYS_ID"));
         }
         return resultList;
     }

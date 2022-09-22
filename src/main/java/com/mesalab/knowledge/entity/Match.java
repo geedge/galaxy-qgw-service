@@ -1,5 +1,7 @@
 package com.mesalab.knowledge.entity;
 
+import cn.hutool.core.util.TypeUtil;
+import com.alibaba.fastjson.util.TypeUtils;
 import com.google.common.base.CharMatcher;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.zdjizhi.utils.StringUtil;
@@ -37,6 +39,51 @@ public class Match extends QueryExp {
                     } else if (value.startsWith("*") && !value.endsWith("*")) {
                         matchExp = MatchEnum.SUFFIX.getMatchExp();
                         value = CharMatcher.anyOf("*").trimLeadingFrom(value);
+                    } else if (value.endsWith("*") && !value.startsWith("*")) {
+                        matchExp = MatchEnum.PREFIX.getMatchExp();
+                        value = CharMatcher.anyOf("*").trimTrailingFrom(value);
+                    } else if (value.startsWith("*") && value.endsWith("*")) {
+                        matchExp = MatchEnum.SUBSTRING.getMatchExp();
+                        value = CharMatcher.anyOf("*").trimFrom(value);
+                    } else {
+                        matchExp = MatchEnum.SUBSTRING.getMatchExp();
+                    }
+                }
+                return MessageFormat.format(matchExp, value);
+            }).collect(joining(" or doc._key like ", "  ( doc._key like ", ") "));
+
+        }).collect(joining(" and ", " filter ", " "));
+    }
+
+    public static String like(List<Match> matches, Predicate<Match> predicate, List<Range> ranges) {
+
+        Integer vsysId = 1;
+        if(!ObjectUtils.isEmpty(ranges)){
+            for (Range range : ranges) {
+                String fieldKey = range.getFieldKey();
+                if("vsys_id".equals(fieldKey)){
+                    vsysId = TypeUtils.castToInt(range.getFieldValues().get(0));
+                }
+
+            }
+        }
+
+        String finalVsysId = "-" + vsysId;
+        return ObjectUtils.isEmpty(matches) ?"": matches.stream().filter(m -> predicate.test(m)).map(m -> {
+
+            MatchEnum match = EnumUtils.getEnum(MatchEnum.class, StringUtil.upperCase(m.getType()));
+            return m.getFieldValues().stream().filter(mv -> mv != null).map(mv -> {
+                String matchExp = match.getMatchExp();
+                String value = String.valueOf(mv);
+                if (MatchEnum.REGEX.getType().equals(m.getType())) {
+                    if (value.startsWith("$")) {
+                        matchExp = MatchEnum.EXACTLY.getMatchExp();
+                        value = CharMatcher.anyOf("$").trimLeadingFrom(value) + finalVsysId;
+
+                    } else if (value.startsWith("*") && !value.endsWith("*")) {
+                        matchExp = MatchEnum.SUFFIX.getMatchExp();
+                        value = CharMatcher.anyOf("*").trimLeadingFrom(value) + finalVsysId;
+
                     } else if (value.endsWith("*") && !value.startsWith("*")) {
                         matchExp = MatchEnum.PREFIX.getMatchExp();
                         value = CharMatcher.anyOf("*").trimTrailingFrom(value);
