@@ -3,6 +3,7 @@ package com.mesalab.knowledge.strategy;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -12,6 +13,7 @@ import com.mesalab.knowledge.entity.Match;
 import com.mesalab.knowledge.entity.Parameters;
 import com.mesalab.knowledge.entity.Range;
 import com.mesalab.knowledge.entity.arango.IpLearningPath;
+import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,21 +56,12 @@ public class FqdnProviderImpl implements QueryProvider {
         StringBuffer intervalsb = new StringBuffer();
         StringBuffer protocolsb = new StringBuffer();
         StringBuffer distCiptsb = new StringBuffer();
+        StringBuffer othersb = new StringBuffer();
         if(!ObjectUtils.isEmpty(parameters)){
             limit = ObjectUtils.isEmpty(parameters.getLimit()) ? limit : parameters.getLimit();
-            List<Match> matches = parameters.getMatch();
-            //1.构建查询语句 match like
-            likeFilter.append(Match.like(matches, (m) -> m != null && "FQDN_NAME".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues())).replace(" doc._key like \"", " e._from like \"FQDN/"));
-
-            //2.构建查询语句 intervals 时间
-            List<String> intervals = parameters.getIntervals();
-            if(!ObjectUtils.isEmpty(intervals)){
-                String[] times = intervals.get(0).split("/");
-                intervalsb.append(" and e.LAST_FOUND_TIME >= ").append(DateUtils.convertStringToTimestamp(times[0], DateUtils.YYYY_MM_DD_HH24_MM_SS)).append(" and ").append("e.LAST_FOUND_TIME <").append(DateUtils.convertStringToTimestamp(times[1], DateUtils.YYYY_MM_DD_HH24_MM_SS));
-            }
-
             //3.构建查询语句 range depth ,protocols, limit
             List<Range> ranges = parameters.getRange();
+            List<Match> matches = parameters.getMatch();
 
             if(!ObjectUtils.isEmpty(ranges)){
 
@@ -92,10 +86,25 @@ public class FqdnProviderImpl implements QueryProvider {
                         }
                     } else if ("UNIQ_CIP".equals(r.getFieldKey())) {
                         distCiptsb.append(" and count(e.DIST_CIP) ").append(EnumUtils.getEnum(RangeEnum.class, StringUtil.upperCase(r.getType())).getSymbol()).append(r.getFieldValues().get(0));
+                    } else {
+                        //构建range范围条件
+                        othersb.append(ObjectUtils.isEmpty(r)?"":" and " + Range.getRangExp(r,"e"));
                     }
-
                 }
             }
+
+
+            //1.构建查询语句 match like
+            likeFilter.append(Match.like(matches, (m) -> m != null && "FQDN_NAME".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues()), ranges).replace(" doc._key like \"", " e._from like \"FQDN/"));
+
+            //2.构建查询语句 intervals 时间
+            List<String> intervals = parameters.getIntervals();
+            if(!ObjectUtils.isEmpty(intervals)){
+                String[] times = intervals.get(0).split("/");
+                intervalsb.append(" and e.LAST_FOUND_TIME >= ").append(DateUtils.convertStringToTimestamp(times[0], DateUtils.YYYY_MM_DD_HH24_MM_SS)).append(" and ").append("e.LAST_FOUND_TIME <").append(DateUtils.convertStringToTimestamp(times[1], DateUtils.YYYY_MM_DD_HH24_MM_SS));
+            }
+
+
         }
 
         StringBuffer aqlsb = new StringBuffer("for e in R_LOCATE_FQDN2IP ");
@@ -104,6 +113,7 @@ public class FqdnProviderImpl implements QueryProvider {
         aqlsb.append(intervalsb);
         aqlsb.append(distCiptsb);
         aqlsb.append(protocolsb);
+        aqlsb.append(othersb);
 
         int pageRow = 0;
         int offSet = 0;
@@ -159,8 +169,8 @@ public class FqdnProviderImpl implements QueryProvider {
                 for (IpLearningPath.IplearningEdges edges : edgesList) {
                     Map<String, Object> map = Maps.newHashMap();
                     List<String> protocolsList = Lists.newArrayList();
-                    map.put("FQDN_NAME", StrUtil.removePrefix(edges.getFrom(),"FQDN/"));
-                    map.put("IP", StrUtil.removePrefix(edges.getTo(),"IP/"));
+                    map.put("FQDN_NAME", edges.getFqdnName());
+                    map.put("IP", edges.getIp());
                     map.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(edges.getFirstFoundTime(), DateUtils.YYYY_MM_DD_HH24_MM_SS));
                     map.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(edges.getLastFoundTime(), DateUtils.YYYY_MM_DD_HH24_MM_SS));
                     //协议 按 TLS_CNT_TOTAL>0,SESSION_RECENT按 *_CNT_RECENT和，SESSION_TOTAL按 *_CNT_TOTAL和
@@ -180,6 +190,9 @@ public class FqdnProviderImpl implements QueryProvider {
                     //UNIQ_CIP_RECENT与UNIQ_CIP相同
                     map.put("UNIQ_CIP", edges.getDistCip()==null?0:edges.getDistCip().size());
                     map.put("UNIQ_CIP_RECENT", edges.getDistCip()==null?0:edges.getDistCip().size());
+                    map.put("UNIQ_CIP_RECENT", edges.getDistCip()==null?0:edges.getDistCip().size());
+
+                    map.put("VSYS_ID", edges.getVsysId());
 
                     list.add(map);
                 }

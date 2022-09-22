@@ -33,5 +33,8 @@ public class SubscriberIdPath {
         @JsonProperty(value = "IP")
         private String ip;
 
+        @JsonProperty(value = "VSYS_ID")
+        private List<Long> vsysId;
+
     }
 }
