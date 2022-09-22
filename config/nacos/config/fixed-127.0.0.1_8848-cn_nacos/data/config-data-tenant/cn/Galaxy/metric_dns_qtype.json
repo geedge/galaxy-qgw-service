@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "metric_dns_qtype",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "stat_time"
+  },
+  "fields": [
+  ]
+}
