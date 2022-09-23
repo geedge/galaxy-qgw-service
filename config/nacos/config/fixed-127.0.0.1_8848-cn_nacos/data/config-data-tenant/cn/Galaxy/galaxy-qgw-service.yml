@@ -68,7 +68,7 @@ clickhouse:
   realTimeAccount:
     username: ENC(Ao/e/87KQ8vOabP81PV/i4f/wvgztdKW)
     pin: ENC(KtRdLd84bYGGgk/Uv3+lUQFSxBfQ9ctJ)
-    socketTimeOut: 60000
+    socketTimeOut: 120000
   longTermAccount:
     username: ENC(lgnlVXRIN8qNh+B0scCBKp9QMID22Nc7)
     pin: ENC(AkmSSo5VBw6TOz+AXhorb+tmuLn3WANm)
@@ -77,7 +77,7 @@ clickhouse:
 druid:
   url: 127.0.0.1:8082/druid/v2/sql
   dbname: druid
-  socketTimeOut: 60000
+  socketTimeOut: 120000
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://127.0.0.1:8181/xxl-job-admin
@@ -99,7 +99,7 @@ service:
       defaultSize: 30000
       dataset: 2000000
     gtpc:
-        defaultSize: 100000
+      defaultSize: 100000
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.55:8529
@@ -119,11 +119,11 @@ hos:
 knowledge:
   ipLocation:
     ipV4:
-      userDefined: ip_v4_user_defined.mmdb:1.0.1
-      builtIn: ip_v4_built_in.mmdb:1.0.1
+      userDefined: ip_v4_user_defined:latest
+      builtIn: ip_v4_built_in:latest
     ipV6:
-      userDefined: ip_v6_user_defined.mmdb:1.0.1
-      builtIn: ip_v6_built_in.mmdb:1.0.1
+      userDefined: ip_v6_user_defined:latest
+      builtIn: ip_v6_built_in:latest
 ## http pool config
 http:
   pool:
@@ -136,7 +136,7 @@ http:
     request:
       timeout: 10000
     response:
-      timeout: 60000
+      timeout: 120000
 ## job cfg
 job:
   timeSlicing:
@@ -160,4 +160,3 @@ task:
     corePoolSize: 8
     maxPoolSize: 16
     queueCapacity: 1000
-
