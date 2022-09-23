@@ -71,9 +71,10 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
 
 
     private ApiParam queryBuild(ComDSLObject.Query query) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
         String timeWhere = ComDSLParse.parseInterval(query, "last_update_time", true);
-        String sql = String.format(Objects.requireNonNull(env.getProperty("RELATION_SUBSCRIBER_ID")), fieldWhere.concat(timeWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
+        String sql = String.format(Objects.requireNonNull(env.getProperty("RELATION_SUBSCRIBER_ID")), timeWhere.concat(range).concat(fieldWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
         log.info("real time relation subscribe id query sql: {}", sql);
         return  ApiParam.builder().option("real-time").query(sql).build();
     }
@@ -81,44 +82,46 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     private String generateQuerySql(ComDSLObject.Query query) {
 
         List<ComDSLObject.Query.FilterBean> match = query.getParameters().getMatch();
-        StringBuffer filter = new StringBuffer();
-        for (ComDSLObject.Query.FilterBean filterBean : match) {
-            match = new ArrayList<>();
-            if (StringUtil.equals(MatchEnum.REGEX.getType(), filterBean.getType())) {
-                Map<String, ComDSLObject.Query.FilterBean> map = transformData(filterBean);
-                for (Map.Entry<String, ComDSLObject.Query.FilterBean> entry : map.entrySet()) {
-                    ComDSLObject.Query.FilterBean bean = entry.getValue();
-                    match.add(generateRowKey(bean));
+        StringBuffer fieldWhere = new StringBuffer();
+        if (ObjectUtil.isNotEmpty(match)){
+            StringBuffer filter = new StringBuffer();
+            for (ComDSLObject.Query.FilterBean filterBean : match) {
+                match = new ArrayList<>();
+                if (StringUtil.equals(MatchEnum.REGEX.getType(), filterBean.getType())) {
+                    Map<String, ComDSLObject.Query.FilterBean> map = transformData(filterBean);
+                    for (Map.Entry<String, ComDSLObject.Query.FilterBean> entry : map.entrySet()) {
+                        ComDSLObject.Query.FilterBean bean = entry.getValue();
+                        match.add(generateRowKey(bean));
+                    }
+                    filter.append(ComDSLParse.parseMath(match));
+                } else {
+                    match.add(generateRowKey(filterBean));
+                    filter.append(ComDSLParse.parseMath(match));
                 }
-                filter.append(ComDSLParse.parseMath(match));
-            } else {
-                match.add(generateRowKey(filterBean));
-                filter.append(ComDSLParse.parseMath(match));
+
+            }
+            StringBuffer sb = new StringBuffer(" AND (");
+            List<String> list = match.stream().filter(e -> !StringUtil.equals(e.getFieldKey(), "ROWKEY")).map(e -> e.getFieldKey()).distinct().collect(Collectors.toList());
+            for (String str : list) {
+                if (StringUtil.equals(str,"imei")){
+                    sb.append("ROWKEY like '0%'");
+                } else if (StringUtil.equals(str,"imsi")){
+                    sb.append("ROWKEY like '1%'");
+                } else if (StringUtil.equals(str,"phone_number")){
+                    sb.append("ROWKEY like '2%'");
+                } else if (StringUtil.equals(str,"apn")){
+                    sb.append("ROWKEY like '3%'");
+                }
+                sb.append(" OR ");
             }
 
+            if (CollectionUtil.isNotEmpty(list)) {
+                fieldWhere = sb.delete(sb.length() - 3, sb.length()).append(")").append(filter);
+            } else {
+                fieldWhere = filter;
+            }
         }
         String range = ComDSLParse.parseRange(query.getParameters().getRange());
-
-        StringBuffer sb = new StringBuffer(" AND (");
-        List<String> list = match.stream().filter(e -> !StringUtil.equals(e.getFieldKey(), "ROWKEY")).map(e -> e.getFieldKey()).distinct().collect(Collectors.toList());
-        for (String str : list) {
-            if (StringUtil.equals(str,"imei")){
-                sb.append("ROWKEY like '0%'");
-            } else if (StringUtil.equals(str,"imsi")){
-                sb.append("ROWKEY like '1%'");
-            } else if (StringUtil.equals(str,"phone_number")){
-                sb.append("ROWKEY like '2%'");
-            } else if (StringUtil.equals(str,"apn")){
-                sb.append("ROWKEY like '3%'");
-            }
-            sb.append(" OR ");
-        }
-        StringBuffer fieldWhere;
-        if (CollectionUtil.isNotEmpty(list)) {
-            fieldWhere = sb.delete(sb.length() - 3, sb.length()).append(")").append(filter);
-        } else {
-            fieldWhere = filter;
-        }
 
         String sql = String.format(Objects.requireNonNull(env.getProperty("GTPC_KNOWLEDGE_BASE")), range.concat(fieldWhere.toString()), entityConfigSource.getTopGTPCDefaultSize());
         log.info("real time relation gtpc query sql: {}", sql);

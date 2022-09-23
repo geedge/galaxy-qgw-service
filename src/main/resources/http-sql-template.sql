@@ -17,19 +17,19 @@ union all
 #end
 
 #sql("ENTITY_ACTIVE_CLIENT_IP")
-select common_client_ip as client_ip from %s where %s %s AND notEmpty(common_client_ip) GROUP BY common_client_ip, common_app_label ORDER BY SUM (common_sessions) DESC LIMIT %s
+select common_client_ip as client_ip ,common_vsys_id as vsys_id from %s where %s %s AND notEmpty(common_client_ip) GROUP BY common_client_ip, common_app_label,common_vsys_id ORDER BY SUM (common_sessions) DESC LIMIT %s
 #end
 
 #sql("ENTITY_UDP_SESSION")
-select common_server_ip as server_ip,sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip order by sessions desc limit %s
+select common_server_ip as server_ip,common_vsys_id as vsys_id ,sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and common_server_port in (53 , 443) group by server_ip,common_vsys_id order by sessions desc limit %s
 #end
 
 #sql("ENTITY_UDP_UNIQ_CLIENT_IPS")
-select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit %s
+select common_server_ip as server_ip, common_vsys_id as vsys_id  from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) group by server_ip,common_vsys_id order by COUNT(DISTINCT(common_client_ip)) desc limit %s
 #end
 
 #sql("ENTITY_TCP_SESSION")
-select common_server_ip as server_ip,sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by sessions desc limit %s
+select common_server_ip as server_ip,common_vsys_id as vsys_id ,sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip,common_vsys_id order by sessions desc limit %s
 #end
 
 #sql("ENTITY_TCP_UNIQ_CLIENT_IPS")
@@ -57,11 +57,11 @@ select sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol
 #end
 
 #sql("TOTAL_ENTITY_TCP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(common_client_ip)) as uniq_client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) limit 1
+select COUNT(DISTINCT(common_client_ip)) as uniq_client_ips ,common_vsys_id as vsys_id  from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) limit 1
 #end
 
 #sql("ENTITY_TOP_SNI")
-select ssl_sni, SUM(common_c2s_byte_num + common_s2c_byte_num) AS bytes, SUM(common_sessions) AS sessions from %s where %s and notEmpty(ssl_sni) and common_schema_type = 'SSL' group by ssl_sni order by SUM (common_sessions) desc limit %s
+select ssl_sni, SUM(common_c2s_byte_num + common_s2c_byte_num) AS bytes, SUM(common_sessions) AS sessions,common_vsys_id as vsys_id from %s where %s and notEmpty(ssl_sni) and common_schema_type = 'SSL' group by ssl_sni,common_vsys_id order by SUM (common_sessions) desc limit %s
 #end
 
 #sql("ENTITY_SNI_TOTAL")
@@ -83,7 +83,7 @@ SELECT client_ip_list AS client_ip,last_update_time FROM tsg_galaxy.recommendati
 #end
 
 #sql("RELATION_SUBSCRIBER_ID")
-SELECT account AS SUBSCRIBER_ID,framed_ip AS IP,first_found_time AS FIRST_FOUND_TIME,last_update_time AS LAST_FOUND_TIME FROM tsg_galaxy.relation_account_framedip WHERE 1=1 %s AND acct_status_type != 2 LIMIT %s
+SELECT account AS SUBSCRIBER_ID,framed_ip AS IP,first_found_time AS FIRST_FOUND_TIME,last_update_time AS LAST_FOUND_TIME,vsys_id as VSYS_ID FROM tsg_galaxy.relation_account_framedip WHERE 1=1 %s AND acct_status_type != 2 LIMIT %s
 #end
 
 #sql("SCHEMA_STORAGE_SIZE")

@@ -326,20 +326,14 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     private BaseResult getActiveClientIP(ComDSLObject.Query query) {
-        BaseResult baseResult;
+
         ComDSLObject.Query.FilterBean filterBean = query.getParameters().getMatch().get(0);
         if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(String.valueOf(filterBean.getType()))) {
-            baseResult = apiService.executeQuery(queryBuild(query));
-            if (isValid(baseResult, getIntervals(query.getParameters().getIntervals()))) {
-                baseResult = formatResult(baseResult, query.getLimit());
-            } else {
-                baseResult = query(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
-            }
+            return query(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     ErrorMessage.MATCH_TYPE);
         }
-        return baseResult;
     }
 
     private void setDefaultValue(ComDSLObject.Query query) {
@@ -417,29 +411,32 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     private ApiParam queryBuild(ComDSLObject.Query query) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
-        String sql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_CACHE_ACTIVE_CLIENT_IP")), fieldWhere);
+        String sql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_CACHE_ACTIVE_CLIENT_IP")), range.concat(fieldWhere));
         log.info("real time relation active_client_ip id query sql: {}", sql);
         return ApiParam.builder().option("real-time").query(sql).build();
     }
 
     private BaseResult getResultOfServerIP(ComDSLObject.Query query) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
+        String fieldWhere = timeInterval.concat(range);
 
-        String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, timeInterval,
+        String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, fieldWhere,
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByTCPSession() : query.getLimit());
         Map<String, String> tcpSessionResult = executeQuery(tcpSessionSql);
 
-        String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
+        String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, fieldWhere,
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByTCPUniqClientIP() : query.getLimit());
         Map<String, String> tcpClientIpResult = executeQuery(tcpClientIpsSql);
 
-        String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval,
+        String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, fieldWhere,
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByUDPBySession() : query.getLimit());
         Map<String, String> udpSessionResult = executeQuery(udpSessionSql);
 
-        String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
+        String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, fieldWhere,
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByUDPUniqClientIP() : query.getLimit());
         Map<String, String> udpClientIpsResult = executeQuery(udpClientIpsSql);
 
@@ -503,29 +500,17 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         for (Map item : dataList) {
             Map<String, String> serverIpMap = Maps.newHashMap();
             serverIpMap.put("server_ip", String.valueOf(item.get("server_ip")));
+            serverIpMap.put("vsys_id",String.valueOf(item.get("vsys_id")));
             serverIpList.add(serverIpMap);
         }
         return serverIpList;
     }
 
     public String generateActiveClientIP(ComDSLObject.Query query, String fileSql, String limit) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String timeInterval = getTimeInterval(query.getParameters(), -30);
-        String matchDate = getMatchDate(query.getParameters());
-        matchDate = StringUtil.isBlank(matchDate) ? "" : " AND " + matchDate;
-        return String.format(fileSql, query.getDataSource(), timeInterval, matchDate, limit);
-    }
-
-    private String getMatchDate(ComDSLObject.Query.QueryBean query) {
-        if (CollectionUtils.isEmpty(query.getMatch())) {
-            return StringUtil.EMPTY;
-        }
-        StringBuilder matchDate = new StringBuilder();
-        for (ComDSLObject.Query.FilterBean item : query.getMatch()) {
-            if (MatchEnum.EXACTLY.getType().equals(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                matchDate.append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
-            }
-        }
-        return matchDate.toString();
+        String matchDate = ComDSLParse.parseMath(query.getParameters().getMatch());
+        return String.format(fileSql, query.getDataSource(), timeInterval, range.concat(matchDate), limit);
     }
 
     private String getTimeInterval(ComDSLObject.Query.QueryBean parameters, int defaultInterval) {
@@ -561,14 +546,16 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     public String generateTopSNI(ComDSLObject.Query query, String fileSql) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
-        return String.format(fileSql, datasource, timeInterval, entityConfigSource.getTopSNIDataset());
+        return String.format(fileSql, datasource, timeInterval.concat(range), entityConfigSource.getTopSNIDataset());
     }
     public String generateSNITotal(ComDSLObject.Query query, String fileSql) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
-        return String.format(fileSql, datasource, timeInterval);
+        return String.format(fileSql, datasource, timeInterval.concat(range));
     }
 
     private Map<String, String> executeQuery(String sql) {

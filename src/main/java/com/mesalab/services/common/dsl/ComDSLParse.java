@@ -52,6 +52,9 @@ public class ComDSLParse extends DSLParser {
     }
 
     public static String parseMath(List<ComDSLObject.Query.FilterBean> matches) {
+        if (ObjectUtil.isEmpty(matches)) {
+            return StringUtil.EMPTY;
+        }
         return matches.stream().map(m -> {
             String fieldKey = m.getFieldKey();
             String type = m.getType();
@@ -75,7 +78,7 @@ public class ComDSLParse extends DSLParser {
 
             }).collect(joining(" OR ", " AND( ", ")"));
         }
-        return "";
+        return StringUtil.EMPTY;
     }
 
     @Override
