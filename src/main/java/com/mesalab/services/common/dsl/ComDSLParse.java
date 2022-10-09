@@ -22,7 +22,6 @@ public class ComDSLParse extends DSLParser {
             return StringUtil.EMPTY;
         }
         List<String> intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
-
         if (format) {
             long start = DateUtils.convertStringToTimestamp(intervals.get(0), "yyyy-MM-dd HH:mm:ss");
             long end = DateUtils.convertStringToTimestamp(intervals.get(1), "yyyy-MM-dd HH:mm:ss");
@@ -41,7 +40,9 @@ public class ComDSLParse extends DSLParser {
             String fieldKey = ObjectUtil.isEmpty(defField) ? m.getFieldKey() : defField;
             List<String> fieldValues = m.getFieldValues();
             if(MatchEnum.EXACTLY.getType().equals(m.getType())){
-                return fieldValues.stream().map(DigestUtil::md5Hex).collect(joining("','", fieldKey.concat(" IN ('"), "')"));
+                return fieldValues.stream().map( e->{
+                   return "'".concat(DigestUtil.md5Hex(e)).concat("|%'");
+                }).collect(joining(" or ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
             } else {
                 fieldKey = fieldKey.equals(defField) ? "account" : fieldKey;
                 return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
