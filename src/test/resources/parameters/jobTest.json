@@ -1,0 +1,11 @@
+{
+  "jobTest": {
+    "query.type": "field_discovery",
+    "query.data_source": "session_record",
+    "custom.field_discovery.fields": [
+      "common_log_id",
+      "common_action"
+    ],
+    "custom.field_discovery.filter": "common_vsys_id in (1,2) and common_client_ip='192.168.0.1' AND common_server_port=80"
+  }
+}
