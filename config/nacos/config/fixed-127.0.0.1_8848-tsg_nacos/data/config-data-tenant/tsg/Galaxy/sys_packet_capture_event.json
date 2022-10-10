@@ -8,7 +8,8 @@
     "index_key": [
       "common_log_id",
       "common_recv_time",
-      "common_policy_id"
+      "common_policy_id",
+      "common_vsys_id"
     ]
   },
   "fields": [
@@ -379,6 +380,16 @@
         "visibility": "hidden"
       },
       "label": "Schema Type"
+    },
+    {
+      "name": "common_vsys_id",
+      "label": "VSYS ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int",
+      "default": 1
     },
     {
       "name": "common_user_tags",
