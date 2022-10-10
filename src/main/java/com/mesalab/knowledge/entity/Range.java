@@ -48,6 +48,7 @@ public class Range extends QueryExp {
         StringBuffer rangesb = new StringBuffer();
         try {
             if (!ObjectUtils.isEmpty(range)) {
+                rangesb.append(" ( ");
                 alias = ObjectUtils.isEmpty(alias) ? "" : alias.concat(".");
 
                 for (int j = 0; j < range.getFieldValues().size(); j++) {
@@ -57,10 +58,11 @@ public class Range extends QueryExp {
                             .append(RangeEnum.getSymbol(range.getType()))
                             .append(range.getFieldValues().get(j))
                             .append(" ");
-                    if (1 < j && j < range.getFieldValues().size() - 1) {
+                    if (j < range.getFieldValues().size() - 1) {
                         rangesb.append(" or ");
                     }
                 }
+                rangesb.append(" ) ");
             }
         } catch (Exception e) {
             e.printStackTrace();

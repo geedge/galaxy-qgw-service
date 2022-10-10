@@ -63,7 +63,7 @@ public class SubscriberIdProviderImpl implements QueryProvider {
         aqlsb.append(ObjectUtils.isEmpty(likeFilter) ? "" : likeFilter);
         aqlsb.append(ObjectUtils.isEmpty(ranges)?"":" filter "+ Range.getRangExp(ranges,"doc"));
         aqlsb.append(" let maxTime = (let times = (for v,e,p in 1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' ");
-        aqlsb.append(ObjectUtils.isEmpty(intervalsb)?"":" filter e."+intervalsb.toString());
+        aqlsb.append(ObjectUtils.isEmpty(intervalsb) ? "" : intervalsb);
         aqlsb.append(ObjectUtils.isEmpty(ranges)?"":" filter "+ Range.getRangExp(ranges,"e"));
         aqlsb.append("return e.LAST_FOUND_TIME) return max(times)) ");
 
