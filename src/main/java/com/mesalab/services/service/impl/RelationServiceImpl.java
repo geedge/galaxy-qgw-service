@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.groupingBy;
 
 @Service
 @PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
@@ -221,15 +221,29 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
 
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(String.valueOf(baseResult.getStatus()))) {
             baseResult.setMeta(null);
-            List<Map> resultList = new ObjectMapper().convertValue(baseResult.getData(), new TypeReference<List<Map>>() {
+            List<Map<String,Object>> resultList = new ObjectMapper().convertValue(baseResult.getData(), new TypeReference<List<Map<String,Object>>>() {
             });
-            resultList.forEach(r -> {
-                if (ObjectUtil.isNotEmpty(r)) {
-                    r.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(Long.parseLong(String.valueOf(r.get("FIRST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
-                    r.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(Long.parseLong(String.valueOf(r.get("LAST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
-                }
-            });
-            return BaseResultGenerator.success(resultList);
+            LinkedHashMap<Object, List<Map<String,Object>>> listLinkedHashMap = resultList.stream()
+                    .collect(groupingBy(e -> e.get("VSYS_ID") + "_" + e.get("IP"), LinkedHashMap::new, Collectors.toList()));
+            List<Map<String,Object>> list = new ArrayList<>();
+            for (Map.Entry<Object, List<Map<String,Object>>> entry : listLinkedHashMap.entrySet()) {
+
+                List<Map<String, Object>> mapList = entry.getValue();
+                Collections.sort(mapList, new Comparator<Map<String, Object>>() {
+                    @Override
+                    public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                        String name1 = o1.get("LAST_FOUND_TIME").toString();
+                        String name2 = o2.get("LAST_FOUND_TIME").toString();
+                        return name2.compareTo(name1);
+                    }
+                });
+                Map<String, Object> map = mapList.get(0);
+                map.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(Long.parseLong(String.valueOf(map.get("FIRST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                map.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(Long.parseLong(String.valueOf(map.get("LAST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                list.add(map);
+            }
+
+            return BaseResultGenerator.success(list);
         } else {
             baseResult = BaseResultGenerator.error(baseResult.getStatus(),baseResult.getMessage());
         }
