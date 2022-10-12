@@ -57,7 +57,7 @@ select sum(common_sessions) as sessions from %s where %s AND (common_l4_protocol
 #end
 
 #sql("TOTAL_ENTITY_TCP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(common_client_ip)) as uniq_client_ips ,common_vsys_id as vsys_id  from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) limit 1
+select COUNT(DISTINCT(common_client_ip)) as uniq_client_ips  from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) limit 1
 #end
 
 #sql("ENTITY_TOP_SNI")
