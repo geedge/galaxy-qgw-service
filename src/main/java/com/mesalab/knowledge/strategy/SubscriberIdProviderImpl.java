@@ -1,5 +1,7 @@
 package com.mesalab.knowledge.strategy;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -27,6 +29,8 @@ import java.util.Objects;
  **/
 @Component("SUBSCRIBER_ID_VIEW")
 public class SubscriberIdProviderImpl implements QueryProvider {
+
+    private static final Log log = LogFactory.get();
 
     @Value("${arango.maxrows}")
     private String limit;//查询最大条数
@@ -72,12 +76,14 @@ public class SubscriberIdProviderImpl implements QueryProvider {
         aqlsb.append(ObjectUtils.isEmpty(ranges)?"":" and "+ Range.getRangExp(ranges,"e"));
         aqlsb.append(" limit ").append(limit);
         aqlsb.append(" return distinct p ");
+        log.info("query knowledge subscriber id aql: {}", aqlsb);
 
         //1.查询
         Object result = baseQueryProvider.queryArango(aqlsb.toString());
         //2.解析结果
         List<Map> resultList = new ObjectMapper().convertValue(result, new TypeReference<List<Map>>() {
         });
+        log.info("query knowledge subscriber id result size: {}", resultList.size());
         return parseResult(resultList);
 
     }
@@ -90,6 +96,7 @@ public class SubscriberIdProviderImpl implements QueryProvider {
             if (Objects.isNull(subIdVertice)) {
                 continue;
             }
+            newMap.put("VSYS_ID", subIdVertice.get("VSYS_ID"));
             newMap.put("SUBSCRIBER_ID", String.valueOf(subIdVertice.get("SUBSCRIBER")));
             newMap.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(Long.valueOf(String.valueOf(subIdVertice.get("FIRST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
             newMap.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(Long.valueOf(String.valueOf(subIdVertice.get("LAST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));

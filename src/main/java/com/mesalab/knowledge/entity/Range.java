@@ -26,12 +26,10 @@ public class Range extends QueryExp {
         StringBuffer rangesb = new StringBuffer();
         if (!ObjectUtils.isEmpty(ranges)) {
             for (int i = 0; i < ranges.size(); i++) {
-                rangesb.append(getRangExp(ranges.get(i), alias));
-
-                if (1 < i && i < ranges.size() - 1 && !ObjectUtils.isEmpty(rangesb)) {
+                if (0 < i && !ObjectUtils.isEmpty(rangesb)) {
                     rangesb.append(" and ");
                 }
-
+                rangesb.append(getRangExp(ranges.get(i), alias));
             }
         }
         return rangesb.toString();
@@ -52,15 +50,16 @@ public class Range extends QueryExp {
                 alias = ObjectUtils.isEmpty(alias) ? "" : alias.concat(".");
 
                 for (int j = 0; j < range.getFieldValues().size(); j++) {
+                    if (0 < j && !ObjectUtils.isEmpty(rangesb)) {
+                        rangesb.append(" or ");
+                    }
                     rangesb.append(" ")
                             .append(alias)
                             .append(StringUtil.upperCase(range.getFieldKey()))
                             .append(RangeEnum.getSymbol(range.getType()))
                             .append(range.getFieldValues().get(j))
                             .append(" ");
-                    if (j < range.getFieldValues().size() - 1) {
-                        rangesb.append(" or ");
-                    }
+
                 }
                 rangesb.append(" ) ");
             }

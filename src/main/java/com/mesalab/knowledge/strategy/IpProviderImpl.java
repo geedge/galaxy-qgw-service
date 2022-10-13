@@ -1,6 +1,8 @@
 package com.mesalab.knowledge.strategy;
 
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mesalab.knowledge.entity.DSLObject;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
  **/
 @Component("IP_VIEW")
 public class IpProviderImpl implements QueryProvider {
+
+    private static final Log log = LogFactory.get();
 
     @Value("${arango.maxrows}")
     private String limit;//查询最大条数
@@ -67,10 +71,12 @@ public class IpProviderImpl implements QueryProvider {
         aqlsb.append(" limit ").append(limit);
         aqlsb.append(" return distinct doc");
         //1.查询
+        log.info("query knowledge IP aql: {}",aqlsb);
         Object result = baseQueryProvider.queryArango(aqlsb.toString());
         //2.解析结果
         List<Map> resultList = new ObjectMapper().convertValue(result, new TypeReference<List<Map>>() {
         });
+        log.info("query knowledge IP result size: {}",resultList.size());
         return parseResult(resultList);
 
     }

@@ -1,6 +1,8 @@
 package com.mesalab.knowledge.strategy;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CharMatcher;
@@ -35,6 +37,8 @@ import java.util.stream.Stream;
 
 @Component("IP_LEARNING_VIEW")
 public class FqdnProviderImpl implements QueryProvider {
+
+    private static final Log log = LogFactory.get();
 
     private static final String depthregex = "^[1-9]\\d*$"; //depth 取值范围大于0
     private static final String SSL = "SSL";
@@ -126,9 +130,9 @@ public class FqdnProviderImpl implements QueryProvider {
             offSet = Integer.valueOf(limitList.get(0));
             pageSize = Integer.valueOf(limitList.get(1));
         }
-
+        log.info("query knowledge iplearning R_LOCATE_FQDN2IP aql: {}", aqlsb);
         List<IpLearningPath.IplearningEdges> ipEdgesList = getDistinctList(aqlsb, pageRow, offSet, pageSize);
-
+        log.info("query knowledge iplearning result, size: {}", ipEdgesList.size());
         return parseResult(ipEdgesList);
 
     }
