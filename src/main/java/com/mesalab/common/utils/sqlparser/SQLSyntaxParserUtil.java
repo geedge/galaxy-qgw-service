@@ -275,7 +275,12 @@ public class SQLSyntaxParserUtil {
             InExpression inExpression = (InExpression) expression;
             resultMap.put(NODE, IN_EXPRESSION);
             resultMap.put(LEFT_EXPRESSION, getExpression(inExpression.getLeftExpression()));
-            resultMap.put(RIGHT_EXPRESSION, getItemsList(inExpression.getRightItemsList()));
+            if (StringUtil.isNotEmpty(inExpression.getRightItemsList())) {
+                resultMap.put(RIGHT_EXPRESSION, getItemsList(inExpression.getRightItemsList()));
+            }
+            if (StringUtil.isNotEmpty(inExpression.getRightExpression())) {
+                resultMap.put(RIGHT_EXPRESSION, getExpression(inExpression.getRightExpression()));
+            }
         } else {
             log.warn("Not Support This Expression: {}", expression);
             resultMap.put(NODE, VALUE_U);
