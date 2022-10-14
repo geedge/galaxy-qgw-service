@@ -217,6 +217,25 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
 
     }
 
+    /**
+     *  排序
+     * @param mapList
+     * @param key
+     * @return
+     */
+    private List<Map<String,Object>> sortByKey(List<Map<String,Object>> mapList ,String key){
+        Collections.sort(mapList, new Comparator<Map<String, Object>>() {
+            @Override
+            public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                String name1 = o1.get(key).toString();
+                String name2 = o2.get(key).toString();
+                return name2.compareTo(name1);
+            }
+        });
+        return mapList;
+    }
+
+
     private BaseResult formatResult(BaseResult baseResult) {
 
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(String.valueOf(baseResult.getStatus()))) {
@@ -227,16 +246,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
                     .collect(groupingBy(e -> e.get("VSYS_ID") + "_" + e.get("IP"), LinkedHashMap::new, Collectors.toList()));
             List<Map<String,Object>> list = new ArrayList<>();
             for (Map.Entry<Object, List<Map<String,Object>>> entry : listLinkedHashMap.entrySet()) {
-
-                List<Map<String, Object>> mapList = entry.getValue();
-                Collections.sort(mapList, new Comparator<Map<String, Object>>() {
-                    @Override
-                    public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                        String name1 = o1.get("LAST_FOUND_TIME").toString();
-                        String name2 = o2.get("LAST_FOUND_TIME").toString();
-                        return name2.compareTo(name1);
-                    }
-                });
+                List<Map<String, Object>> mapList = sortByKey(entry.getValue(), "LAST_FOUND_TIME");
                 Map<String, Object> map = mapList.get(0);
                 map.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(Long.parseLong(String.valueOf(map.get("FIRST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
                 map.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(Long.parseLong(String.valueOf(map.get("LAST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
@@ -268,49 +278,23 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     }
 
     /**
-
      * 根据map中的某个key 去除List中重复的map
-     * @param list
+     * @param resultList
      * @param mapKey
      * @return list
-
      */
 
-    public List<Map<String, Object>> removeRepeatMapByKey(List<Map<String, Object>> list, String mapKey) {
+    public List<Map<String, Object>> removeRepeatMapByKey(List<Map<String, Object>> resultList, String mapKey) {
 
-        //把list中的数据转换成map,去掉同一id值多余数据，保留查找到第一个id值对应的数据
-
-        List<Map<String, Object>> listMap = new ArrayList<>();
-
-        Map<Object, Object> msp = new HashMap<>();
-
-        for (int i = list.size() - 1; i >= 0; i--) {
-            Map<String, Object> map = list.get(i);
-            Object key =  map.get(mapKey);
-            Object vsysId = map.get("vsys_id");
-            if (ObjectUtil.isNotEmpty(key)){
-                map.remove(mapKey);
-                msp.put(key.toString().concat(vsysId.toString()), map);
-            } else {
-                listMap.add(map);
-            }
+        LinkedHashMap<Object, List<Map<String,Object>>> listLinkedHashMap = resultList.stream()
+                .collect(groupingBy(e -> e.get("vsys_id") + "_" + e.get(mapKey), LinkedHashMap::new, Collectors.toList()));
+        List<Map<String,Object>> list = new ArrayList<>();
+        for (Map.Entry<Object, List<Map<String,Object>>> entry : listLinkedHashMap.entrySet()) {
+            List<Map<String, Object>> mapList = sortByKey(entry.getValue(), "last_update_time");
+            Map<String, Object> map = mapList.get(0);
+            list.add(map);
         }
-
-        Set mspKey = msp.keySet();
-        for (Object key : mspKey) {
-            Map<String, Object> newMap = (Map<String, Object>) msp.get(key);
-            newMap.put(mapKey, key);
-            listMap.add(newMap);
-        }
-        Collections.sort(listMap, new Comparator<Map<String, Object>>() {
-            @Override
-            public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                Long name1 = Long.valueOf(o1.get("last_update_time").toString());
-                Long name2 = Long.valueOf(o2.get("last_update_time").toString());
-                return name2.compareTo(name1);
-            }
-        });
-        return listMap;
+        return list;
 
     }
 
