@@ -286,10 +286,11 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
 
         for (int i = list.size() - 1; i >= 0; i--) {
             Map<String, Object> map = list.get(i);
-            Object id =  map.get(mapKey);
-            if (ObjectUtil.isNotEmpty(id)){
+            Object key =  map.get(mapKey);
+            Object vsysId = map.get("vsys_id");
+            if (ObjectUtil.isNotEmpty(key)){
                 map.remove(mapKey);
-                msp.put(id, map);
+                msp.put(key.toString().concat(vsysId.toString()), map);
             } else {
                 listMap.add(map);
             }
