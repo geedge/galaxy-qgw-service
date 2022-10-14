@@ -63,6 +63,15 @@ public class TopEntityTest extends GalaxyQGWApplicationTests {
         log.info("time:{} ms", millis);
     }
 
+    @Test
+    public void testE21SNI20221011Output() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        entityService.mergeSNI(getEntityData("E21-SNI-Top3W-20221011.txt"));
+        stopwatch.stop();
+        long millis = stopwatch.elapsed(MILLISECONDS);
+        log.info("time:{} ms", millis);
+    }
+
 
 
 }
