@@ -7,3 +7,4 @@ Release 360 (TSG-22.10)
 * 完善查询网关应用接口单元测试功能(GAL-220)
 * 扩展Schema，sys_packet_capture_event增加vsys_id列(TSG-11581)
 * 完善实时推荐接口——Subscriber ID(TSG-12132)
+* 升级JSQLParse解析工具至4.4版本
