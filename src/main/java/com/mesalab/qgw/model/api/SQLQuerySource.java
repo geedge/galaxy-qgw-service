@@ -72,6 +72,7 @@ public class SQLQuerySource {
                         break;
                     }
                 }
+                groupDimension.put(groupBy, groupBy);
             }
 
         }

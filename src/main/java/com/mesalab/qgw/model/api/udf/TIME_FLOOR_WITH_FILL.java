@@ -97,6 +97,10 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             if (results.isEmpty() || StringUtil.isBlank(fill) || StringUtil.isEmpty(groupDimension)) {
                 return results;
             }
+            Map<String, Object> resultsFirst = (Map<String, Object>) results.get(0);
+            if (!groupDimension.keySet().stream().allMatch(resultsFirst::containsKey)) {
+                return results;
+            }
             for (String groupKey : groupDimension.keySet()) {
                 if (groupDimension.get(groupKey).contains(name) &&
                         groupDimension.get(groupKey).contains(timestamp)) {
@@ -108,7 +112,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
 
             WhereTimeRange whereTimeRange = getWhereTimeRange(sqlQuerySource);
-            Date benchmarkDate = getBenchmarkDate((Map<String, Object>) results.get(0), timeGranLabel);
+            Date benchmarkDate = getBenchmarkDate(resultsFirst, timeGranLabel);
 
             targetResult = fillResultBasedOnTimeSeries(results, groupLabels, timeGranLabel);
 
