@@ -130,8 +130,8 @@ public class FqdnProviderImpl implements QueryProvider {
             offSet = Integer.valueOf(limitList.get(0));
             pageSize = Integer.valueOf(limitList.get(1));
         }
-        log.info("query knowledge iplearning R_LOCATE_FQDN2IP aql: {}", aqlsb);
         List<IpLearningPath.IplearningEdges> ipEdgesList = getDistinctList(aqlsb, pageRow, offSet, pageSize);
+
         log.info("query knowledge iplearning result, size: {}", ipEdgesList.size());
         return parseResult(ipEdgesList);
 
@@ -142,7 +142,7 @@ public class FqdnProviderImpl implements QueryProvider {
         StringBuffer sb  = new StringBuffer(aqlsb);
         sb.append(" limit ").append(pageRow);
         sb.append(" return distinct e ");
-
+        log.info("query knowledge iplearning R_LOCATE_FQDN2IP aql: {}", sb);
         Object result = baseQueryProvider.queryArango(sb.toString());
         List ipEdgesList = new ObjectMapper().convertValue(result, new TypeReference<List<IpLearningPath.IplearningEdges>>() {
         });

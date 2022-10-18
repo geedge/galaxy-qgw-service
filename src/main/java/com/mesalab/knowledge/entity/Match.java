@@ -57,47 +57,75 @@ public class Match extends QueryExp {
 
     public static String like(List<Match> matches, Predicate<Match> predicate, List<Range> ranges) {
 
-        Integer vsysId = 1;
-        if(!ObjectUtils.isEmpty(ranges)){
-            for (Range range : ranges) {
-                String fieldKey = range.getFieldKey();
-                if("vsys_id".equals(fieldKey)){
-                    vsysId = TypeUtils.castToInt(range.getFieldValues().get(0));
-                }
 
-            }
-        }
-
-        String finalVsysId = "-" + vsysId;
         return ObjectUtils.isEmpty(matches) ?"": matches.stream().filter(m -> predicate.test(m)).map(m -> {
 
             MatchEnum match = EnumUtils.getEnum(MatchEnum.class, StringUtil.upperCase(m.getType()));
             return m.getFieldValues().stream().filter(mv -> mv != null).map(mv -> {
                 String matchExp = match.getMatchExp();
                 String value = String.valueOf(mv);
+
                 if (MatchEnum.REGEX.getType().equals(m.getType())) {
                     if (value.startsWith("$")) {
                         matchExp = MatchEnum.EXACTLY.getMatchExp();
-                        value = CharMatcher.anyOf("$").trimLeadingFrom(value) + finalVsysId;
+                        value = CharMatcher.anyOf("$").trimLeadingFrom(value);
+                        value = getVsysValues(ranges, matchExp, value);
 
                     } else if (value.startsWith("*") && !value.endsWith("*")) {
                         matchExp = MatchEnum.SUFFIX.getMatchExp();
-                        value = CharMatcher.anyOf("*").trimLeadingFrom(value) + finalVsysId;
+                        value = CharMatcher.anyOf("*").trimLeadingFrom(value);
+                        value = getVsysValues(ranges, matchExp, value);
 
                     } else if (value.endsWith("*") && !value.startsWith("*")) {
                         matchExp = MatchEnum.PREFIX.getMatchExp();
                         value = CharMatcher.anyOf("*").trimTrailingFrom(value);
+                        value = MessageFormat.format(matchExp, value);
+
                     } else if (value.startsWith("*") && value.endsWith("*")) {
                         matchExp = MatchEnum.SUBSTRING.getMatchExp();
                         value = CharMatcher.anyOf("*").trimFrom(value);
+                        value = MessageFormat.format(matchExp, value);
+
                     } else {
                         matchExp = MatchEnum.SUBSTRING.getMatchExp();
+                        value = MessageFormat.format(matchExp, value);
                     }
                 }
-                return MessageFormat.format(matchExp, value);
+
+                return value;
+
             }).collect(joining(" or doc._key like ", "  ( doc._key like ", ") "));
 
         }).collect(joining(" and ", " filter ", " "));
+    }
+
+    private static String getVsysValues(List<Range> ranges, String matchExp, String value) {
+        final Integer defVsysId = 1 ;
+        Boolean vsysIdNull = true;
+        //查询_key ,_from 需要加上 vsys_id
+        if(!ObjectUtils.isEmpty(ranges)){
+            for (Range range : ranges) {
+                String fieldKey = range.getFieldKey();
+                if("vsys_id".equalsIgnoreCase(fieldKey)){
+                    vsysIdNull = false;
+                    StringBuilder vsb = new StringBuilder();
+                    List<Object> fieldValues = range.getFieldValues();
+                    for (int i = 0; i < fieldValues.size(); i++) {
+                        String vsysId = String.valueOf(fieldValues.get(i));
+                        if(0 < i){
+                            vsb.append(" or doc._key like ");
+                        }
+                        String valueTmp = value + "-" + vsysId;
+                        vsb.append( MessageFormat.format(matchExp,valueTmp));
+                    }
+                    value = vsb.toString();
+                }
+            }
+        }
+        if(vsysIdNull){
+            value = MessageFormat.format(matchExp, value + "-" + defVsysId);
+        }
+        return value;
     }
 
 }
