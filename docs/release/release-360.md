@@ -8,3 +8,5 @@ Release 360 (TSG-22.10)
 * 扩展Schema，sys_packet_capture_event增加vsys_id列(TSG-11581)
 * 完善实时推荐接口——Subscriber ID(TSG-12132)
 * 升级JSQLParse解析工具至4.4版本
+* 完善TIME_FLOOR_WITH_FILL函数补全规则
+* 修改Schema，目标IP流量统计表删除data center、sled_ip
