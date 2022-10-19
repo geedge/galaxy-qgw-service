@@ -9,7 +9,7 @@
     },
     "schema_query": {
       "filters": [
-        "common_data_center"
+        "vsys_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -29,22 +29,6 @@
       }
     },
     {
-      "name": "common_data_center",
-      "label": "Data Center",
-      "type": "string",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,in"
-        },
-        "data": {
-          "$ref": "device_tag.json#",
-          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
-          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
-        },
-        "visibility": "enabled"
-      }
-    },
-    {
       "name": "vsys_id",
       "label": "VSYS ID",
       "doc": {
@@ -52,14 +36,6 @@
       },
       "type": "int",
       "default": 1
-    },
-    {
-      "name": "common_sled_ip",
-      "label": "Sled IP",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "string"
     },
     {
       "name": "destination_ip",
