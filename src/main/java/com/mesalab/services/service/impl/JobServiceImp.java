@@ -256,7 +256,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
         if (!baseResult.isSuccess()) {
             log.error("Query job status error: {}", baseResult.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "Query job status error: " + baseResult.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "Query job status error: " + baseResult.getMessage());
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         Map<String, Object> map;
@@ -292,7 +292,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(),
-                    "Init job error: get field_discovery all column error, ".concat(baseResult.getMessage()), null);
+                    "Init job error: get field_discovery all column error: ".concat(baseResult.getMessage()));
         }
         List<Map<String, Object>> meta = (List<Map<String, Object>>) baseResult.getMeta();
         List<String> metaName = new ArrayList<>();
@@ -320,15 +320,15 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 GroupByElement groupBy = plainSelect.getGroupBy();
                 if (StringUtil.isEmpty(groupBy)) {
                     throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                            "statistics job init error, not support non-aggregate SQL is: " + sql, null);
+                            "statistics job init error, not support non-aggregate SQL is: " + sql);
                 }
             } else {
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        "statistics job init error, not support, SQL is: " + sql, null);
+                        "statistics job init error, not support, SQL is: " + sql);
             }
         } catch (JSQLParserException | RuntimeException e) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "statistics job init error: ".concat(e.getMessage()), null);
+                    "statistics job init error: ".concat(e.getMessage()));
         }
         return property;
     }
@@ -340,12 +340,12 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                         .build());
         if (!baseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(),
-                    "get Job Result Error: ".concat(baseResult.getMessage()), null);
+                    "get Job Result Error: ".concat(baseResult.getMessage()));
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         if (StringUtil.isEmpty(data) || StringUtil.isEmpty(data.get(0).get(JobConfig.JOB_PROPERTY))) {
             throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Not Found This Job: ".concat(id), null);
+                    "Not Found This Job: ".concat(id));
         }
         return data;
     }
@@ -370,7 +370,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (!baseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Job Validation Error: ".concat(baseResult.getMessage()), null);
+                    "Job Validation Error: ".concat(baseResult.getMessage()));
         }
     }
 
@@ -384,7 +384,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (!baseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Job Validation Error: ".concat(baseResult.getMessage()), null);
+                    "Job Validation Error: ".concat(baseResult.getMessage()));
         }
     }
 
@@ -394,7 +394,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Job Validation Error: ".concat(baseResult.getMessage()), null);
+                    "Job Validation Error: ".concat(baseResult.getMessage()));
         }
     }
 
@@ -412,7 +412,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             conn.commit();
         } catch (RuntimeException | SQLException e) {
             log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
         } finally {
             close(statement, conn);
         }
@@ -438,7 +438,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             conn.commit();
         } catch (RuntimeException | SQLException e) {
             log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
         } finally {
             close(statement, conn);
         }

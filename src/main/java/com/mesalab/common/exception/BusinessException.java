@@ -51,8 +51,8 @@ public class BusinessException extends RuntimeException {
         this.code = code;
     }
 
-    public BusinessException(int status, String code, String message, Throwable e) {
-        super(message, e);
+    public BusinessException(int status, String code, Throwable e) {
+        super(e);
         this.status = status;
         this.code = code;
     }

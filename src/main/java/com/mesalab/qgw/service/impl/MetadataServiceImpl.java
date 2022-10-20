@@ -186,7 +186,7 @@ public class MetadataServiceImpl implements MetadataService {
         if (!getAllTable().contains(tableName)) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
                     ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    tableName + " The schema is not registered on the platform, please contact the person in charge of the data platform", null);
+                    tableName + " The schema is not registered on the platform, please contact the person in charge of the data platform");
         }
         Schema schema;
         if (!StrUtil.isBlankIfStr(schema = schemaCache.get(tableName))) {
@@ -196,7 +196,7 @@ public class MetadataServiceImpl implements MetadataService {
             String content = systemConfigService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
             if (StrUtil.isBlankIfStr(content)) {
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), tableName + " Get Schema configuration exception", null);
+                        ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), tableName + " Get Schema configuration exception");
             }
             schemaCache.put(tableName, schema = parseSchema(content));
             systemConfigService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
@@ -474,11 +474,11 @@ public class MetadataServiceImpl implements MetadataService {
             key.addAll(JsonPath.read(obj, map.get(KEY)));
             value.addAll(JsonPath.read(obj, map.get(VALUE)));
         } catch (RuntimeException ex) {
-            log.warn("parse reference schema error: JsonPath.read error", null);
+            log.warn("parse reference schema error: JsonPath.read error");
             return Lists.newArrayList();
         }
         if (key.size() != value.size()) {
-            log.warn("parse reference schema error: key and value non-correspondence", null);
+            log.warn("parse reference schema error: key and value non-correspondence");
             return Lists.newArrayList();
         }
         List<Map<String, Object>> list = Lists.newArrayList();

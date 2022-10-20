@@ -98,7 +98,7 @@ public class ApiServiceImpl implements ApiService {
             baseResult = executeExplainStatement(param);
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    "SQL Syntax Error: Only support statement operations for select, show and describe.", null);
+                    "SQL Syntax Error: Only support statement operations for select, show and describe.");
         }
         return baseResult;
     }
@@ -106,27 +106,27 @@ public class ApiServiceImpl implements ApiService {
     private void validateAndSetDefaultValue(ApiParam param) {
         if (StringUtil.isBlank(param.getQuery())) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Param Syntax Error: The SQL must be exists.", null);
+                    "Param Syntax Error: The SQL must be exists.");
         }
         if (StringUtil.isBlank(param.getOption())) {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
         }
         if (Arrays.stream(QueryOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getOption()))) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Param Syntax Error: The option must be real-time or long-term or syntax-validation. ", null);
+                    "Param Syntax Error: The option must be real-time or long-term or syntax-validation. ");
         }
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())
                 && StringUtil.isBlank(param.getReportId())
                 && StringUtil.isBlank(param.getResultId())) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Param Syntax Error: The option=long-term, must be reportId or resultId.", null);
+                    "Param Syntax Error: The option=long-term, must be reportId or resultId.");
         }
         if (StringUtil.isBlank(param.getFormat())) {
             param.setFormat(QueryFormatEnum.JSON.getValue());
         }
         if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Param Syntax Error: The format must be json or csv.", null);
+                    "Param Syntax Error: The format must be json or csv.");
         }
     }
 
@@ -227,7 +227,7 @@ public class ApiServiceImpl implements ApiService {
             dialect = (Dialect) constructor.newInstance(param);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}",e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Dialect conversion instance exception！", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Dialect conversion instance exception:"+ e.getMessage());
         }
         return dialect;
     }
@@ -414,7 +414,7 @@ public class ApiServiceImpl implements ApiService {
 
         } catch (JSQLParserException | RuntimeException e) {
             log.error("sqlParser error: {}", e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Syntax Error:", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Syntax Error:"+ e.getMessage());
 
         }
 
@@ -472,7 +472,7 @@ public class ApiServiceImpl implements ApiService {
             udf = (UDF) constructor.newInstance(udfElements);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Custom function conversion instance exception:{}",e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Custom function conversion instance exception！", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Custom function conversion instance exception！");
         }
         return udf;
     }
@@ -515,7 +515,7 @@ public class ApiServiceImpl implements ApiService {
             param.setQuery(StrFormatter.format("SELECT COLUMN_NAME as \"name\", DATA_TYPE as \"type\" FROM SYSTEM.CATALOG WHERE TABLE_NAME= '{}' AND COLUMN_NAME  IS NOT NULL", tableName));
         } else {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    param.getTableName() + " The form is not registered on the platform, please contact the person in charge of the data platform", null);
+                    param.getTableName() + " The form is not registered on the platform, please contact the person in charge of the data platform");
         }
 
         param.setFormat(QueryFormatEnum.JSON.getValue());
@@ -526,7 +526,7 @@ public class ApiServiceImpl implements ApiService {
         BaseResult baseResult = dataEncapsulationOfSchema(dialect.executeAdministrativeQuery(), param);
 
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "describe table error, please check tableName", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "describe table error, please check tableName");
         }
         return baseResult;
     }
@@ -571,7 +571,7 @@ public class ApiServiceImpl implements ApiService {
             Dialect dialect = getReflectiveDialectObject(dbParam);
             BaseResult queryResult = dialect.executeAdministrativeQuery();
             if (queryResult.getStatus() == null || queryResult.getStatus() != ResultStatusEnum.SUCCESS.getCode()) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), queryResult.getMessage(), null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.UNKNOW_EXCEPTION.getCode() , queryResult.getMessage());
             }
             List tables = (ArrayList) queryResult.getData();
             List<String> list = new ArrayList<>();

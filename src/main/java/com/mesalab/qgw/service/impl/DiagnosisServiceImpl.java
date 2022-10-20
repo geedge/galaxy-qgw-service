@@ -150,7 +150,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } catch (RuntimeException e) {
             log.error("Avro Schema Validation Fail:{}", e);
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), "Avro Schema Validation Fail:", e);
+                    ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), "Avro Schema Validation Fail:"+e.getMessage());
 
         }
         return result;
@@ -186,7 +186,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } catch (RuntimeException e) {
             log.error("Metadata Validation Fail:{}", e);
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Metadata Validation Fail:", e);
+                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Metadata Validation Fail:"+e.getMessage());
         }
         return result;
     }
@@ -249,7 +249,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), "Execute Poc SQL Fail:", e);
+                    ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), "Execute Poc SQL Fail:"+ e.getMessage());
         }
         return result;
     }
@@ -289,7 +289,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } catch (RuntimeException e) {
             log.error("Get Poc SQL Fail:{}", e);
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Get Poc SQL Fail:", e);
+                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Get Poc SQL Fail:"+e.getMessage());
         }
         return result;
     }
@@ -580,7 +580,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
 
         } else {
             throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), file.get().getName()
-                    + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage(), null);
+                    + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage());
         }
     }
 
@@ -693,7 +693,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
                     (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), e.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), e.getMessage());
         }
         dataObject = baseResult.getData();
         Map<String, Object> resultMap = (Map<String, Object>) dataObject;
@@ -730,7 +730,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Converter SQL Syntax Error.", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Converter SQL Syntax Error:"+ e.getMessage());
         }
     }
 
@@ -769,7 +769,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(),
-                        " The Table[" + tableName + "] Structure query failed", null);
+                        " The Table[" + tableName + "] Structure query failed");
             }
             List<Map<String, Object>> dbFields = JsonPath.read(JsonMapper.toJsonString(baseResult.getData()), "$.fields.*");
 
@@ -791,7 +791,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
                 log.error("Schema Fields greater than Table Fields,Schema " + tableName + " exist fields :" + entriesOnlyOnLeft);
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft, null);
+                        " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft);
 
             }
             Map<String, Object> entriesOnlyOnRight = difference.entriesOnlyOnRight();
@@ -860,7 +860,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
                     } catch (AvroRuntimeException e) {
                         log.error("Schema Parsing Error {}, Message is {}", file.getName(), e);
                         throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                                ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), file.getName() + " Parse Error: " + e.getMessage(), e);
+                                ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), file.getName() + " Parse Error: " + e.getMessage());
                     }
                 }
             }

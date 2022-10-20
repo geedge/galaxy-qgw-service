@@ -114,7 +114,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
+            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage());
         }
         return baseResult;
     }

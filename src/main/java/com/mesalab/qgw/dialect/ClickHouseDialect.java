@@ -419,7 +419,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 sql = buffer.toString();
             } catch (JSQLParserException|RuntimeException e) {
                 log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Rewrite add tableName and Alias Error", e);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Rewrite add tableName and Alias Error:"+ e.getMessage());
             }
             return this;
         }
