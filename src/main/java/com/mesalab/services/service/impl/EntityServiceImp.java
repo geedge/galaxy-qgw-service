@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.net.InternetDomainName;
 import com.mesalab.cn.common.constant.ErrorMessage;
 import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.base.BaseResultGenerator;
@@ -39,7 +40,6 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
@@ -180,85 +180,66 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     @Override
     public List<Map<String, Object>> mergeSNI(List<Map<String, Object>> data) {
         Map<String, List<String>> cdn = buildDomainHashTable(getCfgCDN());
-        Map<String, List<Map<String, Object>>> map = Maps.newHashMapWithExpectedSize(data.size() / 4);
-        List<Map<String, Object>> cdnFilter = Lists.newArrayList();
+        List<Map<String, Object>> dataRec = Lists.newArrayList();
+        Map<String, Map<String, Object>> dataSLD = Maps.newHashMap();
+        Map<String, Map<String, Object>> dataMerge = Maps.newHashMapWithExpectedSize(data.size() / 4);
         Iterator<Map<String, Object>> iterator = data.iterator();
         while (iterator.hasNext()) {
             Map<String, Object> datum = iterator.next();
-            String name = String.valueOf(datum.get("ssl_sni"));
-            String key = getTopPrivateDomain(name);
-            datum.put("isCDN", false);
-
-            //1. filter exception data
-            if (StringUtil.isBlank(key)) {
-                map.put(name, Lists.newArrayList(datum));
+            String value = String.valueOf(datum.get("ssl_sni"));
+            if (StringUtil.isBlank(value) || isTSLDomain(value)) {
                 continue;
             }
-            String domain = FormatUtils.getDomain(name);
-
+            String key = getTopPrivateDomain(value);
+            //1. filter exception data
+            if (StringUtil.isBlank(key)) {
+                dataRec.add(datum);
+                continue;
+            }
+            String domain = FormatUtils.getDomain(value);
             //2. filter CDN
             if (inCDN(cdn, domain)) {
                 datum.put("isCDN", true);
-                cdnFilter.add(datum);
+                dataRec.add(datum);
                 continue;
             }
 
             //3 filter TopPrivateDomain
-            if (key.equalsIgnoreCase(domain)) {
-                datum.put("ssl_sni", domain);
-                map.put("$".concat(domain), Lists.newArrayList(datum));
+            if (isSLDDomain(domain)) {
+                Map<String, Object> item = dataSLD.get(key);
+                if (StringUtil.isNotEmpty(item)) {
+                    long bytesBefore = StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
+                    long sessionsBefore = StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
+                    long bytesAfter = StringUtil.isEmpty(datum.get("bytes")) ? 0 : Long.parseLong(datum.get("bytes").toString());
+                    long sessionsAfter = StringUtil.isEmpty(datum.get("sessions")) ? 0 : Long.parseLong(datum.get("sessions").toString());
+                    datum.put("bytes", bytesBefore + bytesAfter);
+                    datum.put("sessions", sessionsBefore + sessionsAfter);
+                }
+                datum.put("ssl_sni", key);
+                dataSLD.put(key, datum);
                 continue;
             }
 
             //4. first add
-            if (StringUtil.isEmpty(map.get(key))) {
-                datum.put("ssl_sni", domain);
-                map.put(key, Lists.newArrayList(datum));
+            if (!dataMerge.containsKey(key)) {
+                dataMerge.put(key, datum);
                 continue;
             }
 
             //5. merge
-            List<Map<String, Object>> mapList = map.get(key);
-            for (Map<String, Object> item : mapList) {
-                List<String> domainBefore = Splitter.on(".").omitEmptyStrings().splitToList(String.valueOf(item.get("ssl_sni")));
-                List<String> domainAfter = Splitter.on(".").omitEmptyStrings().splitToList(domain);
-                Stack<String> stackBefore = new Stack<>();
-                Stack<String> stackAfter = new Stack<>();
-                domainBefore.forEach(stackBefore::push);
-                domainAfter.forEach(stackAfter::push);
-                Stack<String> stack = new Stack<>();
-                while (!stackBefore.isEmpty() && !stackAfter.isEmpty()) {
-                    String levelBefore = stackBefore.pop();
-                    String levelAfter = stackAfter.pop();
-                    if ("*".equals(levelAfter) || "*".equals(levelBefore)) {
-                        break;
-                    }
-                    if (!levelBefore.equalsIgnoreCase(levelAfter)
-                            || (stackBefore.isEmpty() || stackAfter.isEmpty())) {
-                        break;
-                    }
-                    stack.push(levelBefore);
-                }
-                stack.push("*");
-                Collections.reverse(stack);
-
-                long bytesBefore = StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
-                long sessionsBefore = StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
-
-                long bytesAfter = StringUtil.isEmpty(datum.get("bytes")) ? 0 : Long.parseLong(datum.get("bytes").toString());
-                long sessionsAfter = StringUtil.isEmpty(datum.get("sessions")) ? 0 : Long.parseLong(datum.get("sessions").toString());
-                String join = String.join(".", stack);
-                item.put("ssl_sni", join);
-                item.put("bytes", bytesBefore + bytesAfter);
-                item.put("sessions", sessionsBefore + sessionsAfter);
-            }
+            Map<String, Object> item = dataMerge.get(key);
+            long bytesBefore = StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
+            long sessionsBefore = StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
+            long bytesAfter = StringUtil.isEmpty(datum.get("bytes")) ? 0 : Long.parseLong(datum.get("bytes").toString());
+            long sessionsAfter = StringUtil.isEmpty(datum.get("sessions")) ? 0 : Long.parseLong(datum.get("sessions").toString());
+            item.put("ssl_sni", "*.".concat(key));
+            item.put("bytes", bytesBefore + bytesAfter);
+            item.put("sessions", sessionsBefore + sessionsAfter);
         }
-
         List<Map<String, Object>> result = Lists.newArrayList();
-        for (String key : map.keySet()) {
-            result.addAll(map.get(key));
-        }
-        result.addAll(cdnFilter);
+        dataMerge.keySet().forEach(o -> result.add(dataMerge.get(o)));
+        dataSLD.keySet().forEach(o -> result.add(dataSLD.get(o)));
+        result.addAll(dataRec);
         return result;
     }
 
@@ -284,25 +265,25 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
     @Override
     public boolean inCDN(Map<String, List<String>> cdnMap, String domain) {
-        String topPrivateDomain = getTopPrivateDomain(domain);
-        List<String> list = cdnMap.get(topPrivateDomain);
-        if (StringUtil.isEmpty(list)) {
-            return false;
-        }
-        String[] parma = StrUtil.split(domain, ".");
-        out:
-        for (String cdn : list) {
-            String[] flag = StrUtil.split(cdn, ".");
-            if (flag.length > parma.length) {
-                continue;
+            String topPrivateDomain = getTopPrivateDomain(domain);
+            List<String> list = cdnMap.get(topPrivateDomain);
+            if (StringUtil.isEmpty(list)) {
+                return false;
             }
-            for (int i = 1; i <= flag.length; i++) {
-                if (!String.valueOf(parma[parma.length - i]).toLowerCase().equals(String.valueOf(flag[flag.length - i]).toLowerCase())) {
-                    continue out;
+            List<String> param = Splitter.on(".").omitEmptyStrings().splitToList(domain);
+            out:
+            for (String cdn : list) {
+                List<String> flag = Splitter.on(".").omitEmptyStrings().splitToList(cdn);
+                if (flag.size() > param.size()) {
+                    continue;
                 }
+                for (int i = 1; i < flag.size() + 1; i++) {
+                    if (!String.valueOf(param.get(param.size() - i)).equalsIgnoreCase(String.valueOf(flag.get(flag.size() - i)))) {
+                        continue out;
+                    }
+                }
+                return true;
             }
-            return true;
-        }
         return false;
     }
 
@@ -315,6 +296,36 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         }
         return topPrivateDomain;
     }
+
+    public boolean isTSLDomain(String domain) {
+        try {
+            domain = FormatUtils.getDomain(domain);
+            if (!StringUtil.isBlank(domain) && InternetDomainName.isValid(domain)) {
+                InternetDomainName internetDomainName = InternetDomainName.from(domain);
+                return StringUtil.isEmpty(internetDomainName.publicSuffix()) ? false : internetDomainName.isPublicSuffix();
+            } else {
+                return false;
+            }
+        } catch (RuntimeException exception) {
+            log.warn("valid isTSL domain exceptions, exception domain names:" + domain);
+        }
+        return false;
+    }
+
+    public boolean isSLDDomain(String domain) {
+        try {
+            if (!StringUtil.isBlank(domain) && InternetDomainName.isValid(domain)) {
+                InternetDomainName internetDomainName = InternetDomainName.from(domain);
+                return internetDomainName.isTopPrivateDomain();
+            } else {
+                return false;
+            }
+        } catch (RuntimeException exception) {
+            log.warn("valid isSLD domain exceptions, exception domain names:" + domain);
+        }
+        return false;
+    }
+
 
     private Map<String, List<String>> getCfgCDN() {
         Object codeInfo = metadataService.getCfg("public_code_info.json");
