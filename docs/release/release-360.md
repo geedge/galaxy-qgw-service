@@ -10,3 +10,4 @@ Release 360 (TSG-22.10)
 * 升级JSQLParse解析工具至4.4版本
 * 完善TIME_FLOOR_WITH_FILL函数补全规则
 * 修改Schema，目标IP流量统计表删除data center、sled_ip
+* 修复SNI推荐， 修复推荐SNI中存在顶级域名(TSG-12301)
