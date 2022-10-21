@@ -104,7 +104,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             BaseResult result = apiService.executeQuery(param);
             return resetBaseResult(result, "type");
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "start_time and end_time need to be filled in at the same time", null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
+                    "start_time and end_time need to be filled in at the same time");
         }
     }
 
@@ -236,8 +237,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 }
             }
         } catch (RuntimeException ex) {
-            log.error(" schema TTL check error: {}", ex.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), ex.getMessage(), ex);
+            log.error(" schema TTL check error: {}", ex);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), ex.getMessage());
         }
         if (changeTTL.isEmpty()) {
             return BaseResultGenerator.success("ok", dataList);
@@ -357,7 +358,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             dialect = (Dialect) constructor.newInstance(apiParam);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}", e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Dialect conversion instance exception！", e);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Dialect conversion instance exception:"+ e.getMessage());
         }
         return dialect;
     }
@@ -369,7 +370,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         if (queryId.contains(queryIdSeparator)) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "queryId is not supported", null);
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "queryId is not supported");
         }
         return DBTypeEnum.CLICKHOUSE.getValue();
     }
@@ -431,7 +432,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         if (result.getStatus().equals(ResultStatusEnum.LOCKED.getCode())) {
             return true;
         } else if (!result.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get task status exception: " + result.getMessage(), null);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "Get task status exception: " + result.getMessage());
         }
         return false;
     }
@@ -471,7 +472,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         if (!baseResult.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Scheduled task data quota setting task execution failed", null);
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOW_EXCEPTION.getCode(),
+                    "Scheduled task data quota setting task execution failed");
         }
         return baseResult;
     }
@@ -681,16 +683,19 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get or package result exception: " + resultPageList, null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOW_EXCEPTION.getCode(),
+                        "Get or package result exception: " + JsonMapper.toJsonString(resultPageList));
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
                 return data.get(0);
             } else {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "The scheduled task has no task information matching executorHandler (" + handlerValue + ")", null);
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(),
+                        "The scheduled task has no task information matching executorHandler (" + handlerValue + ")");
             }
         }
-        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get scheduled task exception: " + JsonMapper.toJsonString(resultPageList), null);
+        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(),
+                "Get scheduled task exception: " + JsonMapper.toJsonString(resultPageList));
     }
 
     /**

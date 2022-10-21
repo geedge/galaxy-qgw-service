@@ -93,7 +93,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     @Override
     String getExplainQuery() {
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "ES dialect unsupported EXPLAIN Syntax.", null);
+        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "ES dialect unsupported EXPLAIN Syntax.");
     }
 
     @Override
@@ -121,7 +121,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), simplyErrorMessage(e.getMessage()), null);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), simplyErrorMessage(e.getMessage()));
         }
         return build();
     }

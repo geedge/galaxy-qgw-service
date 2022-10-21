@@ -50,13 +50,13 @@ public class SystemController {
         }
         for (StorageDeletionInfo info : list) {
             if (StringUtil.isBlank(info.getLogType()) || StringUtil.isBlank(String.valueOf(info.getMaxDays()))) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "Parameter verification: logType and maxDays need to be filled in at the same time", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Parameter verification: logType and maxDays need to be filled in at the same time");
             }
             if ("ALL".equalsIgnoreCase(info.getLogType()) && list.size() != 1) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "Parameter verification: When logType exists in ALL, it cannot coexist with other types", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),"Parameter verification: When logType exists in ALL, it cannot coexist with other types");
             }
             if (!(info.getMaxDays() >= 0 && info.getMaxDays() <= 2000)) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "Parameter check: logType is not All: maxDays must be numeric and [0-2000]", null);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),"Parameter check: logType is not All: maxDays must be numeric and [0-2000]");
             }
         }
         return systemService.deleteStorage(list);
@@ -92,7 +92,7 @@ public class SystemController {
                 || StringUtil.isEmpty(query = param.get("query"))) {
 
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Param resultId or query cannot be empty", null);
+                    "Param resultId or query cannot be empty");
         }
         String queryId = systemService.getCustomQueryId(resultId.toString(), query.toString());
 
@@ -107,7 +107,7 @@ public class SystemController {
         log.info("Plaintext encrypted,The plaintext argument is : {}", param);
         if (StringUtil.isEmpty(param.getPassword()) || StringUtil.isEmpty(param.getSalt())) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Param password or salt cannot be empty", null);
+                    "Param password or salt cannot be empty");
         }
         return systemService.getCiphertext(param);
     }
