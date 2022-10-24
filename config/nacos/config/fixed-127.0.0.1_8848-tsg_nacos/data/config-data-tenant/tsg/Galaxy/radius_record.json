@@ -1393,7 +1393,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "radius_idle_timeout",
@@ -1402,7 +1402,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "radius_acct_status_type",
@@ -1531,7 +1531,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "radius_service_type",
@@ -1612,7 +1612,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "radius_acct_session_id",
@@ -1675,7 +1675,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "radius_acct_link_count",
