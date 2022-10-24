@@ -33,7 +33,7 @@ select common_server_ip as server_ip,common_vsys_id as vsys_id ,sum(common_sessi
 #end
 
 #sql("ENTITY_TCP_UNIQ_CLIENT_IPS")
-select common_server_ip as server_ip from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by COUNT(DISTINCT(common_client_ip)) desc limit %s
+select common_server_ip as server_ip, common_vsys_id as vsys_id from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip, common_vsys_id order by COUNT(DISTINCT(common_client_ip)) desc limit %s
 #end
 
 #sql("TOP_ENTITY_TCP_UNIQ_CLIENT_IPS")
