@@ -12,3 +12,4 @@
 * 修改Schema，将FQDN Category字段从维度列表、指标列表中移除(TSG-11619)
 * Galaxy 优化GTPC知识库推荐接口(TSG-11758)
 * 修改Schema，去除Proxy Events doc.schema_query.filters DoH.QNAME重复值(TSG-11795)
+* 修复实体推荐TopN SNI中存在顶级域名(TSG-12301)
