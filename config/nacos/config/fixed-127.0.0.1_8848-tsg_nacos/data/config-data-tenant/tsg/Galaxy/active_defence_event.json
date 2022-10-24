@@ -372,7 +372,7 @@
         },
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     }
   ]
 }
