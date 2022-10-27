@@ -27,6 +27,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
+import net.sf.jsqlparser.statement.select.OrderByElement;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -181,7 +182,29 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 targetResult = targetResult.subList(0, Integer.parseInt(sqlQuerySource.getLimit()));
             }
         }
+        sortByTime(sqlQuerySource, targetResult, timeGranLabel);
         return targetResult;
+    }
+
+    private void sortByTime(SQLQuerySource sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
+        orderBy:
+        for (OrderByElement orderByElement : sqlQuerySource.getListOrderElement()) {
+            String orderBy = String.valueOf(orderByElement.getExpression());
+            if (orderBy.equals(timeGranLabel)) {
+                if (!orderByElement.isAsc()) {
+                    Collections.reverse(targetResult);
+                    break;
+                }
+            }
+            for (String key : sqlQuerySource.getAliasFields().keySet()) {
+                if (sqlQuerySource.getAliasFields().get(key).equalsIgnoreCase(orderBy)) {
+                    if (!orderByElement.isAsc()) {
+                        Collections.reverse(targetResult);
+                        break orderBy;
+                    }
+                }
+            }
+        }
     }
 
     private List<Map<String, Object>> fillResultBasedOnTimeSeries(List<Object> results, List<String> groupLabels, String timeGranLabel) {
