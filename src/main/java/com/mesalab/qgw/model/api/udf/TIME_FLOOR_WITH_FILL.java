@@ -187,6 +187,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     }
 
     private void sortByTime(SQLQuerySource sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
+        if(StringUtil.isEmpty(sqlQuerySource.getListOrderElement())){
+            return;
+        }
         orderBy:
         for (OrderByElement orderByElement : sqlQuerySource.getListOrderElement()) {
             String orderBy = String.valueOf(orderByElement.getExpression());
