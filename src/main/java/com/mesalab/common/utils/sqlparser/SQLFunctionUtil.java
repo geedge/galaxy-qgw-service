@@ -59,6 +59,8 @@ public class SQLFunctionUtil {
     public static final HashMap<String, String> functions = Maps.newHashMap();
     private static final Map<String, String> distributedGroupByFunction = Maps.newHashMap();
 
+    public static final Map<String, String> timeSlicingFunction = Maps.newHashMap();
+
     static {
         functions.put(TIME_FLOOR_WITH_FILL, null);
         functions.put(IP_TO_GEO, null);
@@ -70,6 +72,11 @@ public class SQLFunctionUtil {
         distributedGroupByFunction.put("min","min");
         distributedGroupByFunction.put("max","max");
         distributedGroupByFunction.put("median","median");
+        timeSlicingFunction.put("count","sum");
+        timeSlicingFunction.put("sum","sum");
+        timeSlicingFunction.put("avg","avg");
+        timeSlicingFunction.put("min","min");
+        timeSlicingFunction.put("max","max");
     }
 
     /**

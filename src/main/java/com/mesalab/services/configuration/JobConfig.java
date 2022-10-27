@@ -24,16 +24,13 @@ public class JobConfig {
     public static final String STATISTICS_RESULT = "result";
     public static final String JOB_PROPERTY = "job_property";
     public static final String JOB_PROPERTY_TYPE = "type";
-    public static final String JOB_PROPERTY_SUB_TYPE = "sub_type";
-    public static final String JOB_PROPERTY_SUB_TYPE_TOP = "top";
-    public static final String JOB_PROPERTY_SUB_TYPE_RARE = "rare";
-    public static final String isASC = "isAsc";
-    public static final String JOB_PROPERTY_SUB_TYPE_TIMECHART = "timechart";
-    public static final String JOB_PROPERTY_MERGE = "merge";
-    public static final String AVG = "avg";
-    public static final String JOB_PROPERTY_RESULT_FIELD = "result_field";
+    public static final String JOB_PROPERTY_K_RESULT_FIELD = "result_field";
+    public static final String JOB_PROPERTY_K_OPTION = "option";
+    public static final String JOB_PROPERTY_K_SUB_OPTION = "sub_option";
+    public static final String JOB_PROPERTY_V_OPTION_TIMECHART = "timechart";
+    public static final String JOB_PROPERTY_V_OPTION_TOP = "top";
+    public static final String JOB_PROPERTY_V_OPTION_RARE = "rate";
     public static final String JOB_PROPERTY_LIMIT = "limit";
-    public static final String JOB_PROPERTY_ORDER = "order";
 
     public static final String DETAIL = "detail";
 

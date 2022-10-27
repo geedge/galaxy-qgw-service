@@ -18,6 +18,7 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.ApiService;
@@ -28,11 +29,14 @@ import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
+import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.*;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
@@ -42,6 +46,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Matcher;
 
 
 /**
@@ -93,19 +98,29 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
 
     @Override
-    public BaseResult commitAdHocQuery(HashMap<String, Object> map) {
-        validateAdHocQuery(map);
-        String id = DigestUtil.md5Hex16(String.valueOf(map.get(JobConfig.KEY_QUERY_TYPE)).toLowerCase()).concat(JobConfig.DELIMIT).concat(DigestUtil.md5Hex16(String.valueOf(map)));
-        if (!isExist(id)) {
-            log.info("Add Hoc Job, ID is {}, params is {}", id, JsonMapper.toJsonString(map));
-            init(id, map);
-            if (JobConfig.FIELD_DISCOVERY.equals(map.get(JobConfig.KEY_QUERY_TYPE))) {
-                jobExecuteService.addExecutorFieldDiscovery(id, map);
-            } else if (JobConfig.STATISTICS.equals(map.get(JobConfig.KEY_QUERY_TYPE))) {
-                jobExecuteService.addExecutorStatistics(id, map);
-            }
+    public BaseResult commitAdHocQuery(HashMap<String, Object> reqBody) {
+        validateAdHocQuery(reqBody);
+        String id = DigestUtil.md5Hex16(String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE)).toLowerCase()).concat(JobConfig.DELIMIT).concat(DigestUtil.md5Hex16(String.valueOf(reqBody)));
+        if (isExist(id)) {
+            log.info("Hoc Job already exist, ID is {}, params is {}", id, JsonMapper.toJsonString(reqBody));
+            return BaseResultGenerator.success("ok", buildData(id));
+        }
+        log.info("Add Hoc Job, ID is {}, params is {}", id, JsonMapper.toJsonString(reqBody));
+        Map<String, Object> property = Maps.newLinkedHashMap();
+        String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
+        if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
+            initFieldDiscoveryJob(id, reqBody, property);
+            jobExecuteService.addExecutorFieldDiscovery(id, reqBody);
+        } else if (JobConfig.STATISTICS.equals(queryType)) {
+            initStatisticsJob(id, reqBody, property);
+            jobExecuteService.addExecutorStatistics(id, reqBody, property);
         }
         return BaseResultGenerator.success("ok", buildData(id));
+    }
+
+    private void initStatisticsJob(String id, HashMap<String, Object> reqBody, Map<String, Object> property) {
+        buildPropertyOfStatistics(String.valueOf(reqBody.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL)), property);
+        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
     }
 
     @Override
@@ -126,7 +141,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult getReportStatus(String jobId) {
         List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("REPORT_STATUS")), jobId));
-        if(CollectionUtil.isEmpty(query)){
+        if (CollectionUtil.isEmpty(query)) {
             return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), "not found job");
         }
         List<Object> list = Arrays.asList((Object[]) query.get(0));
@@ -191,10 +206,20 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         List<Map<String, Object>> resultList = Lists.newArrayList();
         List<Map<String, Object>> meta = Lists.newArrayList();
         Object item = map.get(JobConfig.STATISTICS_RESULT);
-        if (StringUtil.isNotEmpty(item)) {
+        Object property = map.get(JobConfig.JOB_PROPERTY);
+        if (StringUtil.isNotEmpty(item) && StringUtil.isNotEmpty(property)) {
             try {
                 Map<String, List<Map<String, Object>>> result = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
                 resultList = result.get("data");
+
+                Map<String, Object> propertyMap = JSONUtil.toBean(JSONUtil.escape(property.toString()), Map.class);
+                if (StringUtil.isNotEmpty(propertyMap.get(JobConfig.JOB_PROPERTY_K_SUB_OPTION))) {
+                    Map<String, Object> subOption = JSONUtil.toBean(JSONUtil.escape(propertyMap.get(JobConfig.JOB_PROPERTY_K_SUB_OPTION).toString()), Map.class);
+                    if (StringUtil.isNotEmpty(subOption.get(JobConfig.JOB_PROPERTY_LIMIT))) {
+                        int i = Integer.parseInt(subOption.get(JobConfig.JOB_PROPERTY_LIMIT).toString());
+                        resultList = resultList.size() <= i ? resultList : resultList.subList(0, i);
+                    }
+                }
                 meta = result.get("meta");
             } catch (RuntimeException e) {
                 log.error("parse jobId-{}, field-{} error, message is: {}", JobConfig.STATISTICS_RESULT, id, e.getMessage());
@@ -219,7 +244,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         Map<String, Object> job = Maps.newHashMap();
         Map<String, Object> map = data.get(0);
         Map jobProperty = (Map) JsonMapper.fromJsonString(map.get(JobConfig.JOB_PROPERTY).toString(), Map.class);
-        Object fields = jobProperty.get(JobConfig.JOB_PROPERTY_RESULT_FIELD);
+        Object fields = jobProperty.get(JobConfig.JOB_PROPERTY_K_RESULT_FIELD);
         String[] list = StringUtil.isEmpty(fields) ? new String[0] : fields.toString().split(",");
         List<Map<String, Object>> resultList = Lists.newArrayList();
         for (String field : list) {
@@ -229,11 +254,11 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 continue;
             }
             try {
-                    Map fieldResult = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
-                    List<Object> topK = (List<Object>) fieldResult.get("topk");
-                    fieldResult.put("topk", topK.size() > 10 ? topK.subList(0, 10) : topK);
-                    result.put(field, fieldResult);
-                    resultList.add(result);
+                Map fieldResult = JSONUtil.toBean(JSONUtil.escape(item.toString()), Map.class);
+                List<Object> topK = (List<Object>) fieldResult.get("topk");
+                fieldResult.put("topk", topK.size() > 10 ? topK.subList(0, 10) : topK);
+                result.put(field, fieldResult);
+                resultList.add(result);
             } catch (RuntimeException e) {
                 log.error("parse jobId-{}, field-{} error, message is: {}", field, id, e.getMessage());
             }
@@ -272,21 +297,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         return !BooleanUtil.toBoolean(String.valueOf(map.get(JobConfig.IS_CANCELED)));
     }
 
-    private void init(String id, HashMap<String, Object> body) {
-        Object type = body.get(JobConfig.KEY_QUERY_TYPE);
-        if (JobConfig.FIELD_DISCOVERY.equals(type)) {
-            initFieldDiscoveryJob(id, body);
-        } else if (JobConfig.STATISTICS.equals(type)) {
-            initStatisticsJob(id, body);
-        }
-    }
-
-    private void initStatisticsJob(String id, HashMap<String, Object> body) {
-        Map<String, Object> property = buildJobPropertyStatistics(String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL)));
-        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
-    }
-
-    private void initFieldDiscoveryJob(String id, HashMap<String, Object> body) {
+    private void initFieldDiscoveryJob(String id, HashMap<String, Object> body, Map<String, Object> property) {
+        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY);
         List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         List<String> interim = Lists.newArrayList(fields);
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build());
@@ -301,36 +313,160 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         for (String field : interim) {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), JobConfig.FIELD_DISCOVERY, field));
         }
-        Map<String, Object> param = Maps.newLinkedHashMap();
-        param.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY);
-        param.put(JobConfig.JOB_PROPERTY_RESULT_FIELD, String.join(",", fields));
-        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(param), 0, 0));
+        property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, String.join(",", fields));
+        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
     }
 
-    private Map<String, Object> buildJobPropertyStatistics(String sql) {
-        Map<String, Object> property = Maps.newLinkedHashMap();
+    private void buildPropertyOfStatistics(String sql, Map<String, Object> property) {
         property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.STATISTICS);
-        net.sf.jsqlparser.statement.Statement statement;
+        property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, JobConfig.STATISTICS_RESULT);
         try {
-            statement = CCJSqlParserUtil.parse(sql);
-            if (statement instanceof Select && ((Select) statement).getSelectBody() instanceof PlainSelect) {
-                PlainSelect plainSelect = (PlainSelect) ((Select) statement).getSelectBody();
+            PlainSelect plainSelect = checkParam(sql, CCJSqlParserUtil.parse(sql));
+            if (StringUtil.isNotEmpty(plainSelect.getOffset())
+                    || (StringUtil.isNotEmpty(plainSelect.getLimit()) && StringUtil.isNotEmpty(plainSelect.getLimit().getOffset()))) {
+                return;
+            }
+            if (StringUtil.isEmpty(plainSelect.getOrderByElements()) || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList())) {
+                return;
+            }
+            SubOption subOption = new SubOption();
+            Optional.ofNullable(plainSelect.getLimit()).ifPresent(x -> subOption.setLimit(Long.parseLong(String.valueOf(x.getRowCount()))));
 
-                /*group by*/
-                GroupByElement groupBy = plainSelect.getGroupBy();
-                if (StringUtil.isEmpty(groupBy)) {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                            "statistics job init error, not support non-aggregate SQL is: " + sql);
+            Map<String, Object> aliasExpr = Maps.newHashMap();
+            for (SelectItem item : plainSelect.getSelectItems()) {
+                if (!(item instanceof SelectExpressionItem)) {
+                    return;
                 }
+                SelectExpressionItem selectExprItem = (SelectExpressionItem) item;
+                if (StringUtil.isEmpty(selectExprItem.getAlias())) {
+                    aliasExpr.put(String.valueOf(selectExprItem.getExpression()), selectExprItem.getExpression());
+                } else {
+                    aliasExpr.put(selectExprItem.getAlias().getName(), selectExprItem.getExpression());
+                }
+            }
+
+            List<Expression> groupByItems = plainSelect.getGroupBy().getGroupByExpressionList().getExpressions();
+            for (String key : aliasExpr.keySet()) {
+                Object value = aliasExpr.get(key);
+                if (groupByItems.stream().anyMatch(groupItem -> (key.equals(groupItem.toString()) || (value.toString().equals(groupItem.toString()))))) {
+                    subOption.getDimension().add(key);
+                    continue;
+                }
+                if (value instanceof Function) {
+                    String name = ((Function) value).getName().toLowerCase();
+                    if (SQLFunctionUtil.timeSlicingFunction.containsKey(name)) {
+                        subOption.getMetric().put(key, SQLFunctionUtil.timeSlicingFunction.get(name));
+                        continue;
+                    }
+                    return;
+                }
+            }
+            for (OrderByElement orderByElement : plainSelect.getOrderByElements()) {
+                String sort = String.valueOf(orderByElement.getExpression());
+                boolean inSelectItem = aliasExpr.keySet().stream().anyMatch(key -> {
+                    if (sort.equals(key) || sort.equals(aliasExpr.get(key))) {
+                        subOption.getIsAsc().put(key, orderByElement.isAsc());
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+                if (!inSelectItem) {
+                    return;
+                }
+            }
+            property.put(JobConfig.JOB_PROPERTY_K_SUB_OPTION, subOption);
+
+            if (subOption.getIsAsc().keySet().size() != 1) {
+                return;
+            }
+            if (isTimechart(sql, aliasExpr, subOption)) {
+                property.put(JobConfig.JOB_PROPERTY_K_OPTION, JobConfig.JOB_PROPERTY_V_OPTION_TIMECHART);
+                return;
+            }
+            // top、rare
+            for (Object key : aliasExpr.keySet()) {
+                Object value = aliasExpr.get(key);
+                if (value instanceof Function) {
+                    Function fun = (Function) value;
+                    if (!(SQLFunctionUtil.timeSlicingFunction.containsKey(fun.getName().toLowerCase()))) {
+                        return;
+                    }
+                    if (!(subOption.getIsAsc().containsKey(value) || subOption.getIsAsc().containsKey(key))) {
+                        return;
+                    }
+                } else {
+                    if (!(subOption.getDimension().contains(value) || subOption.getDimension().contains(key))) {
+                        return;
+                    }
+                }
+            }
+            if (subOption.getIsAsc().values().stream().findFirst().get()) {
+                property.put(JobConfig.JOB_PROPERTY_K_OPTION, JobConfig.JOB_PROPERTY_V_OPTION_RARE);
             } else {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        "statistics job init error, not support, SQL is: " + sql);
+                property.put(JobConfig.JOB_PROPERTY_K_OPTION, JobConfig.JOB_PROPERTY_V_OPTION_TOP);
             }
         } catch (JSQLParserException | RuntimeException e) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
                     "statistics job init error: ".concat(e.getMessage()));
         }
-        return property;
+    }
+
+    private boolean isTimechart(String sql, Map<String, Object> aliasExpr, SubOption subOption) {
+        boolean isTimechart = false;
+        for (Object key : aliasExpr.keySet()) {
+            Object expr = aliasExpr.get(key);
+            if ((expr instanceof Function) && (SQLFunctionUtil.timeSlicingFunction.containsKey(((Function) expr).getName().toLowerCase()))) {
+                continue;
+            }
+            if ((expr instanceof Function) && (SQLFunctionUtil.TIME_FLOOR_WITH_FILL.equals(((Function) expr).getName()))
+                    && (subOption.getDimension().size() == 1 && ((subOption.getDimension().contains(key)) || subOption.getDimension().contains(expr))
+                    && (subOption.getIsAsc().containsKey(key) || subOption.getIsAsc().containsKey(expr)))) {
+                List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(sql, SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
+                if (timeFloorWithFill.size() >= 2) {
+                    Matcher matcherPT = SQLFunctionUtil.periodOfPT.matcher(String.valueOf(timeFloorWithFill.get(1)));
+                    if (matcherPT.find()) {
+                        long num = Long.parseLong(matcherPT.group(1));
+                        String unit = matcherPT.group(2);
+                        if ((("S".equalsIgnoreCase(unit) || "M".equalsIgnoreCase(unit)) && (num % 60 == 0) || 60 % num == 0) || ("H".equalsIgnoreCase(unit) && (num % 24 == 0) || 24 % num == 0)) {
+                            isTimechart = true;
+                            continue;
+                        }
+                        return false;
+                    }
+                    return false;
+                }
+                return false;
+            }
+            return false;
+        }
+        if (isTimechart) {
+            return true;
+        }
+        return false;
+    }
+
+
+    public static void main(String[] args) {
+        Period pt5M = Period.parse("PT13M");
+        PeriodType periodType = pt5M.getPeriodType();
+        int[] values = pt5M.getValues();
+        System.out.println(pt5M);
+
+    }
+
+    private PlainSelect checkParam(String sql, net.sf.jsqlparser.statement.Statement statement) {
+        SelectBody selectBody;
+        if (!(statement instanceof Select) || !((selectBody = ((Select) statement).getSelectBody()) instanceof PlainSelect)) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    "statistics job init error, not support, SQL is: " + sql);
+        }
+        PlainSelect plainSelect = (PlainSelect) selectBody;
+        if (StringUtil.isEmpty(plainSelect.getGroupBy())) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    "statistics job init error, not support non-aggregate SQL is: " + sql);
+        }
+        return plainSelect;
     }
 
     private List<Map<String, Object>> validationData(String id) {
@@ -466,5 +602,13 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public void setEnvironment(Environment environment) {
         this.env = environment;
+    }
+
+    @Data
+    class SubOption {
+        private Map<String, String> metric = Maps.newHashMap();
+        private List<String> dimension = Lists.newArrayList();
+        private Map<String, Boolean> isAsc = Maps.newHashMap();
+        private Long limit;
     }
 }

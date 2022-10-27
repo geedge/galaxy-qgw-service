@@ -417,6 +417,7 @@
           "common_address_type",
           "common_schema_type",
           "common_vsys_id",
+          "common_t_vsys_id",
           "common_direction",
           "common_stream_dir",
           "common_start_time",
@@ -1047,6 +1048,16 @@
       },
       "type": "int",
       "default": 1
+    },
+    {
+      "name": "common_t_vsys_id",
+      "label": "Traffic Vsys ID",
+      "doc": {
+        "allow_query": "false",
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "common_user_tags",

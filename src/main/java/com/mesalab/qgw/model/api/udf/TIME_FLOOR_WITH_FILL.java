@@ -27,6 +27,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
+import net.sf.jsqlparser.statement.select.OrderByElement;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -181,7 +182,32 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 targetResult = targetResult.subList(0, Integer.parseInt(sqlQuerySource.getLimit()));
             }
         }
+        sortByTime(sqlQuerySource, targetResult, timeGranLabel);
         return targetResult;
+    }
+
+    private void sortByTime(SQLQuerySource sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
+        if(StringUtil.isEmpty(sqlQuerySource.getListOrderElement())){
+            return;
+        }
+        orderBy:
+        for (OrderByElement orderByElement : sqlQuerySource.getListOrderElement()) {
+            String orderBy = String.valueOf(orderByElement.getExpression());
+            if (orderBy.equals(timeGranLabel)) {
+                if (!orderByElement.isAsc()) {
+                    Collections.reverse(targetResult);
+                    break;
+                }
+            }
+            for (String key : sqlQuerySource.getAliasFields().keySet()) {
+                if (sqlQuerySource.getAliasFields().get(key).equalsIgnoreCase(orderBy)) {
+                    if (!orderByElement.isAsc()) {
+                        Collections.reverse(targetResult);
+                        break orderBy;
+                    }
+                }
+            }
+        }
     }
 
     private List<Map<String, Object>> fillResultBasedOnTimeSeries(List<Object> results, List<String> groupLabels, String timeGranLabel) {
@@ -260,46 +286,60 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             Expression left = whereOperator.getLeftExpression();
             Expression right = whereOperator.getRightExpression();
             if (partitionKey.equals(left.toString())) {
-                String query;
+                String value;
                 if (right instanceof StringValue) {
-                    query = ((StringValue) right).getValue();
+                    value = ((StringValue) right).getValue();
                 } else if (right instanceof LongValue) {
-                    query = right.toString();
+                    value = right.toString();
                 } else {
-                    query = SQLFunctionUtil.getQueryValue(right.toString(), dbType);
+                    value = SQLFunctionUtil.getQueryValue(right.toString(), dbType);
                 }
                 if (operator.contains("<")) {
-                    whereTimeRange.setEnd(query);
-                    whereTimeRange.setMinorThanEquals(operator.contains("="));
+                    bigValue(whereTimeRange, operator.contains("="), value);
                 } else if (operator.contains(">")) {
-                    whereTimeRange.setStart(query);
-                    whereTimeRange.setGreaterThanEquals(operator.contains("="));
+                    minValue(whereTimeRange, operator.contains("="), value);
                 }
             } else if (partitionKey.equals(right.toString())) {
-                String query;
-                if (left instanceof StringValue) {
-                    query = ((StringValue) right).getValue();
+                String value;
+                if (right instanceof StringValue) {
+                    value = ((StringValue) right).getValue();
                 } else if (left instanceof LongValue) {
-                    query = left.toString();
+                    value = left.toString();
                 } else {
-                    query = SQLFunctionUtil.getQueryValue(left.toString(), dbType);
+                    value = SQLFunctionUtil.getQueryValue(left.toString(), dbType);
                 }
                 if (operator.contains("<")) {
-                    whereTimeRange.setStart(query);
-                    whereTimeRange.setGreaterThanEquals(operator.contains("="));
+                    minValue(whereTimeRange, operator.contains("="), value);
                 } else if (operator.contains(">")) {
-                    whereTimeRange.setEnd(query);
-                    whereTimeRange.setMinorThanEquals(operator.contains("="));
+                    bigValue(whereTimeRange, operator.contains("="), value);
                 }
             }
         } else if (whereExpression instanceof Between) {
             Between whereBetween = (Between) whereExpression;
             Expression leftExpression = whereBetween.getLeftExpression();
             if (partitionKey.equals(leftExpression.toString())) {
-                whereTimeRange.setStart(whereBetween.getBetweenExpressionStart().toString());
-                whereTimeRange.setGreaterThanEquals(true);
-                whereTimeRange.setEnd(whereBetween.getBetweenExpressionEnd().toString());
-                whereTimeRange.setMinorThanEquals(true);
+                if (StringUtil.isNotEmpty(whereTimeRange.getStart())) {
+                    String old = whereTimeRange.getStart();
+                    String latest = getStrFormatDate(whereBetween.getBetweenExpressionStart().toString());
+                    int compare = DateUtil.compare(DateUtils.convertStringToDate(old, DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.convertStringToDate(latest, DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                    if (compare < 0) {
+                        whereTimeRange.setStart(latest);
+                    }
+                } else {
+                    whereTimeRange.setStart(whereBetween.getBetweenExpressionStart().toString());
+                    whereTimeRange.setGreaterThanEquals(true);
+                }
+                if (StringUtil.isNotEmpty(whereTimeRange.getEnd())) {
+                    String old = whereTimeRange.getEnd();
+                    String latest = getStrFormatDate(whereBetween.getBetweenExpressionEnd().toString());
+                    int compare = DateUtil.compare(DateUtils.convertStringToDate(old, DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.convertStringToDate(latest, DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                    if (compare > 0) {
+                        whereTimeRange.setEnd(latest);
+                    }
+                } else {
+                    whereTimeRange.setEnd(whereBetween.getBetweenExpressionEnd().toString());
+                    whereTimeRange.setMinorThanEquals(true);
+                }
             }
         } else if (whereExpression instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) whereExpression;
@@ -316,6 +356,48 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         }
     }
 
+    private void bigValue(WhereTimeRange whereTimeRange, boolean isClosedInterval, String query) {
+        if (StringUtil.isEmpty(whereTimeRange.getEnd())) {
+            whereTimeRange.setEnd(query);
+            whereTimeRange.setMinorThanEquals(isClosedInterval);
+        } else {
+            String old = whereTimeRange.getEnd();
+            String latest = getStrFormatDate(query);
+            int compare = DateUtil.compare(DateUtils.convertStringToDate(old, DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.convertStringToDate(latest, DateUtils.YYYY_MM_DD_HH24_MM_SS));
+            if (compare > 0) {
+                whereTimeRange.setEnd(latest);
+                whereTimeRange.setMinorThanEquals(isClosedInterval);
+            }
+            if (compare == 0) {
+                whereTimeRange.setMinorThanEquals(isClosedInterval && whereTimeRange.isMinorThanEquals());
+            }
+        }
+    }
+
+    private void minValue(WhereTimeRange whereTimeRange, boolean isClosedInterval, String query) {
+        if (StringUtil.isEmpty(whereTimeRange.getStart())) {
+            whereTimeRange.setStart(query);
+            whereTimeRange.setGreaterThanEquals(isClosedInterval);
+        } else {
+            String old = whereTimeRange.getStart();
+            String latest = getStrFormatDate(query);
+            int compare = DateUtil.compare(DateUtils.convertStringToDate(old, DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.convertStringToDate(latest, DateUtils.YYYY_MM_DD_HH24_MM_SS));
+            if (compare < 0) {
+                whereTimeRange.setStart(latest);
+                whereTimeRange.setGreaterThanEquals(isClosedInterval);
+            }
+            if (compare == 0) {
+                whereTimeRange.setGreaterThanEquals(isClosedInterval && whereTimeRange.isGreaterThanEquals());
+            }
+        }
+    }
+
+    private String getStrFormatDate(String str) {
+        if (NumberUtil.isNumber(str)) {
+            return DateUtils.convertTimestampToString(NumberUtil.parseLong(str), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        }
+        return str;
+    }
 
     @Data
     private class WhereTimeRange {

@@ -392,6 +392,16 @@
       "default": 1
     },
     {
+      "name": "common_t_vsys_id",
+      "label": "Traffic Vsys ID",
+      "doc": {
+        "allow_query": "false",
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
       "name": "common_user_tags",
       "type": "string",
       "doc": {
