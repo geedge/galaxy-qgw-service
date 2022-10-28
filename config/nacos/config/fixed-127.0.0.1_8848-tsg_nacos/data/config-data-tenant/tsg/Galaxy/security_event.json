@@ -97,6 +97,7 @@
         "ssl_server_side_version",
         "ssl_client_side_version",
         "ssl_ja3_hash",
+        "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
         "dtls_sni",
@@ -237,6 +238,7 @@
         "ssl_server_side_version",
         "ssl_client_side_version",
         "ssl_ja3_hash",
+        "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
         "ssl_con_latency_ms",
@@ -398,6 +400,7 @@
         "ssl_client_side_version",
         "ssl_con_latency_ms",
         "ssl_ja3_hash",
+        "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
         "dtls_sni",
@@ -2990,6 +2993,24 @@
     {
       "name": "ssl_ja3_hash",
       "label": "SSL.JA3 hash",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3s_fingerprint",
+      "label": "SSL.JA3S",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3s_hash",
+      "label": "SSL.JA3S hash",
       "doc": {
         "visibility": "enabled",
         "ttl": null

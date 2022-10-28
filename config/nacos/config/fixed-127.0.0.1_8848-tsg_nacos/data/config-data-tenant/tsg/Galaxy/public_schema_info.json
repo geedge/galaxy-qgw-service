@@ -771,6 +771,8 @@
         "ssl_con_latency_ms",
         "ssl_ja3_fingerprint",
         "ssl_ja3_hash",
+        "ssl_ja3s_fingerprint",
+        "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject"
       ],
