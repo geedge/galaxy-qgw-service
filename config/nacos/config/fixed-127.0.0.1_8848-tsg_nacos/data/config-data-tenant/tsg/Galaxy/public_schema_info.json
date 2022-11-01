@@ -47,6 +47,28 @@
         "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
       }
     ],
+    "date": [
+      {
+        "name": "UNIX_TIMESTAMP",
+        "label": "UNIX_TIMESTAMP",
+        "function": "UNIX_TIMESTAMP(expr)"
+      },
+      {
+        "name": "FROM_UNIXTIME",
+        "label": "FROM_UNIXTIME",
+        "function": "FROM_UNIXTIME(expr)"
+      },
+      {
+        "name": "DATE_FORMAT",
+        "label": "DATE_FORMAT",
+        "function": "DATE_FORMAT(expr,format)"
+      },
+      {
+        "name": "CONVERT_TZ",
+        "label": "CONVERT_TZ",
+        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
+      }
+    ],
     "operator": [
       {
         "name": "=",
@@ -112,26 +134,6 @@
         "name": "empty",
         "label": "EMPTY",
         "function": "empty(expr)"
-      },
-      {
-        "name": "UNIX_TIMESTAMP",
-        "label": "UNIX_TIMESTAMP",
-        "function": "UNIX_TIMESTAMP(expr)"
-      },
-      {
-        "name": "FROM_UNIXTIME",
-        "label": "FROM_UNIXTIME",
-        "function": "FROM_UNIXTIME(expr)"
-      },
-      {
-        "name": "DATE_FORMAT",
-        "label": "DATE_FORMAT",
-        "function": "DATE_FORMAT(expr,format)"
-      },
-      {
-        "name": "CONVERT_TZ",
-        "label": "CONVERT_TZ",
-        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
       }
     ]
   },
