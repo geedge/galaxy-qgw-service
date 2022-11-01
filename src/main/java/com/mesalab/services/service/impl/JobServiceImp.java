@@ -404,6 +404,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         int i;
         try {
             log.info("{} engine execute update: {}", DBTypeEnum.HBASE.getValue(), sql);
+            PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
+            PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
             String url = URL_PREFIX.concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
             conn = DriverManager.getConnection(url, PROPERTIES);
@@ -430,6 +432,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         java.sql.Statement statement = null;
         try {
             log.info("DB Engine is :{}, Execute is: {}", DBTypeEnum.HBASE.getValue(), sql);
+            PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
+            PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
             String url = URL_PREFIX.concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
             conn = DriverManager.getConnection(url, PROPERTIES);

@@ -36,6 +36,8 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
                     .withDetail("message", "DISABLED");
             return;
         }
+        HbaseDialect.PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
+        HbaseDialect.PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
         HbaseDialect.PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
         Connection conn = null;
         PreparedStatement ps = null;
