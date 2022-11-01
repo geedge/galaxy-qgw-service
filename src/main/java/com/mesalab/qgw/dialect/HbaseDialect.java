@@ -150,6 +150,8 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         ResultSet resultSet = null;
         try {
             log.info("{} engine execute query: {}", DBTypeEnum.HBASE.getValue(), sql);
+            PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
+            PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
             String url = URL_PREFIX.concat(hBaseAPISource.getZookeeperQuorum()).concat(":").concat(hBaseAPISource.getZookeeperZnodeParent());
             conn = DriverManager.getConnection(url, PROPERTIES);
