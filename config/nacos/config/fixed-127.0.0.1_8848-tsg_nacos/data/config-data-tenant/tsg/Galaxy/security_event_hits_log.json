@@ -105,6 +105,22 @@
         "visibility": "enabled"
       },
       "type": "long"
+    },
+    {
+      "name": "c2s_pkt_num",
+      "label": "Packets Sent",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_pkt_num",
+      "label": "Packets Received",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
     }
   ]
 }

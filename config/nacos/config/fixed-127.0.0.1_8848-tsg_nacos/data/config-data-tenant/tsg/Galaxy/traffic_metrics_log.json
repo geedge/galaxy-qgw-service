@@ -433,6 +433,14 @@
         "visibility": "enabled"
       },
       "type": "long"
+    },
+    {
+      "name": "intcp_rus_num",
+      "label": "Intercept Run Script Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
     }
   ]
 }
