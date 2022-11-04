@@ -29,13 +29,11 @@ public class HttpHelper {
         InputStream inputStream = null;
         BufferedReader reader = null;
         try {
-            if (StringUtils.equals(request.getMethod(),"POST")){
-                inputStream = request.getInputStream();
-                reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-                String line = "";
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
+            inputStream = request.getInputStream();
+            reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
             }
         } catch (IOException e) {
             log.error("IOException:{}", e.getMessage());
