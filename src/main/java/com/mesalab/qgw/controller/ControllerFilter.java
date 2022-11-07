@@ -1,38 +1,36 @@
 package com.mesalab.qgw.controller;
 
-import org.apache.http.entity.ContentType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.MultipartResolver;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 @Component
 @WebFilter(urlPatterns = "/*")
 public class ControllerFilter implements  Filter {
 
-    private MultipartResolver multipartResolver = null;
+    private static final Set<String> NOT_FILTER_PATHS = Collections.unmodifiableSet(new HashSet<>(
+            Collections.singletonList("/knowledge_base/v1")));
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        ServletContext servletContext = filterConfig.getServletContext();
-        WebApplicationContext webApplicationContext = WebApplicationContextUtils.getWebApplicationContext(servletContext);
-        multipartResolver = (MultipartResolver) webApplicationContext.getBean("multipartResolver");
     }
 
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        String contentType = servletRequest.getContentType();
-        if (contentType != null && contentType.contains(ContentType.MULTIPART_FORM_DATA.getMimeType())) {
-            MultipartHttpServletRequest multipartRequest = multipartResolver.resolveMultipart((HttpServletRequest) servletRequest);
-            filterChain.doFilter(multipartRequest, servletResponse);
+        HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
+        String servletPath = httpServletRequest.getServletPath();
+        if (NOT_FILTER_PATHS.contains(servletPath)) {
+            filterChain.doFilter(servletRequest, servletResponse);
         } else {
-            filterChain.doFilter(new RequestParamWrapper((HttpServletRequest) servletRequest), servletResponse);
+            filterChain.doFilter(new RequestParamWrapper(httpServletRequest), servletResponse);
         }
     }
 
