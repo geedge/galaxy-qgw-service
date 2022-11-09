@@ -2768,7 +2768,7 @@
       "name": "ssl_san",
       "label": "SSL.SAN",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
