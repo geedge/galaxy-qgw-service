@@ -2461,6 +2461,58 @@
           "value": "Yes"
         }
       ]
+    },
+    "common_flags": {
+      "data": [
+        {
+          "code": "2147483648",
+          "value": "Bulky"
+        },
+        {
+          "code": "1073741824",
+          "value": "CBR Streaming"
+        },
+        {
+          "code": "536870912",
+          "value": "Client is Local"
+        },
+        {
+          "code": "268435456",
+          "value": "Server is Local"
+        },
+        {
+          "code": "134217728",
+          "value": "Download"
+        },
+        {
+          "code": "67108864",
+          "value": "Interactive"
+        },
+        {
+          "code": "33554432",
+          "value": "Inbound"
+        },
+        {
+          "code": "16777216",
+          "value": "Outbound"
+        },
+        {
+          "code": "8388608",
+          "value": "Pseudo Unidirectional"
+        },
+        {
+          "code": "4194304",
+          "value": "Streaming"
+        },
+        {
+          "code": "2097152",
+          "value": "Unidirectional"
+        },
+        {
+          "code": "1048576",
+          "value": "Random looking"
+        }
+      ]
     }
   }
 }

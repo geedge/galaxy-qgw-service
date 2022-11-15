@@ -33,6 +33,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -141,6 +142,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -279,6 +281,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -421,6 +424,7 @@
           "common_schema_type",
           "common_vsys_id",
           "common_t_vsys_id",
+          "common_flags",
           "common_direction",
           "common_stream_dir",
           "common_start_time",
@@ -1061,6 +1065,22 @@
         "ttl": null
       },
       "type": "int"
+    },
+    {
+      "name": "common_flags",
+      "label": "Flags",
+      "doc": {
+        "constraints": {
+          "type": "bit",
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/common_flags/data"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
     },
     {
       "name": "common_user_tags",

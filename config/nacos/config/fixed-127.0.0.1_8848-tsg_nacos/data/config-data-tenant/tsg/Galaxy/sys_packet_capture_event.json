@@ -402,6 +402,23 @@
       "type": "int"
     },
     {
+      "name": "common_flags",
+      "label": "Flags",
+      "doc": {
+        "constraints": {
+          "type": "bit",
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/common_flags/data"
+        },
+        "allow_query": "false",
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
       "name": "common_user_tags",
       "type": "string",
       "doc": {
