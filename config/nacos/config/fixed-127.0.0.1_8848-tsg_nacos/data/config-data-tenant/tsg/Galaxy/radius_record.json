@@ -726,7 +726,7 @@
       "doc": {
         "constraints": {
           "type": "bit",
-          "operator_functions": "=,!="
+          "operator_functions": "=,!=,bitAnd"
         },
         "data": {
           "$ref": "public_schema_info.json#/fields/common_flags/data"
