@@ -36,6 +36,10 @@ public class SQLFunctionUtil {
     public static final String IP_TO_GEO = "IP_TO_GEO";
     public static final String IP_TO_CITY = "IP_TO_CITY";
     public static final String IP_TO_COUNTRY = "IP_TO_COUNTRY";
+    public static final String IP_TO_ISP = "IP_TO_ISP";
+    public static final String IP_TO_ASN = "IP_TO_ASN";
+    public static final String IP_TO_ASN_DETAIL = "IP_TO_ASN_DETAIL";
+    public static final String IP_TO_ASN_ORG = "IP_TO_ASN_ORG";
     public static final String MAX_DURATION = "MAX_DURATION";
 
     public static final String NOT_EMPTY = "notEmpty";
@@ -54,6 +58,10 @@ public class SQLFunctionUtil {
     public static final Pattern pIpToGeo = Pattern.compile("\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCity = Pattern.compile("\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCountry = Pattern.compile("\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToIsp = Pattern.compile("\\b" + IP_TO_ISP + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToAsn = Pattern.compile("\\b" + IP_TO_ASN + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToAsnDetail = Pattern.compile("\\b" + IP_TO_ASN_DETAIL + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pIpToAsnOrg = Pattern.compile("\\b" + IP_TO_ASN_ORG + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfPT = Pattern.compile("PT(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfP = Pattern.compile("P(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
     public static final HashMap<String, String> functions = Maps.newHashMap();
@@ -66,6 +74,10 @@ public class SQLFunctionUtil {
         functions.put(IP_TO_GEO, null);
         functions.put(IP_TO_CITY, null);
         functions.put(IP_TO_COUNTRY, null);
+        functions.put(IP_TO_ISP, null);
+        functions.put(IP_TO_ASN, null);
+        functions.put(IP_TO_ASN_DETAIL, null);
+        functions.put(IP_TO_ASN_ORG, null);
         distributedGroupByFunction.put("count","sum");
         distributedGroupByFunction.put("sum","sum");
         distributedGroupByFunction.put("avg","avg");
@@ -250,6 +262,10 @@ public class SQLFunctionUtil {
         resultSql = translateByPattern(resultSql, dbType, pIpToGeo);
         resultSql = translateByPattern(resultSql, dbType, pIpToCity);
         resultSql = translateByPattern(resultSql, dbType, pIpToCountry);
+        resultSql = translateByPattern(resultSql, dbType, pIpToIsp);
+        resultSql = translateByPattern(resultSql, dbType, pIpToAsn);
+        resultSql = translateByPattern(resultSql, dbType, pIpToAsnDetail);
+        resultSql = translateByPattern(resultSql, dbType, pIpToAsnOrg);
         return resultSql;
     }
 
@@ -1650,13 +1666,13 @@ public class SQLFunctionUtil {
                 data = translateEmpty(fun, dbType);
                 break;
             case IP_TO_GEO:
-                data = translateIpToGeo(fun);
-                break;
             case IP_TO_CITY:
-                data = translateIpToCity(fun);
-                break;
             case IP_TO_COUNTRY:
-                data = translateIpToCountry(fun);
+            case IP_TO_ISP:
+            case IP_TO_ASN:
+            case IP_TO_ASN_DETAIL:
+            case IP_TO_ASN_ORG:
+                data = translateIpLocation(fun);
                 break;
             default:
                 data = parseFunDefaultValue(fun);
@@ -1716,34 +1732,15 @@ public class SQLFunctionUtil {
     }
 
     /**
-     * 转义IP_TO_GEO
+     * 转义IP_TO_GEO | IP_TO_CITY | IP_TO_COUNTRY | IP_TO_ISP | IP_TO_ASN | IP_TO_ASN_DETAIL | IP_TO_ASN_ORG
      *
      * @param fun
      * @return
      */
-    private static String translateIpToCountry(Function fun) {
+    private static String translateIpLocation(Function fun) {
         return fun.paramsList.get(0);
     }
 
-    /**
-     * 转义IP_TO_CITY
-     *
-     * @param fun
-     * @return
-     */
-    private static String translateIpToCity(Function fun) {
-        return fun.paramsList.get(0);
-    }
-
-    /**
-     * 转义IP_TO_COUNTRY
-     *
-     * @param fun
-     * @return
-     */
-    private static String translateIpToGeo(Function fun) {
-        return fun.paramsList.get(0);
-    }
 
     /**
      * 转义time_floor_with_fill

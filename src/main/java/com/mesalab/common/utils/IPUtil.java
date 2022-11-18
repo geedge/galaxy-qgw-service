@@ -83,6 +83,18 @@ public class IPUtil {
         return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.organizationLookup(ip);
     }
 
+    public String getASN(String ip) {
+        return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.asnLookup(ip);
+    }
+
+    public String getAsnDetail(String ip) {
+        return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.asnLookupDetail(ip);
+    }
+
+    public String getAsnOrganization(String ip) {
+        return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.asnLookupOrganization(ip);
+    }
+
     public void loadIpLocation(String knowledgeMetadata, IpLocationConfiguration ipLocationConfiguration) {
 
         Map<String, KnowledgeBase> map = queryLoadKnowledgeInfo(knowledgeMetadata, ipLocationConfiguration);
