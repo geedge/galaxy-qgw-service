@@ -1,7 +1,7 @@
 package com.mesalab.qgw.dialect;
 
 import com.google.common.collect.Maps;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.JsonMapper;
 import lombok.Data;

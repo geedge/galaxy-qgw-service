@@ -17,10 +17,10 @@ public class MessageConst {
 
     public final static String SCHEMA_URL_NOT_FOUND = "Schema URL not found, please check Nacos configurations.";
 
-    public static final String SQL_PARSE_ONLY_SUPPORT_SELECT = "SQL parse failed, only support select statement operation.";
+    public static final String SQL_PARSE_ONLY_SUPPORT_SELECT = "only support select statement operation.";
 
-    public static final String SQL_PARSE_ERROR_NOT_FOUNT_TABLE = "SQL parse failed, unable to parse table name.";
+    public static final String SQL_PARSE_ERROR_NOT_FOUNT_TABLE = "unable to parse table name.";
 
-    public static final String DIAGNOSIS_OPTION_ERROR = "Diagnosis param error, not support option value.";
+    public static final String DIAGNOSIS_OPTION_ERROR = "not support option value.";
 
 }

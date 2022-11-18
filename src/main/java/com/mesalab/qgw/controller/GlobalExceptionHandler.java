@@ -4,10 +4,14 @@ import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.cn.exception.CNBusinessException;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;;
+import com.mesalab.knowledge.exception.KnowledgeBusinessException;
+import com.mesalab.network.exception.NWBusinessException;
+import com.mesalab.qgw.exception.QGWBusinessException;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -40,7 +44,41 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler({CNBusinessException.class})
+    public BaseResult handleBusinessException(CNBusinessException e, HttpServletRequest request, HttpServletResponse response) {
+        response.setStatus(e.getStatus());
+        String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
+        String message = (null != e.getMessage()) ? e.getMessage() : ExceptionUtil.getRootCauseMessage(e);
+        log.error("queryKey:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
+        return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
+    }
 
+    @ExceptionHandler({KnowledgeBusinessException.class})
+    public BaseResult handleBusinessException(KnowledgeBusinessException e, HttpServletRequest request, HttpServletResponse response) {
+        response.setStatus(e.getStatus());
+        String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
+        String message = (null != e.getMessage()) ? e.getMessage() : ExceptionUtil.getRootCauseMessage(e);
+        log.error("queryKey:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
+        return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
+    }
+
+    @ExceptionHandler({NWBusinessException.class})
+    public BaseResult handleBusinessException(NWBusinessException e, HttpServletRequest request, HttpServletResponse response) {
+        response.setStatus(e.getStatus());
+        String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
+        String message = (null != e.getMessage()) ? e.getMessage() : ExceptionUtil.getRootCauseMessage(e);
+        log.error("queryKey:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
+        return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
+    }
+
+    @ExceptionHandler({QGWBusinessException.class})
+    public BaseResult handleBusinessException(QGWBusinessException e, HttpServletRequest request, HttpServletResponse response) {
+        response.setStatus(e.getStatus());
+        String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
+        String message = (null != e.getMessage()) ? e.getMessage() : ExceptionUtil.getRootCauseMessage(e);
+        log.error("queryKey:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
+       return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
+    }
 
     @ExceptionHandler({BusinessException.class})
     public BaseResult handleBusinessException(BusinessException e, HttpServletRequest request, HttpServletResponse response) {
@@ -48,7 +86,7 @@ public class GlobalExceptionHandler {
         String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
         String message = (null != e.getMessage()) ? e.getMessage() : ExceptionUtil.getRootCauseMessage(e);
         log.error("queryKey:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
-       return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
+        return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
     }
 
     private String getStackTrace(Exception e) {

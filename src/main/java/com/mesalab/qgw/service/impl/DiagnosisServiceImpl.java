@@ -1,6 +1,5 @@
 package com.mesalab.qgw.service.impl;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.util.IdUtil;
@@ -15,12 +14,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.qgw.benchmark.elasticsearch.ElasticSearchWriter;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
@@ -149,8 +149,9 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Avro Schema Validation Fail:{}", e);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), "Avro Schema Validation Fail:"+e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                    QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getMessage(),e.getMessage()));
 
         }
         return result;
@@ -185,8 +186,9 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Metadata Validation Fail:{}", e);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Metadata Validation Fail:"+e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                    QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),e.getMessage()));
         }
         return result;
     }
@@ -229,8 +231,9 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
                 engineResult = executePocSqlByDatasource(engineTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
                 elasticsearchResult = executePocSqlByDatasource(esTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
             } else {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                        ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "The option is not supported.");
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+                        QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), "The option is not supported."));
             }
 
             mergeResult = Stream
@@ -248,8 +251,9 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), "Execute Poc SQL Fail:"+ e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+                    QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),e.getMessage()));
         }
         return result;
     }
@@ -268,8 +272,9 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } else if (dialect.equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
             testFile = Optional.of(new File(druidWriter.buildPocSQL()));
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Illegal value about dialect.");
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+                    QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"Illegal value about dialect."));
         }
 
 
@@ -288,8 +293,9 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Get Poc SQL Fail:{}", e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Get Poc SQL Fail:"+e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+                    QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),e.getMessage()));
         }
         return result;
     }
@@ -579,8 +585,9 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             infoMap.put("Query" + index, "status:" + queryResult.getStatus() + ",message:" + queryResult.getMessage());
 
         } else {
-            throw new BusinessException(statusCode, ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), file.get().getName()
-                    + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage());
+            throw new QGWBusinessException(statusCode, QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),file.get().getName()
+                    + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage()));
         }
     }
 
@@ -693,7 +700,7 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
                     (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), e.getMessage());
         }
         dataObject = baseResult.getData();
         Map<String, Object> resultMap = (Map<String, Object>) dataObject;
@@ -730,7 +737,8 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Converter SQL Syntax Error:"+ e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
     }
 
@@ -767,9 +775,9 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             BaseResult baseResult = getBaseResultByEngine(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
             if (ResultStatusEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(),
-                        " The Table[" + tableName + "] Structure query failed");
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                        QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage()," The Table[" + tableName + "] Structure query failed"));
             }
             List<Map<String, Object>> dbFields = JsonPath.read(JsonMapper.toJsonString(baseResult.getData()), "$.fields.*");
 
@@ -789,9 +797,10 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
 
             if (entriesOnlyOnLeft.size() > 0) {
                 log.error("Schema Fields greater than Table Fields,Schema " + tableName + " exist fields :" + entriesOnlyOnLeft);
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft);
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                        QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getMessage(),
+                        " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft));
 
             }
             Map<String, Object> entriesOnlyOnRight = difference.entriesOnlyOnRight();
@@ -833,42 +842,6 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         return resultMap;
     }
 
-
-    /**
-     * 获取当前路径下的schema对象列表
-     *
-     * @param path avro 路径
-     * @return
-     */
-    private Map<String, Schema> getSchemasByDatasource(String path) {
-        Map<String, Schema> schemas = Maps.newLinkedHashMap();
-        try {
-            File schemaDir = new File(new File("").getCanonicalPath() + path);
-            if (FileUtil.isNotEmpty(schemaDir) && FileUtil.isDirectory(schemaDir)) {
-                if (StringUtil.isEmpty(schemaDir.listFiles())) {
-                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                            ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), "The Directory is null: " + path);
-                }
-                for (File file : FileUtil.loopFiles(schemaDir)) {
-                    try {
-                        if (StringUtil.lowerCase(file.getName()).endsWith(AVRO_SUFFIX)) {
-                            Schema schema = new Schema.Parser().parse(file);
-                            schemas.put(schema.getName(), schema);
-                        } else {
-                            log.warn("UnKnow format file {} ", file.getName());
-                        }
-                    } catch (AvroRuntimeException e) {
-                        log.error("Schema Parsing Error {}, Message is {}", file.getName(), e);
-                        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                                ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), file.getName() + " Parse Error: " + e.getMessage());
-                    }
-                }
-            }
-        } catch (IOException e) {
-            log.error("The current directory {} does not exist.", path);
-        }
-        return schemas;
-    }
 
     @Override
     public void setEnvironment(Environment environment) {

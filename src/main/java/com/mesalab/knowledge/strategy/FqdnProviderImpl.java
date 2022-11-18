@@ -17,6 +17,8 @@ import com.mesalab.knowledge.entity.Range;
 import com.mesalab.knowledge.entity.arango.IpLearningPath;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
+import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
+import com.mesalab.knowledge.exception.KnowledgeBusinessException;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
@@ -28,6 +30,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,8 +75,12 @@ public class FqdnProviderImpl implements QueryProvider {
                 for (Range r : ranges) {
                     //查询深度
                     if ("DEPTH".equals(r.getFieldKey())) {
-                        Validate.notEmpty(r.getFieldValues(), "fieldValues of depth is null");
-                        Validate.matchesPattern(String.valueOf(r.getFieldValues().get(0)), depthregex, "fieldValues of depth is illegal, you should type in an integer greater than 0");
+                        if (ObjectUtils.isEmpty(r.getFieldValues())){
+                            throw new KnowledgeBusinessException(KnowLedgeErrorCode.FIELD_VALUES_IS_INVALID);
+                        }
+                        if (!Pattern.matches(depthregex, String.valueOf(r.getFieldValues().get(0)))){
+                            throw new KnowledgeBusinessException(KnowLedgeErrorCode.FIELD_VALUES_FORMAT_ERROR);
+                        }
                     } else if ("PROTOCOL".equals(r.getFieldKey())) {
                         List<String> protocols = Lists.newArrayList();
                         for (Object protocol : r.getFieldValues()) {

@@ -2,11 +2,13 @@ package com.mesalab.knowledge.controller;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.QueryTypeEnum;
+import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
+import com.mesalab.knowledge.exception.KnowledgeBusinessException;
 import com.mesalab.knowledge.service.KnowledgeService;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
@@ -42,12 +44,12 @@ public class KnowledgeController {
             log.debug("服务推荐接口, 参数: queryString is {},params is {}", param, object);
             if (!EnumUtils.isValidEnum(QueryTypeEnum.class, StringUtil.upperCase(param))
                     || StringUtil.isNotEmpty(request.getParameter(param))) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                        ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Not Support");
+                throw new KnowledgeBusinessException(ResultStatusEnum.FAIL.getCode(),
+                        KnowLedgeErrorCode.NOT_SUPPORT);
             }
             return knowledgeService.query(object);
         }
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Not Support");
+        throw new KnowledgeBusinessException(ResultStatusEnum.FAIL.getCode(),
+                KnowLedgeErrorCode.NOT_SUPPORT);
     }
 }

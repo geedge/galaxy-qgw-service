@@ -1,8 +1,8 @@
 package com.mesalab.qgw.controller;
 
 import com.google.common.collect.Lists;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.qgw.model.api.HttpConfig;

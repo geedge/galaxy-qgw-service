@@ -3,7 +3,7 @@ package com.mesalab.qgw.service;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.DiagnosisOptionEnum;
 import org.apache.http.HttpStatus;
 import org.junit.Test;

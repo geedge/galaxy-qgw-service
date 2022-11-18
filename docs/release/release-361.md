@@ -3,3 +3,4 @@ Release 361 (TSG-22.11)
 * 扩展Schema，公共Schema函数说明增加Data分组(TSG-12412)
 * 完善Schema，解决security_event_hit_log、traffic_metric_log schema部分字段缺失
 * 优化OLAP统计任务，统计任务支持时间分片(TSG-11731)
+* QGW优化日志搜素异常信息(TSG-12631)

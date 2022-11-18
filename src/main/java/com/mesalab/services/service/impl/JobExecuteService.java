@@ -6,12 +6,12 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
@@ -255,7 +255,7 @@ public class JobExecuteService implements EnvironmentAware {
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
         if (!baseResult.isSuccess()) {
             log.error("Job-get log count failed, message: {}", baseResult.getMessage());
-            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), "Job-get log count failed, message: " + baseResult.getMessage());
+            throw new QGWBusinessException(baseResult.getStatus(), baseResult.getCode(), "Job-get log count failed, message: " + baseResult.getMessage());
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         Object count = data.get(0).get("count");

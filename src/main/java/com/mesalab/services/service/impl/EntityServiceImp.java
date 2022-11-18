@@ -13,14 +13,16 @@ import com.google.common.collect.Maps;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.InternetDomainName;
-import com.mesalab.cn.common.constant.ErrorMessage;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.cn.constant.ErrorMessage;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -111,10 +113,11 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             int limit = StringUtil.isBlank(comDSLObject.getQuery().getLimit()) ? entityConfigSource.getTopSNIDefaultSize() : Integer.parseInt(comDSLObject.getQuery().getLimit());
             baseResult = build(limit, baseResult, baseResultTotal);
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage());
+            BaseResult result = JsonMapper.fromJsonString(baseResult.getMessage(), BaseResult.class);
+            throw new QGWBusinessException(baseResult.getStatus(), baseResult.getCode(), result.getMessage());
         }
         return baseResult;
     }
@@ -342,8 +345,8 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(String.valueOf(filterBean.getType()))) {
             return query(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.MATCH_TYPE);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.MATCH_TYPE));
         }
     }
 

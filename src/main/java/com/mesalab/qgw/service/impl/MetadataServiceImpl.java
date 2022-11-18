@@ -14,16 +14,17 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.constant.MessageConst;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
@@ -86,7 +87,8 @@ public class MetadataServiceImpl implements MetadataService {
         } else if (MetadataTypeEnum.FIELDS.getValue().equals(type)) {
             return loadFields(name);
         }
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+        throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),MessageConst.SCHEMA_URL_NOT_FOUND));
     }
 
     @Override
@@ -184,9 +186,10 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public Schema getSchemaByName(String tableName) {
         if (!getAllTable().contains(tableName)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    tableName + " The schema is not registered on the platform, please contact the person in charge of the data platform");
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+                    QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),
+                    tableName + " The schema is not registered on the platform, please contact the person in charge of the data platform"));
         }
         Schema schema;
         if (!StrUtil.isBlankIfStr(schema = schemaCache.get(tableName))) {
@@ -195,8 +198,9 @@ public class MetadataServiceImpl implements MetadataService {
         try {
             String content = systemConfigService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
             if (StrUtil.isBlankIfStr(content)) {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), tableName + " Get Schema configuration exception");
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                        QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),tableName + " Get Schema configuration exception"));
             }
             schemaCache.put(tableName, schema = parseSchema(content));
             systemConfigService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
@@ -228,7 +232,8 @@ public class MetadataServiceImpl implements MetadataService {
             }
             return BaseResultGenerator.success4Message("ok");
         } catch (NacosException e) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    e.getMessage());
         }
     }
 
@@ -248,7 +253,7 @@ public class MetadataServiceImpl implements MetadataService {
             log.info("push Schema, content is: {}", content);
             return systemConfigService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "get Schema Error");
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "get Schema Error");
         }
     }
 
@@ -303,7 +308,7 @@ public class MetadataServiceImpl implements MetadataService {
     private Map loadFields(String name) {
         Schema schema = getSchemaByName(name);
         if (StringUtil.isEmpty(schema)) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
         Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
@@ -521,7 +526,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
         );
         if (tables.isEmpty()) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
         }
         date.put("type", "enum");
         date.put("name", name);

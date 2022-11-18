@@ -7,13 +7,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteMemoryUtils;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.DataTypeMapping;
-import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.constant.MessageConst;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
@@ -124,10 +125,11 @@ public class FederationDialect extends AbstractEngineDialect{
             }
             log.debug("Calcite execute time :" + watch.elapsed().toMillis() / 1000 + "s");
 
-        } catch (BusinessException ex) {
+        } catch (RuntimeException ex) {
             log.error("Engine execute memory-query error:{}", ex);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.ENGINE_EXECUTION_EXCEPTION.getCode(), "Engine execute memory-query error："+ ex.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                    QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getMessage(),ex.getMessage()));
         }
         return build();
     }
@@ -255,10 +257,12 @@ public class FederationDialect extends AbstractEngineDialect{
                 }
                 return setOperationList;
             } else {
-                throw new BusinessException("Only support selectBody operation: PlainSelect or SetOperationList");
+                throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
         }
-        throw new BusinessException("Only support statement operation as select");
+        throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
     }
 
     private Expression generateDatasetWhereSql(String where) throws JSQLParserException {

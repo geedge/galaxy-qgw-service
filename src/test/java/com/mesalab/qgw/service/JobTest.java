@@ -1,7 +1,7 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.services.controller.JobController;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;

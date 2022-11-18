@@ -6,6 +6,8 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
@@ -120,7 +122,8 @@ public class SQLHelper {
                 selectStatement = ((ExplainStatement)statement).getStatement();
             } else {
                 log.error("Not support DML Parser");
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Syntax Error, Not support DML Parser.");
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Not support DML Parser."));
             }
 
             TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
@@ -131,12 +134,14 @@ public class SQLHelper {
                 return i < 0 ? tableName : tableName.substring(i + 1);
             } else {
                 log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}", sql);
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Syntax Error: Get Table Name Error.");
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Get Table Name Error."));
             }
 
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Syntax Error.");
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
     }
 
@@ -174,11 +179,13 @@ public class SQLHelper {
                 // selectStatement = ((ExplainStatement) statement).getStatement();
             } else {
                 log.error("Not support DML Parser");
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Syntax Error, Not support DML Parser.");
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Not support DML Parser."));
             }
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Syntax Error:"+e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
         return Lists.newArrayList();
     }

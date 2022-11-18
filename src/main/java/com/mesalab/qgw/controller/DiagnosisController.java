@@ -1,11 +1,13 @@
 package com.mesalab.qgw.controller;
 
 import cn.hutool.http.HttpStatus;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.constant.MessageConst;
 import com.mesalab.common.enums.DiagnosisOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.services.common.enums.EntityQueryType;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
-import java.util.Enumeration;
 
 /**
  * Galaxy日志自动诊断接口
@@ -43,8 +43,8 @@ public class DiagnosisController {
     @RequestMapping(value = "/runSql")
     public BaseResult executePocSql(String isSaved, @RequestParam(defaultValue = "parse") String option) throws BusinessException {
         if (Arrays.stream(DiagnosisOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(option))) {
-            throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    MessageConst.DIAGNOSIS_OPTION_ERROR);
+            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),MessageConst.DIAGNOSIS_OPTION_ERROR));
         }
         return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved), option);
     }
@@ -58,8 +58,8 @@ public class DiagnosisController {
     public BaseResult getMessageInfo(String option) {
         log.info("Entity recommendation proportion statistical information interface, param is: {}", option);
         if (!EntityQueryType.TOPSERVERIP.getType().equalsIgnoreCase(option) && !EntityQueryType.TOPSNI.getType().equalsIgnoreCase(option)) {
-            throw new BusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    MessageConst.DIAGNOSIS_OPTION_ERROR);
+            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, QGWErrorCode.PARAMETER_ERROR.getCode(),
+            String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),MessageConst.DIAGNOSIS_OPTION_ERROR));
         }
         return diagnosisService.getMessageInfo(option);
     }

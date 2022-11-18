@@ -2,11 +2,13 @@ package com.mesalab.qgw.controller;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.service.SystemService;
@@ -50,13 +52,16 @@ public class SystemController {
         }
         for (StorageDeletionInfo info : list) {
             if (StringUtil.isBlank(info.getLogType()) || StringUtil.isBlank(String.valueOf(info.getMaxDays()))) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Parameter verification: logType and maxDays need to be filled in at the same time");
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"logType and maxDays need to be filled in at the same time"));
             }
             if ("ALL".equalsIgnoreCase(info.getLogType()) && list.size() != 1) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),"Parameter verification: When logType exists in ALL, it cannot coexist with other types");
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"When logType exists in ALL, it cannot coexist with other types"));
             }
             if (!(info.getMaxDays() >= 0 && info.getMaxDays() <= 2000)) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),"Parameter check: logType is not All: maxDays must be numeric and [0-2000]");
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"logType is not All: maxDays must be numeric and [0-2000]"));
             }
         }
         return systemService.deleteStorage(list);
@@ -91,8 +96,8 @@ public class SystemController {
         if (StringUtil.isEmpty(resultId = param.get("resultId"))
                 || StringUtil.isEmpty(query = param.get("query"))) {
 
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Param resultId or query cannot be empty");
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"Param resultId or query cannot be empty"));
         }
         String queryId = systemService.getCustomQueryId(resultId.toString(), query.toString());
 
@@ -106,8 +111,8 @@ public class SystemController {
     public BaseResult getCiphertext(EncryptionInfo param) {
         log.info("Plaintext encrypted,The plaintext argument is : {}", param);
         if (StringUtil.isEmpty(param.getPassword()) || StringUtil.isEmpty(param.getSalt())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Param password or salt cannot be empty");
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"Param password or salt cannot be empty"));
         }
         return systemService.getCiphertext(param);
     }

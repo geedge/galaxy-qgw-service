@@ -7,12 +7,13 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.EntityConfigSource;
 import com.mesalab.qgw.service.ApiService;
@@ -63,7 +64,8 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage());
+            BaseResult result = JsonMapper.fromJsonString(baseResult.getMessage(), BaseResult.class);
+            throw new QGWBusinessException(baseResult.getStatus(), baseResult.getCode(), result.getMessage());
         }
         return baseResult;
     }

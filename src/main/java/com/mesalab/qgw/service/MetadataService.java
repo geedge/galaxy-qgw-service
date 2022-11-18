@@ -1,7 +1,7 @@
 package com.mesalab.qgw.service;
 
 
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import org.apache.avro.Schema;
 import java.util.List;
 import java.util.Map;

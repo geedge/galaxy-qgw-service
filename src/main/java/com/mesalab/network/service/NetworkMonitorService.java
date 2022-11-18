@@ -1,6 +1,6 @@
 package com.mesalab.network.service;
 
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.model.protocol.ProtocolTree;
 

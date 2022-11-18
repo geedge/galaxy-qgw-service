@@ -9,8 +9,8 @@ import cn.hutool.log.LogFactory;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
@@ -85,85 +85,90 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     @Override
     public BaseResult buildNetworkOverviewResult(DSLObject dslObject) {
         Map<String, String> dataRateResult = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), environment.getProperty("NETWORK_STATISTICS_SUMMARY")));
-        Map<String, String> currentSessionResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), environment.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
         BaseResult baseResult;
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(currentSessionResult.get("status"))
-                && String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataRateResult.get("status"))) {
-            Map statDataResult = (Map) JsonMapper.fromJsonString(currentSessionResult.get("result"), Map.class);
-            List<Map> statData = (List<Map>) statDataResult.get("data");
-            Map summaryDataResult = (Map) JsonMapper.fromJsonString(dataRateResult.get("result"), Map.class);
-            List<Map> summaryData = (List<Map>) summaryDataResult.get("data");
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataRateResult.get("status"))) {
+            Map<String, String> currentSessionResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), environment.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
+            if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(currentSessionResult.get("status"))) {
+                Map statDataResult = (Map) JsonMapper.fromJsonString(currentSessionResult.get("result"), Map.class);
+                List<Map> statData = (List<Map>) statDataResult.get("data");
+                Map summaryDataResult = (Map) JsonMapper.fromJsonString(dataRateResult.get("result"), Map.class);
+                List<Map> summaryData = (List<Map>) summaryDataResult.get("data");
 
-            Map<String, Object> data = new HashMap<>(16);
-            if (!statData.isEmpty()) {
-                data.putAll(statData.get(0));
-            }
-
-            if (!summaryData.isEmpty()) {
-                data.putAll(summaryData.get(0));
-            }
-            long uniqClientIp = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP)));
-            long totalSessions = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS)));
-            long totalBytes = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES)));
-            long totalPackets = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS)));
-            long totalUncategorizedBytes = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES)));
-            long oneSidedConnections = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS)));
-            long sequenceGapLossBytes = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES)));
-            long fragmentationPackets = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS)));
-
-            String totalUncategorizedPercent = totalBytes == 0 ? String.valueOf(0)
-                    : NumberUtil.div(BigDecimal.valueOf(totalUncategorizedBytes), BigDecimal.valueOf(totalBytes), 4).toPlainString();
-            String oneSidedPercent = totalSessions == 0 ? String.valueOf(0)
-                    : NumberUtil.div(BigDecimal.valueOf(oneSidedConnections), BigDecimal.valueOf(totalSessions), 4).toPlainString();
-            String sequenceGapLossBytesPercent = sequenceGapLossBytes == 0 ? String.valueOf(0)
-                    : NumberUtil.div(BigDecimal.valueOf(sequenceGapLossBytes), BigDecimal.valueOf(totalBytes + sequenceGapLossBytes), 4).toPlainString();
-            String fragmentationPacketsPercent = totalPackets == 0 ? String.valueOf(0)
-                    : NumberUtil.div(BigDecimal.valueOf(fragmentationPackets), BigDecimal.valueOf(totalPackets), 4).toPlainString();
-
-            long dynamicSessions = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS)));
-            long dynamicBytes = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES)));
-            long dataRate = Long.parseLong(String.valueOf(
-                    data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE)));
-
-
-            List result = new ArrayList<>();
-            Map resultMap = new LinkedHashMap<>();
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP, uniqClientIp);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, dynamicSessions);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE, dataRate);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, dynamicBytes);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES, totalUncategorizedBytes);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_PERCENT, totalUncategorizedPercent);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS, oneSidedConnections);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_PERCENT, oneSidedPercent);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES, sequenceGapLossBytes);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_PERCENT,  sequenceGapLossBytesPercent);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS, fragmentationPackets);
-            resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PERCENT, fragmentationPacketsPercent);
-            result.add(resultMap);
-
-            Map statistics = (Map) summaryDataResult.get("statistics");
-            Map statStatistics = (Map) statDataResult.get("statistics");
-            for (Object key : statistics.keySet()) {
-                if ("result_rows".equals(key.toString())) {
-                    continue;
+                Map<String, Object> data = new HashMap<>(16);
+                if (!statData.isEmpty()) {
+                    data.putAll(statData.get(0));
                 }
-                statistics.put(key, Long.parseLong(statistics.get(key).toString()) + Long.parseLong(statStatistics.get(key).toString()));
-            }
 
-            baseResult = BaseResultGenerator.success("ok", result, statistics);
+                if (!summaryData.isEmpty()) {
+                    data.putAll(summaryData.get(0));
+                }
+                long uniqClientIp = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP)));
+                long totalSessions = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS)));
+                long totalBytes = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES)));
+                long totalPackets = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS)));
+                long totalUncategorizedBytes = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES)));
+                long oneSidedConnections = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS)));
+                long sequenceGapLossBytes = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES)));
+                long fragmentationPackets = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS)));
+
+                String totalUncategorizedPercent = totalBytes == 0 ? String.valueOf(0)
+                        : NumberUtil.div(BigDecimal.valueOf(totalUncategorizedBytes), BigDecimal.valueOf(totalBytes), 4).toPlainString();
+                String oneSidedPercent = totalSessions == 0 ? String.valueOf(0)
+                        : NumberUtil.div(BigDecimal.valueOf(oneSidedConnections), BigDecimal.valueOf(totalSessions), 4).toPlainString();
+                String sequenceGapLossBytesPercent = sequenceGapLossBytes == 0 ? String.valueOf(0)
+                        : NumberUtil.div(BigDecimal.valueOf(sequenceGapLossBytes), BigDecimal.valueOf(totalBytes + sequenceGapLossBytes), 4).toPlainString();
+                String fragmentationPacketsPercent = totalPackets == 0 ? String.valueOf(0)
+                        : NumberUtil.div(BigDecimal.valueOf(fragmentationPackets), BigDecimal.valueOf(totalPackets), 4).toPlainString();
+
+                long dynamicSessions = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS)));
+                long dynamicBytes = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES)));
+                long dataRate = Long.parseLong(String.valueOf(
+                        data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE)));
+
+
+                List result = new ArrayList<>();
+                Map resultMap = new LinkedHashMap<>();
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP, uniqClientIp);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, dynamicSessions);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE, dataRate);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, dynamicBytes);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_BYTES, totalUncategorizedBytes);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_UNCATEGORIZED_PERCENT, totalUncategorizedPercent);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS, oneSidedConnections);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_PERCENT, oneSidedPercent);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES, sequenceGapLossBytes);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_PERCENT, sequenceGapLossBytesPercent);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS, fragmentationPackets);
+                resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PERCENT, fragmentationPacketsPercent);
+                result.add(resultMap);
+
+                Map statistics = (Map) summaryDataResult.get("statistics");
+                Map statStatistics = (Map) statDataResult.get("statistics");
+                for (Object key : statistics.keySet()) {
+                    if ("result_rows".equals(key.toString())) {
+                        continue;
+                    }
+                    statistics.put(key, Long.parseLong(statistics.get(key).toString()) + Long.parseLong(statStatistics.get(key).toString()));
+                }
+
+                baseResult = BaseResultGenerator.success("ok", result, statistics);
+            } else {
+                BaseResult result = JsonMapper.fromJsonString(currentSessionResult.get("result"), BaseResult.class);
+                baseResult = BaseResultGenerator.error(Integer.parseInt(currentSessionResult.get("status")),currentSessionResult.get("code"),currentSessionResult.get("message"));
+            }
         } else {
-            baseResult = BaseResultGenerator.error("dataRate result: " + dataRateResult.toString() + ";\n currentSession result is: " + currentSessionResult);
+            BaseResult result = JsonMapper.fromJsonString(dataRateResult.get("result"), BaseResult.class);
+            baseResult = BaseResultGenerator.error(result.getStatus(),result.getCode(),result.getMessage());
         }
         return baseResult;
     }
