@@ -1,7 +1,6 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.base.BaseResult;
 import com.mesalab.common.utils.IPUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;

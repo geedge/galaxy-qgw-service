@@ -1,12 +1,12 @@
 package com.mesalab.services.common.dsl;
 
-import com.mesalab.cn.common.constant.ErrorMessage;
-import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.cn.constant.ErrorMessage;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.knowledge.enums.SortEnum;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
@@ -28,47 +28,47 @@ public class ComDSLValidate {
     public static final Pattern periodOfP = Pattern.compile("P(\\d+)[DWMY]", Pattern.CASE_INSENSITIVE);
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
-    public void validation(ComDSLObject dslObject) throws BusinessException {
+    public void validation(ComDSLObject dslObject) throws QGWBusinessException {
         if (StringUtil.isEmpty(dslObject)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.DSL_OBJECT_IS_INVALID);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.DSL_OBJECT_IS_INVALID));
         }
         ComDSLObject.Query query;
         if (StringUtil.isEmpty(query = dslObject.getQuery())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.QUERY_IS_INVALID);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.QUERY_IS_INVALID));
         }
         if (StringUtil.isEmpty(query.getDataEngine())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.DATA_ENGINE_IS_INVALID);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.DATA_ENGINE_IS_INVALID));
         }
         if (StringUtil.isEmpty(query.getDataSource())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.DATASOURCE_IS_INVALID);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.DATASOURCE_IS_INVALID));
         }
         ComDSLObject.Query.QueryBean parameters;
         if (StringUtil.isEmpty(parameters = query.getParameters())) {
             return;
         }
         if (!isValidGranularity(parameters.getGranularity())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.GRANULARITY_VALUE_IS_INVALID);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.GRANULARITY_VALUE_IS_INVALID));
         }
         if (!isValidMatch(parameters.getMatch())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.MATCH_TYPE);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.MATCH_TYPE));
         }
         if (!isValidRange(parameters.getRange())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.INTERVALS_PARAM_ERROR);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.INTERVALS_PARAM_ERROR));
         }
         if (!isValidIntervals(parameters.getIntervals())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.INTERVALS_PARAM_ERROR);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.INTERVALS_PARAM_ERROR));
         }
         if (!isValidSort(parameters.getSort())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.INTERVALS_PARAM_ERROR);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.INTERVALS_PARAM_ERROR));
         }
     }
 
@@ -90,7 +90,8 @@ public class ComDSLValidate {
             Validate.isTrue(EnumUtils.isValidEnum(SortEnum.class, StringUtil.upperCase(sortBean.getType())), ErrorMessage.SORT_TYPE_IS_INVALID);
             String fieldKey = sortBean.getFieldKey();
             if (StringUtil.isBlank(fieldKey)) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.SORT_FIELD_VALUES);
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.SORT_FIELD_VALUES));
             }
         }
         return true;
@@ -101,10 +102,16 @@ public class ComDSLValidate {
             return true;
         }
         for (ComDSLObject.Query.FilterBean rangeBean : rangeList) {
-            Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(rangeBean.getType())), ErrorMessage.RANGE_TYPE_IS_INVALID);
+
+            if (!EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(rangeBean.getType()))){
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.RANGE_TYPE_IS_INVALID));
+
+            }
             String fieldKey = rangeBean.getFieldKey();
             if (StringUtil.isBlank(fieldKey)) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.RANGE_FIELD_VALUES);
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.RANGE_FIELD_VALUES));
             }
         }
         return true;
@@ -115,17 +122,23 @@ public class ComDSLValidate {
             return true;
         }
         for (ComDSLObject.Query.FilterBean matchBean : matchList) {
-            Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(matchBean.getType())), ErrorMessage.MATCH_TYPE);
+            if (!EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(matchBean.getType()))){
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.MATCH_TYPE));
+            }
 
             if (MatchEnum.REGEX.getType().equals(matchBean.getType())) {
                 matchBean.getFieldValues().forEach(mv -> {
-                    org.apache.commons.lang3.Validate.isTrue(!(String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*")), ErrorMessage.MATCHING_SIGN);
+                    if (String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*")){
+                        throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.MATCHING_SIGN));
+                    }
                 });
             }
 
             /*for (String fieldValue : matchBean.getFieldValues()) {
                 if (fieldValue.startsWith("*") || fieldValue.endsWith("$")) {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Match fieldValues cannot startWith '*' or endWith '$'");
+                    throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Match fieldValues cannot startWith '*' or endWith '$'");
                 }
             }*/
         }
@@ -137,15 +150,18 @@ public class ComDSLValidate {
             return true;
         }
         if (intervalsBean.size() != 1) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.INTERVALS_PARAM_ERROR);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.INTERVALS_PARAM_ERROR));
         }
         String[] split = intervalsBean.get(0).split("/");
         if (split.length != 2) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.INTERVALS_PARAM_ERROR);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.INTERVALS_PARAM_ERROR));
         }
         for (String dateTimeStr : split) {
             if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), ErrorMessage.TIME_FORMAT_ERROR);
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),ErrorMessage.TIME_FORMAT_ERROR));
             }
         }
         try {
@@ -154,7 +170,8 @@ public class ComDSLValidate {
                 throw new RuntimeException("Intervals value should be [start, end]");
             }
         } catch (RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),e.getMessage()));
         }
         return true;
     }

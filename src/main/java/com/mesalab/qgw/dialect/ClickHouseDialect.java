@@ -10,14 +10,16 @@ import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.base.DataTypeMapping;
+import com.mesalab.common.constant.MessageConst;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.*;
-import com.mesalab.qgw.controller.RewriteTable;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.qgw.service.RewriteTable;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.MetadataService;
@@ -418,8 +420,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 select.getSelectBody().accept(deParser);
                 sql = buffer.toString();
             } catch (JSQLParserException|RuntimeException e) {
-                log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL Rewrite add tableName and Alias Error:"+ e.getMessage());
+                log.error("SQL Rewrite add tableName and Alias Error: ", e);
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                        QGWErrorCode.SQL_REWRITE_ERROR.getCode(), String.format(QGWErrorCode.SQL_REWRITE_ERROR.getMessage(),e.getMessage()));
             }
             return this;
         }
@@ -820,7 +823,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             try {
                 return CCJSqlParserUtil.parseExpression(originalField);
             } catch (JSQLParserException e) {
-                throw new BusinessException("parseExpression error: " + originalField);
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),QGWErrorCode.SQL_REWRITE_ERROR);
             }
         }
 
@@ -831,6 +834,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param function
          */
         private boolean getValidityByFunctionParamsInSchema(Schema schema, Function function) {
+
             ExpressionList parameters = function.getParameters();
             if (StringUtil.isEmpty(parameters)) {
                 return true;
@@ -971,8 +975,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     public BaseResult generateBaseResult(String sql, Optional<String> message) {
 
         Map<String, String> results = executeHttpPost(sql);
-
-        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
+        int status = Integer.parseInt(results.get("status"));
+        if (status == ResultStatusEnum.SUCCESS.getCode()) {
 
             baseResult = BaseResultGenerator.generate(
                     Integer.parseInt(results.get("status")),
@@ -982,8 +986,14 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     null,
                     null,
                     QueryFormatEnum.JSON.getValue());
+        } else if (status>=400||status<500){
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
+                    QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), message.get()),
+                    StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), message.get(),
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
+
+                    QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
                     StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         }
         return build();
@@ -1006,8 +1016,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else {
-            throw new BusinessException((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus(),
-                    ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), simplyErrorMessage(dataObject));
+            throw new QGWBusinessException(baseResult.getStatus(),baseResult.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),simplyErrorMessage(dataObject)) );
         }
         return baseResult;
     }
@@ -1024,7 +1034,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         message = message.startsWith("Code: ") ?
                 message.substring(i, !message.contains("(version ") ? message.length() : message.indexOf("(version "))
                 : message;
-        return StrUtil.removeAllLineBreaks("SQL Execution Error: ".concat(message)).trim();
+        return StrUtil.removeAllLineBreaks(message).trim();
     }
 
     private boolean containAggregateFunction(String sql) {
@@ -1084,10 +1094,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 }
                 return setOperationList;
             } else {
-                throw new BusinessException("Only support selectBody operation: PlainSelect or SetOperationList");
+                throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
         }
-        throw new BusinessException("Only support statement operation as select");
+        throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
     }
 
     /**

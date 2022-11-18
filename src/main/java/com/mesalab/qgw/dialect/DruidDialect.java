@@ -10,14 +10,17 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.base.DataTypeMapping;
+import com.mesalab.common.constant.MessageConst;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
@@ -159,14 +162,20 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
         Map<String, String> results = executeHttpPost(sql);
 
-        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
+        int status = Integer.parseInt(results.get("status"));
+        if (status == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), message.get(),
                     (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+        } else if (status>=400||status<500){
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
+                    QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), message.get()),
+                    StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), results.get("message"),
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
+
+                    QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
                     StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         }
-
         return build();
     }
 
@@ -194,8 +203,8 @@ public class DruidDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(allResults));
             baseResult.setStatistics(statistics);
         } else {
-            throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(),
-                    simplyErrorMessage(dataObject));
+            throw new QGWBusinessException(baseResult.getStatus(),baseResult.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),simplyErrorMessage(dataObject)) );
         }
         return baseResult;
     }
@@ -210,7 +219,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
             log.error("Build error druid-errorMessage data is: {}", dataObject);
         }
         message = message.startsWith(CLAZZ_NAME_CALCITE_EXCEPTION) ? message.substring(CLAZZ_NAME_CALCITE_EXCEPTION.length()) : message;
-        return StrUtil.removeAllLineBreaks("SQL Execution Error: ".concat(message)).trim();
+        return StrUtil.removeAllLineBreaks(message).trim();
     }
 
 
@@ -245,10 +254,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 }
                 return setOperationList;
             } else {
-                throw new BusinessException("Only support selectBody operation: PlainSelect or SetOperationList");
+                throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
         }
-        throw new BusinessException("Only support statement operation as select");
+        throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
     }
 
 

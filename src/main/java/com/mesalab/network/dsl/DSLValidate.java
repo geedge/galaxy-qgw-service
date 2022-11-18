@@ -1,11 +1,11 @@
 package com.mesalab.network.dsl;
 
-import com.mesalab.cn.common.constant.ErrorMessage;
-import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.cn.constant.ErrorMessage;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
+import com.mesalab.network.exception.NWBusinessException;
+import com.mesalab.network.exception.NWErrorCode;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
@@ -31,34 +31,28 @@ public class DSLValidate {
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
 
-    public void executeValidate(DSLObject dslObject) throws BusinessException {
+    public void executeValidate(DSLObject dslObject) throws NWBusinessException {
         if (StringUtil.isEmpty(dslObject)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.DSL_OBJECT_IS_INVALID);
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.DSL_OBJECT_IS_INVALID);
         }
         if (StringUtil.isEmpty(dslObject.getQuery())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.QUERY_IS_INVALID);
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.QUERY_IS_INVALID);
         }
         DSLObject.QueryBean.Parameters parameters = dslObject.getQuery().getParameters();
         if (StringUtil.isEmpty(parameters)) {
             return;
         }
         if (!isValidGranularity(parameters.getGranularity())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.GRANULARITY_VALUE_IS_INVALID);
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.GRANULARITY_VALUE_IS_INVALID);
         }
         if (!isValidMatch(parameters.getMatch())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.MATCH_IS_INVALID);
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.MATCH_IS_INVALID);
         }
         if (!isValidRange(parameters.getRange())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.RANGE_TYPE_IS_INVALID);
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.RANGE_TYPE_IS_INVALID);
         }
         if (!isValidIntervals(parameters.getIntervals())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.INTERVALS_TYPE_IS_INVALID);
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.INTERVALS_TYPE_IS_INVALID);
         }
     }
 
@@ -94,8 +88,7 @@ public class DSLValidate {
             Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(match.getType())), ErrorMessage.MATCH_FIELD_VALUES_ERROR);
             for (String fieldValue : match.getFieldValues()) {
                 if (fieldValue.startsWith("*") || fieldValue.endsWith("$")) {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                            ErrorMessage.MATCH_FIELD_VALUES_ERROR);
+                    throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.MATCH_FIELD_VALUES_ERROR);
                 }
             }
         }
@@ -114,7 +107,9 @@ public class DSLValidate {
             return true;
         }
         for (DSLObject.QueryBean.Parameters.FilterBean range : filterBeanList) {
-            Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(range.getType())), "range type is illegal");
+            if (!EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(range.getType()))){
+                throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(),NWErrorCode.RANGE_TYPE_ERROR);
+            }
         }
         return true;
     }
@@ -131,27 +126,24 @@ public class DSLValidate {
             return true;
         }
         if (intervals.size() != 1) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.INTERVALS_PARAM_ERROR);
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.INTERVALS_PARAM_ERROR);
         }
         String[] split = intervals.get(0).split("/");
         if (split.length != 2) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.INTERVALS_PARAM_ERROR);
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.INTERVALS_PARAM_ERROR);
         }
         for (String dateTimeStr : split) {
             if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                        ErrorMessage.TIME_FORMAT_ERROR);
+                throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.TIME_FORMAT_ERROR);
             }
         }
         try {
             DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
             if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
-                throw new RuntimeException("Intervals value should be [start, end]");
+                throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.INTERVALS_VALUE_ERROR);
             }
         } catch (RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), e.getMessage());
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.INTERVALS_VALUE_ERROR.getCode(), e.getMessage());
         }
         return true;
     }

@@ -4,9 +4,9 @@ import cn.hutool.core.util.StrUtil;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.base.DataTypeMapping;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -15,6 +15,8 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.model.api.HBaseAPISource;
@@ -96,7 +98,8 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Converter SQL Syntax Error:"+ e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
     }
 
@@ -117,7 +120,8 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     String getExplainQuery() {
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), "Hbase dialect unsupported EXPLAIN Syntax.");
+        throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Hbase dialect unsupported EXPLAIN Syntax."));
     }
 
     @Override
@@ -126,7 +130,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
                 : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
         message = message.startsWith("ERROR ") ? message.substring(message.indexOf(":") + 1)
                 : message;
-        return StrUtil.removeAllLineBreaks("SQL Execute Error :".concat(message)).trim();
+        return StrUtil.removeAllLineBreaks(message).trim();
     }
 
     @Override
@@ -160,7 +164,8 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             return buildResult(resultSet);
         } catch (RuntimeException | SQLException e) {
             log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), simplyErrorMessage(e.getMessage()));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
         } finally {
             close(resultSet, statement, conn);
         }
@@ -204,12 +209,12 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     public BaseResult executeKillQuery(String queryId) {
-        return BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "not support");
+        return BaseResultGenerator.failure(QGWErrorCode.PARAMETER_ERROR.getCode(), String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"not support"));
     }
 
     @Override
     public BaseResult getProcesses(String queryId) {
-        return BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "not support");
+        return BaseResultGenerator.failure(QGWErrorCode.PARAMETER_ERROR.getCode(), String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"not support"));
     }
 
     class Optimizer {
@@ -250,7 +255,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             try {
                 rs.close();
             } catch (SQLException e) {
-                log.error("ResultSet close error : ", e.getMessage());
+                log.error("ResultSet close error : ", e);
             }
 
         }
@@ -258,7 +263,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             try {
                 st.close();
             } catch (SQLException e) {
-                log.error("Statement close error : ", e.getMessage());
+                log.error("Statement close error : ", e);
             }
 
         }
@@ -266,7 +271,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             try {
                 conn.close();
             } catch (SQLException e) {
-                log.error("Connection close error : ", e.getMessage());
+                log.error("Connection close error : ", e);
             }
 
         }

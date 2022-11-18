@@ -9,16 +9,17 @@ import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jfinal.plugin.activerecord.Db;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.ApiService;
@@ -281,7 +282,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
         if (!baseResult.isSuccess()) {
             log.error("Query job status error: {}", baseResult.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "Query job status error: " + baseResult.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), "Query job status error: " + baseResult.getMessage());
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         Map<String, Object> map;
@@ -303,7 +304,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         List<String> interim = Lists.newArrayList(fields);
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build());
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     "Init job error: get field_discovery all column error: ".concat(baseResult.getMessage()));
         }
         List<Map<String, Object>> meta = (List<Map<String, Object>>) baseResult.getMeta();
@@ -407,8 +408,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 property.put(JobConfig.JOB_PROPERTY_K_OPTION, JobConfig.JOB_PROPERTY_V_OPTION_TOP);
             }
         } catch (JSQLParserException | RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "statistics job init error: ".concat(e.getMessage()));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"statistics job init error: ".concat(e.getMessage())));
         }
     }
 
@@ -447,24 +448,18 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
 
-    public static void main(String[] args) {
-        Period pt5M = Period.parse("PT13M");
-        PeriodType periodType = pt5M.getPeriodType();
-        int[] values = pt5M.getValues();
-        System.out.println(pt5M);
-
-    }
 
     private PlainSelect checkParam(String sql, net.sf.jsqlparser.statement.Statement statement) {
         SelectBody selectBody;
         if (!(statement instanceof Select) || !((selectBody = ((Select) statement).getSelectBody()) instanceof PlainSelect)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    "statistics job init error, not support, SQL is: " + sql);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"statistics job init error, not support, SQL is: " + sql));
+                    
         }
         PlainSelect plainSelect = (PlainSelect) selectBody;
         if (StringUtil.isEmpty(plainSelect.getGroupBy())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    "statistics job init error, not support non-aggregate SQL is: " + sql);
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "statistics job init error, not support non-aggregate SQL is: " + sql));
         }
         return plainSelect;
     }
@@ -475,13 +470,13 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                         .query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id))
                         .build());
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(),
-                    "get Job Result Error: ".concat(baseResult.getMessage()));
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(), "get Job Result Error: ".concat(baseResult.getMessage())));
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         if (StringUtil.isEmpty(data) || StringUtil.isEmpty(data.get(0).get(JobConfig.JOB_PROPERTY))) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Not Found This Job: ".concat(id));
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), "Not Found This Job: ".concat(id)));
         }
         return data;
     }
@@ -505,8 +500,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 .build();
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Job Validation Error: ".concat(baseResult.getMessage()));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),baseResult.getMessage()));
         }
     }
 
@@ -519,8 +514,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         ApiParam apiParam = ApiParam.builder().query(validationSql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build();
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Job Validation Error: ".concat(baseResult.getMessage()));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),baseResult.getMessage()));
         }
     }
 
@@ -529,8 +524,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build());
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    "Job Validation Error: ".concat(baseResult.getMessage()));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),baseResult.getMessage()));
         }
     }
 
@@ -550,7 +545,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             conn.commit();
         } catch (RuntimeException | SQLException e) {
             log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
         } finally {
             close(statement, conn);
         }
@@ -578,7 +573,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             conn.commit();
         } catch (RuntimeException | SQLException e) {
             log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+
+
         } finally {
             close(statement, conn);
         }

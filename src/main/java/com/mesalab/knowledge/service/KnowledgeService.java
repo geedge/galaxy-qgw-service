@@ -10,12 +10,14 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.common.base.Splitter;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.knowledge.entity.*;
 import com.mesalab.knowledge.enums.DataSourceEnum;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
+import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
+import com.mesalab.knowledge.exception.KnowledgeBusinessException;
 import com.mesalab.knowledge.strategy.QueryProvider;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
@@ -71,11 +73,17 @@ public class KnowledgeService {
      **/
     private void validate(DSLObject dSLObject) {
         DSLObject.DSLQuery dslQuery = dSLObject.getQuery();
-        requireNonNull(dslQuery, "query is null");
-        Parameters parameters = dslQuery.getParameters();
 
-        requireNonNull(dslQuery.getDataSource(), "dataSource is null");
-        requireNonNull(EnumUtils.getEnum(DataSourceEnum.class,StringUtil.upperCase(dslQuery.getDataSource())), "dataSource no match");
+        if (ObjectUtils.isEmpty(dslQuery)){
+            throw new KnowledgeBusinessException(KnowLedgeErrorCode.QUERY_IS_INVALID);
+        }
+        Parameters parameters = dslQuery.getParameters();
+        if (ObjectUtils.isEmpty(dslQuery.getDataSource())){
+            throw new KnowledgeBusinessException(KnowLedgeErrorCode.DATASOURCE_IS_INVALID);
+        }
+        if (ObjectUtils.isEmpty(EnumUtils.getEnum(DataSourceEnum.class,StringUtil.upperCase(dslQuery.getDataSource())))){
+            throw new KnowledgeBusinessException(KnowLedgeErrorCode.DATASOURCE_IS_ERROR);
+        }
 
         if (isNull(parameters)) {
             return;
@@ -88,41 +96,54 @@ public class KnowledgeService {
         String limit = parameters.getLimit();
         if (!ObjectUtils.isEmpty(matchs)) {
             matchs.forEach(m -> {
-                Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(m.getType())), "match type is illegal");
+                if (!EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(m.getType()))){
+                    throw new KnowledgeBusinessException(KnowLedgeErrorCode.MATCH_TYPE_ERROR);
+                }
                 //正则匹配方式 禁止 $xxx* 形式的value
                 if (MatchEnum.REGEX.getType().equals(m.getType())) {
                     m.getFieldValues().forEach(mv -> {
-                        Validate.isTrue(!(String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*")), "error in matching sign. begin with * and do not end with * for suffix matching, end with * and do not begin with $ or * for prefix matching, begin with $ and do not end with * for exactly matching, begin with * and end with * or no wildcard for substring matching");
+                        if((String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*"))){
+                            throw new KnowledgeBusinessException(KnowLedgeErrorCode.MATCHING_SIGN);
+                        }
                     });
                 }
             });
         }
         if (!ObjectUtils.isEmpty(ranges)) {
             ranges.forEach(r -> {
-                Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(r.getType())), "range type is illegal");
+                if (!EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(r.getType()))){
+                    throw new KnowledgeBusinessException(KnowLedgeErrorCode.RANGE_TYPE_ERROR);
+                }
             });
         }
         if (!ObjectUtils.isEmpty(sorts)) {
             sorts.forEach(s -> {
-                Validate.isTrue("asc".equalsIgnoreCase(s.getType()) || "desc".equalsIgnoreCase(s.getType()), "sort type is illegal");
+                if (!("asc".equalsIgnoreCase(s.getType()) || "desc".equalsIgnoreCase(s.getType()))){
+                    throw new KnowledgeBusinessException(KnowLedgeErrorCode.SORT_TYPE_ERROR);
+                }
             });
         }
         if (!ObjectUtils.isEmpty(intervals)) {
             List<String> times = Splitter.on("/").splitToList(intervals.get(0));
-            Validate.notEmpty(times, "intervals should be [startTime/endTime],such as 2020-01-01 00:00:00/2020-02-02 00:00:00");
-            Validate.isTrue(times.size() == 2, "intervals should be [startTime/endTime],such as 2020-01-01 00:00:00/2020-02-02 00:00:00");
-            Validate.notBlank(times.get(0), "start time is null");
-            Validate.notBlank(times.get(1), "end time is null");
+            if (ObjectUtils.isEmpty(times) || times.size() != 2){
+                throw new KnowledgeBusinessException(KnowLedgeErrorCode.INTERVALS_IS_INVALID);
+            }
             Date start = DateUtils.convertStringToDate(times.get(0), DateUtils.YYYY_MM_DD_HH24_MM_SS);
             Date end = DateUtils.convertStringToDate(times.get(1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-            Validate.isTrue(start.before(end), "the end time must be after the start time");
+            if (!start.before(end)){
+                throw new KnowledgeBusinessException(KnowLedgeErrorCode.TIME_ERROR);
+            }
         }
         if (nonNull(limit)) {
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
-            Validate.notEmpty(limits, "limit is illegal");
-            Validate.isTrue(!(limit.contains(",") && limits.size() != 2), "limit is illegal");
+            if (ObjectUtils.isEmpty(limits) || (limit.contains(",") && limits.size() != 2)){
+                throw new KnowledgeBusinessException(KnowLedgeErrorCode.LIMIT_IS_ILLEGAL);
+            }
+
             for (String l : limits) {
-                Validate.isTrue(l.length() <= maxrows.length() && Integer.valueOf(maxrows) >= Integer.valueOf(l) && Integer.valueOf(l) > 0, "limit is greater than 0 and less than " + maxrows);
+                if (!(l.length() <= maxrows.length() && Integer.valueOf(maxrows) >= Integer.valueOf(l) && Integer.valueOf(l) > 0)){
+                    throw new KnowledgeBusinessException(KnowLedgeErrorCode.LIMIT_IS_ILLEGAL.getCode(), String.format(KnowLedgeErrorCode.LIMIT_IS_ILLEGAL.getMessage(),maxrows));
+                }
             }
         }
     }
@@ -154,9 +175,9 @@ public class KnowledgeService {
             //判断校验是否成功，如果为true成功
             Validate.isTrue(processingReport.isSuccess(), sb.toString());
         } catch (ProcessingException e) {
-            log.error(e.getMessage());
+            log.error(e);
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error(e);
         }
     }
 

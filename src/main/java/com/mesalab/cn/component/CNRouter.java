@@ -1,11 +1,11 @@
 package com.mesalab.cn.component;
 
 
-import com.mesalab.cn.common.enums.CDQueryType;
-import com.mesalab.cn.common.pojo.DSLObject;
+import com.mesalab.cn.enums.CDQueryType;
+import com.mesalab.cn.entity.pojo.DSLObject;
 import com.mesalab.cn.service.CNService;
 import com.mesalab.cn.service.EntityDetailService;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

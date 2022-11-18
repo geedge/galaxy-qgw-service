@@ -1,6 +1,6 @@
 package com.mesalab.qgw.service;
 
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 
 public interface DiagnosisService {
 

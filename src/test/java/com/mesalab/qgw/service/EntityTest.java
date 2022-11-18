@@ -1,7 +1,7 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.service.EntityService;
 import com.mesalab.services.service.RelationService;

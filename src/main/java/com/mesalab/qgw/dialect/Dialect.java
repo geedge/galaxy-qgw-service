@@ -1,8 +1,6 @@
 package com.mesalab.qgw.dialect;
 
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.common.entity.BaseResult;
 
 public interface Dialect {
 

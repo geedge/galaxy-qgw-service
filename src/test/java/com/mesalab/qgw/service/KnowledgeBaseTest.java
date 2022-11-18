@@ -1,7 +1,7 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.services.common.entity.KnowledgeBase;
 import com.mesalab.services.common.entity.KnowledgeConstant;
 import com.mesalab.services.service.KnowledgeBaseService;

@@ -4,12 +4,14 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
 import com.zdjizhi.utils.StringUtil;
@@ -51,32 +53,10 @@ public class SQLSyntaxParserUtil {
             //addTypeForSelectItems(sql, resultList);
         } catch (RuntimeException | JSQLParserException e) {
             log.error("syntax-parse: sql-" + sql + ", error: ", e);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_SYNTAX_PARSE_EXCEPTION.getCode(), "SQL syntax-parse Error:"+ e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
         return resultList;
-    }
-
-    private static void addTypeForSelectItems(String sql, List resultList) {
-        ApiParam apiParam = new ApiParam();
-        apiParam.setQuery(sql);
-        apiParam.setOption(QueryOptionEnum.SYNTAX_VALIDATION.getValue());
-        BaseResult baseResult = apiService.executeQuery(apiParam);
-        if (!baseResult.isSuccess()) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "SQL syntax-validation Error:");
-        }
-        List<Map<String, String>> meta = (List<Map<String, String>>) baseResult.getMeta();
-        for (int i = 0; i < resultList.size(); i++) {
-            Object o = resultList.get(i);
-            if (o instanceof SQLStructure) {
-                SQLStructure e = (SQLStructure) resultList.get(i);
-                List<Map<String, Object>> select = e.getSelect();
-                for (int j = 0; j < select.size(); j++) {
-                    String type = meta.get(j).get("type");
-                    type = StringUtil.isBlank(typeMap.get(type.toUpperCase())) ? type.toString() : typeMap.get(type.toUpperCase());
-                    select.get(j).put("type", type);
-                }
-            }
-        }
     }
 
     private static void parseSQL(String sql, List result) throws RuntimeException, JSQLParserException {

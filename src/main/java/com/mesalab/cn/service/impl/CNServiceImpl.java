@@ -2,7 +2,7 @@ package com.mesalab.cn.service.impl;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.mesalab.cn.common.pojo.*;
+import com.mesalab.cn.entity.pojo.*;
 import com.mesalab.cn.service.CNService;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.service.ApiService;
@@ -10,8 +10,8 @@ import com.mesalab.ua.analyser.UaAnalyser;
 import com.mesalab.ua.analyser.enums.UserInfo;
 import com.mesalab.ua.analyser.impl.UaAnalyserImpl;
 import com.google.common.base.Joiner;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.exception.BusinessException;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -301,7 +301,7 @@ public class CNServiceImpl implements CNService {
         try {
             userInfo = uaAnalyser.getUserinfo(inputString);
         } catch (RuntimeException e) {
-            log.error("UA解析异常:{}", e.getMessage());
+            log.error("UA解析异常:{}", e);
         }
         if (StringUtil.isEmpty(userInfo)) {
             feature.setAnalyseResult(t);

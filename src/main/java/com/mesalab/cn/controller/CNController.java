@@ -2,10 +2,10 @@ package com.mesalab.cn.controller;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.mesalab.cn.common.pojo.DSLObject;
+import com.mesalab.cn.entity.pojo.DSLObject;
 import com.mesalab.cn.component.CNRouter;
 import com.mesalab.cn.component.DslValidate;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.zdjizhi.utils.JsonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -9,17 +9,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.mesalab.cn.common.constant.ErrorMessage;
-import com.mesalab.cn.common.pojo.Condition;
-import com.mesalab.cn.common.pojo.DSLObject;
-import com.mesalab.cn.common.pojo.DSLParser;
-import com.mesalab.cn.common.pojo.entity.EntityDetail;
+import com.mesalab.cn.entity.pojo.Condition;
+import com.mesalab.cn.entity.pojo.DSLObject;
+import com.mesalab.cn.entity.pojo.DSLParser;
+import com.mesalab.cn.entity.EntityDetail;
+import com.mesalab.cn.exception.CNBusinessException;
+import com.mesalab.cn.exception.CNErrorCode;
 import com.mesalab.cn.service.EntityDetailService;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.strategy.BaseQueryProvider;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,12 +113,12 @@ public class EntityDetailServiceImpl implements EntityDetailService {
                     "type", "ip"));
 
     @Override
-    public BaseResult entityDetailQuery(DSLObject dslObject) throws BusinessException {
+    public BaseResult entityDetailQuery(DSLObject dslObject) throws CNBusinessException {
 
         return parserQuery(dslObject);
     }
 
-    private BaseResult parserQuery(DSLObject dslObject) throws BusinessException {
+    private BaseResult parserQuery(DSLObject dslObject) throws CNBusinessException {
         DSLObject.Query.Parameters parameters = dslObject.getQuery().getParameters();
         DSLObject.Query.Parameters.Match match = parameters.getMatch();
         String dataSource = dslObject.getQuery().getDataSource();
@@ -153,7 +152,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         return BaseResultGenerator.success(result == null ? Arrays.asList() : Arrays.asList(result));
     }
 
-    private Object queryByApp(String condition, String sort, String limit) throws BusinessException {
+    private Object queryByApp(String condition, String sort, String limit) throws CNBusinessException {
 
         Map<String, String> firstAql = appIdView.get(FIRST);
         Map<String, String> secondAql = appIdView.get(SECOND);
@@ -210,7 +209,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         return null;
     }
 
-    private Object queryByDomain(String condition, String sort, String limit) throws BusinessException {
+    private Object queryByDomain(String condition, String sort, String limit) throws CNBusinessException {
 
         Map<String, String> firstAql = domainView.get(FIRST);
         Map<String, String> secondAql = domainView.get(SECOND);
@@ -305,7 +304,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         return null;
     }
 
-    private Object queryByServerIp(String condition, String sort, String limit) throws BusinessException {
+    private Object queryByServerIp(String condition, String sort, String limit) throws CNBusinessException {
 
         Map<String, String> firstAql = serverIpView.get(FIRST);
         Map<String, String> thirdAql = serverIpView.get(THIRD);
@@ -364,7 +363,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         }
         return null;
     }
-    private Object queryByClientIp(String condition, String sort, String limit) throws BusinessException {
+    private Object queryByClientIp(String condition, String sort, String limit) throws CNBusinessException {
 
         Map<String, String> firstAql = clientIpView.get(FIRST);
         Map<String, String> secondAql = clientIpView.get(SECOND);
@@ -397,7 +396,7 @@ public class EntityDetailServiceImpl implements EntityDetailService {
         }
         return null;
     }
-    private Object queryByDNS(String condition, String sort, String limit) throws BusinessException {
+    private Object queryByDNS(String condition, String sort, String limit) throws CNBusinessException {
 
         Map<String, String> firstAql = dnsView.get(FIRST);
         Map<String, String> secondAql = dnsView.get(SECOND);
@@ -510,30 +509,30 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     private void valid(DSLObject.Query.Parameters parameters) {
         DSLObject.Query.Parameters.Match match = parameters.getMatch();
         if (ObjectUtil.isEmpty(match)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.PARAMETERS_IS_INVALID);
+            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
+                    CNErrorCode.PARAMETERS_IS_INVALID);
         }
         List<Condition> condition = match.getCondition();
         if (ObjectUtil.isEmpty(condition)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.PARAMETERS_MATCH_CONDITION_IS_INVALID);
+            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(), 
+                    CNErrorCode.PARAMETERS_MATCH_CONDITION_IS_INVALID);
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldValues())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_VALUE_IS_INVALID);
+            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
+                    CNErrorCode.PARAMETERS_MATCH_CONDITION_FIELD_VALUE_IS_INVALID);
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldKey())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
+            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
+                    CNErrorCode.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
         }
         if (!(Arrays.asList(APP_NAME, DOMAIN, IP, DNS).contains(condition.get(0).getFieldKey()))) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
+            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
+                    CNErrorCode.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
         }
         Integer limit = parameters.getLimit();
         if(ObjectUtil.isNotEmpty(limit)&&!(limit>=0&&limit<=DEF_LIMIT)){
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(),
-                    String.format(ErrorMessage.PARAMETERS_LIMIT_IS_INVALID, DEF_LIMIT));
+            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETERS_LIMIT_IS_INVALID.getCode(),
+                    String.format(CNErrorCode.PARAMETERS_LIMIT_IS_INVALID.getMessage(), DEF_LIMIT));
         }
     }
     private boolean existServerIp(String ip){
