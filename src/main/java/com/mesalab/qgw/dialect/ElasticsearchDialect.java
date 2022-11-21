@@ -123,8 +123,8 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(), 
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
         }
         return build();
     }
@@ -153,8 +153,8 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(allResults.get("columns")));
             baseResult.setStatistics(statistics);
         } else {
-            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),simplyErrorMessage(dataObject)));
+            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),simplyErrorMessage(dataObject)));
         }
         return baseResult;
     }
