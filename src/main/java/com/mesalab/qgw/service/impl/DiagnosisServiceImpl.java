@@ -38,7 +38,6 @@ import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.Select;
-import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.NameValuePair;
@@ -64,7 +63,8 @@ import java.util.stream.Stream;
 
 @Service("diagnosisService")
 @PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
-public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
+public class
+DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private static final String AVRO_SUFFIX = ".avsc";
     private static final String METADATA_PREFIX = "Metadata/";
@@ -252,8 +252,8 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),e.getMessage()));
+                    QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),e.getMessage()));
         }
         return result;
     }
@@ -585,8 +585,8 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             infoMap.put("Query" + index, "status:" + queryResult.getStatus() + ",message:" + queryResult.getMessage());
 
         } else {
-            throw new QGWBusinessException(statusCode, QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),file.get().getName()
+            throw new QGWBusinessException(statusCode, QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),file.get().getName()
                     + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage()));
         }
     }
@@ -776,8 +776,8 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             if (ResultStatusEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage()," The Table[" + tableName + "] Structure query failed"));
+                        QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage()," The Table[" + tableName + "] Structure query failed"));
             }
             List<Map<String, Object>> dbFields = JsonPath.read(JsonMapper.toJsonString(baseResult.getData()), "$.fields.*");
 

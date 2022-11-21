@@ -13,7 +13,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -270,8 +269,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         Map<String, String> result = executeHttpGetOfCK(ipPort, sql, clickHouseHttpSource.getSystemDBName());
         if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table TTL error: {}", result.toString());
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),result.toString()));
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),result.toString()));
         }
         Object tableTTLInDB = null;
         Map<String, Object> tableDiff = Maps.newHashMap();
@@ -294,8 +293,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
         if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table field TTL error: {}", result.toString());
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),result.toString()));
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),result.toString()));
         }
         List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
         for (Map<String, Object> field : fields) {

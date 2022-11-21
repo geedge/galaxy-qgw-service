@@ -15,7 +15,6 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
@@ -166,10 +165,6 @@ public class DruidDialect extends AbstractDataSourceDialect {
         if (status == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), message.get(),
                     (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
-        } else if (status>=400||status<500){
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
-                    QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), message.get()),
-                    StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
 
@@ -203,8 +198,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(allResults));
             baseResult.setStatistics(statistics);
         } else {
-            throw new QGWBusinessException(baseResult.getStatus(),baseResult.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),simplyErrorMessage(dataObject)) );
+            if (baseResult.getStatus() >= ResultStatusEnum.FAIL.getCode() && baseResult.getStatus() < ResultStatusEnum.SERVER_ERROR.getCode()) {
+                throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            }
+            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
         }
         return baseResult;
     }

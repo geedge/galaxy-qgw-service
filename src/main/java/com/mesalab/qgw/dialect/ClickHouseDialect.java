@@ -422,7 +422,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             } catch (JSQLParserException|RuntimeException e) {
                 log.error("SQL Rewrite add tableName and Alias Error: ", e);
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.SQL_REWRITE_ERROR.getCode(), String.format(QGWErrorCode.SQL_REWRITE_ERROR.getMessage(),e.getMessage()));
+                        QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_BUILDER_EXCEPTION.getMessage(), e.getMessage()));
             }
             return this;
         }
@@ -823,7 +823,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             try {
                 return CCJSqlParserUtil.parseExpression(originalField);
             } catch (JSQLParserException e) {
-                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),QGWErrorCode.SQL_REWRITE_ERROR);
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_BUILDER_EXCEPTION);
             }
         }
 
@@ -986,10 +986,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     null,
                     null,
                     QueryFormatEnum.JSON.getValue());
-        } else if (status>=400||status<500){
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
-                    QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), message.get()),
-                    StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
 
@@ -1016,8 +1012,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else {
-            throw new QGWBusinessException(baseResult.getStatus(),baseResult.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),simplyErrorMessage(dataObject)) );
+            if (baseResult.getStatus() >= ResultStatusEnum.FAIL.getCode() && baseResult.getStatus() < ResultStatusEnum.SERVER_ERROR.getCode()) {
+                throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            }
+            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
         }
         return baseResult;
     }
