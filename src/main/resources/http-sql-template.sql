@@ -16,6 +16,14 @@ union all
 (SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes from %s where %s %s and protocol_id like CONCAT('%s','.%s') and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'.','')) + 1 + %s group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id order by stat_time asc)
 #end
 
+#sql("APP_DATA_SUMMARY")
+SELECT app_name as app_name, SUM(bytes) as bytes, MAX(bytes_rate) as max_rate, MIN(bytes_rate) as avg_rate FROM ( SELECT app_name as app_name, SUM(sessions) as sessions, SUM(c2s_byte_num + s2c_byte_num) as bytes, SUM(c2s_byte_num + s2c_byte_num) * 8 / 15 as bytes_rate FROM %s WHERE %s %s GROUP BY app_name, time_floor(TIMESTAMP_TO_MILLIS(__time), 'PT15S') ORDER BY bytes DESC %s) GROUP BY app_name ORDER BY bytes DESC
+#end
+
+#sql("APP_INTERNAL_IP_SUMMARY")
+SELECT common_internal_ip AS ip, SUM(common_c2s_byte_num + common_s2c_byte_num) AS bytes FROM %s WHERE %s %s GROUP BY ip ORDER BY bytes DESC %s
+#end
+
 #sql("ENTITY_ACTIVE_CLIENT_IP")
 select common_client_ip as client_ip ,common_vsys_id as vsys_id from %s where %s %s AND notEmpty(common_client_ip) GROUP BY common_client_ip, common_app_label,common_vsys_id ORDER BY SUM (common_sessions) DESC LIMIT %s
 #end

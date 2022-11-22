@@ -21,5 +21,6 @@ public interface NetworkMonitorService {
     BaseResult buildNetworkOverviewResult(DSLObject dslObject);
     List<ProtocolTree> buildFlatStructure(List<Map> data);
     List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes);
-
+    BaseResult buildAppData(DSLObject dslObject);
+    BaseResult buildInternalIPData(DSLObject dslObject);
 }

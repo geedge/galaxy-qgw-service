@@ -1,5 +1,6 @@
 package com.mesalab.network.dsl;
 
+import cn.hutool.core.util.NumberUtil;
 import com.mesalab.cn.constant.ErrorMessage;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.knowledge.enums.MatchEnum;
@@ -37,6 +38,9 @@ public class DSLValidate {
         }
         if (StringUtil.isEmpty(dslObject.getQuery())) {
             throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.QUERY_IS_INVALID);
+        }
+        if (StringUtil.isNotEmpty(dslObject.getQuery().getLimit()) && !NumberUtil.isNumber(dslObject.getQuery().getLimit().toString())) {
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.DSL_OBJECT_IS_INVALID);
         }
         DSLObject.QueryBean.Parameters parameters = dslObject.getQuery().getParameters();
         if (StringUtil.isEmpty(parameters)) {

@@ -21,6 +21,7 @@ public class DSLObject implements Serializable {
     public static class QueryBean {
         private String queryType;
         private String dataSource;
+        private Integer Limit;
         private Parameters parameters;
 
         @Data

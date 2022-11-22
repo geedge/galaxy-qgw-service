@@ -37,6 +37,7 @@ public class NetworkMonitorController {
     @Autowired
     private NetworkMonitorService networkMonitorService;
     private static final String PROTOCOL = "protocol";
+    private static final String APP = "app";
 
     @PostMapping(value = "/traffic/v1/", produces = "application/json")
     public BaseResult trafficStatistics(HttpServletRequest request, @Validated @RequestBody DSLObject dslObject) {
@@ -46,26 +47,52 @@ public class NetworkMonitorController {
             params.add(StrUtil.trim(parameterNames.nextElement()).toLowerCase(Locale.ROOT));
         }
         if (params.contains(PROTOCOL)) {
-            log.debug("流量分布接口, 参数: queryString is {}, params is {}.", params, dslObject);
+            log.debug("network protocol interface, param: queryString is {}, body is {}.", params, dslObject);
             dslValidate.executeValidate(dslObject);
-            if (QueryType.PROTOCOL_TREE_SUMMARY.getValue()
-                    .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-                return networkMonitorService.buildProtocolTree(dslObject);
-            } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue()
-                    .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-                return networkMonitorService.buildProtocolDataRateSummary(dslObject);
-            }  else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
-                return networkMonitorService.buildNetworkOverviewResult(dslObject);
-            } else {
-                return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
-            }
+            return protocolData(dslObject);
+        } else if (params.contains(APP)) {
+            log.debug("network app interface, param: queryString is {}, body is {}.", params, dslObject);
+            dslValidate.executeValidate(dslObject);
+            return appData(dslObject);
         } else {
-            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Support query parameter name：" + PROTOCOL);
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "not support query parameter");
         }
     }
+
+    private BaseResult appData(DSLObject dslObject) {
+        if (QueryType.APP_DATA_SUMMARY.getValue()
+                .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            return networkMonitorService.buildAppData(dslObject);
+        } else if (QueryType.INTERNAL_IP_DATA_SUMMARY.getValue()
+                .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            return networkMonitorService.buildInternalIPData(dslObject);
+        } else {
+            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
+        }
+    }
+
+    private BaseResult protocolData(DSLObject dslObject) {
+        if (QueryType.PROTOCOL_TREE_SUMMARY.getValue()
+                .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            return networkMonitorService.buildProtocolTree(dslObject);
+        } else if (QueryType.PROTOCOL_DATA_RATE_SUMMARY.getValue()
+                .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            return networkMonitorService.buildProtocolDataRateSummary(dslObject);
+        } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+            return networkMonitorService.buildNetworkOverviewResult(dslObject);
+        } else {
+            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
+        }
+    }
+
     enum QueryType {
-        PROTOCOL_TREE_SUMMARY("protocolTreeSummary"), PROTOCOL_DATA_RATE_SUMMARY("protocolDataRateSummary"), NETWORK_OVERVIEW_SUMMARY("networkOverviewSummary");
+        PROTOCOL_TREE_SUMMARY("protocolTreeSummary"),
+        PROTOCOL_DATA_RATE_SUMMARY("protocolDataRateSummary"),
+        NETWORK_OVERVIEW_SUMMARY("networkOverviewSummary"),
+        APP_DATA_SUMMARY("appDataSummary"),
+        INTERNAL_IP_DATA_SUMMARY("internalIPDataSummary");
         private final String value;
+
         QueryType(String value) {
             this.value = value;
         }

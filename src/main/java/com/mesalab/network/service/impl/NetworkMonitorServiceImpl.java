@@ -58,9 +58,14 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     public String getPort(){
         return environment.getProperty("local.server.port");
     }
+    private static final Map<String, String> LOGICAL_FIELD = Maps.newHashMap();
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
+        LOGICAL_FIELD.put("data_center", "common_data_center");
+        LOGICAL_FIELD.put("device_group", "common_device_group");
+        LOGICAL_FIELD.put("vsys_id", "common_vsys_id");
+        LOGICAL_FIELD.put("protocol_id", "common_protocol_label");
     }
 
     @Override
@@ -195,7 +200,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     private String generateDynamicStatSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
-        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters(), false);
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
         return String.format(sqlTemplate,
                 intervals[1], intervals[0], whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE,
@@ -204,7 +209,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
-        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters(), false);
         String protocolStr = null;
         List<DSLObject.QueryBean.Parameters.FilterBean> match = queryParam.getParameters().getMatch();
         for (DSLObject.QueryBean.Parameters.FilterBean item : match) {
@@ -222,7 +227,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     private String generateNetworkStatSummarySql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
-        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters(), false);
 
         return String.format(sqlTemplate,
                 queryParam.getDataSource(), whereOfTime, whereOfExactly);
@@ -242,7 +247,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return intervals.get(0).split("/");
     }
 
-    private String getWhereOfExactly(DSLObject.QueryBean.Parameters parameters) {
+    private String getWhereOfExactly(DSLObject.QueryBean.Parameters parameters, boolean isLogicalField) {
         ArrayList<DSLObject.QueryBean.Parameters.FilterBean> list = Lists.newArrayList();
         if (!CollectionUtils.isEmpty(parameters.getMatch())) {
             list.addAll(parameters.getMatch());
@@ -253,14 +258,16 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         if (CollectionUtils.isEmpty(list)) {
             return StringUtil.EMPTY;
         }
-        StringBuffer whereOfExactly = new StringBuffer();
+        StringBuilder whereOfExactly = new StringBuilder();
         for (DSLObject.QueryBean.Parameters.FilterBean item : list) {
+            String fieldKey = item.getFieldKey();
+            fieldKey = isLogicalField && LOGICAL_FIELD.containsKey(fieldKey) ? LOGICAL_FIELD.get(fieldKey) : fieldKey;
             if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+                whereOfExactly.append(" AND ").append(fieldKey).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
             } else if (RangeEnum.EQ.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
+                whereOfExactly.append(" AND ").append(fieldKey).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
             } else if (RangeEnum.NE.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" NOT IN ('").append(String.join("','", item.getFieldValues())).append("')");
+                whereOfExactly.append(" AND ").append(fieldKey).append(" NOT IN ('").append(String.join("','", item.getFieldValues())).append("')");
             }
         }
         return whereOfExactly.toString();
@@ -268,7 +275,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     private String generateProtocolTreeSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
-        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        String whereOfExactly = getWhereOfExactly(queryParam.getParameters(), false);
         return String.format(sqlTemplate,
                 queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
@@ -388,6 +395,57 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
         return protocolTreeList;
 
+    }
+
+    @Override
+    public BaseResult buildAppData(DSLObject dslObject) {
+        String whereOfExactly = getWhereOfExactly(dslObject.getQuery().getParameters(), false);
+        whereOfExactly = addPrefixFilter(dslObject.getQuery().getParameters().getMatch(), whereOfExactly, false);
+        String[] intervals = getIntervals(dslObject.getQuery().getParameters().getIntervals());
+        String whereOfTime = "__time >= TIMESTAMP '" + intervals[0] + "' AND __time < TIMESTAMP '" + intervals[1] + "'";
+        Integer limit = dslObject.getQuery().getLimit();
+        String sql = String.format(Objects.requireNonNull(environment.getProperty("APP_DATA_SUMMARY")),
+                dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + limit);
+        Map<String, String> dataResult = executeQuery(sql);
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
+            return JsonMapper.fromJsonString(dataResult.get("result"), BaseResult.class);
+        } else {
+            throw new BusinessException(dataResult.get("result"));
+        }
+    }
+
+    @Override
+    public BaseResult buildInternalIPData(DSLObject dslObject) {
+        String whereOfExactly = getWhereOfExactly(dslObject.getQuery().getParameters(), true);
+        whereOfExactly = addPrefixFilter(dslObject.getQuery().getParameters().getMatch(), whereOfExactly, true);
+        String[] intervals = getIntervals(dslObject.getQuery().getParameters().getIntervals());
+        String whereOfTime = "common_recv_time >=  UNIX_TIMESTAMP('" + intervals[0] + "') AND common_recv_time <  UNIX_TIMESTAMP('" + intervals[1] + "')";
+        Integer limit = dslObject.getQuery().getLimit();
+        String sql = String.format(Objects.requireNonNull(environment.getProperty("APP_INTERNAL_IP_SUMMARY")),
+                dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + limit);
+        Map<String, String> dataResult = executeQuery(sql);
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
+            return JsonMapper.fromJsonString(dataResult.get("result"), BaseResult.class);
+        } else {
+            throw new BusinessException(dataResult.get("result"));
+        }
+    }
+
+    private String addPrefixFilter(List<DSLObject.QueryBean.Parameters.FilterBean> match, String whereOfExactly, boolean isLogicalField) {
+        String protocolValue = null;
+        String protocolKey = null;
+        for (DSLObject.QueryBean.Parameters.FilterBean item : match) {
+            if (MatchEnum.PREFIX.getType().equals(item.getType())) {
+                String[] split = item.getFieldValues().get(0).split(",");
+                protocolValue = split[0].replaceFirst(Constants.PROTOCOL_TREE_ROOT_NAME + Constants.ENCAPSULATION_PATH_SEPARATOR, "");
+                protocolKey = isLogicalField && LOGICAL_FIELD.containsKey(item.getFieldKey()) ? LOGICAL_FIELD.get(item.getFieldKey()) : item.getFieldKey();
+            }
+        }
+        if (StringUtil.isNotEmpty(protocolValue) && StringUtil.isNotEmpty(protocolKey)) {
+            whereOfExactly = whereOfExactly.concat(StringUtil.isBlank(whereOfExactly) ?
+                    " " : " AND (").concat(protocolKey).concat(" = '").concat(protocolValue).concat("' OR ".concat(protocolKey).concat(" like '").concat(protocolValue).concat(".%')"));
+        }
+        return whereOfExactly;
     }
 
     /**
