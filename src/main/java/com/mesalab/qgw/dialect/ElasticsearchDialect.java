@@ -18,6 +18,7 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.*;
@@ -95,7 +96,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     @Override
     String getExplainQuery() {
         throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"ES dialect unsupported EXPLAIN Syntax."));
+                String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.ES_DIALECT_UNSUPPORTED_EXPLAIN_SYNTAX));
     }
 
     @Override

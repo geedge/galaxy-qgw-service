@@ -8,6 +8,7 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.service.DeferredResultHolder;
@@ -132,16 +133,16 @@ public class JobController {
     private void validateJobParams(HashMap<String, Object> reqBody) {
         if (!reqBody.containsKey(JobConfig.KEY_QUERY_TYPE)) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"The param must contain query.type"));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_TYPE_NOT_NULL));
         }
         if (!reqBody.containsKey(JobConfig.KEY_QUERY_DATA_SOURCE)) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"The param must contain query.data_source"));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_DATA_SOURCE_NOT_NULL));
         }
         String dataSource = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_DATA_SOURCE));
         if (!metadataService.getAllTable().contains(dataSource)) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"The param query.data_source illegal"));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_DATA_SOURCE_ERROR));
         }
     }
 

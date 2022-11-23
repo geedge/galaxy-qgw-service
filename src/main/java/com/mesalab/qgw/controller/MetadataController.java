@@ -4,10 +4,8 @@ import cn.hutool.core.util.NumberUtil;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.constant.MessageConst;
-import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.service.MetadataService;
@@ -48,7 +46,7 @@ public class MetadataController {
         log.info("update Schema api, params is: {}-{}", name, obj);
         if (StringUtil.isBlank(name) || StringUtil.isEmpty(obj)) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),MessageConst.SCHEMA_PARAM_ERROR));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_PARAM_ERROR));
         }
         validationParam(name, obj);
         return metadataService.updateSchema(name, obj);
@@ -57,23 +55,23 @@ public class MetadataController {
     private void validationParam(String name, Map<String, Object> obj) {
         if (!metadataService.getAllTable().contains(name)) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),name + " not support setting TTL"));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),name + QGWMessageConst.NOT_SUPPORT_SETTING_TTL));
         }
         String param = JsonMapper.toJsonString(obj);
         if (!VISIBILITY.containsAll(JsonPath.read(param, "$.fields[?(@.doc.visibility != null)].doc.visibility"))) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),MessageConst.SCHEMA_ERROR_VISIBILITY_VALUE));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_ERROR_VISIBILITY_VALUE));
         }
         List<Object> schemaDocTTL = JsonPath.read(param, "$.[?(@.doc.ttl != null)].doc.ttl");
         if (StringUtil.isNotEmpty(schemaDocTTL.stream().filter(o -> !(NumberUtil.isLong(String.valueOf(o)))).toArray())) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),MessageConst.SCHEMA_ERROR_TTL_VALUE));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_ERROR_TTL_VALUE));
         }
         List<Object> fieldDocTTL = JsonPath.read(param, "$.fields[?(@.doc.ttl != null)].doc.ttl");
         Object[] objects3 = fieldDocTTL.parallelStream().filter(o -> !NumberUtil.isLong(String.valueOf(o))).toArray();
         if (StringUtil.isNotEmpty(objects3)) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),MessageConst.SCHEMA_ERROR_TTL_VALUE));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_ERROR_TTL_VALUE));
         }
     }
 }

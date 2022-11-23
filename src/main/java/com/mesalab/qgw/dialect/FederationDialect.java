@@ -7,7 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteMemoryUtils;
-import com.mesalab.common.constant.MessageConst;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -258,11 +258,11 @@ public class FederationDialect extends AbstractEngineDialect{
                 return setOperationList;
             } else {
                 throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
         }
         throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
-                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
     }
 
     private Expression generateDatasetWhereSql(String where) throws JSQLParserException {

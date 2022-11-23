@@ -9,27 +9,26 @@ import lombok.Getter;
 @Getter
 public enum KnowLedgeErrorCode {
     /**
-     * 1-2位：异常类型（参数检查异常:01、SQL语句检查异常:02、SQL执行异常:03、引擎计算异常:04、解析异常:05、执行失败:99）。
+     * 1-3位：异常类型（HTTP协议状态码）
      * 3-4位：模块 02
      * 5-7：自然排序
      */
 
-    NOT_SUPPORT("0102001", "Not Support"),
-    QUERY_IS_INVALID("0102002", "query is invalid"),
-    DATASOURCE_IS_INVALID("0102003", "dataSource is invalid"),
-    DATASOURCE_IS_ERROR("0102004", "dataSource no match"),
-    MATCH_TYPE_ERROR("0102005", "match type is illegal"),
-    MATCHING_SIGN("0102006", "error in matching sign. begin with * and do not end with * for suffix matching, end with * and do not begin with $ or * for prefix matching, begin with $ and do not end with * for exactly matching, begin with * and end with * or no wildcard for substring matching"),
-    RANGE_TYPE_ERROR("0102007", "range type is illegal"),
-    SORT_TYPE_ERROR("0102008", "sort type is illegal"),
-    INTERVALS_IS_INVALID("0102009", "intervals should be [startTime/endTime],such as 2020-01-01 00:00:00/2020-02-02 00:00:00"),
-    TIME_ERROR("0102010", "the end time must be after the start time"),
-    LIMIT_IS_ILLEGAL("0102011", "limit is illegal"),
-    LIMIT_IS_ERROR("0102012", "limit is greater than 0 and less than %s"),
-    FIELD_VALUES_IS_INVALID("0102013", "fieldValues of depth is null"),
-    FIELD_VALUES_FORMAT_ERROR("0102014", "fieldValues of depth is illegal, you should type in an integer greater than 0"),
+    // 请求参数校验错误
+    PARAMETER_ERROR("40002100", "Parameter Validation Failed:%s"),
+    // SQL解析错误
+    SQL_SYNTAX_PARSE_EXCEPTION("40002300", "Syntax Error in SQL statement: %s"),
+    SQL_EXECUTION_BAD_REQUEST_EXCEPTION("40002301", "Error in Database Execution Engine: %s"),
+    // SQL构建错误
+    SQL_BUILDER_EXCEPTION("50002100", "Error in SQL Query Builder and Optimizer: %s"),
+    // SQL在数据库查询中执行错误
+    SQL_EXECUTION_SERVER_EXCEPTION("50002300", "Error in Database Execution Engine: %s"),
+    // SQL在联邦查询中执行错误
+    ENGINE_EXECUTION_EXCEPTION("50002500", "Error in Query Federation: %s"),
     // 未知异常
-    UNKNOWN_EXCEPTION("55501999", "Unknown exception:%s");
+    UNKNOWN_EXCEPTION("55502999", "Unknown exception: %s"),
+
+
 
 
     ;

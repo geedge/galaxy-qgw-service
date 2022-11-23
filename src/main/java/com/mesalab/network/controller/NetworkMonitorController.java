@@ -11,7 +11,6 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.dsl.DSLValidate;
-import com.mesalab.network.exception.NWBusinessException;
 import com.mesalab.network.service.NetworkMonitorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -46,7 +45,7 @@ public class NetworkMonitorController {
             params.add(StrUtil.trim(parameterNames.nextElement()).toLowerCase(Locale.ROOT));
         }
         if (params.contains(PROTOCOL)) {
-            log.debug("流量分布接口, 参数: queryString is {}, params is {}.", params, dslObject);
+            log.debug("network protocol interface, param: queryString is {}, body is {}.", params, dslObject);
             dslValidate.executeValidate(dslObject);
             if (QueryType.PROTOCOL_TREE_SUMMARY.getValue()
                     .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
@@ -60,7 +59,7 @@ public class NetworkMonitorController {
                 return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
             }
         } else {
-            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "Support query parameter name：" + PROTOCOL);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "not support query parameter");
         }
     }
     enum QueryType {

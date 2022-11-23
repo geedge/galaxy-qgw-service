@@ -10,7 +10,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
-import com.mesalab.common.constant.MessageConst;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -254,11 +254,11 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 return setOperationList;
             } else {
                 throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
         }
         throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
-                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
     }
 
 
