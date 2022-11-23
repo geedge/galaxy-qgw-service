@@ -11,7 +11,6 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.dsl.DSLValidate;
-import com.mesalab.network.exception.NWBusinessException;
 import com.mesalab.network.service.NetworkMonitorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -55,7 +54,7 @@ public class NetworkMonitorController {
             dslValidate.executeValidate(dslObject);
             return appData(dslObject);
         } else {
-            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "not support query parameter");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "not support query parameter");
         }
     }
 
@@ -67,7 +66,7 @@ public class NetworkMonitorController {
                 .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
             return networkMonitorService.buildInternalIPData(dslObject);
         } else {
-            throw new NWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
         }
     }
 

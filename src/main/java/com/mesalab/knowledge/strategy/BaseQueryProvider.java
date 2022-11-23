@@ -10,7 +10,6 @@ import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.JwtCache;
 import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
-import com.mesalab.knowledge.exception.KnowledgeBusinessException;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.JsonMapper;
 import org.apache.http.Header;
@@ -82,7 +81,7 @@ public class BaseQueryProvider {
                 res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt()));
             } else {
                 log.error(e.getMessage());
-                throw new KnowledgeBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), KnowLedgeErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), KnowLedgeErrorCode.UNKNOWN_EXCEPTION.getCode(),
                         String.format(KnowLedgeErrorCode.UNKNOWN_EXCEPTION.getMessage(),e.getMessage()));
             }
         }

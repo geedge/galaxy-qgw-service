@@ -15,6 +15,7 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
@@ -106,7 +107,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             return resetBaseResult(result, "type");
         } else {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"start_time and end_time need to be filled in at the same time"));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.START_TIME_AND_END_TIME_NOT_NULL));
         }
     }
 
@@ -378,7 +379,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         }
         if (queryId.contains(queryIdSeparator)) {
             throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"queryId is not supported"));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
         }
         return DBTypeEnum.CLICKHOUSE.getValue();
     }
@@ -482,7 +483,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         }
         if (!baseResult.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),"Scheduled task data quota setting task execution failed"));
+                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),QGWMessageConst.SCHEDULED_TASK_ERROR));
         }
         return baseResult;
     }

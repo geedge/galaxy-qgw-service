@@ -6,7 +6,6 @@ import com.google.common.base.Joiner;
 import com.mesalab.cn.constant.ErrorMessage;
 import com.mesalab.cn.constant.SqlKeywords;
 import com.mesalab.cn.enums.RangeTypeEnum;
-import com.mesalab.cn.exception.CNBusinessException;
 import com.mesalab.cn.exception.CNErrorCode;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -44,7 +43,7 @@ public class CNParser extends DSLParser {
             selectSql = parseQueryOfShareNet(dslObject, selectSql);
         } catch (RuntimeException e) {
             log.error("Build SQL Exception:{}",e);
-            throw new CNBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), CNErrorCode.SQL_BUILDER_EXCEPTION.getCode(),
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), CNErrorCode.SQL_BUILDER_EXCEPTION.getCode(),
                     String.format(CNErrorCode.SQL_BUILDER_EXCEPTION.getMessage(),e.getMessage()));
         }
         return selectSql;
@@ -59,7 +58,7 @@ public class CNParser extends DSLParser {
             selectSql = parseQueryOfBannedApp(dslObject, selectSql);
         } catch (RuntimeException e) {
             log.error("Build SQL Exception:{}",e);
-            throw new CNBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), CNErrorCode.SQL_BUILDER_EXCEPTION.getCode(),
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), CNErrorCode.SQL_BUILDER_EXCEPTION.getCode(),
                     String.format(CNErrorCode.SQL_BUILDER_EXCEPTION.getMessage(),e.getMessage()));
         }
         return selectSql;

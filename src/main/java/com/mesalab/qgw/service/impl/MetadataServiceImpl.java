@@ -16,7 +16,7 @@ import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.constant.MessageConst;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -88,7 +88,7 @@ public class MetadataServiceImpl implements MetadataService {
             return loadFields(name);
         }
         throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),MessageConst.SCHEMA_URL_NOT_FOUND));
+                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_URL_NOT_FOUND));
     }
 
     @Override
@@ -189,7 +189,7 @@ public class MetadataServiceImpl implements MetadataService {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
                     QGWErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),
-                    tableName + " The schema is not registered on the platform, please contact the person in charge of the data platform"));
+                    tableName + ":"+QGWMessageConst.TABLE_NOT_EXIST));
         }
         Schema schema;
         if (!StrUtil.isBlankIfStr(schema = schemaCache.get(tableName))) {
@@ -200,7 +200,7 @@ public class MetadataServiceImpl implements MetadataService {
             if (StrUtil.isBlankIfStr(content)) {
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),tableName + " Get Schema configuration exception"));
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),tableName + ":"+QGWMessageConst.QUERY_SCHEMA_ERROR));
             }
             schemaCache.put(tableName, schema = parseSchema(content));
             systemConfigService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
@@ -253,7 +253,8 @@ public class MetadataServiceImpl implements MetadataService {
             log.info("push Schema, content is: {}", content);
             return systemConfigService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), "get Schema Error");
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),QGWMessageConst.QUERY_SCHEMA_ERROR));
         }
     }
 
@@ -308,7 +309,7 @@ public class MetadataServiceImpl implements MetadataService {
     private Map loadFields(String name) {
         Schema schema = getSchemaByName(name);
         if (StringUtil.isEmpty(schema)) {
-            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), QGWMessageConst.SCHEMA_URL_NOT_FOUND);
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
         Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
@@ -526,7 +527,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
         );
         if (tables.isEmpty()) {
-            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), QGWMessageConst.SCHEMA_URL_NOT_FOUND);
         }
         date.put("type", "enum");
         date.put("name", name);

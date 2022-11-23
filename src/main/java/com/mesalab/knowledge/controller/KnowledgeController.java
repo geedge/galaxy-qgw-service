@@ -8,7 +8,7 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.QueryTypeEnum;
 import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
-import com.mesalab.knowledge.exception.KnowledgeBusinessException;
+import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.mesalab.knowledge.service.KnowledgeService;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
@@ -44,12 +44,14 @@ public class KnowledgeController {
             log.debug("服务推荐接口, 参数: queryString is {},params is {}", param, object);
             if (!EnumUtils.isValidEnum(QueryTypeEnum.class, StringUtil.upperCase(param))
                     || StringUtil.isNotEmpty(request.getParameter(param))) {
-                throw new KnowledgeBusinessException(ResultStatusEnum.FAIL.getCode(),
-                        KnowLedgeErrorCode.NOT_SUPPORT);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+                        KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
             }
             return knowledgeService.query(object);
         }
-        throw new KnowledgeBusinessException(ResultStatusEnum.FAIL.getCode(),
-                KnowLedgeErrorCode.NOT_SUPPORT);
+        throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+                KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
     }
 }

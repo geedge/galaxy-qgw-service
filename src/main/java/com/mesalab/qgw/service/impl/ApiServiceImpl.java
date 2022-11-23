@@ -13,7 +13,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.SchemaBase;
-import com.mesalab.common.constant.MessageConst;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
@@ -99,7 +99,7 @@ public class ApiServiceImpl implements ApiService {
             baseResult = executeExplainStatement(param);
         } else {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Only support statement operations for select, show and describe."));
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.ONLY_SUPPORT_STATEMENT_OPERATIONS_FOR_SELECT));
         }
         return baseResult;
     }
@@ -107,27 +107,27 @@ public class ApiServiceImpl implements ApiService {
     private void validateAndSetDefaultValue(ApiParam param) {
         if (StringUtil.isBlank(param.getQuery())) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"The SQL must be exists."));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.SQL_MUST_BE_EXISTS));
         }
         if (StringUtil.isBlank(param.getOption())) {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
         }
         if (Arrays.stream(QueryOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getOption()))) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"The option must be real-time or long-term or syntax-validation."));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.OPTION_TYPE_ERROR));
         }
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())
                 && StringUtil.isBlank(param.getReportId())
                 && StringUtil.isBlank(param.getResultId())) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"The option=long-term, must be reportId or resultId."));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.MUST_BE_REPORTID_OR_RESULTID));
         }
         if (StringUtil.isBlank(param.getFormat())) {
             param.setFormat(QueryFormatEnum.JSON.getValue());
         }
         if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"The format must be json or csv."));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.FORMAT_TYPE_ERROR));
         }
     }
 
@@ -303,7 +303,7 @@ public class ApiServiceImpl implements ApiService {
             } else {
                 log.error("Not support DML Parser");
                 throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
 
             sqlQuerySource.setSqlBody(String.valueOf(selectStatement.getSelectBody()));
@@ -318,7 +318,7 @@ public class ApiServiceImpl implements ApiService {
                 sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
             } else {
                 throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),MessageConst.SQL_PARSE_ERROR_NOT_FOUNT_TABLE));
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.SQL_PARSE_ERROR_NOT_FOUNT_TABLE));
             }
 
             SelectBody body = selectStatement.getSelectBody();
@@ -413,7 +413,7 @@ public class ApiServiceImpl implements ApiService {
                 sqlQuerySource.setLimit(SQLHelper.INVALID_LIMIT_DESC);
             } else { //其它暂不支持
                 throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),MessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
 
 
@@ -479,20 +479,11 @@ public class ApiServiceImpl implements ApiService {
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Custom function conversion instance exception:{}",e);
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Custom function conversion instance exception！"));
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.CUSTOM_FUNCTION_CONVERSION_INSTANCE_EXCEPTION));
         }
         return udf;
     }
 
-    private String getMultiSqlTableName(SQLSelectQuery sqlSubSelectQuery) {
-        SQLTableSource subTable = ((SQLSelectQueryBlock) sqlSubSelectQuery).getFrom();
-        if (subTable instanceof SQLExprTableSource) {
-            return ((SQLExprTableSource) subTable).getName().getSimpleName();
-        } else {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Multi-level nested subqueries are not supported yet."));
-        }
-    }
 
 
     /**
@@ -524,8 +515,7 @@ public class ApiServiceImpl implements ApiService {
         } else {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),
-
-                            param.getTableName() + " The form is not registered on the platform, please contact the person in charge of the data platform"));
+                            param.getTableName() + ":" + QGWMessageConst.TABLE_NOT_EXIST));
         }
 
         param.setFormat(QueryFormatEnum.JSON.getValue());
@@ -537,7 +527,7 @@ public class ApiServiceImpl implements ApiService {
 
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"please check tableName"));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.CHECK_TABLE));
         }
         return baseResult;
     }

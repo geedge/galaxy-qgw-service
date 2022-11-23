@@ -1,28 +1,26 @@
 package com.mesalab.knowledge.strategy;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.entity.Match;
 import com.mesalab.knowledge.entity.Parameters;
 import com.mesalab.knowledge.entity.Range;
 import com.mesalab.knowledge.entity.arango.IpLearningPath;
-import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
-import com.mesalab.knowledge.exception.KnowledgeBusinessException;
+import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -76,10 +74,12 @@ public class FqdnProviderImpl implements QueryProvider {
                     //查询深度
                     if ("DEPTH".equals(r.getFieldKey())) {
                         if (ObjectUtils.isEmpty(r.getFieldValues())){
-                            throw new KnowledgeBusinessException(KnowLedgeErrorCode.FIELD_VALUES_IS_INVALID);
+                            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                                    String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.FIELD_VALUES_FORMAT_ERROR));
                         }
                         if (!Pattern.matches(depthregex, String.valueOf(r.getFieldValues().get(0)))){
-                            throw new KnowledgeBusinessException(KnowLedgeErrorCode.FIELD_VALUES_FORMAT_ERROR);
+                            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                                    String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.FIELD_VALUES_FORMAT_ERROR));
                         }
                     } else if ("PROTOCOL".equals(r.getFieldKey())) {
                         List<String> protocols = Lists.newArrayList();

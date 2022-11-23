@@ -3,9 +3,8 @@ package com.mesalab.common.utils.sqlparser;
 import com.alibaba.druid.util.JdbcConstants;
 import com.google.common.collect.Lists;
 import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.zdjizhi.utils.StringUtil;
@@ -123,7 +122,7 @@ public class SQLHelper {
             } else {
                 log.error("Not support DML Parser");
                 throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Not support DML Parser."));
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.NOT_SUPPORT_DML_PARSER));
             }
 
             TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
@@ -135,7 +134,7 @@ public class SQLHelper {
             } else {
                 log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}", sql);
                 throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Get Table Name Error."));
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.GET_TABLE_NAME_ERROR));
             }
 
         } catch (JSQLParserException e) {
@@ -180,7 +179,7 @@ public class SQLHelper {
             } else {
                 log.error("Not support DML Parser");
                 throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"Not support DML Parser."));
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.NOT_SUPPORT_DML_PARSER));
             }
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);

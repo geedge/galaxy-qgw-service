@@ -2,9 +2,10 @@ package com.mesalab.cn.component;
 
 import com.mesalab.cn.entity.pojo.DSLObject;
 import com.mesalab.cn.enums.*;
-import com.mesalab.cn.exception.CNBusinessException;
 import com.mesalab.cn.exception.CNErrorCode;
+import com.mesalab.cn.exception.CNErrorMessage;
 import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
@@ -34,54 +35,55 @@ public class DslValidate {
     @Autowired
     private MetadataService metadataService;
 
-    public void executeValidate(DSLObject dslObject) throws CNBusinessException {
+    public void executeValidate(DSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.DSL_OBJECT_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.DSL_OBJECT_IS_INVALID));
         }
         DSLObject.Query query = dslObject.getQuery();
         if (StringUtil.isEmpty(query)) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    CNErrorCode.QUERY_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.QUERY_IS_INVALID));
         }
         if (StringUtil.isEmpty(EngineTypeEnum.getByEngine(query.getDataEngine()))) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    CNErrorCode.DATA_ENGINE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATA_ENGINE_IS_INVALID));
         }
         if (ANALYSIS_ENGINE.getEngine().equals(query.getDataEngine())) {
             if (StringUtil.isBlank(query.getDataSource())) {
-                throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                        CNErrorCode.DATASOURCE_IS_INVALID);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATASOURCE_IS_INVALID));
             }
         } else {
             if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))) {
-                throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                        CNErrorCode.DATASOURCE_IS_INVALID);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATASOURCE_IS_INVALID));
             }
         }
         DSLObject.Query.Parameters parameters = query.getParameters();
         if (StringUtil.isEmpty(parameters)) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    CNErrorCode.PARAMETERS_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.PARAMETERS_IS_INVALID));
         }
         if (!isValidMatch(parameters.getMatch())) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    CNErrorCode.MATCH_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.MATCH_IS_INVALID));
         }
         if (!isValidRange(parameters.getRange())) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    CNErrorCode.RANGE_TYPE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.RANGE_TYPE_IS_INVALID));
         }
         if (!isValidDistinct(parameters.getDistinct())) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    CNErrorCode.DISTINCT_TYPE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.DISTINCT_TYPE_IS_INVALID));
         }
         if (!isValidIntervals(parameters.getIntervals())) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    CNErrorCode.INTERVALS_TYPE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.INTERVALS_TYPE_IS_INVALID));
         }
         if (!isValidSort(parameters.getSort())) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    CNErrorCode.SORT_TYPE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.SORT_TYPE_IS_INVALID));
         }
     }
 
@@ -99,8 +101,8 @@ public class DslValidate {
         sort.forEach(o -> {
             if (!StringUtil.isBlank(o.getType())) {
                 if (StringUtil.isEmpty(SortTypeEnum.getByType(StringUtil.lowerCase(o.getType())))) {
-                    throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                            CNErrorCode.SORT_TYPE_IS_INVALID);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                            String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.SORT_TYPE_IS_INVALID));
                 }
             }
         });
@@ -126,17 +128,19 @@ public class DslValidate {
         }
         for (String dateTimeStr : split) {
             if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                        CNErrorCode.TIME_FORMAT_ERROR);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.TIME_FORMAT_ERROR));
             }
         }
         try {
             DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
             if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
-                throw new CNBusinessException(CNErrorCode.INTERVALS_VALUE_ERROR);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.INTERVALS_VALUE_ERROR));
             }
         } catch (RuntimeException e) {
-            throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.TIME_FORMAT_ERROR);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.TIME_FORMAT_ERROR));
         }
         return true;
     }
@@ -157,7 +161,8 @@ public class DslValidate {
         distinct.getCondition().forEach(o -> {
             if (StringUtil.isNotBlank(o.getType())) {
                 if (!EnumUtils.isValidEnum(RangeTypeEnum.class, StringUtil.upperCase(o.getType()))){
-                    throw new CNBusinessException(CNErrorCode.DISTINCT_TYPE_ERROR);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                            String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.DISTINCT_TYPE_ERROR));
                 }
             }
         });
@@ -178,8 +183,10 @@ public class DslValidate {
         validLogicType(range.getLogicType());
         range.getCondition().forEach(o -> {
             if (StringUtil.isNotBlank(o.getType())) {
-                if (!EnumUtils.isValidEnum(RangeTypeEnum.class, StringUtil.upperCase(o.getType())))
-                throw new CNBusinessException(CNErrorCode.RANGE_TYPE_ERROR);
+                if (!EnumUtils.isValidEnum(RangeTypeEnum.class, StringUtil.upperCase(o.getType()))){
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                            String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.RANGE_TYPE_ERROR));
+                }
             }
         });
         return true;
@@ -201,7 +208,8 @@ public class DslValidate {
         match.getCondition().forEach(o -> {
             if (StringUtil.isNotBlank(o.getType())) {
                 if (!EnumUtils.isValidEnum(MatchTypeEnum.class, StringUtil.upperCase(o.getType()))){
-                    throw new CNBusinessException(CNErrorCode.MATCH_TYPE_ERROR);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                            String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.MATCH_TYPE_ERROR));
                 }
             }
         });
@@ -211,8 +219,8 @@ public class DslValidate {
     private void validLogicType(String logicType) {
         if (StringUtil.isNotBlank(logicType)) {
             if (StringUtil.isEmpty(LogicTypeEnum.getByType(StringUtil.lowerCase(logicType)))) {
-                throw new CNBusinessException(ResultStatusEnum.FAIL.getCode(),
-                        CNErrorCode.LOGIC_TYPE_IS_INVALID);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), CNErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CNErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.LOGIC_TYPE_IS_INVALID));
             }
         }
     }

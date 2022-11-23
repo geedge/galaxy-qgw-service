@@ -12,12 +12,14 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.common.base.Splitter;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.entity.*;
 import com.mesalab.knowledge.enums.DataSourceEnum;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
-import com.mesalab.knowledge.exception.KnowledgeBusinessException;
+import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.mesalab.knowledge.strategy.QueryProvider;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.JsonMapper;
@@ -75,14 +77,17 @@ public class KnowledgeService {
         DSLObject.DSLQuery dslQuery = dSLObject.getQuery();
 
         if (ObjectUtils.isEmpty(dslQuery)){
-            throw new KnowledgeBusinessException(KnowLedgeErrorCode.QUERY_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.QUERY_IS_INVALID));
         }
         Parameters parameters = dslQuery.getParameters();
         if (ObjectUtils.isEmpty(dslQuery.getDataSource())){
-            throw new KnowledgeBusinessException(KnowLedgeErrorCode.DATASOURCE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.DATASOURCE_IS_INVALID));
         }
         if (ObjectUtils.isEmpty(EnumUtils.getEnum(DataSourceEnum.class,StringUtil.upperCase(dslQuery.getDataSource())))){
-            throw new KnowledgeBusinessException(KnowLedgeErrorCode.DATASOURCE_IS_ERROR);
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.DATASOURCE_IS_ERROR));
         }
 
         if (isNull(parameters)) {
@@ -97,13 +102,15 @@ public class KnowledgeService {
         if (!ObjectUtils.isEmpty(matchs)) {
             matchs.forEach(m -> {
                 if (!EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(m.getType()))){
-                    throw new KnowledgeBusinessException(KnowLedgeErrorCode.MATCH_TYPE_ERROR);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                            String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.MATCH_TYPE_ERROR));
                 }
                 //正则匹配方式 禁止 $xxx* 形式的value
                 if (MatchEnum.REGEX.getType().equals(m.getType())) {
                     m.getFieldValues().forEach(mv -> {
                         if((String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*"))){
-                            throw new KnowledgeBusinessException(KnowLedgeErrorCode.MATCHING_SIGN);
+                            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                                    String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.MATCHING_SIGN));
                         }
                     });
                 }
@@ -112,37 +119,43 @@ public class KnowledgeService {
         if (!ObjectUtils.isEmpty(ranges)) {
             ranges.forEach(r -> {
                 if (!EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(r.getType()))){
-                    throw new KnowledgeBusinessException(KnowLedgeErrorCode.RANGE_TYPE_ERROR);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                            String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.RANGE_TYPE_ERROR));
                 }
             });
         }
         if (!ObjectUtils.isEmpty(sorts)) {
             sorts.forEach(s -> {
                 if (!("asc".equalsIgnoreCase(s.getType()) || "desc".equalsIgnoreCase(s.getType()))){
-                    throw new KnowledgeBusinessException(KnowLedgeErrorCode.SORT_TYPE_ERROR);
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                            String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.SORT_TYPE_ERROR));
                 }
             });
         }
         if (!ObjectUtils.isEmpty(intervals)) {
             List<String> times = Splitter.on("/").splitToList(intervals.get(0));
             if (ObjectUtils.isEmpty(times) || times.size() != 2){
-                throw new KnowledgeBusinessException(KnowLedgeErrorCode.INTERVALS_IS_INVALID);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.INTERVALS_IS_INVALID));
             }
             Date start = DateUtils.convertStringToDate(times.get(0), DateUtils.YYYY_MM_DD_HH24_MM_SS);
             Date end = DateUtils.convertStringToDate(times.get(1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
             if (!start.before(end)){
-                throw new KnowledgeBusinessException(KnowLedgeErrorCode.TIME_ERROR);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.TIME_ERROR));
             }
         }
         if (nonNull(limit)) {
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
             if (ObjectUtils.isEmpty(limits) || (limit.contains(",") && limits.size() != 2)){
-                throw new KnowledgeBusinessException(KnowLedgeErrorCode.LIMIT_IS_ILLEGAL);
+                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.LIMIT_IS_ILLEGAL));
             }
 
             for (String l : limits) {
                 if (!(l.length() <= maxrows.length() && Integer.valueOf(maxrows) >= Integer.valueOf(l) && Integer.valueOf(l) > 0)){
-                    throw new KnowledgeBusinessException(KnowLedgeErrorCode.LIMIT_IS_ILLEGAL.getCode(), String.format(KnowLedgeErrorCode.LIMIT_IS_ILLEGAL.getMessage(),maxrows));
+                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
+                            String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), String.format(KnowLedgeErrorMessage.LIMIT_IS_ILLEGAL,maxrows)));
                 }
             }
         }

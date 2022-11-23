@@ -19,6 +19,7 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.qgw.benchmark.elasticsearch.ElasticSearchWriter;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.*;
@@ -233,7 +234,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             } else {
                 throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
                         QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), "The option is not supported."));
+                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.OPTION_IS_NOT_SUPPORTED));
             }
 
             mergeResult = Stream
@@ -274,7 +275,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         } else {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
                     QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"Illegal value about dialect."));
+                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.DIALECT_VALUE_ERROR));
         }
 
 
