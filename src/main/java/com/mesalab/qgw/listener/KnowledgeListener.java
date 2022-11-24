@@ -12,6 +12,7 @@ import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.services.common.entity.IpLocationConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
@@ -23,6 +24,7 @@ import java.util.Map;
  * @Date 2022/7/7
  */
 @Component
+@DependsOn({"hosConfig", "httpClientService"})
 public class KnowledgeListener {
 
     private static final Log log = LogFactory.get();
