@@ -44,7 +44,7 @@ public class IP_TO_ASN_ORG implements  UDF {
         for (Object source: results) {
             Map<String, Object> sourceMap = ((Map<String, Object>) source);
             if (sourceMap.containsKey(addressLabel)) {
-                sourceMap.put(addressLabel, IPUtil.getInstance().getAsnOrganization(sourceMap.get(addressLabel).toString()));
+                sourceMap.put(addressLabel, IPUtil.getAsnOrganization(sourceMap.get(addressLabel).toString()));
             }
             targetResult.add(sourceMap);
         }

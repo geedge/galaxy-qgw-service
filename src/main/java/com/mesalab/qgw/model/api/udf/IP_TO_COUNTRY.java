@@ -41,7 +41,7 @@ public class IP_TO_COUNTRY implements  UDF {
          for (Object source: results) {
              Map<String, Object> sourceMap = ((Map<String, Object>) source);
              if (sourceMap.containsKey(addressLabel)) {
-                 sourceMap.put(addressLabel, IPUtil.getInstance().getCountry(sourceMap.get(addressLabel).toString()));
+                 sourceMap.put(addressLabel, IPUtil.getCountry(sourceMap.get(addressLabel).toString()));
              }
                targetResult.add(sourceMap);
          }
