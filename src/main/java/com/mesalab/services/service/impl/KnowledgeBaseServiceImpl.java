@@ -291,7 +291,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 base.setPath(knowledgeBase.getPath());
                 base.setSize(knowledgeBase.getSize());
                 base.setSha256(knowledgeBase.getSha256());
-                base.setOrigin_url(knowledgeBase.getOrigin_url());
+                base.setOriginUrl(knowledgeBase.getOriginUrl());
                 knowledgeBaseList.set(i, base);
                 return false;
             }

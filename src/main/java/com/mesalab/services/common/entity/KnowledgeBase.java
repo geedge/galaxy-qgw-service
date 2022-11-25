@@ -23,7 +23,7 @@ public class KnowledgeBase {
 
     private String sha256;
 
-    private String origin_url;
+    private String originUrl;
 
     private String version;
 

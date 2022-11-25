@@ -47,7 +47,7 @@ public class IP_TO_GEO implements  UDF {
         for (Object source: results) {
              Map<String, Object> sourceMap = ((Map<String, Object>) source);
              if (sourceMap.containsKey(addressLabel)) {
-                 sourceMap.put(addressLabel, IPUtil.getInstance().getGeo(sourceMap.get(addressLabel).toString()));
+                 sourceMap.put(addressLabel, IPUtil.getGeo(sourceMap.get(addressLabel).toString()));
              }
                targetResult.add(sourceMap);
          }
