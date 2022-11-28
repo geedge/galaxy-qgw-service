@@ -137,6 +137,10 @@ public class KnowledgeListener {
         try {
             Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
             inputStream = httpClientService.httpGetInputStream(knowledgeBase.getPath(), httpConfig.getServerResponseTimeOut(), header);
+            if (inputStream == null) {
+                log.error("download file error, skip this update, knowledge is: {}", knowledgeBase);
+                return;
+            }
             outputStream = new FileOutputStream(KnowledgeConstant.DAT.concat(File.separator).concat(knowledgeBase.getName()).concat(".").concat(knowledgeBase.getFormat()));
             IoUtil.copy(inputStream, outputStream);
             log.info("knowledge download name: {}, version: {}", knowledgeBase.getName(), knowledgeBase.getVersion());
