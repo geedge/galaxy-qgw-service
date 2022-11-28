@@ -404,8 +404,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String[] intervals = getIntervals(dslObject.getQuery().getParameters().getIntervals());
         String whereOfTime = "__time >= TIMESTAMP '" + intervals[0] + "' AND __time < TIMESTAMP '" + intervals[1] + "'";
         Integer limit = dslObject.getQuery().getLimit();
+        Integer offset = dslObject.getQuery().getOffset();
         String sql = String.format(Objects.requireNonNull(environment.getProperty("APP_DATA_SUMMARY")),
-                dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + limit);
+                dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
         Map<String, String> dataResult = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
             return JsonMapper.fromJsonString(dataResult.get("result"), BaseResult.class);
@@ -421,8 +422,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String[] intervals = getIntervals(dslObject.getQuery().getParameters().getIntervals());
         String whereOfTime = "common_recv_time >=  UNIX_TIMESTAMP('" + intervals[0] + "') AND common_recv_time <  UNIX_TIMESTAMP('" + intervals[1] + "')";
         Integer limit = dslObject.getQuery().getLimit();
+        Integer offset = dslObject.getQuery().getOffset();
         String sql = String.format(Objects.requireNonNull(environment.getProperty("APP_INTERNAL_IP_SUMMARY")),
-                dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + limit);
+                dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
         Map<String, String> dataResult = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
             return JsonMapper.fromJsonString(dataResult.get("result"), BaseResult.class);

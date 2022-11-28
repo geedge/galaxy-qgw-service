@@ -13,6 +13,8 @@ public class NWErrorMessage {
      */
     public static String DSL_OBJECT_IS_INVALID = "DSLObject is invalid";
     public static String QUERY_IS_INVALID = "DSLObject.query is invalid";
+    public static String QUERY_LIMIT_IS_INVALID = "DSLObject.query.limit is invalid";
+    public static String QUERY_OFFSET_IS_INVALID = "DSLObject.query.offset is invalid";
     public static String GRANULARITY_VALUE_IS_INVALID = "DSLObject.query.parameters.Granularity value is invalid";
     public static String MATCH_IS_INVALID = "DSLObject.query.Match is invalid";
     public static String RANGE_TYPE_IS_INVALID = "DSLObject.query.Range type is invalid";

@@ -44,7 +44,11 @@ public class DSLValidate {
         }
         if (StringUtil.isNotEmpty(dslObject.getQuery().getLimit()) && !NumberUtil.isNumber(dslObject.getQuery().getLimit().toString())) {
             throw new BusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(NWErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.DSL_OBJECT_IS_INVALID));
+                    String.format(NWErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.QUERY_LIMIT_IS_INVALID));
+        }
+        if (StringUtil.isNotEmpty(dslObject.getQuery().getOffset()) && !NumberUtil.isNumber(dslObject.getQuery().getOffset().toString())) {
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(NWErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.QUERY_OFFSET_IS_INVALID));
         }
         DSLObject.QueryBean.Parameters parameters = dslObject.getQuery().getParameters();
         if (StringUtil.isEmpty(parameters)) {
