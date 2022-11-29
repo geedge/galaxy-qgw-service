@@ -125,7 +125,8 @@ public class JobExecuteService implements EnvironmentAware {
         plainSelectSQL.setWhere(plainSelect.getWhere());
         Limit limit = plainSelectSQL.getLimit();
         if (isSecBuild && StringUtil.isNotEmpty(limit)) {
-            limit.setRowCount(new LongValue(Long.parseLong(limit.getRowCount().toString()) * 10));
+            LongValue longValue = new LongValue(Long.parseLong(limit.getRowCount().toString()) * 10);
+            limit.setRowCount(longValue.getValue() > 10000 ? longValue : new LongValue(10000));
         }
         List<Future<Boolean>> list = Lists.newArrayList(taskExecuteService.executeStatistics(jobInfo.getId(), parseSQL.toString()));
         waitAsyncResultAndUpdateProcess(jobInfo, list);
