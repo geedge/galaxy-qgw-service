@@ -102,12 +102,6 @@ public class DSLValidate {
         }
         for (DSLObject.QueryBean.Parameters.FilterBean match : filterBeanList) {
             Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(match.getType())), ErrorMessage.MATCH_FIELD_VALUES_ERROR);
-            for (String fieldValue : match.getFieldValues()) {
-                if (fieldValue.startsWith("*") || fieldValue.endsWith("$")) {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(),NWErrorCode.PARAMETER_ERROR.getCode(),
-                            String.format(NWErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.MATCH_FIELD_VALUES_ERROR));
-                }
-            }
         }
         return true;
     }

@@ -78,15 +78,13 @@ public abstract class DSLParser {
             String join = index == 1 ? SqlKeywords.WHERE + " (" : start;
             sql = sql.concat(join)
                     .concat(fieldKey)
-                    .concat(SqlKeywords.LIKE)
-                    .concat(parseLike(values.get(0).toString(), type));
+                    .concat(parseMatch(values.get(0).toString(), type));
 
             if (values.size() > 1) {
                 for (int i = 1; i < values.size(); i++) {
                     sql = sql.concat(SqlKeywords.OR)
                             .concat(fieldKey)
-                            .concat(SqlKeywords.LIKE)
-                            .concat(parseLike(values.get(i).toString(), type));
+                            .concat(parseMatch(values.get(i).toString(), type));
                 }
             }
         }
@@ -123,23 +121,23 @@ public abstract class DSLParser {
      * @Date: 2020/7/23 11:47
      * @return: java.lang.String
      **/
-    public static String parseLike(String value, String type) {
+    public static String parseMatch(String value, String type) {
         switch (MatchTypeEnum.getByType(type)) {
             case REGEX:
                 return parseRegex(value);//正则匹配
             case PREFIX:
-                return "'" + value + "%'";//前缀匹配
+                return " like '" + value + "%'";//前缀匹配
             case SUFFIX:
-                return "'%" + value + "'";//后缀匹配
+                return " like '%" + value + "'";//后缀匹配
             case EXACTLY:
-                return "'" + value + "'";//完全匹配
+                return " = '" + value + "'";//完全匹配
             case SUBSTRING:
-                return "'%" + value + "%'";//子串匹配
+                return " like '%" + value + "%'";//子串匹配
         }
         return "";
     }
 
-    protected static String parseRange(String value, String type) {
+    public static String parseRange(String value, String type) {
         switch (RangeTypeEnum.getByType(type)) {
             case GT:
                 return ">" + value;
@@ -168,22 +166,22 @@ public abstract class DSLParser {
         if (value.startsWith("$")) {
             //以$开头，不以*结尾，无论关键字其他位置是否包含表示匹配方式的字符*和$，即表示完整匹配
             value = value.replaceAll("\\$", "");
-            return "'" + value + "'";
+            return " = '" + value + "'";
         } else if (value.startsWith("*") && value.endsWith("*")) {
             //以*开始，以*结尾，无论关键字其他位置是否包含表示匹配方式的字符*和$，即表示子串匹配
             value = value.replaceAll("\\*", "");
-            return "'%" + value + "%'";
+            return " like '%" + value + "%'";
         } else if (value.startsWith("*")) {
             //以*开始，不以*结尾，无论关键字其他位置是否包含表示匹配方式的字符*和$，即表示右匹配（后缀匹配）
             value = value.replaceAll("\\*", "");
-            return "'%" + value + "'";
+            return " like '%" + value + "'";
         } else if (value.endsWith("*")) {
             //以*结尾，不以*或者$开始，无论关键字其他位置是否包含表示匹配方式的字符*和$，即表示左匹配(前缀匹配)
             value = value.replaceAll("\\*", "");
-            return "'" + value + "%'";
+            return " like '" + value + "%'";
         } else {
             //不以*或者$开头，不以*结尾，无论关键字其他位置是否包含表示匹配方式的字符*和$，即表示子串匹配
-            return "'%" + value + "%'";
+            return " like '%" + value + "%'";
         }
     }
 

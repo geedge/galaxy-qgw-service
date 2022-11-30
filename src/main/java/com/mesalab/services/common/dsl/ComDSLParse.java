@@ -46,8 +46,8 @@ public class ComDSLParse extends DSLParser {
             } else {
                 fieldKey = fieldKey.equals(defField) ? "account" : fieldKey;
                 return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
-                    return parseLike(encode(v), m.getType());
-                }).collect(joining(" or ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
+                    return parseMatch(encode(v), m.getType());
+                }).collect(joining(" OR ".concat(fieldKey), fieldKey, " "));
             }
         }).collect(joining(" AND ", " AND ", " "));
     }
@@ -61,8 +61,8 @@ public class ComDSLParse extends DSLParser {
             String type = m.getType();
             List<String> fieldValues = m.getFieldValues();
             return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
-                return ComDSLParse.parseLike(ComDSLParse.encode(v), type);
-            }).collect(joining(" OR ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
+                return ComDSLParse.parseMatch(ComDSLParse.encode(v), type);
+            }).collect(joining(" OR ".concat(fieldKey), fieldKey, " "));
 
         }).collect(joining(" OR ", " AND( ", ")"));
     }
