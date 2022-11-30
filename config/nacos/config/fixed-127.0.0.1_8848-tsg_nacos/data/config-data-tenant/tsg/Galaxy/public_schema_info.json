@@ -2534,6 +2534,10 @@
         {
           "code": "1048576",
           "value": "Random looking"
+        },
+        {
+          "code": "524288",
+          "value": "Asymmetric"
         }
       ]
     }
