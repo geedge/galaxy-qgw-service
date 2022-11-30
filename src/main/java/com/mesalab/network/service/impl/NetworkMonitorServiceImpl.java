@@ -2,6 +2,7 @@ package com.mesalab.network.service.impl;
 
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
@@ -23,6 +24,7 @@ import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.service.NetworkMonitorService;
 import com.mesalab.network.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
+import com.mesalab.services.common.dsl.ComDSLParse;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +60,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     public String getPort(){
         return environment.getProperty("local.server.port");
     }
+    private static final Map<String, String> LOGICAL_FIELD = Maps.newHashMap();
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
@@ -195,7 +198,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     private String generateDynamicStatSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
-        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, null);
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
         return String.format(sqlTemplate,
                 intervals[1], intervals[0], whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE,
@@ -204,7 +207,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
-        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, Lists.newArrayList("protocol_id"));
         String protocolStr = null;
         List<DSLObject.QueryBean.Parameters.FilterBean> match = queryParam.getParameters().getMatch();
         for (DSLObject.QueryBean.Parameters.FilterBean item : match) {
@@ -222,7 +225,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     private String generateNetworkStatSummarySql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
-        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        String whereOfExactly = getWhereFilter(queryParam.getParameters(), false ,null);
 
         return String.format(sqlTemplate,
                 queryParam.getDataSource(), whereOfTime, whereOfExactly);
@@ -242,33 +245,71 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return intervals.get(0).split("/");
     }
 
-    private String getWhereOfExactly(DSLObject.QueryBean.Parameters parameters) {
-        ArrayList<DSLObject.QueryBean.Parameters.FilterBean> list = Lists.newArrayList();
+    private String getWhereFilter(DSLObject.QueryBean.Parameters parameters, boolean isLogicalField, List<String> skipFields) {
+        List<String> filter = Lists.newArrayList();
         if (!CollectionUtils.isEmpty(parameters.getMatch())) {
-            list.addAll(parameters.getMatch());
+            filter.addAll(parseMatch(parameters.getMatch(), isLogicalField, skipFields));
         }
         if (!CollectionUtils.isEmpty(parameters.getRange())) {
-            list.addAll(parameters.getRange());
+            filter.addAll(parseRange(parameters.getRange(), isLogicalField, skipFields));
         }
-        if (CollectionUtils.isEmpty(list)) {
-            return StringUtil.EMPTY;
+        String join = String.join(" ) AND ( ", filter);
+        return StringUtil.isEmpty(join) ? StringUtil.EMPTY : " AND " + " ( " + join + " ) ";
+    }
+
+    public List<String> parseRange(List<DSLObject.QueryBean.Parameters.FilterBean> ranges, boolean isLogicalField, List<String> skipFields) {
+        if (ObjectUtil.isEmpty(ranges)) {
+            return Lists.newArrayList();
         }
-        StringBuffer whereOfExactly = new StringBuffer();
-        for (DSLObject.QueryBean.Parameters.FilterBean item : list) {
-            if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
-            } else if (RangeEnum.EQ.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
-            } else if (RangeEnum.NE.getType().equalsIgnoreCase(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                whereOfExactly.append(" AND ").append(item.getFieldKey()).append(" NOT IN ('").append(String.join("','", item.getFieldValues())).append("')");
+        List<String> matchs = Lists.newArrayList();
+        for (DSLObject.QueryBean.Parameters.FilterBean match : ranges) {
+            if (StringUtil.isNotEmpty(skipFields) && skipFields.contains(match.getFieldKey())) {
+                continue;
+            }
+            List<String> values = Lists.newArrayList();
+            String fieldKey = match.getFieldKey();
+            fieldKey = isLogicalField && LOGICAL_FIELD.containsKey(fieldKey) ? LOGICAL_FIELD.get(fieldKey) : fieldKey;
+            String type = match.getType();
+            List<String> fieldValues = match.getFieldValues();
+            for (String value : fieldValues) {
+                values.add(ComDSLParse.parseRange(ComDSLParse.encode(value), type));
+            }
+            String join = String.join(" OR " + fieldKey, values);
+            if (StringUtil.isNotBlank(join)) {
+                matchs.add(fieldKey + join);
             }
         }
-        return whereOfExactly.toString();
+        return matchs;
+    }
+
+    public List<String> parseMatch(List<DSLObject.QueryBean.Parameters.FilterBean> matches, boolean isLogicalField, List<String> skipFields) {
+        if (ObjectUtil.isEmpty(matches)) {
+            return Lists.newArrayList();
+        }
+        List<String> matchs = Lists.newArrayList();
+        for (DSLObject.QueryBean.Parameters.FilterBean match : matches) {
+            if (StringUtil.isNotEmpty(skipFields) && skipFields.contains(match.getFieldKey())) {
+                continue;
+            }
+            List<String> values = Lists.newArrayList();
+            String fieldKey = match.getFieldKey();
+            fieldKey = isLogicalField && LOGICAL_FIELD.containsKey(fieldKey) ? LOGICAL_FIELD.get(fieldKey) : fieldKey;
+            String type = match.getType();
+            List<String> fieldValues = match.getFieldValues();
+            for (String value : fieldValues) {
+                values.add(ComDSLParse.parseMatch(ComDSLParse.encode(value), type));
+            }
+            String join = String.join(" OR " + fieldKey, values);
+            if (StringUtil.isNotBlank(join)) {
+                matchs.add(fieldKey + join);
+            }
+        }
+        return matchs;
     }
 
     private String generateProtocolTreeSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
-        String whereOfExactly = getWhereOfExactly(queryParam.getParameters());
+        String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, null);
         return String.format(sqlTemplate,
                 queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
@@ -436,50 +477,5 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         });
 
         return protocolTreeList;
-    }
-
-    /**
-     * 基于Protocol ID 进行二次聚合，已基于Druid group by protocol id 聚合。
-     * @param nodes
-     * @return
-     */
-    private List<ProtocolTree> groupByProtocolId(List<ProtocolTree> nodes) {
-        Map<String, List<ProtocolTree>> resultMap = nodes.stream().collect(Collectors.groupingBy(ProtocolTree::getId));
-        Map<String, Object> mergeResultMap =
-                Maps.transformValues(resultMap, new com.google.common.base.Function<List<ProtocolTree>, Object>() {
-                    @Nullable
-                    @Override
-                    public Object apply(@Nullable List<ProtocolTree> input) {
-                        if (StringUtil.isEmpty(input)) {
-                            return null;
-                        }
-                        if (input.size() == 1) {
-                            return input.get(0);
-                        }
-                        ProtocolTree mergedProtocolTree = new ProtocolTree(input.get(0).getId(), input.get(0).getName(),
-                                input.get(0).getParentId());
-                        Map<String,Object> summedMetrics = Maps.newLinkedHashMap();
-                        for (ProtocolTree protocolTree : input) {
-                            mergedProtocolTree.setSentBytes(mergedProtocolTree.getSentBytes() + protocolTree.getSentBytes());
-                            mergedProtocolTree.setReceivedBytes(mergedProtocolTree.getReceivedBytes() + protocolTree.getReceivedBytes());
-                            for (String key : protocolTree.getMetrics().keySet()) {
-                                if (StringUtil.isEmpty(summedMetrics.get(key))) {
-                                    summedMetrics.put(key, protocolTree.getMetrics().get(key));
-                                } else {
-                                    long sumValue = Long.parseLong(summedMetrics.get(key).toString())
-                                            + Long.parseLong(protocolTree.getMetrics().get(key).toString());
-                                    summedMetrics.put(key, sumValue);
-                                }
-
-
-                            }
-                        }
-                        mergedProtocolTree.setMetrics(summedMetrics);
-
-                        return mergedProtocolTree;
-                    }
-                });
-        List<ProtocolTree> mergeResultList = new ArrayList(mergeResultMap.values());
-        return mergeResultList;
     }
 }

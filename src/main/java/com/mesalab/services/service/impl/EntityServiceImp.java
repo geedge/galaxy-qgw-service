@@ -424,14 +424,6 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
-    private ApiParam queryBuild(ComDSLObject.Query query) {
-        String range = ComDSLParse.parseRange(query.getParameters().getRange());
-        String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
-        String sql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_CACHE_ACTIVE_CLIENT_IP")), range.concat(fieldWhere));
-        log.info("real time relation active_client_ip id query sql: {}", sql);
-        return ApiParam.builder().option("real-time").query(sql).build();
-    }
-
     private BaseResult getResultOfServerIP(ComDSLObject.Query query) {
         String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
