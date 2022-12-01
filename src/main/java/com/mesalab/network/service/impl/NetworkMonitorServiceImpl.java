@@ -66,6 +66,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         LOGICAL_FIELD.put("device_group", "common_device_group");
         LOGICAL_FIELD.put("vsys_id", "common_vsys_id");
         LOGICAL_FIELD.put("protocol_id", "common_protocol_label");
+        LOGICAL_FIELD.put("app_name", "common_app_label");
     }
 
     @Override
