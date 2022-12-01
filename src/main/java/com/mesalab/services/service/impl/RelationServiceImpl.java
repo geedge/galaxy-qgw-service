@@ -11,11 +11,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.EntityConfigSource;
 import com.mesalab.qgw.service.ApiService;
@@ -63,7 +63,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             ApiParam apiParam = ApiParam.builder().option("real-time").query(querySql).build();
             baseResult = deduplicationData(apiService.executeQuery(apiParam),comDSLObject.getQuery());
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
             BaseResult result = JsonMapper.fromJsonString(baseResult.getMessage(), BaseResult.class);

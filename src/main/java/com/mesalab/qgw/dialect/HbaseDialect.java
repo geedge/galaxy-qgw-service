@@ -143,7 +143,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SUCCESS.getCode(), message.get(),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), QueryFormatEnum.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), String.valueOf(results.get("message")),
+            baseResult = BaseResultGenerator.generate(status, QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), String.valueOf(results.get("message")),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), param.getFormat());
         }
         return baseResult;

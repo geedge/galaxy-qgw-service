@@ -4,6 +4,7 @@ package com.mesalab.common.entity;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 
 import java.util.Map;
 
@@ -127,7 +128,7 @@ public class BaseResultGenerator {
      */
     public static <T> BaseResult<T> failure() {
         return new BaseResult<>(ResultStatusEnum.FAIL.getCode(),
-                ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), null, false, ResultCodeEnum.UNKNOW_EXCEPTION.getMessage(), null, null, null, null);
+                QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(), null, null, null, null);
     }
 
     /**
@@ -138,7 +139,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> failure(final int status, final String message) {
-        return new BaseResult<>(status, ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), null, false, message, null, null, null, null);
+        return new BaseResult<>(status, QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, null);
     }
 
     /**
@@ -173,7 +174,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> failure(final int status, final String message, T data) {
-        return new BaseResult<>(status, ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), null, false, message, null, null, null, data);
+        return new BaseResult<>(status, QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, data);
     }
 
     /**
@@ -183,7 +184,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> failure(final ResultStatusEnum resultStatusEnum) {
-        return new BaseResult<>(resultStatusEnum.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), null, false, resultStatusEnum.getMessage(), null, null, null, null);
+        return new BaseResult<>(resultStatusEnum.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, resultStatusEnum.getMessage(), null, null, null, null);
     }
 
 
@@ -196,7 +197,7 @@ public class BaseResultGenerator {
      */
     public static <T> BaseResult<T> failure(final String message, final String queryKey) {
 
-        return new BaseResult<>(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), queryKey, false, message, null, null, null, null);
+        return new BaseResult<>(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), queryKey, false, message, null, null, null, null);
     }
 
 
@@ -206,7 +207,7 @@ public class BaseResultGenerator {
      * @return 操作成功的默认响应结果
      */
     public static <T> BaseResult<T> error() {
-        return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), null, false, ResultStatusEnum.SERVER_ERROR.getMessage(), null, null, null, null);
+        return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, ResultStatusEnum.SERVER_ERROR.getMessage(), null, null, null, null);
     }
 
     /**
@@ -217,7 +218,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> error(final int code, final String message) {
-        return new BaseResult<>(code, ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), null, false, message, null, null, null, null);
+        return new BaseResult<>(code, QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, null);
     }
 
     /**
@@ -238,7 +239,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> error(final ResultStatusEnum resultStatusEnum) {
-        return new BaseResult<>(resultStatusEnum.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), null, false, resultStatusEnum.getMessage(), null, null, null, null);
+        return new BaseResult<>(resultStatusEnum.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, resultStatusEnum.getMessage(), null, null, null, null);
     }
 
     /**
@@ -248,7 +249,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> error(final BusinessException be) {
-        return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), null, false, be.getMessage(), null, null, null, null);
+        return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, be.getMessage(), null, null, null, null);
     }
 
     /**
@@ -258,7 +259,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> error(final String message) {
-        return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_EXCEPTION.getCode(), null, false, message, null, null, null, null);
+        return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, null);
     }
 
 }

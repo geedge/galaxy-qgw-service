@@ -27,7 +27,7 @@ public class QGWBusinessException extends RuntimeException {
      * 业务码
      */
     @Builder.Default
-    private String code = ResultCodeEnum.UNKNOW_EXCEPTION.getCode();
+    private String code = QGWErrorCode.UNKNOWN_EXCEPTION.getCode();
 
 
     /**
