@@ -3,10 +3,12 @@ package com.mesalab.services.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -71,14 +73,31 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     }
 
 
-
     private ApiParam queryBuild(ComDSLObject.Query query) {
         String range = ComDSLParse.parseRange(query.getParameters().getRange());
-        String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
+        List<ComDSLObject.Query.FilterBean> match = getMatchAfterTranslation(query.getParameters().getMatch());
+        String fieldWhere = ComDSLParse.parseMath(match);
         String timeWhere = ComDSLParse.parseInterval(query, "last_update_time", true);
         String sql = String.format(Objects.requireNonNull(env.getProperty("RELATION_SUBSCRIBER_ID")), timeWhere.concat(range).concat(fieldWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
         log.info("real time relation subscribe id query sql: {}", sql);
-        return  ApiParam.builder().option("real-time").query(sql).build();
+        return ApiParam.builder().option("real-time").query(sql).build();
+    }
+
+    private List<ComDSLObject.Query.FilterBean> getMatchAfterTranslation(List<ComDSLObject.Query.FilterBean> match) {
+        if (ObjectUtil.isEmpty(match)) {
+            return Lists.newArrayList();
+        }
+        for (ComDSLObject.Query.FilterBean filterBean : match) {
+            if (StringUtil.equals(MatchEnum.EXACTLY.getType(), filterBean.getType())) {
+                filterBean.setType(MatchEnum.PREFIX.getType());
+                filterBean.setFieldKey("ROWKEY");
+                List<String> fieldValues = filterBean.getFieldValues();
+                fieldValues.replaceAll(s -> DigestUtil.md5Hex(s).concat("|"));
+            } else {
+                filterBean.setFieldKey("account");
+            }
+        }
+        return match;
     }
 
     private String generateQuerySql(ComDSLObject.Query query) {

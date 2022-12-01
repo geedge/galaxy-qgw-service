@@ -30,28 +30,6 @@ public class ComDSLParse extends DSLParser {
         return Joiner.on(" ").join(" AND ", defField, ">=", intervals.get(0), " AND ", defField, "<", intervals.get(1));
     }
 
-
-    public static String parseMath(ComDSLObject.Query query, String defField) {
-        if (ObjectUtil.isEmpty(query) || ObjectUtil.isEmpty(query.getParameters()) || ObjectUtil.isEmpty(query.getParameters().getMatch())) {
-            return StringUtil.EMPTY;
-        }
-        List<ComDSLObject.Query.FilterBean> matches = query.getParameters().getMatch();
-        return matches.stream().map(m -> {
-            String fieldKey = ObjectUtil.isEmpty(defField) ? m.getFieldKey() : defField;
-            List<String> fieldValues = m.getFieldValues();
-            if(MatchEnum.EXACTLY.getType().equals(m.getType())){
-                return fieldValues.stream().map( e->{
-                   return "'".concat(DigestUtil.md5Hex(e)).concat("|%'");
-                }).collect(joining(" or ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
-            } else {
-                fieldKey = fieldKey.equals(defField) ? "account" : fieldKey;
-                return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
-                    return parseMatch(encode(v), m.getType());
-                }).collect(joining(" OR ".concat(fieldKey), fieldKey, " "));
-            }
-        }).collect(joining(" AND ", " AND ", " "));
-    }
-
     public static String parseMath(List<ComDSLObject.Query.FilterBean> matches) {
         if (ObjectUtil.isEmpty(matches)) {
             return StringUtil.EMPTY;
@@ -64,22 +42,22 @@ public class ComDSLParse extends DSLParser {
                 return ComDSLParse.parseMatch(ComDSLParse.encode(v), type);
             }).collect(joining(" OR ".concat(fieldKey), fieldKey, " "));
 
-        }).collect(joining(" OR ", " AND( ", ")"));
+        }).collect(joining(" ) AND ( ", " AND( ", ")"));
     }
 
     public static String parseRange(List<ComDSLObject.Query.FilterBean> matches) {
-        if (ObjectUtil.isNotEmpty(matches)){
-            return matches.stream().map(m -> {
-                String fieldKey = m.getFieldKey();
-                String type = m.getType();
-                List<String> fieldValues = m.getFieldValues();
-                return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
-                    return ComDSLParse.parseRange(ComDSLParse.encode(v), type);
-                }).collect(joining(" OR ".concat(fieldKey), fieldKey, " "));
-
-            }).collect(joining(" OR ", " AND( ", ")"));
+        if (ObjectUtil.isEmpty(matches)) {
+            return StringUtil.EMPTY;
         }
-        return StringUtil.EMPTY;
+        return matches.stream().map(m -> {
+            String fieldKey = m.getFieldKey();
+            String type = m.getType();
+            List<String> fieldValues = m.getFieldValues();
+            return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
+                return ComDSLParse.parseRange(ComDSLParse.encode(v), type);
+            }).collect(joining(" OR ".concat(fieldKey), fieldKey, " "));
+
+        }).collect(joining(" ) AND ( ", " AND( ", ")"));
     }
 
     @Override
