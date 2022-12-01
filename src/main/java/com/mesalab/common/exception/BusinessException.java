@@ -2,6 +2,7 @@ package com.mesalab.common.exception;
 
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import lombok.*;
 
 /**
@@ -27,7 +28,7 @@ public class BusinessException extends RuntimeException {
      * 业务码
      */
     @Builder.Default
-    private String code = ResultCodeEnum.UNKNOW_EXCEPTION.getCode();
+    private String code = QGWErrorCode.UNKNOWN_EXCEPTION.getCode();
 
 
     /**

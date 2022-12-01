@@ -572,7 +572,7 @@ public class ApiServiceImpl implements ApiService {
             Dialect dialect = getReflectiveDialectObject(dbParam);
             BaseResult queryResult = dialect.executeAdministrativeQuery();
             if (queryResult.getStatus() == null || queryResult.getStatus() != ResultStatusEnum.SUCCESS.getCode()) {
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.UNKNOW_EXCEPTION.getCode() , queryResult.getMessage());
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),QGWErrorCode.UNKNOWN_EXCEPTION.getCode() , queryResult.getMessage());
             }
             List tables = (ArrayList) queryResult.getData();
             List<String> list = new ArrayList<>();

@@ -11,6 +11,7 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.dsl.DSLValidate;
+import com.mesalab.network.exception.NWErrorCode;
 import com.mesalab.network.service.NetworkMonitorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -54,7 +55,7 @@ public class NetworkMonitorController {
             dslValidate.executeValidate(dslObject);
             return appData(dslObject);
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "not support query parameter");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.PARAMETER_ERROR.getCode(), "not support query parameter");
         }
     }
 
@@ -66,7 +67,7 @@ public class NetworkMonitorController {
                 .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
             return networkMonitorService.buildInternalIPData(dslObject);
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.PARAMETER_ERROR.getCode(), "No match queryType");
         }
     }
 
@@ -80,7 +81,7 @@ public class NetworkMonitorController {
         } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
             return networkMonitorService.buildNetworkOverviewResult(dslObject);
         } else {
-            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
+            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), NWErrorCode.PARAMETER_ERROR.getCode(), "No match queryType");
         }
     }
 

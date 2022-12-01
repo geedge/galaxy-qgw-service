@@ -616,7 +616,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             baseResult.setData(allResults);
             baseResult.setStatistics(statistics);
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), results.get("message"),
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), results.get("message"),
                     results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
@@ -660,7 +660,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             baseResult.setData(resultMap.get("data"));
             baseResult.setStatistics(statistics);
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), null,
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), null,
                     results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus());
@@ -701,7 +701,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                     (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_EXCEPTION.getCode(), e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), e.getMessage());
         }
         dataObject = baseResult.getData();
         Map<String, Object> resultMap = (Map<String, Object>) dataObject;
