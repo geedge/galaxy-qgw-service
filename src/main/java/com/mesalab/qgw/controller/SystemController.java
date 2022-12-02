@@ -49,21 +49,21 @@ public class SystemController {
     public BaseResult storageDeletion(@RequestBody List<StorageDeletionInfo> list) {
         log.warn("数据配额设置, 参数: params is {}", list);
         if (StringUtil.isEmpty(list)) {
-            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.PARAMETER_NOT_OBTAINED));
+            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.PARAMETER_NOT_OBTAINED));
         }
         for (StorageDeletionInfo info : list) {
             if (StringUtil.isBlank(info.getLogType()) || StringUtil.isBlank(String.valueOf(info.getMaxDays()))) {
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.LOGTYPE_AND_MAXDAYS_NOT_NULL));
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.LOGTYPE_AND_MAXDAYS_NOT_NULL));
             }
             if ("ALL".equalsIgnoreCase(info.getLogType()) && list.size() != 1) {
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.CANNOT_COEXIST_OTHER_TYPES));
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.CANNOT_COEXIST_OTHER_TYPES));
             }
             if (!(info.getMaxDays() >= 0 && info.getMaxDays() <= 2000)) {
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.MAXDAYS_ERROR));
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.MAXDAYS_ERROR));
             }
         }
         return systemService.deleteStorage(list);
@@ -98,8 +98,8 @@ public class SystemController {
         if (StringUtil.isEmpty(resultId = param.get("resultId"))
                 || StringUtil.isEmpty(query = param.get("query"))) {
 
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.RESULTID_OR_QUERY_CANNOT_BE_EMPTY));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.RESULTID_OR_QUERY_CANNOT_BE_EMPTY));
         }
         String queryId = systemService.getCustomQueryId(resultId.toString(), query.toString());
 
@@ -113,8 +113,8 @@ public class SystemController {
     public BaseResult getCiphertext(EncryptionInfo param) {
         log.info("Plaintext encrypted,The plaintext argument is : {}", param);
         if (StringUtil.isEmpty(param.getPassword()) || StringUtil.isEmpty(param.getSalt())) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.PASSWORD_OR_SALT_CANNOT_BE_EMPTY));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.PASSWORD_OR_SALT_CANNOT_BE_EMPTY));
         }
         return systemService.getCiphertext(param);
     }

@@ -11,7 +11,12 @@ import lombok.Getter;
 @Getter
 public enum ResultCodeEnum {
 
-    SUCCESS("200666", "Success");
+
+    SUCCESS("200666", "Success"),
+    // 请求参数校验错误
+    PARAMETER_ERROR("40000100", "Parameter Validation Failed:%s"),
+    // 未知异常
+    UNKNOWN_EXCEPTION("50000999", "Unknown exception: %s");
 
     private String code;
     private String message;

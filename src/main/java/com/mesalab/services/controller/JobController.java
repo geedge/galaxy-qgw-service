@@ -132,17 +132,17 @@ public class JobController {
 
     private void validateJobParams(HashMap<String, Object> reqBody) {
         if (!reqBody.containsKey(JobConfig.KEY_QUERY_TYPE)) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_TYPE_NOT_NULL));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_TYPE_NOT_NULL));
         }
         if (!reqBody.containsKey(JobConfig.KEY_QUERY_DATA_SOURCE)) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_DATA_SOURCE_NOT_NULL));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_DATA_SOURCE_NOT_NULL));
         }
         String dataSource = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_DATA_SOURCE));
         if (!metadataService.getAllTable().contains(dataSource)) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_DATA_SOURCE_ERROR));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_DATA_SOURCE_ERROR));
         }
     }
 

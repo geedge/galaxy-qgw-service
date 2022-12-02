@@ -57,10 +57,10 @@ public class NetworkMonitorController {
             }  else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
                 return networkMonitorService.buildNetworkOverviewResult(dslObject);
             } else {
-                return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getCode(), "No match queryType");
+                return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
             }
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), NWErrorCode.PARAMETER_ERROR.getCode(), "not support query parameter");
+            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "not support query parameter");
         }
     }
     enum QueryType {

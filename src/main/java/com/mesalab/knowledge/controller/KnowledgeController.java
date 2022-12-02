@@ -45,13 +45,13 @@ public class KnowledgeController {
             if (!EnumUtils.isValidEnum(QueryTypeEnum.class, StringUtil.upperCase(param))
                     || StringUtil.isNotEmpty(request.getParameter(param))) {
                 throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                        KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
+                        ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
             }
             return knowledgeService.query(object);
         }
         throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                KnowLedgeErrorCode.PARAMETER_ERROR.getCode(),
-                String.format(KnowLedgeErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
+                ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
     }
 }

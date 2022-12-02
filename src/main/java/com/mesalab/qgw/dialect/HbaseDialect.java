@@ -210,12 +210,12 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     public BaseResult executeKillQuery(String queryId) {
-        return BaseResultGenerator.failure(QGWErrorCode.PARAMETER_ERROR.getCode(), String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"not support"));
+        return BaseResultGenerator.failure(ResultCodeEnum.PARAMETER_ERROR.getCode(), String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"not support"));
     }
 
     @Override
     public BaseResult getProcesses(String queryId) {
-        return BaseResultGenerator.failure(QGWErrorCode.PARAMETER_ERROR.getCode(), String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"not support"));
+        return BaseResultGenerator.failure(ResultCodeEnum.PARAMETER_ERROR.getCode(), String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"not support"));
     }
 
     class Optimizer {
