@@ -16,8 +16,12 @@ public class KnowledgeConfig {
     private String ipV4UserDefined;
     @NacosValue(value = "${knowledge.ipLocation.ipV4.builtIn}", autoRefreshed = true)
     private String ipV4BuiltIn;
+    @NacosValue(value = "${knowledge.ipLocation.ipV4.asn}", autoRefreshed = true)
+    private String ipV4Asn;
     @NacosValue(value = "${knowledge.ipLocation.ipV6.userDefined}", autoRefreshed = true)
     private String ipV6UserDefined;
     @NacosValue(value = "${knowledge.ipLocation.ipV6.builtIn}", autoRefreshed = true)
     private String ipV6BuiltIn;
+    @NacosValue(value = "${knowledge.ipLocation.ipV6.asn}", autoRefreshed = true)
+    private String ipV6Asn;
 }

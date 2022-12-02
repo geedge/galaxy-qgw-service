@@ -17,12 +17,18 @@ public class IPUtil {
 
     private static IpLookupV2 ipLookup;
 
+    static {
+        ipLookupBuild();
+    }
+
     public static void ipLookupBuild() {
         ipLookup = new IpLookupV2.Builder(false)
                 .loadDataFileV4(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4 + KnowledgeConstant.MMDB)
                 .loadDataFileV6(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V6 + KnowledgeConstant.MMDB)
                 .loadDataFilePrivateV4(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V4 + KnowledgeConstant.MMDB)
                 .loadDataFilePrivateV6(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_USER_DEFINED_V6 + KnowledgeConstant.MMDB)
+                .loadAsnDataFileV4(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.ASN_V4 + KnowledgeConstant.MMDB)
+                .loadAsnDataFileV6(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.ASN_V6 + KnowledgeConstant.MMDB)
                 .build();
     }
 
