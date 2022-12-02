@@ -261,32 +261,35 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         if (ObjectUtil.isEmpty(ranges)) {
             return Lists.newArrayList();
         }
-        List<String> matchs = Lists.newArrayList();
-        for (DSLObject.QueryBean.Parameters.FilterBean match : ranges) {
-            if (StringUtil.isNotEmpty(skipFields) && skipFields.contains(match.getFieldKey())) {
+        List<String> list = Lists.newArrayList();
+        for (DSLObject.QueryBean.Parameters.FilterBean range : ranges) {
+            if (StringUtil.isNotEmpty(skipFields) && skipFields.contains(range.getFieldKey())) {
                 continue;
             }
             List<String> values = Lists.newArrayList();
-            String fieldKey = match.getFieldKey();
+            String fieldKey = range.getFieldKey();
             fieldKey = isLogicalField && LOGICAL_FIELD.containsKey(fieldKey) ? LOGICAL_FIELD.get(fieldKey) : fieldKey;
-            String type = match.getType();
-            List<String> fieldValues = match.getFieldValues();
+            String type = range.getType();
+            List<String> fieldValues = range.getFieldValues();
             for (String value : fieldValues) {
-                values.add(ComDSLParse.parseRange(ComDSLParse.encode(value), type));
+                if (!NumberUtil.isNumber(value)) {
+                    value = "'".concat(ComDSLParse.encode(value)).concat("'");
+                }
+                values.add(ComDSLParse.parseRange(value, type));
             }
             String join = String.join(" OR " + fieldKey, values);
             if (StringUtil.isNotBlank(join)) {
-                matchs.add(fieldKey + join);
+                list.add(fieldKey + join);
             }
         }
-        return matchs;
+        return list;
     }
 
     public List<String> parseMatch(List<DSLObject.QueryBean.Parameters.FilterBean> matches, boolean isLogicalField, List<String> skipFields) {
         if (ObjectUtil.isEmpty(matches)) {
             return Lists.newArrayList();
         }
-        List<String> matchs = Lists.newArrayList();
+        List<String> list = Lists.newArrayList();
         for (DSLObject.QueryBean.Parameters.FilterBean match : matches) {
             if (StringUtil.isNotEmpty(skipFields) && skipFields.contains(match.getFieldKey())) {
                 continue;
@@ -301,10 +304,10 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             }
             String join = String.join(" OR " + fieldKey, values);
             if (StringUtil.isNotBlank(join)) {
-                matchs.add(fieldKey + join);
+                list.add(fieldKey + join);
             }
         }
-        return matchs;
+        return list;
     }
 
     private String generateProtocolTreeSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
