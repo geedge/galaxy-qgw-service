@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteMemoryUtils;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -128,8 +129,8 @@ public class FederationDialect extends AbstractEngineDialect{
         } catch (RuntimeException ex) {
             log.error("Engine execute memory-query error:{}", ex);
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getMessage(),ex.getMessage()));
+                    QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),ex.getMessage()));
         }
         return build();
     }
@@ -257,12 +258,12 @@ public class FederationDialect extends AbstractEngineDialect{
                 }
                 return setOperationList;
             } else {
-                throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
         }
-        throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
-                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+        throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
     }
 
     private Expression generateDatasetWhereSql(String where) throws JSQLParserException {

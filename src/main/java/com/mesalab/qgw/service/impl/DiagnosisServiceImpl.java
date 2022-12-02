@@ -151,8 +151,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         } catch (RuntimeException e) {
             log.error("Avro Schema Validation Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getMessage(),e.getMessage()));
+                    QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),e.getMessage()));
 
         }
         return result;
@@ -188,8 +188,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         } catch (RuntimeException e) {
             log.error("Metadata Validation Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),e.getMessage()));
+                    ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),e.getMessage()));
         }
         return result;
     }
@@ -233,8 +233,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                 elasticsearchResult = executePocSqlByDatasource(esTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
             } else {
                 throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
-                        QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.OPTION_IS_NOT_SUPPORTED));
+                        ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.OPTION_IS_NOT_SUPPORTED));
             }
 
             mergeResult = Stream
@@ -274,8 +274,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             testFile = Optional.of(new File(druidWriter.buildPocSQL()));
         } else {
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.DIALECT_VALUE_ERROR));
+                    ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.DIALECT_VALUE_ERROR));
         }
 
 
@@ -295,8 +295,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         } catch (RuntimeException e) {
             log.error("Get Poc SQL Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
-                    QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),e.getMessage()));
+                    ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),e.getMessage()));
         }
         return result;
     }
@@ -799,8 +799,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             if (entriesOnlyOnLeft.size() > 0) {
                 log.error("Schema Fields greater than Table Fields,Schema " + tableName + " exist fields :" + entriesOnlyOnLeft);
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.ENGINE_EXECUTION_EXCEPTION.getMessage(),
+                        QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),
                         " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft));
 
             }
