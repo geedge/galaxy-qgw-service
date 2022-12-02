@@ -164,8 +164,10 @@ public class KnowledgeListener {
         Map<String, KnowledgeBase> map = Maps.newHashMap();
         String ipV4BuiltIn = knowledgeConfig.getIpV4BuiltIn();
         String ipV4UserDefined = knowledgeConfig.getIpV4UserDefined();
+        String ipV4Asn = knowledgeConfig.getIpV4Asn();
         String ipV6BuiltIn = knowledgeConfig.getIpV6BuiltIn();
         String ipV6UserDefined = knowledgeConfig.getIpV6UserDefined();
+        String ipV6Asn = knowledgeConfig.getIpV6Asn();
         for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
             String name = knowledgeBase.getName();
             String version = knowledgeBase.getVersion();
@@ -182,6 +184,12 @@ public class KnowledgeListener {
             } else if (StringUtil.equals(concat, ipV6UserDefined)
                     || (StringUtil.equals(name, ipV6UserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
                 map.put(KnowledgeConstant.IP_USER_DEFINED_V6, knowledgeBase);
+            } else if (StringUtil.equals(concat, ipV4Asn)
+                    || (StringUtil.equals(name, ipV6UserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
+                map.put(KnowledgeConstant.ASN_V4, knowledgeBase);
+            } else if (StringUtil.equals(concat, ipV6Asn)
+                    || (StringUtil.equals(name, ipV6UserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
+                map.put(KnowledgeConstant.ASN_V6, knowledgeBase);
             }
         }
         return map;
