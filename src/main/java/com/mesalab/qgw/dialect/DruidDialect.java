@@ -168,7 +168,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
 
-                    QGWErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
+                    ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), message.get()),
                     StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         }
         return build();
@@ -253,12 +253,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 }
                 return setOperationList;
             } else {
-                throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
         }
-        throw new QGWBusinessException(QGWErrorCode.PARAMETER_ERROR.getCode(),
-                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+        throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
     }
 
 

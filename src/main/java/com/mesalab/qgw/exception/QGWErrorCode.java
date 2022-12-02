@@ -14,8 +14,6 @@ public enum QGWErrorCode {
      * 3-4位：模块 01
      * 5-7：自然排序
      */
-    // 请求参数校验错误
-    PARAMETER_ERROR("40001100", "Parameter Validation Failed:%s"),
     // SQL解析错误
     SQL_SYNTAX_PARSE_EXCEPTION("40001300", "Syntax Error in SQL statement: %s"),
     // 数据库引擎错误
@@ -25,9 +23,8 @@ public enum QGWErrorCode {
     // SQL在数据库查询中执行错误
     SQL_EXECUTION_SERVER_EXCEPTION("50001300", "Error in Database Execution Engine: %s"),
     // SQL在联邦查询中执行错误
-    ENGINE_EXECUTION_EXCEPTION("50001500", "Error in Query Federation: %s"),
-    // 未知异常
-    UNKNOWN_EXCEPTION("55501999", "Unknown exception: %s");;
+    SQL_QUERY_FEDERATION_EXCEPTION("50001500", "Error in Query Federation: %s"),
+    ;
     private String code;
     private String message;
 

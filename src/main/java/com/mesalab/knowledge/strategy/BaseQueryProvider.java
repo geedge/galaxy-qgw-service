@@ -81,8 +81,8 @@ public class BaseQueryProvider {
                 res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt()));
             } else {
                 log.error(e.getMessage());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), KnowLedgeErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(KnowLedgeErrorCode.UNKNOWN_EXCEPTION.getMessage(),e.getMessage()));
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),e.getMessage()));
             }
         }
         Map jsonMap = (Map) JsonMapper.fromJsonString(res, Map.class);

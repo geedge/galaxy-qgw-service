@@ -14,12 +14,6 @@ public enum KnowLedgeErrorCode {
      * 6-8：自然排序
      */
 
-
-    // 请求参数校验错误
-    PARAMETER_ERROR("40003100", "Parameter Validation Failed:%s"),
-    // 未知异常
-    UNKNOWN_EXCEPTION("55503999", "Unknown exception: %s"),
-
     ;
     private String code;
     private String message;
