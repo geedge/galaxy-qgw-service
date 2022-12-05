@@ -41,13 +41,13 @@ public class RelationController {
             log.debug("subscribe id 实时推荐接口, 参数: queryString is {},params is {}", param, dslObject);
             if (!EnumUtils.isValidEnum(EntityQueryType.class, StringUtil.upperCase(param))
                     ||StringUtil.isNotEmpty(request.getParameter(param))) {
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"Not Support"));
+                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"Not Support"));
             }
             comDSLValidate.validation(dslObject);
             return relationService.getRealRelation(param, dslObject);
         }
-        throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"Not Support"));
+        throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"Not Support"));
     }
 }

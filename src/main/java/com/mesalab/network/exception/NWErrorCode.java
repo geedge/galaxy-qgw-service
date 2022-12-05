@@ -15,11 +15,6 @@ public enum NWErrorCode {
      */
 
 
-    // 请求参数校验错误
-    PARAMETER_ERROR("40004100", "Parameter Validation Failed:%s"),
-    // 未知异常
-    UNKNOWN_EXCEPTION("55504999", "Unknown exception: %s"),
-
 
 
     ;

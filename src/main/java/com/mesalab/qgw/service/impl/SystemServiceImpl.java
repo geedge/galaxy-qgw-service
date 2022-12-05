@@ -106,8 +106,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             BaseResult result = apiService.executeQuery(param);
             return resetBaseResult(result, "type");
         } else {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.START_TIME_AND_END_TIME_NOT_NULL));
+            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.START_TIME_AND_END_TIME_NOT_NULL));
         }
     }
 
@@ -124,15 +124,15 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult deleteStorage(List<StorageDeletionInfo> list) {
 
         if (!logTypeValid(list)) {
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"Match failed, please check log type!"));
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"Match failed, please check log type!"));
         }
 
         preProcessOfLogType(list);
 
         if (jobIsBusy(list)) {
-            return BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(),  QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),"The task is busy, please try later!"));
+            return BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(),  ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"The task is busy, please try later!"));
         }
 
         BaseResult baseResult = null;
@@ -242,8 +242,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         } catch (RuntimeException ex) {
             log.error(" schema TTL check error: {}", ex);
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),ex.getMessage()));
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),ex.getMessage()));
         }
         if (changeTTL.isEmpty()) {
             return BaseResultGenerator.success("ok", dataList);
@@ -378,8 +378,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         if (queryId.contains(queryIdSeparator)) {
-            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), QGWErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(QGWErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
         }
         return DBTypeEnum.CLICKHOUSE.getValue();
     }
@@ -441,8 +441,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         if (result.getStatus().equals(ResultStatusEnum.LOCKED.getCode())) {
             return true;
         } else if (!result.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),result.getMessage()));
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),result.getMessage()));
         }
         return false;
     }
@@ -482,8 +482,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         if (!baseResult.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),QGWMessageConst.SCHEDULED_TASK_ERROR));
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),QGWMessageConst.SCHEDULED_TASK_ERROR));
         }
         return baseResult;
     }
@@ -540,8 +540,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
             executeManageJob("update", mapToBean(dataByHandler, XxlJobInfo.class));
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),"up schema error in storage set ", ex.getMessage()));
+                    ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"up schema error in storage set ", ex.getMessage()));
         }
     }
 
@@ -598,12 +598,12 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             if (resultUpdate.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
                 baseResult = BaseResultGenerator.success("ok", null);
             } else {
-                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),"Update task failed:" + xxlJobInfo.getExecutorHandler()));
+                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Update task failed:" + xxlJobInfo.getExecutorHandler()));
             }
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),"Failed to execute task:" + xxlJobInfo.getExecutorHandler()));
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Failed to execute task:" + xxlJobInfo.getExecutorHandler()));
         }
         return baseResult;
     }
@@ -631,23 +631,23 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private BaseResult resultEncapsulationOfJob(Map<String, String> resultMap) {
         BaseResult baseResult;
         if (StringUtil.isEmpty(resultMap)) {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),"The service is busy, please contact the scheduling platform!"));
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"The service is busy, please contact the scheduling platform!"));
         } else {
             if (resultMap.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
                 Map result = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(resultMap.get("result")), Map.class);
                 if (result.get("code").equals(ResultStatusEnum.SUCCESS.getCode())) {
                     baseResult = BaseResultGenerator.success("ok", null);
                 } else if (result.get("code").equals(ResultStatusEnum.LOCKED.getCode())) {
-                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Clear Task is Running."));
+                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Clear Task is Running."));
                 } else {
-                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(), result.get("msg")));
+                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), result.get("msg")));
                 }
             } else {
-                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Clear Task Failed."));
+                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Clear Task Failed."));
             }
         }
         return baseResult;
@@ -701,19 +701,19 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {
-                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),"Get or package result exception: " + JsonMapper.toJsonString(resultPageList)));
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Get or package result exception: " + JsonMapper.toJsonString(resultPageList)));
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
                 return data.get(0);
             } else {
-                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),"The scheduled task has no task information matching executorHandler (" + handlerValue + ")"));
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"The scheduled task has no task information matching executorHandler (" + handlerValue + ")"));
             }
         }
-        throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),QGWErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.UNKNOWN_EXCEPTION.getMessage(),"Get scheduled task exception: " + JsonMapper.toJsonString(resultPageList)));
+        throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Get scheduled task exception: " + JsonMapper.toJsonString(resultPageList)));
     }
 
     /**
