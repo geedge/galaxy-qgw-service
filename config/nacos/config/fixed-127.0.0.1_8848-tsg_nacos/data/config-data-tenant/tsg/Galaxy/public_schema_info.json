@@ -2488,56 +2488,56 @@
     "common_flags": {
       "data": [
         {
-          "code": "2147483648",
+          "code": "1",
+          "value": "Asymmetric"
+        },
+        {
+          "code": "2",
           "value": "Bulky"
         },
         {
-          "code": "1073741824",
+          "code": "4",
           "value": "CBR Streaming"
         },
         {
-          "code": "536870912",
+          "code": "8",
           "value": "Client is Local"
         },
         {
-          "code": "268435456",
+          "code": "16",
           "value": "Server is Local"
         },
         {
-          "code": "134217728",
+          "code": "32",
           "value": "Download"
         },
         {
-          "code": "67108864",
+          "code": "64",
           "value": "Interactive"
         },
         {
-          "code": "33554432",
+          "code": "128",
           "value": "Inbound"
         },
         {
-          "code": "16777216",
+          "code": "256",
           "value": "Outbound"
         },
         {
-          "code": "8388608",
+          "code": "512",
           "value": "Pseudo Unidirectional"
         },
         {
-          "code": "4194304",
+          "code": "1024",
           "value": "Streaming"
         },
         {
-          "code": "2097152",
+          "code": "2048",
           "value": "Unidirectional"
         },
         {
-          "code": "1048576",
+          "code": "4096",
           "value": "Random looking"
-        },
-        {
-          "code": "524288",
-          "value": "Asymmetric"
         }
       ]
     }
