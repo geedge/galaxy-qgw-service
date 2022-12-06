@@ -47,6 +47,14 @@
       "type": "string"
     },
     {
+      "name": "app_name",
+      "label": "APP Name",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
       "name": "isp",
       "label": "ISP",
       "doc": {
