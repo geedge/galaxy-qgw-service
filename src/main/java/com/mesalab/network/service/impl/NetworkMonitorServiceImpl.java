@@ -26,6 +26,7 @@ import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.dsl.ComDSLParse;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.StringUtil;
+import org.joda.time.Period;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -442,10 +443,13 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String whereOfExactly = getWhereFilter(dslObject.getQuery().getParameters(), false, null);
         String[] intervals = getIntervals(dslObject.getQuery().getParameters().getIntervals());
         String whereOfTime = "__time >= TIMESTAMP '" + intervals[0] + "' AND __time < TIMESTAMP '" + intervals[1] + "'";
+        String granularity = dslObject.getQuery().getParameters().getGranularity();
+        granularity = StringUtil.isEmpty(granularity) ? "PT15S" : granularity;
+        Period period = Period.parse(granularity);
         Integer limit = dslObject.getQuery().getLimit();
         Integer offset = dslObject.getQuery().getOffset();
         String sql = String.format(Objects.requireNonNull(environment.getProperty("APP_DATA_SUMMARY")),
-                dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
+                period.toStandardSeconds().getSeconds(), dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, granularity, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
         Map<String, String> dataResult = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
             return JsonMapper.fromJsonString(dataResult.get("result"), BaseResult.class);

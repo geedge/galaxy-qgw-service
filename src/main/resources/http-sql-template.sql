@@ -17,7 +17,7 @@ union all
 #end
 
 #sql("APP_DATA_SUMMARY")
-SELECT app_name as app_name, SUM(bytes) as bytes, SUM(sessions) as sessions, MAX(bytes_rate) as max_rate, MIN(bytes_rate) as avg_rate FROM ( SELECT app_name as app_name, SUM(sessions) as sessions, SUM(c2s_byte_num + s2c_byte_num) as bytes, SUM(c2s_byte_num + s2c_byte_num) * 8 / 15 as bytes_rate FROM %s WHERE %s %s AND notEmpty(app_name) GROUP BY app_name, time_floor(TIMESTAMP_TO_MILLIS(__time), 'PT15S') ORDER BY bytes DESC ) GROUP BY app_name ORDER BY bytes DESC %s
+SELECT app_name as app_name, SUM(bytes) as bytes, SUM(sessions) as sessions, MAX(bytes_rate) as max_rate, AVG(bytes_rate) as avg_rate FROM ( SELECT app_name as app_name, SUM(sessions) as sessions, SUM(c2s_byte_num + s2c_byte_num) as bytes, SUM(c2s_byte_num + s2c_byte_num) * 8 / %s as bytes_rate FROM %s WHERE %s %s AND notEmpty(app_name) GROUP BY app_name, time_floor(TIMESTAMP_TO_MILLIS(__time), '%s') ORDER BY bytes DESC ) GROUP BY app_name ORDER BY bytes DESC %s
 #end
 
 #sql("APP_INTERNAL_IP_SUMMARY")
