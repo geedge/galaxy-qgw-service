@@ -55,7 +55,7 @@ public class NetworkMonitorController {
             dslValidate.executeValidate(dslObject);
             return appData(dslObject);
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "not support query parameter");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "not support query parameter");
         }
     }
 
@@ -67,7 +67,7 @@ public class NetworkMonitorController {
                 .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
             return networkMonitorService.buildInternalIPData(dslObject);
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
         }
     }
 
@@ -81,7 +81,7 @@ public class NetworkMonitorController {
         } else if (QueryType.NETWORK_OVERVIEW_SUMMARY.getValue().equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
             return networkMonitorService.buildNetworkOverviewResult(dslObject);
         } else {
-            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
+            return BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
         }
     }
 

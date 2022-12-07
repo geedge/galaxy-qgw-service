@@ -95,7 +95,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     @Override
     String getExplainQuery() {
-        throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                 String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.ES_DIALECT_UNSUPPORTED_EXPLAIN_SYNTAX));
     }
 
@@ -124,7 +124,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
         }
         return build();

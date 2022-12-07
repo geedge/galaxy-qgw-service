@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public BaseResult handleException(Exception e, HttpServletRequest request, HttpServletResponse response) {
-        response.setStatus(ResultStatusEnum.FAIL.getCode());
+        response.setStatus(ResultStatusEnum.BAD_REQUEST.getCode());
         String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
         log.error("queryKey:{}, message:{}, stackTrace:{}", queryKey, ExceptionUtil.getRootCauseMessage(e), getStackTrace(e));
         return BaseResultGenerator.failure(e.getMessage(), queryKey);

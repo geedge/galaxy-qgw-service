@@ -15,15 +15,15 @@ public enum QGWErrorCode {
      * 5-7：自然排序
      */
     // SQL解析错误
-    SQL_SYNTAX_PARSE_EXCEPTION("40001300", "Syntax Error in SQL statement: %s"),
+    SQL_SYNTAX_PARSE_EXCEPTION("40001300", "Syntax error in SQL statement: %s"),
     // 数据库引擎错误
-    SQL_EXECUTION_BAD_REQUEST_EXCEPTION("40001301", "Error in Database Execution Engine: %s"),
+    SQL_EXECUTION_BAD_REQUEST_EXCEPTION("40001301", "Invalid SQL statement error in database execution engine: %s"),
     // SQL构建错误
-    SQL_BUILDER_EXCEPTION("50001100", "Error in SQL Query Builder and Optimizer: %s"),
+    SQL_BUILDER_EXCEPTION("50001100", "Error in SQL query builder and optimizer: %s"),
     // SQL在数据库查询中执行错误
-    SQL_EXECUTION_SERVER_EXCEPTION("50001300", "Error in Database Execution Engine: %s"),
+    SQL_EXECUTION_SERVER_EXCEPTION("50001300", "Error in database execution engine: %s"),
     // SQL在联邦查询中执行错误
-    SQL_QUERY_FEDERATION_EXCEPTION("50001500", "Error in Query Federation: %s"),
+    SQL_QUERY_FEDERATION_EXCEPTION("50001500", "Error in query federation: %s"),
     ;
     private String code;
     private String message;

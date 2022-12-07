@@ -44,13 +44,13 @@ public class KnowledgeController {
             log.debug("服务推荐接口, 参数: queryString is {},params is {}", param, object);
             if (!EnumUtils.isValidEnum(QueryTypeEnum.class, StringUtil.upperCase(param))
                     || StringUtil.isNotEmpty(request.getParameter(param))) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
                         ResultCodeEnum.PARAMETER_ERROR.getCode(),
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
             }
             return knowledgeService.query(object);
         }
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
+        throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
                 ResultCodeEnum.PARAMETER_ERROR.getCode(),
                 String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
     }
