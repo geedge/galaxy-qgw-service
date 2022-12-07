@@ -113,7 +113,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             int limit = StringUtil.isBlank(comDSLObject.getQuery().getLimit()) ? entityConfigSource.getTopSNIDefaultSize() : Integer.parseInt(comDSLObject.getQuery().getLimit());
             baseResult = build(limit, baseResult, baseResultTotal);
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
             BaseResult result = JsonMapper.fromJsonString(baseResult.getMessage(), BaseResult.class);
@@ -345,7 +345,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(String.valueOf(filterBean.getType()))) {
             return query(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
         } else {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.MATCH_TYPE));
         }
     }

@@ -64,7 +64,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             ApiParam apiParam = ApiParam.builder().option("real-time").query(querySql).build();
             baseResult = deduplicationData(apiService.executeQuery(apiParam),comDSLObject.getQuery());
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
             BaseResult result = JsonMapper.fromJsonString(baseResult.getMessage(), BaseResult.class);

@@ -83,7 +83,7 @@ public class ApiServiceImpl implements ApiService {
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: {}", e);
             String message = getJSQLParserSimpleErrorMessage(e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),message));
         }
         BaseResult baseResult;
@@ -98,7 +98,7 @@ public class ApiServiceImpl implements ApiService {
         } else if (statement instanceof ExplainStatement) {
             baseResult = executeExplainStatement(param);
         } else {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.ONLY_SUPPORT_STATEMENT_OPERATIONS_FOR_SELECT));
         }
         return baseResult;
@@ -106,27 +106,27 @@ public class ApiServiceImpl implements ApiService {
 
     private void validateAndSetDefaultValue(ApiParam param) {
         if (StringUtil.isBlank(param.getQuery())) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.SQL_MUST_BE_EXISTS));
         }
         if (StringUtil.isBlank(param.getOption())) {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
         }
         if (Arrays.stream(QueryOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getOption()))) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.OPTION_TYPE_ERROR));
         }
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())
                 && StringUtil.isBlank(param.getReportId())
                 && StringUtil.isBlank(param.getResultId())) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.MUST_BE_REPORTID_OR_RESULTID));
         }
         if (StringUtil.isBlank(param.getFormat())) {
             param.setFormat(QueryFormatEnum.JSON.getValue());
         }
         if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.FORMAT_TYPE_ERROR));
         }
     }
@@ -228,7 +228,7 @@ public class ApiServiceImpl implements ApiService {
             dialect = (Dialect) constructor.newInstance(param);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}",e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
         return dialect;
@@ -302,7 +302,7 @@ public class ApiServiceImpl implements ApiService {
                 selectStatement = ((ExplainStatement) statement).getStatement();
             } else {
                 log.error("Not support DML Parser");
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                         String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
 
@@ -317,7 +317,7 @@ public class ApiServiceImpl implements ApiService {
                 sqlQuerySource.setTableName(tableName);
                 sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
             } else {
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                         String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.SQL_PARSE_ERROR_NOT_FOUNT_TABLE));
             }
 
@@ -412,14 +412,14 @@ public class ApiServiceImpl implements ApiService {
                 }
                 sqlQuerySource.setLimit(SQLHelper.INVALID_LIMIT_DESC);
             } else { //其它暂不支持
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                         String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
 
 
         } catch (JSQLParserException | RuntimeException e) {
             log.error("sqlParser error: {}", e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
 
         }
@@ -478,7 +478,7 @@ public class ApiServiceImpl implements ApiService {
             udf = (UDF) constructor.newInstance(udfElements);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Custom function conversion instance exception:{}",e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.CUSTOM_FUNCTION_CONVERSION_INSTANCE_EXCEPTION));
         }
         return udf;
@@ -513,7 +513,7 @@ public class ApiServiceImpl implements ApiService {
             param.setDialectDBType(DBTypeEnum.HBASE.getValue());
             param.setQuery(StrFormatter.format("SELECT COLUMN_NAME as \"name\", DATA_TYPE as \"type\" FROM SYSTEM.CATALOG WHERE TABLE_NAME= '{}' AND COLUMN_NAME  IS NOT NULL", tableName));
         } else {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),
                             param.getTableName() + ":" + QGWMessageConst.TABLE_NOT_EXIST));
         }
@@ -526,7 +526,7 @@ public class ApiServiceImpl implements ApiService {
         BaseResult baseResult = dataEncapsulationOfSchema(dialect.executeAdministrativeQuery(), param);
 
         if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.CHECK_TABLE));
         }
         return baseResult;
@@ -572,7 +572,7 @@ public class ApiServiceImpl implements ApiService {
             Dialect dialect = getReflectiveDialectObject(dbParam);
             BaseResult queryResult = dialect.executeAdministrativeQuery();
             if (queryResult.getStatus() == null || queryResult.getStatus() != ResultStatusEnum.SUCCESS.getCode()) {
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode() , queryResult.getMessage());
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode() , queryResult.getMessage());
             }
             List tables = (ArrayList) queryResult.getData();
             List<String> list = new ArrayList<>();

@@ -14,9 +14,9 @@ public enum ResultCodeEnum {
 
     SUCCESS("200666", "Success"),
     // 请求参数校验错误
-    PARAMETER_ERROR("40000100", "Parameter Validation Failed:%s"),
+    PARAMETER_ERROR("40000100", "Bad request - Invalid query parameters :%s"),
     // 未知异常
-    UNKNOWN_EXCEPTION("50000999", "Unknown exception: %s");
+    UNKNOWN_EXCEPTION("50000999", "An unknown error occurred: %s");
 
     private String code;
     private String message;

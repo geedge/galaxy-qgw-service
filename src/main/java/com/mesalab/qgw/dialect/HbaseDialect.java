@@ -99,7 +99,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
     }
@@ -121,7 +121,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     String getExplainQuery() {
-        throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                 String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.HBASE_DIALECT_UNSUPPORTED_EXPLAIN_SYNTAX));
     }
 
@@ -165,7 +165,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             return buildResult(resultSet);
         } catch (RuntimeException | SQLException e) {
             log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
         } finally {
             close(resultSet, statement, conn);

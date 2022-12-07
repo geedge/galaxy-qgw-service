@@ -1012,7 +1012,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else {
-            if (baseResult.getStatus() >= ResultStatusEnum.FAIL.getCode() && baseResult.getStatus() < ResultStatusEnum.SERVER_ERROR.getCode()) {
+            if (baseResult.getStatus() >= ResultStatusEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < ResultStatusEnum.SERVER_ERROR.getCode()) {
                 throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getCode(),
                         String.format(QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
             }

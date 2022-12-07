@@ -232,7 +232,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                 engineResult = executePocSqlByDatasource(engineTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
                 elasticsearchResult = executePocSqlByDatasource(esTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
             } else {
-                throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
                         ResultCodeEnum.PARAMETER_ERROR.getCode(),
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.OPTION_IS_NOT_SUPPORTED));
             }
@@ -252,7 +252,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
                     QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),e.getMessage()));
         }
@@ -273,7 +273,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         } else if (dialect.equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
             testFile = Optional.of(new File(druidWriter.buildPocSQL()));
         } else {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
                     ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.DIALECT_VALUE_ERROR));
         }
@@ -294,7 +294,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Get Poc SQL Fail:{}", e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
                     ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),e.getMessage()));
         }
@@ -701,7 +701,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                     (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), e.getMessage());
         }
         dataObject = baseResult.getData();
         Map<String, Object> resultMap = (Map<String, Object>) dataObject;
@@ -738,7 +738,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
     }

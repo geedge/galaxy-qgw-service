@@ -75,11 +75,11 @@ public class FqdnProviderImpl implements QueryProvider {
                     //查询深度
                     if ("DEPTH".equals(r.getFieldKey())) {
                         if (ObjectUtils.isEmpty(r.getFieldValues())){
-                            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.FIELD_VALUES_FORMAT_ERROR));
                         }
                         if (!Pattern.matches(depthregex, String.valueOf(r.getFieldValues().get(0)))){
-                            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.FIELD_VALUES_FORMAT_ERROR));
                         }
                     } else if ("PROTOCOL".equals(r.getFieldKey())) {

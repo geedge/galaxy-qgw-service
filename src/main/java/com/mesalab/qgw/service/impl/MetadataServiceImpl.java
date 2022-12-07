@@ -187,7 +187,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public Schema getSchemaByName(String tableName) {
         if (!getAllTable().contains(tableName)) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
                     ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),
                     tableName + ":"+QGWMessageConst.TABLE_NOT_EXIST));
