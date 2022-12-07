@@ -511,28 +511,28 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     private void valid(DSLObject.Query.Parameters parameters) {
         DSLObject.Query.Parameters.Match match = parameters.getMatch();
         if (ObjectUtil.isEmpty(match)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_IS_INVALID));
         }
         List<Condition> condition = match.getCondition();
-        if (ObjectUtil.isEmpty(condition)) { throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+        if (ObjectUtil.isEmpty(condition)) { throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                 String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_MATCH_CONDITION_IS_INVALID));
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldValues())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_VALUE_IS_INVALID));
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldKey())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID));
         }
         if (!(Arrays.asList(APP_NAME, DOMAIN, IP, DNS).contains(condition.get(0).getFieldKey()))) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID));
         }
         Integer limit = parameters.getLimit();
         if(ObjectUtil.isNotEmpty(limit)&&!(limit>=0&&limit<=DEF_LIMIT)){
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), String.format(CNErrorMessage.PARAMETERS_LIMIT_IS_INVALID),DEF_LIMIT));
         }
     }

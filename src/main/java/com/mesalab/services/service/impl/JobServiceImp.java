@@ -143,7 +143,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     public BaseResult getReportStatus(String jobId) {
         List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("REPORT_STATUS")), jobId));
         if (CollectionUtil.isEmpty(query)) {
-            return BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), "not found job");
+            return BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), "not found job");
         }
         List<Object> list = Arrays.asList((Object[]) query.get(0));
         HashMap<String, Object> job = new HashMap<>();
@@ -176,7 +176,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                     return result;
                 }
             } else {
-                BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), "job unfinished");
+                BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), "job unfinished");
             }
         }
         return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "get job info error");
@@ -408,7 +408,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 property.put(JobConfig.JOB_PROPERTY_K_OPTION, JobConfig.JOB_PROPERTY_V_OPTION_TOP);
             }
         } catch (JSQLParserException | RuntimeException e) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"statistics job init error: ".concat(e.getMessage())));
         }
     }
@@ -452,13 +452,13 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     private PlainSelect checkParam(String sql, net.sf.jsqlparser.statement.Statement statement) {
         SelectBody selectBody;
         if (!(statement instanceof Select) || !((selectBody = ((Select) statement).getSelectBody()) instanceof PlainSelect)) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"statistics job init error, not support, SQL is: " + sql));
                     
         }
         PlainSelect plainSelect = (PlainSelect) selectBody;
         if (StringUtil.isEmpty(plainSelect.getGroupBy())) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "statistics job init error, not support non-aggregate SQL is: " + sql));
         }
         return plainSelect;
@@ -500,7 +500,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 .build();
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),baseResult.getMessage()));
         }
     }
@@ -514,7 +514,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         ApiParam apiParam = ApiParam.builder().query(validationSql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build();
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),baseResult.getMessage()));
         }
     }
@@ -524,7 +524,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build());
         if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),baseResult.getMessage()));
         }
     }
@@ -545,7 +545,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             conn.commit();
         } catch (RuntimeException | SQLException e) {
             log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
         } finally {
             close(statement, conn);
         }
@@ -573,7 +573,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             conn.commit();
         } catch (RuntimeException | SQLException e) {
             log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.FAIL.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
 
 

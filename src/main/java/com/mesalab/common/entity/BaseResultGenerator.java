@@ -127,7 +127,7 @@ public class BaseResultGenerator {
      * @return 操作成功的默认响应结果
      */
     public static <T> BaseResult<T> failure() {
-        return new BaseResult<>(ResultStatusEnum.FAIL.getCode(),
+        return new BaseResult<>(ResultStatusEnum.BAD_REQUEST.getCode(),
                 ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), null, null, null, null);
     }
 
@@ -197,7 +197,7 @@ public class BaseResultGenerator {
      */
     public static <T> BaseResult<T> failure(final String message, final String queryKey) {
 
-        return new BaseResult<>(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), queryKey, false, message, null, null, null, null);
+        return new BaseResult<>(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), queryKey, false, message, null, null, null, null);
     }
 
 

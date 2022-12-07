@@ -16,7 +16,7 @@ public enum CNErrorCode {
      */
 
     // SQL构建错误
-    SQL_BUILDER_EXCEPTION("50002100", "Error in SQL Query Builder and Optimizer: %s"),
+    SQL_BUILDER_EXCEPTION("50002100", "Error in SQL query builder and optimizer: %s"),
 
 
 
