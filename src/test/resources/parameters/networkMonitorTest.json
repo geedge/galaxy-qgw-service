@@ -1,0 +1,98 @@
+{
+  "appDataSummary": {
+    "clientId": null,
+    "query": {
+      "queryType": "appDataSummary",
+      "dataSource": "traffic_protocol_stat_log",
+      "limit": "100",
+      "offset": "10",
+      "parameters": {
+        "match": [
+          {
+            "type": "exactly",
+            "fieldKey": "data_center",
+            "fieldValues": [
+              "dataCenterValue"
+            ]
+          },
+          {
+            "type": "exactly",
+            "fieldKey": "device_group",
+            "fieldValues": [
+              "deviceGroupValue1",
+              "deviceGroupValue2"
+            ]
+          },
+          {
+            "type": "prefix",
+            "fieldKey": "app_name",
+            "fieldValues": [
+              "Google"
+            ]
+          }
+        ],
+        "range": [
+          {
+            "type": "eq",
+            "fieldKey": "vsys_id",
+            "fieldValues": [
+              1,
+              2
+            ]
+          }
+        ],
+        "intervals": [
+          "2022-11-12 00:00:00/2022-11-12 01:00:00"
+        ]
+      }
+    }
+  },
+  "internalIPDataSummary": {
+    "clientId": null,
+    "query": {
+      "queryType": "internalIPDataSummary",
+      "dataSource": "session_record",
+      "limit": "10",
+      "offset": "20",
+      "parameters": {
+        "match": [
+          {
+            "type": "exactly",
+            "fieldKey": "app_name",
+            "fieldValues": [
+              "Google"
+            ]
+          },
+          {
+            "type": "exactly",
+            "fieldKey": "data_center",
+            "fieldValues": [
+              "dataCenterValue"
+            ]
+          },
+          {
+            "type": "exactly",
+            "fieldKey": "device_group",
+            "fieldValues": [
+              "deviceGroupValue1",
+              "deviceGroupValue2"
+            ]
+          }
+        ],
+        "range": [
+          {
+            "type": "eq",
+            "fieldKey": "vsys_id",
+            "fieldValues": [
+              1,
+              2
+            ]
+          }
+        ],
+        "intervals": [
+          "2022-11-12 00:00:00/2022-11-12 01:00:00"
+        ]
+      }
+    }
+  }
+}
