@@ -611,10 +611,15 @@ public class HttpClientService {
         try {
             // 执行请求
             response = httpClient.execute(httpGet);
-            // 获取响应实体
-            result = IOUtils.toBufferedInputStream(response.getEntity().getContent());
-            // 获取响应信息
-            EntityUtils.consume(response.getEntity());
+            int code = response.getStatusLine().getStatusCode();
+            if (code != ResultStatusEnum.SUCCESS.getCode()) {
+                log.error("current file: {}, get InputStream error, status code:{}, entity: {}", url, code, EntityUtils.toString(response.getEntity()));
+            } else {
+                // 获取响应实体
+                result = IOUtils.toBufferedInputStream(response.getEntity().getContent());
+                // 获取响应信息
+                EntityUtils.consume(response.getEntity());
+            }
         } catch (ClientProtocolException e) {
             log.error("current file: {},Protocol error:{}", url, e.getMessage());
 
