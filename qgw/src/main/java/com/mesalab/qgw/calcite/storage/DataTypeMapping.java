@@ -1,0 +1,77 @@
+package com.mesalab.qgw.calcite.storage;
+
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
+import com.zdjizhi.calcite.sql.type.SqlTypeName;
+
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.Set;
+
+/**
+ * 这里使用了GUAVA的table 作为存SQL和JAVA数据类型的数据结构
+ * 这并不是一个好的设计，而是为了让大家更容易理解而做的设计
+ */
+public class DataTypeMapping {
+
+    public static final Table<String, SqlTypeName, Class> TYPE_MAPPING = HashBasedTable.create();
+    public static final String CHAR = "char";
+    public static final String VARCHAR = "varchar";
+    public static final String BOOLEAN = "boolean";
+    public static final String DATE = "date";
+    public static final String INTEGER = "integer";
+    public static final String INT = "int";
+    public static final String TINYINT = "tinyint";
+    public static final String SMALLINT = "smallint";
+    public static final String BIGINT = "bigint";
+    public static final String DECIMAL = "decimal";
+    public static final String NUMERIC = "numeric";
+    public static final String FLOAT = "float";
+    public static final String REAL = "real";
+    public static final String DOUBLE = "double";
+    public static final String TIME = "time";
+    public static final String TIMESTAMP = "timestamp";
+    public static final String ANY = "any";
+
+    static {
+        TYPE_MAPPING.put(DataTypeMapping.CHAR, SqlTypeName.CHAR, Character.class);
+        TYPE_MAPPING.put(DataTypeMapping.VARCHAR, SqlTypeName.VARCHAR, String.class);
+        TYPE_MAPPING.put(DataTypeMapping.BOOLEAN, SqlTypeName.BOOLEAN, Boolean.class);
+        TYPE_MAPPING.put(DataTypeMapping.DATE, SqlTypeName.DATE, Date.class);
+        TYPE_MAPPING.put(DataTypeMapping.INTEGER, SqlTypeName.INTEGER, Integer.class);
+        TYPE_MAPPING.put(DataTypeMapping.INT, SqlTypeName.TIMESTAMP, String.class);
+        TYPE_MAPPING.put(DataTypeMapping.TINYINT, SqlTypeName.TINYINT, Integer.class);
+        TYPE_MAPPING.put(DataTypeMapping.SMALLINT, SqlTypeName.SMALLINT, Integer.class);
+        TYPE_MAPPING.put(DataTypeMapping.BIGINT, SqlTypeName.BIGINT, Long.class);
+        TYPE_MAPPING.put(DataTypeMapping.DECIMAL, SqlTypeName.DECIMAL, BigDecimal.class);
+        TYPE_MAPPING.put(DataTypeMapping.NUMERIC, SqlTypeName.DECIMAL, Long.class);
+        TYPE_MAPPING.put(DataTypeMapping.FLOAT, SqlTypeName.FLOAT, Float.class);
+        TYPE_MAPPING.put(DataTypeMapping.REAL, SqlTypeName.REAL, Double.class);
+        TYPE_MAPPING.put(DataTypeMapping.DOUBLE, SqlTypeName.DOUBLE, Double.class);
+        TYPE_MAPPING.put(DataTypeMapping.TIME, SqlTypeName.TIME, Date.class);
+        TYPE_MAPPING.put(DataTypeMapping.TIMESTAMP, SqlTypeName.TIMESTAMP, Long.class);
+        TYPE_MAPPING.put(DataTypeMapping.ANY, SqlTypeName.ANY, String.class);
+    }
+
+    /**
+     * 根据名字获取，对应的java类型
+     */
+    public static Class getJavaClassByName(String name) {
+        Set<Table.Cell<String, SqlTypeName, Class>> table = TYPE_MAPPING.cellSet();
+        for (Table.Cell<String, SqlTypeName, Class> it : table) {
+            if (it.getRowKey().equals(name)) {
+                return it.getValue();
+            }
+        }
+        return null;
+    }
+
+    public static SqlTypeName getSqlTypeByName(String name) {
+        for (Table.Cell<String, SqlTypeName, Class> it : TYPE_MAPPING.cellSet()) {
+            if (it.getRowKey().equals(name)) {
+                return it.getColumnKey();
+            }
+        }
+        return null;
+    }
+}

@@ -5,8 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mesalab</groupId>
     <artifactId>galaxy-qgw-service</artifactId>
+    <modules>
+        <module>cn</module>
+        <module>common</module>
+        <module>knowledge</module>
+        <module>network</module>
+        <module>qgw</module>
+        <module>service</module>
+    </modules>
     <version>362</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
     <name>galaxy-qgw-service</name>
     <repositories>
         <repository>
@@ -632,7 +640,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19.1</version>
                 <configuration>
-                   <skipTests>true</skipTests> <!-- 默认关掉单元测试-->
+                 <!--  <skipTests>true</skipTests>  默认关掉单元测试-->
                 </configuration>
             </plugin>
         </plugins>

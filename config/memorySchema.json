@@ -5,7 +5,7 @@
     {
       "type": "custom",
       "name": "memorySchema",
-      "factory": "com.mesalab.calcite.InMemorySchemaFactory",
+      "factory": "com.mesalab.qgw.calcite.InMemorySchemaFactory",
       "operand": {
       }
     }
