@@ -54,6 +54,14 @@
       }
     },
     {
+      "name": "pinningst",
+      "label": "Pinning",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
       "name": "action",
       "label": "Action",
       "type": "long",
