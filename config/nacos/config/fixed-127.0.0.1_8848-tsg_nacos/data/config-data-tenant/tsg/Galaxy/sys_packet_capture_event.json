@@ -626,6 +626,14 @@
       }
     },
     {
+      "name": "common_app_full_path",
+      "label": "Application Full Path",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
       "name": "common_userdefine_app_name",
       "label": "User Define App Name",
       "type": "string",
@@ -653,7 +661,7 @@
       "name": "common_l7_protocol",
       "type": "string",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "label": "L7 Protocol"
     },

@@ -45,10 +45,10 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
-        "common_l7_protocol",
         "common_protocol_label",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
@@ -82,10 +82,10 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
-        "common_l7_protocol",
         "common_protocol_label",
         "common_l4_protocol",
         "common_c2s_pkt_num",
@@ -132,10 +132,10 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
-        "common_l7_protocol",
         "common_protocol_label",
         "common_service_category",
         "common_l4_protocol",
@@ -206,6 +206,7 @@
         ],
         "application": [
           "common_app_id",
+          "common_app_full_path",
           "common_userdefine_app_name",
           "common_app_identify_info",
           "common_app_label",
@@ -1062,6 +1063,15 @@
       }
     },
     {
+      "name": "common_app_full_path",
+      "label": "Application Full Path",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      }
+    },
+    {
       "name": "common_userdefine_app_name",
       "label": "User Define App Name",
       "type": "string",
@@ -1092,7 +1102,7 @@
       "name": "common_l7_protocol",
       "label": "L7 Protocol",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
