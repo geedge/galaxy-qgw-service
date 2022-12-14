@@ -11,11 +11,14 @@ import com.mesalab.qgw.exception.QGWErrorCode;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -28,6 +31,7 @@ public class ComDSLValidate {
     public static final Pattern periodOfPT = Pattern.compile("PT(\\d+)[SMH]", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfP = Pattern.compile("P(\\d+)[DWMY]", Pattern.CASE_INSENSITIVE);
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
+
 
     public void validation(ComDSLObject dslObject) throws QGWBusinessException {
         if (StringUtil.isEmpty(dslObject)) {
@@ -159,21 +163,31 @@ public class ComDSLValidate {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.INTERVALS_PARAM_ERROR));
         }
+
         for (String dateTimeStr : split) {
-            if (!strFormatDateTime.matcher(dateTimeStr).find()) {
+            Date date = null;
+            try {
+                 date = DateUtils.parseDate(dateTimeStr, "yyyy-MM-dd'T'HH:mm:ssXXX");
+            } catch (ParseException e) {
+            }
+            try {
+                date = DateUtils.parseDate(dateTimeStr, "yyyy-MM-dd HH:mm:ss");
+            } catch (ParseException e) {
+            }
+            if (date == null){
                 throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.TIME_FORMAT_ERROR));
             }
         }
-        try {
-            DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-            if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
-                throw new RuntimeException("Intervals value should be [start, end]");
-            }
-        } catch (RuntimeException e) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),e.getMessage()));
-        }
+//        try {
+//            DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+//            if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
+//                throw new RuntimeException("Intervals value should be [start, end]");
+//            }
+//        } catch (RuntimeException e) {
+//            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+//                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),e.getMessage()));
+//        }
         return true;
     }
 }

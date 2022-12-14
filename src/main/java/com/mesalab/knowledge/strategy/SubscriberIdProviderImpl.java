@@ -58,7 +58,7 @@ public class SubscriberIdProviderImpl implements QueryProvider {
             List<String> intervals = parameters.getIntervals();
             if(!ObjectUtils.isEmpty(intervals)){
                 String[] times = intervals.get(0).split("/");
-                intervalsb.append(" filter e.LAST_FOUND_TIME >= ").append(DateUtils.convertStringToTimestamp(times[0], DateUtils.YYYY_MM_DD_HH24_MM_SS)).append(" and ").append("e.LAST_FOUND_TIME <").append(DateUtils.convertStringToTimestamp(times[1], DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                intervalsb.append(" filter e.LAST_FOUND_TIME >= \"").append(times[0]).append("\"and ").append("e.LAST_FOUND_TIME <\"").append(times[1]).append("\"");
             }
 
         }

@@ -530,7 +530,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         }
         StringBuilder timeInterval = new StringBuilder();
         String[] intervals = getIntervals(parameters.getIntervals());
-        timeInterval.append("common_recv_time >= toDateTime('").append(intervals[0]).append("') AND common_recv_time< toDateTime('").append(intervals[1]).append("')");
+        timeInterval.append("common_recv_time >= UNIX_TIMESTAMP('").append(intervals[0]).append("') AND common_recv_time< UNIX_TIMESTAMP('").append(intervals[1]).append("')");
         return timeInterval.toString();
     }
 

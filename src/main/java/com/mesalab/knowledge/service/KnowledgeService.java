@@ -19,20 +19,21 @@ import com.mesalab.knowledge.entity.*;
 import com.mesalab.knowledge.enums.DataSourceEnum;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
-import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
 import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.mesalab.knowledge.strategy.QueryProvider;
-import com.zdjizhi.utils.DateUtils;
+import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -139,12 +140,28 @@ public class KnowledgeService {
                 throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.INTERVALS_IS_INVALID));
             }
-            Date start = DateUtils.convertStringToDate(times.get(0), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-            Date end = DateUtils.convertStringToDate(times.get(1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-            if (!start.before(end)){
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.TIME_ERROR));
+            for (String dateTimeStr : times) {
+                Date date = null;
+                try {
+                    date = DateUtils.parseDate(dateTimeStr, "yyyy-MM-dd'T'HH:mm:ssXXX");
+                } catch (ParseException e) {
+                }
+                try {
+                    date = DateUtils.parseDate(dateTimeStr, "yyyy-MM-dd HH:mm:ss");
+                } catch (ParseException e) {
+                }
+                if (date == null){
+                    throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
+                }
             }
+
+//            Date start = DateUtils.convertStringToDate(times.get(0), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+//            Date end = DateUtils.convertStringToDate(times.get(1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+//            if (!start.before(end)){
+//                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+//                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.TIME_ERROR));
+//            }
         }
         if (nonNull(limit)) {
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);

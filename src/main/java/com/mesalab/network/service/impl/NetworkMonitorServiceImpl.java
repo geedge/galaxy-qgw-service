@@ -241,7 +241,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         }
         StringBuffer whereOfTime = new StringBuffer();
         String[] intervals = getIntervals(parameters.getIntervals());
-        whereOfTime.append("__time >= TIMESTAMP '").append(intervals[0]).append("' AND __time < TIMESTAMP '").append(intervals[1]).append("'");
+        whereOfTime.append("__time >= UNIX_TIMESTAMP '").append(intervals[0]).append("' AND __time < UNIX_TIMESTAMP '").append(intervals[1]).append("'");
         return whereOfTime.toString();
     }
 
@@ -442,7 +442,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     public BaseResult buildAppData(DSLObject dslObject) {
         String whereOfExactly = getWhereFilter(dslObject.getQuery().getParameters(), false, null);
         String[] intervals = getIntervals(dslObject.getQuery().getParameters().getIntervals());
-        String whereOfTime = "__time >= TIMESTAMP '" + intervals[0] + "' AND __time < TIMESTAMP '" + intervals[1] + "'";
+        String whereOfTime = "__time >= UNIX_TIMESTAMP '" + intervals[0] + "' AND __time < UNIX_TIMESTAMP '" + intervals[1] + "'";
         String granularity = dslObject.getQuery().getParameters().getGranularity();
         granularity = StringUtil.isEmpty(granularity) ? "PT15S" : granularity;
         Period period = Period.parse(granularity);
