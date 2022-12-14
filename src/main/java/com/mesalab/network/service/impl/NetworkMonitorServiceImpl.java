@@ -18,7 +18,6 @@ import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
-import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.network.common.Constants;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.service.NetworkMonitorService;
@@ -33,7 +32,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
@@ -237,7 +235,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         }
         StringBuffer whereOfTime = new StringBuffer();
         String[] intervals = getIntervals(parameters.getIntervals());
-        whereOfTime.append("__time >= TIMESTAMP '").append(intervals[0]).append("' AND __time < TIMESTAMP '").append(intervals[1]).append("'");
+        whereOfTime.append("__time >= UNIX_TIMESTAMP '").append(intervals[0]).append("' AND __time < UNIX_TIMESTAMP '").append(intervals[1]).append("'");
         return whereOfTime.toString();
     }
 
