@@ -114,6 +114,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                                 knowledge.setPath(path);
                                 knowledge.setSha256(sha256Hex);
                                 knowledge.setSize(file.getSize());
+                                knowledge.setUpdateTime(DateUtils.getFormatDate(new Date(), "yyyy-MM-dd'T'HH:mm:sss"));
                                 updateLatestKnowledge(knowledgeBaseList, knowledge);
                                 break;
                             }
@@ -280,6 +281,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
         String name = knowledgeBase.getName();
         String type = knowledgeBase.getType();
+
         for (int i = 0; i < knowledgeBaseList.size(); i++) {
 
             KnowledgeBase knowledge = knowledgeBaseList.get(i);
