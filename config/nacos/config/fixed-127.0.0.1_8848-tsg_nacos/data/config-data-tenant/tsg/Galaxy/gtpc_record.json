@@ -811,7 +811,7 @@
     },
     {
       "name": "common_vsys_id",
-      "label": "VSYS ID",
+      "label": "Vsys ID",
       "doc": {
         "visibility": "enabled",
         "ttl": null

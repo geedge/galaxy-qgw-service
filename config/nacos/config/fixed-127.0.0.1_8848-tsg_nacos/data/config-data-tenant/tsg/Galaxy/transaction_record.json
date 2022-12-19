@@ -847,7 +847,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "label": "VSYS ID",
+      "label": "Vsys ID",
       "default": 1
     },
     {
