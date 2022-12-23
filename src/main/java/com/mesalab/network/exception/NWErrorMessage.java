@@ -22,7 +22,7 @@ public class NWErrorMessage {
     public static String MATCH_FIELD_VALUES_ERROR = "Match fieldValues cannot startWith '*' or endWith '$'";
     public static String RANGE_TYPE_ERROR = "range type is illegal";
     public static String INTERVALS_PARAM_ERROR = "DSLObject.query.query.Intervals is invalid";
-    public static String TIME_FORMAT_ERROR = "Time format should be: yyyy-MM-dd HH:mm:ss";
+    public static String TIME_FORMAT_ERROR = "Time format should be:[yyyy-MM-dd HH:mm:ss,yyyy-MM-dd'T'HH:mm:ssXXX]";
     public static String INTERVALS_VALUE_ERROR = "Intervals value should be [start, end]";
 
 

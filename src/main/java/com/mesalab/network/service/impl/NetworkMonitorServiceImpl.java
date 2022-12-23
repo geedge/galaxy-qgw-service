@@ -205,7 +205,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, null);
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
         return String.format(sqlTemplate,
-                intervals[1], intervals[0], whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE,
+                "DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('".concat(intervals[1]).concat("')), '%Y-%m-%d %H:%i:%s')"),
+                "DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('".concat(intervals[0]).concat("')), '%Y-%m-%d %H:%i:%s')"),
+                whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE,
                 whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE);
     }
 
@@ -241,7 +243,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         }
         StringBuffer whereOfTime = new StringBuffer();
         String[] intervals = getIntervals(parameters.getIntervals());
-        whereOfTime.append("__time >= UNIX_TIMESTAMP '").append(intervals[0]).append("' AND __time < UNIX_TIMESTAMP '").append(intervals[1]).append("'");
+
+        whereOfTime.append("__time >= DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('").append(intervals[0]).append("')), '%Y-%m-%d %H:%i:%s')")
+        .append("AND __time < DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP(  '").append(intervals[1]).append("')), '%Y-%m-%d %H:%i:%s')");
         return whereOfTime.toString();
     }
 
@@ -442,7 +446,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     public BaseResult buildAppData(DSLObject dslObject) {
         String whereOfExactly = getWhereFilter(dslObject.getQuery().getParameters(), false, null);
         String[] intervals = getIntervals(dslObject.getQuery().getParameters().getIntervals());
-        String whereOfTime = "__time >= UNIX_TIMESTAMP '" + intervals[0] + "' AND __time < UNIX_TIMESTAMP '" + intervals[1] + "'";
+        String  whereOfTime = "__time >= DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('".concat(intervals[0]).concat("')), '%Y-%m-%d %H:%i:%s')")
+                .concat("AND __time < DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP(  '").concat(intervals[1]).concat("')), '%Y-%m-%d %H:%i:%s')");
         String granularity = dslObject.getQuery().getParameters().getGranularity();
         granularity = StringUtil.isEmpty(granularity) ? "PT15S" : granularity;
         Period period = Period.parse(granularity);
