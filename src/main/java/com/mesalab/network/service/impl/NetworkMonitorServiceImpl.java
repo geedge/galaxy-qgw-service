@@ -205,8 +205,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, null);
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
         return String.format(sqlTemplate,
-                "DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('".concat(intervals[1]).concat("')), '%Y-%m-%d %H:%i:%s')"),
-                "DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('".concat(intervals[0]).concat("')), '%Y-%m-%d %H:%i:%s')"),
+                "UNIX_TIMESTAMP('".concat(intervals[1]).concat("')"),
+                "UNIX_TIMESTAMP('".concat(intervals[0]).concat("')"),
                 whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE,
                 whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE);
     }

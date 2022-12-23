@@ -3,7 +3,7 @@ SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip,  SUM(one_sided
 #end
 
 #sql("TRAFFIC_DYNAMIC_STATISTICS")
-SELECT SUM(c2s_byte_num + s2c_byte_num) as dynamic_bytes, SUM(sessions) as dynamic_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/((TIMESTAMP_TO_MILLIS(%s)-TIMESTAMP_TO_MILLIS(%s))/1000) AS data_rate  FROM traffic_protocol_stat_log  WHERE %s %s AND protocol_id = '%s' LIMIT 1
+SELECT SUM(c2s_byte_num + s2c_byte_num) as dynamic_bytes, SUM(sessions) as dynamic_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/(%s -%s) AS data_rate  FROM traffic_protocol_stat_log  WHERE %s %s AND protocol_id = '%s' LIMIT 1
 #end
 
 #sql("PROTOCOL_TREE_SUMMARY")
