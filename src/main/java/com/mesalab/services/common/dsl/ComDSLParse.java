@@ -9,13 +9,19 @@ import com.mesalab.cn.entity.pojo.DSLParser;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
+import org.joda.time.format.ISODateTimeFormat;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.joining;
 
 public class ComDSLParse extends DSLParser {
 
+    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
     public static String parseInterval(ComDSLObject.Query query, String defField, boolean format) {
         if (ObjectUtil.isEmpty(query) || ObjectUtil.isEmpty(query.getParameters()) || ObjectUtil.isEmpty(query.getParameters().getIntervals())) {
@@ -23,9 +29,21 @@ public class ComDSLParse extends DSLParser {
         }
         List<String> intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
         if (format) {
-            long start = DateUtils.convertStringToTimestamp(intervals.get(0), "yyyy-MM-dd HH:mm:ss");
-            long end = DateUtils.convertStringToTimestamp(intervals.get(1), "yyyy-MM-dd HH:mm:ss");
-            return Joiner.on(" ").join(" AND ", defField, ">=", start, " AND ", defField, "<", end);
+            long startTime;
+            long endTime;
+            String start = intervals.get(0);
+            String end = intervals.get(1);
+            if (strFormatDateTime.matcher(start).find()){
+                startTime = DateUtils.convertStringToTimestamp(start, "yyyy-MM-dd HH:mm:ss");
+            } else {
+                startTime = ISODateTimeFormat.dateTimeNoMillis().parseMillis(start)/1000;
+            }
+            if (strFormatDateTime.matcher(end).find()){
+                endTime = DateUtils.convertStringToTimestamp(end, "yyyy-MM-dd HH:mm:ss");
+            } else {
+                endTime = ISODateTimeFormat.dateTimeNoMillis().parseMillis(end)/1000;
+            }
+            return Joiner.on(" ").join(" AND ", defField, ">=", startTime, " AND ", defField, "<", endTime);
         }
         return Joiner.on(" ").join(" AND ", defField, ">=", intervals.get(0), " AND ", defField, "<", intervals.get(1));
     }
