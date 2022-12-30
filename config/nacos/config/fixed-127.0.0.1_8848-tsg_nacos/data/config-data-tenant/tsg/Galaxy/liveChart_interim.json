@@ -16,6 +16,16 @@
         "type": "string"
       },
       {
+        "name": "vsys_id",
+        "fieldName": "common_vsys_id",
+        "type": "int"
+      },
+      {
+        "name": "app_name",
+        "fieldName": "common_app_label",
+        "type": "string"
+      },
+      {
         "name": "isp",
         "fieldName": "common_isp",
         "type": "string"
@@ -122,13 +132,7 @@
         "function": "combination",
         "name": "protocol_id",
         "fieldName": "common_protocol_label",
-        "parameters": "common_l7_protocol,."
-      },
-      {
-        "function": "combination",
-        "name": "protocol_id",
-        "fieldName": "common_protocol_label",
-        "parameters": "common_app_label,."
+        "parameters": "common_app_full_path,."
       },
       {
         "function": "flattenSpec",
@@ -145,7 +149,7 @@
       {
         "function": "hierarchy",
         "name": "protocol_id",
-        "fieldName": "common_protocol_label",
+        "fieldName": "",
         "parameters": "."
       }
     ],
