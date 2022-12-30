@@ -111,6 +111,14 @@
       }
     },
     {
+      "name": "common_server_domain",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
       "name": "common_app_label",
       "type": "string",
       "doc": {

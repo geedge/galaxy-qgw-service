@@ -41,6 +41,7 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
         "common_tunnel_endpoint_b_desc",
@@ -78,6 +79,7 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
         "common_l4_protocol",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -126,6 +128,7 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
         "common_tunnel_endpoint_b_desc",
@@ -203,7 +206,9 @@
           "common_external_ip",
           "common_server_port",
           "common_server_location",
-          "common_server_asn"
+          "common_server_asn",
+          "common_server_fqdn",
+          "common_server_domain"
         ],
         "application": [
           "common_app_id",
@@ -564,6 +569,24 @@
     {
       "name": "common_server_asn",
       "label": "Server ASN",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_server_fqdn",
+      "label": "Server FQDN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_server_domain",
+      "label": "Server Domain",
       "doc": {
         "visibility": "hidden",
         "ttl": null

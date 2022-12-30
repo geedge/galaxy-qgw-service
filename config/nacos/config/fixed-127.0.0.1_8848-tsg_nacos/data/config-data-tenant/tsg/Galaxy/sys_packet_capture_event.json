@@ -268,6 +268,22 @@
       "label": "Server ASN"
     },
     {
+      "name": "common_server_fqdn",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Server FQDN"
+    },
+    {
+      "name": "common_server_domain",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Server Domain"
+    },
+    {
       "name": "common_sessions",
       "type": "long",
       "doc": {

@@ -49,6 +49,7 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -170,6 +171,7 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -322,6 +324,7 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -505,7 +508,9 @@
           "common_external_ip",
           "common_server_port",
           "common_server_location",
-          "common_server_asn"
+          "common_server_asn",
+          "common_server_fqdn",
+          "common_server_domain"
         ],
         "application": [
           "common_app_id",
@@ -940,6 +945,24 @@
       "label": "Server ASN",
       "doc": {
         "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_server_fqdn",
+      "label": "Server FQDN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_server_domain",
+      "label": "Server Domain",
+      "doc": {
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
