@@ -1737,6 +1737,14 @@
           {
             "function": "sub_domain",
             "appendTo": "http_domain"
+          },
+          {
+            "function": "sub_domain",
+            "appendTo": "common_server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_server_fqdn"
           }
         ],
         "visibility": "enabled",
@@ -2809,6 +2817,14 @@
           {
             "function": "sub_domain",
             "appendTo": "http_domain"
+          },
+          {
+            "function": "sub_domain",
+            "appendTo": "common_server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_server_fqdn"
           }
         ],
         "visibility": "enabled",
@@ -3138,6 +3154,14 @@
           {
             "function": "sub_domain",
             "appendTo": "http_domain"
+          },
+          {
+            "function": "sub_domain",
+            "appendTo": "common_server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_server_fqdn"
           }
         ],
         "visibility": "enabled",
