@@ -60,12 +60,20 @@ public class NetworkMonitorController {
     }
 
     private BaseResult appData(DSLObject dslObject) {
+        String queryType = dslObject.getQuery().getQueryType();
         if (QueryType.APP_DATA_SUMMARY.getValue()
-                .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+                .equalsIgnoreCase(queryType)) {
             return networkMonitorService.buildAppData(dslObject);
         } else if (QueryType.INTERNAL_IP_DATA_SUMMARY.getValue()
-                .equalsIgnoreCase(dslObject.getQuery().getQueryType())) {
+                .equalsIgnoreCase(queryType)) {
             return networkMonitorService.buildInternalIPData(dslObject);
+        }
+        else if (QueryType.APP_DATA_RATE_SUMMARY.getValue()
+                .equalsIgnoreCase(queryType)) {
+            return networkMonitorService.buildAppDataRate(dslObject);
+        } else if (QueryType.APP_TRAFFIC_SUMMARY.getValue()
+                .equalsIgnoreCase(queryType)) {
+            return networkMonitorService.buildAppTraffic(dslObject);
         } else {
             throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
         }
@@ -90,6 +98,9 @@ public class NetworkMonitorController {
         PROTOCOL_DATA_RATE_SUMMARY("protocolDataRateSummary"),
         NETWORK_OVERVIEW_SUMMARY("networkOverviewSummary"),
         APP_DATA_SUMMARY("appDataSummary"),
+        APP_DATA_RATE_SUMMARY("appDataRateSummary"),
+        APP_TRAFFIC_SUMMARY("appTrafficSummary"),
+
         INTERNAL_IP_DATA_SUMMARY("internalIPDataSummary");
         private final String value;
 

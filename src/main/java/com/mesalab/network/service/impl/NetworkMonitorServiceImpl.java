@@ -480,6 +480,52 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         }
     }
 
+    @Override
+    public BaseResult buildAppDataRate(DSLObject dslObject) {
+        BaseResult baseResult;
+        DSLObject.QueryBean.Parameters parameters = dslObject.getQuery().getParameters();
+        String whereOfExactly = getWhereFilter(parameters, false, null);
+        String whereOfTime = getWhereOfTime(parameters);
+        String sql = String.format(environment.getProperty("APP_DATA_RATE_SUMMARY"),
+                parameters.getGranularity(),
+                dslObject.getQuery().getDataSource(),
+                whereOfTime,
+                whereOfExactly,
+                parameters.getGranularity()
+        );
+        Map<String, String> result = executeQuery(sql);
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
+            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            List<Map> data = (List<Map>) resultMap.get("data");
+            baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
+        } else {
+            baseResult = BaseResultGenerator.error(result.get("result"));
+        }
+        return baseResult;
+    }
+
+    @Override
+    public BaseResult buildAppTraffic(DSLObject dslObject) {
+        BaseResult baseResult;
+        DSLObject.QueryBean.Parameters parameters = dslObject.getQuery().getParameters();
+        String whereOfExactly = getWhereFilter(parameters, false, null);
+        String whereOfTime = getWhereOfTime(parameters);
+        String sql = String.format(environment.getProperty("APP_TRAFFIC_SUMMARY"),
+                dslObject.getQuery().getDataSource(),
+                whereOfTime,
+                whereOfExactly
+        );
+        Map<String, String> result = executeQuery(sql);
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
+            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            List<Map> data = (List<Map>) resultMap.get("data");
+            baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
+        } else {
+            baseResult = BaseResultGenerator.error(result.get("result"));
+        }
+        return baseResult;
+    }
+
     /**
      *  基于Name聚合，统计Protocol和Application在全栈下的流量
      * @param nodes
