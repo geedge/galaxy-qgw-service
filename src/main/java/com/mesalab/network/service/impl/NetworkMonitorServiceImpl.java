@@ -499,7 +499,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             List<Map> data = (List<Map>) resultMap.get("data");
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
         } else {
-            baseResult = BaseResultGenerator.error(result.get("result"));
+            throw new BusinessException(result.get("result"));
         }
         return baseResult;
     }
@@ -521,7 +521,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             List<Map> data = (List<Map>) resultMap.get("data");
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
         } else {
-            baseResult = BaseResultGenerator.error(result.get("result"));
+            throw new BusinessException(result.get("result"));
         }
         return baseResult;
     }
