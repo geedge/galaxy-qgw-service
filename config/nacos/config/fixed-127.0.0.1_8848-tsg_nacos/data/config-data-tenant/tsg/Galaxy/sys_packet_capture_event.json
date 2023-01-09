@@ -7,8 +7,8 @@
     "partition_key": "common_recv_time",
     "index_key": [
       "common_log_id",
-      "common_recv_time",
       "common_policy_id",
+      "common_recv_time",
       "common_vsys_id"
     ]
   },
