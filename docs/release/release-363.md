@@ -7,3 +7,4 @@ Release 363 (TSG-23.01)
 * 完善Schema，补充GTP-C Record doc.schema_type GTP-C协议缺失字段(TSG-13265)
 * 扩展LiveChart，新增APP吞吐量时序图、流量统计接口(TSG-13203)
 * 修改Schema，安全日志展示common_flags字段(TSG-13290)
+* 修改Schema，对部分日志schema索引键顺序进行调整或完善
