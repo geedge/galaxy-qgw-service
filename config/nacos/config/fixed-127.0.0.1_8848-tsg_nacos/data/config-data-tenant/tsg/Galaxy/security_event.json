@@ -32,6 +32,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -154,6 +155,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -307,6 +309,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -1160,8 +1163,7 @@
         "data": {
           "$ref": "public_schema_info.json#/fields/common_flags/data"
         },
-        "allow_query": "false",
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "long"
