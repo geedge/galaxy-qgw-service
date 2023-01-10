@@ -36,8 +36,6 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.*;
-import org.joda.time.Period;
-import org.joda.time.PeriodType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
@@ -330,6 +328,12 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             if (StringUtil.isEmpty(plainSelect.getOrderByElements()) || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList())) {
                 return;
             }
+            if (StringUtil.isEmpty(plainSelect.getGroupBy())
+                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList())
+                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList().getExpressions())) {
+                return;
+            }
+
             SubOption subOption = new SubOption();
             Optional.ofNullable(plainSelect.getLimit()).ifPresent(x -> subOption.setLimit(Long.parseLong(String.valueOf(x.getRowCount()))));
 
@@ -345,7 +349,12 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                     aliasExpr.put(selectExprItem.getAlias().getName(), selectExprItem.getExpression());
                 }
             }
-
+            for (Expression groupItem : plainSelect.getGroupBy().getGroupByExpressionList().getExpressions()) {
+                if (aliasExpr.keySet().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))
+                        && aliasExpr.values().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))) {
+                    return;
+                }
+            }
             List<Expression> groupByItems = plainSelect.getGroupBy().getGroupByExpressionList().getExpressions();
             for (String key : aliasExpr.keySet()) {
                 Object value = aliasExpr.get(key);
