@@ -5,7 +5,7 @@
     <parent>
         <artifactId>galaxy-qgw-service</artifactId>
         <groupId>com.mesalab</groupId>
-        <version>349</version>
+        <version>${project.version}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,7 +14,7 @@
         <dependency>
             <groupId>com.mesalab</groupId>
             <artifactId>common</artifactId>
-            <version>349</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

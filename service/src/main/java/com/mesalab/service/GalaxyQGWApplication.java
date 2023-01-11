@@ -37,7 +37,9 @@ import java.util.TimeZone;
         "com.mesalab.network",
         "com.mesalab.cn",
         "com.mesalab.qgw",
-        "com.mesalab.service"})
+        "com.mesalab.service",
+        "com.mesalab.recommendation"
+})
 public class GalaxyQGWApplication implements WebMvcConfigurer {
 
     private static final String TIMEZONE = "UTC";
