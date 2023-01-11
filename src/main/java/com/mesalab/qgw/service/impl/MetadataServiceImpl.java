@@ -245,7 +245,11 @@ public class MetadataServiceImpl implements MetadataService {
             List<Map<String, Object>> fields = (List<Map<String, Object>>) data.get("fields");
             List<String> indexKey = getIndexKey(name);
             for (Map<String, Object> field : fields) {
-                if (!indexKey.contains(field.get("name"))) {
+                if (indexKey.contains(field.get("name"))) {
+                    Map<String, Object> ttlNull = Maps.newHashMap();
+                    ttlNull.put("ttl", null);
+                    field.put("doc", rewriteDoc("ttl", field.get("doc"), ttlNull));
+                } else {
                     field.put("doc", rewriteDoc("ttl", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
                 }
                 field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
