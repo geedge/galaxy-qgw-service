@@ -15,7 +15,6 @@
     </modules>
     <version>${project.version}</version>
     <packaging>pom</packaging>
-    <name>galaxy-qgw-service</name>
     <repositories>
         <repository>
             <id>nexus</id>
@@ -515,34 +514,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- 代码加密-->
-            <plugin>
-                <groupId>com.mesalab.xjar-maven-plugin</groupId>
-                <artifactId>mesalab-xjar-maven-plugin</artifactId>
-                <version>1.0.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <!--<phase>install</phase>-->
-                        <configuration>
-                            <password>Geedge2020!</password>
-                            <excludes>
-                                <exclude>
-                                    resources/**
-                                </exclude>
-                                <exclude>
-                                    META-INF/resources/**
-                                </exclude>
-                            </excludes>
-                        </configuration>
-
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
