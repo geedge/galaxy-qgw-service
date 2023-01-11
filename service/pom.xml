@@ -15,31 +15,26 @@
             <groupId>com.mesalab</groupId>
             <artifactId>common</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.mesalab</groupId>
             <artifactId>knowledge</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.mesalab</groupId>
             <artifactId>network</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.mesalab</groupId>
             <artifactId>qgw</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.mesalab</groupId>
             <artifactId>recommendation</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>
@@ -164,7 +159,34 @@
                         </dependency>
                     </dependencies>
                 </plugin>
-
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration> <!-- 指定该Main Class为全局的唯一入口 -->
+                        <mainClass>com.mesalab.service.GalaxyQGWApplication</mainClass>
+                        <!--<layout>ZIP</layout>-->
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal><!--可以把依赖的包都打包到生成的Jar包中 -->
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>io.github.zlika</groupId>
+                    <artifactId>reproducible-build-maven-plugin</artifactId>
+                    <version>0.2</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>strip-jar</goal>
+                            </goals>
+                            <phase>install</phase>
+                        </execution>
+                    </executions>
+                </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>

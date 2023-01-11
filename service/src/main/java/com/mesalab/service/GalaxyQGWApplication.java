@@ -16,8 +16,6 @@ import java.lang.management.RuntimeMXBean;
 import java.util.List;
 import java.util.TimeZone;
 
-
-
 /**
  * spring-boot-seed启动主程序
  * 使用@SpringBootApplication注解最重要的功能有@Configuration、@EnableAutoConfiguration、@ComponentScan三个注解功能
@@ -32,10 +30,9 @@ import java.util.TimeZone;
  */
 @SpringBootApplication
 @ComponentScan(basePackages = {
-        "com.mesalab.knowledge",
         "com.mesalab.common",
+        "com.mesalab.knowledge",
         "com.mesalab.network",
-        "com.mesalab.cn",
         "com.mesalab.qgw",
         "com.mesalab.service",
         "com.mesalab.recommendation"
@@ -76,3 +73,5 @@ public class GalaxyQGWApplication implements WebMvcConfigurer {
     }
 
 }
+
+
