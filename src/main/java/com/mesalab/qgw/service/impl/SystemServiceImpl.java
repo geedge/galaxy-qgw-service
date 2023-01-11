@@ -519,14 +519,16 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 List<Map<String, Object>> fields = JsonPath.read(schemaMap, "$.fields");
                 List<String> indexKey = metadataService.getIndexKey(tableName);
                 for (Map<String, Object> field : fields) {
-                    if (indexKey.contains(field.get("name").toString())) {
-                        continue;
-                    }
                     Object doc = field.get("doc");
                     if (StringUtil.isEmpty(doc)) {
                         doc = Maps.newHashMap();
                     }
                     Map<String, Object> fieldDoc = (Map<String, Object>) doc;
+                    if (indexKey.contains(field.get("name").toString())) {
+                        fieldDoc.put("ttl", null);
+                        field.put("doc", fieldDoc);
+                        continue;
+                    }
                     if (StringUtil.isEmpty(fieldDoc.get("ttl")) || ttl < Long.parseLong(fieldDoc.get("ttl").toString())) {
                         fieldDoc.put("ttl", ttl);
                         field.put("doc", fieldDoc);
