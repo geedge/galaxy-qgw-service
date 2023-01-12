@@ -453,7 +453,7 @@
                         </execution>
                         <execution>
                             <id>report</id>
-                            <phase>prepare-package</phase>
+                            <phase>package</phase>
                             <goals>
                                 <goal>report</goal>
                             </goals>
@@ -501,19 +501,6 @@
         </pluginManagement>
 
         <plugins>
-            <plugin>
-                <groupId>io.github.zlika</groupId>
-                <artifactId>reproducible-build-maven-plugin</artifactId>
-                <version>0.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>strip-jar</goal>
-                        </goals>
-                        <phase>install</phase>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
