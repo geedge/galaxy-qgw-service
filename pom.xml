@@ -537,65 +537,6 @@
             </plugin>
 
             <plugin>
-                <groupId>org.gaul</groupId>
-                <artifactId>modernizer-maven-plugin</artifactId>
-                <configuration>
-                    <violationsFiles>
-                        <violationsFile>${qgw.main.basedir}/src/modernizer/violations.xml</violationsFile>
-                    </violationsFiles>
-                    <exclusionPatterns>
-                        <exclusionPattern>org/joda/time/.*</exclusionPattern>
-                        <exclusionPattern>com.google/.*</exclusionPattern>
-                    </exclusionPatterns>
-                </configuration>
-            </plugin>
-
-
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>1.0.0</version>
-                <configuration>
-                    <serverId>153-docker-repo</serverId>
-                    <registryUrl>${docker.registry}:${docker.registry.port}</registryUrl>
-                    <pushImage>true</pushImage>
-                    <forceTags>true</forceTags>
-                    <imageName>${docker.registry}:${docker.registry.port}/${docker.image.prefix}/${project.artifactId}
-                    </imageName>
-                    <dockerHost>http://${docker.build}:${docker.build.port}</dockerHost>
-                    <dockerDirectory>docker</dockerDirectory>
-                    <buildArgs>
-                        <JDK_IMAGE>${docker.registry}:${docker.registry.port}/common/jdk:1.8.0_202</JDK_IMAGE>
-                        <GOLANG_IMAGE>${docker.registry}:${docker.registry.port}/common/golang:1.15.6</GOLANG_IMAGE>
-                        <JAR_FILE>${project.build.finalName}.xjar</JAR_FILE>
-                    </buildArgs>
-                    <imageTags>
-                        <imageTag>v3.3.200928</imageTag>
-                    </imageTags>
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.xjar</include>
-                            <include>xjar.go</include>
-                        </resource>
-                        <resource>
-                            <targetPath>/config</targetPath>
-                            <directory>config</directory>
-                        </resource>
-                        <resource>
-                            <targetPath>/dat</targetPath>
-                            <directory>dat</directory>
-                        </resource>
-                        <resource>
-                            <targetPath>/docs</targetPath>
-                            <directory>docs</directory>
-                        </resource>
-                    </resources>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <configuration>
                     <encoding>utf-8</encoding>
