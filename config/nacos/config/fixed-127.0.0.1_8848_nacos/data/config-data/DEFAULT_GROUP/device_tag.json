@@ -1,0 +1,382 @@
+[
+  {
+    "tagName": "Data Center",
+    "tagValue": "data_center",
+    "tagType": "data_center",
+    "subTags": [
+      {
+        "tagName": "Center 华严",
+        "tagValue": "center-hy",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 华严1楼",
+        "tagValue": "center-hy-one",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 华严2楼",
+        "tagValue": "center-hy-two",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 华严3楼",
+        "tagValue": "center-hy-three",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 华严4楼",
+        "tagValue": "center-hy-four",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 信息港",
+        "tagValue": "center-xxg",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center  信息港1楼",
+        "tagValue": "center-xxg-one",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 信息港2楼",
+        "tagValue": "center-xxg-two",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 信息港3楼",
+        "tagValue": "center-xxg-three",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 信息港4楼",
+        "tagValue": "center-xxg-four",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 信息港5楼",
+        "tagValue": "center-xxg-five",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 香山",
+        "tagValue": "center-xs",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center  香山1楼",
+        "tagValue": "center-xs-one",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 香山2楼",
+        "tagValue": "center-xs-two",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 香山3楼",
+        "tagValue": "center-xs-three",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 香山4楼",
+        "tagValue": "center-xs-four",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 元辰鑫",
+        "tagValue": "center-ycx",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center  元辰鑫1楼",
+        "tagValue": "center-ycx-one",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 元辰鑫2楼",
+        "tagValue": "center-ycx-two",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 元辰鑫3楼",
+        "tagValue": "center-ycx-three",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 元辰鑫4楼",
+        "tagValue": "center-ycx-four",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 马甸",
+        "tagValue": "center-md",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center  马甸1楼",
+        "tagValue": "center-md-one",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 马甸2楼",
+        "tagValue": "center-md-two",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 马甸3楼",
+        "tagValue": "center-md-three",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 马甸4楼",
+        "tagValue": "center-md-four",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 农业局",
+        "tagValue": "center-nyj",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center  农业局1楼",
+        "tagValue": "center-nyj-one",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 农业局2楼",
+        "tagValue": "center-nyj-two",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 农业局3楼",
+        "tagValue": "center-nyj-three",
+        "tagType": "data_center",
+        "subTags": null
+      },
+      {
+        "tagName": "Center 农业局4楼",
+        "tagValue": "center-nyj-four",
+        "tagType": "data_center",
+        "subTags": null
+      }
+    ]
+  },
+  {
+    "tagName": "Device Group",
+    "tagValue": "device_group",
+    "tagType": "device_group",
+    "subTags": [
+      {
+        "tagName": "GROUP 华严",
+        "tagValue": "Group-HY",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 华严1楼",
+        "tagValue": "group-hy-one",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 华严2楼",
+        "tagValue": "group-hy-two",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 华严3楼",
+        "tagValue": "group-hy-three",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 华严4楼",
+        "tagValue": "group-hy-four",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 信息港",
+        "tagValue": "group-xxg",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP  信息港1楼",
+        "tagValue": "group-xxg-one",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 信息港2楼",
+        "tagValue": "group-xxg-two",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 信息港3楼",
+        "tagValue": "group-xxg-three",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 信息港5楼",
+        "tagValue": "group-xxg-five",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 香山",
+        "tagValue": "group-xs",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP  香山1楼",
+        "tagValue": "group-xs-one",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 香山2楼",
+        "tagValue": "group-xs-two",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 香山3楼",
+        "tagValue": "group-xs-three",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 香山4楼",
+        "tagValue": "group-xs-four",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 元辰鑫",
+        "tagValue": "group-ycx",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP  元辰鑫1楼",
+        "tagValue": "group-ycx-one",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 元辰鑫2楼",
+        "tagValue": "group-ycx-two",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 元辰鑫3楼",
+        "tagValue": "group-ycx-three",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 元辰鑫4楼",
+        "tagValue": "group-ycx-four",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 马甸",
+        "tagValue": "group-md",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP  马甸1楼",
+        "tagValue": "group-md-one",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 马甸2楼",
+        "tagValue": "group-md-two",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 马甸3楼",
+        "tagValue": "group-md-three",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 马甸4楼",
+        "tagValue": "group-md-four",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 农业局",
+        "tagValue": "group-nyj",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP  农业局1楼",
+        "tagValue": "group-nyj-one",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 农业局2楼",
+        "tagValue": "group-nyj-two",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 农业局3楼",
+        "tagValue": "group-nyj-three",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "GROUP 农业局4楼",
+        "tagValue": "group-nyj-four",
+        "tagType": "device_group",
+        "subTags": null
+      }
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "namespace": "system",
+  "type": "record",
+  "name": "tables",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    }
+  ]
+}

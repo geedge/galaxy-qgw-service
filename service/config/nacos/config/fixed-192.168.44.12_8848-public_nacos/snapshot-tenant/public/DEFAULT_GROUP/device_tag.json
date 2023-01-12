@@ -1,0 +1,183 @@
+[
+  {
+    "tagName": "Device Group",
+    "tagValue": "device_group",
+    "tagType": "device_group",
+    "subTags": [
+      {
+        "tagName": "Bole-IGW",
+        "tagValue": "BOL-IGW",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Shashamane-IGW",
+        "tagValue": "SSM-IGW",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Microwave-IGW",
+        "tagValue": "MWV-IGW",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Bahir Dar-IGW",
+        "tagValue": "BJR-IGW",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Bole",
+        "tagValue": "BOL-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Legehar",
+        "tagValue": "LGH-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Old Airport",
+        "tagValue": "OAP-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Microwave",
+        "tagValue": "MWV-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Nefas Silk",
+        "tagValue": "NFS-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Ambo",
+        "tagValue": "AMB-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Dire Dawa",
+        "tagValue": "DIR-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Adama",
+        "tagValue": "ADM-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Shashamane",
+        "tagValue": "SSM-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Nekemte",
+        "tagValue": "NEK-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Microwave GGSN",
+        "tagValue": "MWV-GGSN",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Kirkos GGSN",
+        "tagValue": "KKS-GGSN",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Nefas Silk GGSN",
+        "tagValue": "NFS-GGSN",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Kirkos",
+        "tagValue": "KKS-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Yeka",
+        "tagValue": "YKA-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Arada",
+        "tagValue": "ARD-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Jijiga",
+        "tagValue": "JIJ-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Dessie",
+        "tagValue": "DSE-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Mekele",
+        "tagValue": "MQX-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Debre Markos",
+        "tagValue": "DBM-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Bahir Dar",
+        "tagValue": "BJR-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Gondar",
+        "tagValue": "GDQ-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Hawasa",
+        "tagValue": "HWS-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Sodo",
+        "tagValue": "SXU-PE",
+        "tagType": "device_group",
+        "subTags": null
+      },
+      {
+        "tagName": "Jimma",
+        "tagValue": "JIM-PE",
+        "tagType": "device_group",
+        "subTags": null
+      }
+    ]
+  }
+]

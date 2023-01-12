@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "name": "es-Raw",
+  "namespace": "tsg",
+  "filters": [
+    {
+      "name":"@start",
+      "value": "cast(now() as long)/1000 -3600"
+    },
+    {
+      "name":"@end",
+      "value": "cast(now() as long)/1000"
+    }
+  ]
+}

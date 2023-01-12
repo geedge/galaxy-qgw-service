@@ -1,0 +1,59 @@
+{
+  "metadata": [
+    {
+      "namespace": "cyber_narrator_galaxy",
+      "group": "CLICKHOUSE_GROUP",
+      "tables": [
+        "session_record_cn",
+        "metric_map",
+        "metric_top_entity",
+        "metric_ip",
+        "metric_region",
+        "metric_asn",
+        "metric_idc_renter",
+        "metric_application",
+        "metric_domain",
+        "metric_http_host",
+        "metric_ssl_sni",
+        "metric_protocol",
+        "metric_dns_server_ip",
+        "metric_dns_qname",
+        "metric_dns_qtype",
+        "metric_dns_rcode",
+        "metric_dns_rr_a",
+        "metric_dns_rr_aaaa",
+        "metric_dns_rr_cname",
+        "metric_link"
+      ]
+    },
+    {
+      "namespace": "elasticsearch",
+      "group": "ELASTICSEARCH_GROUP",
+      "tables": [
+        "security_event",
+        "performance_event",
+        "entity_info"
+      ]
+    },
+    {
+      "namespace": "system",
+      "group": "CLICKHOUSE_GROUP",
+      "tables": [
+        "processes"
+      ]
+    },
+    {
+      "namespace":"tsg",
+      "group":"HBASE_GROUP",
+      "tables":[
+        "report_result"
+      ]
+    },
+    {
+      "namespace": "tsg_galaxy",
+      "group": "HBASE_GROUP",
+      "tables": [
+      ]
+    }
+  ]
+}

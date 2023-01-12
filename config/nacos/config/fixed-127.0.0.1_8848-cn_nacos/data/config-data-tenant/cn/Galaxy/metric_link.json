@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "metric_link",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "stat_time"
+  },
+  "fields": [
+  ]
+}
