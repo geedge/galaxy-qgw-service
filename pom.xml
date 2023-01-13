@@ -73,12 +73,6 @@
         <hbase.client.version>2.2.3</hbase.client.version>
         <hutool.version>5.5.4</hutool.version>
         <json.path.version>2.5.0</json.path.version>
-
-        <docker.build>192.168.40.153</docker.build>
-        <docker.build.port>2375</docker.build.port>
-        <docker.registry>192.168.40.153</docker.registry>
-        <docker.registry.port>9080</docker.registry.port>
-        <docker.image.prefix>tsg/galaxy</docker.image.prefix>
         <nacos.config.version>0.2.7</nacos.config.version>
     </properties>
 
@@ -515,7 +509,32 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <!-- 代码加密-->
+            <plugin>
+                <groupId>com.mesalab.xjar-maven-plugin</groupId>
+                <artifactId>mesalab-xjar-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <!--<phase>install</phase>-->
+                        <configuration>
+                            <password>Geedge2020!</password>
+                            <excludes>
+                                <exclude>
+                                    resources/**
+                                </exclude>
+                                <exclude>
+                                    META-INF/resources/**
+                                </exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -553,6 +572,19 @@
                 <configuration>
                     <skipTests>true</skipTests>  <!-- 默认关掉单元测试-->
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.github.zlika</groupId>
+                <artifactId>reproducible-build-maven-plugin</artifactId>
+                <version>0.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>strip-jar</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
