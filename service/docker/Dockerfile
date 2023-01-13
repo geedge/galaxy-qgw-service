@@ -1,6 +1,5 @@
 ARG JDK_IMAGE
 ARG GOLANG_IMAGE
-WORKDIR /home/tsg/galaxy/galaxy-qgw-service/service
 #编译环境，生成二进制文件
 FROM ${GOLANG_IMAGE} as builder
 WORKDIR /build
