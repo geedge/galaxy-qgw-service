@@ -1,8 +1,40 @@
 
 stages:
+  - install
+  - install_clean
   - build
   - clean
   - deploy
+install:
+  #上面定义的stages
+  stage: install
+  #执行的脚本内容
+  script:
+    - echo 'exec mvn clean install'
+    - mvn clean install -Dmaven.test.skip=true
+  only:
+    - tags
+  tags:
+    - galaxy
+
+install_clean:
+  stage: install_clean
+  script:
+    - echo 'last job exec fail, exec mvn clean'
+    - echo 'tag名称是'
+    - echo $CI_COMMIT_TAG
+    - mvn clean
+  #when用于当前一阶段任务故障或者忽略故障的job任务，主要用于清理发生故障时的后续措施。
+  #可选项
+  #on_success - 默认参数，前一阶段任务成功时才执行
+  #on_failure - 前一阶段任务故障时才执行
+  #always - 无论前一阶段任务是否成功都执行
+  #manual - 手动设置，比较复杂，略过。
+  when: on_failure
+  only:
+    - tags
+  tags:
+    - galaxy
 
 build:
   stage: build
