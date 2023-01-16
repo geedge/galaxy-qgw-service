@@ -15,7 +15,7 @@ public interface MetadataService {
      * @param name
      * @return
      */
-    Map getSchemaInfo(String type, String name);
+    Map getSchemaInfo(String type, String name, boolean displayStorageSize);
 
     /**
      * 查询字典信息
