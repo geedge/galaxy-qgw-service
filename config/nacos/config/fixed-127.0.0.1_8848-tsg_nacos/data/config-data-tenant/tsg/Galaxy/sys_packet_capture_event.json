@@ -279,7 +279,7 @@
       "name": "common_server_domain",
       "type": "string",
       "doc": {
-        "visibility": "hidden"
+        "visibility": "enabled"
       },
       "label": "Server Domain"
     },

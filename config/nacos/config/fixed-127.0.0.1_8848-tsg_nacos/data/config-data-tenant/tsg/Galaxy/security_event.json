@@ -51,6 +51,7 @@
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
+        "common_server_domain",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -174,6 +175,7 @@
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
+        "common_server_domain",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -328,6 +330,7 @@
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
+        "common_server_domain",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -965,7 +968,7 @@
       "name": "common_server_domain",
       "label": "Server Domain",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
