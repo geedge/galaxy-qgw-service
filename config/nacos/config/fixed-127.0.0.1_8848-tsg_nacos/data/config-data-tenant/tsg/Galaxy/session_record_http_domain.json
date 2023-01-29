@@ -119,6 +119,24 @@
       }
     },
     {
+      "name": "common_data_center",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Data Center"
+    },
+    {
+      "name": "common_device_group",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Device Group"
+    },
+    {
       "name": "common_app_label",
       "type": "string",
       "doc": {
