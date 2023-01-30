@@ -1,3 +1,5 @@
 Release 364 (TSG-23.02)
 * 扩展子查询优化，适配CK重构主键(TSG-13187)
 * 修改Schema,对common_server_domain列进行展示，支持查询和Report(TSG-13362)
+* 扩展Schema，回表增加Data Center与Device Group字段(TSG-13188)
+* 扩展Schema，适配CK重构主键方案，schema扩充相应索引键(GAL-262)
