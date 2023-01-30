@@ -3299,7 +3299,7 @@
       "name": "app_extra_info",
       "label": "APP.Extra Info",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
