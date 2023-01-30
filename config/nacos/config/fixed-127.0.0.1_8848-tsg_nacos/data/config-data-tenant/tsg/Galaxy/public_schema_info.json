@@ -1,4 +1,18 @@
 {
+  "radius_onff_log": {
+    "index_key": {
+      "log_id": [
+        "account",
+        "event_timestamp",
+        "vsys_id"
+      ],
+      "vsys_id": [
+        "vsys_id",
+        "account",
+        "event_timestamp"
+      ]
+    }
+  },
   "session_record": {
     "index_key": {
       "log_id": [
@@ -11,6 +25,233 @@
         "common_vsys_id",
         "common_data_center",
         "common_device_group",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "session_record_common_client_ip": {
+    "index_key": {
+      "log_id": [
+        "common_client_ip",
+        "common_server_ip",
+        "common_recv_time"
+      ],
+      "vsys_id": [
+        "common_client_ip",
+        "common_server_ip",
+        "common_recv_time"
+      ]
+    }
+  },
+  "session_record_common_server_ip": {
+    "index_key": {
+      "log_id": [
+        "common_server_ip",
+        "common_client_ip",
+        "common_recv_time"
+      ],
+      "vsys_id": [
+        "common_server_ip",
+        "common_client_ip",
+        "common_recv_time"
+      ]
+    }
+  },
+  "session_record_http_domain": {
+    "index_key": {
+      "log_id": [
+        "http_domain",
+        "common_recv_time"
+      ],
+      "vsys_id": [
+        "http_domain",
+        "common_recv_time"
+      ]
+    }
+  },
+  "session_record_common_server_domain": {
+    "index_key": {
+      "log_id": [
+        "common_server_domain",
+        "common_recv_time"
+      ],
+      "vsys_id": [
+        "common_server_domain",
+        "common_recv_time"
+      ]
+    }
+  },
+  "interim_session_record": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_data_center",
+        "common_device_group",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "transaction_record": {
+    "index_key": {
+      "log_id": [
+        "common_stream_trace_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_stream_trace_id",
+        "common_data_center",
+        "common_recv_time"
+      ]
+    }
+  },
+  "radius_record": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "voip_record": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "gtpc_record": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "security_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_action",
+        "common_policy_id",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "proxy_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_sub_action",
+        "common_policy_id",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "dos_event": {
+    "index_key": {
+      "log_id": [
+        "log_id",
+        "start_time",
+        "destination_ip",
+        "vsys_id"
+      ],
+      "vsys_id": [
+        "vsys_id",
+        "destination_ip",
+        "start_time",
+        "log_id"
+      ]
+    }
+  },
+  "active_defence_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time"
+      ],
+      "vsys_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time"
+      ]
+    }
+  },
+  "sys_packet_capture_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_policy_id",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "assessment_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_recv_time",
+        "vsys_id"
+      ],
+      "vsys_id": [
+        "vsys_id",
         "common_recv_time",
         "common_log_id"
       ]

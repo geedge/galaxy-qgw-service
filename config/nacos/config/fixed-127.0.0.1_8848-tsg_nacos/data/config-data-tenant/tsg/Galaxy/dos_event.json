@@ -7,12 +7,9 @@
     "partition_key": "start_time",
     "ttl": null,
     "default_ttl": 2592000,
-    "index_key": [
-      "log_id",
-      "start_time",
-      "destination_ip",
-      "vsys_id"
-    ],
+    "index_key": {
+      "$ref": "public_schema_info.json#/dos_event/index_key"
+    },
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     },
