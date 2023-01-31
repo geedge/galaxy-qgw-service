@@ -14,7 +14,7 @@ nacos:
         enable: true #开启Nacos支持日志级别的加载时机
 logging:
 
-  config: service/config/log4j2.xml
+  config: ./config/log4j2.xml
 
 #配置文件传输大小(上传文件大小:目前1个G)
 spring:

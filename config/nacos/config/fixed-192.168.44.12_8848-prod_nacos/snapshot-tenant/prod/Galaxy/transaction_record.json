@@ -6,13 +6,13 @@
     {
         "primary_key":"common_stream_trace_id",
         "partition_key":"common_recv_time",
-        "ttl":31622400,
+        "ttl":2592000,
         "default_ttl":2592000,
         "index_key":
         [
             "common_stream_trace_id",
-            "common_recv_time",
             "common_data_center",
+            "common_recv_time",
             "common_vsys_id"
         ],
         "functions":
@@ -54,10 +54,11 @@
                 "common_server_port",
                 "common_server_location",
                 "common_server_asn",
+                "common_server_fqdn",
+                "common_app_full_path",
                 "common_app_identify_info",
                 "common_app_label",
                 "common_app_behavior",
-                "common_l7_protocol",
                 "common_protocol_label",
                 "common_l4_protocol",
                 "common_tunnel_endpoint_a_desc",
@@ -109,10 +110,11 @@
                 "common_server_port",
                 "common_server_location",
                 "common_server_asn",
+                "common_server_fqdn",
+                "common_app_full_path",
                 "common_app_identify_info",
                 "common_app_label",
                 "common_app_behavior",
-                "common_l7_protocol",
                 "common_protocol_label",
                 "common_l4_protocol",
                 "common_c2s_pkt_num",
@@ -193,10 +195,11 @@
                 "common_server_port",
                 "common_server_location",
                 "common_server_asn",
+                "common_server_fqdn",
+                "common_app_full_path",
                 "common_app_identify_info",
                 "common_app_label",
                 "common_app_behavior",
-                "common_l7_protocol",
                 "common_protocol_label",
                 "common_service_category",
                 "common_l4_protocol",
@@ -301,11 +304,14 @@
                     "common_external_ip",
                     "common_server_port",
                     "common_server_location",
-                    "common_server_asn"
+                    "common_server_asn",
+                    "common_server_fqdn",
+                    "common_server_domain"
                 ],
                 "application":
                 [
                     "common_app_id",
+                    "common_app_full_path",
                     "common_userdefine_app_name",
                     "common_app_identify_info",
                     "common_app_label",
@@ -473,7 +479,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Log ID"
         },
@@ -483,7 +489,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Policy ID"
         },
@@ -493,7 +499,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Subscriber ID"
         },
@@ -503,7 +509,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"IMEI"
         },
@@ -513,7 +519,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"IMSI"
         },
@@ -523,7 +529,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Phone Number"
         },
@@ -549,7 +555,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Client IP"
         },
@@ -571,7 +577,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Internal IP"
         },
@@ -581,7 +587,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Client Port"
         },
@@ -591,7 +597,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"L4 Protocol"
         },
@@ -617,7 +623,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Address Type"
         },
@@ -639,7 +645,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Server IP"
         },
@@ -649,7 +655,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Server Port"
         },
@@ -671,7 +677,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"External IP"
         },
@@ -709,7 +715,7 @@
                     }
 
                 ],
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Action"
         },
@@ -735,7 +741,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Direction"
         },
@@ -745,7 +751,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Entrance ID"
         },
@@ -759,7 +765,7 @@
                     "type":"ip"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Sled IP"
         },
@@ -769,7 +775,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Client Location"
         },
@@ -779,7 +785,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Client ASN"
         },
@@ -789,7 +795,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Server Location"
         },
@@ -799,9 +805,29 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Server ASN"
+        },
+        {
+            "name":"common_server_fqdn",
+            "label":"Server FQDN",
+            "doc":
+            {
+                "visibility":"enabled",
+                "ttl":2592000
+            },
+            "type":"string"
+        },
+        {
+            "name":"common_server_domain",
+            "label":"Server Domain",
+            "doc":
+            {
+                "visibility":"hidden",
+                "ttl":2592000
+            },
+            "type":"string"
         },
         {
             "name":"common_sessions",
@@ -809,7 +835,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Sessions"
         },
@@ -819,7 +845,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Packets Sent"
         },
@@ -829,7 +855,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Packets Received"
         },
@@ -839,7 +865,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Bytes Sent"
         },
@@ -849,7 +875,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Bytes Received"
         },
@@ -859,7 +885,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Packets Sent (Delta)"
         },
@@ -869,7 +895,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Packets Received (Delta)"
         },
@@ -879,7 +905,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Bytes Sent (Delta)"
         },
@@ -889,7 +915,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Bytes Received (Delta)"
         },
@@ -899,7 +925,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Service"
         },
@@ -933,7 +959,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Schema Type"
         },
@@ -945,7 +971,7 @@
                 "visibility":"enabled",
                 "ttl":null
             },
-            "label":"VSYS ID",
+            "label":"Vsys ID",
             "default":1
         },
         {
@@ -955,7 +981,7 @@
             {
                 "allow_query":"false",
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -975,7 +1001,7 @@
                 },
                 "allow_query":"false",
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -985,7 +1011,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"User Tags"
         },
@@ -1027,7 +1053,7 @@
 
                 ],
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Sub Action"
         },
@@ -1037,7 +1063,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"User Region"
         },
@@ -1047,7 +1073,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Device ID"
         },
@@ -1057,7 +1083,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1067,7 +1093,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1077,7 +1103,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"ISP"
         },
@@ -1101,7 +1127,7 @@
                     }
 
                 ],
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Device Tag"
         },
@@ -1141,7 +1167,7 @@
                     "value":"$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1151,7 +1177,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1169,7 +1195,7 @@
                     "$ref":"public_schema_info.json#/fields/common_encapsulation/data"
                 },
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Encapsulation"
         },
@@ -1179,7 +1205,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Application Label"
         },
@@ -1189,7 +1215,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400,
+                "ttl":2592000,
                 "format":
                 [
                     {
@@ -1209,7 +1235,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Protocol Label"
         },
@@ -1220,7 +1246,18 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
+            }
+
+        },
+        {
+            "name":"common_app_full_path",
+            "label":"Application Full Path",
+            "type":"string",
+            "doc":
+            {
+                "visibility":"hidden",
+                "ttl":2592000
             }
 
         },
@@ -1231,7 +1268,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -1241,7 +1278,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1252,7 +1289,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -1261,8 +1298,8 @@
             "type":"string",
             "doc":
             {
-                "visibility":"enabled",
-                "ttl":31622400
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "label":"L7 Protocol"
         },
@@ -1286,7 +1323,7 @@
                     "value":"categoryName"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"FQDN Category"
         },
@@ -1301,7 +1338,7 @@
                     "type":"timestamp"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Start Time"
         },
@@ -1324,7 +1361,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"End Time"
         },
@@ -1334,7 +1371,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"TCP Handshake Latency (ms)"
         },
@@ -1344,7 +1381,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Duration (ms)"
         },
@@ -1374,7 +1411,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Stream Direction"
         },
@@ -1384,7 +1421,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Address List"
         },
@@ -1402,7 +1439,7 @@
                     "$ref":"public_schema_info.json#/fields/common_has_dup_traffic/data"
                 },
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Duplication Traffic"
         },
@@ -1412,7 +1449,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Stream Error"
         },
@@ -1432,7 +1469,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Link Info (c2s)"
         },
@@ -1442,7 +1479,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Link Info (s2c)"
         },
@@ -1452,7 +1489,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400,
+                "ttl":2592000,
                 "constraints":
                 {
                     "type":"file"
@@ -1467,7 +1504,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1477,7 +1514,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1487,7 +1524,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Fragmentation Packets (c2s)"
         },
@@ -1497,7 +1534,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Fragmentation Packets (s2c)"
         },
@@ -1507,7 +1544,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Sequence Gap Loss (c2s)"
         },
@@ -1517,7 +1554,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Sequence Gap Loss (s2c)"
         },
@@ -1527,7 +1564,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Unordered Packets (c2s)"
         },
@@ -1537,7 +1574,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Unordered Packets (s2c)"
         },
@@ -1547,7 +1584,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Packet Retransmission (c2s)"
         },
@@ -1557,7 +1594,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Packet Retransmission (s2c)"
         },
@@ -1567,7 +1604,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Byte Retransmission (c2s)"
         },
@@ -1577,7 +1614,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Byte Retransmission (s2c)"
         },
@@ -1587,7 +1624,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"TCP Client ISN"
         },
@@ -1597,7 +1634,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"TCP Server ISN"
         },
@@ -1607,7 +1644,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"First TTL"
         },
@@ -1628,7 +1665,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"Processing Time"
         },
@@ -1649,7 +1686,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1660,7 +1697,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -1671,7 +1708,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -1681,7 +1718,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.URL"
         },
@@ -1695,11 +1732,19 @@
                     {
                         "function":"sub_domain",
                         "appendTo":"http_domain"
+                    },
+                    {
+                        "function":"sub_domain",
+                        "appendTo":"common_server_domain"
+                    },
+                    {
+                        "function":"get_value",
+                        "appendTo":"common_server_fqdn"
                     }
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Host"
         },
@@ -1709,7 +1754,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Domain"
         },
@@ -1719,7 +1764,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Request Line"
         },
@@ -1729,7 +1774,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Response Line"
         },
@@ -1739,7 +1784,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Request Headers"
         },
@@ -1749,7 +1794,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Response Headers"
         },
@@ -1759,7 +1804,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Request Content"
         },
@@ -1769,7 +1814,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1779,7 +1824,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1789,7 +1834,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Response Content"
         },
@@ -1799,7 +1844,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1809,7 +1854,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1824,7 +1869,7 @@
                     "type":"file"
                 },
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Request Body"
         },
@@ -1839,7 +1884,7 @@
                     "type":"file"
                 },
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Response Body"
         },
@@ -1849,7 +1894,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Request Body Key"
         },
@@ -1859,7 +1904,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Response Body Key"
         },
@@ -1869,7 +1914,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Proxy Flag"
         },
@@ -1879,7 +1924,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Sequence"
         },
@@ -1889,7 +1934,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Snapshot"
         },
@@ -1899,7 +1944,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Cookie"
         },
@@ -1909,7 +1954,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Referer"
         },
@@ -1919,7 +1964,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.User Agent"
         },
@@ -1929,7 +1974,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Content Length"
         },
@@ -1939,7 +1984,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Content Type"
         },
@@ -1949,7 +1994,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Set Cookie"
         },
@@ -1959,7 +2004,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Version"
         },
@@ -1969,7 +2014,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Response Latency (ms)"
         },
@@ -1979,7 +2024,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Session Duration (ms)"
         },
@@ -1989,7 +2034,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"HTTP.Action File Size"
         },
@@ -1999,7 +2044,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.Message ID"
         },
@@ -2025,7 +2070,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.QR"
         },
@@ -2059,7 +2104,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.OPCODE"
         },
@@ -2069,7 +2114,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.AA"
         },
@@ -2079,7 +2124,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.TC"
         },
@@ -2089,7 +2134,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.RD"
         },
@@ -2099,7 +2144,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.RA"
         },
@@ -2181,7 +2226,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.RCODE"
         },
@@ -2191,7 +2236,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.QDCOUNT"
         },
@@ -2201,7 +2246,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.ANCOUNT"
         },
@@ -2211,7 +2256,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.NSCOUNT"
         },
@@ -2221,7 +2266,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.ARCOUNT"
         },
@@ -2231,7 +2276,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.QNAME"
         },
@@ -2569,7 +2614,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.QTYPE"
         },
@@ -2579,7 +2624,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.QCLASS"
         },
@@ -2589,7 +2634,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.CNAME"
         },
@@ -2615,7 +2660,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.SUB"
         },
@@ -2625,7 +2670,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DNS.RR"
         },
@@ -2635,7 +2680,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2645,7 +2690,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Call-ID"
         },
@@ -2655,7 +2700,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Originator"
         },
@@ -2665,7 +2710,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Responder"
         },
@@ -2675,7 +2720,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.User-Agent"
         },
@@ -2685,7 +2730,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Server"
         },
@@ -2695,7 +2740,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Originator IP"
         },
@@ -2705,7 +2750,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Originator Port"
         },
@@ -2715,7 +2760,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Originator Media Type"
         },
@@ -2725,7 +2770,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Originator Content"
         },
@@ -2735,7 +2780,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Responder IP"
         },
@@ -2745,7 +2790,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Responder Port"
         },
@@ -2755,7 +2800,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Responder Media Type"
         },
@@ -2765,7 +2810,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Responder Content"
         },
@@ -2775,7 +2820,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Duration (s)"
         },
@@ -2785,7 +2830,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"SIP.Bye"
         }

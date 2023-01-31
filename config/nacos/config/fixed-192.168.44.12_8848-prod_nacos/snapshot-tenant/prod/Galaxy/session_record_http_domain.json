@@ -1,17 +1,16 @@
 {
     "type":"record",
-    "name":"session_record_common_server_ip",
+    "name":"session_record_http_domain",
     "namespace":"tsg_galaxy_v3",
     "doc":
     {
         "primary_key":"common_log_id",
         "partition_key":"common_recv_time",
-        "ttl":31622400,
+        "ttl":2592000,
         "default_ttl":2592000,
         "index_key":
         [
-            "common_server_ip",
-            "common_client_ip",
+            "http_domain",
             "common_recv_time"
         ]
 
@@ -24,7 +23,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -44,7 +43,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":null
+                "ttl":2592000
             }
 
         },
@@ -54,7 +53,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":null
+                "ttl":2592000
             }
 
         },
@@ -64,7 +63,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -74,7 +73,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -84,7 +83,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -94,7 +93,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -104,7 +103,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -114,7 +113,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "default":1
         },
@@ -124,7 +123,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -134,7 +133,17 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
+            }
+
+        },
+        {
+            "name":"common_server_domain",
+            "type":"string",
+            "doc":
+            {
+                "visibility":"hidden",
+                "ttl":2592000
             }
 
         },
@@ -144,7 +153,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -154,7 +163,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -164,7 +173,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":null
             }
 
         },
@@ -174,7 +183,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         }

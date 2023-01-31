@@ -1,18 +1,18 @@
 {
     "type":"record",
-    "name":"security_event",
+    "name":"interim_session_record",
     "namespace":"tsg_galaxy_v3",
     "doc":
     {
         "primary_key":"common_log_id",
         "partition_key":"common_recv_time",
-        "ttl":31622400,
+        "ttl":2592000,
         "default_ttl":2592000,
         "index_key":
         [
             "common_log_id",
+            "common_data_center",
             "common_recv_time",
-            "common_policy_id",
             "common_vsys_id"
         ],
         "functions":
@@ -37,6 +37,7 @@
                 "common_address_type",
                 "common_schema_type",
                 "common_vsys_id",
+                "common_flags",
                 "common_action",
                 "common_sub_action",
                 "common_policy_id",
@@ -54,10 +55,11 @@
                 "common_server_port",
                 "common_server_location",
                 "common_server_asn",
+                "common_server_fqdn",
+                "common_app_full_path",
                 "common_app_identify_info",
                 "common_app_label",
                 "common_app_behavior",
-                "common_l7_protocol",
                 "common_protocol_label",
                 "common_l4_protocol",
                 "common_tunnel_endpoint_a_desc",
@@ -112,20 +114,7 @@
                 "ftp_account",
                 "ftp_url",
                 "ftp_link_type",
-                "sip_call_id",
-                "sip_originator_description",
-                "sip_responder_description",
-                "sip_user_agent",
-                "sip_server",
-                "sip_originator_sdp_connect_ip",
-                "sip_originator_sdp_media_port",
-                "sip_originator_sdp_media_type",
-                "sip_responder_sdp_connect_ip",
-                "sip_responder_sdp_media_port",
-                "sip_responder_sdp_media_type",
                 "ssh_version",
-                "rtp_payload_type_c2s",
-                "rtp_payload_type_s2c",
                 "ssh_auth_success",
                 "ssh_client_version",
                 "ssh_server_version",
@@ -159,6 +148,7 @@
                 "common_address_type",
                 "common_schema_type",
                 "common_vsys_id",
+                "common_flags",
                 "common_action",
                 "common_sub_action",
                 "common_policy_id",
@@ -176,10 +166,11 @@
                 "common_server_port",
                 "common_server_location",
                 "common_server_asn",
+                "common_server_fqdn",
+                "common_app_full_path",
                 "common_app_identify_info",
                 "common_app_label",
                 "common_app_behavior",
-                "common_l7_protocol",
                 "common_protocol_label",
                 "common_l4_protocol",
                 "common_c2s_pkt_num",
@@ -255,20 +246,6 @@
                 "ftp_account",
                 "ftp_url",
                 "ftp_link_type",
-                "sip_call_id",
-                "sip_originator_description",
-                "sip_responder_description",
-                "sip_user_agent",
-                "sip_server",
-                "sip_originator_sdp_connect_ip",
-                "sip_originator_sdp_media_port",
-                "sip_originator_sdp_media_type",
-                "sip_responder_sdp_connect_ip",
-                "sip_responder_sdp_media_port",
-                "sip_responder_sdp_media_type",
-                "sip_duration_s",
-                "rtp_payload_type_c2s",
-                "rtp_payload_type_s2c",
                 "ssh_version",
                 "ssh_auth_success",
                 "ssh_client_version",
@@ -312,6 +289,7 @@
                 "common_address_type",
                 "common_schema_type",
                 "common_vsys_id",
+                "common_flags",
                 "common_action",
                 "common_sub_action",
                 "common_policy_id",
@@ -329,10 +307,11 @@
                 "common_server_port",
                 "common_server_location",
                 "common_server_asn",
+                "common_server_fqdn",
+                "common_app_full_path",
                 "common_app_identify_info",
                 "common_app_label",
                 "common_app_behavior",
-                "common_l7_protocol",
                 "common_protocol_label",
                 "common_service_category",
                 "common_l4_protocol",
@@ -417,23 +396,6 @@
                 "ftp_account",
                 "ftp_url",
                 "ftp_link_type",
-                "sip_call_id",
-                "sip_originator_description",
-                "sip_responder_description",
-                "sip_user_agent",
-                "sip_server",
-                "sip_originator_sdp_connect_ip",
-                "sip_originator_sdp_media_port",
-                "sip_originator_sdp_media_type",
-                "sip_originator_sdp_content",
-                "sip_responder_sdp_connect_ip",
-                "sip_responder_sdp_media_port",
-                "sip_responder_sdp_media_type",
-                "sip_responder_sdp_content",
-                "sip_duration_s",
-                "sip_bye",
-                "rtp_payload_type_c2s",
-                "rtp_payload_type_s2c",
                 "ssh_version",
                 "ssh_auth_success",
                 "ssh_client_version",
@@ -492,14 +454,6 @@
                     "common_device_group",
                     "common_sled_ip"
                 ],
-                "action":
-                [
-                    "common_action",
-                    "common_sub_action",
-                    "common_policy_id",
-                    "common_user_tags",
-                    "common_user_region"
-                ],
                 "source":
                 [
                     "common_client_ip",
@@ -518,11 +472,14 @@
                     "common_external_ip",
                     "common_server_port",
                     "common_server_location",
-                    "common_server_asn"
+                    "common_server_asn",
+                    "common_server_fqdn",
+                    "common_server_domain"
                 ],
                 "application":
                 [
                     "common_app_id",
+                    "common_app_full_path",
                     "common_userdefine_app_name",
                     "common_app_identify_info",
                     "common_app_label",
@@ -573,7 +530,12 @@
                     "common_link_info_s2c",
                     "common_packet_capture_file",
                     "common_tunnel_endpoint_a_desc",
-                    "common_tunnel_endpoint_b_desc"
+                    "common_tunnel_endpoint_b_desc",
+                    "common_action",
+                    "common_sub_action",
+                    "common_policy_id",
+                    "common_user_tags",
+                    "common_user_region"
                 ]
 
             }
@@ -617,14 +579,6 @@
             {
                 "$ref":"public_schema_info.json#/schema_type/BGP"
             },
-            "SIP":
-            {
-                "$ref":"public_schema_info.json#/schema_type/SIP"
-            },
-            "RTP":
-            {
-                "$ref":"public_schema_info.json#/schema_type/RTP"
-            },
             "APP":
             {
                 "$ref":"public_schema_info.json#/schema_type/APP"
@@ -647,7 +601,6 @@
         [
             "common_recv_time",
             "common_log_id",
-            "common_policy_id",
             "common_subscriber_id",
             "common_client_ip",
             "common_server_ip",
@@ -665,10 +618,10 @@
             "common_packet_capture_file",
             "common_tunnel_endpoint_a_desc",
             "common_tunnel_endpoint_b_desc",
+            "rtp_pcap_path",
             "http_request_body",
             "http_response_body",
-            "mail_eml_file",
-            "rtp_pcap_path"
+            "mail_eml_file"
         ],
         "tunnel_type":
         {
@@ -714,8 +667,8 @@
             "label":"Policy ID",
             "doc":
             {
-                "visibility":"enabled",
-                "ttl":null
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -725,7 +678,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -735,7 +688,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -745,7 +698,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -755,7 +708,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -781,7 +734,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -803,7 +756,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -813,7 +766,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -823,7 +776,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -849,7 +802,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -871,7 +824,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -881,7 +834,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -903,7 +856,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -912,12 +865,17 @@
             "label":"Action",
             "doc":
             {
+                "visibility":"hidden",
                 "constraints":
                 {
                     "operator_functions":"=,!=,in,not in"
                 },
                 "data":
                 [
+                    {
+                        "code":"0",
+                        "value":"None"
+                    },
                     {
                         "code":"1",
                         "value":"Monitor"
@@ -936,8 +894,7 @@
                     }
 
                 ],
-                "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -963,7 +920,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -973,7 +930,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -987,7 +944,7 @@
                     "type":"ip"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -997,7 +954,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1007,7 +964,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1017,7 +974,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1027,7 +984,27 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
+            },
+            "type":"string"
+        },
+        {
+            "name":"common_server_fqdn",
+            "label":"Server FQDN",
+            "doc":
+            {
+                "visibility":"enabled",
+                "ttl":2592000
+            },
+            "type":"string"
+        },
+        {
+            "name":"common_server_domain",
+            "label":"Server Domain",
+            "doc":
+            {
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1036,16 +1013,8 @@
             "label":"Sessions",
             "doc":
             {
-                "format":
-                [
-                    {
-                        "function":"set_value",
-                        "param":"1"
-                    }
-
-                ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1055,7 +1024,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1065,7 +1034,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1075,7 +1044,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1085,7 +1054,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1094,8 +1063,8 @@
             "label":"Packets Sent (Delta)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1104,8 +1073,8 @@
             "label":"Packets Received (Delta)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1114,8 +1083,8 @@
             "label":"Bytes Sent (Delta)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1124,8 +1093,8 @@
             "label":"Bytes Received (Delta)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1135,7 +1104,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1155,16 +1124,16 @@
                         "value":"BASE"
                     },
                     {
-                        "code":"HTTP",
-                        "value":"HTTP"
-                    },
-                    {
                         "code":"MAIL",
                         "value":"MAIL"
                     },
                     {
                         "code":"DNS",
                         "value":"DNS"
+                    },
+                    {
+                        "code":"HTTP",
+                        "value":"HTTP"
                     },
                     {
                         "code":"SSL",
@@ -1183,14 +1152,6 @@
                         "value":"FTP"
                     },
                     {
-                        "code":"SIP",
-                        "value":"SIP"
-                    },
-                    {
-                        "code":"RTP",
-                        "value":"RTP"
-                    },
-                    {
                         "code":"SSH",
                         "value":"SSH"
                     },
@@ -1205,13 +1166,13 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
         {
             "name":"common_vsys_id",
-            "label":"VSYS ID",
+            "label":"Vsys ID",
             "doc":
             {
                 "visibility":"enabled",
@@ -1226,8 +1187,8 @@
             "doc":
             {
                 "allow_query":"false",
-                "visibility":"enabled",
-                "ttl":31622400
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1245,9 +1206,8 @@
                 {
                     "$ref":"public_schema_info.json#/fields/common_flags/data"
                 },
-                "allow_query":"false",
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1257,7 +1217,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1299,7 +1259,7 @@
 
                 ],
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1309,7 +1269,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1319,7 +1279,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1329,7 +1289,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1339,7 +1299,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1349,7 +1309,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1373,7 +1333,7 @@
                     }
 
                 ],
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1393,7 +1353,7 @@
                     "value":"$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":null
             },
             "type":"string"
         },
@@ -1413,7 +1373,7 @@
                     "value":"$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1423,7 +1383,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1441,7 +1401,7 @@
                     "$ref":"public_schema_info.json#/fields/common_encapsulation/data"
                 },
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1451,7 +1411,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1461,7 +1421,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400,
+                "ttl":2592000,
                 "format":
                 [
                     {
@@ -1480,8 +1440,8 @@
             "label":"Protocol Label",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1491,19 +1451,31 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
         {
-            "name":"common_userdefine_app_name",
-            "label":"User Define App Name",
+            "name":"common_app_full_path",
+            "label":"Application Full Path",
+            "type":"string",
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
-            },
-            "type":"string"
+                "ttl":2592000
+            }
+
+        },
+        {
+            "name":"common_userdefine_app_name",
+            "label":"User Define App Name",
+            "type":"string",
+            "doc":
+            {
+                "visibility":"hidden",
+                "ttl":2592000
+            }
+
         },
         {
             "name":"common_app_identify_info",
@@ -1511,27 +1483,28 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
         {
             "name":"common_app_surrogate_id",
             "label":"Surrogate ID",
+            "type":"string",
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
-            },
-            "type":"string"
+                "ttl":2592000
+            }
+
         },
         {
             "name":"common_l7_protocol",
             "label":"L7 Protocol",
             "doc":
             {
-                "visibility":"enabled",
-                "ttl":31622400
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1551,7 +1524,7 @@
                     "value":"categoryName"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":
             {
@@ -1571,7 +1544,7 @@
                     "type":"timestamp"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1594,7 +1567,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1604,7 +1577,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1614,7 +1587,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1644,7 +1617,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1654,7 +1627,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1672,7 +1645,7 @@
                     "$ref":"public_schema_info.json#/fields/common_has_dup_traffic/data"
                 },
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1681,8 +1654,8 @@
             "label":"Stream Error",
             "doc":
             {
-                "visibility":"enabled",
-                "ttl":31622400
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1692,7 +1665,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1702,7 +1675,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1712,7 +1685,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1721,13 +1694,12 @@
             "label":"Packet Capture File",
             "doc":
             {
-                "allow_query":"false",
+                "visibility":"hidden",
                 "constraints":
                 {
                     "type":"file"
                 },
-                "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1737,7 +1709,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1747,7 +1719,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1756,8 +1728,8 @@
             "label":"Fragmentation Packets (c2s)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1766,8 +1738,8 @@
             "label":"Fragmentation Packets (s2c)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1776,8 +1748,8 @@
             "label":"Sequence Gap Loss (c2s)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1786,8 +1758,8 @@
             "label":"Sequence Gap Loss (s2c)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1796,8 +1768,8 @@
             "label":"Unordered Packets (c2s)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1806,8 +1778,8 @@
             "label":"Unordered Packets (s2c)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1816,8 +1788,8 @@
             "label":"Packet Retransmission (c2s)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1826,8 +1798,8 @@
             "label":"Packet Retransmission (s2c)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1836,8 +1808,8 @@
             "label":"Byte Retransmission (c2s)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1846,8 +1818,8 @@
             "label":"Byte Retransmission (s2c)",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1857,7 +1829,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1867,7 +1839,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1877,7 +1849,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1898,7 +1870,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1919,29 +1891,31 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
         {
             "name":"common_mirrored_pkts",
             "label":"Mirrored Packets",
+            "type":"long",
             "doc":
             {
-                "visibility":"enabled",
-                "ttl":31622400
-            },
-            "type":"long"
+                "visibility":"hidden",
+                "ttl":2592000
+            }
+
         },
         {
             "name":"common_mirrored_bytes",
             "label":"Mirrored Bytes",
+            "type":"long",
             "doc":
             {
-                "visibility":"enabled",
-                "ttl":31622400
-            },
-            "type":"long"
+                "visibility":"hidden",
+                "ttl":2592000
+            }
+
         },
         {
             "name":"http_url",
@@ -1949,7 +1923,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1963,11 +1937,19 @@
                     {
                         "function":"sub_domain",
                         "appendTo":"http_domain"
+                    },
+                    {
+                        "function":"sub_domain",
+                        "appendTo":"common_server_domain"
+                    },
+                    {
+                        "function":"get_value",
+                        "appendTo":"common_server_fqdn"
                     }
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1977,7 +1959,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1986,8 +1968,8 @@
             "label":"HTTP.Request Line",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1996,28 +1978,28 @@
             "label":"HTTP.Response Line",
             "doc":
             {
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"string"
         },
         {
             "name":"http_request_header",
-            "label":"HTTP.Request Header",
+            "label":"HTTP.Request Headers",
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
         {
             "name":"http_response_header",
-            "label":"HTTP.Response Header",
+            "label":"HTTP.Response Headers",
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2027,7 +2009,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2037,7 +2019,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2047,7 +2029,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2057,7 +2039,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2067,7 +2049,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2077,7 +2059,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2091,8 +2073,8 @@
                 {
                     "type":"file"
                 },
-                "visibility":"enabled",
-                "ttl":31622400
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2106,8 +2088,8 @@
                 {
                     "type":"file"
                 },
-                "visibility":"enabled",
-                "ttl":31622400
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2117,7 +2099,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2127,7 +2109,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2137,7 +2119,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2147,7 +2129,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2157,7 +2139,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2167,7 +2149,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2177,7 +2159,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2187,7 +2169,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2197,7 +2179,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2207,7 +2189,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2217,7 +2199,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2227,7 +2209,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2237,7 +2219,17 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
+            },
+            "type":"long"
+        },
+        {
+            "name":"http_session_duration_ms",
+            "label":"HTTP.Session Duration (ms)",
+            "doc":
+            {
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -2246,20 +2238,10 @@
             "label":"HTTP.Action File Size",
             "doc":
             {
-                "visibility":"enabled",
-                "ttl":31622400
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"int"
-        },
-        {
-            "name":"http_session_duration_ms",
-            "label":"HTTP.Session Duration (ms)",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":31622400
-            },
-            "type":"long"
         },
         {
             "name":"mail_protocol_type",
@@ -2267,7 +2249,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2277,7 +2259,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2287,7 +2269,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2297,7 +2279,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2311,7 +2293,7 @@
                     "type":"email"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2325,7 +2307,7 @@
                     "type":"email"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2335,7 +2317,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2345,7 +2327,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2363,7 +2345,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2373,7 +2355,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2383,7 +2365,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2393,7 +2375,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2411,7 +2393,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2421,7 +2403,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2431,7 +2413,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2440,12 +2422,13 @@
             "label":"Mail.EML File",
             "doc":
             {
+                "allow_query":"false",
                 "constraints":
                 {
                     "type":"file"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2455,7 +2438,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2465,7 +2448,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2491,7 +2474,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2525,7 +2508,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2535,7 +2518,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2545,7 +2528,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2555,7 +2538,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2565,7 +2548,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2647,7 +2630,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2657,7 +2640,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2667,7 +2650,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2677,7 +2660,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2687,7 +2670,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2697,7 +2680,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3035,7 +3018,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3045,7 +3028,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3055,7 +3038,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3081,7 +3064,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3091,7 +3074,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3100,8 +3083,8 @@
             "label":"DNS.Response Latency (ms)",
             "doc":
             {
-                "visibility":"disabled",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3111,7 +3094,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3125,11 +3108,19 @@
                     {
                         "function":"sub_domain",
                         "appendTo":"http_domain"
+                    },
+                    {
+                        "function":"sub_domain",
+                        "appendTo":"common_server_domain"
+                    },
+                    {
+                        "function":"get_value",
+                        "appendTo":"common_server_fqdn"
                     }
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3139,7 +3130,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3149,7 +3140,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3179,7 +3170,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3209,7 +3200,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3218,8 +3209,8 @@
             "label":"SSL.Passthrough Reason",
             "doc":
             {
-                "visibility":"enabled",
-                "ttl":31622400
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3229,7 +3220,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3239,7 +3230,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3249,7 +3240,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3259,7 +3250,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3285,7 +3276,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3295,7 +3286,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3305,7 +3296,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3315,7 +3306,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3325,7 +3316,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3335,7 +3326,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3345,7 +3336,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3359,7 +3350,7 @@
                     "type":"items"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3373,7 +3364,7 @@
                     "type":"items"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3383,7 +3374,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3393,7 +3384,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3403,7 +3394,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3413,7 +3404,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3423,7 +3414,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3433,7 +3424,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3443,7 +3434,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3453,7 +3444,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3463,7 +3454,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3473,23 +3464,23 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
         {
             "name":"quic_version",
-            "label":"Quic.Version",
+            "label":"QUIC.Version",
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
         {
             "name":"quic_sni",
-            "label":"Quic.SNI",
+            "label":"QUIC.SNI",
             "doc":
             {
                 "format":
@@ -3497,21 +3488,29 @@
                     {
                         "function":"sub_domain",
                         "appendTo":"http_domain"
+                    },
+                    {
+                        "function":"sub_domain",
+                        "appendTo":"common_server_domain"
+                    },
+                    {
+                        "function":"get_value",
+                        "appendTo":"common_server_fqdn"
                     }
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
         {
             "name":"quic_user_agent",
-            "label":"Quic.User Agent",
+            "label":"QUIC.User Agent",
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3521,7 +3520,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3531,7 +3530,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3541,7 +3540,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3551,7 +3550,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3561,7 +3560,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3571,7 +3570,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3581,7 +3580,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3591,7 +3590,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3601,7 +3600,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3611,7 +3610,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3621,7 +3620,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3631,7 +3630,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3641,7 +3640,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3651,7 +3650,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3661,7 +3660,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3671,7 +3670,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3681,7 +3680,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3691,7 +3690,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3701,7 +3700,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3711,7 +3710,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3721,7 +3720,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3731,7 +3730,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3741,7 +3740,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3751,7 +3750,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3761,7 +3760,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3771,7 +3770,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3781,7 +3780,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3791,7 +3790,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -3801,7 +3800,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -3927,7 +3926,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -4053,7 +4052,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -4065,10 +4064,10 @@
                 "allow_query":"false",
                 "constraints":
                 {
-                    "type":"file"
+                    "type":"files"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4097,8 +4096,8 @@
                     }
 
                 ],
-                "visibility":"hidden",
-                "ttl":31622400
+                "visibility":"enabled",
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -4108,7 +4107,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4118,7 +4117,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4128,7 +4127,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4138,7 +4137,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4148,7 +4147,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4158,7 +4157,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4168,7 +4167,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4178,7 +4177,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4188,7 +4187,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4198,7 +4197,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4208,7 +4207,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4218,7 +4217,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4228,7 +4227,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4238,7 +4237,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4248,7 +4247,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4258,7 +4257,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4268,7 +4267,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4278,7 +4277,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4288,7 +4287,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4298,7 +4297,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4308,7 +4307,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4318,7 +4317,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4328,7 +4327,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4338,7 +4337,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4348,7 +4347,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4358,7 +4357,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -4368,7 +4367,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -4378,7 +4377,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -4388,7 +4387,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         }

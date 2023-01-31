@@ -31,7 +31,7 @@
     },
     {
       "name": "vsys_id",
-      "label": "VSYS ID",
+      "label": "Vsys ID",
       "doc": {
         "visibility": "enabled"
       },
@@ -41,6 +41,14 @@
     {
       "name": "protocol_id",
       "label": "Protocol ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_name",
+      "label": "APP Name",
       "doc": {
         "visibility": "enabled"
       },

@@ -6,13 +6,13 @@
     {
         "primary_key":"common_log_id",
         "partition_key":"common_recv_time",
-        "ttl":31622400,
+        "ttl":2592000,
         "default_ttl":2592000,
         "index_key":
         [
             "common_log_id",
-            "common_recv_time",
             "common_policy_id",
+            "common_recv_time",
             "common_vsys_id"
         ],
         "functions":
@@ -53,10 +53,11 @@
                 "common_server_port",
                 "common_server_location",
                 "common_server_asn",
+                "common_server_fqdn",
+                "common_app_full_path",
                 "common_app_identify_info",
                 "common_app_label",
                 "common_app_behavior",
-                "common_l7_protocol",
                 "common_protocol_label",
                 "common_l4_protocol",
                 "common_tunnel_endpoint_a_desc",
@@ -110,10 +111,11 @@
                 "common_server_port",
                 "common_server_location",
                 "common_server_asn",
+                "common_server_fqdn",
+                "common_app_full_path",
                 "common_app_identify_info",
                 "common_app_label",
                 "common_app_behavior",
-                "common_l7_protocol",
                 "common_protocol_label",
                 "common_l4_protocol",
                 "common_c2s_pkt_num",
@@ -195,10 +197,11 @@
                 "common_server_port",
                 "common_server_location",
                 "common_server_asn",
+                "common_server_fqdn",
+                "common_app_full_path",
                 "common_app_identify_info",
                 "common_app_label",
                 "common_app_behavior",
-                "common_l7_protocol",
                 "common_protocol_label",
                 "common_service_category",
                 "common_l4_protocol",
@@ -312,11 +315,14 @@
                     "common_external_ip",
                     "common_server_port",
                     "common_server_location",
-                    "common_server_asn"
+                    "common_server_asn",
+                    "common_server_fqdn",
+                    "common_server_domain"
                 ],
                 "application":
                 [
                     "common_app_id",
+                    "common_app_full_path",
                     "common_userdefine_app_name",
                     "common_app_identify_info",
                     "common_app_label",
@@ -467,7 +473,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -477,7 +483,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -487,7 +493,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -497,7 +503,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -523,7 +529,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -545,7 +551,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -555,7 +561,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -565,7 +571,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -591,7 +597,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -613,7 +619,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -623,7 +629,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -645,7 +651,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -687,7 +693,7 @@
 
                 ],
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -713,7 +719,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -723,7 +729,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -737,7 +743,7 @@
                     "type":"ip"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -747,7 +753,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -757,7 +763,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -767,7 +773,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -777,7 +783,27 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
+            },
+            "type":"string"
+        },
+        {
+            "name":"common_server_fqdn",
+            "label":"Server FQDN",
+            "doc":
+            {
+                "visibility":"enabled",
+                "ttl":2592000
+            },
+            "type":"string"
+        },
+        {
+            "name":"common_server_domain",
+            "label":"Server Domain",
+            "doc":
+            {
+                "visibility":"hidden",
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -795,7 +821,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -805,7 +831,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -815,7 +841,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -825,7 +851,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -835,7 +861,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -845,7 +871,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -855,7 +881,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -865,7 +891,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -875,7 +901,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -885,7 +911,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -911,13 +937,13 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
         {
             "name":"common_vsys_id",
-            "label":"VSYS ID",
+            "label":"Vsys ID",
             "doc":
             {
                 "visibility":"enabled",
@@ -933,7 +959,7 @@
             {
                 "allow_query":"false",
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -953,7 +979,7 @@
                 },
                 "allow_query":"false",
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -963,7 +989,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1017,7 +1043,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1027,7 +1053,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1037,7 +1063,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1047,7 +1073,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1057,7 +1083,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1067,7 +1093,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1091,7 +1117,7 @@
                     }
 
                 ],
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1111,7 +1137,7 @@
                     "value":"$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1131,7 +1157,7 @@
                     "value":"$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1141,7 +1167,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1159,7 +1185,7 @@
                     "$ref":"public_schema_info.json#/fields/common_encapsulation/data"
                 },
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1169,7 +1195,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1179,7 +1205,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400,
+                "ttl":2592000,
                 "format":
                 [
                     {
@@ -1199,7 +1225,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1210,7 +1236,18 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
+            }
+
+        },
+        {
+            "name":"common_app_full_path",
+            "label":"Application Full Path",
+            "type":"string",
+            "doc":
+            {
+                "visibility":"hidden",
+                "ttl":2592000
             }
 
         },
@@ -1221,7 +1258,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -1231,7 +1268,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1242,7 +1279,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -1253,7 +1290,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -1273,7 +1310,7 @@
                     "value":"categoryName"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":
             {
@@ -1293,7 +1330,7 @@
                     "type":"timestamp"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1316,7 +1353,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1326,7 +1363,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1336,7 +1373,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1366,7 +1403,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1376,7 +1413,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1394,7 +1431,7 @@
                     "$ref":"public_schema_info.json#/fields/common_has_dup_traffic/data"
                 },
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1404,7 +1441,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1414,7 +1451,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1424,7 +1461,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1434,7 +1471,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1448,7 +1485,7 @@
                 {
                     "type":"file"
                 },
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1458,7 +1495,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1468,7 +1505,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1478,7 +1515,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1488,7 +1525,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1498,7 +1535,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1508,7 +1545,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1518,7 +1555,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1528,7 +1565,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1538,7 +1575,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1548,7 +1585,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1558,7 +1595,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1568,7 +1605,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1578,7 +1615,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1588,7 +1625,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1598,7 +1635,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1619,7 +1656,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1640,7 +1677,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1651,7 +1688,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -1662,7 +1699,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             }
 
         },
@@ -1672,7 +1709,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1686,11 +1723,19 @@
                     {
                         "function":"sub_domain",
                         "appendTo":"http_domain"
+                    },
+                    {
+                        "function":"sub_domain",
+                        "appendTo":"common_server_domain"
+                    },
+                    {
+                        "function":"get_value",
+                        "appendTo":"common_server_fqdn"
                     }
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1700,7 +1745,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1710,7 +1755,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1720,7 +1765,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1730,7 +1775,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1740,7 +1785,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1750,7 +1795,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1760,7 +1805,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1770,7 +1815,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1780,7 +1825,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1790,7 +1835,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1800,7 +1845,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1815,7 +1860,7 @@
                     "type":"file"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1830,7 +1875,7 @@
                     "type":"file"
                 },
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1840,7 +1885,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1850,7 +1895,7 @@
             "doc":
             {
                 "visibility":"disabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1860,7 +1905,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1870,7 +1915,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1880,7 +1925,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1890,7 +1935,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1900,7 +1945,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1910,7 +1955,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1920,7 +1965,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1930,7 +1975,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1940,7 +1985,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1950,7 +1995,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -1960,7 +2005,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1970,7 +2015,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"long"
         },
@@ -1980,7 +2025,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -1990,7 +2035,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2000,7 +2045,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2010,7 +2055,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2019,7 +2064,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "label":"DoH.Response Line",
             "type":"string"
@@ -2030,7 +2075,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2040,7 +2085,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2050,7 +2095,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2060,7 +2105,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2070,7 +2115,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2080,7 +2125,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2090,7 +2135,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2100,7 +2145,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2126,7 +2171,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2160,7 +2205,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2170,7 +2215,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2180,7 +2225,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2190,7 +2235,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2200,7 +2245,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2210,7 +2255,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2220,7 +2265,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2230,7 +2275,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2240,7 +2285,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2250,7 +2295,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2260,7 +2305,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2318,7 +2363,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2328,7 +2373,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2338,7 +2383,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2364,7 +2409,7 @@
 
                 ],
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2374,7 +2419,7 @@
             "doc":
             {
                 "visibility":"enabled",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2384,7 +2429,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2394,7 +2439,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2404,7 +2449,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2414,7 +2459,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2424,7 +2469,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2434,7 +2479,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2444,7 +2489,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2454,7 +2499,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2464,7 +2509,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2474,7 +2519,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2484,7 +2529,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2494,7 +2539,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2504,7 +2549,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"int"
         },
@@ -2514,7 +2559,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         },
@@ -2524,7 +2569,7 @@
             "doc":
             {
                 "visibility":"hidden",
-                "ttl":31622400
+                "ttl":2592000
             },
             "type":"string"
         }
