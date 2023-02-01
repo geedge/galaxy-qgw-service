@@ -8,3 +8,4 @@ Release 363 (TSG-23.01)
 * 修改Schema，安全日志展示common_flags字段(TSG-13290)
 * 修改Schema，对部分日志schema索引键顺序进行调整或完善
 * 完善OLAP Statistics统计，Group维度不在Select结果列时关闭分片模式(TSG-13367)
+* 完善OLAP Statistics统计，非重复结果统计count_distinct时关闭分片模式(TSG-13501)
