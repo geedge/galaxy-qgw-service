@@ -5,7 +5,7 @@
     <parent>
         <artifactId>galaxy-qgw-service</artifactId>
         <groupId>com.mesalab</groupId>
-        <version>245</version>
+        <version>362</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
