@@ -2,6 +2,7 @@ package com.mesalab.services.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
@@ -363,12 +364,15 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                     continue;
                 }
                 if (value instanceof Function) {
-                    String name = ((Function) value).getName().toLowerCase();
-                    if (SQLFunctionUtil.timeSlicingFunction.containsKey(name)) {
-                        subOption.getMetric().put(key, SQLFunctionUtil.timeSlicingFunction.get(name));
-                        continue;
+                    Function fun = ((Function) value);
+                    String name = fun.getName().toLowerCase();
+                    if (!SQLFunctionUtil.timeSlicingFunction.containsKey(name)) {
+                        return;
                     }
-                    return;
+                    if (fun.isDistinct() || fun.isUnique()) {
+                        return;
+                    }
+                    subOption.getMetric().put(key, SQLFunctionUtil.timeSlicingFunction.get(name));
                 }
             }
             for (OrderByElement orderByElement : plainSelect.getOrderByElements()) {
