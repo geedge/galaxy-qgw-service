@@ -55,6 +55,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.3.2.RELEASE</version>
                 <configuration> <!-- 指定该Main Class为全局的唯一入口 -->
                     <mainClass>com.mesalab.service.GalaxyQGWApplication</mainClass>
                     <!--<layout>ZIP</layout>-->
