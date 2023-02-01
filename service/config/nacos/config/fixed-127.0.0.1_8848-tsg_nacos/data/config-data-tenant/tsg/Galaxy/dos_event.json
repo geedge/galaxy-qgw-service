@@ -1,0 +1,239 @@
+{
+  "type": "record",
+  "name": "dos_event",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "log_id",
+    "partition_key": "start_time",
+    "ttl": null,
+    "default_ttl": 2592000,
+    "index_key": [
+      "log_id",
+      "start_time",
+      "destination_ip",
+      "vsys_id"
+    ],
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "default_columns": [
+      "log_id",
+      "attack_type",
+      "source_ip_list",
+      "destination_ip",
+      "severity",
+      "start_time",
+      "end_time",
+      "packet_rate",
+      "bit_rate",
+      "session_rate"
+    ],
+    "internal_columns": [
+      "start_time",
+      "log_id",
+      "end_time"
+    ]
+  },
+  "fields": [
+    {
+      "name": "start_time",
+      "label": "Start Time",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "end_time",
+      "label": "End Time",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "log_id",
+      "label": "Log ID",
+      "doc": {
+        "format": [
+          {
+            "function": "snowflake_id"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "vsys_id",
+      "label": "VSYS ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "attack_type",
+      "label": "Attack Type",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "TCP SYN Flood",
+            "value": "TCP SYN Flood"
+          },
+          {
+            "code": "UDP Flood",
+            "value": "UDP Flood"
+          },
+          {
+            "code": "ICMP Flood",
+            "value": "ICMP Flood"
+          },
+          {
+            "code": "DNS Flood",
+            "value": "DNS Flood"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "severity",
+      "label": "Severity",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "Critical",
+            "value": "Critical"
+          },
+          {
+            "code": "Severe",
+            "value": "Severe"
+          },
+          {
+            "code": "Major",
+            "value": "Major"
+          },
+          {
+            "code": "Warning",
+            "value": "Warning"
+          },
+          {
+            "code": "Minor",
+            "value": "Minor"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "conditions",
+      "label": "Conditions",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "destination_ip",
+      "label": "Destination IP",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "destination_country",
+      "label": "Destination Country",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "source_ip_list",
+      "label": "Source IPs",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "source_country_list",
+      "label": "Source Countries",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "session_rate",
+      "label": "Sessions/s",
+      "doc": {
+        "constraints": {
+          "type": "sessions/sec"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "packet_rate",
+      "label": "Packets/s",
+      "doc": {
+        "constraints": {
+          "type": "packets/sec"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "bit_rate",
+      "label": "Bits/s",
+      "doc": {
+        "constraints": {
+          "type": "bits/sec"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    }
+  ]
+}

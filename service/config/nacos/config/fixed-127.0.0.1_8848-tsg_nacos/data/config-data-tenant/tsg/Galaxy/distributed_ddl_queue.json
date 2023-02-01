@@ -1,0 +1,11 @@
+{
+  "namespace": "system",
+  "type": "record",
+  "name": "distributed_ddl_queue",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    }
+  ]
+}

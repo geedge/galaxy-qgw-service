@@ -9,10 +9,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o xjar .
 FROM ${JDK_IMAGE}
 MAINTAINER Galaxy
 VOLUME /tmp
-WORKDIR /home/tsg/galaxy/galaxy-qgw-service
-COPY config config
 WORKDIR /home/tsg/galaxy/galaxy-qgw-service/service
 COPY --from=builder /build .
+COPY config config
 COPY dat dat
 COPY docs docs
 ARG JAR_FILE

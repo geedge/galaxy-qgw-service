@@ -1,0 +1,164 @@
+##############静态参数配置(修改后需要重启项目)##############
+## 服务配置
+server:
+  port: 9999
+## 监控参数
+management:
+  metrics:
+    tags:
+      application: ${project.name}
+  endpoint:
+    health:
+      show-details: always
+    shutdown:
+      enabled: true
+  health:
+    redis:
+      enabled: false
+    db:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+        exclude: env,auditevents,beans,conditions,info
+      base-path: /monitor
+#MySql configuration
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.44.55:3306/tsg-bifang?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false
+    username: ENC(TOq791VPxSFyX/S4fqcv0g==)
+    pin: ENC(Qii8wWRNnB61f/0wnrVIbXr2VmnncK2c)
+## Hbase configuration
+hbase:
+  zookeeperQuorum: 192.168.44.55:2181
+  zookeeperZnodeParent: /hbase
+  rpcTimeout: 60000
+  report:
+    dbname: tsg
+    tableName: report_result
+    columnFamily: response
+    columnName: result
+## Elasticsearch configuration，Cluster Mode eg. ip1:port1,ip2:port2,ip3:port3
+elasticsearch:
+  url: 192.168.44.55:9200
+  dbname: elasticsearch
+  socketTimeOut: 60000
+##############动态参数配置(修改后不需要重启项目)##############
+## 项目参数
+project:
+  name: galaxy-qgw-service-nacos
+  description: 统一数据查询网关
+  version: 1.1
+  groupId: com.mesalab
+  artifactId: galaxy-qgw-service
+  basedir:
+  corePackage: com.mesalab.common
+  servicePackage: com.mesalab.qgw
+  author:
+    name: darnell
+    url:
+    email:
+## ClickhHouse configuration
+clickhouse:
+  url: http://192.168.44.55:8123
+  dbname: cyber_narrator_galaxy
+  enableApproximateOptimizer: true
+  realTimeAccount:
+    username: ENC(Ao/e/87KQ8vOabP81PV/i4f/wvgztdKW)
+    pin: ENC(KtRdLd84bYGGgk/Uv3+lUQFSxBfQ9ctJ)
+    socketTimeOut: 120000
+  longTermAccount:
+    username: ENC(lgnlVXRIN8qNh+B0scCBKp9QMID22Nc7)
+    pin: ENC(AkmSSo5VBw6TOz+AXhorb+tmuLn3WANm)
+    socketTimeOut: 21700000
+## Druid configuration
+druid:
+  url: 127.0.0.1:8082/druid/v2/sql
+  dbname: druid
+  socketTimeOut: 120000
+## xxl-job-admin configuration
+xxl-job-admin:
+  url: http://127.0.0.1:8181/xxl-job-admin
+  userName: ENC(v8NKKlLWitI7vGhuGYorRQ==)
+  pin: ENC(xTCafSByYA6SyvhUJ6vrh2VSXuZAVK/O)
+## Engine、Service configuration
+engine:
+  maxCacheNum: 1048575
+  defaultResultNum: 100000
+service:
+  entity:
+    activeClientIP: 10000
+    topServerIP:
+      TCPBySession: 100000
+      TCPByUniqClientIP: 100000
+      UDPBySession: 100000
+      UDPByUniqClientIP: 40000
+    topSNI:
+      defaultSize: 30000
+      dataset: 2000000
+    gtpc:
+      defaultSize: 100000
+## ArangoDB configuration
+arango:
+  server: http://192.168.44.55:8529
+  database: cyber_narrator_galaxy
+  username: root
+  pin: ceiec2019
+  jwturl: ${arango.server}/_db/${arango.database}/_open/auth
+  queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
+  maxrows: 10000
+  socketTimeOut: 300000
+## hos cfg
+hos:
+  uri: http://127.0.0.1:9098/hos
+  bucket: knowledge_base_hos_bucket
+  token: c21f969b5f03d33d43e04f8f136e7682
+## knowledge value 格式 name:版本
+knowledge:
+  ipLocation:
+    ipV4:
+      userDefined: ip_v4_user_defined:latest
+      builtIn: ip_v4_built_in:latest
+      asn: asn_v4:latest
+    ipV6:
+      userDefined: ip_v6_user_defined:latest
+      builtIn: ip_v6_built_in:latest
+      asn: asn_v6:latest
+## http pool config
+http:
+  pool:
+    connect:
+      timeout: 30000
+    max:
+      connection: 500
+      per:
+        route: 200
+    request:
+      timeout: 10000
+    response:
+      timeout: 120000
+## job cfg
+job:
+  timeSlicing:
+    enabled: true
+    interval: 1800 #单位: Second
+  longPolling:
+    enabled: true
+  interactive:
+    timeout: 10000
+  response:
+    timeout: 3000
+  execution:
+    timeout: 300000
+  pool:
+    corePoolSize: 20
+    maxPoolSize: 30
+    queueCapacity: 10
+## task cfg
+task:
+  pool:
+    corePoolSize: 8
+    maxPoolSize: 16
+    queueCapacity: 1000

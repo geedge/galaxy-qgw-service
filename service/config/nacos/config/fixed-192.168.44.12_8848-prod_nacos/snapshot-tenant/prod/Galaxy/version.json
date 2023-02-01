@@ -1,0 +1,95 @@
+{
+    "product": "185 Environment",
+    "version": "21.11",
+    "registered": "Geedge",
+    "updated": "2020-08-01 00:00:00",
+    "components": {
+        "oss": [
+            {
+                "name": "zookeeper",
+                "version": "3.4.9",
+                "licenseType": "Apache License 2.0",
+                "description": "分布式应用程序协调服务"
+            },
+            {
+                "name": "kafka",
+                "version": "2.11_1.0.0",
+                "licenseType": "Apache License 2.0",
+                "description": "消息队列"
+            },
+            {
+                "name": "habse",
+                "version": "2.2.3",
+                "licenseType": "Apache License 2.0",
+                "description": "用于文件系统和存储Radius数据"
+            },
+            {
+                "name": "flume",
+                "version": "1.9.0",
+                "licenseType": "Apache License 2.0",
+                "description": "日志补全传输"
+            },
+            {
+                "name": "clickhouse",
+                "version": "19.17.4.11",
+                "licenseType": "Apache License 2.0",
+                "description": "原始日志数据库"
+            },
+            {
+                "name": "druid",
+                "version": "0.16.0",
+                "licenseType": "Apache License 2.0",
+                "description": "分析实时数据并提供低延迟查询的OLAP应用程序"
+            },
+            {
+                "name": "gohangout",
+                "version": "1.14.4.20200616",
+                "description": "动态获取原始日志表schema入库程序"
+            }
+        ],
+        "apps": [
+            {
+                "name": "galaxy-qgw-service",
+                "version": "v3.2.200730",
+                "description": "数据平台对外统一查询网关"
+            },
+            {
+                "name": "galaxy-report-service",
+                "version": "20.07.08",
+                "description": "自定义报表查询服务"
+            },
+            {
+                "name": "galaxy-hos-service",
+                "version": "20.07.17",
+                "description": "对象存储服务"
+            },
+            {
+                "name": "xxl-job-admin",
+                "version": "v1.0.2.20200506",
+                "description": "分布式任务调度平台"
+            },
+            {
+                "name": "xxl-job",
+                "version": "v1.0.2.20200628",
+                "description": "分布式任务调度平台-执行器"
+            }
+        ],
+        "tasks": [
+            {
+                "name": "flume",
+                "version": "flume-config-20.08",
+                "description": "原始日志补全、subscriber更新、Radius上下线功能"
+            },
+            {
+                "name": "druid",
+                "version": "druid-config-20.08",
+                "description": "所有分析日志任务"
+            },
+            {
+                "name": "gohangout",
+                "version": "gohangout-config-20.08",
+                "description": "原始日志入库、上下线日志入库"
+            }
+        ]
+    }
+}

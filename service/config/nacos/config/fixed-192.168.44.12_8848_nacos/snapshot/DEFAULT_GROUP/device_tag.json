@@ -1,0 +1,76 @@
+[{
+	"tagName": "Device Groups",
+	"tagValue": "device_group",
+	"tagType": "device_group",
+	"subTags": [{
+		"tagName": "City A",
+		"tagValue": "City A",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City B",
+		"tagValue": "City B",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City C",
+		"tagValue": "City C",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City D",
+		"tagValue": "City D",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City E",
+		"tagValue": "City E",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City F",
+		"tagValue": "City F",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City G",
+		"tagValue": "City G",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City H",
+		"tagValue": "City H",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City I",
+		"tagValue": "City I",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City J",
+		"tagValue": "City J",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City K",
+		"tagValue": "City K",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City L",
+		"tagValue": "City L",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City M",
+		"tagValue": "City M",
+		"tagType": "device_group",
+		"subTags": null
+	}, {
+		"tagName": "City N",
+		"tagValue": "City N",
+		"tagType": "device_group",
+		"subTags": null
+	}]
+}]
