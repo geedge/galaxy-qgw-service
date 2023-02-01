@@ -42,7 +42,7 @@
     </parent>
 
     <properties>
-        <project.release>245</project.release>
+        <project.release>362</project.release>
         <qgw.main.basedir>${project.basedir}</qgw.main.basedir>
         <project.author.name>darnell</project.author.name>
         <project.author.email>abc@gmail.com</project.author.email>
