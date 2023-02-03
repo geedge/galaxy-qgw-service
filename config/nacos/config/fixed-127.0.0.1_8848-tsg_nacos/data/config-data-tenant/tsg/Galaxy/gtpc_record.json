@@ -266,7 +266,8 @@
           "common_sub_action",
           "common_policy_id",
           "common_user_tags",
-          "common_user_region"
+          "common_user_region",
+          "common_shaping_rule_ids"
         ]
       }
     },
@@ -833,6 +834,21 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "common_shaping_rule_ids",
+      "label": "Shaping Rule IDs",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
     },
     {
       "name": "common_device_id",

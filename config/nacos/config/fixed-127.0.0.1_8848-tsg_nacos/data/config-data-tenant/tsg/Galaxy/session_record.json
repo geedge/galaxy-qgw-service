@@ -35,6 +35,7 @@
         "common_action",
         "common_sub_action",
         "common_policy_id",
+        "common_shaping_rule_ids",
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
@@ -147,6 +148,7 @@
         "common_action",
         "common_sub_action",
         "common_policy_id",
+        "common_shaping_rule_ids",
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
@@ -289,6 +291,7 @@
         "common_action",
         "common_sub_action",
         "common_policy_id",
+        "common_shaping_rule_ids",
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
@@ -525,7 +528,8 @@
           "common_sub_action",
           "common_policy_id",
           "common_user_tags",
-          "common_user_region"
+          "common_user_region",
+          "common_shaping_rule_ids"
         ]
       }
     },
@@ -1175,6 +1179,21 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "common_shaping_rule_ids",
+      "label": "Shaping Rule IDs",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
     },
     {
       "name": "common_device_id",
