@@ -30,6 +30,7 @@
         "common_schema_type",
         "common_vsys_id",
         "common_flags",
+        "common_flags_identify_info",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -141,6 +142,7 @@
         "common_schema_type",
         "common_vsys_id",
         "common_flags",
+        "common_flags_identify_info",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -282,6 +284,7 @@
         "common_schema_type",
         "common_vsys_id",
         "common_flags",
+        "common_flags_identify_info",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -427,6 +430,7 @@
           "common_vsys_id",
           "common_t_vsys_id",
           "common_flags",
+          "common_flags_identify_info",
           "common_direction",
           "common_stream_dir",
           "common_start_time",
@@ -1104,6 +1108,15 @@
         "ttl": null
       },
       "type": "long"
+    },
+    {
+      "name": "common_flags_identify_info",
+      "label": "Flags Identify Info",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "common_user_tags",

@@ -432,6 +432,15 @@
       "type": "long"
     },
     {
+      "name": "common_flags_identify_info",
+      "label": "Flags Identify Info",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "common_user_tags",
       "type": "string",
       "doc": {
