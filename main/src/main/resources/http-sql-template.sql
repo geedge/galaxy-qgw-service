@@ -111,3 +111,7 @@ SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO
 #sql("APP_TRAFFIC_SUMMARY")
 SELECT app_name,SUM(sessions) as sessions,sum(c2s_byte_num + s2c_byte_num) as bytes,sum(s2c_byte_num) as received_bytes,sum(c2s_byte_num) as sent_bytes,sum(c2s_pkt_num+s2c_pkt_num) as packets,sum(c2s_pkt_num) as sent_packets,sum(s2c_pkt_num) as received_packets from %s where %s %s group by app_name
 #end
+
+#sql("TABLE_INDEX_KEY")
+SELECT any(splitByString(', ',sorting_key)) AS index_key FROM tables_cluster where name = '%s_local' AND "database" = '%s'
+#end
