@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.base.Splitter;
@@ -32,6 +33,15 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.config.NacosConfig;
 import com.mesalab.qgw.common.NacosConst;
+import com.mesalab.common.nacos.NacosConfig;
+import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.model.api.ApiParam;
+import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import com.mesalab.qgw.model.metadata.MetadataBean;
+import com.mesalab.qgw.model.metadata.MetadataConfig;
+import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.Schema;
@@ -67,6 +77,8 @@ public class MetadataServiceImpl implements MetadataService {
     public MetadataConfig metadataConfig;
     @Autowired
     Environment environment;
+    @NacosValue(value = "${switch.version.schema}", autoRefreshed = true)
+    private String schemaVersion;
 
     private Map<String, Schema> schemaCache = Maps.newHashMap();
     private Map<String, Object> originalCache = Maps.newHashMap();
@@ -74,6 +86,7 @@ public class MetadataServiceImpl implements MetadataService {
     private final static String KEY = "key";
     private final static String VALUE = "value";
     private final static String CODE = "code";
+    private final static String INDEX_KEY = "index_key";
 
     @PostConstruct
     public void init() {
@@ -82,11 +95,11 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     @Override
-    public Map<String, Object> getSchemaInfo(String type, String name) {
+    public Map<String, Object> getSchemaInfo(String type, String name, boolean displayStorageSize) {
         if (MetadataTypeEnum.TABLES.getValue().equals(type)) {
             return loadTables(name);
         } else if (MetadataTypeEnum.FIELDS.getValue().equals(type)) {
-            return loadFields(name);
+            return loadFields(name, displayStorageSize);
         }
         throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                 String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_URL_NOT_FOUND));
@@ -106,14 +119,13 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Override
     public List<String> getIndexKey(String tableName) {
-        List<String> indexKey = Lists.newArrayList();
-        Schema schema = getSchemaByName(tableName);
-        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
-        if (StringUtil.isNotEmpty(doc)) {
-            Object partition_key = doc.get("index_key");
-            indexKey = StringUtil.isEmpty(partition_key) ? indexKey : (List<String>) partition_key;
+        Map schemaJsonMap = loadFields(tableName, false);
+        if (StringUtil.isEmpty(schemaJsonMap) || StringUtil.isEmpty(schemaJsonMap.get("doc"))) {
+            return Lists.newArrayList();
         }
-        return indexKey;
+        Map doc = (Map) schemaJsonMap.get("doc");
+        Object indexKey = doc.get(INDEX_KEY);
+        return StringUtil.isEmpty(indexKey) ? Lists.newArrayList() : (List<String>) indexKey;
     }
 
     @Override
@@ -245,7 +257,11 @@ public class MetadataServiceImpl implements MetadataService {
             List<Map<String, Object>> fields = (List<Map<String, Object>>) data.get("fields");
             List<String> indexKey = getIndexKey(name);
             for (Map<String, Object> field : fields) {
-                if (!indexKey.contains(field.get("name"))) {
+                if (indexKey.contains(field.get("name"))) {
+                    Map<String, Object> ttlNull = Maps.newHashMap();
+                    ttlNull.put("ttl", null);
+                    field.put("doc", rewriteDoc("ttl", field.get("doc"), ttlNull));
+                } else {
                     field.put("doc", rewriteDoc("ttl", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
                 }
                 field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
@@ -307,7 +323,7 @@ public class MetadataServiceImpl implements MetadataService {
         }
     }
 
-    private Map loadFields(String name) {
+    private Map loadFields(String name, boolean displayStorageSize) {
         Schema schema = getSchemaByName(name);
         if (StringUtil.isEmpty(schema)) {
             throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), QGWMessageConst.SCHEMA_URL_NOT_FOUND);
@@ -318,8 +334,11 @@ public class MetadataServiceImpl implements MetadataService {
                 StringUtil.isNotEmpty(schema.getDoc())) {
             log.error("{} schema's doc isn't jsonString and won't convert: {}", name, schema.getDoc());
         }
-        List<Map> data = getStorageSize(name);
-        schemaDoc = fillSchemaStorageSize(schemaDoc, data);
+        List<Map> data = Lists.newArrayList();
+        if (displayStorageSize) {
+            data = getStorageSize(name);
+            schemaDoc = fillSchemaStorageSize(schemaDoc, data);
+        }
         if (StringUtil.isNotEmpty(schemaDoc)) {
             resultMap.put("doc", schemaDoc);
         }
@@ -404,7 +423,11 @@ public class MetadataServiceImpl implements MetadataService {
             if (keyObj instanceof Map) {
                 Map mapValue = (Map) keyObj;
                 if (mapValue.containsKey(KEY_REF)) {
-                    map.put(mapKey, regexValue(getRefValue(cfgName, mapValue), mapValue));
+                    if (INDEX_KEY.equals(String.valueOf(mapKey))) {
+                        mapValue.put(KEY_REF, String.valueOf(mapValue.get(KEY_REF)).concat("/" + schemaVersion));
+                    }
+                    Object refValue = getRefValue(cfgName, mapValue);
+                    map.put(mapKey, regexValue(refValue, mapValue));
                 } else {
                     fillReference(mapValue, cfgName);
                 }

@@ -5,12 +5,9 @@
   "doc": {
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
-    "index_key": [
-      "common_log_id",
-      "common_recv_time",
-      "common_policy_id",
-      "common_vsys_id"
-    ]
+    "index_key": {
+      "$ref": "public_schema_info.json#/sys_packet_capture_event/index_key"
+    }
   },
   "fields": [
     {
@@ -268,6 +265,22 @@
       "label": "Server ASN"
     },
     {
+      "name": "common_server_fqdn",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Server FQDN"
+    },
+    {
+      "name": "common_server_domain",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Server Domain"
+    },
+    {
       "name": "common_sessions",
       "type": "long",
       "doc": {
@@ -383,7 +396,7 @@
     },
     {
       "name": "common_vsys_id",
-      "label": "VSYS ID",
+      "label": "Vsys ID",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -417,6 +430,15 @@
         "ttl": null
       },
       "type": "long"
+    },
+    {
+      "name": "common_flags_identify_info",
+      "label": "Flags Identify Info",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "common_user_tags",
@@ -471,6 +493,21 @@
         "visibility": "hidden"
       },
       "label": "User Region"
+    },
+    {
+      "name": "common_shaping_rule_ids",
+      "label": "Shaping Rule IDs",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
     },
     {
       "name": "common_device_id",
@@ -626,6 +663,14 @@
       }
     },
     {
+      "name": "common_app_full_path",
+      "label": "Application Full Path",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
       "name": "common_userdefine_app_name",
       "label": "User Define App Name",
       "type": "string",
@@ -653,7 +698,7 @@
       "name": "common_l7_protocol",
       "type": "string",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "label": "L7 Protocol"
     },

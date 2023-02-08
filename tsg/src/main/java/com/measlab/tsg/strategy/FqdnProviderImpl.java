@@ -22,6 +22,7 @@ import com.mesalab.qgw.dialect.BaseQueryProvider;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -40,7 +41,7 @@ import java.util.stream.Stream;
 public class FqdnProviderImpl implements QueryProvider {
 
     private static final Log log = LogFactory.get();
-
+    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
     private static final String depthregex = "^[1-9]\\d*$"; //depth 取值范围大于0
     private static final String SSL = "SSL";
     private static final String TLS = "TLS";
@@ -112,9 +113,22 @@ public class FqdnProviderImpl implements QueryProvider {
             List<String> intervals = parameters.getIntervals();
             if(!ObjectUtils.isEmpty(intervals)){
                 String[] times = intervals.get(0).split("/");
-                intervalsb.append(" and e.LAST_FOUND_TIME >= ").append(DateUtils.convertStringToTimestamp(times[0], DateUtils.YYYY_MM_DD_HH24_MM_SS)).append(" and ").append("e.LAST_FOUND_TIME <").append(DateUtils.convertStringToTimestamp(times[1], DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                long startTime;
+                long endTime;
+                String start = times[0];
+                String end = times[1];
+                if (strFormatDateTime.matcher(start).find()){
+                    startTime = DateUtils.convertStringToTimestamp(start, "yyyy-MM-dd HH:mm:ss");
+                } else {
+                    startTime = ISODateTimeFormat.dateTimeNoMillis().parseMillis(start)/1000;
+                }
+                if (strFormatDateTime.matcher(end).find()){
+                    endTime = DateUtils.convertStringToTimestamp(end, "yyyy-MM-dd HH:mm:ss");
+                } else {
+                    endTime = ISODateTimeFormat.dateTimeNoMillis().parseMillis(end)/1000;
+                }
+                intervalsb.append(" and e.LAST_FOUND_TIME >= ").append(startTime).append(" and ").append("e.LAST_FOUND_TIME < ").append(endTime);
             }
-
 
         }
 

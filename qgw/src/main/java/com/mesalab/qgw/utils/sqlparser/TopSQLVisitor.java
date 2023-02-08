@@ -36,7 +36,7 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
     private List<String> orderByList;
     private List<String> selectItemExprList;
     private List<String> selectItemAliasList;
-    private List<String> functionList;
+    private List<Function> functionList;
     private SelectBody innerSelectBody = null;
     private SelectBody originalSelectBody = null;
 
@@ -171,12 +171,14 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
         }
 
         List unsupportedFunctionList =  functionList.stream().filter(o ->
-                StringUtil.isBlank(SQLFunctionUtil.getDistributedGroupByFunction(o))).collect(Collectors.toList());
+                StringUtil.isBlank(SQLFunctionUtil.getDistributedGroupByFunction(o.getName().toLowerCase(Locale.ROOT)))).collect(Collectors.toList());
         if(unsupportedFunctionList.size() > 0) {
             return false;
         }
-
-       List unsupportedGroupByList =  groupByList.stream().filter(o ->
+        if (functionList.stream().anyMatch(o -> (o.isDistinct()) || o.isUnique())) {
+            return false;
+        }
+        List unsupportedGroupByList =  groupByList.stream().filter(o ->
                !selectItemExprList.contains(o) && !selectItemAliasList.contains(o) ).collect(Collectors.toList());
         if(unsupportedGroupByList.size() > 0) {
             return false;
@@ -215,7 +217,7 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
        Expression expression = selectExpressionItem.getExpression();
        this.selectItemExprList.add(expression.toString());
         if (expression instanceof Function) {
-            functionList.add(((Function) expression).getName().toLowerCase(Locale.ROOT));
+            functionList.add(((Function) expression));
         }
        if (StrUtil.isEmptyIfStr(selectExpressionItem.getAlias())) {
            if (expression instanceof Column) {

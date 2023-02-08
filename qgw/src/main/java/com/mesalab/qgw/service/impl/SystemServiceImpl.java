@@ -211,7 +211,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult consistencyCheck() {
         List<Map<String, Object>> dataList = Lists.newArrayList();
         Map<String, Object> logDiff = Maps.newHashMap();
-        Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
+        Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
         List<String> symbols = (List<String>) tables.get("symbols");
         logDiff.put("logType", LogType.TRAFFIC_LOGS.getValue());
         Map<String, Map<String, Object>> changeTTL = Maps.newHashMap();
@@ -226,7 +226,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                     ipPort = url.substring(url.indexOf("//") + 2, url.lastIndexOf(":") + 1).concat(trafficPort);
                 }
                 for (String tableName : symbols) {
-                    Map schemaMap = metadataService.getSchemaInfo("fields", tableName);
+                    Map schemaMap = metadataService.getSchemaInfo("fields", tableName, false);
                     Object tableTTLInSchema = getTableTTLInSchema(schemaMap);
                     Map<String, Object> tableDiff = getTableDiff(ipPort, tableName, tableTTLInSchema);
                     List fieldDiff = getFieldDiff(ipPort, tableName, schemaMap);
@@ -492,7 +492,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private void updateSchema(StorageDeletionInfo info, Map dataByHandler) {
         Map<String, Map> previous = Maps.newHashMap();
         try {
-            Map schemaInfo = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
+            Map schemaInfo = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
             Object tables = schemaInfo.get("symbols");
             if (StringUtil.isEmpty(tables)) {
                 return;
@@ -500,14 +500,14 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             long ttl = 24 * 60 * 60 * info.getMaxDays();
             List<String> list = (List) tables;
             for (String tableName : list) {
-                Map schemaMap = metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName);
+                Map schemaMap = metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, false);
                 List<Object> schemaDocTTL = JsonPath.read(schemaMap, "$.[?(@.doc.ttl != null)].doc.ttl");
                 List<Object> schemaDocDefaultTTL = JsonPath.read(schemaMap, "$.[?(@.doc.default_ttl != null)].doc.default_ttl");
                 List<Object> fieldDocTTL = JsonPath.read(schemaMap, "$.fields[?(@.doc.ttl != null)].doc.ttl");
                 if (schemaDocDefaultTTL.isEmpty() && schemaDocTTL.isEmpty() && fieldDocTTL.isEmpty()) {
                     continue;
                 }
-                previous.put(tableName, metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName));
+                previous.put(tableName, metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, false));
                 Object schemaDoc = schemaMap.get("doc");
                 Map<String, Object> map = Maps.newHashMap();
                 if (StringUtil.isNotEmpty(schemaDoc)) {
@@ -520,14 +520,16 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 List<Map<String, Object>> fields = JsonPath.read(schemaMap, "$.fields");
                 List<String> indexKey = metadataService.getIndexKey(tableName);
                 for (Map<String, Object> field : fields) {
-                    if (indexKey.contains(field.get("name").toString())) {
-                        continue;
-                    }
                     Object doc = field.get("doc");
                     if (StringUtil.isEmpty(doc)) {
                         doc = Maps.newHashMap();
                     }
                     Map<String, Object> fieldDoc = (Map<String, Object>) doc;
+                    if (indexKey.contains(field.get("name").toString())) {
+                        fieldDoc.put("ttl", null);
+                        field.put("doc", fieldDoc);
+                        continue;
+                    }
                     if (StringUtil.isEmpty(fieldDoc.get("ttl")) || ttl < Long.parseLong(fieldDoc.get("ttl").toString())) {
                         fieldDoc.put("ttl", ttl);
                         field.put("doc", fieldDoc);

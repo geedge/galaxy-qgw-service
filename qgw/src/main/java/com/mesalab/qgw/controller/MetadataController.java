@@ -39,7 +39,7 @@ public class MetadataController {
 
             return BaseResultGenerator.success4Message("ok");
         }
-        return BaseResultGenerator.success(metadataService.getSchemaInfo(type, name));
+        return BaseResultGenerator.success(metadataService.getSchemaInfo(type, name, true));
     }
 
     @PutMapping("/schema/v1/fields/{name}")

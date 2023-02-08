@@ -36,4 +36,18 @@ public class NetworkMonitorTest extends GalaxyQGWApplicationTests {
         BaseResult result = networkMonitorService.buildInternalIPData(dslObject);
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }
+
+    @Test
+    public void appDataRateSummary() {
+        DSLObject dslObject = jsonToInParameter("parameters/networkMonitorTest.json", "appDataRateSummary", DSLObject.class);
+        BaseResult result = networkMonitorService.buildAppDataRate(dslObject);
+        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
+    }
+
+    @Test
+    public void appTrafficSummary() {
+        DSLObject dslObject = jsonToInParameter("parameters/networkMonitorTest.json", "appTrafficSummary", DSLObject.class);
+        BaseResult result = networkMonitorService.buildAppTraffic(dslObject);
+        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
+    }
 }

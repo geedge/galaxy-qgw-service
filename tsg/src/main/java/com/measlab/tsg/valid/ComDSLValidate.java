@@ -11,8 +11,6 @@ import com.mesalab.common.enums.SortEnum;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -27,7 +25,10 @@ public class ComDSLValidate {
 
     public static final Pattern periodOfPT = Pattern.compile("PT(\\d+)[SMH]", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfP = Pattern.compile("P(\\d+)[DWMY]", Pattern.CASE_INSENSITIVE);
-    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
+    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}|" +
+            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})\\+|\\-(\\d{1,2}):(\\d{1,2})|" +
+            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})Z", Pattern.CASE_INSENSITIVE);
+
 
     public void validation(ComDSLObject dslObject) throws QGWBusinessException {
         if (StringUtil.isEmpty(dslObject)) {
@@ -165,15 +166,15 @@ public class ComDSLValidate {
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.TIME_FORMAT_ERROR));
             }
         }
-        try {
-            DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-            if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
-                throw new RuntimeException("Intervals value should be [start, end]");
-            }
-        } catch (RuntimeException e) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),e.getMessage()));
-        }
+//        try {
+//            DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+//            if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
+//                throw new RuntimeException("Intervals value should be [start, end]");
+//            }
+//        } catch (RuntimeException e) {
+//            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+//                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),e.getMessage()));
+//        }
         return true;
     }
 }

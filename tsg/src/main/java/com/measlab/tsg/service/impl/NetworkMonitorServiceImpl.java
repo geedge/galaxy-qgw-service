@@ -205,7 +205,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, null);
         String[] intervals = getIntervals(queryParam.getParameters().getIntervals());
         return String.format(sqlTemplate,
-                intervals[1], intervals[0], whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE,
+                "UNIX_TIMESTAMP('".concat(intervals[1]).concat("')"),
+                "UNIX_TIMESTAMP('".concat(intervals[0]).concat("')"),
+                whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE,
                 whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE);
     }
 
@@ -241,7 +243,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         }
         StringBuffer whereOfTime = new StringBuffer();
         String[] intervals = getIntervals(parameters.getIntervals());
-        whereOfTime.append("__time >= TIMESTAMP '").append(intervals[0]).append("' AND __time < TIMESTAMP '").append(intervals[1]).append("'");
+
+        whereOfTime.append("__time >= DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('").append(intervals[0]).append("')), '%Y-%m-%d %H:%i:%s')")
+        .append("AND __time < DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP(  '").append(intervals[1]).append("')), '%Y-%m-%d %H:%i:%s')");
         return whereOfTime.toString();
     }
 
@@ -442,7 +446,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     public BaseResult buildAppData(NetWorkDSLObject dslObject) {
         String whereOfExactly = getWhereFilter(dslObject.getQuery().getParameters(), false, null);
         String[] intervals = getIntervals(dslObject.getQuery().getParameters().getIntervals());
-        String whereOfTime = "__time >= TIMESTAMP '" + intervals[0] + "' AND __time < TIMESTAMP '" + intervals[1] + "'";
+        String  whereOfTime = "__time >= DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('".concat(intervals[0]).concat("')), '%Y-%m-%d %H:%i:%s')")
+                .concat("AND __time < DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP(  '").concat(intervals[1]).concat("')), '%Y-%m-%d %H:%i:%s')");
         String granularity = dslObject.getQuery().getParameters().getGranularity();
         granularity = StringUtil.isEmpty(granularity) ? "PT15S" : granularity;
         Period period = Period.parse(granularity);
@@ -473,6 +478,52 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         } else {
             throw new BusinessException(dataResult.get("result"));
         }
+    }
+
+    @Override
+    public BaseResult buildAppDataRate(DSLObject dslObject) {
+        BaseResult baseResult;
+        DSLObject.QueryBean.Parameters parameters = dslObject.getQuery().getParameters();
+        String whereOfExactly = getWhereFilter(parameters, false, null);
+        String whereOfTime = getWhereOfTime(parameters);
+        String sql = String.format(environment.getProperty("APP_DATA_RATE_SUMMARY"),
+                parameters.getGranularity(),
+                dslObject.getQuery().getDataSource(),
+                whereOfTime,
+                whereOfExactly,
+                parameters.getGranularity()
+        );
+        Map<String, String> result = executeQuery(sql);
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
+            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            List<Map> data = (List<Map>) resultMap.get("data");
+            baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
+        } else {
+            throw new BusinessException(result.get("result"));
+        }
+        return baseResult;
+    }
+
+    @Override
+    public BaseResult buildAppTraffic(DSLObject dslObject) {
+        BaseResult baseResult;
+        DSLObject.QueryBean.Parameters parameters = dslObject.getQuery().getParameters();
+        String whereOfExactly = getWhereFilter(parameters, false, null);
+        String whereOfTime = getWhereOfTime(parameters);
+        String sql = String.format(environment.getProperty("APP_TRAFFIC_SUMMARY"),
+                dslObject.getQuery().getDataSource(),
+                whereOfTime,
+                whereOfExactly
+        );
+        Map<String, String> result = executeQuery(sql);
+        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
+            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            List<Map> data = (List<Map>) resultMap.get("data");
+            baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
+        } else {
+            throw new BusinessException(result.get("result"));
+        }
+        return baseResult;
     }
 
     /**

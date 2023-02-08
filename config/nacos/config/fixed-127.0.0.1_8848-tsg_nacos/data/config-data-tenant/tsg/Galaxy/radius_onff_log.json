@@ -4,11 +4,9 @@
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "partition_key": "event_timestamp",
-    "index_key": [
-      "account",
-      "event_timestamp",
-      "vsys_id"
-    ]
+    "index_key": {
+      "$ref": "public_schema_info.json#/radius_onff_log/index_key"
+    }
   },
   "fields": [
     {
@@ -29,7 +27,7 @@
     },
     {
       "name": "vsys_id",
-      "label": "VSYS ID",
+      "label": "Vsys ID",
       "doc": {
         "visibility": "enabled"
       },

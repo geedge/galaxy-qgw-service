@@ -94,5 +94,98 @@
         ]
       }
     }
+  },
+  "appDataRateSummary": {
+    "clientId": null,
+    "query": {
+      "queryType": "appDataRateSummary",
+      "dataSource": "traffic_protocol_stat_log",
+      "parameters": {
+        "granularity": "PT30S",
+        "match": [
+          {
+            "type": "exactly",
+            "fieldKey": "app_name",
+            "fieldValues": [
+              "Freegate"
+            ]
+          },
+          {
+            "type": "exactly",
+            "fieldKey": "data_center",
+            "fieldValues": [
+              "dataCenterValue"
+            ]
+          },
+          {
+            "type": "exactly",
+            "fieldKey": "device_group",
+            "fieldValues": [
+              "deviceGroupValue1",
+              "deviceGroupValue2"
+            ]
+          }
+        ],
+        "range": [
+          {
+            "type": "eq",
+            "fieldKey": "vsys_id",
+            "fieldValues": [
+              1,
+              2
+            ]
+          }
+        ],
+        "intervals": [
+          "2022-10-28 00:00:00/2022-12-28 01:00:00"
+        ]
+      }
+    }
+  },
+  "appTrafficSummary": {
+    "clientId": null,
+    "query": {
+      "queryType": "appTrafficSummary",
+      "dataSource": "traffic_protocol_stat_log",
+      "parameters": {
+        "match": [
+          {
+            "type": "exactly",
+            "fieldKey": "app_name",
+            "fieldValues": [
+              "Freegate"
+            ]
+          },
+          {
+            "type": "exactly",
+            "fieldKey": "data_center",
+            "fieldValues": [
+              "dataCenterValue"
+            ]
+          },
+          {
+            "type": "exactly",
+            "fieldKey": "device_group",
+            "fieldValues": [
+              "deviceGroupValue1",
+              "deviceGroupValue2"
+            ]
+          }
+        ],
+        "range": [
+          {
+            "type": "eq",
+            "fieldKey": "vsys_id",
+            "fieldValues": [
+              1,
+              2
+            ]
+          }
+        ],
+        "intervals": [
+          "2022-10-28 00:00:00/2022-12-28 01:00:00"
+        ]
+      }
+    }
   }
 }

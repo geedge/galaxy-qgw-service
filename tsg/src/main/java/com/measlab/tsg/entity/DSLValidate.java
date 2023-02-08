@@ -29,7 +29,9 @@ public class DSLValidate {
 
     public static final Pattern periodOfPT = Pattern.compile("PT(\\d+)[SMH]", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfP = Pattern.compile("P(\\d+)[DWMY]", Pattern.CASE_INSENSITIVE);
-    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
+    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}|" +
+            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})\\+|\\-(\\d{1,2}):(\\d{1,2})|" +
+            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})Z", Pattern.CASE_INSENSITIVE);
 
 
     public void executeValidate(NetWorkDSLObject dslObject) throws BusinessException {
@@ -95,12 +97,12 @@ public class DSLValidate {
      * @param filterBeanList
      * @return
      */
-    private boolean isValidMatch(List<NetWorkDSLObject.QueryBean.Parameters.FilterBean> filterBeanList) {
+    private boolean isValidMatch(List<DSLObject.QueryBean.Parameters.FilterBean> filterBeanList) {
         if (CollectionUtils.isEmpty(filterBeanList)) {
             return true;
         }
-        for (NetWorkDSLObject.QueryBean.Parameters.FilterBean match : filterBeanList) {
-            Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(match.getType())), TSGErrorMessage.MATCH_FIELD_VALUES_ERROR);
+        for (DSLObject.QueryBean.Parameters.FilterBean match : filterBeanList) {
+            Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(match.getType())), ErrorMessage.MATCH_FIELD_VALUES_ERROR);
         }
         return true;
     }
@@ -151,16 +153,16 @@ public class DSLValidate {
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),TSGErrorMessage.TIME_FORMAT_ERROR));
             }
         }
-        try {
-            DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-            if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),TSGErrorMessage.INTERVALS_VALUE_ERROR));
-            }
-        } catch (RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),TSGErrorMessage.INTERVALS_VALUE_ERROR));
-        }
+//        try {
+//            DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+//            if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
+//                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
+//                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.INTERVALS_VALUE_ERROR));
+//            }
+//        } catch (RuntimeException e) {
+//            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
+//                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.INTERVALS_VALUE_ERROR));
+//        }
         return true;
     }
 

@@ -2,6 +2,7 @@ package com.measlab.tsg.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
@@ -328,6 +329,12 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             if (StringUtil.isEmpty(plainSelect.getOrderByElements()) || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList())) {
                 return;
             }
+            if (StringUtil.isEmpty(plainSelect.getGroupBy())
+                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList())
+                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList().getExpressions())) {
+                return;
+            }
+
             SubOption subOption = new SubOption();
             Optional.ofNullable(plainSelect.getLimit()).ifPresent(x -> subOption.setLimit(Long.parseLong(String.valueOf(x.getRowCount()))));
 
@@ -343,7 +350,12 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                     aliasExpr.put(selectExprItem.getAlias().getName(), selectExprItem.getExpression());
                 }
             }
-
+            for (Expression groupItem : plainSelect.getGroupBy().getGroupByExpressionList().getExpressions()) {
+                if (aliasExpr.keySet().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))
+                        && aliasExpr.values().stream().noneMatch(o -> o.equals(String.valueOf(groupItem)))) {
+                    return;
+                }
+            }
             List<Expression> groupByItems = plainSelect.getGroupBy().getGroupByExpressionList().getExpressions();
             for (String key : aliasExpr.keySet()) {
                 Object value = aliasExpr.get(key);
@@ -352,12 +364,15 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                     continue;
                 }
                 if (value instanceof Function) {
-                    String name = ((Function) value).getName().toLowerCase();
-                    if (SQLFunctionUtil.timeSlicingFunction.containsKey(name)) {
-                        subOption.getMetric().put(key, SQLFunctionUtil.timeSlicingFunction.get(name));
-                        continue;
+                    Function fun = ((Function) value);
+                    String name = fun.getName().toLowerCase();
+                    if (!SQLFunctionUtil.timeSlicingFunction.containsKey(name)) {
+                        return;
                     }
-                    return;
+                    if (fun.isDistinct() || fun.isUnique()) {
+                        return;
+                    }
+                    subOption.getMetric().put(key, SQLFunctionUtil.timeSlicingFunction.get(name));
                 }
             }
             for (OrderByElement orderByElement : plainSelect.getOrderByElements()) {

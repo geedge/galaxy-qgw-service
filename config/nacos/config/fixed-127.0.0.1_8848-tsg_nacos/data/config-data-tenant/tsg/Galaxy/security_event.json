@@ -7,12 +7,9 @@
     "partition_key": "common_recv_time",
     "ttl": null,
     "default_ttl": 2592000,
-    "index_key": [
-      "common_log_id",
-      "common_recv_time",
-      "common_policy_id",
-      "common_vsys_id"
-    ],
+    "index_key": {
+      "$ref": "public_schema_info.json#/security_event/index_key"
+    },
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     },
@@ -32,6 +29,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -49,10 +47,12 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
+        "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
-        "common_l7_protocol",
         "common_protocol_label",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
@@ -153,6 +153,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -170,10 +171,12 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
+        "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
-        "common_l7_protocol",
         "common_protocol_label",
         "common_l4_protocol",
         "common_c2s_pkt_num",
@@ -305,6 +308,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -322,10 +326,12 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
+        "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
-        "common_l7_protocol",
         "common_protocol_label",
         "common_service_category",
         "common_l4_protocol",
@@ -465,6 +471,7 @@
           "common_vsys_id",
           "common_t_vsys_id",
           "common_flags",
+          "common_flags_identify_info",
           "common_direction",
           "common_stream_dir",
           "common_start_time",
@@ -487,7 +494,8 @@
           "common_sub_action",
           "common_policy_id",
           "common_user_tags",
-          "common_user_region"
+          "common_user_region",
+          "common_shaping_rule_ids"
         ],
         "source": [
           "common_client_ip",
@@ -505,10 +513,13 @@
           "common_external_ip",
           "common_server_port",
           "common_server_location",
-          "common_server_asn"
+          "common_server_asn",
+          "common_server_fqdn",
+          "common_server_domain"
         ],
         "application": [
           "common_app_id",
+          "common_app_full_path",
           "common_userdefine_app_name",
           "common_app_identify_info",
           "common_app_label",
@@ -944,6 +955,24 @@
       "type": "string"
     },
     {
+      "name": "common_server_fqdn",
+      "label": "Server FQDN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_server_domain",
+      "label": "Server Domain",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "common_sessions",
       "label": "Sessions",
       "doc": {
@@ -1107,7 +1136,7 @@
     },
     {
       "name": "common_vsys_id",
-      "label": "VSYS ID",
+      "label": "Vsys ID",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1136,11 +1165,19 @@
         "data": {
           "$ref": "public_schema_info.json#/fields/common_flags/data"
         },
-        "allow_query": "false",
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "long"
+    },
+    {
+      "name": "common_flags_identify_info",
+      "label": "Flags Identify Info",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "common_user_tags",
@@ -1198,6 +1235,21 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "common_shaping_rule_ids",
+      "label": "Shaping Rule IDs",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
     },
     {
       "name": "common_device_id",
@@ -1358,6 +1410,15 @@
       "type": "string"
     },
     {
+      "name": "common_app_full_path",
+      "label": "Application Full Path",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
       "name": "common_userdefine_app_name",
       "label": "User Define App Name",
       "doc": {
@@ -1388,7 +1449,7 @@
       "name": "common_l7_protocol",
       "label": "L7 Protocol",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1766,6 +1827,14 @@
           {
             "function": "sub_domain",
             "appendTo": "http_domain"
+          },
+          {
+            "function": "sub_domain",
+            "appendTo": "common_server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_server_fqdn"
           }
         ],
         "visibility": "enabled",
@@ -2837,6 +2906,14 @@
           {
             "function": "sub_domain",
             "appendTo": "http_domain"
+          },
+          {
+            "function": "sub_domain",
+            "appendTo": "common_server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_server_fqdn"
           }
         ],
         "visibility": "enabled",
@@ -3166,6 +3243,14 @@
           {
             "function": "sub_domain",
             "appendTo": "http_domain"
+          },
+          {
+            "function": "sub_domain",
+            "appendTo": "common_server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_server_fqdn"
           }
         ],
         "visibility": "enabled",
@@ -3303,7 +3388,7 @@
       "name": "app_extra_info",
       "label": "APP.Extra Info",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"

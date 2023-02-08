@@ -216,10 +216,10 @@ public class DruidDialect extends AbstractDataSourceDialect {
     public String simplyErrorMessage(Object dataObject) {
         String message = String.valueOf(dataObject);
         try {
-            message = StringUtil.isNotEmpty(dataObject) ? JsonPath.read(dataObject.toString(), "$.errorMessage")
-                    : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
+            message = StringUtil.isNotEmpty(dataObject) ? JsonPath.read(dataObject.toString(), "$.errorMessage") : "System Runtime Exception, Please contact Galaxy Data Platform Project manager";
+            message = StringUtil.isEmpty(message) ? dataObject.toString() : message;
         } catch (JsonPathException e) {
-            log.error("Build error druid-errorMessage data is: {}", dataObject);
+            log.error("Build error druid-errorMessage, data is: {}", dataObject);
         }
         message = message.startsWith(CLAZZ_NAME_CALCITE_EXCEPTION) ? message.substring(CLAZZ_NAME_CALCITE_EXCEPTION.length()) : message;
         return StrUtil.removeAllLineBreaks(message).trim();

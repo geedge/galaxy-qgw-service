@@ -3,7 +3,7 @@ SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip,  SUM(one_sided
 #end
 
 #sql("TRAFFIC_DYNAMIC_STATISTICS")
-SELECT SUM(c2s_byte_num + s2c_byte_num) as dynamic_bytes, SUM(sessions) as dynamic_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/((TIMESTAMP_TO_MILLIS(TIMESTAMP '%s')-TIMESTAMP_TO_MILLIS(TIMESTAMP '%s'))/1000) AS data_rate  FROM traffic_protocol_stat_log  WHERE %s %s AND protocol_id = '%s' LIMIT 1
+SELECT SUM(c2s_byte_num + s2c_byte_num) as dynamic_bytes, SUM(sessions) as dynamic_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/(%s -%s) AS data_rate  FROM traffic_protocol_stat_log  WHERE %s %s AND protocol_id = '%s' LIMIT 1
 #end
 
 #sql("PROTOCOL_TREE_SUMMARY")
@@ -100,4 +100,10 @@ SELECT name, engine_full AS table_ttl FROM tables WHERE name ='%s_local' AND  "d
 
 #sql("GTPC_KNOWLEDGE_BASE")
 SELECT uplink_teid AS teid, apn, phone_number, imsi, imei, last_update_time,vsys_id FROM tsg_galaxy.gtpc_knowledge_base WHERE msg_type = 1 and uplink_teid !=0 %s order by last_update_time desc limit %s
+#end
+#sql("APP_DATA_RATE_SUMMARY")
+SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, app_name , sum(c2s_byte_num + s2c_byte_num) as bytes from %s where %s %s  group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), app_name order by stat_time asc
+#end
+#sql("APP_TRAFFIC_SUMMARY")
+SELECT app_name,SUM(sessions) as sessions,sum(c2s_byte_num + s2c_byte_num) as bytes,sum(s2c_byte_num) as received_bytes,sum(c2s_byte_num) as sent_bytes,sum(c2s_pkt_num+s2c_pkt_num) as packets,sum(c2s_pkt_num) as sent_packets,sum(s2c_pkt_num) as received_packets from %s where %s %s group by app_name
 #end

@@ -1,4 +1,4 @@
-package com.measlab.tsg.service;
+package com.mesalab.knowledge.service;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -15,6 +15,14 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.knowledge.entity.*;
+import com.mesalab.knowledge.enums.DataSourceEnum;
+import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.knowledge.enums.RangeEnum;
+import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
+import com.mesalab.knowledge.strategy.QueryProvider;
+import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
 import com.measlab.tsg.entity.*;
 import com.measlab.tsg.enums.DataSourceEnum;
 import com.measlab.tsg.exception.TSGErrorMessage;
@@ -30,13 +38,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-
 import java.io.IOException;
+import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import static java.util.Objects.*;
 
@@ -47,12 +60,17 @@ import static java.util.Objects.*;
  **/
 @Service
 public class KnowledgeService {
+
+    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}|" +
+            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})\\+|\\-(\\d{1,2}):(\\d{1,2})|" +
+            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})Z", Pattern.CASE_INSENSITIVE);
     private static final Log log = LogFactory.get();
     @Value("${arango.maxrows}")
     private String maxrows;//查询最大条数
 
     @Autowired
     Map<String, QueryProvider> provider = new ConcurrentHashMap<>();
+
 
     public BaseResult query(Object object) {
         //1.结构校验
@@ -143,7 +161,19 @@ public class KnowledgeService {
             if (!start.before(end)){
                 throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), TSGErrorMessage.TIME_ERROR));
+            for (String dateTimeStr : times) {
+                if (!strFormatDateTime.matcher(dateTimeStr).find()) {
+                    throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.TIME_FORMAT_ERROR));
+                }
             }
+
+//            Date start = DateUtils.convertStringToDate(times.get(0), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+//            Date end = DateUtils.convertStringToDate(times.get(1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+//            if (!start.before(end)){
+//                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+//                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.TIME_ERROR));
+//            }
         }
         if (nonNull(limit)) {
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);

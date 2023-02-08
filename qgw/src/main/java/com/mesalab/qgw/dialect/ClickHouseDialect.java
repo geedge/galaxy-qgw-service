@@ -547,7 +547,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             String indexTable = "";
             String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
             String[] indexTables = StringUtil.split(str, ",");
-            if (StringUtil.isEmpty(indexTables)) {
+            if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(metadataService.getIndexKey(param.getTableName()))) {
                 return StringUtil.EMPTY;
             }
             for (String tempIndexTable : indexTables) {
@@ -558,14 +558,14 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     continue;
                 }
 
-                Map indexTableData = metadataService.getSchemaInfo("fields", tempIndexTable);
+                Map indexTableData = metadataService.getSchemaInfo("fields", tempIndexTable, false);
                 Schema indexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData));
                 //判断二: order by 元素是否都在索引表中
                 if (!isValidOfOrderElementsInSchema(indexTableSchema)) {
                     continue;
                 }
 
-                Map masterTableData = metadataService.getSchemaInfo("fields", param.getTableName());
+                Map masterTableData = metadataService.getSchemaInfo("fields", param.getTableName(), false);
                 Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData));
                 //判断三: where 条件列是否都在索引表中
                 setValidityByWhereExpressionsInSchema(param.getDbQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
@@ -586,10 +586,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         private String getSubQueryByIndexTable(String indexTable) {
 
             String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
-
-            String subQuery = getSubquerySql(primaryKey, indexTable);
+            List<String> indexKey = metadataService.getIndexKey(param.getTableName());
+            int i = indexKey.contains(primaryKey) ? indexKey.indexOf(primaryKey) + 1 : indexKey.size();
+            String subQueryKey = String.join(",", indexKey.subList(0, i));
+            String subQuery = getSubquerySql(subQueryKey, indexTable);
             StringBuffer sb = new StringBuffer();
-            sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(primaryKey).append(" in ( ").append(subQuery).append(")");
+            sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ( ").append(subQueryKey).append(" ) in ( ").append(subQuery).append(")");
             if (StringUtil.isNotBlank(param.getDbQuerySource().getExpr())) {
                 sb.append(" and (").append(param.getDbQuerySource().getExpr()).append(")");
             }
