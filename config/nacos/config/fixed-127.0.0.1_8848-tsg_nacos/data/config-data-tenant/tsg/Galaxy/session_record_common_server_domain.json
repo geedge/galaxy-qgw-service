@@ -147,7 +147,7 @@
       "name": "common_direction",
       "type": "int",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       }
     },
