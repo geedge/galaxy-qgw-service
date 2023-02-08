@@ -170,8 +170,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
             List<Object> data = Lists.newArrayList();
+            checkCKIndexKey(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
-            checkCkIndexKey(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbase2Result = checkMetadataByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
@@ -187,10 +187,10 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
-            log.error("Metadata Validation Fail:{}", e);
+            log.error("Metadata Validation Fail: {}", e.getMessage());
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),e.getMessage()));
+                    ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
         }
         return result;
     }
@@ -816,7 +816,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         return resultMap;
     }
 
-    private void checkCkIndexKey(String dbName, List<String> tables) {
+    private void checkCKIndexKey(String dbName, List<String> tables) {
         for (String tableName : tables) {
             Schema schema = metadataService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
@@ -828,54 +828,18 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                         String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), " The Table[" + tableName + "] index key query failed"));
             }
             List<Map<String, Object>> dataList = (List<Map<String, Object>>) indexKeyResult.getData();
-            List<String> dbIndexKey = (List<String>) dataList.get(0).get("index_key");
+            List<String> dbIndexKey = StringUtil.isEmpty(dataList.get(0)) ? Lists.newArrayList() : (List<String>) dataList.get(0).get("index_key");
             List<String> schemaIndexKey = metadataService.getIndexKey(tableName);
-
-            List<String> onlyOnSchema = Lists.newArrayList();
-            schemaIndexKey.stream().forEach(x -> {
-                if (!dbIndexKey.contains(x)) {
-                    onlyOnSchema.add(x);
-                }
-            });
-            if (onlyOnSchema.size() > 0) {
-                log.error("Schema index key greater than table index key,schema " + tableName + " exist index key :" + onlyOnSchema);
-                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),
-                                " Schema index key greater than table index key,schema " + tableName + " exist index key :" + onlyOnSchema));
+            if (schemaIndexKey.equals(dbIndexKey)) {
+                continue;
             }
-
-            List<String> onlyOnTable = Lists.newArrayList();
-            dbIndexKey.stream().forEach(x -> {
-                if (!schemaIndexKey.contains(x)) {
-                    onlyOnTable.add(x);
-                }
-            });
-            if (onlyOnTable.size() > 0) {
-                log.error("Schema index key less than table index key,table " + tableName + " exist index key :" + onlyOnTable);
-                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),
-                                " Schema index key less than table index key,table " + tableName + " exist index key :" + onlyOnTable));
-            }
-
-            if (onlyOnSchema.size() == 0 && onlyOnTable.size() == 0) {
-                Iterator<String> dbIterator = dbIndexKey.iterator();
-                Iterator<String> schemaIterator = schemaIndexKey.iterator();
-                while (dbIterator.hasNext() && schemaIterator.hasNext()) {
-                    if (!dbIterator.next().equals(schemaIterator.next())) {
-                        log.error("Schema index key order is inconsistent," + tableName + " schema index key order should be :" + dbIndexKey);
-                        throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                                QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
-                                String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),
-                                        "Schema index key order is inconsistent," + tableName + " schema index key order should be :" + dbIndexKey));
-                    }
-                }
-            }
+            log.error("{} schema index key inconsistent with DB, schema: {}, db: {}", tableName, schemaIndexKey, dbIndexKey);
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                    QGWErrorCode.SCHEMA_WITCH_DB_INCONSISTENTY.getCode(),
+                    String.format(QGWErrorCode.SCHEMA_WITCH_DB_INCONSISTENTY.getMessage(),
+                            String.format("%s schema index key is: %s, db index key is: %s", tableName, schemaIndexKey, dbIndexKey)));
         }
     }
-
-
     private BaseResult getBaseResultByEngine(ApiParam apiParam) {
         return apiService.executeQuery(apiParam);
     }
