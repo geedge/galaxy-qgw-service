@@ -14,4 +14,12 @@ public enum SortEnum {
     DESC("desc"),
     ASC("asc");
     private final String type;
+    public static SortEnum getByType(String type) {
+        for (SortEnum constants : values()) {
+            if (constants.type.equalsIgnoreCase(type)) {
+                return constants;
+            }
+        }
+        return null;
+    }
 }
