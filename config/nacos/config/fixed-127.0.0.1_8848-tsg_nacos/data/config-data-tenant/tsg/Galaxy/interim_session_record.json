@@ -16,7 +16,6 @@
     "schema_query": {
       "dimensions": [
         "common_stream_trace_id",
-        "common_direction",
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
@@ -270,7 +269,6 @@
       ],
       "filters": [
         "common_stream_trace_id",
-        "common_direction",
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
@@ -849,7 +847,7 @@
             "value": "inbound"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
