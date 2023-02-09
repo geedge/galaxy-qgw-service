@@ -10,14 +10,13 @@
     },
     "ttl": null,
     "default_ttl": 2592000,
-    "index_table": "session_record_common_client_ip,session_record_common_server_ip,session_record_http_domain",
+    "index_table": "session_record_common_client_ip,session_record_common_server_ip,session_record_common_server_domain",
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
       "dimensions": [
         "common_stream_trace_id",
-        "common_direction",
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
@@ -31,9 +30,11 @@
         "common_schema_type",
         "common_vsys_id",
         "common_flags",
+        "common_flags_identify_info",
         "common_action",
         "common_sub_action",
         "common_policy_id",
+        "common_shaping_rule_ids",
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
@@ -49,6 +50,7 @@
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
+        "common_server_domain",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -141,9 +143,11 @@
         "common_schema_type",
         "common_vsys_id",
         "common_flags",
+        "common_flags_identify_info",
         "common_action",
         "common_sub_action",
         "common_policy_id",
+        "common_shaping_rule_ids",
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
@@ -159,6 +163,7 @@
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
+        "common_server_domain",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -265,7 +270,6 @@
       ],
       "filters": [
         "common_stream_trace_id",
-        "common_direction",
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
@@ -281,9 +285,11 @@
         "common_schema_type",
         "common_vsys_id",
         "common_flags",
+        "common_flags_identify_info",
         "common_action",
         "common_sub_action",
         "common_policy_id",
+        "common_shaping_rule_ids",
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
@@ -299,6 +305,7 @@
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
+        "common_server_domain",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -425,6 +432,7 @@
           "common_vsys_id",
           "common_t_vsys_id",
           "common_flags",
+          "common_flags_identify_info",
           "common_direction",
           "common_stream_dir",
           "common_start_time",
@@ -518,7 +526,8 @@
           "common_sub_action",
           "common_policy_id",
           "common_user_tags",
-          "common_user_region"
+          "common_user_region",
+          "common_shaping_rule_ids"
         ]
       }
     },
@@ -839,7 +848,7 @@
             "value": "inbound"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -914,7 +923,7 @@
       "name": "common_server_domain",
       "label": "Server Domain",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -1104,6 +1113,15 @@
       "type": "long"
     },
     {
+      "name": "common_flags_identify_info",
+      "label": "Flags Identify Info",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "common_user_tags",
       "label": "User Tags",
       "doc": {
@@ -1159,6 +1177,21 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "common_shaping_rule_ids",
+      "label": "Shaping Rule IDs",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
     },
     {
       "name": "common_device_id",
@@ -3297,7 +3330,7 @@
       "name": "app_extra_info",
       "label": "APP.Extra Info",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"

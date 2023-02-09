@@ -1,10 +1,9 @@
 package com.mesalab.qgw.service;
 
-import com.measlab.tsg.entity.NetWorkDSLObject;
+import com.mesalab.tsg.entity.NetWorkDSLObject;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.network.dsl.DSLObject;
-import com.measlab.tsg.service.NetworkMonitorService;
+import com.mesalab.tsg.service.NetworkMonitorService;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -39,14 +38,14 @@ public class NetworkMonitorTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void appDataRateSummary() {
-        DSLObject dslObject = jsonToInParameter("parameters/networkMonitorTest.json", "appDataRateSummary", DSLObject.class);
+        NetWorkDSLObject dslObject = jsonToInParameter("parameters/networkMonitorTest.json", "appDataRateSummary", NetWorkDSLObject.class);
         BaseResult result = networkMonitorService.buildAppDataRate(dslObject);
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }
 
     @Test
     public void appTrafficSummary() {
-        DSLObject dslObject = jsonToInParameter("parameters/networkMonitorTest.json", "appTrafficSummary", DSLObject.class);
+        NetWorkDSLObject dslObject = jsonToInParameter("parameters/networkMonitorTest.json", "appTrafficSummary", NetWorkDSLObject.class);
         BaseResult result = networkMonitorService.buildAppTraffic(dslObject);
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }

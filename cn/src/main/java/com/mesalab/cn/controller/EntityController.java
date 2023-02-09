@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @Date: 2020-08-17 10:55
  * @Author : wWei
  */
-@RestController
+@RestController(value = "CNEntityController")
 @RequestMapping("/cn")
 public class EntityController {
 

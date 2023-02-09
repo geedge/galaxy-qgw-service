@@ -1,194 +1,171 @@
 {
-    "type":"record",
-    "name":"session_record_common_server_ip",
-    "namespace":"tsg_galaxy_v3",
-    "doc":
+  "type": "record",
+  "name": "session_record_common_server_ip",
+  "namespace": "tsg_galaxy_v3",
+  "doc": {
+    "primary_key": "common_log_id",
+    "partition_key": "common_recv_time",
+    "ttl": null,
+    "default_ttl": 2592000,
+    "index_key": {
+      "$ref": "public_schema_info.json#/session_record_common_server_ip/index_key"
+    }
+  },
+  "fields": [
     {
-        "primary_key":"common_log_id",
-        "partition_key":"common_recv_time",
-        "ttl":2592000,
-        "default_ttl":2592000,
-        "index_key":
-        [
-            "common_server_ip",
-            "common_client_ip",
-            "common_recv_time"
-        ]
-
+      "name": "common_log_id",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
     },
-    "fields":
-    [
-        {
-            "name":"common_log_id",
-            "type":"long",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_recv_time",
-            "type":"long",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":null
-            }
-
-        },
-        {
-            "name":"common_server_ip",
-            "type":"string",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":null
-            }
-
-        },
-        {
-            "name":"common_client_ip",
-            "type":"string",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":null
-            }
-
-        },
-        {
-            "name":"common_sled_ip",
-            "type":"string",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_entrance_id",
-            "type":"int",
-            "doc":
-            {
-                "visibility":"disabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_subscriber_id",
-            "type":"string",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_stream_trace_id",
-            "type":"long",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_schema_type",
-            "type":"string",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_vsys_id",
-            "type":"int",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            },
-            "default":1
-        },
-        {
-            "name":"common_client_port",
-            "type":"int",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_server_port",
-            "type":"int",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_server_domain",
-            "type":"string",
-            "doc":
-            {
-                "visibility":"hidden",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_app_label",
-            "type":"string",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"common_direction",
-            "type":"int",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"http_domain",
-            "type":"string",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        },
-        {
-            "name":"ssl_sni",
-            "type":"string",
-            "doc":
-            {
-                "visibility":"enabled",
-                "ttl":2592000
-            }
-
-        }
-
-    ]
-
+    {
+      "name": "common_recv_time",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_server_ip",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_client_ip",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_sled_ip",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_entrance_id",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_subscriber_id",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_stream_trace_id",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_schema_type",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_vsys_id",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "default": 1
+    },
+    {
+      "name": "common_client_port",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_server_port",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_server_domain",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_data_center",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Data Center"
+    },
+    {
+      "name": "common_device_group",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Device Group"
+    },
+    {
+      "name": "common_app_label",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_direction",
+      "type": "int",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      }
+    },
+    {
+      "name": "http_domain",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    },
+    {
+      "name": "ssl_sni",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      }
+    }
+  ]
 }

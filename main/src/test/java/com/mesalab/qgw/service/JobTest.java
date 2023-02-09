@@ -1,6 +1,6 @@
 package com.mesalab.qgw.service;
 
-import com.measlab.tsg.controller.JobController;
+import com.mesalab.tsg.controller.JobController;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.entity.BaseResult;
 import org.junit.Assert;

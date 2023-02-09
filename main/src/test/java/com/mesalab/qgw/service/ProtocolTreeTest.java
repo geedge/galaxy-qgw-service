@@ -6,7 +6,7 @@ import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.utils.JsonMapper;
-import com.measlab.tsg.service.NetworkMonitorService;
+import com.mesalab.tsg.service.NetworkMonitorService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

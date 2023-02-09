@@ -3,7 +3,7 @@ package com.mesalab;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson.JSON;
-import com.mesalab.service.GalaxyQGWApplication;
+import com.mesalab.main.GalaxyQGWApplication;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
