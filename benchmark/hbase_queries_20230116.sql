@@ -1,2 +1,0 @@
-SELECT last_update_time FROM relation_account_framedip WHERE last_update_time>=CAST(TO_TIMESTAMP ('2021-10-19 10:00:00','yyyy-MM-dd HH:mm:ss','Asia/Shanghai') AS UNSIGNED_LONG) AND last_update_time<CAST(TO_TIMESTAMP ('2021-10-20 11:00:00','yyyy-MM-dd HH:mm:ss','Asia/Shanghai') AS UNSIGNED_LONG) LIMIT 30
-select * from relation_account_framedip  where ROWKEY = '0a771a381088e7d72ded13e998c06cbe' limit 1
