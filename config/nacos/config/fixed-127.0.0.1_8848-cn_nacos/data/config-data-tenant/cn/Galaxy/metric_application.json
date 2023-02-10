@@ -3,7 +3,14 @@
   "name": "metric_application",
   "namespace": "cyber_narrator_galaxy",
   "doc": {
-    "partition_key": "stat_time"
+    "partition_key": "stat_time",
+    "index_key": [
+      "stat_time",
+      "common_app_label",
+      "app_category",
+      "app_subcategory",
+      "app_company"
+    ]
   },
   "fields": [
   ]
