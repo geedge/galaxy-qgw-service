@@ -1,0 +1,90 @@
+{
+  "functions": {
+    "operator": [
+      {
+        "name": "=",
+        "label": "=",
+        "function": "expr = value"
+      },
+      {
+        "name": "!=",
+        "label": "!=",
+        "function": "expr != value"
+      },
+      {
+        "name": ">",
+        "label": ">",
+        "function": "expr > value"
+      },
+      {
+        "name": "<",
+        "label": "<",
+        "function": "expr < value"
+      },
+      {
+        "name": ">=",
+        "label": ">=",
+        "function": "expr >= value"
+      },
+      {
+        "name": "<=",
+        "label": "<=",
+        "function": "expr <= value"
+      },
+      {
+        "name": "in",
+        "label": "IN",
+        "function": "expr in (values)"
+      },
+      {
+        "name": "not in",
+        "label": "NOT IN",
+        "function": "expr not in (values)"
+      },
+      {
+        "name": "like",
+        "label": "LIKE",
+        "function": "expr like value"
+      },
+      {
+        "name": "not like",
+        "label": "NOT LIKE",
+        "function": "expr not like value"
+      }
+    ]
+  },
+  "schema_query": {
+    "references": {
+      "operator": [
+        {
+          "type": "int",
+          "functions": "=,!=,>,<,>=,<=,in,not in"
+        },
+        {
+          "type": "long",
+          "functions": "=,!=,>,<,>=,<=,in,not in"
+        },
+        {
+          "type": "float",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "double",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "string",
+          "functions": "=,!=,in,not in,like,not like,notEmpty,empty"
+        },
+        {
+          "type": "date",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "timestamp",
+          "functions": "=,!=,>,<,>=,<="
+        }
+      ]
+    }
+  }
+}
