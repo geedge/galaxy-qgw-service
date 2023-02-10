@@ -22,7 +22,7 @@ build:
   script:
     - echo 'exec mvn clean package'
     - echo 'tag:' $CI_COMMIT_TAG
-    - cd service
+    - cd main
     - mvn package -Dmaven.test.skip=true
   only:
     - tags
@@ -45,7 +45,7 @@ deploy:
   script:
     - echo 'exec mvn package & docker build'
     - echo  'tag:' $CI_COMMIT_TAG
-    - cd service
+    - cd main
     - mvn package -Dmaven.test.skip=true docker:build -DdockerImageTags=$CI_COMMIT_TAG
   when: on_success
   only:
