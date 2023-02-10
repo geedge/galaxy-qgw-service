@@ -3,7 +3,10 @@
   "name": "metric_link",
   "namespace": "cyber_narrator_galaxy",
   "doc": {
-    "partition_key": "stat_time"
+    "partition_key": "stat_time",
+    "index_key": [
+      "stat_time"
+    ]
   },
   "fields": [
   ]
