@@ -12,10 +12,11 @@ VOLUME /tmp
 WORKDIR /home/tsg/galaxy/galaxy-qgw-service/main
 COPY --from=builder /build .
 COPY config config
-COPY dat dat
 COPY docs docs
 ARG JAR_FILE
 COPY ${JAR_FILE} main.xjar
+WORKDIR /home/tsg/galaxy/galaxy-qgw-service/qgw
+COPY dat dat
 #dockercompose set JAVA_OPTS
 ENV JAVA_OPTS=" -Xms1024m -Xmx2048m "
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8
