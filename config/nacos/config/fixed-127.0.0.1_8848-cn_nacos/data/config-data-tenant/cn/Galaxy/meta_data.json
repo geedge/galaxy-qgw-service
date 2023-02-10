@@ -5,8 +5,6 @@
       "group": "CLICKHOUSE_GROUP",
       "tables": [
         "session_record_cn",
-        "metric_map",
-        "metric_top_entity",
         "metric_ip",
         "metric_region",
         "metric_asn",
@@ -39,7 +37,8 @@
       "namespace": "system",
       "group": "CLICKHOUSE_GROUP",
       "tables": [
-        "processes"
+        "processes",
+        "tables_cluster"
       ]
     },
     {
