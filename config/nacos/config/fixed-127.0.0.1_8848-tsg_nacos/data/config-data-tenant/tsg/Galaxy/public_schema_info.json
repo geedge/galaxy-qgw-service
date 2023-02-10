@@ -58,18 +58,6 @@
       ]
     }
   },
-  "session_record_http_domain": {
-    "index_key": {
-      "log_id": [
-        "http_domain",
-        "common_recv_time"
-      ],
-      "vsys_id": [
-        "http_domain",
-        "common_recv_time"
-      ]
-    }
-  },
   "session_record_common_server_domain": {
     "index_key": {
       "log_id": [

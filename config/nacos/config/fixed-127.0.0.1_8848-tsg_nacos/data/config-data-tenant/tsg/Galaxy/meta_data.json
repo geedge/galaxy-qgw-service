@@ -8,7 +8,6 @@
         "session_record",
         "session_record_common_client_ip",
         "session_record_common_server_ip",
-        "session_record_http_domain",
         "session_record_common_server_domain",
         "interim_session_record",
         "transaction_record",
