@@ -56,7 +56,7 @@ public class EntityServiceImpl implements EntityService {
     private ApiService apiService;
 
     @Autowired
-    BaseQueryProvider baseQueryProvider;
+    private BaseQueryProvider baseQueryProvider;
 
     private static final String APP_VIEW = "entity_detail_app_view";
     private static final String DOMAIN_VIEW = "entity_detail_domain_view";

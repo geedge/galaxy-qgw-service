@@ -11,7 +11,7 @@ import java.io.File;
  */
 public class KnowledgeConstant {
 
-    public static final String DAT = "qgw" + File.separator + "dat";
+    public static final String DAT = "main" + File.separator + "dat";
     public static final String IP_USER_DEFINED_V4 = "ip_v4_user_defined";
     public static final String IP_USER_DEFINED_V6 = "ip_v6_user_defined";
     public static final String IP_BUILT_IN_V4 = "ip_v4_built_in";
