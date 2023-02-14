@@ -544,7 +544,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             String indexTable = "";
             String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
             String[] indexTables = StringUtil.split(str, ",");
-            if (StringUtil.isEmpty(indexTables)) {
+            if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(metadataService.getIndexKey(param.getTableName()))) {
                 return StringUtil.EMPTY;
             }
             for (String tempIndexTable : indexTables) {
@@ -583,10 +583,16 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         private String getSubQueryByIndexTable(String indexTable) {
 
             String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
+            List<String> indexKey = metadataService.getIndexKey(param.getTableName());
+            indexKey = indexKey.subList(0, indexKey.contains(primaryKey) ? indexKey.indexOf(primaryKey) + 1 : indexKey.size());
 
-            String subQuery = getSubquerySql(primaryKey, indexTable);
+            List<String> indexKeyMaster = Lists.newArrayList();
+            String nameMaster = metadataService.getSchemaByName(param.getTableName()).getName();
+            indexKey.forEach(o -> indexKeyMaster.add(nameMaster.concat(".").concat(o)));
+
+            String subQuery = getSubquerySql(String.join(",", indexKey), indexTable);
             StringBuffer sb = new StringBuffer();
-            sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(primaryKey).append(" in ( ").append(subQuery).append(")");
+            sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ( ").append(String.join(",", indexKeyMaster)).append(" ) in ( ").append(subQuery).append(")");
             if (StringUtil.isNotBlank(param.getDbQuerySource().getExpr())) {
                 sb.append(" and (").append(param.getDbQuerySource().getExpr()).append(")");
             }
@@ -606,23 +612,21 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private String getSubQueryByPartitionKey(String sql) {
-            String partitionKey = getPartitionKey(param.getTableName());
+            String partitionKey = metadataService.getPartitionKey(param.getTableName());
             if (StringUtil.isBlank(partitionKey)) {
                 log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getTableName());
                 return sql;
-            } else {
-                String subQuery = getSubquerySql(partitionKey, param.getTableName());
-                subQuery = subQuery.replaceAll("\\\\","$0$0");
-                subQuery = subQuery.replaceAll("\\$","\\\\\\$");
-                Matcher m = pWhere.matcher(sql);
-                StringBuffer sb = new StringBuffer();
-                while (m.find()) {
-                    m.appendReplacement(sb, "where  " + partitionKey + " in ( " + subQuery + ") and  ");
-                }
-                m.appendTail(sb);
-                return sb.toString();
             }
-
+            String subQuery = getSubquerySql(partitionKey, param.getTableName());
+            subQuery = subQuery.replaceAll("\\\\", "$0$0");
+            subQuery = subQuery.replaceAll("\\$", "\\\\\\$");
+            Matcher m = pWhere.matcher(sql);
+            StringBuffer sb = new StringBuffer();
+            while (m.find()) {
+                m.appendReplacement(sb, "where  " + metadataService.getSchemaByName(param.getTableName()).getName().concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
+            }
+            m.appendTail(sb);
+            return sb.toString();
         }
 
         /**
@@ -670,31 +674,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 subQuery.append(" limit 0, " + engineConfigSource.getDefaultResultNum());
             }
             return subQuery.toString();
-        }
-
-        /**
-         * 获取当前CK查询中的分区键，用于子查询优化操作;
-         * 若分区键被其它列当别名使用，返回空
-         *
-         * @return
-         */
-        private String getPartitionKey(String tableName) {
-            String partitionKey = metadataService.getPartitionKey(tableName);
-
-            if (StringUtil.isNotBlank(partitionKey)) {
-                String tempValue = param.getDbQuerySource().getAliasFields().get(partitionKey);
-                if (StringUtil.isNotBlank(tempValue)) {
-                    if (tempValue.contains(partitionKey)) {
-                        partitionKey = tempValue;
-                    } else {
-                        partitionKey = "";
-                    }
-                }
-
-            }
-
-            return partitionKey;
-
         }
 
         /**
