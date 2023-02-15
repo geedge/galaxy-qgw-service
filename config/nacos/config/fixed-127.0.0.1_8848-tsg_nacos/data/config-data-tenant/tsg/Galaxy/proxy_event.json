@@ -1568,7 +1568,7 @@
     },
     {
       "name": "http_domain",
-      "label": "HTTP.Domain(DEPRECATED)",
+      "label": "HTTP.Domain(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null

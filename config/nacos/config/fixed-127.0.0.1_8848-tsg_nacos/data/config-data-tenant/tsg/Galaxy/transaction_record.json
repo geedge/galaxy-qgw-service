@@ -1579,7 +1579,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "label": "HTTP.Domain(DEPRECATED)"
+      "label": "HTTP.Domain(Deprecated)"
     },
     {
       "name": "http_request_line",
