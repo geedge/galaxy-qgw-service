@@ -1176,7 +1176,7 @@
     },
     {
       "name": "common_stream_dir",
-      "label": "Stream Direction",
+      "label": "Stream Direction(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"

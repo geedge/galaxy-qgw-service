@@ -771,7 +771,7 @@
         ],
         "visibility": "enabled"
       },
-      "label": "Stream Direction"
+      "label": "Stream Direction(Deprecated)"
     },
     {
       "name": "common_address_list",

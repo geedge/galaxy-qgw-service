@@ -1279,7 +1279,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "label": "Stream Direction"
+      "label": "Stream Direction(Deprecated)"
     },
     {
       "name": "common_address_list",
