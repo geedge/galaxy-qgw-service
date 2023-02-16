@@ -1,5 +1,5 @@
 #sql("JOB_INIT")
-UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."is_canceled", "detail"."is_error", "detail"."last_query_time", "detail"."job_property", "detail"."count", "detail"."duration_time") VALUES('%s', %s, %s, %s, %s, %s, '%s', %s, %s)
+UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."is_canceled", "detail"."is_failed", "detail"."last_query_time", "detail"."job_property", "detail"."count", "detail"."duration_time") VALUES('%s', %s, %s, %s, %s, %s, '%s', %s, %s)
 #end
 #sql("JOB_DETAIL")
 SELECT detail.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
@@ -26,7 +26,7 @@ UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', '%s')
 UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', %s)
 #end
 #sql("JOB_RESULT")
-SELECT is_done AS is_done, done_progress AS done_progress, duration_time AS duration_time, is_canceled AS is_canceled, is_error AS is_error, job_property AS job_property, count AS count, field_discovery.*, statistics.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
+SELECT is_done AS is_done, done_progress AS done_progress, duration_time AS duration_time, is_canceled AS is_canceled, is_failed AS is_failed, job_property AS job_property, count AS count, field_discovery.*, statistics.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
 #end
 #sql("UPDATE_IS_CANCELED")
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."last_query_time", "detail"."is_canceled") VALUES( '%s', %s, %s)
