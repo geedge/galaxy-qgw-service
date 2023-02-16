@@ -9,8 +9,8 @@
       "type": "string"
     },
     {
-      "name": "is_error",
-      "label": "Error",
+      "name": "is_failed",
+      "label": "Failed",
       "type": "boolean"
     },
     {

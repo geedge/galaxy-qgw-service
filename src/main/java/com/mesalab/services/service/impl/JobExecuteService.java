@@ -80,7 +80,7 @@ public class JobExecuteService implements EnvironmentAware {
                 executeFieldDiscoveryJob(jobInfo, param, param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString());
             }
         } catch (Exception e) {
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
             log.error(e, "execute job error: jobId-{}", id);
         } finally {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_PROGRESS")),
@@ -101,7 +101,7 @@ public class JobExecuteService implements EnvironmentAware {
                 executeStatisticsJob(jobInfo, param, getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(), false);
             }
         } catch (Exception e) {
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
             log.error(e, "execute job error: jobId-{}", id);
         } finally {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_PROGRESS")),
@@ -138,7 +138,7 @@ public class JobExecuteService implements EnvironmentAware {
             jobInfo.setCurrentTimes(jobInfo.getCurrentTimes() + 1);
             if (jobInfo.isTimeout()) {
                 log.error("execute job timeout: job-{}", jobInfo);
-                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, jobInfo.getId(), true));
+                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, jobInfo.getId(), true));
                 break;
             }
             long start = interval.getEnd() - jobCfg.getTimeSlicingInterval();
@@ -178,7 +178,7 @@ public class JobExecuteService implements EnvironmentAware {
         while (true) {
             if (jobInfo.isTimeout()) {
                 log.error("execute job timeout: job-{}", jobInfo);
-                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, jobInfo.getId(), true));
+                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, jobInfo.getId(), true));
                 break;
             }
             int index = (int) (jobInfo.currentTimes * step);
@@ -216,7 +216,7 @@ public class JobExecuteService implements EnvironmentAware {
         while (true) {
             if (jobInfo.isTimeout()) {
                 log.error("execute job timeout: job-{}", jobInfo);
-                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, jobInfo.getId(), true));
+                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, jobInfo.getId(), true));
                 taskList.forEach(o -> o.cancel(true));
                 break;
             }

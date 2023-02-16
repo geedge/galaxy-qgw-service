@@ -55,7 +55,7 @@ public class TaskExecuteService implements EnvironmentAware {
     public Future<Boolean> executeFieldDiscovery(String id, String logType, String filter, String field, long currentCount) {
         BaseResult currentTop = queryTop(logType, filter, field);
         if (!currentTop.isSuccess()) {
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
             log.error("subTask query currentTopK Error: ", currentTop.getMessage());
             return new AsyncResult<>(false);
         }
@@ -66,7 +66,7 @@ public class TaskExecuteService implements EnvironmentAware {
                 .query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.FIELD_DISCOVERY, field, id))
                 .build());
         if (!lastTop.isSuccess()) {
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
             log.error("subTask query lastTopK Error: ", lastTop.getMessage());
             return new AsyncResult<>(false);
         }
@@ -111,7 +111,7 @@ public class TaskExecuteService implements EnvironmentAware {
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.STATISTICS, JobConfig.STATISTICS_RESULT, id, JSONUtil.quote(JSONUtil.toJsonStr(result), false).replace("'", "\\'")));
         } catch (RuntimeException ex) {
             log.error("task execute error, message is: {}", ex.getMessage());
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
         }
         return new AsyncResult<>(true);
     }

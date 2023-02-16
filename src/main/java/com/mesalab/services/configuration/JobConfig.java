@@ -18,7 +18,7 @@ public class JobConfig {
     public static final String IS_DONE = "is_done";
     public static final String DONE_PROGRESS = "done_progress";
     public static final String IS_CANCELED = "is_canceled";
-    public static final String IS_ERROR = "is_error";
+    public static final String IS_FAILED = "is_failed";
     public static final String DURATION_TIME = "duration_time";
     public static final String LAST_QUERY_TIME = "last_query_time";
     public static final String STATISTICS_RESULT = "result";
