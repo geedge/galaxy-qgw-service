@@ -233,7 +233,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         job.put(JobConfig.IS_DONE, StringUtil.isEmpty(map.get(JobConfig.IS_DONE)) ? false : map.get(JobConfig.IS_DONE));
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
-        job.put(JobConfig.IS_ERROR, StringUtil.isEmpty(map.get(JobConfig.IS_ERROR)) ? false : map.get(JobConfig.IS_ERROR));
+        job.put(JobConfig.IS_FAILED, StringUtil.isEmpty(map.get(JobConfig.IS_FAILED)) ? false : map.get(JobConfig.IS_FAILED));
         return BaseResultGenerator.success(statistics, job, meta, resultList);
     }
 
@@ -271,7 +271,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         job.put(JobConfig.IS_DONE, StringUtil.isEmpty(map.get(JobConfig.IS_DONE)) ? false : map.get(JobConfig.IS_DONE));
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
-        job.put(JobConfig.IS_ERROR, StringUtil.isEmpty(map.get(JobConfig.IS_ERROR)) ? false : map.get(JobConfig.IS_ERROR));
+        job.put(JobConfig.IS_FAILED, StringUtil.isEmpty(map.get(JobConfig.IS_FAILED)) ? false : map.get(JobConfig.IS_FAILED));
         return BaseResultGenerator.success(statistics, job, null, resultList);
     }
 
@@ -288,7 +288,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             return false;
         }
         long lastQuery = StringUtil.isEmpty(map.get(JobConfig.LAST_QUERY_TIME)) ? 0 : Long.parseLong(map.get(JobConfig.LAST_QUERY_TIME).toString());
-        if (BooleanUtil.toBoolean(String.valueOf(map.get(JobConfig.IS_ERROR)))
+        if (BooleanUtil.toBoolean(String.valueOf(map.get(JobConfig.IS_FAILED)))
                 && (System.currentTimeMillis() - lastQuery) > jobCfg.getInteractiveTimeout()) {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_DELETE")), id));
             return false;
