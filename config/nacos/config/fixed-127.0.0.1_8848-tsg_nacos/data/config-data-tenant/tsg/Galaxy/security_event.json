@@ -305,6 +305,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_flags",
         "common_action",
         "common_sub_action",
         "common_policy_id",
