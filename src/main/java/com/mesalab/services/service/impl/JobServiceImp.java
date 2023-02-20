@@ -120,7 +120,25 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     private void initStatisticsJob(String id, HashMap<String, Object> reqBody, Map<String, Object> property) {
         buildPropertyOfStatistics(String.valueOf(reqBody.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL)), property);
+        if (!isValidProperty(property)) {
+            property.remove(JobConfig.JOB_PROPERTY_K_OPTION);
+        }
         execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
+    }
+
+    private boolean isValidProperty(Map<String, Object> property) {
+        if (!property.containsKey(JobConfig.JOB_PROPERTY_K_OPTION)) {
+            return false;
+        }
+        String option = String.valueOf(property.get(JobConfig.JOB_PROPERTY_K_OPTION));
+        if (StrUtil.equalsIgnoreCase(option, JobConfig.JOB_PROPERTY_V_OPTION_TOP)
+                || StrUtil.equals(option, JobConfig.JOB_PROPERTY_V_OPTION_RARE)) {
+            SubOption subOption = JSONUtil.toBean(JSONUtil.toJsonStr(property.get(JobConfig.JOB_PROPERTY_K_SUB_OPTION)), SubOption.class);
+            if (subOption.dimension.isEmpty() || subOption.metric.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

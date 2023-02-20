@@ -1,2 +1,3 @@
 Release 364 (TSG-23.02)
-* 修复子查询优化，由于结果列别名与子表查询复合主键名称重复导致查询失败BUG(TSG-13676)
+* 扩展子查询优化，适配不同版本CK主键(TSG-13187)
+* 修复Statistics Top执行错误，由于任务SQL Metrics指标为空导致构建properties错误(TSG-13812)
