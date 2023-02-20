@@ -27,6 +27,8 @@ public class JobConfig {
     public static final String JOB_PROPERTY_K_RESULT_FIELD = "result_field";
     public static final String JOB_PROPERTY_K_OPTION = "option";
     public static final String JOB_PROPERTY_K_SUB_OPTION = "sub_option";
+    public static final String JOB_PROPERTY_K_SUB_OPTION_DIMENSION = "dimension";
+    public static final String JOB_PROPERTY_K_SUB_OPTION_METRIC = "metric";
     public static final String JOB_PROPERTY_V_OPTION_TIMECHART = "timechart";
     public static final String JOB_PROPERTY_V_OPTION_TOP = "top";
     public static final String JOB_PROPERTY_V_OPTION_RARE = "rate";
