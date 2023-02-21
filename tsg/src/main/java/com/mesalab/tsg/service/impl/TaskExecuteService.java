@@ -4,9 +4,11 @@ package com.mesalab.tsg.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -78,7 +80,7 @@ public class TaskExecuteService implements EnvironmentAware {
                     lastCount = item.get("count");
                     Map<String, String> metrics = Maps.newHashMap();
                     metrics.put("count", "sum");
-                    data = mergeData(data, topk, Lists.newArrayList("value"), metrics);
+                    data = mergeData((List<Map<String, Object>>) JSONArray.parse(JSONUtil.toJsonStr(data)), topk, Lists.newArrayList("value"), metrics);
                 }
             }
         }
