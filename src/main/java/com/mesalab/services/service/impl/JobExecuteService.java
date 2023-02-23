@@ -110,8 +110,12 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     private void executeStatisticsJob(JobInfo jobInfo, Map<String, Object> param, String newFilter, boolean isSecBuild) throws JSQLParserException {
+        if (isCancel(jobInfo.getId())) {
+            return;
+        }
+
         long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter);
-        if (currentCount == 0 || isCancel(jobInfo.getId())) {
+        if (currentCount == 0) {
             return;
         }
         long count = jobInfo.getCount() + currentCount;
@@ -196,8 +200,11 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     private void executeFieldDiscoveryJob(JobInfo jobInfo, Map<String, Object> param, String newFilter) {
+        if (isCancel(jobInfo.getId())) {
+            return;
+        }
         long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter);
-        if (currentCount == 0 || isCancel(jobInfo.getId())) {
+        if (currentCount == 0) {
             return;
         }
         long count = jobInfo.getCount() + currentCount;

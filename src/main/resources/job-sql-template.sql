@@ -16,8 +16,14 @@ SELECT count(1) AS count FROM %s %s LIMIT 1
 #sql("JOB_UPDATE_PROGRESS")
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."duration_time") VALUES('%s', %s, %s, %s)
 #end
-#sql("JOB_TOPK")
+#sql("JOB_TOPK_DEFAULT")
 SELECT %s AS value, count(*) AS count FROM %s %s GROUP BY value ORDER BY count DESC limit 10000
+#end
+#sql("JOB_TOPK_ARRAY")
+SELECT value, SUM(count) AS count FROM (SELECT arrayJoin(items) AS value, count FROM (SELECT %s AS items, count(*) AS count FROM %s WHERE notEmpty(%s) %s GROUP BY %s )) GROUP BY value ORDER BY count DESC LIMIT 10000
+#end
+#sql("JOB_TOPK_BIT")
+SELECT value, SUM(count) AS count FROM (SELECT arrayJoin(items) AS value, count FROM (SELECT bitmaskToArray(%s) AS items, count(*) AS count FROM %s %s GROUP BY %s )) GROUP BY value ORDER BY count DESC LIMIT 10
 #end
 #sql("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")
 UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', '%s')
