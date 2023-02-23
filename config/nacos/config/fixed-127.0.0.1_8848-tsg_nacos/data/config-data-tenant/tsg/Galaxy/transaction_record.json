@@ -419,7 +419,10 @@
   "fields": [
     {
       "name": "common_recv_time",
-      "type": "long",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
@@ -899,7 +902,10 @@
         "visibility": "hidden",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "bit"
+      }
     },
     {
       "name": "common_flags_identify_info",
@@ -1207,7 +1213,10 @@
     },
     {
       "name": "common_start_time",
-      "type": "long",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "allow_query": "false",
         "constraints": {
@@ -1220,7 +1229,10 @@
     },
     {
       "name": "common_end_time",
-      "type": "long",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "allow_query": "false",
         "constraints": {
@@ -1490,7 +1502,10 @@
     },
     {
       "name": "common_processing_time",
-      "type": "long",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
@@ -1520,7 +1535,10 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_mirrored_pkts",

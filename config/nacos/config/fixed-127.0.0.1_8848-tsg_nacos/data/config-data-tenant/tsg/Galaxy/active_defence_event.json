@@ -155,7 +155,10 @@
         ],
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_log_id",
@@ -370,7 +373,10 @@
         },
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     }
   ]
 }
