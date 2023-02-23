@@ -418,6 +418,14 @@
         {
           "type": "timestamp",
           "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        },
+        {
+          "type": "array",
+          "functions": "COUNT,COUNT_DISTINCT"
+        },
+        {
+          "type": "bit",
+          "functions": "COUNT,COUNT_DISTINCT"
         }
       ],
       "operator": [
@@ -452,6 +460,10 @@
         {
           "type": "array",
           "functions": "has,notEmpty,empty"
+        },
+        {
+          "type": "bit",
+          "functions": "=,!=,bitAnd"
         }
       ]
     }
