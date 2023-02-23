@@ -656,7 +656,10 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_log_id",
@@ -1165,7 +1168,10 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "bit"
+      }
     },
     {
       "name": "common_flags_identify_info",
@@ -1482,7 +1488,10 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_end_time",
@@ -1501,7 +1510,10 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_establish_latency_ms",
@@ -1770,7 +1782,10 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_ingestion_time",
@@ -1787,7 +1802,10 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_mirrored_pkts",

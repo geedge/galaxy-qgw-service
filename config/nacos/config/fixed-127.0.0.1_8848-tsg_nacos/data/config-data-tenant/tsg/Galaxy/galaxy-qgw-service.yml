@@ -151,7 +151,7 @@ job:
   longPolling:
     enabled: true
   interactive:
-    timeout: 10000
+    timeout: 100000000
   response:
     timeout: 3000
   execution:

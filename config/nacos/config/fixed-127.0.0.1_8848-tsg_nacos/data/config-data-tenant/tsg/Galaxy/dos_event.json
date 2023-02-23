@@ -48,7 +48,10 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "end_time",
@@ -61,7 +64,10 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "log_id",
