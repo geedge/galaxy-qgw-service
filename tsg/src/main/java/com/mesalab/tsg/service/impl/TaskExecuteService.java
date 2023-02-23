@@ -21,7 +21,10 @@ import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.EngineConfigSource;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.common.property.SqlPropertySourceFactory;
+import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
+import org.apache.avro.LogicalType;
+import org.apache.avro.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
@@ -49,43 +52,53 @@ public class TaskExecuteService implements EnvironmentAware {
     @Autowired
     ApiService apiService;
     @Autowired
+    MetadataService metadataService;
+    @Autowired
     EngineConfigSource engineConfigSource;
 
     @Async("taskExecutor")
     public Future<Boolean> executeFieldDiscovery(String id, String logType, String filter, String field, long currentCount) {
-        BaseResult currentTop = queryTop(logType, filter, field);
-        if (!currentTop.isSuccess()) {
-            JobServiceImp.executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
-            log.error("subTask query currentTopK Error: ", currentTop.getMessage());
-            return new AsyncResult<>(false);
-        }
-        List<Map<String, Object>> data = (List<Map<String, Object>>) currentTop.getData();
+        try {
+            BaseResult currentTop = apiService.executeQuery(ApiParam.builder()
+                    .option(QueryOptionEnum.REAL_TIME.getValue())
+                    .query(buildTopSQL(logType, filter, field))
+                    .build());
+            if (!currentTop.isSuccess()) {
+                setJobFailed(id);
+                log.error("Field-Discovery task query currentTopK Error: ", currentTop.getMessage());
+                return new AsyncResult<>(false);
+            }
+            List<Map<String, Object>> data = (List<Map<String, Object>>) currentTop.getData();
 
-        BaseResult lastTop = apiService.executeQuery(ApiParam.builder()
-                .option(QueryOptionEnum.REAL_TIME.getValue())
-                .query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.FIELD_DISCOVERY, field, id))
-                .build());
-        if (!lastTop.isSuccess()) {
-            JobServiceImp.executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
-            log.error("subTask query lastTopK Error: ", lastTop.getMessage());
-            return new AsyncResult<>(false);
-        }
-        Object lastCount = 0;
-        if (StringUtil.isNotEmpty(lastTop.getData())) {
-            List<Map> map = (List<Map>) lastTop.getData();
-            if (StringUtil.isNotEmpty(map.get(0).get("value"))) {
-                Map item = JSONUtil.toBean(String.valueOf(map.get(0).get("value")), Map.class);
-                if (StringUtil.isNotEmpty(item)) {
-                    List<Map<String, Object>> topk = (List<Map<String, Object>>) item.get("topk");
-                    lastCount = item.get("count");
-                    Map<String, String> metrics = Maps.newHashMap();
-                    metrics.put("count", "sum");
-                    data = mergeData((List<Map<String, Object>>) JSONArray.parse(JSONUtil.toJsonStr(data)), topk, Lists.newArrayList("value"), metrics);
+            BaseResult lastTop = apiService.executeQuery(ApiParam.builder()
+                    .option(QueryOptionEnum.REAL_TIME.getValue())
+                    .query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.FIELD_DISCOVERY, field, id))
+                    .build());
+            if (!lastTop.isSuccess()) {
+                setJobFailed(id);
+                log.error("Field-Discovery task query lastTopK Error: ", lastTop.getMessage());
+                return new AsyncResult<>(false);
+            }
+            Object lastCount = 0;
+            if (StringUtil.isNotEmpty(lastTop.getData())) {
+                List<Map> map = (List<Map>) lastTop.getData();
+                if (StringUtil.isNotEmpty(map.get(0).get("value"))) {
+                    Map item = JSONUtil.toBean(String.valueOf(map.get(0).get("value")), Map.class);
+                    if (StringUtil.isNotEmpty(item)) {
+                        List<Map<String, Object>> topk = (List<Map<String, Object>>) item.get("topk");
+                        lastCount = item.get("count");
+                        Map<String, String> metrics = Maps.newHashMap();
+                        metrics.put("count", "sum");
+                        data = mergeData((List<Map<String, Object>>) JSONArray.parse(JSONUtil.toJsonStr(data)), topk, Lists.newArrayList("value"), metrics);
+                    }
                 }
             }
+            data = sortDataAndSetMaxSize(data, "count", DataTypeMapping.LONG, false);
+            updateResult(id, field, currentCount, lastCount, data);
+        } catch (RuntimeException ex) {
+            log.error("Field-Discovery task execute error, message is: {}", ex.getMessage());
+            setJobFailed(id);
         }
-        data = sortDataAndSetMaxSize(data, "count", DataTypeMapping.LONG, false);
-        updateResult(id, field, currentCount, lastCount, data);
         return new AsyncResult<>(true);
     }
 
@@ -111,9 +124,13 @@ public class TaskExecuteService implements EnvironmentAware {
             JobServiceImp.executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.STATISTICS, JobConfig.STATISTICS_RESULT, id, JSONUtil.quote(JSONUtil.toJsonStr(result), false).replace("'", "\\'")));
         } catch (RuntimeException ex) {
             log.error("task execute error, message is: {}", ex.getMessage());
-            JobServiceImp.executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_ERROR, id, true));
+            JobServiceImp.executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
         }
         return new AsyncResult<>(true);
+    }
+
+    private void setJobFailed(String id) {
+        JobServiceImp.executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
     }
 
     private void topOrRareData(List<Map<String, Object>> lastData, List<Map<String, Object>> lastMeta, Map preDataFirst, Map<String, Object> valueMap) {
@@ -235,12 +252,25 @@ public class TaskExecuteService implements EnvironmentAware {
         return lastData.size() > preData.size() ? lastData : preData;
     }
 
-    private BaseResult queryTop(String logType, String filter, String field) {
-        String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK")),
-                field, logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
-        BaseResult currentTop = apiService.executeQuery(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).
-                query(sql).build());
-        return currentTop;
+    private String buildTopSQL(String tableName, String filter, String fieldName) {
+        Schema.Field field = metadataService.getSchemaByName(tableName).getField(fieldName);
+        if (StringUtil.isEmpty(field)) {
+            Schema schema = field.schema();
+            String type = schema.getType().getName();
+            String logicalType = schema.getProp(LogicalType.LOGICAL_TYPE_PROP);
+            if (StrUtil.equalsIgnoreCase(Schema.Type.ARRAY.getName(), type)
+                    || StrUtil.equalsIgnoreCase(Schema.Type.ARRAY.getName(), logicalType)) {
+                return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_ARRAY")),
+                        fieldName, tableName, fieldName, StrUtil.isBlankIfStr(filter) ? "" : " AND ".concat(filter), fieldName);
+            } else if (StrUtil.equalsIgnoreCase("bit", type)
+                    || StrUtil.equalsIgnoreCase("bit", logicalType)) {
+                return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_BIT")),
+                        fieldName, tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), fieldName);
+            }
+
+        }
+        return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_DEFAULT")),
+                fieldName, tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter));
     }
 
     private void updateResult(String id, String field, long currentCount, Object lastCount, List<Map<String, Object>> topList) {
