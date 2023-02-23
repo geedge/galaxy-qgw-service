@@ -47,6 +47,7 @@ import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 
 /**
@@ -100,6 +101,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult commitAdHocQuery(HashMap<String, Object> reqBody) {
         validateAdHocQuery(reqBody);
+        List<String> fields = (List<String>) reqBody.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
+        reqBody.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));
         String id = DigestUtil.md5Hex16(String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE)).toLowerCase()).concat(JobConfig.DELIMIT).concat(DigestUtil.md5Hex16(String.valueOf(reqBody)));
         if (isExist(id)) {
             log.info("Hoc Job already exist, ID is {}, params is {}", id, JsonMapper.toJsonString(reqBody));
