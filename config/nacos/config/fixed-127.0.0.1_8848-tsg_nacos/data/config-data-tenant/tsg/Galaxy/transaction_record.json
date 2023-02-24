@@ -985,7 +985,8 @@
       },
       "type": {
         "type": "array",
-        "items": "int"
+        "items": "int",
+        "logicalType": "array"
       }
     },
     {
@@ -1195,7 +1196,8 @@
       "name": "common_service_category",
       "type": {
         "type": "array",
-        "items": "int"
+        "items": "int",
+        "logicalType": "array"
       },
       "doc": {
         "constraints": {
