@@ -20,7 +20,10 @@
     {
       "name": "__time",
       "label": "Time",
-      "type": "string",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
