@@ -512,7 +512,8 @@
       },
       "type": {
         "type": "array",
-        "items": "int"
+        "items": "int",
+        "logicalType": "array"
       }
     },
     {
@@ -716,7 +717,8 @@
       },
       "type": {
         "type": "array",
-        "items": "int"
+        "items": "int",
+        "logicalType": "array"
       }
     },
     {

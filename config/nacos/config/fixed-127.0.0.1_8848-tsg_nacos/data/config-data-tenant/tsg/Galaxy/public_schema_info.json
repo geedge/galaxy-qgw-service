@@ -2799,7 +2799,8 @@
         "label": "Multiprotocol Label (c2s)",
         "type": {
           "type": "array",
-          "items": "int"
+          "items": "int",
+          "logicalType": "array"
         }
       },
       {
@@ -2807,7 +2808,8 @@
         "label": "Multiprotocol Label (s2c)",
         "type": {
           "type": "array",
-          "items": "int"
+          "items": "int",
+          "logicalType": "array"
         }
       }
     ],
@@ -2817,7 +2819,8 @@
         "label": "VLAN Direction (c2s)",
         "type": {
           "type": "array",
-          "items": "int"
+          "items": "int",
+          "logicalType": "array"
         }
       },
       {
@@ -2825,7 +2828,8 @@
         "label": "VLAN Direction (s2c)",
         "type": {
           "type": "array",
-          "items": "int"
+          "items": "int",
+          "logicalType": "array"
         }
       }
     ],
