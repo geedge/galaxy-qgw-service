@@ -254,7 +254,7 @@ public class TaskExecuteService implements EnvironmentAware {
 
     private String buildTopSQL(String tableName, String filter, String fieldName) {
         Schema.Field field = metadataService.getSchemaByName(tableName).getField(fieldName);
-        if (StringUtil.isEmpty(field)) {
+        if (StringUtil.isNotEmpty(field)) {
             Schema schema = field.schema();
             String type = schema.getType().getName();
             String logicalType = schema.getProp(LogicalType.LOGICAL_TYPE_PROP);
