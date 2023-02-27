@@ -1631,10 +1631,16 @@
       "name": "radius_event_timestamp",
       "label": "Event Timestamp",
       "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "radius_service_type",
