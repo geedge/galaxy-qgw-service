@@ -736,6 +736,9 @@
       "name": "common_sessions",
       "label": "Sessions",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "format": [
           {
             "function": "set_value",
@@ -751,6 +754,9 @@
       "name": "common_c2s_pkt_num",
       "label": "Packets Sent",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -760,6 +766,9 @@
       "name": "common_s2c_pkt_num",
       "label": "Packets Received",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -769,6 +778,9 @@
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -778,6 +790,9 @@
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -787,6 +802,9 @@
       "name": "common_c2s_pkt_diff",
       "label": "Packets Sent (Delta)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "disabled",
         "ttl": null
       },
@@ -796,6 +814,9 @@
       "name": "common_s2c_pkt_diff",
       "label": "Packets Received (Delta)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "disabled",
         "ttl": null
       },
@@ -805,6 +826,9 @@
       "name": "common_c2s_byte_diff",
       "label": "Bytes Sent (Delta)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "disabled",
         "ttl": null
       },
@@ -814,6 +838,9 @@
       "name": "common_s2c_byte_diff",
       "label": "Bytes Received (Delta)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "disabled",
         "ttl": null
       },
@@ -1249,6 +1276,9 @@
       "name": "common_establish_latency_ms",
       "label": "TCP Handshake Latency (ms)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1258,6 +1288,9 @@
       "name": "common_con_duration_ms",
       "label": "Duration (ms)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1383,6 +1416,9 @@
       "name": "common_c2s_ipfrag_num",
       "label": "Fragmentation Packets (c2s)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1392,6 +1428,9 @@
       "name": "common_s2c_ipfrag_num",
       "label": "Fragmentation Packets (s2c)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1401,6 +1440,9 @@
       "name": "common_c2s_tcp_lostlen",
       "label": "Sequence Gap Loss (c2s)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1410,6 +1452,9 @@
       "name": "common_s2c_tcp_lostlen",
       "label": "Sequence Gap Loss (s2c)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1419,6 +1464,9 @@
       "name": "common_c2s_tcp_unorder_num",
       "label": "Unordered Packets (c2s)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1428,6 +1476,9 @@
       "name": "common_s2c_tcp_unorder_num",
       "label": "Unordered Packets (s2c)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1437,6 +1488,9 @@
       "name": "common_c2s_pkt_retrans",
       "label": "Packet Retransmission (c2s)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1446,6 +1500,9 @@
       "name": "common_s2c_pkt_retrans",
       "label": "Packet Retransmission (s2c)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1455,6 +1512,9 @@
       "name": "common_c2s_byte_retrans",
       "label": "Byte Retransmission (c2s)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1464,6 +1524,9 @@
       "name": "common_s2c_byte_retrans",
       "label": "Byte Retransmission (s2c)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1491,6 +1554,9 @@
       "name": "common_first_ttl",
       "label": "First TTL",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1541,6 +1607,9 @@
       "label": "Mirrored Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       }
@@ -1550,6 +1619,9 @@
       "label": "Mirrored Bytes",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       }
@@ -1823,6 +1895,9 @@
       "name": "http_response_latency_ms",
       "label": "HTTP.Response Latency (ms)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1832,6 +1907,9 @@
       "name": "http_session_duration_ms",
       "label": "HTTP.Session Duration (ms)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1841,6 +1919,9 @@
       "name": "http_action_file_size",
       "label": "HTTP.Action File Size",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2055,6 +2136,9 @@
       "name": "doh_qdcount",
       "label": "DoH.QDCOUNT",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2064,6 +2148,9 @@
       "name": "doh_ancount",
       "label": "DoH.ANCOUNT",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2073,6 +2160,9 @@
       "name": "doh_nscount",
       "label": "DoH.NSCOUNT",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2082,6 +2172,9 @@
       "name": "doh_arcount",
       "label": "DoH.ARCOUNT",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2302,6 +2395,9 @@
       "name": "rdp_certificate_count",
       "label": "RDP.Certificate Count",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
