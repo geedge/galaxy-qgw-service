@@ -137,24 +137,21 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     @Override
     public BaseResult deleteKnowledge(String id) throws Exception {
-
-
-        boolean isExist = false;
         KnowledgeBase knowledgeBase = null;
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
         try {
             if (lock.acquire(10000, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
-                for (int i = 0; i < knowledgeBaseList.size(); i++) {
-                    knowledgeBase = knowledgeBaseList.get(i);
-                    if (StringUtil.equals(id, knowledgeBase.getId()) && !StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)) {
-                        knowledgeBaseList.remove(i);
-                        saveKnowledgeBaseList(knowledgeBaseList);
-                        isExist = true;
-                        break;
+                int originalSize = knowledgeBaseList.size();
+                Iterator<KnowledgeBase> iterator = knowledgeBaseList.iterator();
+                while (iterator.hasNext()) {
+                    knowledgeBase = iterator.next();
+                    if (StringUtil.equals(id, knowledgeBase.getId())) {
+                        iterator.remove();
                     }
                 }
-                if (isExist) {
+                if (originalSize > knowledgeBaseList.size()) {
+                    saveKnowledgeBaseList(knowledgeBaseList);
                     String path = knowledgeBase.getPath();
                     Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
                     httpClientService.httpDelete(path, httpConfig.getServerResponseTimeOut(), header);
