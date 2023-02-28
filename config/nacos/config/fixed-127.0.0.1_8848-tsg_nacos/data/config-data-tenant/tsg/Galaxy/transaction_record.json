@@ -751,6 +751,9 @@
       "name": "common_sessions",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -760,6 +763,9 @@
       "name": "common_c2s_pkt_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -769,6 +775,9 @@
       "name": "common_s2c_pkt_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -778,6 +787,9 @@
       "name": "common_c2s_byte_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -787,6 +799,9 @@
       "name": "common_s2c_byte_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -796,6 +811,9 @@
       "name": "common_c2s_pkt_diff",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -805,6 +823,9 @@
       "name": "common_s2c_pkt_diff",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -814,6 +835,9 @@
       "name": "common_c2s_byte_diff",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -823,6 +847,9 @@
       "name": "common_s2c_byte_diff",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1255,6 +1282,9 @@
       "name": "common_establish_latency_ms",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1264,6 +1294,9 @@
       "name": "common_con_duration_ms",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1389,6 +1422,9 @@
       "name": "common_c2s_ipfrag_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1398,6 +1434,9 @@
       "name": "common_s2c_ipfrag_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1407,6 +1446,9 @@
       "name": "common_c2s_tcp_lostlen",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1416,6 +1458,9 @@
       "name": "common_s2c_tcp_lostlen",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1425,6 +1470,9 @@
       "name": "common_c2s_tcp_unorder_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1434,6 +1482,9 @@
       "name": "common_s2c_tcp_unorder_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1443,6 +1494,9 @@
       "name": "common_c2s_pkt_retrans",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1452,6 +1506,9 @@
       "name": "common_s2c_pkt_retrans",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1461,6 +1518,9 @@
       "name": "common_c2s_byte_retrans",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1470,6 +1530,9 @@
       "name": "common_s2c_byte_retrans",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1497,6 +1560,9 @@
       "name": "common_first_ttl",
       "type": "int",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1547,6 +1613,9 @@
       "label": "Mirrored Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       }
@@ -1556,6 +1625,9 @@
       "label": "Mirrored Bytes",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       }
@@ -1829,6 +1901,9 @@
       "name": "http_response_latency_ms",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1838,6 +1913,9 @@
       "name": "http_session_duration_ms",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1847,6 +1925,9 @@
       "name": "http_action_file_size",
       "type": "int",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -2032,6 +2113,9 @@
       "name": "dns_qdcount",
       "type": "int",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2041,6 +2125,9 @@
       "name": "dns_ancount",
       "type": "int",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2050,6 +2137,9 @@
       "name": "dns_nscount",
       "type": "int",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2059,6 +2149,9 @@
       "name": "dns_arcount",
       "type": "int",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2460,6 +2553,9 @@
       "name": "dns_response_latency_ms",
       "label": "DNS.Response Latency (ms)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2586,6 +2682,9 @@
       "name": "sip_duration_s",
       "type": "int",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
