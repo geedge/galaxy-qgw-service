@@ -3009,6 +3009,14 @@
         {
           "code": "4096",
           "value": "Random looking"
+        },
+        {
+          "code": "8192",
+          "value": "C2S"
+        },
+        {
+          "code": "16384",
+          "value": "S2C"
         }
       ]
     }
