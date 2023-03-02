@@ -321,7 +321,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
 
     class Optimizer {
-        private Boolean subIndexValidFlag = true;
         String sql = null;
 
         /**
@@ -508,12 +507,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (containAggregateFunction(sql) || containGroupBy(sql) || containDistinct(sql)) {
                 return this;
             }
-
-            String indexTable = getAvailableIndexTable();
-            if (StringUtil.isNotBlank(indexTable)) {
-                sql = getSubQueryByIndexTable(indexTable);
-            } else {
-                sql = getSubQueryByPartitionKey(sql);
+            try {
+                String indexTable = getAvailableIndexTable();
+                if (StringUtil.isNotBlank(indexTable)) {
+                    sql = getSubQueryByIndexTable(indexTable);
+                } else {
+                    sql = getSubQueryByPartitionKey(sql);
+                }
+            } catch (JSQLParserException | RuntimeException e) {
+                log.error("generate SubQuery optimize error: {}", e.getMessage());
             }
             return this;
         }
@@ -540,38 +542,35 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          *
          * @return
          */
-        private String getAvailableIndexTable() {
-            String indexTable = "";
+        private String getAvailableIndexTable() throws JSQLParserException {
             String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
             String[] indexTables = StringUtil.split(str, ",");
             if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(metadataService.getIndexKey(param.getTableName()))) {
                 return StringUtil.EMPTY;
             }
+            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields());
+            List<String> actualFieldOfWhere = CondExpressionHelper.getDistinctFields(expression.toString());
+            table:
             for (String tempIndexTable : indexTables) {
-
                 List<String> indexKey = metadataService.getIndexKey(tempIndexTable);
                 //判断一: where 是否包含索引键
-                if (StringUtil.isEmpty(indexKey) || !param.getDbQuerySource().getExpr().contains(indexKey.get(0))) {
+                if (StringUtil.isEmpty(indexKey) || !actualFieldOfWhere.contains(indexKey.get(0))) {
                     continue;
                 }
-
-                Map indexTableData = metadataService.getSchemaInfo("fields", tempIndexTable, false);
-                Schema indexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData));
-                //判断二: order by 元素是否都在索引表中
+                Schema indexTableSchema = metadataService.getSchemaByName(tempIndexTable);
+                //判断二: where 条件列是否都在索引表中
+                for (String field : actualFieldOfWhere) {
+                    if (!isFieldOfSchema(indexTableSchema, field)) {
+                        continue table;
+                    }
+                }
+                //判断三: order by 元素是否都在索引表中
                 if (!isValidOfOrderElementsInSchema(indexTableSchema)) {
                     continue;
                 }
-
-                Map masterTableData = metadataService.getSchemaInfo("fields", param.getTableName(), false);
-                Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData));
-                //判断三: where 条件列是否都在索引表中
-                setValidityByWhereExpressionsInSchema(param.getDbQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
-                if (getSubIndexValidFlag() && isExist(indexTableSchema.getFullName())) {
-                    indexTable = indexTableSchema.getName();
-                    break;
-                }
+                return indexTableSchema.getName();
             }
-            return indexTable;
+            return StringUtil.EMPTY;
         }
 
         /**
@@ -580,7 +579,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param indexTable
          * @return
          */
-        private String getSubQueryByIndexTable(String indexTable) {
+        private String getSubQueryByIndexTable(String indexTable) throws JSQLParserException {
 
             String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
             List<String> indexKey = metadataService.getIndexKey(param.getTableName());
@@ -611,7 +610,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param sql
          * @return
          */
-        private String getSubQueryByPartitionKey(String sql) {
+        private String getSubQueryByPartitionKey(String sql) throws JSQLParserException {
             String partitionKey = metadataService.getPartitionKey(param.getTableName());
             if (StringUtil.isBlank(partitionKey)) {
                 log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getTableName());
@@ -636,11 +635,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param tableName
          * @return
          */
-        private String getSubquerySql(String columnName, String tableName) {
+        private String getSubquerySql(String columnName, String tableName) throws JSQLParserException {
             StringBuilder subQuery = new StringBuilder();
 
             subQuery.append("select " + columnName + " from ").append(tableName)
-                    .append(" where ").append(param.getDbQuerySource().getExpr());
+                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields()));
 
             //order by中元素存在别名时做替换处理
             List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
@@ -677,51 +676,28 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         /**
-         * 判断table是否在DB中
-         *
-         * @param tableName
-         * @return
-         */
-        private boolean isExist(String tableName) {
-            Map<String, String> result = executeHttpPost(String.format("select 1 from %s limit 1", tableName));
-            if (result.get("status") == null || Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
-                log.warn("The table does not exist: {}", tableName);
-                return false;
-            }
-            return true;
-        }
-
-        /**
          * 判断order by 元素是否属于schema字段中
          *
          * @param schema
          * @return
          */
-        private boolean isValidOfOrderElementsInSchema(Schema schema) {
+        private boolean isValidOfOrderElementsInSchema(Schema schema) throws JSQLParserException {
             List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
             if (StringUtil.isEmpty(listOrderElement)) {
                 return true;
-            } else {
-                Map<String, String> aliasFields = param.getDbQuerySource().getAliasFields();
-                for (OrderByElement order : listOrderElement) {
-                    String orderField = String.valueOf(order.getExpression());
-                    if (orderField.startsWith("\"") && orderField.endsWith("\"")) {
-                        orderField = orderField.substring(1, orderField.length() - 1);
-                    }
-                    String originalField = StringUtil.isBlank(aliasFields.get(orderField)) ? orderField : aliasFields.get(orderField);
-                    Expression expression = parserException(originalField);
-                    if (expression instanceof Function) {
-                        if (!getValidityByFunctionParamsInSchema(schema, (Function) expression)) {
-                            return false;
-                        }
-                    } else {
-                        if (!isFieldOfSchema(schema, originalField)) {
-                            return false;
-                        }
+            }
+            for (OrderByElement order : listOrderElement) {
+                OrderByElement orderByElement = new OrderByElement();
+                Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(String.valueOf(order.getExpression()), param.getDbQuerySource().getAliasFields());
+                orderByElement.setExpression(expression);
+                List<String> fields = CondExpressionHelper.getDistinctFieldsOfOrderBy(orderByElement);
+                for (String field : fields) {
+                    if (!isFieldOfSchema(schema, field)) {
+                        return false;
                     }
                 }
-                return true;
             }
+            return true;
         }
 
         /**
@@ -737,201 +713,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 return false;
             }
             return true;
-        }
-
-        /**
-         * 判断where条件是否可以进行在索引表中的查询
-         *
-         * @param where
-         * @param masterTableSchema 主表
-         * @param indexTableSchema  索引表
-         */
-        private void setValidityByWhereExpressionsInSchema(Expression where, Schema masterTableSchema, Schema indexTableSchema) {
-
-            if (StringUtil.isEmpty(masterTableSchema) || StringUtil.isEmpty(indexTableSchema)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-
-            if (where instanceof InExpression) {
-                InExpression whereIn = (InExpression) where;
-                if (whereIn.getRightExpression() instanceof SubSelect) {
-                    setSubIndexValidFlag(false);
-                    return;
-                }
-                String left = String.valueOf(whereIn.getLeftExpression());
-                if (!isFieldOfSchema(masterTableSchema, left) || !isFieldOfSchema(indexTableSchema, left)) {
-                    setSubIndexValidFlag(false);
-                    return;
-                }
-            } else if (where instanceof AndExpression) {
-                AndExpression whereAnd = (AndExpression) where;
-                Expression leftExpression = whereAnd.getLeftExpression();
-                Expression rightExpression = whereAnd.getRightExpression();
-                setValidityByWhereExpressionsInSchema(leftExpression, masterTableSchema, indexTableSchema);
-                setValidityByWhereExpressionsInSchema(rightExpression, masterTableSchema, indexTableSchema);
-            } else if (where instanceof OrExpression) {
-                OrExpression whereOr = (OrExpression) where;
-                Expression leftExpression = whereOr.getLeftExpression();
-                Expression rightExpression = whereOr.getRightExpression();
-                setValidityByWhereExpressionsInSchema(leftExpression, masterTableSchema, indexTableSchema);
-                setValidityByWhereExpressionsInSchema(rightExpression, masterTableSchema, indexTableSchema);
-            } else if (where instanceof ComparisonOperator) {
-                ComparisonOperator whereComparisonOperator = (ComparisonOperator) where;
-                setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, whereComparisonOperator.getLeftExpression(), whereComparisonOperator.getRightExpression());
-            } else if (where instanceof LikeExpression) {
-                LikeExpression whereLike = (LikeExpression) where;
-                setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, whereLike.getLeftExpression(), whereLike.getRightExpression());
-            } else if (where instanceof Function) {
-                Function function = (Function) where;
-                boolean bool = getValidityByFunctionParamsInSchema(indexTableSchema, function);
-                if (!bool) {
-                    setSubIndexValidFlag(false);
-                }
-            } else if (where instanceof Parenthesis) {
-                Parenthesis whereExpressionParenthesis = (Parenthesis) where;
-                Expression expression = whereExpressionParenthesis.getExpression();
-                setValidityByWhereExpressionsInSchema(expression, masterTableSchema, indexTableSchema);
-            } else {
-                setSubIndexValidFlag(false);
-                return;
-            }
-        }
-
-        private Expression parserException(String originalField) {
-            try {
-                return CCJSqlParserUtil.parseExpression(originalField);
-            } catch (JSQLParserException e) {
-                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_BUILDER_EXCEPTION);
-            }
-        }
-
-        /**
-         * 根据函数参数判断索引表查询是否有效: 只支持0或1(判断是否在schema中)个参数, 其它均设为无效
-         *
-         * @param schema
-         * @param function
-         */
-        private boolean getValidityByFunctionParamsInSchema(Schema schema, Function function) {
-
-            ExpressionList parameters = function.getParameters();
-            if (StringUtil.isEmpty(parameters)) {
-                return true;
-            } else {
-                List<Expression> expressions = parameters.getExpressions();
-                if (expressions.size() != 1) {
-                    return false;
-                }
-                if (!isFieldOfSchema(schema, String.valueOf(expressions.get(0)))) {
-                    return false;
-                }
-                return true;
-            }
-        }
-
-        /**
-         * 根据左右表达式判断索引表查询是否有效
-         *
-         * @param masterTableSchema
-         * @param indexTableSchema
-         * @param leftExpression
-         * @param rightExpression
-         */
-        private void setValidityByLRExpressionInSchema(Schema masterTableSchema, Schema indexTableSchema, Expression leftExpression, Expression rightExpression) {
-            String leftStr = String.valueOf(leftExpression);
-            String rightStr = String.valueOf(rightExpression);
-            if (leftExpression instanceof Function && rightExpression instanceof Function) {
-                setValidityByFunAndFunInSchema(masterTableSchema, indexTableSchema, (Function) leftExpression, (Function) rightExpression);
-            } else if (!(leftExpression instanceof Function) && rightExpression instanceof Function) {
-                setValidityByFunctionAndStrInSchema(masterTableSchema, indexTableSchema, (Function) rightExpression, leftStr);
-            } else if (leftExpression instanceof Function && !(rightExpression instanceof Function)) {
-                setValidityByFunctionAndStrInSchema(masterTableSchema, indexTableSchema, (Function) leftExpression, rightStr);
-            } else {
-                setValidityBuStrAndStrInSchema(masterTableSchema, indexTableSchema, leftStr, rightStr);
-            }
-        }
-
-        /**
-         * 操作符左右两边都是非函数类型(转String)
-         *
-         * @param masterTableSchema
-         * @param indexTableSchema
-         * @param leftStr
-         * @param rightStr
-         */
-        private void setValidityBuStrAndStrInSchema(Schema masterTableSchema, Schema indexTableSchema, String leftStr, String rightStr) {
-            if (isFieldOfSchema(masterTableSchema, leftStr) && !isFieldOfSchema(indexTableSchema, leftStr)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (isFieldOfSchema(masterTableSchema, rightStr) && !isFieldOfSchema(indexTableSchema, rightStr)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (!isFieldOfSchema(masterTableSchema, leftStr) && !isFieldOfSchema(masterTableSchema, rightStr)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-        }
-
-        /**
-         * 操作符左右两边都是函数
-         *
-         * @param masterTableSchema
-         * @param indexTableSchema
-         * @param leftExpression
-         * @param rightExpression
-         */
-        private void setValidityByFunAndFunInSchema(Schema masterTableSchema, Schema indexTableSchema, Function leftExpression, Function rightExpression) {
-            boolean validLeftInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, leftExpression);
-            boolean validLeftInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, leftExpression);
-            if (validLeftInMaster && !validLeftInIndex) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            boolean validRightInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, rightExpression);
-            boolean validRightInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, rightExpression);
-            if (validRightInMaster && !validRightInIndex) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (!validLeftInMaster && !validRightInMaster) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-        }
-
-        /**
-         * 操作符左右一边是函数类型一边是非函数(转String)
-         *
-         * @param masterTableSchema
-         * @param indexTableSchema
-         * @param function
-         * @param str
-         */
-        private void setValidityByFunctionAndStrInSchema(Schema masterTableSchema, Schema indexTableSchema, Function function, String str) {
-            boolean validFunInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, function);
-            boolean validFunInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, function);
-            if (validFunInMaster && !validFunInIndex) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (isFieldOfSchema(masterTableSchema, str) && !isFieldOfSchema(indexTableSchema, str)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (!isFieldOfSchema(masterTableSchema, str) && !validFunInMaster) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-        }
-
-        private void setSubIndexValidFlag(Boolean subIndexValidFlag) {
-            this.subIndexValidFlag = subIndexValidFlag;
-        }
-
-        private Boolean getSubIndexValidFlag() {
-            return subIndexValidFlag;
         }
 
         public String build() {
