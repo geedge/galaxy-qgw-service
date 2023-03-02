@@ -3015,7 +3015,7 @@
             "value": "Maybe Pinning"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3041,7 +3041,7 @@
             "value": "Shutdown"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3062,7 +3062,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3074,7 +3074,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3083,7 +3083,7 @@
       "name": "ssl_server_side_version",
       "label": "SSL.Server Side Version",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -3092,7 +3092,7 @@
       "name": "ssl_client_side_version",
       "label": "SSL.Client Side Version",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -3114,7 +3114,7 @@
             "value": "Yes"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3123,7 +3123,7 @@
       "name": "ssl_error",
       "label": "SSL.Error",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
