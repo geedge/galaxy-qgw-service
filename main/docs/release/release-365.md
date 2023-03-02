@@ -1,6 +1,7 @@
 Release 365 (TSG-23.03)
 * 扩展Field Discovery，针对Array/Bit类型字段，按每个元素进行统计(TSG-13553)
 * 扩展Schema，支持Logical Type(TSG-13532)
-* 修改Schema，标注Stream Direction为Deprecated(TSG-13730)
 * 扩展Schema，注册预聚合表 service_chaining_metrics，service_function_status(TSG-13918)
 * 扩展Schema，对数值型字段定义格式转换类型(TSG-13969)
+* 扩展Schema，common_flags增加c2s和s2c标志位(TSG-14005)
+* 修改Schema，标注Stream Direction为Deprecated(TSG-13730)
