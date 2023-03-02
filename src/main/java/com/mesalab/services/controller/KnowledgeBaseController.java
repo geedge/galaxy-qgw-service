@@ -23,27 +23,23 @@ public class KnowledgeBaseController {
 
     @GetMapping(produces = "application/json")
     public BaseResult queryKnowledge() {
-
         try {
             return knowledgeService.queryKnowledge();
         } catch (BusinessException e) {
-            log.error("查询知识库失败:{}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Query knowledge error::" + e.getMessage());
+            log.error("get knowledge meta error:{}", e.getMessage());
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "get knowledge meta error: " + e.getMessage());
         }
-
     }
 
 
     @PostMapping(produces = "application/json")
-    public BaseResult publishKnowledge(@RequestParam("file") MultipartFile file,
-                                   KnowledgeBase knowledge) {
-
+    public BaseResult publishKnowledge(@RequestParam("file") MultipartFile file, KnowledgeBase knowledge) {
         try {
             KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
             return knowledgeService.publishKnowledge(file, knowledgeBase);
         } catch (Exception e) {
-            log.error("发布知识库失败:{}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Publish knowledge error:" + e.getMessage());
+            log.error("publish knowledge error: {}", e.getMessage());
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "publish knowledge error: " + e.getMessage());
         }
     }
 
@@ -53,8 +49,8 @@ public class KnowledgeBaseController {
         try {
             return knowledgeService.updateKnowledge(file, knowledge);
         } catch (Exception e) {
-            log.error("更新知识库失败:{}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Update knowledge error:" + e.getMessage());
+            log.error("update knowledge error: {}", e);
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "update knowledge error: " + e.getMessage());
         }
     }
 
@@ -64,8 +60,8 @@ public class KnowledgeBaseController {
         try {
             return knowledgeService.deleteKnowledge(id);
         } catch (Exception e) {
-            log.error("删除知识库失败:{}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Delete knowledge error:" + e.getMessage());
+            log.error("delete knowledge error: {}", e.getMessage());
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "delete knowledge error:" + e.getMessage());
         }
     }
 
@@ -73,10 +69,10 @@ public class KnowledgeBaseController {
         if (StringUtil.isEmpty(knowledge.getName())) {
             throw new BusinessException("Name is required");
         }
-        if (knowledge.getName().contains(":")){
+        if (knowledge.getName().contains(":")) {
             throw new BusinessException("Name cannot contain ':'");
         }
-        if (knowledge.getName().contains(".")){
+        if (knowledge.getName().contains(".")) {
             throw new BusinessException("Name cannot contain '.'");
         }
         if (StringUtil.isEmpty(knowledge.getFormat())) {
