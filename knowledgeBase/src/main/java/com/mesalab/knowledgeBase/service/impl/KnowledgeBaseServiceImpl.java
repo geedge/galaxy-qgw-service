@@ -182,7 +182,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 knowledgeBaseList = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList());
             }
         } catch (NacosException e) {
-            log.error("获取knowledge_base.json失败:{}", e);
+            log.error("get knowledge meta error: {}", e.getMessage());
             throw new BusinessException(e.getMessage());
         }
         return knowledgeBaseList;
@@ -229,7 +229,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         try {
             boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
             if (!b) {
-                throw new BusinessException("Publish knowledge error");
+                throw new BusinessException("update knowledge meta error.");
             }
         } catch (RuntimeException | NacosException e) {
             log.error(e);
