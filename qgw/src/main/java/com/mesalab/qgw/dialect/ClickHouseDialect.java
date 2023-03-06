@@ -17,6 +17,7 @@ import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.RewriteTable;
 import com.mesalab.qgw.utils.HttpClientService;
+import com.mesalab.qgw.utils.sqlparser.CondExpressionHelper;
 import com.mesalab.qgw.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.utils.sqlparser.TopSQLVisitor;
 import com.mesalab.qgw.utils.SpringContextUtil;

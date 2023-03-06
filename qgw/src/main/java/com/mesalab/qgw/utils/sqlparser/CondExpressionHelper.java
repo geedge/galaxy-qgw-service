@@ -1,4 +1,4 @@
-package com.mesalab.common.utils.sqlparser;
+package com.mesalab.qgw.utils.sqlparser;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
