@@ -87,8 +87,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             Map map = new HashMap();
             map.put("id", knowledgeBase.getId());
             return BaseResultGenerator.success(map);
-        } catch (Exception e) {
-            throw e;
+        } catch (RuntimeException e) {
+            log.error("publish knowledge error: {}", e.getMessage());
+            throw new BusinessException(e.getMessage());
         } finally {
             lock.release();
         }
@@ -127,8 +128,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
                 httpClientService.httpDelete(deletePath, httpConfig.getServerResponseTimeOut(), header);
             }
-        } catch (Exception e) {
-            throw e;
+        } catch (RuntimeException e) {
+            log.error("update knowledge error: {}", e.getMessage());
+            throw new BusinessException(e.getMessage());
         } finally {
             lock.release();
         }
@@ -157,12 +159,11 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     String path = knowledgeBase.getPath();
                     Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
                     httpClientService.httpDelete(path, httpConfig.getServerResponseTimeOut(), header);
-                } else {
-                    throw new BusinessException("id not exist");
                 }
             }
-        } catch (Exception e) {
-            throw e;
+        } catch (RuntimeException e) {
+            log.error("delete knowledge error: {}", e.getMessage());
+            throw new BusinessException(e.getMessage());
         } finally {
             lock.release();
         }
@@ -232,8 +233,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 throw new BusinessException("update knowledge meta error.");
             }
         } catch (RuntimeException | NacosException e) {
-            log.error(e);
-            throw e;
+            log.error("update knowledge meta error: {}", e.getMessage());
+            throw new BusinessException(e.getMessage());
         }
         while (true) {
             Thread.sleep(100);
