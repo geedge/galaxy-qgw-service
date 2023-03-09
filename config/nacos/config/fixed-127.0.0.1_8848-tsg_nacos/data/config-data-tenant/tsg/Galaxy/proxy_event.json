@@ -78,6 +78,8 @@
         "doh_qclass"
       ],
       "metrics": [
+        "common_start_time",
+        "common_end_time",
         "common_device_id",
         "common_data_center",
         "common_sled_ip",
@@ -385,8 +387,6 @@
     "internal_columns": [
       "common_recv_time",
       "common_log_id",
-      "common_processing_time",
-      "common_ingestion_time",
       "common_packet_capture_file",
       "common_tunnel_endpoint_a_desc",
       "common_tunnel_endpoint_b_desc",
