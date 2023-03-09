@@ -758,7 +758,7 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "hidden"
+        "visibility": "enabled"
       },
       "label": "Start Time"
     },
@@ -772,7 +772,7 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "hidden"
+        "visibility": "enabled"
       },
       "label": "End Time"
     },
