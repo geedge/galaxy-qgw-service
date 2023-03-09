@@ -582,12 +582,16 @@
     "internal_columns": [
       "common_recv_time",
       "common_log_id",
-      "common_userdefine_app_name",
+      "common_sessions",
+      "common_flags_identify_info",
       "common_tunnels",
+      "common_userdefine_app_name",
+      "common_app_identify_info",
       "common_packet_capture_file",
       "common_tunnel_endpoint_a_desc",
       "common_tunnel_endpoint_b_desc",
       "rtp_pcap_path",
+      "http_domain",
       "http_request_body",
       "http_response_body",
       "mail_eml_file"
