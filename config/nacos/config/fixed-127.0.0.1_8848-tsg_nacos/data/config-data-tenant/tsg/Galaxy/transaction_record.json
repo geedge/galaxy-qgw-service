@@ -1250,7 +1250,6 @@
         "logicalType": "timestamp"
       },
       "doc": {
-        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         },
@@ -1266,7 +1265,6 @@
         "logicalType": "timestamp"
       },
       "doc": {
-        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         },
