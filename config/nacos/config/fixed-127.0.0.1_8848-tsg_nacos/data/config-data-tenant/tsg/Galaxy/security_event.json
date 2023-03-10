@@ -1514,7 +1514,6 @@
       "name": "common_start_time",
       "label": "Start Time",
       "doc": {
-        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         },
@@ -1530,7 +1529,6 @@
       "name": "common_end_time",
       "label": "End Time",
       "doc": {
-        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         },
