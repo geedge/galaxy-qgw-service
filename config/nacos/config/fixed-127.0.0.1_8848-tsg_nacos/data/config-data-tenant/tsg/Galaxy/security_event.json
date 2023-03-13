@@ -29,6 +29,7 @@
         "common_schema_type",
         "common_vsys_id",
         "common_flags",
+        "common_flags_identify_info",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -308,6 +309,7 @@
         "common_schema_type",
         "common_vsys_id",
         "common_flags",
+        "common_flags_identify_info",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -1208,7 +1210,7 @@
       "name": "common_flags_identify_info",
       "label": "Flags Identify Info",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
