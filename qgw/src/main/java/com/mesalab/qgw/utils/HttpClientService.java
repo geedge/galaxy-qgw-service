@@ -543,19 +543,15 @@ public class HttpClientService {
      * PUT 请求
      * @param url
      * @param headers
-     * @return
+     * @return HttpResponse
      */
-    public String httpPutStream(String url, InputStream in, int socketTimeout,Header... headers ) {
-        String msg = "-1";
+    public HttpResponse httpPutStream(String url, InputStream in, int socketTimeout, Header... headers) {
         // 获取客户端连接对象
         CloseableHttpClient httpClient = getHttpClient(socketTimeout);
         CloseableHttpResponse response = null;
         try {
-
             URI uri = new URI(url);
-
             log.info("http post uri:{} ", url);
-
             HttpPut httpPut = new HttpPut(uri);
             httpPut.setHeader("Content-Type", "application/octet-stream");
             if (StringUtil.isNotEmpty(headers)) {
@@ -563,19 +559,8 @@ public class HttpClientService {
                     httpPut.addHeader(h);
                 }
             }
-
             httpPut.setEntity(new InputStreamEntity(in));
-
             response = httpClient.execute(httpPut);
-            int statusCode = response.getStatusLine().getStatusCode();
-            // 获取响应实体
-            HttpEntity entity = response.getEntity();
-            // 获取响应信息
-            msg = EntityUtils.toString(entity, "UTF-8");
-
-            if (statusCode != ResultStatusEnum.SUCCESS.getCode()) {
-                throw new BusinessException(String.valueOf(statusCode), "Http put content is :" + msg);
-            }
         } catch (URISyntaxException e) {
             log.error("URI 转换错误: {}", e.getMessage());
         } catch (ClientProtocolException e) {
@@ -591,11 +576,10 @@ public class HttpClientService {
                     response.close();
                 } catch (IOException e) {
                     log.error("释放链接错误: {}", e.getMessage());
-
                 }
             }
         }
-        return msg;
+        return response;
     }
 
     public InputStream httpGetInputStream(String url, int socketTimeout, Header... headers) {
