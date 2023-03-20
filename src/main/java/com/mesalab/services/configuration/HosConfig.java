@@ -15,15 +15,16 @@ import java.io.Serializable;
 public class HosConfig implements Serializable {
 
 
-
-    @NacosValue("${hos.uri}")
+    @NacosValue(value = "${hos.uri}", autoRefreshed = true)
     private String uri;
 
-    @NacosValue("${hos.token}")
+    @NacosValue(value = "${hos.token}", autoRefreshed = true)
     private String token;
 
-    @NacosValue("${hos.bucket}")
+    @NacosValue(value = "${hos.bucket}", autoRefreshed = true)
     private String bucket;
 
+    @NacosValue(value = "${hos.multiUploadStartSize}", autoRefreshed = true)
+    private Long multiUploadStartSize;
 
 }
