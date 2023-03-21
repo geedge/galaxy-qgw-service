@@ -8,7 +8,7 @@
     <name>galaxy-qgw-service</name>
     <artifactId>galaxy-qgw-service</artifactId>
     <packaging>pom</packaging>
-    <version>362</version>
+    <version>${project.release}</version>
     <modules>
         <module>common</module>
         <module>qgw</module>
@@ -42,7 +42,7 @@
     </parent>
 
     <properties>
-        <project.release>362</project.release>
+        <project.release>366</project.release>
         <qgw.main.basedir>${project.basedir}</qgw.main.basedir>
         <project.author.name>darnell</project.author.name>
         <project.author.email>abc@gmail.com</project.author.email>
