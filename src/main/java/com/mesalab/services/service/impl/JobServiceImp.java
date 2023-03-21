@@ -530,7 +530,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     private void validateReport(HashMap<String, Object> map) {
         ApiParam apiParam = ApiParam.builder().query(String.valueOf(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL)))
-                .option(QueryOptionEnum.SYNTAX_VALIDATION.getValue())
+                .option(QueryOptionEnum.SYNTAX_PARSE.getValue())
                 .build();
         BaseResult baseResult = apiService.executeQuery(apiParam);
         if (!baseResult.isSuccess()) {
