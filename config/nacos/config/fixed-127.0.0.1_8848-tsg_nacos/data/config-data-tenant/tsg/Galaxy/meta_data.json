@@ -59,7 +59,8 @@
         "traffic_shaping_metrics",
         "sys_storage_log",
         "service_chaining_metrics",
-        "service_function_status"
+        "service_function_status",
+        "security_rule_hits"
       ]
     },
     {
