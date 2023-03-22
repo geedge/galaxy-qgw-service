@@ -1,5 +1,7 @@
 package com.mesalab.network.dsl;
 
+import cn.hutool.core.date.DateException;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.mesalab.cn.constant.ErrorMessage;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -9,6 +11,7 @@ import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.network.exception.NWErrorCode;
 import com.mesalab.network.exception.NWErrorMessage;
+import com.mesalab.qgw.exception.QGWBusinessException;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
@@ -31,10 +34,6 @@ public class DSLValidate {
 
     public static final Pattern periodOfPT = Pattern.compile("PT(\\d+)[SMH]", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfP = Pattern.compile("P(\\d+)[DWMY]", Pattern.CASE_INSENSITIVE);
-    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}|" +
-            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})\\+|\\-(\\d{1,2}):(\\d{1,2})|" +
-            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})Z", Pattern.CASE_INSENSITIVE);
-
 
     public void executeValidate(DSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
@@ -137,35 +136,27 @@ public class DSLValidate {
      * @param intervals
      */
     private boolean isValidIntervals(List<String> intervals) {
-        if (CollectionUtils.isEmpty(intervals)) {
-            return true;
-        }
-        if (intervals.size() != 1) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.INTERVALS_PARAM_ERROR));
-        }
-        String[] split = intervals.get(0).split("/");
-        if (split.length != 2) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.INTERVALS_PARAM_ERROR));
-        }
-        for (String dateTimeStr : split) {
-            if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.TIME_FORMAT_ERROR));
+        try {
+            if (CollectionUtils.isEmpty(intervals)) {
+                return true;
             }
+            if (intervals.size() != 1) {
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), NWErrorMessage.INTERVALS_PARAM_ERROR));
+            }
+            String[] split = intervals.get(0).split("/");
+            if (split.length != 2) {
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), NWErrorMessage.INTERVALS_PARAM_ERROR));
+            }
+            for (String dateTimeStr : split) {
+                DateUtil.parse(dateTimeStr);
+            }
+            return true;
+        } catch (DateException e) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), NWErrorMessage.TIME_FORMAT_ERROR));
         }
-//        try {
-//            DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-//            if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
-//                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-//                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.INTERVALS_VALUE_ERROR));
-//            }
-//        } catch (RuntimeException e) {
-//            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-//                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.INTERVALS_VALUE_ERROR));
-//        }
-        return true;
     }
 
 }
