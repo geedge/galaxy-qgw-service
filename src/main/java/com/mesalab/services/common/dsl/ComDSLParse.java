@@ -1,12 +1,18 @@
 package com.mesalab.services.common.dsl;
 
+import cn.hutool.core.date.DateException;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.mesalab.cn.entity.pojo.DSLObject;
 import com.mesalab.cn.entity.pojo.DSLParser;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import org.joda.time.format.ISODateTimeFormat;
@@ -20,32 +26,22 @@ import java.util.regex.Pattern;
 import static java.util.stream.Collectors.joining;
 
 public class ComDSLParse extends DSLParser {
-
-    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
-
     public static String parseInterval(ComDSLObject.Query query, String defField, boolean format) {
-        if (ObjectUtil.isEmpty(query) || ObjectUtil.isEmpty(query.getParameters()) || ObjectUtil.isEmpty(query.getParameters().getIntervals())) {
-            return StringUtil.EMPTY;
-        }
-        List<String> intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
-        if (format) {
-            long startTime;
-            long endTime;
-            String start = intervals.get(0);
-            String end = intervals.get(1);
-            if (strFormatDateTime.matcher(start).find()){
-                startTime = DateUtils.convertStringToTimestamp(start, "yyyy-MM-dd HH:mm:ss");
-            } else {
-                startTime = ISODateTimeFormat.dateTimeNoMillis().parseMillis(start)/1000;
+        try {
+            if (ObjectUtil.isEmpty(query) || ObjectUtil.isEmpty(query.getParameters()) || ObjectUtil.isEmpty(query.getParameters().getIntervals())) {
+                return StringUtil.EMPTY;
             }
-            if (strFormatDateTime.matcher(end).find()){
-                endTime = DateUtils.convertStringToTimestamp(end, "yyyy-MM-dd HH:mm:ss");
-            } else {
-                endTime = ISODateTimeFormat.dateTimeNoMillis().parseMillis(end)/1000;
+            List<String> intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
+            if (format) {
+                long startTime = DateUtil.parse(intervals.get(0)).toTimestamp().getTime() / 1000;
+                long endTime = DateUtil.parse(intervals.get(1)).toTimestamp().getTime() / 1000;
+                return Joiner.on(" ").join(" AND ", defField, ">=", startTime, " AND ", defField, "<", endTime);
             }
-            return Joiner.on(" ").join(" AND ", defField, ">=", startTime, " AND ", defField, "<", endTime);
+            return Joiner.on(" ").join(" AND ", defField, ">=", intervals.get(0), " AND ", defField, "<", intervals.get(1));
+        } catch (DateException e) {
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
         }
-        return Joiner.on(" ").join(" AND ", defField, ">=", intervals.get(0), " AND ", defField, "<", intervals.get(1));
     }
 
     public static String parseMath(List<ComDSLObject.Query.FilterBean> matches) {

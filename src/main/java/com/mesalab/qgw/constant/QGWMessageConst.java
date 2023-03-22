@@ -97,7 +97,7 @@ public class QGWMessageConst {
 
     public static final String MATCHING_SIGN = "error in matching sign. begin with * and do not end with * for suffix matching, end with * and do not begin with $ or * for prefix matching, begin with $ and do not end with * for exactly matching, begin with * and end with * or no wildcard for substring matching";
 
-    public static final String TIME_FORMAT_ERROR = "Time format should be: [yyyy-MM-dd HH:mm:ss,yyyy-MM-dd'T'HH:mm:ssXXX]";
+    public static final String TIME_FORMAT_ERROR = "Time format should follow ISO 8601 standard.";
 
     public static final String QUERY_TYPE_NOT_NULL = "The param must contain query.type.";
 
