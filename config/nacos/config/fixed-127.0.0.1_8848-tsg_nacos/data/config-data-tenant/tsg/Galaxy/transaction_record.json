@@ -645,7 +645,7 @@
             "value": "Deny"
           },
           {
-            "code": "128",
+            "code": "96",
             "value": "Allow"
           }
         ],
