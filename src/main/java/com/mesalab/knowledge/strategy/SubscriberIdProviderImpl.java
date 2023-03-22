@@ -1,16 +1,22 @@
 package com.mesalab.knowledge.strategy;
 
+import cn.hutool.core.date.DateException;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.entity.DSLObject;
 import com.mesalab.knowledge.entity.Match;
 import com.mesalab.knowledge.entity.Parameters;
 import com.mesalab.knowledge.entity.Range;
 import com.mesalab.knowledge.enums.RangeEnum;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
 import org.joda.time.format.ISODateTimeFormat;
@@ -33,7 +39,6 @@ import java.util.regex.Pattern;
 public class SubscriberIdProviderImpl implements QueryProvider {
 
     private static final Log log = LogFactory.get();
-    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
     @Value("${arango.maxrows}")
     private String limit;//查询最大条数
 
@@ -57,24 +62,17 @@ public class SubscriberIdProviderImpl implements QueryProvider {
             limit = ObjectUtils.isEmpty(parameters.getLimit()) ? limit : parameters.getLimit();
 
             //构建查询语句 intervals 时间
-            List<String> intervals = parameters.getIntervals();
-            if(!ObjectUtils.isEmpty(intervals)){
-                String[] times = intervals.get(0).split("/");
-                long startTime;
-                long endTime;
-                String start = times[0];
-                String end = times[1];
-                if (strFormatDateTime.matcher(start).find()){
-                    startTime = DateUtils.convertStringToTimestamp(start, "yyyy-MM-dd HH:mm:ss");
-                } else {
-                    startTime = ISODateTimeFormat.dateTimeNoMillis().parseMillis(start)/1000;
+            try {
+                List<String> intervals = parameters.getIntervals();
+                if (!ObjectUtils.isEmpty(intervals)) {
+                    String[] times = intervals.get(0).split("/");
+                    long startTime = DateUtil.parse(times[0]).toTimestamp().getTime() / 1000;
+                    long endTime = DateUtil.parse(times[1]).toTimestamp().getTime() / 1000;
+                    intervalsb.append(" filter e.LAST_FOUND_TIME >= ").append(startTime).append(" and ").append("e.LAST_FOUND_TIME < ").append(endTime);
                 }
-                if (strFormatDateTime.matcher(end).find()){
-                    endTime = DateUtils.convertStringToTimestamp(end, "yyyy-MM-dd HH:mm:ss");
-                } else {
-                    endTime = ISODateTimeFormat.dateTimeNoMillis().parseMillis(end)/1000;
-                }
-                intervalsb.append(" filter e.LAST_FOUND_TIME >= ").append(startTime).append(" and ").append("e.LAST_FOUND_TIME < ").append(endTime);
+            } catch (DateException e) {
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
             }
 
         }

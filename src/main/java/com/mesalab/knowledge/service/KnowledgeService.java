@@ -1,5 +1,7 @@
 package com.mesalab.knowledge.service;
 
+import cn.hutool.core.date.DateException;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,9 +57,6 @@ import static java.util.Objects.*;
 @Service
 public class KnowledgeService {
 
-    public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}|" +
-            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})\\+|\\-(\\d{1,2}):(\\d{1,2})|" +
-            "(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,2}):(\\d{1,2}):(\\d{1,2})Z", Pattern.CASE_INSENSITIVE);
     private static final Log log = LogFactory.get();
     @Value("${arango.maxrows}")
     private String maxrows;//查询最大条数
@@ -145,24 +144,19 @@ public class KnowledgeService {
             });
         }
         if (!ObjectUtils.isEmpty(intervals)) {
-            List<String> times = Splitter.on("/").splitToList(intervals.get(0));
-            if (ObjectUtils.isEmpty(times) || times.size() != 2){
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.INTERVALS_IS_INVALID));
-            }
-            for (String dateTimeStr : times) {
-                if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                    throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.TIME_FORMAT_ERROR));
+            try {
+                List<String> times = Splitter.on("/").splitToList(intervals.get(0));
+                if (ObjectUtils.isEmpty(times) || times.size() != 2) {
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.INTERVALS_IS_INVALID));
                 }
+                for (String dateTimeStr : times) {
+                    DateUtil.parse(dateTimeStr);
+                }
+            } catch (DateException e) {
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
             }
-
-//            Date start = DateUtils.convertStringToDate(times.get(0), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-//            Date end = DateUtils.convertStringToDate(times.get(1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-//            if (!start.before(end)){
-//                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-//                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.TIME_ERROR));
-//            }
         }
         if (nonNull(limit)) {
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
