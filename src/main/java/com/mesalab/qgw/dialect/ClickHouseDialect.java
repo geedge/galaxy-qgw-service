@@ -10,7 +10,6 @@ import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -28,14 +27,7 @@ import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.Parenthesis;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
-import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
-import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.deparser.ExpressionDeParser;
 import org.apache.avro.Schema;
@@ -140,7 +132,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     public String getSampleQuery() {
         String sampleSQL = param.getDbQuerySource().getSqlBody();
         try {
-            sampleSQL = convertQuery(String.valueOf(convertSampleSql(sampleSQL)));
+            sampleSQL = convertQuery(convertSampleSql(sampleSQL));
         } catch (JSQLParserException e) {
             log.error("Sample sql error {}, execute original sql: {}, error is: {} ",
                     sampleSQL, sampleSQL = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
@@ -247,7 +239,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         /**
          * Desc:
-         *  IN 转换为 集群 Global IN 模式(针对聚合、分组)
+         * IN 转换为 集群 Global IN 模式(针对聚合、分组)
          *
          * @param sql
          * @return {@link String}
@@ -418,7 +410,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 expressionDeParser.setBuffer(buffer);
                 select.getSelectBody().accept(deParser);
                 sql = buffer.toString();
-            } catch (JSQLParserException|RuntimeException e) {
+            } catch (JSQLParserException | RuntimeException e) {
                 log.error("SQL Rewrite add tableName and Alias Error: ", e);
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_BUILDER_EXCEPTION.getMessage(), e.getMessage()));
@@ -815,127 +807,17 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     /**
      * 通过递归方式将原SQL转换为样例SQL
      * 做数据集限制:
-     *  1. 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
-     *  2. 对where添加：OR 1=1
-     * 涉及from 和 where中存在子查询
+     * 1. 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
+     * 2. 对where、having添加：OR 1=1
      *
      * @param sql
      * @return
      * @throws JSQLParserException
      */
-    private SelectBody convertSampleSql(String sql) throws JSQLParserException {
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        if (parse instanceof Select) {
-            Select select = (Select) parse;
-            SelectBody selectBody = select.getSelectBody();
-            if (selectBody instanceof PlainSelect) {
-                PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-                FromItem fromItem = plainSelect.getFromItem();
-                if (fromItem instanceof SubSelect) {
-                    SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
-                    subSelect.setSelectBody(convertSampleSql(subSelect.getSelectBody().toString()));
-                } else if (fromItem instanceof Table) {
-                    Table table = (Table) fromItem;
-                    plainSelect.setFromItem(generateSampleDatasetSql(table.getName(), table.getAlias() != null ? table.getAlias().getName() : table.getName()));
-                }
-                if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
-                    plainSelect.setWhere(generateDatasetWhereSql(plainSelect.getWhere().toString()));
-                }
-                if (StringUtil.isNotEmpty(plainSelect.getHaving())) {
-                    plainSelect.setHaving(generateDatasetWhereSql(plainSelect.getHaving().toString()));
-                }
-                convertWhereForSampleSql(plainSelect.getWhere());
-                return plainSelect;
-            } else if (selectBody instanceof SetOperationList) {
-                SetOperationList setOperationList = (SetOperationList) selectBody;
-                List<SelectBody> selects = setOperationList.getSelects();
-                for (int i = 0; i < selects.size(); i++) {
-                    selects.set(i, convertSampleSql(selects.get(i).toString()));
-                }
-                return setOperationList;
-            } else {
-                throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
-            }
-        }
-        throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
-    }
-
-    /**
-     * 将where中子查询语句表名更新为数据集形式,类同from中表的替换
-     *
-     * @param whereExpression
-     * @throws JSQLParserException
-     */
-    private void convertWhereForSampleSql(Expression whereExpression) throws JSQLParserException {
-        if (whereExpression instanceof ComparisonOperator) {
-            ComparisonOperator whereOperator = (ComparisonOperator) whereExpression;
-            Expression left = whereOperator.getLeftExpression();
-            setSampleSelectBody(left);
-            Expression right = whereOperator.getRightExpression();
-            setSampleSelectBody(right);
-        } else if (whereExpression instanceof InExpression) {
-            InExpression inExpression = (InExpression) whereExpression;
-            Expression leftExpression = inExpression.getLeftExpression();
-            setSampleSelectBody(leftExpression);
-            ItemsList rightItemsList = inExpression.getRightItemsList();
-            if (rightItemsList instanceof SubSelect) {
-                SubSelect subSelect = (SubSelect) rightItemsList;
-                setSampleSelectBody(subSelect);
-            }
-        } else if (whereExpression instanceof Between) {
-            Between whereBetween = (Between) whereExpression;
-            Expression betweenExpressionStart = whereBetween.getBetweenExpressionStart();
-            setSampleSelectBody(betweenExpressionStart);
-            Expression betweenExpressionEnd = whereBetween.getBetweenExpressionEnd();
-            setSampleSelectBody(betweenExpressionEnd);
-        } else if (whereExpression instanceof AndExpression) {
-            AndExpression whereAnd = (AndExpression) whereExpression;
-            convertWhereForSampleSql(whereAnd.getLeftExpression());
-            convertWhereForSampleSql(whereAnd.getRightExpression());
-        } else if (whereExpression instanceof OrExpression) {
-            OrExpression whereOr = (OrExpression) whereExpression;
-            convertWhereForSampleSql(whereOr.getLeftExpression());
-            convertWhereForSampleSql(whereOr.getRightExpression());
-        } else if (whereExpression instanceof Parenthesis) {
-            Parenthesis whereExpressionParenthesis = (Parenthesis) whereExpression;
-            Expression expression = whereExpressionParenthesis.getExpression();
-            convertWhereForSampleSql(expression);
-        }
-    }
-
-    private void setSampleSelectBody(Expression expression) throws JSQLParserException {
-        if (expression instanceof SubSelect) {
-            SubSelect subSelect = (SubSelect) expression;
-            SelectBody selectBody = subSelect.getSelectBody();
-            subSelect.setSelectBody(convertSampleSql(selectBody.toString()));
-        }
-    }
-
-    /**
-     * 生成数据集: 以FromItem对象形式的数据集表 sql,用来替换table
-     *
-     * @param tableName
-     * @param alias
-     * @return
-     * @throws JSQLParserException
-     */
-    private FromItem generateSampleDatasetSql(String tableName, String alias) throws JSQLParserException {
-        String sql = StrUtil.format("SELECT 1 FROM (SELECT * FROM {} ) as {} ",
-                BooleanUtil.isTrue(param.getSampled()) ? tableName + " WHERE rand() % 100 = 0 LIMIT 1000 " : tableName + " LIMIT 0 ", alias);
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        Select select = (Select) parse;
-        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-        return plainSelect.getFromItem();
-    }
-
-    private Expression generateDatasetWhereSql(String where) throws JSQLParserException {
-        String sql = String.format("SELECT * FROM tableName WHERE  %s %s ", where, "OR 1=1");
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        Select select = (Select) parse;
-        PlainSelect selectBody = (PlainSelect) select.getSelectBody();
-        return selectBody.getWhere();
+    private String convertSampleSql(String sql) throws JSQLParserException {
+        String dataSet = StrUtil.format("SELECT * FROM {}",
+                BooleanUtil.isTrue(param.getSampled()) ? " {} WHERE rand() % 100 = 0 LIMIT 1000 " : " {} LIMIT 0 ");
+        return new ClickhouseSampleSQLHelper(sql, dataSet).build();
     }
 
     /**
@@ -963,7 +845,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             param.setOption(QueryOptionEnum.LONG_TERM.getValue());
         }
 
-       if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName);
