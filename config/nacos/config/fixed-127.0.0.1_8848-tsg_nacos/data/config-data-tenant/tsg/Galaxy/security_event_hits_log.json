@@ -86,12 +86,8 @@
             "value": "Deny"
           },
           {
-            "code": "96",
-            "value": "Allow"
-          },
-          {
             "code": "128",
-            "value": "Shunt"
+            "value": "Allow"
           }
         ],
         "visibility": "enabled"
