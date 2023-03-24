@@ -1260,12 +1260,6 @@
         "constraints": {
           "type": "timestamp"
         },
-        "format": [
-          {
-            "function": "get_value",
-            "appendTo": "common_recv_time"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1594,6 +1588,10 @@
         "format": [
           {
             "function": "ingestion_time"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_recv_time"
           }
         ],
         "visibility": "enabled",
