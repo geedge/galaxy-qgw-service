@@ -23,7 +23,7 @@ public enum RangeEnum {
 
 
     EQ("eq", "==", true),
-    NE("ne", "<>", true),
+    NE("ne", "!=", true),
     LT("lt", "<", false),
     LE("le", "<=", false),
     GT("gt", ">", false),

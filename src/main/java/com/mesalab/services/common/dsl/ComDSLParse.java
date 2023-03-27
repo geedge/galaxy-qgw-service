@@ -2,12 +2,14 @@ package com.mesalab.services.common.dsl;
 
 import cn.hutool.core.date.DateException;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.mesalab.cn.entity.pojo.DSLObject;
 import com.mesalab.cn.entity.pojo.DSLParser;
+import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -68,9 +70,8 @@ public class ComDSLParse extends DSLParser {
             String type = m.getType();
             List<String> fieldValues = m.getFieldValues();
             return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
-                return ComDSLParse.parseRange(ComDSLParse.encode(v), type);
-            }).collect(joining(" OR ".concat(fieldKey), fieldKey, " "));
-
+                return ComDSLParse.parseRange(!NumberUtil.isNumber(v) ? "'".concat(ComDSLParse.encode(v)).concat("'") : v, type);
+            }).collect(joining((RangeTypeEnum.NE.getType().equalsIgnoreCase(type) ? " AND " : " OR ").concat(fieldKey), fieldKey, " "));
         }).collect(joining(" ) AND ( ", " AND( ", ")"));
     }
 

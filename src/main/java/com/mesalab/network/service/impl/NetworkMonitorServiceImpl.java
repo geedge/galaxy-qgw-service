@@ -10,6 +10,7 @@ import cn.hutool.log.LogFactory;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -280,7 +281,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                 }
                 values.add(ComDSLParse.parseRange(value, type));
             }
-            String join = String.join(" OR " + fieldKey, values);
+            String join = String.join((RangeTypeEnum.NE.getType().equalsIgnoreCase(type) ? " AND " : " OR ") + fieldKey, values);
             if (StringUtil.isNotBlank(join)) {
                 list.add(fieldKey + join);
             }
