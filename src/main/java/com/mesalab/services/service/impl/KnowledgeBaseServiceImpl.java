@@ -131,7 +131,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                                 knowledge.setPath(path);
                                 knowledge.setSha256(sha256Hex);
                                 knowledge.setSize(file.getSize());
-                                knowledge.setUpdateTime(DateUtils.getFormatDate(new Date(), "yyyy-MM-dd'T'HH:mm:sss"));
+                                knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
                                 updateLatestKnowledge(knowledgeBaseList, knowledge);
                                 break;
                             }
@@ -206,7 +206,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     private KnowledgeBase setKnowledgeBase(MultipartFile file, KnowledgeBase knowledge, List<KnowledgeBase> knowledgeBaseList) throws IOException {
 
-        String lastVersion = queryLsatKnowledgeVersion(knowledgeBaseList, knowledge);
+        String lastVersion = queryLastKnowledgeVersion(knowledgeBaseList, knowledge);
         String version = generateVersion(lastVersion);
         String id = DigestUtil.md5Hex16(knowledge.getType())
                 .concat("-")
@@ -214,18 +214,17 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                         .concat(knowledge.getFormat())
                         .concat(version)));
         String path = uploadFile(file);
-        String date = DateUtils.getFormatDate(new Date(), "yyyy-MM-dd'T'HH:mm:sss");
         String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
         knowledge.setId(id);
         knowledge.setPath(path);
         knowledge.setSha256(sha256Hex);
         knowledge.setVersion(version);
         knowledge.setSize(file.getSize());
-        knowledge.setUpdateTime(date);
+        knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
         return knowledge;
     }
 
-    private String queryLsatKnowledgeVersion(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge) {
+    private String queryLastKnowledgeVersion(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge) {
 
         if (CollectionUtil.isNotEmpty(knowledgeBaseList)) {
             for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
@@ -360,7 +359,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private KnowledgeBase saveLatestKnowledge(KnowledgeBase knowledgeBase) {
         KnowledgeBase base = new KnowledgeBase();
         BeanUtils.copyProperties(knowledgeBase, base);
-        base.setUpdateTime(DateUtils.getFormatDate(new Date(), "yyyy-MM-dd'T'HH:mm:sss"));
         base.setVersion(KnowledgeConstant.LATEST);
         return base;
     }
@@ -382,6 +380,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 base.setSize(knowledgeBase.getSize());
                 base.setSha256(knowledgeBase.getSha256());
                 base.setOriginUrl(knowledgeBase.getOriginUrl());
+                base.setUpdateTime(knowledgeBase.getUpdateTime());
                 knowledgeBaseList.set(i, base);
                 return false;
             }
