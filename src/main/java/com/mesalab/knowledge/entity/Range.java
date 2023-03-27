@@ -1,5 +1,6 @@
 package com.mesalab.knowledge.entity;
 
+import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
@@ -51,7 +52,7 @@ public class Range extends QueryExp {
 
                 for (int j = 0; j < range.getFieldValues().size(); j++) {
                     if (0 < j && !ObjectUtils.isEmpty(rangesb)) {
-                        rangesb.append(" or ");
+                        rangesb.append(RangeTypeEnum.NE.getType().equalsIgnoreCase(range.getType()) ? " and " : " or ");
                     }
                     rangesb.append(" ")
                             .append(alias)
