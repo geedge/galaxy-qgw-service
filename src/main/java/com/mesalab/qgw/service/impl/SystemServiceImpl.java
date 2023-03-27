@@ -10,12 +10,14 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.dialect.Dialect;
@@ -104,7 +106,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             BaseResult result = apiService.executeQuery(param);
             return resetBaseResult(result, "type");
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), "start_time and end_time need to be filled in at the same time", null);
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.START_TIME_AND_END_TIME_NOT_NULL));
         }
     }
 
@@ -121,13 +124,15 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult deleteStorage(List<StorageDeletionInfo> list) {
 
         if (!logTypeValid(list)) {
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Match failed, please check log type!");
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"Match failed, please check log type!"));
         }
 
         preProcessOfLogType(list);
 
         if (jobIsBusy(list)) {
-            return BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(), "The task is busy, please try later!");
+            return BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(),  ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"The task is busy, please try later!"));
         }
 
         BaseResult baseResult = null;
@@ -205,7 +210,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult consistencyCheck() {
         List<Map<String, Object>> dataList = Lists.newArrayList();
         Map<String, Object> logDiff = Maps.newHashMap();
-        Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
+        Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
         List<String> symbols = (List<String>) tables.get("symbols");
         logDiff.put("logType", LogType.TRAFFIC_LOGS.getValue());
         Map<String, Map<String, Object>> changeTTL = Maps.newHashMap();
@@ -220,7 +225,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                     ipPort = url.substring(url.indexOf("//") + 2, url.lastIndexOf(":") + 1).concat(trafficPort);
                 }
                 for (String tableName : symbols) {
-                    Map schemaMap = metadataService.getSchemaInfo("fields", tableName);
+                    Map schemaMap = metadataService.getSchemaInfo("fields", tableName, false);
                     Object tableTTLInSchema = getTableTTLInSchema(schemaMap);
                     Map<String, Object> tableDiff = getTableDiff(ipPort, tableName, tableTTLInSchema);
                     List fieldDiff = getFieldDiff(ipPort, tableName, schemaMap);
@@ -236,8 +241,9 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 }
             }
         } catch (RuntimeException ex) {
-            log.error(" schema TTL check error: {}", ex.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), ex.getMessage(), ex);
+            log.error(" schema TTL check error: {}", ex);
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),ex.getMessage()));
         }
         if (changeTTL.isEmpty()) {
             return BaseResultGenerator.success("ok", dataList);
@@ -264,7 +270,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         Map<String, String> result = executeHttpGetOfCK(ipPort, sql, clickHouseHttpSource.getSystemDBName());
         if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table TTL error: {}", result.toString());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),result.toString()));
         }
         Object tableTTLInDB = null;
         Map<String, Object> tableDiff = Maps.newHashMap();
@@ -287,7 +294,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
         if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table field TTL error: {}", result.toString());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), result.toString());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),result.toString()));
         }
         List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
         for (Map<String, Object> field : fields) {
@@ -357,7 +365,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             dialect = (Dialect) constructor.newInstance(apiParam);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}", e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "Dialect conversion instance exception！", e);
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
         return dialect;
     }
@@ -369,7 +378,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         if (queryId.contains(queryIdSeparator)) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "queryId is not supported", null);
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
         }
         return DBTypeEnum.CLICKHOUSE.getValue();
     }
@@ -431,7 +441,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         if (result.getStatus().equals(ResultStatusEnum.LOCKED.getCode())) {
             return true;
         } else if (!result.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get task status exception: " + result.getMessage(), null);
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),result.getMessage()));
         }
         return false;
     }
@@ -471,7 +482,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         if (!baseResult.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Scheduled task data quota setting task execution failed", null);
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),QGWMessageConst.SCHEDULED_TASK_ERROR));
         }
         return baseResult;
     }
@@ -479,7 +491,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private void updateSchema(StorageDeletionInfo info, Map dataByHandler) {
         Map<String, Map> previous = Maps.newHashMap();
         try {
-            Map schemaInfo = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName());
+            Map schemaInfo = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
             Object tables = schemaInfo.get("symbols");
             if (StringUtil.isEmpty(tables)) {
                 return;
@@ -487,14 +499,14 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             long ttl = 24 * 60 * 60 * info.getMaxDays();
             List<String> list = (List) tables;
             for (String tableName : list) {
-                Map schemaMap = metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName);
+                Map schemaMap = metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, false);
                 List<Object> schemaDocTTL = JsonPath.read(schemaMap, "$.[?(@.doc.ttl != null)].doc.ttl");
                 List<Object> schemaDocDefaultTTL = JsonPath.read(schemaMap, "$.[?(@.doc.default_ttl != null)].doc.default_ttl");
                 List<Object> fieldDocTTL = JsonPath.read(schemaMap, "$.fields[?(@.doc.ttl != null)].doc.ttl");
                 if (schemaDocDefaultTTL.isEmpty() && schemaDocTTL.isEmpty() && fieldDocTTL.isEmpty()) {
                     continue;
                 }
-                previous.put(tableName, metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName));
+                previous.put(tableName, metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, false));
                 Object schemaDoc = schemaMap.get("doc");
                 Map<String, Object> map = Maps.newHashMap();
                 if (StringUtil.isNotEmpty(schemaDoc)) {
@@ -507,14 +519,16 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 List<Map<String, Object>> fields = JsonPath.read(schemaMap, "$.fields");
                 List<String> indexKey = metadataService.getIndexKey(tableName);
                 for (Map<String, Object> field : fields) {
-                    if (indexKey.contains(field.get("name").toString())) {
-                        continue;
-                    }
                     Object doc = field.get("doc");
                     if (StringUtil.isEmpty(doc)) {
                         doc = Maps.newHashMap();
                     }
                     Map<String, Object> fieldDoc = (Map<String, Object>) doc;
+                    if (indexKey.contains(field.get("name").toString())) {
+                        fieldDoc.put("ttl", null);
+                        field.put("doc", fieldDoc);
+                        continue;
+                    }
                     if (StringUtil.isEmpty(fieldDoc.get("ttl")) || ttl < Long.parseLong(fieldDoc.get("ttl").toString())) {
                         fieldDoc.put("ttl", ttl);
                         field.put("doc", fieldDoc);
@@ -527,7 +541,9 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 metadataService.updateSchema(tableName, previous.get(tableName));
             }
             executeManageJob("update", mapToBean(dataByHandler, XxlJobInfo.class));
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "up schema error in storage set ", ex.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                    ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"up schema error in storage set ", ex.getMessage()));
         }
     }
 
@@ -584,10 +600,12 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             if (resultUpdate.getStatus().equals(ResultStatusEnum.SUCCESS.getCode())) {
                 baseResult = BaseResultGenerator.success("ok", null);
             } else {
-                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Update task failed:" + xxlJobInfo.getExecutorHandler());
+                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Update task failed:" + xxlJobInfo.getExecutorHandler()));
             }
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Failed to execute task:" + xxlJobInfo.getExecutorHandler());
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Failed to execute task:" + xxlJobInfo.getExecutorHandler()));
         }
         return baseResult;
     }
@@ -615,19 +633,23 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private BaseResult resultEncapsulationOfJob(Map<String, String> resultMap) {
         BaseResult baseResult;
         if (StringUtil.isEmpty(resultMap)) {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "The service is busy, please contact the scheduling platform!");
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"The service is busy, please contact the scheduling platform!"));
         } else {
             if (resultMap.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
                 Map result = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(resultMap.get("result")), Map.class);
                 if (result.get("code").equals(ResultStatusEnum.SUCCESS.getCode())) {
                     baseResult = BaseResultGenerator.success("ok", null);
                 } else if (result.get("code").equals(ResultStatusEnum.LOCKED.getCode())) {
-                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(), "Clear Task is Running.");
+                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.LOCKED.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Clear Task is Running."));
                 } else {
-                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), String.valueOf(result.get("msg")));
+                    baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), result.get("msg")));
                 }
             } else {
-                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "Clear Task Failed.");
+                baseResult = BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Clear Task Failed."));
             }
         }
         return baseResult;
@@ -681,16 +703,19 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
             Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get or package result exception: " + resultPageList, null);
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Get or package result exception: " + JsonMapper.toJsonString(resultPageList)));
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
                 return data.get(0);
             } else {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "The scheduled task has no task information matching executorHandler (" + handlerValue + ")", null);
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"The scheduled task has no task information matching executorHandler (" + handlerValue + ")"));
             }
         }
-        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), "Get scheduled task exception: " + JsonMapper.toJsonString(resultPageList), null);
+        throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Get scheduled task exception: " + JsonMapper.toJsonString(resultPageList)));
     }
 
     /**

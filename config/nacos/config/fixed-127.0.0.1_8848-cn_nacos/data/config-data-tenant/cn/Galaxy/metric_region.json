@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "metric_region",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "stat_time",
+    "index_key": [
+      "stat_time",
+      "country",
+      "province",
+      "city"
+    ]
+  },
+  "fields": [
+  ]
+}

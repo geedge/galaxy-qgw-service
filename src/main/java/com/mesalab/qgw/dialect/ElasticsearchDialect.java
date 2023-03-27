@@ -8,17 +8,19 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.base.DataTypeMapping;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.*;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
@@ -93,7 +95,8 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     @Override
     String getExplainQuery() {
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "ES dialect unsupported EXPLAIN Syntax.", null);
+        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.ES_DIALECT_UNSUPPORTED_EXPLAIN_SYNTAX));
     }
 
     @Override
@@ -105,7 +108,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         } catch (JsonPathException e) {
             log.error("Build error druid-errorMessage data is: {}", dataObject);
         }
-        return StrUtil.removeAllLineBreaks("SQL Execution Error: ".concat(message)).trim();
+        return StrUtil.removeAllLineBreaks(message).trim();
     }
 
     @Override
@@ -116,12 +119,13 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         try {
             response = restClient.performRequest(request);
             ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
-            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), message.get(),
+            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), message.get(),
                     (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
 
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), simplyErrorMessage(e.getMessage()), null);
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
         }
         return build();
     }
@@ -150,8 +154,8 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(allResults.get("columns")));
             baseResult.setStatistics(statistics);
         } else {
-            throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(),
-                    simplyErrorMessage(dataObject));
+            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),simplyErrorMessage(dataObject)));
         }
         return baseResult;
     }

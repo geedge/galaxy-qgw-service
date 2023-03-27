@@ -8,7 +8,7 @@
         "session_record",
         "session_record_common_client_ip",
         "session_record_common_server_ip",
-        "session_record_http_domain",
+        "session_record_common_server_domain",
         "interim_session_record",
         "transaction_record",
         "radius_record",
@@ -56,7 +56,11 @@
         "traffic_metrics_log",
         "traffic_app_stat_log",
         "traffic_top_destination_ip_metrics_log",
-        "sys_storage_log"
+        "traffic_shaping_metrics",
+        "sys_storage_log",
+        "service_chaining_metrics",
+        "service_function_status",
+        "security_rule_hits"
       ]
     },
     {
@@ -80,7 +84,8 @@
       "tables": [
         "relation_account_framedip",
         "recommendation_app_cip",
-        "job_result"
+        "job_result",
+        "gtpc_knowledge_base"
       ]
     }
   ]

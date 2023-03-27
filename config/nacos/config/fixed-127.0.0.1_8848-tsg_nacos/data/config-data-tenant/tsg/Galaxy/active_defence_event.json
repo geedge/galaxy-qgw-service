@@ -5,11 +5,9 @@
   "doc": {
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
-    "index_key": [
-      "common_log_id",
-      "common_recv_time",
-      "common_policy_id"
-    ],
+    "index_key": {
+      "$ref": "public_schema_info.json#/active_defence_event/index_key"
+    },
     "schema_query": {
       "dimensions": [
         "common_policy_id",
@@ -150,20 +148,27 @@
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "current_timestamp"
-        },
+        "format": [
+          {
+            "function": "current_timestamp"
+          }
+        ],
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_log_id",
       "label": "Log ID",
       "doc": {
-        "format": {
-          "functions": "snowflake_id"
-        },
+        "format": [
+          {
+            "function": "snowflake_id"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "long"
@@ -241,10 +246,16 @@
         "constraints": {
           "type": "ip"
         },
-        "format": {
-          "functions": "geo_ip_country,geo_asn",
-          "appendTo": "ad_target_ip_location,ad_target_ip_asn"
-        },
+        "format": [
+          {
+            "function": "geo_ip_country",
+            "appendTo": "ad_target_ip_location"
+          },
+          {
+            "function": "geo_asn",
+            "appendTo": "ad_target_ip_asn"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "string"
@@ -362,7 +373,10 @@
         },
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     }
   ]
 }

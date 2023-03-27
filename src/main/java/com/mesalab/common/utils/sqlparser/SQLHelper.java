@@ -1,21 +1,22 @@
 package com.mesalab.common.utils.sqlparser;
 
-import cn.hutool.crypto.digest.DigestUtil;
 import com.alibaba.druid.util.JdbcConstants;
+import com.google.common.collect.Lists;
 import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.ExplainStatement;
 import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.Limit;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 
 import java.util.List;
@@ -120,7 +121,8 @@ public class SQLHelper {
                 selectStatement = ((ExplainStatement)statement).getStatement();
             } else {
                 log.error("Not support DML Parser");
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error, Not support DML Parser.", null);
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.NOT_SUPPORT_DML_PARSER));
             }
 
             TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
@@ -131,15 +133,79 @@ public class SQLHelper {
                 return i < 0 ? tableName : tableName.substring(i + 1);
             } else {
                 log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}", sql);
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error: Get Table Name Error.", null);
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.GET_TABLE_NAME_ERROR));
             }
 
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Syntax Error.", e);
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
     }
 
 
+    /**
+     * Desc: 从SQL中获取指定函数参数
+     *
+     * @param sql
+     * @param functionName
+     * @return {@link String}
+     * @created by wWei
+     * @date 2021/2/24 4:39 下午
+     */
+    public static List<Expression> getFunctionParams(String sql, String functionName) {
+        try {
+            Statement statement = CCJSqlParserUtil.parse(sql);
+            Select selectStatement = null;
+            if (statement instanceof Select) {
+                selectStatement = (Select) statement;
+                SelectBody selectBody = selectStatement.getSelectBody();
+                if (selectBody instanceof PlainSelect) {
+                    PlainSelect plainSelect = (PlainSelect) selectBody;
+                    List<SelectItem> selectItems = plainSelect.getSelectItems();
+                    for (SelectItem selectItem : selectItems) {
+                        if ((selectItem instanceof SelectExpressionItem) && (((SelectExpressionItem) selectItem).getExpression()) instanceof Function) {
+                            Expression expression = ((SelectExpressionItem) selectItem).getExpression();
+                            List<Expression> expressions = getExpressions(functionName, expression);
+                            if (!expressions.isEmpty()) {
+                                return expressions;
+                            }
+                        }
+                    }
+                }
+            } else if (statement instanceof ExplainStatement) {
+                // selectStatement = ((ExplainStatement) statement).getStatement();
+            } else {
+                log.error("Not support DML Parser");
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.NOT_SUPPORT_DML_PARSER));
+            }
+        } catch (JSQLParserException e) {
+            log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+        }
+        return Lists.newArrayList();
+    }
 
+    private static List<Expression> getExpressions(String functionName, Expression expression) {
+        if (expression instanceof Function) {
+            Function function = (Function) expression;
+            if (((Function) expression).getName().equalsIgnoreCase(functionName)) {
+                return function.getParameters().getExpressions();
+            } else {
+                if (StringUtil.isNotEmpty(function.getParameters())) {
+                    List<Expression> expressions = function.getParameters().getExpressions();
+                    for (Expression expression1 : expressions) {
+                        List<Expression> expressions1 = getExpressions(functionName, expression1);
+                        if (!expressions1.isEmpty()) {
+                            return expressions1;
+                        }
+                    }
+                }
+            }
+        }
+        return Lists.newArrayList();
+    }
 }

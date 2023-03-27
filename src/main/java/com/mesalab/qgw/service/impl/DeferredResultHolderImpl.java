@@ -2,7 +2,7 @@ package com.mesalab.qgw.service.impl;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.qgw.service.DeferredResultHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;

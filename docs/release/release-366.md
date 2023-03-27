@@ -1,0 +1,5 @@
+Release 366 (TSG-23.04)
+* 扩展Schema，安全事件日志Action数据字典增加Shunt动作(TSG-14345)
+* 扩展Schema，新增安全策略规则命中统计表(TSG-14353)
+* 修改Schema，Receive Time映射函数，使用common_ingestion_time作为默认值(TSG-14414)
+* 优化SQL语句校验功能(GAL-303)

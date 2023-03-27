@@ -2,10 +2,12 @@ package com.mesalab.services.controller;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.services.common.dsl.ComDSLValidate;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.EntityQueryType;
@@ -43,13 +45,13 @@ public class EntityController {
             log.debug("实体推荐接口, 参数: queryString is {},params is {}", param, dslObject);
             if (!EnumUtils.isValidEnum(EntityQueryType.class, StringUtil.upperCase(param))
                     || StringUtil.isNotEmpty(request.getParameter(param))) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"Not Support"));
             }
             comDSLValidate.validation(dslObject);
             return entityService.getEntityInfo(param, dslObject);
         }
-        throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "Not Support", null);
+        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"Not Support"));
     }
 }

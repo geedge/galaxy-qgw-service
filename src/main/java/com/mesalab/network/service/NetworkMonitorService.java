@@ -1,6 +1,6 @@
 package com.mesalab.network.service;
 
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.model.protocol.ProtocolTree;
 
@@ -21,5 +21,10 @@ public interface NetworkMonitorService {
     BaseResult buildNetworkOverviewResult(DSLObject dslObject);
     List<ProtocolTree> buildFlatStructure(List<Map> data);
     List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes);
+    BaseResult buildAppData(DSLObject dslObject);
+    BaseResult buildInternalIPData(DSLObject dslObject);
 
+    BaseResult buildAppDataRate(DSLObject dslObject);
+
+    BaseResult buildAppTraffic(DSLObject dslObject);
 }

@@ -1,7 +1,9 @@
 package com.mesalab.knowledge.enums;
 
+import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.EnumUtils;
 
 /**
  * 范围查询
@@ -21,7 +23,7 @@ public enum RangeEnum {
 
 
     EQ("eq", "==", true),
-    NE("ne", "<>", true),
+    NE("ne", "!=", true),
     LT("lt", "<", false),
     LE("le", "<=", false),
     GT("gt", ">", false),
@@ -43,4 +45,7 @@ public enum RangeEnum {
         return symmetric;
     }
 
+    public static String getSymbol(String type){
+        return  EnumUtils.getEnum(RangeEnum.class, StringUtil.upperCase(type)).getSymbol();
+    }
 }

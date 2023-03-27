@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "metric_dns_server_ip",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "stat_time",
+    "index_key": [
+      "stat_time",
+      "server_ip"
+    ]
+  },
+  "fields": [
+  ]
+}

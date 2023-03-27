@@ -1,11 +1,7 @@
 package com.mesalab.qgw.dialect;
 
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.zdjizhi.utils.StringUtil;
+import com.mesalab.common.entity.BaseResult;
 import lombok.Data;
-
-import java.util.Optional;
 
 @Data
 public abstract class AbstractEngineDialect implements Dialect {

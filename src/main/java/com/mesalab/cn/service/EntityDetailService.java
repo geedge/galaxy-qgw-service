@@ -1,7 +1,7 @@
 package com.mesalab.cn.service;
 
-import com.mesalab.cn.common.pojo.DSLObject;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.cn.entity.pojo.DSLObject;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.exception.BusinessException;
 
 /**

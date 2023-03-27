@@ -17,7 +17,10 @@
     {
       "name": "__time",
       "label": "Time",
-      "type": "string",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
@@ -26,17 +29,18 @@
       }
     },
     {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
       "name": "isp",
       "label": "ISP",
       "type": "string",
-      "doc": {
-        "visibility": "disabled"
-      }
-    },
-    {
-      "name": "entrance_id",
-      "label": "Entrance ID",
-      "type": "long",
       "doc": {
         "visibility": "disabled"
       }
@@ -108,6 +112,10 @@
           {
             "code": "edit_element",
             "value": "Edit Element"
+          },
+          {
+            "code": "run_script",
+            "value": "Run Script"
           }
         ],
         "visibility": "enabled"

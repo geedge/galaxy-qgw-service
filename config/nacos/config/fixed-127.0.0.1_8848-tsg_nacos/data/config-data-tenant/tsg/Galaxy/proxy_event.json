@@ -7,18 +7,15 @@
     "partition_key": "common_recv_time",
     "ttl": null,
     "default_ttl": 2592000,
-    "index_key": [
-      "common_log_id",
-      "common_recv_time",
-      "common_policy_id"
-    ],
+    "index_key": {
+      "$ref": "public_schema_info.json#/proxy_event/index_key"
+    },
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
       "dimensions": [
         "common_stream_trace_id",
-        "common_direction",
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
@@ -30,7 +27,7 @@
         "common_device_group",
         "common_address_type",
         "common_schema_type",
-        "common_action",
+        "common_vsys_id",
         "common_sub_action",
         "common_policy_id",
         "common_client_ip",
@@ -47,13 +44,16 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
+        "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
-        "common_l7_protocol",
         "common_protocol_label",
-        "common_service_category",
         "common_l4_protocol",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "http_host",
         "http_domain",
         "http_url",
@@ -78,12 +78,15 @@
         "doh_qclass"
       ],
       "metrics": [
+        "common_start_time",
+        "common_end_time",
         "common_device_id",
         "common_data_center",
         "common_sled_ip",
         "common_device_group",
         "common_address_type",
         "common_schema_type",
+        "common_vsys_id",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -101,12 +104,13 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
+        "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
-        "common_l7_protocol",
         "common_protocol_label",
-        "common_service_category",
         "common_l4_protocol",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -154,7 +158,6 @@
       ],
       "filters": [
         "common_stream_trace_id",
-        "common_direction",
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
@@ -168,6 +171,7 @@
         "common_device_group",
         "common_address_type",
         "common_schema_type",
+        "common_vsys_id",
         "common_action",
         "common_sub_action",
         "common_policy_id",
@@ -185,13 +189,17 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
+        "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
-        "common_l7_protocol",
         "common_protocol_label",
         "common_service_category",
         "common_l4_protocol",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
         "common_c2s_byte_num",
@@ -235,7 +243,6 @@
         "doh_ancount",
         "doh_nscount",
         "doh_arcount",
-        "doh_qname",
         "doh_qtype",
         "doh_qclass",
         "doh_sub",
@@ -252,6 +259,10 @@
           "common_stream_trace_id",
           "common_address_type",
           "common_schema_type",
+          "common_vsys_id",
+          "common_t_vsys_id",
+          "common_flags",
+          "common_flags_identify_info",
           "common_direction",
           "common_stream_dir",
           "common_start_time",
@@ -274,7 +285,8 @@
           "common_sub_action",
           "common_policy_id",
           "common_user_tags",
-          "common_user_region"
+          "common_user_region",
+          "common_shaping_rule_ids"
         ],
         "source": [
           "common_client_ip",
@@ -292,10 +304,13 @@
           "common_external_ip",
           "common_server_port",
           "common_server_location",
-          "common_server_asn"
+          "common_server_asn",
+          "common_server_fqdn",
+          "common_server_domain"
         ],
         "application": [
           "common_app_id",
+          "common_app_full_path",
           "common_userdefine_app_name",
           "common_app_identify_info",
           "common_app_label",
@@ -340,6 +355,8 @@
           "common_address_list",
           "common_has_dup_traffic",
           "common_stream_error",
+          "common_tunnel_endpoint_a_desc",
+          "common_tunnel_endpoint_b_desc",
           "common_link_info_c2s",
           "common_link_info_s2c",
           "common_packet_capture_file"
@@ -370,9 +387,13 @@
     "internal_columns": [
       "common_recv_time",
       "common_log_id",
-      "common_processing_time",
-      "common_ingestion_time",
+      "common_sessions",
+      "common_flags_identify_info",
+      "common_app_identify_info",
       "common_packet_capture_file",
+      "common_tunnel_endpoint_a_desc",
+      "common_tunnel_endpoint_b_desc",
+      "http_domain",
       "http_request_body",
       "http_response_body"
     ],
@@ -391,15 +412,20 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_log_id",
       "label": "Log ID",
       "doc": {
-        "format": {
-          "functions": "snowflake_id"
-        },
+        "format": [
+          {
+            "function": "snowflake_id"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -457,10 +483,16 @@
         "constraints": {
           "type": "ip"
         },
-        "format": {
-          "functions": "geo_asn,radius_match",
-          "appendTo": "common_client_asn,common_subscriber_id"
-        },
+        "format": [
+          {
+            "function": "geo_asn",
+            "appendTo": "common_client_asn"
+          },
+          {
+            "function": "radius_match",
+            "appendTo": "common_subscriber_id"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -473,10 +505,12 @@
         "constraints": {
           "type": "ip"
         },
-        "format": {
-          "functions": "if",
-          "param": "$.common_direction=69,$.common_client_ip,$.common_server_ip"
-        },
+        "format": [
+          {
+            "function": "if",
+            "param": "$.common_direction=69,$.common_client_ip,$.common_server_ip"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -529,10 +563,12 @@
         "constraints": {
           "type": "ip"
         },
-        "format": {
-          "functions": "geo_asn",
-          "appendTo": "common_server_asn"
-        },
+        "format": [
+          {
+            "function": "geo_asn",
+            "appendTo": "common_server_asn"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -554,10 +590,12 @@
         "constraints": {
           "type": "ip"
         },
-        "format": {
-          "functions": "if",
-          "param": "$.common_direction=73,$.common_client_ip,$.common_server_ip"
-        },
+        "format": [
+          {
+            "function": "if",
+            "param": "$.common_direction=73,$.common_client_ip,$.common_server_ip"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -592,7 +630,7 @@
             "value": "Manipulation"
           },
           {
-            "code": "128",
+            "code": "96",
             "value": "Allow"
           }
         ],
@@ -618,7 +656,7 @@
             "value": "inbound"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -681,13 +719,36 @@
       "type": "string"
     },
     {
+      "name": "common_server_fqdn",
+      "label": "Server FQDN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_server_domain",
+      "label": "Server Domain",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "common_sessions",
       "label": "Sessions",
       "doc": {
-        "format": {
-          "functions": "set_value",
-          "param": "1"
+        "constraints": {
+          "type": "decimal"
         },
+        "format": [
+          {
+            "function": "set_value",
+            "param": "1"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -697,6 +758,9 @@
       "name": "common_c2s_pkt_num",
       "label": "Packets Sent",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -706,6 +770,9 @@
       "name": "common_s2c_pkt_num",
       "label": "Packets Received",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -715,6 +782,9 @@
       "name": "common_c2s_byte_num",
       "label": "Bytes Sent",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -724,6 +794,9 @@
       "name": "common_s2c_byte_num",
       "label": "Bytes Received",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -733,6 +806,9 @@
       "name": "common_c2s_pkt_diff",
       "label": "Packets Sent (Delta)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "disabled",
         "ttl": null
       },
@@ -742,6 +818,9 @@
       "name": "common_s2c_pkt_diff",
       "label": "Packets Received (Delta)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "disabled",
         "ttl": null
       },
@@ -751,6 +830,9 @@
       "name": "common_c2s_byte_diff",
       "label": "Bytes Sent (Delta)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "disabled",
         "ttl": null
       },
@@ -760,6 +842,9 @@
       "name": "common_s2c_byte_diff",
       "label": "Bytes Received (Delta)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "disabled",
         "ttl": null
       },
@@ -792,6 +877,55 @@
           }
         ],
         "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "common_t_vsys_id",
+      "label": "Traffic Vsys ID",
+      "doc": {
+        "allow_query": "false",
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_flags",
+      "label": "Flags",
+      "doc": {
+        "constraints": {
+          "type": "bit",
+          "operator_functions": "=,!=,bitAnd"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/common_flags/data"
+        },
+        "allow_query": "false",
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "bit"
+      }
+    },
+    {
+      "name": "common_flags_identify_info",
+      "label": "Flags Identify Info",
+      "doc": {
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -844,6 +978,10 @@
           {
             "code": "edit_element",
             "value": "Edit Element"
+          },
+          {
+            "code": "run_script",
+            "value": "Run Script"
           }
         ],
         "visibility": "enabled",
@@ -859,6 +997,22 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "common_shaping_rule_ids",
+      "label": "Shaping Rule IDs",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "int",
+        "logicalType": "array"
+      }
     },
     {
       "name": "common_device_id",
@@ -901,11 +1055,18 @@
       "label": "Device Tag",
       "doc": {
         "visibility": "hidden",
-        "format": {
-          "functions": "flattenSpec,flattenSpec",
-          "appendTo": "common_data_center,common_device_group",
-          "param": "$.tags[?(@.tag=='data_center')].value,$.tags[?(@.tag=='device_group')].value"
-        },
+        "format": [
+          {
+            "function": "flattenSpec",
+            "appendTo": "common_data_center",
+            "param": "$.tags[?(@.tag=='data_center')].value"
+          },
+          {
+            "function": "flattenSpec",
+            "appendTo": "common_device_group",
+            "param": "$.tags[?(@.tag=='device_group')].value"
+          }
+        ],
         "ttl": null
       },
       "type": "string"
@@ -982,7 +1143,14 @@
       "label": "Tunnels",
       "doc": {
         "visibility": "hidden",
-        "ttl": null
+        "ttl": null,
+        "format": [
+          {
+            "function": "gtpc_match",
+            "appendTo": "common_imsi,common_imei,common_phone_number",
+            "param": "$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_b2a_teid"
+          }
+        ]
       },
       "type": "string"
     },
@@ -998,6 +1166,15 @@
     {
       "name": "common_app_id",
       "label": "Application ID",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      }
+    },
+    {
+      "name": "common_app_full_path",
+      "label": "Application Full Path",
       "type": "string",
       "doc": {
         "visibility": "hidden",
@@ -1045,7 +1222,7 @@
       "label": "FQDN Category",
       "doc": {
         "constraints": {
-          "operator_functions": "has"
+          "operator_functions": "has,notEmpty,empty"
         },
         "dict_location": {
           "path": "/v1/category/dict",
@@ -1057,43 +1234,47 @@
       },
       "type": {
         "type": "array",
-        "items": "int"
+        "items": "int",
+        "logicalType": "array"
       }
     },
     {
       "name": "common_start_time",
       "label": "Start Time",
       "doc": {
-        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         },
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_end_time",
       "label": "End Time",
       "doc": {
-        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
-        },
-        "format": {
-          "functions": "get_value",
-          "appendTo": "common_recv_time"
         },
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_establish_latency_ms",
       "label": "TCP Handshake Latency (ms)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1103,6 +1284,9 @@
       "name": "common_con_duration_ms",
       "label": "Duration (ms)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1110,7 +1294,7 @@
     },
     {
       "name": "common_stream_dir",
-      "label": "Stream Direction",
+      "label": "Stream Direction(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -1207,9 +1391,30 @@
       "type": "string"
     },
     {
+      "name": "common_tunnel_endpoint_a_desc",
+      "label": "Tunnel Endpoint A Description",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_tunnel_endpoint_b_desc",
+      "label": "Tunnel Endpoint B Description",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "common_c2s_ipfrag_num",
       "label": "Fragmentation Packets (c2s)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1219,6 +1424,9 @@
       "name": "common_s2c_ipfrag_num",
       "label": "Fragmentation Packets (s2c)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1228,6 +1436,9 @@
       "name": "common_c2s_tcp_lostlen",
       "label": "Sequence Gap Loss (c2s)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1237,6 +1448,9 @@
       "name": "common_s2c_tcp_lostlen",
       "label": "Sequence Gap Loss (s2c)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1246,6 +1460,9 @@
       "name": "common_c2s_tcp_unorder_num",
       "label": "Unordered Packets (c2s)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1255,6 +1472,9 @@
       "name": "common_s2c_tcp_unorder_num",
       "label": "Unordered Packets (s2c)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1264,6 +1484,9 @@
       "name": "common_c2s_pkt_retrans",
       "label": "Packet Retransmission (c2s)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1273,6 +1496,9 @@
       "name": "common_s2c_pkt_retrans",
       "label": "Packet Retransmission (s2c)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1282,6 +1508,9 @@
       "name": "common_c2s_byte_retrans",
       "label": "Byte Retransmission (c2s)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1291,6 +1520,9 @@
       "name": "common_s2c_byte_retrans",
       "label": "Byte Retransmission (s2c)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1318,6 +1550,9 @@
       "name": "common_first_ttl",
       "label": "First TTL",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1330,13 +1565,18 @@
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "current_timestamp"
-        },
+        "format": [
+          {
+            "function": "current_timestamp"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_ingestion_time",
@@ -1345,19 +1585,31 @@
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "ingestion_time"
-        },
+        "format": [
+          {
+            "function": "ingestion_time"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_recv_time"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_mirrored_pkts",
       "label": "Mirrored Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       }
@@ -1367,6 +1619,9 @@
       "label": "Mirrored Bytes",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden",
         "ttl": null
       }
@@ -1384,10 +1639,20 @@
       "name": "http_host",
       "label": "HTTP.Host",
       "doc": {
-        "format": {
-          "functions": "sub_domain",
-          "appendTo": "http_domain"
-        },
+        "format": [
+          {
+            "function": "sub_domain",
+            "appendTo": "http_domain"
+          },
+          {
+            "function": "sub_domain",
+            "appendTo": "common_server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_server_fqdn"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1395,7 +1660,7 @@
     },
     {
       "name": "http_domain",
-      "label": "HTTP.Domain",
+      "label": "HTTP.Domain(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1630,6 +1895,9 @@
       "name": "http_response_latency_ms",
       "label": "HTTP.Response Latency (ms)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1639,6 +1907,9 @@
       "name": "http_session_duration_ms",
       "label": "HTTP.Session Duration (ms)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1648,6 +1919,9 @@
       "name": "http_action_file_size",
       "label": "HTTP.Action File Size",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1862,6 +2136,9 @@
       "name": "doh_qdcount",
       "label": "DoH.QDCOUNT",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1871,6 +2148,9 @@
       "name": "doh_ancount",
       "label": "DoH.ANCOUNT",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1880,6 +2160,9 @@
       "name": "doh_nscount",
       "label": "DoH.NSCOUNT",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1889,6 +2172,9 @@
       "name": "doh_arcount",
       "label": "DoH.ARCOUNT",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2109,6 +2395,9 @@
       "name": "rdp_certificate_count",
       "label": "RDP.Certificate Count",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden",
         "ttl": null
       },

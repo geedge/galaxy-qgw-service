@@ -2,6 +2,7 @@ package com.mesalab.qgw.service;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -35,7 +36,7 @@ public class TopEntityTest extends GalaxyQGWApplicationTests {
             String[] split = StrUtil.split(s, "\t");
             Map<String, Object> map = new HashMap<>(16);
             if (split.length >= 2) {
-                map.put("sessions", split[1]);
+                map.put("sessions", NumberUtil.isLong(split[1]) ? split[1] : "0");
             }
             if (split.length >= 1) {
                 map.put("ssl_sni", split[0]);
@@ -58,6 +59,24 @@ public class TopEntityTest extends GalaxyQGWApplicationTests {
     public void testE21SNIOutput() {
         Stopwatch stopwatch = Stopwatch.createStarted();
         entityService.mergeSNI(getEntityData("E21-SNI-Top200w.txt"));
+        stopwatch.stop();
+        long millis = stopwatch.elapsed(MILLISECONDS);
+        log.info("time:{} ms", millis);
+    }
+
+    @Test
+    public void testE21SNI20221011Output() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        entityService.mergeSNI(getEntityData("E21-SNI-Top3W-20221011.txt"));
+        stopwatch.stop();
+        long millis = stopwatch.elapsed(MILLISECONDS);
+        log.info("time:{} ms", millis);
+    }
+
+    @Test
+    public void testE21SNI20221020Output() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        entityService.mergeSNI(getEntityData("E21-SNI-Top120W-20221020.txt"));
         stopwatch.stop();
         long millis = stopwatch.elapsed(MILLISECONDS);
         log.info("time:{} ms", millis);

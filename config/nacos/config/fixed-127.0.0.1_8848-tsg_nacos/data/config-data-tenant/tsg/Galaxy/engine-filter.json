@@ -31,7 +31,7 @@
         "common_stream_trace_id=1153021139190754263",
         "common_tcp_client_isn=2857077935",
         "common_tcp_server_isn=0",
-        "http_domain='microsoft.com'",
+        "common_server_domain='microsoft.com'",
         "mail_account='abc@xx.com'",
         "mail_subject='test'",
         "dns_qname='qbwup.imtt.qq.com'",
@@ -41,12 +41,12 @@
         "common_client_ip='36.189.226.21' and common_server_ip='8.8.8.8'",
         "common_server_ip='111.10.53.14' and common_server_port=443",
         "mail_account like 'abc@%'",
-        "http_domain like '%baidu.com%'",
+        "common_server_domain like '%baidu.com%'",
         "ssl_sni like '%youdao.com'",
         "common_client_ip in ('36.189.226.21','111.10.53.14')",
         "common_server_port not in (80,443)",
-        "notEmpty(http_domain)",
-        "http_domain not like '%microsoft.com'"
+        "notEmpty(common_server_domain)",
+        "common_server_domain not like '%microsoft.com'"
       ]
     }
   ]

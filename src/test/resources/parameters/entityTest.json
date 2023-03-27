@@ -1,0 +1,132 @@
+{
+  "activeClientIp": {
+    "clientId": null,
+    "query": {
+      "dataEngine": "BusinessEngine",
+      "dataSource": "session_record",
+      "limit": "10000",
+      "parameters": {
+        "match": [
+          {
+            "type": "exactly",
+            "fieldKey": "common_app_label",
+            "fieldValues": [
+              "Freegate"
+            ]
+          }
+        ],
+        "range": [
+          {
+            "type": "eq",
+            "fieldKey": "common_vsys_id",
+            "fieldValues": [
+              1
+            ]
+          }
+        ],
+        "intervals": [
+          "2020-08-15T00:00:00.865Z/2022-08-15T00:30:00.865Z"
+        ]
+      }
+    }
+  },
+  "topServerIp": {
+    "clientId": null,
+    "query": {
+      "dataEngine": "BusinessEngine",
+      "dataSource": "session_record",
+      "limit": "10000",
+      "parameters": {
+        "range": [
+          {
+            "type": "eq",
+            "fieldKey": "common_vsys_id",
+            "fieldValues": [
+              1
+            ]
+          }
+        ],
+        "intervals": [
+          "2020-08-15T00:00:00Z/2022-08-16T00:00:00Z"
+        ]
+      }
+    }
+  },
+  "topSni": {
+    "clientId": null,
+    "query": {
+      "dataEngine": "BusinessEngine",
+      "dataSource": "session_record",
+      "limit": "10000",
+      "parameters": {
+        "range": [
+          {
+            "type": "eq",
+            "fieldKey": "common_vsys_id",
+            "fieldValues": [
+              1
+            ]
+          }
+        ],
+        "intervals": [
+          "2020-08-15T00:00:00.865+08:00/2022-08-16T00:00:00.865+08:00"
+        ]
+      }
+    }
+  },
+  "subScriberidPool": {
+    "clientId":null,
+    "query":{
+      "dataEngine":"AnalysisEngine",
+      "dataSource":"SUBSCRIBER_ID_VIEW",
+      "parameters":{
+        "match":[
+          {
+            "type":"exactly",
+            "fieldKey":"SUBSCRIBER_ID",
+            "fieldValues":[
+              "test01",
+              "test02"
+            ]
+          }
+        ],
+        "range":[
+          {
+            "type":"eq",
+            "fieldKey":"vsys_id",
+            "fieldValues":[
+              1
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "gtpc": {
+    "clientId":null,
+    "query":{
+      "dataEngine":"AnalysisEngine",
+      "dataSource":"gtpc_knowledge_base",
+      "parameters":{
+        "match":[
+          {
+            "type":"prefix",
+            "fieldKey":"phone_number",
+            "fieldValues":[
+              "1761041"
+            ]
+          }
+        ],
+        "range":[
+          {
+            "type":"eq",
+            "fieldKey":"vsys_id",
+            "fieldValues":[
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

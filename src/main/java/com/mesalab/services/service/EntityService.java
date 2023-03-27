@@ -1,6 +1,6 @@
 package com.mesalab.services.service;
 
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.services.common.dsl.ComDSLObject;
 
 import java.util.List;
@@ -14,7 +14,7 @@ public interface EntityService {
      *
      * @param param
      * @param dslObject
-     * @return {@link com.mesalab.common.base.BaseResult}
+     * @return {@link com.mesalab.common.entity.BaseResult}
      * @created by wWei
      * @date 2022/6/21 4:41 下午
      */

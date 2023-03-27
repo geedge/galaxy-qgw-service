@@ -1,5 +1,7 @@
 package com.mesalab.knowledge.service;
 
+import cn.hutool.core.date.DateException;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,29 +12,40 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.common.base.Splitter;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.entity.*;
 import com.mesalab.knowledge.enums.DataSourceEnum;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
+import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.mesalab.knowledge.strategy.QueryProvider;
-import com.zdjizhi.utils.DateUtils;
+import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
 import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-
 import java.io.IOException;
+import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import static java.util.Objects.*;
 
@@ -43,12 +56,14 @@ import static java.util.Objects.*;
  **/
 @Service
 public class KnowledgeService {
+
     private static final Log log = LogFactory.get();
     @Value("${arango.maxrows}")
     private String maxrows;//查询最大条数
 
     @Autowired
     Map<String, QueryProvider> provider = new ConcurrentHashMap<>();
+
 
     public BaseResult query(Object object) {
         //1.结构校验
@@ -71,11 +86,20 @@ public class KnowledgeService {
      **/
     private void validate(DSLObject dSLObject) {
         DSLObject.DSLQuery dslQuery = dSLObject.getQuery();
-        requireNonNull(dslQuery, "query is null");
-        Parameters parameters = dslQuery.getParameters();
 
-        requireNonNull(dslQuery.getDataSource(), "dataSource is null");
-        requireNonNull(EnumUtils.getEnum(DataSourceEnum.class,StringUtil.upperCase(dslQuery.getDataSource())), "dataSource no match");
+        if (ObjectUtils.isEmpty(dslQuery)){
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.QUERY_IS_INVALID));
+        }
+        Parameters parameters = dslQuery.getParameters();
+        if (ObjectUtils.isEmpty(dslQuery.getDataSource())){
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.DATASOURCE_IS_INVALID));
+        }
+        if (ObjectUtils.isEmpty(EnumUtils.getEnum(DataSourceEnum.class,StringUtil.upperCase(dslQuery.getDataSource())))){
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.DATASOURCE_IS_ERROR));
+        }
 
         if (isNull(parameters)) {
             return;
@@ -88,41 +112,64 @@ public class KnowledgeService {
         String limit = parameters.getLimit();
         if (!ObjectUtils.isEmpty(matchs)) {
             matchs.forEach(m -> {
-                Validate.isTrue(EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(m.getType())), "match type is illegal");
+                if (!EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(m.getType()))){
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.MATCH_TYPE_ERROR));
+                }
                 //正则匹配方式 禁止 $xxx* 形式的value
                 if (MatchEnum.REGEX.getType().equals(m.getType())) {
                     m.getFieldValues().forEach(mv -> {
-                        Validate.isTrue(!(String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*")), "error in matching sign. begin with * and do not end with * for suffix matching, end with * and do not begin with $ or * for prefix matching, begin with $ and do not end with * for exactly matching, begin with * and end with * or no wildcard for substring matching");
+                        if((String.valueOf(mv).startsWith("$") && String.valueOf(mv).endsWith("*"))){
+                            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.MATCHING_SIGN));
+                        }
                     });
                 }
             });
         }
         if (!ObjectUtils.isEmpty(ranges)) {
             ranges.forEach(r -> {
-                Validate.isTrue(EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(r.getType())), "range type is illegal");
+                if (!EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(r.getType()))){
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.RANGE_TYPE_ERROR));
+                }
             });
         }
         if (!ObjectUtils.isEmpty(sorts)) {
             sorts.forEach(s -> {
-                Validate.isTrue("asc".equalsIgnoreCase(s.getType()) || "desc".equalsIgnoreCase(s.getType()), "sort type is illegal");
+                if (!("asc".equalsIgnoreCase(s.getType()) || "desc".equalsIgnoreCase(s.getType()))){
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.SORT_TYPE_ERROR));
+                }
             });
         }
         if (!ObjectUtils.isEmpty(intervals)) {
-            List<String> times = Splitter.on("/").splitToList(intervals.get(0));
-            Validate.notEmpty(times, "intervals should be [startTime/endTime],such as 2020-01-01 00:00:00/2020-02-02 00:00:00");
-            Validate.isTrue(times.size() == 2, "intervals should be [startTime/endTime],such as 2020-01-01 00:00:00/2020-02-02 00:00:00");
-            Validate.notBlank(times.get(0), "start time is null");
-            Validate.notBlank(times.get(1), "end time is null");
-            Date start = DateUtils.convertStringToDate(times.get(0), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-            Date end = DateUtils.convertStringToDate(times.get(1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-            Validate.isTrue(start.before(end), "the end time must be after the start time");
+            try {
+                List<String> times = Splitter.on("/").splitToList(intervals.get(0));
+                if (ObjectUtils.isEmpty(times) || times.size() != 2) {
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.INTERVALS_IS_INVALID));
+                }
+                for (String dateTimeStr : times) {
+                    DateUtil.parse(dateTimeStr);
+                }
+            } catch (DateException e) {
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
+            }
         }
         if (nonNull(limit)) {
             List<String> limits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(limit);
-            Validate.notEmpty(limits, "limit is illegal");
-            Validate.isTrue(!(limit.contains(",") && limits.size() != 2), "limit is illegal");
+            if (ObjectUtils.isEmpty(limits) || (limit.contains(",") && limits.size() != 2)){
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.LIMIT_IS_ILLEGAL));
+            }
+
             for (String l : limits) {
-                Validate.isTrue(l.length() <= maxrows.length() && Integer.valueOf(maxrows) >= Integer.valueOf(l) && Integer.valueOf(l) > 0, "limit is greater than 0 and less than " + maxrows);
+                if (!(l.length() <= maxrows.length() && Integer.valueOf(maxrows) >= Integer.valueOf(l) && Integer.valueOf(l) > 0)){
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), String.format(KnowLedgeErrorMessage.LIMIT_IS_ILLEGAL,maxrows)));
+                }
             }
         }
     }
@@ -154,9 +201,9 @@ public class KnowledgeService {
             //判断校验是否成功，如果为true成功
             Validate.isTrue(processingReport.isSuccess(), sb.toString());
         } catch (ProcessingException e) {
-            log.error(e.getMessage());
+            log.error(e);
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error(e);
         }
     }
 

@@ -8,22 +8,23 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.constant.MessageConst;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
@@ -54,7 +55,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Autowired
     private NacosConfig nacosConfig;
     @Autowired
-    private ConfigService configService;
+    private ConfigService systemConfigService;
     @Autowired
     private ConfigService pubConfigService;
     @Autowired
@@ -65,6 +66,8 @@ public class MetadataServiceImpl implements MetadataService {
     public MetadataConfig metadataConfig;
     @Autowired
     Environment environment;
+    @NacosValue(value = "${switch.version.schema}", autoRefreshed = true)
+    private String schemaVersion;
 
     private Map<String, Schema> schemaCache = Maps.newHashMap();
     private Map<String, Object> originalCache = Maps.newHashMap();
@@ -72,6 +75,7 @@ public class MetadataServiceImpl implements MetadataService {
     private final static String KEY = "key";
     private final static String VALUE = "value";
     private final static String CODE = "code";
+    private final static String INDEX_KEY = "index_key";
 
     @PostConstruct
     public void init() {
@@ -80,13 +84,14 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     @Override
-    public Map<String, Object> getSchemaInfo(String type, String name) {
+    public Map<String, Object> getSchemaInfo(String type, String name, boolean displayStorageSize) {
         if (MetadataTypeEnum.TABLES.getValue().equals(type)) {
             return loadTables(name);
         } else if (MetadataTypeEnum.FIELDS.getValue().equals(type)) {
-            return loadFields(name);
+            return loadFields(name, displayStorageSize);
         }
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+        throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_URL_NOT_FOUND));
     }
 
     @Override
@@ -103,14 +108,13 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Override
     public List<String> getIndexKey(String tableName) {
-        List<String> indexKey = Lists.newArrayList();
-        Schema schema = getSchemaByName(tableName);
-        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
-        if (StringUtil.isNotEmpty(doc)) {
-            Object partition_key = doc.get("index_key");
-            indexKey = StringUtil.isEmpty(partition_key) ? indexKey : (List<String>) partition_key;
+        Map schemaJsonMap = loadFields(tableName, false);
+        if (StringUtil.isEmpty(schemaJsonMap) || StringUtil.isEmpty(schemaJsonMap.get("doc"))) {
+            return Lists.newArrayList();
         }
-        return indexKey;
+        Map doc = (Map) schemaJsonMap.get("doc");
+        Object indexKey = doc.get(INDEX_KEY);
+        return StringUtil.isEmpty(indexKey) ? Lists.newArrayList() : (List<String>) indexKey;
     }
 
     @Override
@@ -184,22 +188,24 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public Schema getSchemaByName(String tableName) {
         if (!getAllTable().contains(tableName)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(),
-                    ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(),
-                    tableName + " The schema is not registered on the platform, please contact the person in charge of the data platform", null);
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
+                    ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),
+                    tableName + ":"+QGWMessageConst.TABLE_NOT_EXIST));
         }
         Schema schema;
         if (!StrUtil.isBlankIfStr(schema = schemaCache.get(tableName))) {
             return schema;
         }
         try {
-            String content = configService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
+            String content = systemConfigService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
             if (StrUtil.isBlankIfStr(content)) {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), tableName + " Get Schema configuration exception", null);
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                        ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),tableName + ":"+QGWMessageConst.QUERY_SCHEMA_ERROR));
             }
             schemaCache.put(tableName, schema = parseSchema(content));
-            configService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
+            systemConfigService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
@@ -216,19 +222,20 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public BaseResult updateSchema(String name, Map<String, Object> paramMap) {
         try {
-            String content = configService.getConfig(name.concat(".json"), nacosConfig.getGroup(), 3000);
+            String content = systemConfigService.getConfig(name.concat(".json"), nacosConfig.getGroup(), 3000);
             updateSchema(name, paramMap, content);
             String indexTable = getValueByKeyInSchemaDoc(name, "index_table");
             if (StringUtil.isNotBlank(indexTable)) {
                 List<String> list = Splitter.on(",").omitEmptyStrings().splitToList(indexTable);
                 for (String item : list) {
-                    String config = configService.getConfig(item.concat(".json"), nacosConfig.getGroup(), 3000);
+                    String config = systemConfigService.getConfig(item.concat(".json"), nacosConfig.getGroup(), 3000);
                     updateSchema(item, paramMap, config);
                 }
             }
             return BaseResultGenerator.success4Message("ok");
         } catch (NacosException e) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.ENGINE_PARSE_ERROR.getCode(), e.getMessage());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    e.getMessage());
         }
     }
 
@@ -239,16 +246,21 @@ public class MetadataServiceImpl implements MetadataService {
             List<Map<String, Object>> fields = (List<Map<String, Object>>) data.get("fields");
             List<String> indexKey = getIndexKey(name);
             for (Map<String, Object> field : fields) {
-                if (!indexKey.contains(field.get("name"))) {
+                if (indexKey.contains(field.get("name"))) {
+                    Map<String, Object> ttlNull = Maps.newHashMap();
+                    ttlNull.put("ttl", null);
+                    field.put("doc", rewriteDoc("ttl", field.get("doc"), ttlNull));
+                } else {
                     field.put("doc", rewriteDoc("ttl", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
                 }
                 field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
             }
             content = JSONUtil.toJsonStr(JSONUtil.parseObj(data));
             log.info("push Schema, content is: {}", content);
-            return configService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
+            return systemConfigService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), "get Schema Error");
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),QGWMessageConst.QUERY_SCHEMA_ERROR));
         }
     }
 
@@ -288,7 +300,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     private void addMetadataListener() {
         try {
-            configService.addListener(NacosConst.META_DATA_ID, nacosConfig.getGroup(), new AbstractListener() {
+            systemConfigService.addListener(NacosConst.META_DATA_ID, nacosConfig.getGroup(), new AbstractListener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo metadata {}", configInfo);
@@ -300,10 +312,10 @@ public class MetadataServiceImpl implements MetadataService {
         }
     }
 
-    private Map loadFields(String name) {
+    private Map loadFields(String name, boolean displayStorageSize) {
         Schema schema = getSchemaByName(name);
         if (StringUtil.isEmpty(schema)) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), QGWMessageConst.SCHEMA_URL_NOT_FOUND);
         }
         Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
         Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
@@ -311,8 +323,11 @@ public class MetadataServiceImpl implements MetadataService {
                 StringUtil.isNotEmpty(schema.getDoc())) {
             log.error("{} schema's doc isn't jsonString and won't convert: {}", name, schema.getDoc());
         }
-        List<Map> data = getStorageSize(name);
-        schemaDoc = fillSchemaStorageSize(schemaDoc, data);
+        List<Map> data = Lists.newArrayList();
+        if (displayStorageSize) {
+            data = getStorageSize(name);
+            schemaDoc = fillSchemaStorageSize(schemaDoc, data);
+        }
         if (StringUtil.isNotEmpty(schemaDoc)) {
             resultMap.put("doc", schemaDoc);
         }
@@ -397,7 +412,11 @@ public class MetadataServiceImpl implements MetadataService {
             if (keyObj instanceof Map) {
                 Map mapValue = (Map) keyObj;
                 if (mapValue.containsKey(KEY_REF)) {
-                    map.put(mapKey, regexValue(getRefValue(cfgName, mapValue), mapValue));
+                    if (INDEX_KEY.equals(String.valueOf(mapKey))) {
+                        mapValue.put(KEY_REF, String.valueOf(mapValue.get(KEY_REF)).concat("/" + schemaVersion));
+                    }
+                    Object refValue = getRefValue(cfgName, mapValue);
+                    map.put(mapKey, regexValue(refValue, mapValue));
                 } else {
                     fillReference(mapValue, cfgName);
                 }
@@ -424,9 +443,9 @@ public class MetadataServiceImpl implements MetadataService {
                 originalCache.put(cfgName, content);
                 return content;
             }
-            content = configService.getConfig(cfgName, nacosConfig.getGroup(), 3000);
+            content = systemConfigService.getConfig(cfgName, nacosConfig.getGroup(), 3000);
             originalCache.put(cfgName, content);
-            configService.addListener(cfgName, nacosConfig.getGroup(), new AbstractListener() {
+            systemConfigService.addListener(cfgName, nacosConfig.getGroup(), new AbstractListener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
@@ -474,11 +493,11 @@ public class MetadataServiceImpl implements MetadataService {
             key.addAll(JsonPath.read(obj, map.get(KEY)));
             value.addAll(JsonPath.read(obj, map.get(VALUE)));
         } catch (RuntimeException ex) {
-            log.warn("parse reference schema error: JsonPath.read error", null);
+            log.warn("parse reference schema error: JsonPath.read error");
             return Lists.newArrayList();
         }
         if (key.size() != value.size()) {
-            log.warn("parse reference schema error: key and value non-correspondence", null);
+            log.warn("parse reference schema error: key and value non-correspondence");
             return Lists.newArrayList();
         }
         List<Map<String, Object>> list = Lists.newArrayList();
@@ -521,7 +540,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
         );
         if (tables.isEmpty()) {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), MessageConst.SCHEMA_URL_NOT_FOUND);
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), QGWMessageConst.SCHEMA_URL_NOT_FOUND);
         }
         date.put("type", "enum");
         date.put("name", name);

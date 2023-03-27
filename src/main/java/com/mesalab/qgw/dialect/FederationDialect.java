@@ -7,13 +7,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteMemoryUtils;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.DataTypeMapping;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.enums.QueryFormatEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.mesalab.qgw.model.api.udf.UDF;
@@ -124,10 +126,11 @@ public class FederationDialect extends AbstractEngineDialect{
             }
             log.debug("Calcite execute time :" + watch.elapsed().toMillis() / 1000 + "s");
 
-        } catch (BusinessException ex) {
+        } catch (RuntimeException ex) {
             log.error("Engine execute memory-query error:{}", ex);
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    ResultCodeEnum.ENGINE_STATISTICS_ERROR.getCode(), "Engine execute memory-query error：", ex);
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                    QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),ex.getMessage()));
         }
         return build();
     }
@@ -162,15 +165,12 @@ public class FederationDialect extends AbstractEngineDialect{
         List<Map<String, Object>> data = JsonPath.read(meta, "$");
         SQLQuerySource querySource = StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource();
         Map<String, String> groupDimension = querySource.getGroupDimension();
-        if (StringUtil.isEmpty(groupDimension)) {
-            return;
-        }
         for (Map<String, Object> map : data) {
             String field = String.valueOf(map.get("name"));
-            if (!groupDimension.containsKey(field) && !groupDimension.containsValue(field)) {
-                map.put("category", "Metric");
-            } else {
+            if (StringUtil.isNotEmpty(groupDimension) && ((groupDimension.containsKey(field) || groupDimension.containsValue(field)))) {
                 map.put("category", "Dimension");
+            } else {
+                map.put("category", "Metric");
             }
         }
     }
@@ -258,10 +258,12 @@ public class FederationDialect extends AbstractEngineDialect{
                 }
                 return setOperationList;
             } else {
-                throw new BusinessException("Only support selectBody operation: PlainSelect or SetOperationList");
+                throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
         }
-        throw new BusinessException("Only support statement operation as select");
+        throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
     }
 
     private Expression generateDatasetWhereSql(String where) throws JSQLParserException {

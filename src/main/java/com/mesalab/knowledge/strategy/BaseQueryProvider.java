@@ -9,6 +9,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.JwtCache;
+import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.JsonMapper;
 import org.apache.http.Header;
@@ -73,14 +74,15 @@ public class BaseQueryProvider {
         try {
             res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), header);
         } catch (BusinessException e) {
-            if (e.getErrorMessage() != null && e.getErrorMessage().contains("not authorized to execute this request")) {
+            if (e.getMessage() != null && e.getMessage().contains("not authorized to execute this request")) {
                 //刷新jwt
                 JwtCache.remove(Constant.ARANGO_CACHE_JWT);
                 log.warn("Arango jwt 失效后重置");
                 res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt()));
             } else {
-                log.error(e.getErrorMessage());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOW_ERROR.getCode(), e.getErrorMessage(), null);
+                log.error(e.getMessage());
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),e.getMessage()));
             }
         }
         Map jsonMap = (Map) JsonMapper.fromJsonString(res, Map.class);

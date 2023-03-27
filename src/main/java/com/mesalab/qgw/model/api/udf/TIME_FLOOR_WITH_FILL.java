@@ -27,6 +27,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
+import net.sf.jsqlparser.statement.select.OrderByElement;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -89,17 +90,19 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
     @Override
     public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
-        List<Map<String, Object>>  targetResult = null;
+        List<Map<String, Object>> targetResult = Lists.newArrayList();
         List<String> groupLabels = Lists.newArrayList();
         String timeGranLabel = null;
-
-
         try {
             Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
             if (results.isEmpty() || StringUtil.isBlank(fill) || StringUtil.isEmpty(groupDimension)) {
                 return results;
             }
-            for (String groupKey: groupDimension.keySet()) {
+            Map<String, Object> resultsFirst = (Map<String, Object>) results.get(0);
+            if (!groupDimension.keySet().stream().allMatch(resultsFirst::containsKey)) {
+                return results;
+            }
+            for (String groupKey : groupDimension.keySet()) {
                 if (groupDimension.get(groupKey).contains(name) &&
                         groupDimension.get(groupKey).contains(timestamp)) {
                     timeGranLabel = groupKey;
@@ -110,8 +113,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
 
             WhereTimeRange whereTimeRange = getWhereTimeRange(sqlQuerySource);
-            Date benchmarkDate = getBenchmarkDate((Map<String,Object>) results.get(0), timeGranLabel);
+            Date benchmarkDate = getBenchmarkDate(resultsFirst, timeGranLabel);
 
+            targetResult = fillResultBasedOnTimeSeries(results, groupLabels, timeGranLabel);
 
             List<Date> dateRangeList = null;
 
@@ -131,9 +135,8 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
             } else {
                 log.warn("The time range is empty [startTime:{},endTime:{}], so the time series data cannot be filled.", whereTimeRange.getStart(), whereTimeRange.getEnd());
-                return results;
+                return targetResult;
             }
-
             if (StringUtil.isNotEmpty(dateRangeList)
                     && !whereTimeRange.isMinorThanEquals()
                     && DateUtil.toInstant(DateUtils.convertStringToDate((whereTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS))
@@ -141,57 +144,92 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 dateRangeList.remove(dateRangeList.size() - 1);
             }
             if (StringUtil.isEmpty(dateRangeList)) {
-                return results;
+                return targetResult;
             }
-
-
-            int  maxSeriesNum =  engineConfigSource.getMaxCacheNum() / dateRangeList.size();
+            int maxSeriesNum = engineConfigSource.getMaxCacheNum() / dateRangeList.size();
             if (maxSeriesNum == 0) {
                 log.warn("初始时间范围超出系统设置，无法进行补全[getMaxCacheNum:{} - dateRangeNum:{}],补全功能无效!", engineConfigSource.getMaxCacheNum(), dateRangeList.size());
-                return results;
+                return targetResult;
             }
-
-
-            Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap =  ConvertUtil.convertResultListToTimeSeries(results,
+            Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap = ConvertUtil.convertResultListToTimeSeries(Lists.newArrayList(targetResult),
                     groupLabels, timeGranLabel);
-
-            int actualSeriesNum = maxSeriesNum > targetTimeSeriesMap.size() ? targetTimeSeriesMap.size() : maxSeriesNum;
-
+            int actualSeriesNum = Math.min(maxSeriesNum, targetTimeSeriesMap.size());
             if (actualSeriesNum > 0) {
-
                 Map<String, Map<String, Map<String, Object>>> limitTimeSeriesMap = Maps.newLinkedHashMap();
                 int i = 1;
-                for (Map.Entry<String, Map<String, Map<String, Object>>> entry: targetTimeSeriesMap.entrySet()) {
+                for (Map.Entry<String, Map<String, Map<String, Object>>> entry : targetTimeSeriesMap.entrySet()) {
                     limitTimeSeriesMap.put(entry.getKey(), entry.getValue());
                     if (++i > actualSeriesNum) {
                         break;
                     }
-
                 }
                 targetTimeSeriesMap.clear();
                 targetTimeSeriesMap.putAll(limitTimeSeriesMap);
             }
-
-            if(StringUtil.isNotEmpty(dateRangeList)){
-
+            if (StringUtil.isNotEmpty(dateRangeList)) {
                 for (String key : targetTimeSeriesMap.keySet()) {
-                    targetTimeSeriesMap.put(key,ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill.toString()));
+                    targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill.toString()));
                 }
             }
-
             targetResult = ConvertUtil.convertTimeSeriesToList(targetTimeSeriesMap, groupLabels, timeGranLabel);
+        } catch (Exception e) {
+            log.error("Parser function : TIME_FLOOR_WITH_FILL error :{} ", e.toString());
+            return results;
+        } finally {
             if (StringUtil.isNotBlank(sqlQuerySource.getLimit())
                     && !sqlQuerySource.getLimit().equalsIgnoreCase(SQLHelper.INVALID_LIMIT_DESC)
                     && targetResult.size() > Integer.parseInt(sqlQuerySource.getLimit())) {
                 targetResult = targetResult.subList(0, Integer.parseInt(sqlQuerySource.getLimit()));
             }
-
-        } catch (Exception e) {
-            log.error("Parser function : TIME_FLOOR_WITH_FILL error :{} ", e.toString());
-            return results;
         }
-
+        sortByTime(sqlQuerySource, targetResult, timeGranLabel);
         return targetResult;
+    }
+
+    private void sortByTime(SQLQuerySource sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
+        if(StringUtil.isEmpty(sqlQuerySource.getListOrderElement())){
+            return;
+        }
+        orderBy:
+        for (OrderByElement orderByElement : sqlQuerySource.getListOrderElement()) {
+            String orderBy = String.valueOf(orderByElement.getExpression());
+            if (orderBy.equals(timeGranLabel)) {
+                if (!orderByElement.isAsc()) {
+                    Collections.reverse(targetResult);
+                    break;
+                }
+            }
+            for (String key : sqlQuerySource.getAliasFields().keySet()) {
+                if (sqlQuerySource.getAliasFields().get(key).equalsIgnoreCase(orderBy)) {
+                    if (!orderByElement.isAsc()) {
+                        Collections.reverse(targetResult);
+                        break orderBy;
+                    }
+                }
+            }
+        }
+    }
+
+    private List<Map<String, Object>> fillResultBasedOnTimeSeries(List<Object> results, List<String> groupLabels, String timeGranLabel) {
+        Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap = ConvertUtil.convertResultListToTimeSeries(results,
+                groupLabels, timeGranLabel);
+        List<Date> dateRangeList = Lists.newArrayList();
+        for (String key : targetTimeSeriesMap.keySet()) {
+            Map<String, Map<String, Object>> stringMapMap = targetTimeSeriesMap.get(key);
+            for (String l : stringMapMap.keySet()) {
+                Date date = NumberUtil.isNumber(l) ? new Date(NumberUtil.parseLong(l) * 1000) : DateUtils.convertStringToDate(l, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+                if (!dateRangeList.contains(date)) {
+                    dateRangeList.add(date);
+                }
+            }
+        }
+        Collections.sort(dateRangeList);
+        if (StringUtil.isNotEmpty(dateRangeList)) {
+            for (String key : targetTimeSeriesMap.keySet()) {
+                targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill));
+            }
+        }
+        return ConvertUtil.convertTimeSeriesToList(targetTimeSeriesMap, groupLabels, timeGranLabel);
     }
 
 
@@ -248,46 +286,60 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             Expression left = whereOperator.getLeftExpression();
             Expression right = whereOperator.getRightExpression();
             if (partitionKey.equals(left.toString())) {
-                String query;
+                String value;
                 if (right instanceof StringValue) {
-                    query = ((StringValue) right).getValue();
+                    value = ((StringValue) right).getValue();
                 } else if (right instanceof LongValue) {
-                    query = right.toString();
+                    value = right.toString();
                 } else {
-                    query = SQLFunctionUtil.getQueryValue(right.toString(), dbType);
+                    value = SQLFunctionUtil.getQueryValue(right.toString(), dbType);
                 }
                 if (operator.contains("<")) {
-                    whereTimeRange.setEnd(query);
-                    whereTimeRange.setMinorThanEquals(operator.contains("="));
+                    bigValue(whereTimeRange, operator.contains("="), value);
                 } else if (operator.contains(">")) {
-                    whereTimeRange.setStart(query);
-                    whereTimeRange.setGreaterThanEquals(operator.contains("="));
+                    minValue(whereTimeRange, operator.contains("="), value);
                 }
             } else if (partitionKey.equals(right.toString())) {
-                String query;
-                if (left instanceof StringValue) {
-                    query = ((StringValue) right).getValue();
+                String value;
+                if (right instanceof StringValue) {
+                    value = ((StringValue) right).getValue();
                 } else if (left instanceof LongValue) {
-                    query = left.toString();
+                    value = left.toString();
                 } else {
-                    query = SQLFunctionUtil.getQueryValue(left.toString(), dbType);
+                    value = SQLFunctionUtil.getQueryValue(left.toString(), dbType);
                 }
                 if (operator.contains("<")) {
-                    whereTimeRange.setStart(query);
-                    whereTimeRange.setGreaterThanEquals(operator.contains("="));
+                    minValue(whereTimeRange, operator.contains("="), value);
                 } else if (operator.contains(">")) {
-                    whereTimeRange.setEnd(query);
-                    whereTimeRange.setMinorThanEquals(operator.contains("="));
+                    bigValue(whereTimeRange, operator.contains("="), value);
                 }
             }
         } else if (whereExpression instanceof Between) {
             Between whereBetween = (Between) whereExpression;
             Expression leftExpression = whereBetween.getLeftExpression();
             if (partitionKey.equals(leftExpression.toString())) {
-                whereTimeRange.setStart(whereBetween.getBetweenExpressionStart().toString());
-                whereTimeRange.setGreaterThanEquals(true);
-                whereTimeRange.setEnd(whereBetween.getBetweenExpressionEnd().toString());
-                whereTimeRange.setMinorThanEquals(true);
+                if (StringUtil.isNotEmpty(whereTimeRange.getStart())) {
+                    String old = whereTimeRange.getStart();
+                    String latest = getStrFormatDate(whereBetween.getBetweenExpressionStart().toString());
+                    int compare = DateUtil.compare(DateUtils.convertStringToDate(old, DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.convertStringToDate(latest, DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                    if (compare < 0) {
+                        whereTimeRange.setStart(latest);
+                    }
+                } else {
+                    whereTimeRange.setStart(whereBetween.getBetweenExpressionStart().toString());
+                    whereTimeRange.setGreaterThanEquals(true);
+                }
+                if (StringUtil.isNotEmpty(whereTimeRange.getEnd())) {
+                    String old = whereTimeRange.getEnd();
+                    String latest = getStrFormatDate(whereBetween.getBetweenExpressionEnd().toString());
+                    int compare = DateUtil.compare(DateUtils.convertStringToDate(old, DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.convertStringToDate(latest, DateUtils.YYYY_MM_DD_HH24_MM_SS));
+                    if (compare > 0) {
+                        whereTimeRange.setEnd(latest);
+                    }
+                } else {
+                    whereTimeRange.setEnd(whereBetween.getBetweenExpressionEnd().toString());
+                    whereTimeRange.setMinorThanEquals(true);
+                }
             }
         } else if (whereExpression instanceof AndExpression) {
             AndExpression whereAnd = (AndExpression) whereExpression;
@@ -304,6 +356,48 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         }
     }
 
+    private void bigValue(WhereTimeRange whereTimeRange, boolean isClosedInterval, String query) {
+        if (StringUtil.isEmpty(whereTimeRange.getEnd())) {
+            whereTimeRange.setEnd(query);
+            whereTimeRange.setMinorThanEquals(isClosedInterval);
+        } else {
+            String old = whereTimeRange.getEnd();
+            String latest = getStrFormatDate(query);
+            int compare = DateUtil.compare(DateUtils.convertStringToDate(old, DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.convertStringToDate(latest, DateUtils.YYYY_MM_DD_HH24_MM_SS));
+            if (compare > 0) {
+                whereTimeRange.setEnd(latest);
+                whereTimeRange.setMinorThanEquals(isClosedInterval);
+            }
+            if (compare == 0) {
+                whereTimeRange.setMinorThanEquals(isClosedInterval && whereTimeRange.isMinorThanEquals());
+            }
+        }
+    }
+
+    private void minValue(WhereTimeRange whereTimeRange, boolean isClosedInterval, String query) {
+        if (StringUtil.isEmpty(whereTimeRange.getStart())) {
+            whereTimeRange.setStart(query);
+            whereTimeRange.setGreaterThanEquals(isClosedInterval);
+        } else {
+            String old = whereTimeRange.getStart();
+            String latest = getStrFormatDate(query);
+            int compare = DateUtil.compare(DateUtils.convertStringToDate(old, DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.convertStringToDate(latest, DateUtils.YYYY_MM_DD_HH24_MM_SS));
+            if (compare < 0) {
+                whereTimeRange.setStart(latest);
+                whereTimeRange.setGreaterThanEquals(isClosedInterval);
+            }
+            if (compare == 0) {
+                whereTimeRange.setGreaterThanEquals(isClosedInterval && whereTimeRange.isGreaterThanEquals());
+            }
+        }
+    }
+
+    private String getStrFormatDate(String str) {
+        if (NumberUtil.isNumber(str)) {
+            return DateUtils.convertTimestampToString(NumberUtil.parseLong(str), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        }
+        return str;
+    }
 
     @Data
     private class WhereTimeRange {

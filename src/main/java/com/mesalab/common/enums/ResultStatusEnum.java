@@ -12,14 +12,14 @@ import lombok.Getter;
 public enum ResultStatusEnum {
     /**
      * SUCCESS: 200 成功
-     * FAIL: 400 失败
+     * BAD_REQUEST: 400 服务端无法理解该请求
      * NOT_FOUND： 404 不存在
      * SERVER_ERROR: 500 网络服务异常
      */
     SUCCESS(200, "Success"),
     CREATED(201, "Create"),
     ACCEPTED(202, "Accept"),
-    FAIL(400, "Fail"),
+    BAD_REQUEST(400, "Bad request"),
     NOT_FOUND(404, "Not found"),
     REQUEST_URI_TOO_LONG(414, "Request URI too long"),
     REQ_FORBIDDEN(403, "Repeat request"),

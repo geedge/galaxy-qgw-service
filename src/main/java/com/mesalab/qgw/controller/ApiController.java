@@ -1,7 +1,7 @@
 package com.mesalab.qgw.controller;
 
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
@@ -10,8 +10,6 @@ import com.zdjizhi.utils.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 
 @Slf4j

@@ -9,6 +9,11 @@
       "type": "string"
     },
     {
+      "name": "is_failed",
+      "label": "Failed",
+      "type": "boolean"
+    },
+    {
       "name": "is_done",
       "label": "Done",
       "type": "boolean"
@@ -34,8 +39,13 @@
       "type": "long"
     },
     {
-      "name": "discovery_field",
-      "label": "Discovery Field",
+      "name": "count",
+      "label": "Count",
+      "type": "long"
+    },
+    {
+      "name": "job_property",
+      "label": "Job Property",
       "type": "string"
     }
   ]

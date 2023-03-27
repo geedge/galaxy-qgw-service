@@ -1,0 +1,11 @@
+Release 363 (TSG-23.01)
+* 扩展Schema，新增公共描述字段common_app_full_path(TSG-12964)
+* 扩展DSL服务接口，时间参数intervals支持ISO8601格式(GAL-247)
+* 修改Schema，更新Live Charts Schema(TSG-12966)
+* 扩展Schema，新增公共字段common_server_fqdn、common_server_domain及子表session_record_common_server_domain(TSG-13193)
+* 完善Schema，补充GTP-C Record doc.schema_type GTP-C协议缺失字段(TSG-13265)
+* 扩展LiveChart，新增APP吞吐量时序图、流量统计接口(TSG-13203)
+* 修改Schema，安全日志展示common_flags字段(TSG-13290)
+* 修改Schema，对部分日志schema索引键顺序进行调整或完善
+* 完善OLAP Statistics统计，Group维度不在Select结果列时关闭分片模式(TSG-13367)
+* 完善OLAP Statistics统计，非重复结果统计count_distinct时关闭分片模式(TSG-13501)

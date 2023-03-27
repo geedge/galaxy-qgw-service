@@ -1,5 +1,5 @@
 package com.mesalab.services.service;
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 
 import java.util.HashMap;
 
@@ -30,6 +30,17 @@ public interface JobService {
      * @date 2021/11/24 5:40 下午
      */
     BaseResult getResultFieldDiscovery(String jobId);
+
+    /**
+     * Desc: 获取Statistics结果
+     *
+     * @param jobId
+     * @return {@link Object}
+     * @created by wWei
+     * @date 2021/11/24 5:40 下午
+     */
+    BaseResult getResultStatistics(String jobId);
+
 
     /**
      * Desc: 提交离线任务

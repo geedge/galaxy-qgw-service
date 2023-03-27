@@ -6,10 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
+
 @Slf4j
 @EnableAutoConfiguration
 public class IpLocationTest extends GalaxyQGWApplicationTests {
-
 
     @Test
     public void testIpToGeo() {

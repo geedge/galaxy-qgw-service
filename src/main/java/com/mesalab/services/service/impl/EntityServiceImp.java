@@ -12,14 +12,17 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mesalab.cn.common.constant.ErrorMessage;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.google.common.net.InternetDomainName;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.JsonMapper;
+import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.model.api.ApiParam;
@@ -39,7 +42,6 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
@@ -111,10 +113,11 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             int limit = StringUtil.isBlank(comDSLObject.getQuery().getLimit()) ? entityConfigSource.getTopSNIDefaultSize() : Integer.parseInt(comDSLObject.getQuery().getLimit());
             baseResult = build(limit, baseResult, baseResultTotal);
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), "No match queryType");
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), null);
+            BaseResult result = JsonMapper.fromJsonString(baseResult.getMessage(), BaseResult.class);
+            throw new QGWBusinessException(baseResult.getStatus(), baseResult.getCode(), result.getMessage());
         }
         return baseResult;
     }
@@ -180,85 +183,66 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     @Override
     public List<Map<String, Object>> mergeSNI(List<Map<String, Object>> data) {
         Map<String, List<String>> cdn = buildDomainHashTable(getCfgCDN());
-        Map<String, List<Map<String, Object>>> map = Maps.newHashMapWithExpectedSize(data.size() / 4);
-        List<Map<String, Object>> cdnFilter = Lists.newArrayList();
+        List<Map<String, Object>> dataRec = Lists.newArrayList();
+        Map<String, Map<String, Object>> dataSLD = Maps.newHashMap();
+        Map<String, Map<String, Object>> dataMerge = Maps.newHashMapWithExpectedSize(data.size() / 4);
         Iterator<Map<String, Object>> iterator = data.iterator();
         while (iterator.hasNext()) {
             Map<String, Object> datum = iterator.next();
-            String name = String.valueOf(datum.get("ssl_sni"));
-            String key = getTopPrivateDomain(name);
-            datum.put("isCDN", false);
-
-            //1. filter exception data
-            if (StringUtil.isBlank(key)) {
-                map.put(name, Lists.newArrayList(datum));
+            String value = String.valueOf(datum.get("ssl_sni"));
+            if (StringUtil.isBlank(value) || isTSLDomain(value)) {
                 continue;
             }
-            String domain = FormatUtils.getDomain(name);
-
+            String key = getTopPrivateDomain(value);
+            //1. filter exception data
+            if (StringUtil.isBlank(key)) {
+                dataRec.add(datum);
+                continue;
+            }
+            String domain = FormatUtils.getDomain(value);
             //2. filter CDN
             if (inCDN(cdn, domain)) {
                 datum.put("isCDN", true);
-                cdnFilter.add(datum);
+                dataRec.add(datum);
                 continue;
             }
 
             //3 filter TopPrivateDomain
-            if (key.equalsIgnoreCase(domain)) {
-                datum.put("ssl_sni", domain);
-                map.put("$".concat(domain), Lists.newArrayList(datum));
+            if (isSLDDomain(domain)) {
+                Map<String, Object> item = dataSLD.get(key);
+                if (StringUtil.isNotEmpty(item)) {
+                    long bytesBefore = StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
+                    long sessionsBefore = StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
+                    long bytesAfter = StringUtil.isEmpty(datum.get("bytes")) ? 0 : Long.parseLong(datum.get("bytes").toString());
+                    long sessionsAfter = StringUtil.isEmpty(datum.get("sessions")) ? 0 : Long.parseLong(datum.get("sessions").toString());
+                    datum.put("bytes", bytesBefore + bytesAfter);
+                    datum.put("sessions", sessionsBefore + sessionsAfter);
+                }
+                datum.put("ssl_sni", key);
+                dataSLD.put(key, datum);
                 continue;
             }
 
             //4. first add
-            if (StringUtil.isEmpty(map.get(key))) {
-                datum.put("ssl_sni", domain);
-                map.put(key, Lists.newArrayList(datum));
+            if (!dataMerge.containsKey(key)) {
+                dataMerge.put(key, datum);
                 continue;
             }
 
             //5. merge
-            List<Map<String, Object>> mapList = map.get(key);
-            for (Map<String, Object> item : mapList) {
-                List<String> domainBefore = Splitter.on(".").omitEmptyStrings().splitToList(String.valueOf(item.get("ssl_sni")));
-                List<String> domainAfter = Splitter.on(".").omitEmptyStrings().splitToList(domain);
-                Stack<String> stackBefore = new Stack<>();
-                Stack<String> stackAfter = new Stack<>();
-                domainBefore.forEach(stackBefore::push);
-                domainAfter.forEach(stackAfter::push);
-                Stack<String> stack = new Stack<>();
-                while (!stackBefore.isEmpty() && !stackAfter.isEmpty()) {
-                    String levelBefore = stackBefore.pop();
-                    String levelAfter = stackAfter.pop();
-                    if ("*".equals(levelAfter) || "*".equals(levelBefore)) {
-                        break;
-                    }
-                    if (!levelBefore.equalsIgnoreCase(levelAfter)
-                            || (stackBefore.isEmpty() || stackAfter.isEmpty())) {
-                        break;
-                    }
-                    stack.push(levelBefore);
-                }
-                stack.push("*");
-                Collections.reverse(stack);
-
-                long bytesBefore = StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
-                long sessionsBefore = StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
-
-                long bytesAfter = StringUtil.isEmpty(datum.get("bytes")) ? 0 : Long.parseLong(datum.get("bytes").toString());
-                long sessionsAfter = StringUtil.isEmpty(datum.get("sessions")) ? 0 : Long.parseLong(datum.get("sessions").toString());
-                String join = String.join(".", stack);
-                item.put("ssl_sni", join);
-                item.put("bytes", bytesBefore + bytesAfter);
-                item.put("sessions", sessionsBefore + sessionsAfter);
-            }
+            Map<String, Object> item = dataMerge.get(key);
+            long bytesBefore = StringUtil.isEmpty(item.get("bytes")) ? 0 : Long.parseLong(item.get("bytes").toString());
+            long sessionsBefore = StringUtil.isEmpty(item.get("sessions")) ? 0 : Long.parseLong(item.get("sessions").toString());
+            long bytesAfter = StringUtil.isEmpty(datum.get("bytes")) ? 0 : Long.parseLong(datum.get("bytes").toString());
+            long sessionsAfter = StringUtil.isEmpty(datum.get("sessions")) ? 0 : Long.parseLong(datum.get("sessions").toString());
+            item.put("ssl_sni", "*.".concat(key));
+            item.put("bytes", bytesBefore + bytesAfter);
+            item.put("sessions", sessionsBefore + sessionsAfter);
         }
-
         List<Map<String, Object>> result = Lists.newArrayList();
-        for (String key : map.keySet()) {
-            result.addAll(map.get(key));
-        }
-        result.addAll(cdnFilter);
+        dataMerge.keySet().forEach(o -> result.add(dataMerge.get(o)));
+        dataSLD.keySet().forEach(o -> result.add(dataSLD.get(o)));
+        result.addAll(dataRec);
         return result;
     }
 
@@ -284,25 +268,25 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
     @Override
     public boolean inCDN(Map<String, List<String>> cdnMap, String domain) {
-        String topPrivateDomain = getTopPrivateDomain(domain);
-        List<String> list = cdnMap.get(topPrivateDomain);
-        if (StringUtil.isEmpty(list)) {
-            return false;
-        }
-        String[] parma = StrUtil.split(domain, ".");
-        out:
-        for (String cdn : list) {
-            String[] flag = StrUtil.split(cdn, ".");
-            if (flag.length > parma.length) {
-                continue;
+            String topPrivateDomain = getTopPrivateDomain(domain);
+            List<String> list = cdnMap.get(topPrivateDomain);
+            if (StringUtil.isEmpty(list)) {
+                return false;
             }
-            for (int i = 1; i <= flag.length; i++) {
-                if (!String.valueOf(parma[parma.length - i]).toLowerCase().equals(String.valueOf(flag[flag.length - i]).toLowerCase())) {
-                    continue out;
+            List<String> param = Splitter.on(".").omitEmptyStrings().splitToList(domain);
+            out:
+            for (String cdn : list) {
+                List<String> flag = Splitter.on(".").omitEmptyStrings().splitToList(cdn);
+                if (flag.size() > param.size()) {
+                    continue;
                 }
+                for (int i = 1; i < flag.size() + 1; i++) {
+                    if (!String.valueOf(param.get(param.size() - i)).equalsIgnoreCase(String.valueOf(flag.get(flag.size() - i)))) {
+                        continue out;
+                    }
+                }
+                return true;
             }
-            return true;
-        }
         return false;
     }
 
@@ -316,6 +300,36 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return topPrivateDomain;
     }
 
+    public boolean isTSLDomain(String domain) {
+        try {
+            domain = FormatUtils.getDomain(domain);
+            if (!StringUtil.isBlank(domain) && InternetDomainName.isValid(domain)) {
+                InternetDomainName internetDomainName = InternetDomainName.from(domain);
+                return StringUtil.isEmpty(internetDomainName.publicSuffix()) ? false : internetDomainName.isPublicSuffix();
+            } else {
+                return false;
+            }
+        } catch (RuntimeException exception) {
+            log.warn("valid isTSL domain exceptions, exception domain names:" + domain);
+        }
+        return false;
+    }
+
+    public boolean isSLDDomain(String domain) {
+        try {
+            if (!StringUtil.isBlank(domain) && InternetDomainName.isValid(domain)) {
+                InternetDomainName internetDomainName = InternetDomainName.from(domain);
+                return internetDomainName.isTopPrivateDomain();
+            } else {
+                return false;
+            }
+        } catch (RuntimeException exception) {
+            log.warn("valid isSLD domain exceptions, exception domain names:" + domain);
+        }
+        return false;
+    }
+
+
     private Map<String, List<String>> getCfgCDN() {
         Object codeInfo = metadataService.getCfg("public_code_info.json");
         if (StringUtil.isNotEmpty(codeInfo)) {
@@ -326,20 +340,14 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     private BaseResult getActiveClientIP(ComDSLObject.Query query) {
-        BaseResult baseResult;
+
         ComDSLObject.Query.FilterBean filterBean = query.getParameters().getMatch().get(0);
         if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(String.valueOf(filterBean.getType()))) {
-            baseResult = apiService.executeQuery(queryBuild(query));
-            if (isValid(baseResult, getIntervals(query.getParameters().getIntervals()))) {
-                baseResult = formatResult(baseResult, query.getLimit());
-            } else {
-                baseResult = query(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
-            }
+            return query(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
         } else {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.MATCH_TYPE);
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.MATCH_TYPE));
         }
-        return baseResult;
     }
 
     private void setDefaultValue(ComDSLObject.Query query) {
@@ -416,30 +424,25 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
-    private ApiParam queryBuild(ComDSLObject.Query query) {
-        String fieldWhere = ComDSLParse.parseMath(query, "ROWKEY");
-        String sql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_CACHE_ACTIVE_CLIENT_IP")), fieldWhere);
-        log.info("real time relation active_client_ip id query sql: {}", sql);
-        return ApiParam.builder().option("real-time").query(sql).build();
-    }
-
     private BaseResult getResultOfServerIP(ComDSLObject.Query query) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
+        String fieldWhere = timeInterval.concat(range);
 
-        String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, timeInterval,
+        String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, fieldWhere,
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByTCPSession() : query.getLimit());
         Map<String, String> tcpSessionResult = executeQuery(tcpSessionSql);
 
-        String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
+        String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, fieldWhere,
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByTCPUniqClientIP() : query.getLimit());
         Map<String, String> tcpClientIpResult = executeQuery(tcpClientIpsSql);
 
-        String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval,
+        String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, fieldWhere,
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByUDPBySession() : query.getLimit());
         Map<String, String> udpSessionResult = executeQuery(udpSessionSql);
 
-        String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
+        String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, fieldWhere,
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByUDPUniqClientIP() : query.getLimit());
         Map<String, String> udpClientIpsResult = executeQuery(udpClientIpsSql);
 
@@ -503,29 +506,17 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         for (Map item : dataList) {
             Map<String, String> serverIpMap = Maps.newHashMap();
             serverIpMap.put("server_ip", String.valueOf(item.get("server_ip")));
+            serverIpMap.put("vsys_id",String.valueOf(item.get("vsys_id")));
             serverIpList.add(serverIpMap);
         }
         return serverIpList;
     }
 
     public String generateActiveClientIP(ComDSLObject.Query query, String fileSql, String limit) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String timeInterval = getTimeInterval(query.getParameters(), -30);
-        String matchDate = getMatchDate(query.getParameters());
-        matchDate = StringUtil.isBlank(matchDate) ? "" : " AND " + matchDate;
-        return String.format(fileSql, query.getDataSource(), timeInterval, matchDate, limit);
-    }
-
-    private String getMatchDate(ComDSLObject.Query.QueryBean query) {
-        if (CollectionUtils.isEmpty(query.getMatch())) {
-            return StringUtil.EMPTY;
-        }
-        StringBuilder matchDate = new StringBuilder();
-        for (ComDSLObject.Query.FilterBean item : query.getMatch()) {
-            if (MatchEnum.EXACTLY.getType().equals(item.getType()) && !CollectionUtils.isEmpty(item.getFieldValues())) {
-                matchDate.append(item.getFieldKey()).append(" IN ('").append(String.join("','", item.getFieldValues())).append("')");
-            }
-        }
-        return matchDate.toString();
+        String matchDate = ComDSLParse.parseMath(query.getParameters().getMatch());
+        return String.format(fileSql, query.getDataSource(), timeInterval, range.concat(matchDate), limit);
     }
 
     private String getTimeInterval(ComDSLObject.Query.QueryBean parameters, int defaultInterval) {
@@ -539,7 +530,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         }
         StringBuilder timeInterval = new StringBuilder();
         String[] intervals = getIntervals(parameters.getIntervals());
-        timeInterval.append("common_recv_time >= toDateTime('").append(intervals[0]).append("') AND common_recv_time< toDateTime('").append(intervals[1]).append("')");
+        timeInterval.append("common_recv_time >= UNIX_TIMESTAMP('").append(intervals[0]).append("') AND common_recv_time< UNIX_TIMESTAMP('").append(intervals[1]).append("')");
         return timeInterval.toString();
     }
 
@@ -561,14 +552,16 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     public String generateTopSNI(ComDSLObject.Query query, String fileSql) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
-        return String.format(fileSql, datasource, timeInterval, entityConfigSource.getTopSNIDataset());
+        return String.format(fileSql, datasource, timeInterval.concat(range), entityConfigSource.getTopSNIDataset());
     }
     public String generateSNITotal(ComDSLObject.Query query, String fileSql) {
+        String range = ComDSLParse.parseRange(query.getParameters().getRange());
         String timeInterval = getTimeInterval(query.getParameters(), -24 * 60);
         String datasource = query.getDataSource();
-        return String.format(fileSql, datasource, timeInterval);
+        return String.format(fileSql, datasource, timeInterval.concat(range));
     }
 
     private Map<String, String> executeQuery(String sql) {

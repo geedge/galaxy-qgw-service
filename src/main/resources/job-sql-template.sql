@@ -1,44 +1,47 @@
-#sql("JOB_STATUS")
-SELECT is_canceled AS is_canceled, is_error AS is_error, last_query_time AS last_query_time FROM job_result WHERE ROWKEY = '%s' LIMIT 1
+#sql("JOB_INIT")
+UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."is_canceled", "detail"."is_failed", "detail"."last_query_time", "detail"."job_property", "detail"."count", "detail"."duration_time") VALUES('%s', %s, %s, %s, %s, %s, '%s', %s, %s)
 #end
-#sql("JOB_RESULT_ALL_COLUMN")
-SELECT result.* FROM job_result LIMIT 1
+#sql("JOB_DETAIL")
+SELECT detail.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
 #end
 #sql("JOB_ADD_COLUMN")
-ALTER TABLE "tsg_galaxy"."job_result" ADD "result"."%s" VARCHAR
+ALTER TABLE "tsg_galaxy"."job_result" ADD "%s"."%s" VARCHAR
 #end
-#sql("JOB_INIT")
-UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."is_canceled", "detail"."is_error", "detail"."last_query_time", "detail"."discovery_field", "detail"."count", "detail"."duration_time") VALUES('%s', %s, %s, %s, %s, %s, '%s', %s, %s)
+#sql("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")
+SELECT field_discovery.* FROM job_result LIMIT 1
 #end
 #sql("JOB_LOG_COUNT")
 SELECT count(1) AS count FROM %s %s LIMIT 1
 #end
-#sql("JOB_TTL")
-SELECT detail.last_query_time as stat_time FROM job_result WHERE ROWKEY = '%s' LIMIT 1
-#end
-#sql("JOB_UPSET_PROGRESS")
+#sql("JOB_UPDATE_PROGRESS")
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."duration_time") VALUES('%s', %s, %s, %s)
 #end
-#sql("JOB_TOPK")
-SELECT %s AS value, count(1) AS count FROM %s %s GROUP BY value ORDER BY count DESC limit 100
+#sql("JOB_TOPK_DEFAULT")
+SELECT %s AS value, count(*) AS count FROM %s %s GROUP BY value ORDER BY count DESC limit 10000
 #end
-#sql("JOB_UPSERT_RESULT")
-UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "result"."%s") values('%s', '%s')
+#sql("JOB_TOPK_ARRAY")
+SELECT value, SUM(count) AS count FROM (SELECT arrayJoin(items) AS value, count FROM (SELECT %s AS items, count(*) AS count FROM %s WHERE notEmpty(%s) %s GROUP BY %s )) GROUP BY value ORDER BY count DESC LIMIT 10000
 #end
-#sql("JOB_UPSERT_DETAIL")
-UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "detail"."%s") values('%s', %s)
+#sql("JOB_TOPK_BIT")
+SELECT value, SUM(count) AS count FROM (SELECT arrayJoin(items) AS value, count FROM (SELECT bitmaskToArray(%s) AS items, count(*) AS count FROM %s %s GROUP BY %s )) GROUP BY value ORDER BY count DESC LIMIT 10
+#end
+#sql("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")
+UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', '%s')
+#end
+#sql("JOB_UPDATE_FIELD_VALUE")
+UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', %s)
 #end
 #sql("JOB_RESULT")
-SELECT is_done AS is_done, done_progress AS done_progress, duration_time AS duration_time, is_canceled AS is_canceled, is_error AS is_error, discovery_field AS discovery_field, count AS count, result.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
-#end
-#sql("JOB_RESULT_QUERY")
-UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."last_query_time") VALUES( '%s', %s)
+SELECT is_done AS is_done, done_progress AS done_progress, duration_time AS duration_time, is_canceled AS is_canceled, is_failed AS is_failed, job_property AS job_property, count AS count, field_discovery.*, statistics.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
 #end
 #sql("UPDATE_IS_CANCELED")
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."last_query_time", "detail"."is_canceled") VALUES( '%s', %s, %s)
 #end
 #sql("JOB_DELETE")
 DELETE FROM "tsg_galaxy"."job_result" WHERE ROWKEY = '%s'
+#end
+#sql("FIELD_RESULT")
+SELECT %s.%s AS value FROM job_result WHERE ROWKEY = '%s' LIMIT 1
 #end
 #sql("SYNTAX_VALIDATION")
 SELECT %s FROM %s WHERE %s LIMIT 1

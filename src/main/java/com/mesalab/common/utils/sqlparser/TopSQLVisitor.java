@@ -3,13 +3,13 @@ package com.mesalab.common.utils.sqlparser;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.collect.Maps;
 import com.mesalab.common.exception.BusinessException;
 import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.*;
@@ -17,7 +17,6 @@ import org.apache.commons.compress.utils.Lists;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -31,12 +30,13 @@ import java.util.stream.Collectors;
  */
 public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItemVisitor {
     private static final Log log = LogFactory.get();
+    private static final long topInnerLimitRatio = 10;
     private static final Pattern pLimitSetting = Pattern.compile("\\blimit(.*?)(\\))", Pattern.CASE_INSENSITIVE);
     private List<String> groupByList;
     private List<String> orderByList;
     private List<String> selectItemExprList;
     private List<String> selectItemAliasList;
-    private List<String> functionList;
+    private List<Function> functionList;
     private SelectBody innerSelectBody = null;
     private SelectBody originalSelectBody = null;
 
@@ -81,7 +81,7 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
             new TopInnerSelectItemVisitor().rewrite(plainInnerSelect);
 
             Select outerSelect = (Select) CCJSqlParserUtil.parse(sql);
-            PlainSelect plainOuterSelect = (PlainSelect) outerSelect.getSelectBody();
+             PlainSelect plainOuterSelect = (PlainSelect) outerSelect.getSelectBody();
             new TopOuterSelectItemVisitor().rewrite(plainOuterSelect, plainInnerSelect);
             return this.originalSelectBody.toString().replace(this.innerSelectBody.toString(), appendSetting(plainOuterSelect));
         } catch (JSQLParserException e) {
@@ -90,6 +90,7 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
     }
 
     private String appendSetting(PlainSelect plainSelectOut) {
+        rewriteInnerLimit(plainSelectOut);
         Matcher matcher = pLimitSetting.matcher(plainSelectOut.toString());
         StringBuffer sb = new StringBuffer();
         if (matcher.find()) {
@@ -100,6 +101,26 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
         return sb.toString();
     }
 
+    private void rewriteInnerLimit(PlainSelect plainSelectOut) {
+        FromItem fromItem = plainSelectOut.getFromItem();
+        if (fromItem instanceof SubSelect) {
+            SubSelect subSelect = (SubSelect) fromItem;
+            SelectBody selectBody = subSelect.getSelectBody();
+            if (selectBody instanceof PlainSelect) {
+                Limit limit = ((PlainSelect) selectBody).getLimit();
+                if (StringUtil.isNotEmpty(limit)) {
+                    long rowCount = Long.parseLong(limit.getRowCount().toString());
+                    if (StringUtil.isNotEmpty(limit.getOffset())) {
+                        long offset = Long.parseLong(limit.getOffset().toString());
+                        limit.setRowCount(new LongValue((offset + rowCount) * topInnerLimitRatio));
+                        limit.setOffset(null);
+                    } else {
+                        limit.setRowCount(new LongValue(rowCount * topInnerLimitRatio));
+                    }
+                }
+            }
+        }
+    }
     /**
      * 递归遍历获取最内层SQL，内层SQL非标准查询将返回NULL
      * @param selectBody
@@ -145,13 +166,19 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
            return false;
         }
 
-        List unsupportedFunctionList =  functionList.stream().filter(o ->
-                StringUtil.isBlank(SQLFunctionUtil.getDistributedGroupByFunction(o))).collect(Collectors.toList());
-        if(unsupportedFunctionList.size() > 0) {
+        if (selectItemExprList.size() > (groupByList.size() + functionList.size())) {
             return false;
         }
 
-       List unsupportedGroupByList =  groupByList.stream().filter(o ->
+        List unsupportedFunctionList =  functionList.stream().filter(o ->
+                StringUtil.isBlank(SQLFunctionUtil.getDistributedGroupByFunction(o.getName().toLowerCase(Locale.ROOT)))).collect(Collectors.toList());
+        if(unsupportedFunctionList.size() > 0) {
+            return false;
+        }
+        if (functionList.stream().anyMatch(o -> (o.isDistinct()) || o.isUnique())) {
+            return false;
+        }
+        List unsupportedGroupByList =  groupByList.stream().filter(o ->
                !selectItemExprList.contains(o) && !selectItemAliasList.contains(o) ).collect(Collectors.toList());
         if(unsupportedGroupByList.size() > 0) {
             return false;
@@ -190,7 +217,7 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
        Expression expression = selectExpressionItem.getExpression();
        this.selectItemExprList.add(expression.toString());
         if (expression instanceof Function) {
-            functionList.add(((Function) expression).getName().toLowerCase(Locale.ROOT));
+            functionList.add(((Function) expression));
         }
        if (StrUtil.isEmptyIfStr(selectExpressionItem.getAlias())) {
            if (expression instanceof Column) {

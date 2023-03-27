@@ -57,4 +57,10 @@ public class EntityConfigSource {
     @NacosValue(value = "${service.entity.topSNI.dataset}", autoRefreshed = true)
     private int topSNIDataset;
 
+    /**
+     * 待推荐GTP-C
+     */
+    @NacosValue(value = "${service.entity.gtpc.defaultSize}", autoRefreshed = true)
+    private int topGTPCDefaultSize;
+
 }

@@ -5,23 +5,26 @@
   "doc": {
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
-    "index_key": [
-      "common_log_id",
-      "common_recv_time",
-      "common_policy_id"
-    ]
+    "index_key": {
+      "$ref": "public_schema_info.json#/sys_packet_capture_event/index_key"
+    }
   },
   "fields": [
     {
       "name": "common_recv_time",
-      "type": "long",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "current_timestamp"
-        },
+        "format": [
+          {
+            "function": "current_timestamp"
+          }
+        ],
         "visibility": "enabled"
       },
       "label": "Receive Time"
@@ -30,9 +33,11 @@
       "name": "common_log_id",
       "type": "long",
       "doc": {
-        "format": {
-          "functions": "snowflake_id"
-        },
+        "format": [
+          {
+            "function": "snowflake_id"
+          }
+        ],
         "visibility": "enabled"
       },
       "label": "Log ID"
@@ -185,7 +190,7 @@
             "value": "Deny"
           },
           {
-            "code": "128",
+            "code": "96",
             "value": "Allow"
           }
         ],
@@ -207,7 +212,7 @@
             "value": "inbound"
           }
         ],
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "label": "Direction"
     },
@@ -263,9 +268,28 @@
       "label": "Server ASN"
     },
     {
+      "name": "common_server_fqdn",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Server FQDN"
+    },
+    {
+      "name": "common_server_domain",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Server Domain"
+    },
+    {
       "name": "common_sessions",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled"
       },
       "label": "Sessions"
@@ -274,6 +298,9 @@
       "name": "common_c2s_pkt_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled"
       },
       "label": "Packets Sent"
@@ -282,6 +309,9 @@
       "name": "common_s2c_pkt_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled"
       },
       "label": "Packets Received"
@@ -290,6 +320,9 @@
       "name": "common_c2s_byte_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled"
       },
       "label": "Bytes Sent"
@@ -298,6 +331,9 @@
       "name": "common_s2c_byte_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled"
       },
       "label": "Bytes Received"
@@ -306,6 +342,9 @@
       "name": "common_c2s_pkt_diff",
       "label": "Packets Sent (Delta)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       },
       "type": "long"
@@ -314,6 +353,9 @@
       "name": "common_s2c_pkt_diff",
       "label": "Packets Received (Delta)",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       },
       "type": "long"
@@ -322,6 +364,9 @@
       "name": "common_c2s_byte_diff",
       "label": "Bytes Sent (Delta)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden"
       },
       "type": "long"
@@ -330,6 +375,9 @@
       "name": "common_s2c_byte_diff",
       "label": "Bytes Received (Delta)",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden"
       },
       "type": "long"
@@ -375,6 +423,55 @@
         "visibility": "hidden"
       },
       "label": "Schema Type"
+    },
+    {
+      "name": "common_vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "common_t_vsys_id",
+      "label": "Traffic Vsys ID",
+      "doc": {
+        "allow_query": "false",
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "common_flags",
+      "label": "Flags",
+      "doc": {
+        "constraints": {
+          "type": "bit",
+          "operator_functions": "=,!=,bitAnd"
+        },
+        "data": {
+          "$ref": "public_schema_info.json#/fields/common_flags/data"
+        },
+        "allow_query": "false",
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "bit"
+      }
+    },
+    {
+      "name": "common_flags_identify_info",
+      "label": "Flags Identify Info",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "common_user_tags",
@@ -431,6 +528,22 @@
       "label": "User Region"
     },
     {
+      "name": "common_shaping_rule_ids",
+      "label": "Shaping Rule IDs",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "int",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "common_device_id",
       "type": "string",
       "doc": {
@@ -467,11 +580,18 @@
       "type": "string",
       "doc": {
         "visibility": "hidden",
-        "format": {
-          "functions": "flattenSpec,flattenSpec",
-          "appendTo": "common_data_center,common_device_group",
-          "param": "$.tags[?(@.tag=='data_center')].value,$.tags[?(@.tag=='device_group')].value"
-        }
+        "format": [
+          {
+            "function": "flattenSpec",
+            "appendTo": "common_data_center",
+            "param": "$.tags[?(@.tag=='data_center')].value"
+          },
+          {
+            "function": "flattenSpec",
+            "appendTo": "common_device_group",
+            "param": "$.tags[?(@.tag=='device_group')].value"
+          }
+        ]
       },
       "label": "Device Tag"
     },
@@ -549,7 +669,14 @@
       "name": "common_tunnels",
       "type": "string",
       "doc": {
-        "visibility": "hidden"
+        "visibility": "hidden",
+        "format": [
+          {
+            "function": "gtpc_match",
+            "appendTo": "common_imsi,common_imei,common_phone_number",
+            "param": "$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_b2a_teid"
+          }
+        ]
       },
       "label": "Tunnels"
     },
@@ -565,6 +692,14 @@
       "name": "common_app_id",
       "type": "string",
       "label": "Application ID",
+      "doc": {
+        "visibility": "hidden"
+      }
+    },
+    {
+      "name": "common_app_full_path",
+      "label": "Application Full Path",
+      "type": "string",
       "doc": {
         "visibility": "hidden"
       }
@@ -597,7 +732,7 @@
       "name": "common_l7_protocol",
       "type": "string",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "label": "L7 Protocol"
     },
@@ -609,28 +744,35 @@
       },
       "type": {
         "type": "array",
-        "items": "int"
+        "items": "int",
+        "logicalType": "array"
       }
     },
     {
       "name": "common_start_time",
-      "type": "long",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "hidden"
+        "visibility": "enabled"
       },
       "label": "Start Time"
     },
     {
       "name": "common_end_time",
-      "type": "long",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "hidden"
+        "visibility": "enabled"
       },
       "label": "End Time"
     },
@@ -638,6 +780,9 @@
       "name": "common_establish_latency_ms",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       },
       "label": "TCP Handshake Latency (ms)"
@@ -646,6 +791,9 @@
       "name": "common_con_duration_ms",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       },
       "label": "Duration (ms)"
@@ -670,7 +818,7 @@
         ],
         "visibility": "enabled"
       },
-      "label": "Stream Direction"
+      "label": "Stream Direction(Deprecated)"
     },
     {
       "name": "common_address_list",
@@ -742,9 +890,30 @@
       "type": "string"
     },
     {
+      "name": "common_tunnel_endpoint_a_desc",
+      "label": "Tunnel Endpoint A Description",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_tunnel_endpoint_b_desc",
+      "label": "Tunnel Endpoint B Description",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "common_c2s_ipfrag_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       },
       "label": "Fragmentation Packets (c2s)"
@@ -753,6 +922,9 @@
       "name": "common_s2c_ipfrag_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       },
       "label": "Fragmentation Packets (s2c)"
@@ -761,6 +933,9 @@
       "name": "common_c2s_tcp_lostlen",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden"
       },
       "label": "Sequence Gap Loss (c2s)"
@@ -769,6 +944,9 @@
       "name": "common_s2c_tcp_lostlen",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden"
       },
       "label": "Sequence Gap Loss (s2c)"
@@ -777,6 +955,9 @@
       "name": "common_c2s_tcp_unorder_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       },
       "label": "Unordered Packets (c2s)"
@@ -785,6 +966,9 @@
       "name": "common_s2c_tcp_unorder_num",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       },
       "label": "Unordered Packets (s2c)"
@@ -793,6 +977,9 @@
       "name": "common_c2s_pkt_retrans",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled"
       },
       "label": "Packet Retransmission (c2s)"
@@ -801,6 +988,9 @@
       "name": "common_s2c_pkt_retrans",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "enabled"
       },
       "label": "Packet Retransmission (s2c)"
@@ -809,6 +999,9 @@
       "name": "common_c2s_byte_retrans",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled"
       },
       "label": "Byte Retransmission (c2s)"
@@ -817,6 +1010,9 @@
       "name": "common_s2c_byte_retrans",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "enabled"
       },
       "label": "Byte Retransmission (s2c)"
@@ -841,20 +1037,28 @@
       "name": "common_first_ttl",
       "type": "int",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       },
       "label": "First TTL"
     },
     {
       "name": "common_processing_time",
-      "type": "long",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "current_timestamp"
-        },
+        "format": [
+          {
+            "function": "current_timestamp"
+          }
+        ],
         "visibility": "enabled"
       },
       "label": "Processing Time"
@@ -866,18 +1070,26 @@
         "constraints": {
           "type": "timestamp"
         },
-        "format": {
-          "functions": "ingestion_time"
-        },
+        "format": [
+          {
+            "function": "ingestion_time"
+          }
+        ],
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_mirrored_pkts",
       "label": "Mirrored Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
         "visibility": "hidden"
       }
     },
@@ -886,6 +1098,9 @@
       "label": "Mirrored Bytes",
       "type": "long",
       "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
         "visibility": "hidden"
       }
     },

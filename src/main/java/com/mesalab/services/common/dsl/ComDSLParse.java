@@ -1,54 +1,78 @@
 package com.mesalab.services.common.dsl;
 
+import cn.hutool.core.date.DateException;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.mesalab.cn.common.pojo.DSLObject;
-import com.mesalab.cn.common.pojo.DSLParser;
+import com.mesalab.cn.entity.pojo.DSLObject;
+import com.mesalab.cn.entity.pojo.DSLParser;
+import com.mesalab.cn.enums.RangeTypeEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;
+import org.joda.time.format.ISODateTimeFormat;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.joining;
 
 public class ComDSLParse extends DSLParser {
-
-
     public static String parseInterval(ComDSLObject.Query query, String defField, boolean format) {
-        if (ObjectUtil.isEmpty(query) || ObjectUtil.isEmpty(query.getParameters()) || ObjectUtil.isEmpty(query.getParameters().getIntervals())) {
-            return StringUtil.EMPTY;
+        try {
+            if (ObjectUtil.isEmpty(query) || ObjectUtil.isEmpty(query.getParameters()) || ObjectUtil.isEmpty(query.getParameters().getIntervals())) {
+                return StringUtil.EMPTY;
+            }
+            List<String> intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
+            if (format) {
+                long startTime = DateUtil.parse(intervals.get(0)).toTimestamp().getTime() / 1000;
+                long endTime = DateUtil.parse(intervals.get(1)).toTimestamp().getTime() / 1000;
+                return Joiner.on(" ").join(" AND ", defField, ">=", startTime, " AND ", defField, "<", endTime);
+            }
+            return Joiner.on(" ").join(" AND ", defField, ">=", intervals.get(0), " AND ", defField, "<", intervals.get(1));
+        } catch (DateException e) {
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
         }
-        List<String> intervals = Splitter.on("/").omitEmptyStrings().splitToList(query.getParameters().getIntervals().get(0));
-
-        if (format) {
-            long start = DateUtils.convertStringToTimestamp(intervals.get(0), "yyyy-MM-dd HH:mm:ss");
-            long end = DateUtils.convertStringToTimestamp(intervals.get(1), "yyyy-MM-dd HH:mm:ss");
-            return Joiner.on(" ").join(" AND ", defField, ">=", start, " AND ", defField, "<", end);
-        }
-        return Joiner.on(" ").join(" AND ", defField, ">=", intervals.get(0), " AND ", defField, "<", intervals.get(1));
     }
 
-
-    public static String parseMath(ComDSLObject.Query query, String defField) {
-        if (ObjectUtil.isEmpty(query) || ObjectUtil.isEmpty(query.getParameters()) || ObjectUtil.isEmpty(query.getParameters().getMatch())) {
+    public static String parseMath(List<ComDSLObject.Query.FilterBean> matches) {
+        if (ObjectUtil.isEmpty(matches)) {
             return StringUtil.EMPTY;
         }
-        List<ComDSLObject.Query.FilterBean> matches = query.getParameters().getMatch();
         return matches.stream().map(m -> {
-            String fieldKey = ObjectUtil.isEmpty(defField) ? m.getFieldKey() : defField;
+            String fieldKey = m.getFieldKey();
+            String type = m.getType();
             List<String> fieldValues = m.getFieldValues();
-            if(MatchEnum.EXACTLY.getType().equals(m.getType())){
-                return fieldValues.stream().map(DigestUtil::md5Hex).collect(joining("','", fieldKey.concat(" IN ('"), "')"));
-            } else {
-                fieldKey = fieldKey.equals(defField) ? "account" : fieldKey;
-                return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
-                    return parseLike(encode(v), m.getType());
-                }).collect(joining(" or ".concat(fieldKey).concat(" LIKE "), fieldKey.concat(" LIKE "), " "));
-            }
-        }).collect(joining(" AND ", " AND ", " "));
+            return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
+                return ComDSLParse.parseMatch(ComDSLParse.encode(v), type);
+            }).collect(joining(" OR ".concat(fieldKey), fieldKey, " "));
+
+        }).collect(joining(" ) AND ( ", " AND( ", ")"));
+    }
+
+    public static String parseRange(List<ComDSLObject.Query.FilterBean> matches) {
+        if (ObjectUtil.isEmpty(matches)) {
+            return StringUtil.EMPTY;
+        }
+        return matches.stream().map(m -> {
+            String fieldKey = m.getFieldKey();
+            String type = m.getType();
+            List<String> fieldValues = m.getFieldValues();
+            return fieldValues.stream().filter(v -> ObjectUtil.isNotEmpty(v)).map(v -> {
+                return ComDSLParse.parseRange(!NumberUtil.isNumber(v) ? "'".concat(ComDSLParse.encode(v)).concat("'") : v, type);
+            }).collect(joining((RangeTypeEnum.NE.getType().equalsIgnoreCase(type) ? " AND " : " OR ").concat(fieldKey), fieldKey, " "));
+        }).collect(joining(" ) AND ( ", " AND( ", ")"));
     }
 
     @Override

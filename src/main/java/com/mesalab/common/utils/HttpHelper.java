@@ -3,6 +3,7 @@ package com.mesalab.common.utils;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;

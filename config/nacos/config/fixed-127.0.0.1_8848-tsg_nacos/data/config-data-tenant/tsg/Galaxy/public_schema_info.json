@@ -1,4 +1,250 @@
 {
+  "radius_onff_log": {
+    "index_key": {
+      "log_id": [
+        "account",
+        "event_timestamp",
+        "vsys_id"
+      ],
+      "vsys_id": [
+        "vsys_id",
+        "account",
+        "event_timestamp"
+      ]
+    }
+  },
+  "session_record": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_data_center",
+        "common_device_group",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "session_record_common_client_ip": {
+    "index_key": {
+      "log_id": [
+        "common_client_ip",
+        "common_server_ip",
+        "common_recv_time"
+      ],
+      "vsys_id": [
+        "common_client_ip",
+        "common_server_ip",
+        "common_recv_time"
+      ]
+    }
+  },
+  "session_record_common_server_ip": {
+    "index_key": {
+      "log_id": [
+        "common_server_ip",
+        "common_client_ip",
+        "common_recv_time"
+      ],
+      "vsys_id": [
+        "common_server_ip",
+        "common_client_ip",
+        "common_recv_time"
+      ]
+    }
+  },
+  "session_record_common_server_domain": {
+    "index_key": {
+      "log_id": [
+        "common_server_domain",
+        "common_recv_time"
+      ],
+      "vsys_id": [
+        "common_server_domain",
+        "common_recv_time"
+      ]
+    }
+  },
+  "interim_session_record": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_data_center",
+        "common_device_group",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "transaction_record": {
+    "index_key": {
+      "log_id": [
+        "common_stream_trace_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_stream_trace_id",
+        "common_data_center",
+        "common_recv_time"
+      ]
+    }
+  },
+  "radius_record": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "voip_record": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "gtpc_record": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_data_center",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "security_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_action",
+        "common_policy_id",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "proxy_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_sub_action",
+        "common_policy_id",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "dos_event": {
+    "index_key": {
+      "log_id": [
+        "log_id",
+        "start_time",
+        "destination_ip",
+        "vsys_id"
+      ],
+      "vsys_id": [
+        "vsys_id",
+        "destination_ip",
+        "start_time",
+        "log_id"
+      ]
+    }
+  },
+  "active_defence_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time"
+      ],
+      "vsys_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time"
+      ]
+    }
+  },
+  "sys_packet_capture_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_policy_id",
+        "common_recv_time",
+        "common_vsys_id"
+      ],
+      "vsys_id": [
+        "common_vsys_id",
+        "common_policy_id",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
+  "assessment_event": {
+    "index_key": {
+      "log_id": [
+        "common_log_id",
+        "common_recv_time",
+        "vsys_id"
+      ],
+      "vsys_id": [
+        "vsys_id",
+        "common_recv_time",
+        "common_log_id"
+      ]
+    }
+  },
   "functions": {
     "aggregation": [
       {
@@ -45,6 +291,28 @@
         "name": "TIME_FLOOR_WITH_FILL",
         "label": "TIME_FLOOR_WITH_FILL",
         "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
+      }
+    ],
+    "date": [
+      {
+        "name": "UNIX_TIMESTAMP",
+        "label": "UNIX_TIMESTAMP",
+        "function": "UNIX_TIMESTAMP(expr)"
+      },
+      {
+        "name": "FROM_UNIXTIME",
+        "label": "FROM_UNIXTIME",
+        "function": "FROM_UNIXTIME(expr)"
+      },
+      {
+        "name": "DATE_FORMAT",
+        "label": "DATE_FORMAT",
+        "function": "DATE_FORMAT(expr,format)"
+      },
+      {
+        "name": "CONVERT_TZ",
+        "label": "CONVERT_TZ",
+        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
       }
     ],
     "operator": [
@@ -114,24 +382,9 @@
         "function": "empty(expr)"
       },
       {
-        "name": "UNIX_TIMESTAMP",
-        "label": "UNIX_TIMESTAMP",
-        "function": "UNIX_TIMESTAMP(expr)"
-      },
-      {
-        "name": "FROM_UNIXTIME",
-        "label": "FROM_UNIXTIME",
-        "function": "FROM_UNIXTIME(expr)"
-      },
-      {
-        "name": "DATE_FORMAT",
-        "label": "DATE_FORMAT",
-        "function": "DATE_FORMAT(expr,format)"
-      },
-      {
-        "name": "CONVERT_TZ",
-        "label": "CONVERT_TZ",
-        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
+        "name": "bitAnd",
+        "label": "Bitwise AND",
+        "function": "bitAnd(expr, value)"
       }
     ]
   },
@@ -165,6 +418,14 @@
         {
           "type": "timestamp",
           "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        },
+        {
+          "type": "array",
+          "functions": "COUNT,COUNT_DISTINCT"
+        },
+        {
+          "type": "bit",
+          "functions": "COUNT,COUNT_DISTINCT"
         }
       ],
       "operator": [
@@ -198,7 +459,11 @@
         },
         {
           "type": "array",
-          "functions": "has"
+          "functions": "has,notEmpty,empty"
+        },
+        {
+          "type": "bit",
+          "functions": "=,!=,bitAnd"
         }
       ]
     }
@@ -229,6 +494,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -240,9 +507,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -256,6 +528,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -273,6 +546,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -326,6 +601,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -337,9 +614,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -353,6 +635,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -370,6 +653,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -454,6 +739,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -465,9 +752,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -481,6 +773,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -498,6 +791,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -569,6 +864,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -580,9 +877,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -596,6 +898,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -613,6 +916,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -685,6 +990,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -696,9 +1003,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -712,6 +1024,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -729,6 +1042,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -761,6 +1076,8 @@
         "ssl_con_latency_ms",
         "ssl_ja3_fingerprint",
         "ssl_ja3_hash",
+        "ssl_ja3s_fingerprint",
+        "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject"
       ],
@@ -771,6 +1088,124 @@
         "common_subscriber_id",
         "common_client_ip",
         "ssl_sni",
+        "common_server_ip",
+        "common_server_port"
+      ]
+    },
+    "DTLS": {
+      "columns": [
+        "common_recv_time",
+        "common_log_id",
+        "common_policy_id",
+        "common_subscriber_id",
+        "common_imei",
+        "common_imsi",
+        "common_phone_number",
+        "common_client_ip",
+        "common_client_port",
+        "common_internal_ip",
+        "common_l4_protocol",
+        "common_address_type",
+        "common_server_ip",
+        "common_server_port",
+        "common_external_ip",
+        "common_action",
+        "common_direction",
+        "common_entrance_id",
+        "common_sled_ip",
+        "common_client_location",
+        "common_client_asn",
+        "common_server_location",
+        "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
+        "common_sessions",
+        "common_c2s_pkt_num",
+        "common_s2c_pkt_num",
+        "common_c2s_byte_num",
+        "common_s2c_byte_num",
+        "common_c2s_pkt_diff",
+        "common_s2c_pkt_diff",
+        "common_c2s_byte_diff",
+        "common_s2c_byte_diff",
+        "common_service",
+        "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
+        "common_user_tags",
+        "common_sub_action",
+        "common_user_region",
+        "common_shaping_rule_ids",
+        "common_device_id",
+        "common_egress_link_id",
+        "common_ingress_link_id",
+        "common_isp",
+        "common_device_tag",
+        "common_data_center",
+        "common_device_group",
+        "common_app_behavior",
+        "common_encapsulation",
+        "common_app_label",
+        "common_tunnels",
+        "common_protocol_label",
+        "common_app_id",
+        "common_app_full_path",
+        "common_userdefine_app_name",
+        "common_app_identify_info",
+        "common_app_surrogate_id",
+        "common_l7_protocol",
+        "common_service_category",
+        "common_start_time",
+        "common_end_time",
+        "common_establish_latency_ms",
+        "common_con_duration_ms",
+        "common_stream_dir",
+        "common_address_list",
+        "common_has_dup_traffic",
+        "common_stream_error",
+        "common_stream_trace_id",
+        "common_link_info_c2s",
+        "common_link_info_s2c",
+        "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
+        "common_c2s_ipfrag_num",
+        "common_s2c_ipfrag_num",
+        "common_c2s_tcp_lostlen",
+        "common_s2c_tcp_lostlen",
+        "common_c2s_tcp_unorder_num",
+        "common_s2c_tcp_unorder_num",
+        "common_c2s_pkt_retrans",
+        "common_s2c_pkt_retrans",
+        "common_c2s_byte_retrans",
+        "common_s2c_byte_retrans",
+        "common_tcp_client_isn",
+        "common_tcp_server_isn",
+        "common_first_ttl",
+        "common_processing_time",
+        "common_ingestion_time",
+        "common_mirrored_pkts",
+        "common_mirrored_bytes",
+        "dtls_cookie",
+        "dtls_version",
+        "dtls_sni",
+        "dtls_san",
+        "dtls_cn",
+        "dtls_con_latency_ms",
+        "dtls_ja3_fingerprint",
+        "dtls_ja3_hash",
+        "dtls_cert_issuer",
+        "dtls_cert_subject"
+      ],
+      "default_columns": [
+        "common_recv_time",
+        "common_log_id",
+        "common_policy_id",
+        "common_subscriber_id",
+        "common_client_ip",
+        "dtls_sni",
         "common_server_ip",
         "common_server_port"
       ]
@@ -800,6 +1235,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -811,9 +1248,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -827,6 +1269,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -844,6 +1287,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -901,6 +1346,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -912,9 +1359,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -928,6 +1380,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -945,6 +1398,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -1003,6 +1458,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1014,9 +1471,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -1030,6 +1492,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -1047,6 +1510,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -1105,6 +1570,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1116,9 +1583,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -1132,6 +1604,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -1149,6 +1622,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -1219,6 +1694,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1230,9 +1707,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -1246,6 +1728,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -1263,6 +1746,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -1321,6 +1806,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1332,9 +1819,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -1348,6 +1840,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -1365,6 +1858,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -1422,6 +1917,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1433,9 +1930,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -1449,6 +1951,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -1466,6 +1969,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -1548,6 +2053,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1559,9 +2066,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -1575,6 +2087,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -1592,6 +2105,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -1668,6 +2183,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1679,9 +2196,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -1695,6 +2217,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -1712,6 +2235,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -1777,6 +2302,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1788,9 +2315,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -1804,6 +2336,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -1821,6 +2354,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -1901,6 +2436,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1912,9 +2449,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -1928,6 +2470,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -1945,6 +2488,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -2000,6 +2545,8 @@
         "common_client_asn",
         "common_server_location",
         "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -2011,9 +2558,14 @@
         "common_s2c_byte_diff",
         "common_service",
         "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
         "common_user_tags",
         "common_sub_action",
         "common_user_region",
+        "common_shaping_rule_ids",
         "common_device_id",
         "common_egress_link_id",
         "common_ingress_link_id",
@@ -2027,6 +2579,7 @@
         "common_tunnels",
         "common_protocol_label",
         "common_app_id",
+        "common_app_full_path",
         "common_userdefine_app_name",
         "common_app_identify_info",
         "common_app_surrogate_id",
@@ -2044,6 +2597,8 @@
         "common_link_info_c2s",
         "common_link_info_s2c",
         "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
         "common_c2s_ipfrag_num",
         "common_s2c_ipfrag_num",
         "common_c2s_tcp_lostlen",
@@ -2084,38 +2639,157 @@
         "rdp_client_version",
         "rdp_client_name"
       ]
+    },
+    "GTP-C": {
+      "columns": [
+        "common_recv_time",
+        "common_log_id",
+        "common_policy_id",
+        "common_subscriber_id",
+        "common_imei",
+        "common_imsi",
+        "common_phone_number",
+        "common_client_ip",
+        "common_client_port",
+        "common_internal_ip",
+        "common_l4_protocol",
+        "common_address_type",
+        "common_server_ip",
+        "common_server_port",
+        "common_external_ip",
+        "common_action",
+        "common_direction",
+        "common_entrance_id",
+        "common_sled_ip",
+        "common_client_location",
+        "common_client_asn",
+        "common_server_location",
+        "common_server_asn",
+        "common_server_fqdn",
+        "common_server_domain",
+        "common_sessions",
+        "common_c2s_pkt_num",
+        "common_s2c_pkt_num",
+        "common_c2s_byte_num",
+        "common_s2c_byte_num",
+        "common_c2s_pkt_diff",
+        "common_s2c_pkt_diff",
+        "common_c2s_byte_diff",
+        "common_s2c_byte_diff",
+        "common_service",
+        "common_schema_type",
+        "common_vsys_id",
+        "common_t_vsys_id",
+        "common_flags",
+        "common_flags_identify_info",
+        "common_user_tags",
+        "common_sub_action",
+        "common_user_region",
+        "common_shaping_rule_ids",
+        "common_device_id",
+        "common_egress_link_id",
+        "common_ingress_link_id",
+        "common_isp",
+        "common_device_tag",
+        "common_data_center",
+        "common_device_group",
+        "common_app_behavior",
+        "common_encapsulation",
+        "common_app_label",
+        "common_tunnels",
+        "common_protocol_label",
+        "common_app_id",
+        "common_app_full_path",
+        "common_userdefine_app_name",
+        "common_app_identify_info",
+        "common_app_surrogate_id",
+        "common_service_category",
+        "common_l7_protocol",
+        "common_start_time",
+        "common_end_time",
+        "common_establish_latency_ms",
+        "common_con_duration_ms",
+        "common_stream_dir",
+        "common_address_list",
+        "common_has_dup_traffic",
+        "common_stream_error",
+        "common_stream_trace_id",
+        "common_link_info_c2s",
+        "common_link_info_s2c",
+        "common_packet_capture_file",
+        "common_tunnel_endpoint_a_desc",
+        "common_tunnel_endpoint_b_desc",
+        "common_c2s_ipfrag_num",
+        "common_s2c_ipfrag_num",
+        "common_c2s_tcp_lostlen",
+        "common_s2c_tcp_lostlen",
+        "common_c2s_tcp_unorder_num",
+        "common_s2c_tcp_unorder_num",
+        "common_c2s_pkt_retrans",
+        "common_s2c_pkt_retrans",
+        "common_c2s_byte_retrans",
+        "common_s2c_byte_retrans",
+        "common_tcp_client_isn",
+        "common_tcp_server_isn",
+        "common_first_ttl",
+        "common_processing_time",
+        "common_ingestion_time",
+        "common_mirrored_pkts",
+        "common_mirrored_bytes",
+        "gtp_version",
+        "gtp_apn",
+        "gtp_imei",
+        "gtp_imsi",
+        "gtp_phone_number",
+        "gtp_end_user_ipv4",
+        "gtp_end_user_ipv6",
+        "gtp_uplink_teid",
+        "gtp_downlink_teid",
+        "gtp_msg_type"
+      ],
+      "default_columns": [
+        "common_recv_time",
+        "common_log_id",
+        "gtp_version",
+        "gtp_msg_type",
+        "gtp_imsi",
+        "gtp_imei",
+        "gtp_phone_number",
+        "common_client_ip",
+        "common_server_ip"
+      ]
     }
   },
   "tunnel_type": {
     "GTP": [
       {
-        "name": "gtp_sgw_ip",
-        "label": "S-GW IP",
+        "name": "gtp_endpoint_a_ip",
+        "label": "Endpoint A IP",
         "type": "string"
       },
       {
-        "name": "gtp_pgw_ip",
-        "label": "P-GW IP",
+        "name": "gtp_endpoint_b_ip",
+        "label": "Endpoint B IP",
         "type": "string"
       },
       {
-        "name": "gtp_sgw_port",
-        "label": "S-GW Port",
+        "name": "gtp_endpoint_a_port",
+        "label": "Endpoint A Port",
         "type": "int"
       },
       {
-        "name": "gtp_pgw_port",
-        "label": "P-GW Port",
+        "name": "gtp_endpoint_b_port",
+        "label": "Endpoint B Port",
         "type": "int"
       },
       {
-        "name": "gtp_uplink_teid",
-        "label": "Uplink TEID",
+        "name": "gtp_endpoint_a2b_teid",
+        "label": "Endpoint A2B TEID",
         "type": "long"
       },
       {
-        "name": "gtp_downlink_teid",
-        "label": "Downlink TEID",
+        "name": "gtp_endpoint_b2a_teid",
+        "label": "Endpoint B2A TEID",
         "type": "long"
       }
     ],
@@ -2125,7 +2799,8 @@
         "label": "Multiprotocol Label (c2s)",
         "type": {
           "type": "array",
-          "items": "int"
+          "items": "int",
+          "logicalType": "array"
         }
       },
       {
@@ -2133,7 +2808,8 @@
         "label": "Multiprotocol Label (s2c)",
         "type": {
           "type": "array",
-          "items": "int"
+          "items": "int",
+          "logicalType": "array"
         }
       }
     ],
@@ -2143,7 +2819,8 @@
         "label": "VLAN Direction (c2s)",
         "type": {
           "type": "array",
-          "items": "int"
+          "items": "int",
+          "logicalType": "array"
         }
       },
       {
@@ -2151,7 +2828,8 @@
         "label": "VLAN Direction (s2c)",
         "type": {
           "type": "array",
-          "items": "int"
+          "items": "int",
+          "logicalType": "array"
         }
       }
     ],
@@ -2275,6 +2953,70 @@
         {
           "code": "1",
           "value": "Yes"
+        }
+      ]
+    },
+    "common_flags": {
+      "data": [
+        {
+          "code": "1",
+          "value": "Asymmetric"
+        },
+        {
+          "code": "2",
+          "value": "Bulky"
+        },
+        {
+          "code": "4",
+          "value": "CBR Streaming"
+        },
+        {
+          "code": "8",
+          "value": "Client is Local"
+        },
+        {
+          "code": "16",
+          "value": "Server is Local"
+        },
+        {
+          "code": "32",
+          "value": "Download"
+        },
+        {
+          "code": "64",
+          "value": "Interactive"
+        },
+        {
+          "code": "128",
+          "value": "Inbound"
+        },
+        {
+          "code": "256",
+          "value": "Outbound"
+        },
+        {
+          "code": "512",
+          "value": "Pseudo Unidirectional"
+        },
+        {
+          "code": "1024",
+          "value": "Streaming"
+        },
+        {
+          "code": "2048",
+          "value": "Unidirectional"
+        },
+        {
+          "code": "4096",
+          "value": "Random looking"
+        },
+        {
+          "code": "8192",
+          "value": "C2S"
+        },
+        {
+          "code": "16384",
+          "value": "S2C"
         }
       ]
     }

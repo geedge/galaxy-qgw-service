@@ -4,12 +4,11 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.impl.ApiServiceImpl;
@@ -48,7 +47,7 @@ public class ReportCacheUtils {
             log.warn("The report result [resultId:{}] is unavailable. It Has been deleted or does not exist.", resultId);
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "The report result [resultId:" + resultId + "] is unavailable. It Has been deleted or does not exist.");
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.EXECUTE_SUCCESS.getCode(), String.valueOf(map.get("message")),
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.SUCCESS.getCode(), String.valueOf(map.get("message")),
                     map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), QueryFormatEnum.JSON.getValue());
         }
         return baseResult;

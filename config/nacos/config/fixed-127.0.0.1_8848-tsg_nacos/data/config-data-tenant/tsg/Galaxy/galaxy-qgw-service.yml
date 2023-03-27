@@ -27,9 +27,9 @@ management:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.40.153:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false
+    url: jdbc:mysql://192.168.44.12:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=GMT&failOverReadOnly=false
     username: ENC(63aTpwv2vH0vPikW+3Jjig==)
-    pin: ENC(BTHcN+Ynlgxwoe5AExC1qg==)
+    pin: ENC(LDEb2OekU7iZWiFw6pUYBSozVKP27r1y)
 ## Hbase configuration
 hbase:
   zookeeperQuorum: 192.168.44.12:2181
@@ -60,6 +60,10 @@ project:
     name: darnell
     url:
     email:
+switch:
+  version:
+    ## 目前ck支持的版本：vsys_id、log_id，默认为vsys_id
+    schema: vsys_id
 ## ClickhHouse configuration
 clickhouse:
   url: http://192.168.44.12:8123
@@ -98,9 +102,11 @@ service:
     topSNI:
       defaultSize: 30000
       dataset: 2000000
+    gtpc:
+      defaultSize: 100000
 ## ArangoDB configuration
 arango:
-  server: http://192.168.44.12:8529
+  server: http://192.168.44.83:8529
   database: tsg_galaxy_v3
   username: ENC(UyZxsi4PT6kQXJAep5qvQQ==)
   pin: ENC(qUA355VopKSx6kwwwXZwqWWEYSu76Slz)
@@ -108,6 +114,23 @@ arango:
   queryurl: ${arango.server}/_db/${arango.database}/_api/cursor
   maxrows: 10000
   socketTimeOut: 300000
+## hos cfg
+hos:
+  uri: http://192.168.44.12:9098/hos
+  bucket: knowledge_base_hos_bucket
+  token: c21f969b5f03d33d43e04f8f136e7682
+  multiUploadStartSize: 1073741824
+## knowledge value 格式 name:版本
+knowledge:
+  ipLocation:
+    ipV4:
+      userDefined: ip_v4_user_defined:latest
+      builtIn: ip_v4_built_in:latest
+      asn: asn_v4:latest
+    ipV6:
+      userDefined: ip_v6_user_defined:latest
+      builtIn: ip_v6_built_in:latest
+      asn: asn_v6:latest
 ## http pool config
 http:
   pool:
@@ -129,7 +152,7 @@ job:
   longPolling:
     enabled: true
   interactive:
-    timeout: 10000
+    timeout: 100000000
   response:
     timeout: 3000
   execution:

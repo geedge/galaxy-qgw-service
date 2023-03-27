@@ -9,14 +9,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.mesalab.cn.common.constant.ErrorMessage;
-import com.mesalab.cn.common.pojo.Condition;
-import com.mesalab.cn.common.pojo.DSLObject;
-import com.mesalab.cn.common.pojo.DSLParser;
-import com.mesalab.cn.common.pojo.entity.EntityDetail;
+import com.mesalab.cn.entity.pojo.Condition;
+import com.mesalab.cn.entity.pojo.DSLObject;
+import com.mesalab.cn.entity.pojo.DSLParser;
+import com.mesalab.cn.entity.EntityDetail;
+import com.mesalab.cn.exception.CNErrorCode;
+import com.mesalab.cn.exception.CNErrorMessage;
 import com.mesalab.cn.service.EntityDetailService;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -510,30 +511,29 @@ public class EntityDetailServiceImpl implements EntityDetailService {
     private void valid(DSLObject.Query.Parameters parameters) {
         DSLObject.Query.Parameters.Match match = parameters.getMatch();
         if (ObjectUtil.isEmpty(match)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.PARAMETERS_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_IS_INVALID));
         }
         List<Condition> condition = match.getCondition();
-        if (ObjectUtil.isEmpty(condition)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.PARAMETERS_MATCH_CONDITION_IS_INVALID);
+        if (ObjectUtil.isEmpty(condition)) { throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_MATCH_CONDITION_IS_INVALID));
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldValues())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_VALUE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_VALUE_IS_INVALID));
         }
         if (ObjectUtil.isEmpty(condition.get(0).getFieldKey())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID));
         }
         if (!(Arrays.asList(APP_NAME, DOMAIN, IP, DNS).contains(condition.get(0).getFieldKey()))) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), CNErrorMessage.PARAMETERS_MATCH_CONDITION_FIELD_KEY_IS_INVALID));
         }
         Integer limit = parameters.getLimit();
         if(ObjectUtil.isNotEmpty(limit)&&!(limit>=0&&limit<=DEF_LIMIT)){
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    String.format(ErrorMessage.PARAMETERS_LIMIT_IS_INVALID, DEF_LIMIT));
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), String.format(CNErrorMessage.PARAMETERS_LIMIT_IS_INVALID),DEF_LIMIT));
         }
     }
     private boolean existServerIp(String ip){

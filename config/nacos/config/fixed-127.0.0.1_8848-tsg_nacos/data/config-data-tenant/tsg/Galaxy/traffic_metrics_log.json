@@ -17,7 +17,10 @@
     {
       "name": "__time",
       "label": "Time",
-      "type": "string",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
@@ -34,12 +37,13 @@
       "type": "string"
     },
     {
-      "name": "entrance_id",
-      "label": "Entrance ID",
-      "type": "long",
+      "name": "vsys_id",
+      "label": "Vsys ID",
       "doc": {
-        "visibility": "disabled"
-      }
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
     },
     {
       "name": "allow_conn_num",
@@ -428,6 +432,14 @@
     {
       "name": "intcp_edit_elem_num",
       "label": "Intercept Edit Element Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "intcp_rus_num",
+      "label": "Intercept Run Script Sessions",
       "doc": {
         "visibility": "enabled"
       },

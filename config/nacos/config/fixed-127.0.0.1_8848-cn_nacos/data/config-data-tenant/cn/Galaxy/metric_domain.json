@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "metric_domain",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "stat_time",
+    "index_key": [
+      "stat_time",
+      "domain",
+      "domain_category_name",
+      "domain_category_group"
+    ]
+  },
+  "fields": [
+  ]
+}

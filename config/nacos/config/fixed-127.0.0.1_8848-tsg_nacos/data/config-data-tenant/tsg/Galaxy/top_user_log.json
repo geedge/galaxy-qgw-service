@@ -17,13 +17,25 @@
     {
       "name": "__time",
       "label": "Time",
-      "type": "string",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
         },
         "visibility": "enabled"
       }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
     },
     {
       "name": "data_center",

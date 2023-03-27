@@ -1,0 +1,13 @@
+Release 359 (TSG-22.09)
+* 修改Schema，删除Druid相关统计表entrance_id列(TSG-11756)
+* Galaxy 增强知识库管理及使用鲁棒性(TSG-11702)
+* 优化GTPC知识库推荐接口(TSG-11758)
+* 升级JSQLParse解析工具至4.1版本
+* Galaxy初始化知识库新增ASN知识库(TSG-11868)
+* 扩展Schema，增加DTLS协议(TSG-11851)
+* 扩展健康检测接口，新增hos健康检测(TSG-11821)
+* 扩展Schema，支持公共字段common_tunnel_endpoint_a_desc、common_tunnel_endpoint_b_desc(TSG-11880)
+* 修复Dashboard瞬时流量值显示异常(TSG-11993)
+* 优化补全函数，优化数据填充函数TIME_FLOOR_WITH_FILL(TSG-12011)
+* 修改Schema，修改Tunnel Type = GTP部分字段描述(TSG-11936)
+* 修复Log Settings页面统计数值均为0问题(TSG-12016)

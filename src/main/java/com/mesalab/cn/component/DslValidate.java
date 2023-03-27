@@ -1,14 +1,14 @@
 package com.mesalab.cn.component;
 
-import com.mesalab.cn.common.constant.ErrorMessage;
-import com.mesalab.cn.common.enums.*;
-import com.mesalab.cn.common.pojo.DSLObject;
+import com.mesalab.cn.entity.pojo.DSLObject;
+import com.mesalab.cn.enums.*;
+import com.mesalab.cn.exception.CNErrorCode;
+import com.mesalab.cn.exception.CNErrorMessage;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
-import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -19,7 +19,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.mesalab.cn.common.enums.EngineTypeEnum.ANALYSIS_ENGINE;
+import static com.mesalab.cn.enums.EngineTypeEnum.ANALYSIS_ENGINE;
 
 /**
  * @Date: 2020-07-20 18:10
@@ -38,59 +38,59 @@ public class DslValidate {
 
     public void executeValidate(DSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.DSL_OBJECT_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.DSL_OBJECT_IS_INVALID));
         }
         DSLObject.Query query = dslObject.getQuery();
         if (StringUtil.isEmpty(query)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.QUERY_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.QUERY_IS_INVALID));
         }
         if (StringUtil.isEmpty(EngineTypeEnum.getByEngine(query.getDataEngine()))) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.DATA_ENGINE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATA_ENGINE_IS_INVALID));
         }
-        if(ANALYSIS_ENGINE.getEngine().equals(query.getDataEngine())){
+        if (ANALYSIS_ENGINE.getEngine().equals(query.getDataEngine())) {
             if (StringUtil.isBlank(query.getDataSource())) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        ErrorMessage.DATASOURCE_IS_INVALID);
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATASOURCE_IS_INVALID));
             }
         } else {
             if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        ErrorMessage.DATASOURCE_IS_INVALID);
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATASOURCE_IS_INVALID));
             }
         }
         DSLObject.Query.Parameters parameters = query.getParameters();
         if (StringUtil.isEmpty(parameters)) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.PARAMETERS_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.PARAMETERS_IS_INVALID));
         }
         if (!isValidMatch(parameters.getMatch())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.MATCH_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.MATCH_IS_INVALID));
         }
         if (!isValidRange(parameters.getRange())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.RANGE_TYPE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.RANGE_TYPE_IS_INVALID));
         }
         if (!isValidDistinct(parameters.getDistinct())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.DISTINCT_TYPE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.DISTINCT_TYPE_IS_INVALID));
         }
         if (!isValidIntervals(parameters.getIntervals())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.INTERVALS_TYPE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.INTERVALS_TYPE_IS_INVALID));
         }
         if (!isValidSort(parameters.getSort())) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                    ErrorMessage.SORT_TYPE_IS_INVALID);
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.SORT_TYPE_IS_INVALID));
         }
-     }
+    }
 
     /**
      * 校验sort:
-     * 1.是否属于{@link com.mesalab.cn.common.enums.RangeTypeEnum}限定类型
+     * 1.是否属于{@link RangeTypeEnum}限定类型
      *
      * @param sort
      * @return
@@ -102,8 +102,8 @@ public class DslValidate {
         sort.forEach(o -> {
             if (!StringUtil.isBlank(o.getType())) {
                 if (StringUtil.isEmpty(SortTypeEnum.getByType(StringUtil.lowerCase(o.getType())))) {
-                    throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                            ErrorMessage.SORT_TYPE_IS_INVALID);
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.SORT_TYPE_IS_INVALID));
                 }
             }
         });
@@ -129,17 +129,19 @@ public class DslValidate {
         }
         for (String dateTimeStr : split) {
             if (!strFormatDateTime.matcher(dateTimeStr).find()) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        ErrorMessage.TIME_FORMAT_ERROR);
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.TIME_FORMAT_ERROR));
             }
         }
         try {
             DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
             if (dateTimeFormatter.parseMillis(split[1]) < dateTimeFormatter.parseMillis(split[0])) {
-                throw new RuntimeException("Intervals value should be [start, end]");
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.INTERVALS_VALUE_ERROR));
             }
         } catch (RuntimeException e) {
-            throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(), e.getMessage());
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.TIME_FORMAT_ERROR));
         }
         return true;
     }
@@ -147,7 +149,7 @@ public class DslValidate {
 
     /**
      * 校验Distinct:
-     * 1.是否属于{@link com.mesalab.cn.common.enums.RangeTypeEnum}限定类型
+     * 1.是否属于{@link RangeTypeEnum}限定类型
      *
      * @param distinct
      * @return
@@ -159,7 +161,10 @@ public class DslValidate {
         validLogicType(distinct.getLogicType());
         distinct.getCondition().forEach(o -> {
             if (StringUtil.isNotBlank(o.getType())) {
-                Validate.isTrue(EnumUtils.isValidEnum(RangeTypeEnum.class, StringUtil.upperCase(o.getType())), "distinct type is illegal");
+                if (!EnumUtils.isValidEnum(RangeTypeEnum.class, StringUtil.upperCase(o.getType()))){
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.DISTINCT_TYPE_ERROR));
+                }
             }
         });
         return true;
@@ -167,7 +172,7 @@ public class DslValidate {
 
     /**
      * 校验range:
-     * 1.是否属于{@link com.mesalab.cn.common.enums.RangeTypeEnum}限定类型
+     * 1.是否属于{@link RangeTypeEnum}限定类型
      *
      * @param range
      * @return
@@ -179,7 +184,10 @@ public class DslValidate {
         validLogicType(range.getLogicType());
         range.getCondition().forEach(o -> {
             if (StringUtil.isNotBlank(o.getType())) {
-                Validate.isTrue(EnumUtils.isValidEnum(RangeTypeEnum.class, StringUtil.upperCase(o.getType())), "range type is illegal");
+                if (!EnumUtils.isValidEnum(RangeTypeEnum.class, StringUtil.upperCase(o.getType()))){
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.RANGE_TYPE_ERROR));
+                }
             }
         });
         return true;
@@ -187,7 +195,7 @@ public class DslValidate {
 
     /**
      * 校验match:
-     * 1.是否属于{@link com.mesalab.cn.common.enums.MatchTypeEnum}限定类型
+     * 1.是否属于{@link MatchTypeEnum}限定类型
      *
      * @param match
      * @return
@@ -200,7 +208,10 @@ public class DslValidate {
         validLogicType(logicType);
         match.getCondition().forEach(o -> {
             if (StringUtil.isNotBlank(o.getType())) {
-                Validate.isTrue(EnumUtils.isValidEnum(MatchTypeEnum.class, StringUtil.upperCase(o.getType())), "match type is illegal");
+                if (!EnumUtils.isValidEnum(MatchTypeEnum.class, StringUtil.upperCase(o.getType()))){
+                    throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                            String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.MATCH_TYPE_ERROR));
+                }
             }
         });
         return true;
@@ -209,8 +220,8 @@ public class DslValidate {
     private void validLogicType(String logicType) {
         if (StringUtil.isNotBlank(logicType)) {
             if (StringUtil.isEmpty(LogicTypeEnum.getByType(StringUtil.lowerCase(logicType)))) {
-                throw new BusinessException(ResultStatusEnum.FAIL.getCode(), ResultCodeEnum.PARAM_SYNTAX_ERROR.getCode(),
-                        ErrorMessage.LOGIC_TYPE_IS_INVALID);
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.LOGIC_TYPE_IS_INVALID));
             }
         }
     }

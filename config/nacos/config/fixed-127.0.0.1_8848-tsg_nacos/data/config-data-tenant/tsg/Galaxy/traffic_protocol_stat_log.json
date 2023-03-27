@@ -21,7 +21,10 @@
     {
       "name": "__time",
       "label": "Time",
-      "type": "string",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
       "doc": {
         "constraints": {
           "type": "timestamp"
@@ -30,8 +33,25 @@
       }
     },
     {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
       "name": "protocol_id",
       "label": "Protocol ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_name",
+      "label": "APP Name",
       "doc": {
         "visibility": "enabled"
       },
@@ -44,14 +64,6 @@
         "visibility": "enabled"
       },
       "type": "string"
-    },
-    {
-      "name": "entrance_id",
-      "label": "Entrance ID",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
     },
     {
       "name": "data_center",

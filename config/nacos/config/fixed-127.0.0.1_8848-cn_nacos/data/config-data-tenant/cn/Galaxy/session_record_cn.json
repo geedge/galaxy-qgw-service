@@ -3,7 +3,10 @@
   "name": "session_record_cn",
   "namespace": "cyber_narrator_galaxy",
   "doc": {
-    "partition_key": "common_recv_time"
+    "partition_key": "common_recv_time",
+	"index_key": [
+		"common_recv_time"
+	 ]
   },
   "fields": [
 	{

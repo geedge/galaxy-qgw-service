@@ -5,10 +5,9 @@
   "doc": {
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
-    "index_key": [
-      "common_log_id",
-      "common_recv_time"
-    ],
+    "index_key": {
+      "$ref": "public_schema_info.json#/assessment_event/index_key"
+    },
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     }
@@ -23,18 +22,32 @@
         },
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "common_log_id",
       "label": "Log ID",
       "doc": {
-        "format": {
-          "functions": "snowflake_id"
-        },
+        "format": [
+          {
+            "function": "snowflake_id"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "long"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
     },
     {
       "name": "lot_number",
@@ -93,7 +106,10 @@
         },
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp"
+      }
     },
     {
       "name": "assessment_file",

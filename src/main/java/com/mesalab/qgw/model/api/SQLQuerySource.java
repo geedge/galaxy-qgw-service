@@ -56,6 +56,7 @@ public class SQLQuerySource {
         if (groupByElement == null) {
             return null;
         }
+        groupBy:
         for (Expression groupByExpression : groupByElement.getGroupByExpressions()) {
 
             String groupBy = groupByExpression.toString();
@@ -69,9 +70,10 @@ public class SQLQuerySource {
                 for (String key : aliasFields.keySet()) {
                     if (aliasFields.get(key).equalsIgnoreCase(groupBy)) {
                         groupDimension.put(key, groupBy);
-                        break;
+                        continue groupBy;
                     }
                 }
+                groupDimension.put(groupBy, groupBy);
             }
 
         }

@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "metric_protocol",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "stat_time",
+    "index_key": [
+      "stat_time",
+      "common_l7_protocol",
+      "common_server_port"
+    ]
+  },
+  "fields": [
+  ]
+}

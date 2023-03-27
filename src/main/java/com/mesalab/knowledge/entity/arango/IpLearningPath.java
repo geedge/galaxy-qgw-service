@@ -60,6 +60,15 @@ public class IpLearningPath {
         @JsonProperty(value = "DIST_CIP")
         private List<String> distCip;
 
+        @JsonProperty(value = "VSYS_ID")
+        private Long vsysId;
+
+        @JsonProperty(value = "IP")
+        private String ip;
+
+        @JsonProperty(value = "FQDN")
+        private String fqdnName;
+
     }
 
     @Data
@@ -80,5 +89,8 @@ public class IpLearningPath {
 
         @JsonProperty(value = "COMMON_LINK_INFO")
         private String commonLinkInfo;
+
+        @JsonProperty(value = "VSYS_ID")
+        private Long vsysId;
     }
 }

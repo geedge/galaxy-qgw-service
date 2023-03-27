@@ -1,4 +1,4 @@
 --Q01.Network Throughput
 SELECT TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(common_recv_time),'PT36S','zero') AS stat_time,ROUND(SUM(common_c2s_byte_num)/36) AS bytes_sent_rate,ROUND(SUM(common_s2c_byte_num)/36) AS bytes_received_rate,ROUND(SUM(common_c2s_byte_num + common_s2c_byte_num)/36) AS bytes_rate FROM session_record_cn WHERE common_recv_time >= toUnixTimestamp(@start) AND common_recv_time < toUnixTimestamp(@end) GROUP BY stat_time
---Q02.TCP Connection Establish Time Map
-SELECT ROUND(AVG(common_establish_latency_ms)) AS establish_latency, ROUND(QUANTILE(common_establish_latency_ms,0.5)) AS establish_latency_p50, ROUND(QUANTILE(common_establish_latency_ms,0.9)) AS establish_latency_p90, ROUND(QUANTILE(common_establish_latency_ms,0.99)) AS establish_latency_p99, server_country AS server_country   FROM metric_map WHERE common_recv_time >= toUnixTimestamp(@start) AND common_recv_time < toUnixTimestamp(@end) AND common_l4_protocol IN ('IPv4_TCP','IPv6_TCP')  AND server_country != ''  GROUP BY server_country    ORDER BY establish_latency DESC
+--Q01.QUANTILE(elasticsearch)
+SELECT QUANTILE(domain_reputation_score, 0.6) AS quantile_score_6 FROM entity_info WHERE update_time >= cast(now() as long)/1000 -3600 AND update_time < cast(now() as long)/1000 -3600 limit 1

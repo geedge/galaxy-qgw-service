@@ -7,18 +7,23 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.zdjizhi.utils.StringUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -28,37 +33,84 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.*;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class HttpClientService {
+
     private static final Log log = LogFactory.get();
+
     @Autowired
     private HttpConfig httpConfig;
 
-    //全局连接池对象
-    private PoolingHttpClientConnectionManager connectionManager;
+//    //全局连接池对象
+//    private PoolingHttpClientConnectionManager connectionManager;
+
+//    /**
+//     * 初始化连接池信息
+//     */
+//    @PostConstruct
+//    public void initConnectionManager() {
+//        if (connectionManager == null) {
+//            connectionManager = new PoolingHttpClientConnectionManager();
+//            // 整个连接池最大连接数
+//            connectionManager.setMaxTotal(httpConfig.getMaxConnectionNum());
+//            // 每路由最大连接数，默认值是2
+//            connectionManager.setDefaultMaxPerRoute(httpConfig.getMaxPerRoute());
+//        }
+//        log.info("Initializing PoolingHttpClientConnectionManager Complete");
+//    }
 
     /**
-     * 初始化连接池信息
+     * 在调用SSL之前需要重写验证方法，取消检测SSL
+     * 创建ConnectionManager，添加Connection配置信息
+     *
+     * @return HttpClient 支持https
      */
-    @PostConstruct
-    public void initConnectionManager() {
-        if (connectionManager == null) {
-            connectionManager = new PoolingHttpClientConnectionManager();
-            // 整个连接池最大连接数
-            connectionManager.setMaxTotal(httpConfig.getMaxConnectionNum());
-            // 每路由最大连接数，默认值是2
-            connectionManager.setDefaultMaxPerRoute(httpConfig.getMaxPerRoute());
+    private PoolingHttpClientConnectionManager getSslClientManager() {
+        try {
+            // 在调用SSL之前需要重写验证方法，取消检测SSL
+            X509TrustManager trustManager = new X509TrustManager() {
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+                @Override
+                public void checkClientTrusted(X509Certificate[] xcs, String str) {
+                }
+                @Override
+                public void checkServerTrusted(X509Certificate[] xcs, String str) {
+                }
+            };
+            SSLContext ctx = SSLContext.getInstance(SSLConnectionSocketFactory.TLS);
+            ctx.init(null, new TrustManager[]{trustManager}, null);
+            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE);
+            Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                    .register("http", PlainConnectionSocketFactory.INSTANCE)
+                    .register("https", socketFactory).build();
+            // 创建ConnectionManager，添加Connection配置信息
+            PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+            // 设置最大连接数
+            connManager.setMaxTotal(httpConfig.getMaxConnectionNum());
+            // 设置每个连接的路由数
+            connManager.setDefaultMaxPerRoute(httpConfig.getMaxPerRoute());
+            return connManager;
+        } catch (KeyManagementException e) {
+            log.error(e);
+            throw new BusinessException(e.getMessage());
+        } catch (NoSuchAlgorithmException e) {
+            log.error(e);
+            throw new BusinessException(e.getMessage());
         }
-        log.info("Initializing PoolingHttpClientConnectionManager Complete");
     }
 
     /**
@@ -144,7 +196,7 @@ public class HttpClientService {
                 .setRetryHandler(retry)
                 .setKeepAliveStrategy(myStrategy)
                 // 配置连接池管理对象
-                .setConnectionManager(connectionManager)
+                .setConnectionManager(getSslClientManager())
                 .build();
     }
 
@@ -394,8 +446,7 @@ public class HttpClientService {
         CloseableHttpClient httpClient = getHttpClient(httpConfig.getArangoSocketTimeOut());
         CloseableHttpResponse response = null;
         try {
-            URL ul = new URL(url);
-            URI uri = new URI(ul.getProtocol(), null, ul.getHost(), ul.getPort(), ul.getPath(), ul.getQuery(), null);
+            URI uri = new URI(url);
             log.info("http get uri {}", uri);
             // 创建GET请求对象
             HttpGet httpGet = new HttpGet(uri);
@@ -443,8 +494,7 @@ public class HttpClientService {
         CloseableHttpResponse response = null;
         try {
 
-            URL ul = new URL(url);
-            URI uri = new URI(ul.getProtocol(), null, ul.getHost(), ul.getPort(), ul.getPath(), ul.getQuery(), null);
+            URI uri = new URI(url);
             log.debug("http post uri:{}， http post body:{}", uri, requestBody);
             HttpPost httpPost = new HttpPost(uri);
             httpPost.setHeader("Content-Type", "application/json");
@@ -480,6 +530,147 @@ public class HttpClientService {
                     response.close();
                 } catch (IOException e) {
                     log.error("释放链接错误: {}", e.getMessage());
+                }
+            }
+        }
+        return msg;
+    }
+
+    /**
+     * PUT 请求
+     * @param url
+     * @param headers
+     * @return HttpResponse
+     */
+    public HttpResponse httpPutStream(String url, InputStream in, int socketTimeout, Header... headers) {
+        // 获取客户端连接对象
+        CloseableHttpClient httpClient = getHttpClient(socketTimeout);
+        CloseableHttpResponse response = null;
+        try {
+            URI uri = new URI(url);
+            log.info("http post uri:{} ", url);
+            HttpPut httpPut = new HttpPut(uri);
+            httpPut.setHeader("Content-Type", "application/octet-stream");
+            if (StringUtil.isNotEmpty(headers)) {
+                for (Header h : headers) {
+                    httpPut.addHeader(h);
+                }
+            }
+            httpPut.setEntity(new InputStreamEntity(in));
+            response = httpClient.execute(httpPut);
+        } catch (URISyntaxException e) {
+            log.error("URI 转换错误: {}", e.getMessage());
+        } catch (ClientProtocolException e) {
+            log.error("协议错误: {}", e.getMessage());
+        } catch (ParseException e) {
+            log.error("解析错误: {}", e.getMessage());
+        } catch (IOException e) {
+            log.error("IO错误: {}", e.getMessage());
+        } finally {
+            if (null != response) {
+                try {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("释放链接错误: {}", e.getMessage());
+                }
+            }
+        }
+        return response;
+    }
+
+    public InputStream httpGetInputStream(String url, int socketTimeout, Header... headers) {
+        InputStream result = null;
+        // 获取客户端连接对象
+        CloseableHttpClient httpClient = getHttpClient(socketTimeout);
+        // 创建GET请求对象
+        HttpGet httpGet = new HttpGet(url);
+        if (StringUtil.isNotEmpty(headers)) {
+            for (Header h : headers) {
+                httpGet.addHeader(h);
+            }
+        }
+        CloseableHttpResponse response = null;
+
+        try {
+            // 执行请求
+            response = httpClient.execute(httpGet);
+            int code = response.getStatusLine().getStatusCode();
+            if (code != ResultStatusEnum.SUCCESS.getCode()) {
+                log.error("current file: {}, get InputStream error, status code:{}, entity: {}", url, code, EntityUtils.toString(response.getEntity()));
+            } else {
+                // 获取响应实体
+                result = IOUtils.toBufferedInputStream(response.getEntity().getContent());
+                // 获取响应信息
+                EntityUtils.consume(response.getEntity());
+            }
+        } catch (ClientProtocolException e) {
+            log.error("current file: {},Protocol error:{}", url, e.getMessage());
+
+        } catch (ParseException e) {
+            log.error("current file: {}, Parser error:{}", url, e.getMessage());
+
+        } catch (IOException e) {
+            log.error("current file: {},IO error:{}", url, e.getMessage());
+
+        } finally {
+            if (null != response) {
+                try {
+                    EntityUtils.consume(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("Release Connection error:{}", e.getMessage());
+
+                }
+            }
+            return result;
+        }
+    }
+
+    /**
+     * 发送http delete请求
+     */
+    public String httpDelete(String url, int socketTimeout, Header... headers){
+        String msg = "-1";
+        // 获取客户端连接对象
+        CloseableHttpClient httpClient = getHttpClient(socketTimeout);
+
+        // 创建POST请求对象
+        CloseableHttpResponse response = null;
+
+        try {
+            URI uri = new URI(url);
+            log.info("http delete uri:{}", uri);
+
+            HttpDelete httpdelete = new HttpDelete(uri);
+            if (StringUtil.isNotEmpty(headers)) {
+                for (Header h : headers) {
+                    httpdelete.addHeader(h);
+                }
+            }
+            response = httpClient.execute(httpdelete);
+            int statusCode = response.getStatusLine().getStatusCode();
+            // 返回204，删除成功
+            if (statusCode != 204) {
+                throw new BusinessException(String.valueOf(statusCode), "Http post content is :" + msg);
+            }
+
+        } catch (URISyntaxException e) {
+            log.error("URI 转换错误: {}", e.getMessage());
+        } catch (ClientProtocolException e) {
+            log.error("协议错误: {}", e.getMessage());
+        } catch (ParseException e) {
+            log.error("解析错误: {}", e.getMessage());
+        } catch (IOException e) {
+            log.error("IO错误: {}", e.getMessage());
+        }finally{
+            if (null != response) {
+                try {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                    response.close();
+                } catch (IOException e) {
+                    log.error("释放链接错误: {}", e.getMessage());
+
                 }
             }
         }

@@ -10,31 +10,26 @@ import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.common.base.BaseResult;
-import com.mesalab.common.base.BaseResultGenerator;
-import com.mesalab.common.base.DataTypeMapping;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.*;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.qgw.service.RewriteTable;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.model.api.*;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.mesalab.common.utils.sqlparser.TableFinder;
 import com.zdjizhi.utils.Encodes;
 import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.Parenthesis;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
-import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
-import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
+import net.sf.jsqlparser.util.deparser.ExpressionDeParser;
 import org.apache.avro.Schema;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -55,7 +50,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     private static final Pattern pGroupBy = Pattern.compile("\\bgroup\\s+by\\s+", Pattern.CASE_INSENSITIVE);
     private static final Pattern pDistinct = Pattern.compile("\\b(DISTINCT)(\\(|\\s+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp)\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pAggregateFunSpecificOfCK = Pattern.compile("\\b(anyHeavy|anyLast|argMin|argMax|avgWeighted|topK|topKWeighted|groupArray|groupUniqArray|groupArrayInsertAt|groupArrayMovingAvg|groupArrayMovingSum|groupBitAnd|groupBitOr|groupBitXor|groupBitmap|groupBitmapAnd|groupBitmapOr|groupBitmapXor|sumWithOverflow|sumMap|minMap|maxMap|skewSamp|skewPop|kurtSamp|kurtPop|uniq|uniqExact|uniqCombined|uniqCombined64|uniqHLL12|quantile|quantiles|quantileExact|quantileExactLow|quantileExactHigh|quantileExactWeighted|quantileTiming|quantileTimingWeighted|quantileDeterministic|quantileTDigest|quantileTDigestWeighted|quantileBFloat16|quantileBFloat16Weighted|simpleLinearRegression|stochasticLinearRegression|stochasticLogisticRegression|categoricalInformationValue)\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
@@ -138,7 +132,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     public String getSampleQuery() {
         String sampleSQL = param.getDbQuerySource().getSqlBody();
         try {
-            sampleSQL = convertQuery(String.valueOf(convertSampleSql(sampleSQL)));
+            sampleSQL = convertQuery(convertSampleSql(sampleSQL));
         } catch (JSQLParserException e) {
             log.error("Sample sql error {}, execute original sql: {}, error is: {} ",
                     sampleSQL, sampleSQL = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
@@ -245,7 +239,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         /**
          * Desc:
-         *  IN 转换为 集群 Global IN 模式(针对聚合、分组)
+         * IN 转换为 集群 Global IN 模式(针对聚合、分组)
          *
          * @param sql
          * @return {@link String}
@@ -319,7 +313,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
 
     class Optimizer {
-        private Boolean subIndexValidFlag = true;
         String sql = null;
 
         /**
@@ -409,14 +402,18 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          */
         public Optimizer generateTableAlias() {
             try {
-                TableFinder tableFinder = new TableFinder();
-                Statement parse = CCJSqlParserUtil.parse(sql);
-                tableFinder.setDefaultAlias(true);
-                tableFinder.addSchemaName(parse);
-                sql = String.valueOf(parse);
-            } catch (JSQLParserException e) {
-                log.error("SQL Rewrite add tableName and Alias Error: ", e.toString());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.SQL_SYNTAX_ERROR.getCode(), "SQL Rewrite add tableName and Alias Error", e);
+                Select select = (Select) CCJSqlParserUtil.parse(sql);
+                ExpressionDeParser expressionDeParser = new ExpressionDeParser();
+                StringBuilder buffer = new StringBuilder();
+                RewriteTable deParser = new RewriteTable(expressionDeParser, buffer);
+                expressionDeParser.setSelectVisitor(deParser);
+                expressionDeParser.setBuffer(buffer);
+                select.getSelectBody().accept(deParser);
+                sql = buffer.toString();
+            } catch (JSQLParserException | RuntimeException e) {
+                log.error("SQL Rewrite add tableName and Alias Error: ", e);
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
+                        QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_BUILDER_EXCEPTION.getMessage(), e.getMessage()));
             }
             return this;
         }
@@ -502,12 +499,15 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (containAggregateFunction(sql) || containGroupBy(sql) || containDistinct(sql)) {
                 return this;
             }
-
-            String indexTable = getAvailableIndexTable();
-            if (StringUtil.isNotBlank(indexTable)) {
-                sql = getSubQueryByIndexTable(indexTable);
-            } else {
-                sql = getSubQueryByPartitionKey(sql);
+            try {
+                String indexTable = getAvailableIndexTable();
+                if (StringUtil.isNotBlank(indexTable)) {
+                    sql = getSubQueryByIndexTable(indexTable);
+                } else {
+                    sql = getSubQueryByPartitionKey(sql);
+                }
+            } catch (JSQLParserException | RuntimeException e) {
+                log.error("generate SubQuery optimize error: {}", e.getMessage());
             }
             return this;
         }
@@ -534,38 +534,35 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          *
          * @return
          */
-        private String getAvailableIndexTable() {
-            String indexTable = "";
+        private String getAvailableIndexTable() throws JSQLParserException {
             String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
             String[] indexTables = StringUtil.split(str, ",");
-            if (StringUtil.isEmpty(indexTables)) {
+            if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(metadataService.getIndexKey(param.getTableName()))) {
                 return StringUtil.EMPTY;
             }
+            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields());
+            List<String> actualFieldOfWhere = CondExpressionHelper.getDistinctFields(expression.toString());
+            table:
             for (String tempIndexTable : indexTables) {
-
                 List<String> indexKey = metadataService.getIndexKey(tempIndexTable);
                 //判断一: where 是否包含索引键
-                if (StringUtil.isEmpty(indexKey) || !param.getDbQuerySource().getExpr().contains(indexKey.get(0))) {
+                if (StringUtil.isEmpty(indexKey) || !actualFieldOfWhere.contains(indexKey.get(0))) {
                     continue;
                 }
-
-                Map indexTableData = metadataService.getSchemaInfo("fields", tempIndexTable);
-                Schema indexTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(indexTableData));
-                //判断二: order by 元素是否都在索引表中
+                Schema indexTableSchema = metadataService.getSchemaByName(tempIndexTable);
+                //判断二: where 条件列是否都在索引表中
+                for (String field : actualFieldOfWhere) {
+                    if (!isFieldOfSchema(indexTableSchema, field)) {
+                        continue table;
+                    }
+                }
+                //判断三: order by 元素是否都在索引表中
                 if (!isValidOfOrderElementsInSchema(indexTableSchema)) {
                     continue;
                 }
-
-                Map masterTableData = metadataService.getSchemaInfo("fields", param.getTableName());
-                Schema masterTableSchema = new Schema.Parser().parse(JsonMapper.toJsonString(masterTableData));
-                //判断三: where 条件列是否都在索引表中
-                setValidityByWhereExpressionsInSchema(param.getDbQuerySource().getWhereExpression(), masterTableSchema, indexTableSchema);
-                if (getSubIndexValidFlag() && isExist(indexTableSchema.getFullName())) {
-                    indexTable = indexTableSchema.getName();
-                    break;
-                }
+                return indexTableSchema.getName();
             }
-            return indexTable;
+            return StringUtil.EMPTY;
         }
 
         /**
@@ -574,13 +571,19 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param indexTable
          * @return
          */
-        private String getSubQueryByIndexTable(String indexTable) {
+        private String getSubQueryByIndexTable(String indexTable) throws JSQLParserException {
 
             String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
+            List<String> indexKey = metadataService.getIndexKey(param.getTableName());
+            indexKey = indexKey.subList(0, indexKey.contains(primaryKey) ? indexKey.indexOf(primaryKey) + 1 : indexKey.size());
 
-            String subQuery = getSubquerySql(primaryKey, indexTable);
+            List<String> indexKeyMaster = Lists.newArrayList();
+            String nameMaster = metadataService.getSchemaByName(param.getTableName()).getName();
+            indexKey.forEach(o -> indexKeyMaster.add(nameMaster.concat(".").concat(o)));
+
+            String subQuery = getSubquerySql(String.join(",", indexKey), indexTable);
             StringBuffer sb = new StringBuffer();
-            sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ").append(primaryKey).append(" in ( ").append(subQuery).append(")");
+            sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ( ").append(String.join(",", indexKeyMaster)).append(" ) in ( ").append(subQuery).append(")");
             if (StringUtil.isNotBlank(param.getDbQuerySource().getExpr())) {
                 sb.append(" and (").append(param.getDbQuerySource().getExpr()).append(")");
             }
@@ -599,24 +602,22 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param sql
          * @return
          */
-        private String getSubQueryByPartitionKey(String sql) {
-            String partitionKey = getPartitionKey(param.getTableName());
+        private String getSubQueryByPartitionKey(String sql) throws JSQLParserException {
+            String partitionKey = metadataService.getPartitionKey(param.getTableName());
             if (StringUtil.isBlank(partitionKey)) {
                 log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getTableName());
                 return sql;
-            } else {
-                String subQuery = getSubquerySql(partitionKey, param.getTableName());
-                subQuery = subQuery.replaceAll("\\\\","$0$0");
-                subQuery = subQuery.replaceAll("\\$","\\\\\\$");
-                Matcher m = pWhere.matcher(sql);
-                StringBuffer sb = new StringBuffer();
-                while (m.find()) {
-                    m.appendReplacement(sb, "where  " + partitionKey + " in ( " + subQuery + ") and  ");
-                }
-                m.appendTail(sb);
-                return sb.toString();
             }
-
+            String subQuery = getSubquerySql(partitionKey, param.getTableName());
+            subQuery = subQuery.replaceAll("\\\\", "$0$0");
+            subQuery = subQuery.replaceAll("\\$", "\\\\\\$");
+            Matcher m = pWhere.matcher(sql);
+            StringBuffer sb = new StringBuffer();
+            while (m.find()) {
+                m.appendReplacement(sb, "where  " + metadataService.getSchemaByName(param.getTableName()).getName().concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
+            }
+            m.appendTail(sb);
+            return sb.toString();
         }
 
         /**
@@ -626,11 +627,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @param tableName
          * @return
          */
-        private String getSubquerySql(String columnName, String tableName) {
+        private String getSubquerySql(String columnName, String tableName) throws JSQLParserException {
             StringBuilder subQuery = new StringBuilder();
 
             subQuery.append("select " + columnName + " from ").append(tableName)
-                    .append(" where ").append(param.getDbQuerySource().getExpr());
+                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields()));
 
             //order by中元素存在别名时做替换处理
             List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
@@ -667,76 +668,28 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         /**
-         * 获取当前CK查询中的分区键，用于子查询优化操作;
-         * 若分区键被其它列当别名使用，返回空
-         *
-         * @return
-         */
-        private String getPartitionKey(String tableName) {
-            String partitionKey = metadataService.getPartitionKey(tableName);
-
-            if (StringUtil.isNotBlank(partitionKey)) {
-                String tempValue = param.getDbQuerySource().getAliasFields().get(partitionKey);
-                if (StringUtil.isNotBlank(tempValue)) {
-                    if (tempValue.contains(partitionKey)) {
-                        partitionKey = tempValue;
-                    } else {
-                        partitionKey = "";
-                    }
-                }
-
-            }
-
-            return partitionKey;
-
-        }
-
-        /**
-         * 判断table是否在DB中
-         *
-         * @param tableName
-         * @return
-         */
-        private boolean isExist(String tableName) {
-            Map<String, String> result = executeHttpPost(String.format("select 1 from %s limit 1", tableName));
-            if (result.get("status") == null || Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
-                log.warn("The table does not exist: {}", tableName);
-                return false;
-            }
-            return true;
-        }
-
-        /**
          * 判断order by 元素是否属于schema字段中
          *
          * @param schema
          * @return
          */
-        private boolean isValidOfOrderElementsInSchema(Schema schema) {
+        private boolean isValidOfOrderElementsInSchema(Schema schema) throws JSQLParserException {
             List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
             if (StringUtil.isEmpty(listOrderElement)) {
                 return true;
-            } else {
-                Map<String, String> aliasFields = param.getDbQuerySource().getAliasFields();
-                for (OrderByElement order : listOrderElement) {
-                    String orderField = String.valueOf(order.getExpression());
-                    if (orderField.startsWith("\"") && orderField.endsWith("\"")) {
-                        orderField = orderField.substring(1, orderField.length() - 1);
-                    }
-                    String originalField = StringUtil.isBlank(aliasFields.get(orderField)) ? orderField : aliasFields.get(orderField);
-                    Expression expression = parserException(originalField);
-                    if (expression instanceof Function) {
-                        if (!getValidityByFunctionParamsInSchema(schema, (Function) expression)) {
-                            return false;
-                        }
-                    } else {
-                        if (!isFieldOfSchema(schema, originalField)) {
-                            return false;
-                        }
+            }
+            for (OrderByElement order : listOrderElement) {
+                OrderByElement orderByElement = new OrderByElement();
+                Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(String.valueOf(order.getExpression()), param.getDbQuerySource().getAliasFields());
+                orderByElement.setExpression(expression);
+                List<String> fields = CondExpressionHelper.getDistinctFieldsOfOrderBy(orderByElement);
+                for (String field : fields) {
+                    if (!isFieldOfSchema(schema, field)) {
+                        return false;
                     }
                 }
-                return true;
             }
+            return true;
         }
 
         /**
@@ -752,206 +705,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 return false;
             }
             return true;
-        }
-
-        /**
-         * 判断where条件是否可以进行在索引表中的查询
-         *
-         * @param where
-         * @param masterTableSchema 主表
-         * @param indexTableSchema  索引表
-         */
-        private void setValidityByWhereExpressionsInSchema(Expression where, Schema masterTableSchema, Schema indexTableSchema) {
-
-            if (StringUtil.isEmpty(masterTableSchema) || StringUtil.isEmpty(indexTableSchema)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-
-            if (where instanceof InExpression) {
-                InExpression whereIn = (InExpression) where;
-                ItemsList rightItemsList = whereIn.getRightItemsList();
-                if (rightItemsList instanceof SubSelect) {
-                    setSubIndexValidFlag(false);
-                    return;
-                }
-                String left;
-                if (!StringUtil.isEmpty(whereIn.getLeftExpression())) {
-                    left = String.valueOf(whereIn.getLeftExpression());
-                } else {
-                    left = String.valueOf(whereIn.getLeftItemsList());
-                }
-                if (!isFieldOfSchema(masterTableSchema, left) || !isFieldOfSchema(indexTableSchema, left)) {
-                    setSubIndexValidFlag(false);
-                    return;
-                }
-            } else if (where instanceof AndExpression) {
-                AndExpression whereAnd = (AndExpression) where;
-                Expression leftExpression = whereAnd.getLeftExpression();
-                Expression rightExpression = whereAnd.getRightExpression();
-                setValidityByWhereExpressionsInSchema(leftExpression, masterTableSchema, indexTableSchema);
-                setValidityByWhereExpressionsInSchema(rightExpression, masterTableSchema, indexTableSchema);
-            } else if (where instanceof OrExpression) {
-                OrExpression whereOr = (OrExpression) where;
-                Expression leftExpression = whereOr.getLeftExpression();
-                Expression rightExpression = whereOr.getRightExpression();
-                setValidityByWhereExpressionsInSchema(leftExpression, masterTableSchema, indexTableSchema);
-                setValidityByWhereExpressionsInSchema(rightExpression, masterTableSchema, indexTableSchema);
-            } else if (where instanceof ComparisonOperator) {
-                ComparisonOperator whereComparisonOperator = (ComparisonOperator) where;
-                setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, whereComparisonOperator.getLeftExpression(), whereComparisonOperator.getRightExpression());
-            } else if (where instanceof LikeExpression) {
-                LikeExpression whereLike = (LikeExpression) where;
-                setValidityByLRExpressionInSchema(masterTableSchema, indexTableSchema, whereLike.getLeftExpression(), whereLike.getRightExpression());
-            } else if (where instanceof Function) {
-                Function function = (Function) where;
-                boolean bool = getValidityByFunctionParamsInSchema(indexTableSchema, function);
-                if (!bool) {
-                    setSubIndexValidFlag(false);
-                }
-            } else if (where instanceof Parenthesis) {
-                Parenthesis whereExpressionParenthesis = (Parenthesis) where;
-                Expression expression = whereExpressionParenthesis.getExpression();
-                setValidityByWhereExpressionsInSchema(expression, masterTableSchema, indexTableSchema);
-            } else {
-                setSubIndexValidFlag(false);
-                return;
-            }
-        }
-
-        private Expression parserException(String originalField) {
-            try {
-                return CCJSqlParserUtil.parseExpression(originalField);
-            } catch (JSQLParserException e) {
-                throw new BusinessException("parseExpression error: " + originalField);
-            }
-        }
-
-        /**
-         * 根据函数参数判断索引表查询是否有效: 只支持0或1(判断是否在schema中)个参数, 其它均设为无效
-         *
-         * @param schema
-         * @param function
-         */
-        private boolean getValidityByFunctionParamsInSchema(Schema schema, Function function) {
-            ExpressionList parameters = function.getParameters();
-            if (StringUtil.isEmpty(parameters)) {
-                return true;
-            } else {
-                List<Expression> expressions = parameters.getExpressions();
-                if (expressions.size() != 1) {
-                    return false;
-                }
-                if (!isFieldOfSchema(schema, String.valueOf(expressions.get(0)))) {
-                    return false;
-                }
-                return true;
-            }
-        }
-
-        /**
-         * 根据左右表达式判断索引表查询是否有效
-         *
-         * @param masterTableSchema
-         * @param indexTableSchema
-         * @param leftExpression
-         * @param rightExpression
-         */
-        private void setValidityByLRExpressionInSchema(Schema masterTableSchema, Schema indexTableSchema, Expression leftExpression, Expression rightExpression) {
-            String leftStr = String.valueOf(leftExpression);
-            String rightStr = String.valueOf(rightExpression);
-            if (leftExpression instanceof Function && rightExpression instanceof Function) {
-                setValidityByFunAndFunInSchema(masterTableSchema, indexTableSchema, (Function) leftExpression, (Function) rightExpression);
-            } else if (!(leftExpression instanceof Function) && rightExpression instanceof Function) {
-                setValidityByFunctionAndStrInSchema(masterTableSchema, indexTableSchema, (Function) rightExpression, leftStr);
-            } else if (leftExpression instanceof Function && !(rightExpression instanceof Function)) {
-                setValidityByFunctionAndStrInSchema(masterTableSchema, indexTableSchema, (Function) leftExpression, rightStr);
-            } else {
-                setValidityBuStrAndStrInSchema(masterTableSchema, indexTableSchema, leftStr, rightStr);
-            }
-        }
-
-        /**
-         * 操作符左右两边都是非函数类型(转String)
-         *
-         * @param masterTableSchema
-         * @param indexTableSchema
-         * @param leftStr
-         * @param rightStr
-         */
-        private void setValidityBuStrAndStrInSchema(Schema masterTableSchema, Schema indexTableSchema, String leftStr, String rightStr) {
-            if (isFieldOfSchema(masterTableSchema, leftStr) && !isFieldOfSchema(indexTableSchema, leftStr)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (isFieldOfSchema(masterTableSchema, rightStr) && !isFieldOfSchema(indexTableSchema, rightStr)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (!isFieldOfSchema(masterTableSchema, leftStr) && !isFieldOfSchema(masterTableSchema, rightStr)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-        }
-
-        /**
-         * 操作符左右两边都是函数
-         *
-         * @param masterTableSchema
-         * @param indexTableSchema
-         * @param leftExpression
-         * @param rightExpression
-         */
-        private void setValidityByFunAndFunInSchema(Schema masterTableSchema, Schema indexTableSchema, Function leftExpression, Function rightExpression) {
-            boolean validLeftInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, leftExpression);
-            boolean validLeftInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, leftExpression);
-            if (validLeftInMaster && !validLeftInIndex) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            boolean validRightInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, rightExpression);
-            boolean validRightInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, rightExpression);
-            if (validRightInMaster && !validRightInIndex) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (!validLeftInMaster && !validRightInMaster) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-        }
-
-        /**
-         * 操作符左右一边是函数类型一边是非函数(转String)
-         *
-         * @param masterTableSchema
-         * @param indexTableSchema
-         * @param function
-         * @param str
-         */
-        private void setValidityByFunctionAndStrInSchema(Schema masterTableSchema, Schema indexTableSchema, Function function, String str) {
-            boolean validFunInMaster = getValidityByFunctionParamsInSchema(masterTableSchema, function);
-            boolean validFunInIndex = getValidityByFunctionParamsInSchema(indexTableSchema, function);
-            if (validFunInMaster && !validFunInIndex) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (isFieldOfSchema(masterTableSchema, str) && !isFieldOfSchema(indexTableSchema, str)) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-            if (!isFieldOfSchema(masterTableSchema, str) && !validFunInMaster) {
-                setSubIndexValidFlag(false);
-                return;
-            }
-        }
-
-        private void setSubIndexValidFlag(Boolean subIndexValidFlag) {
-            this.subIndexValidFlag = subIndexValidFlag;
-        }
-
-        private Boolean getSubIndexValidFlag() {
-            return subIndexValidFlag;
         }
 
         public String build() {
@@ -974,19 +727,21 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     public BaseResult generateBaseResult(String sql, Optional<String> message) {
 
         Map<String, String> results = executeHttpPost(sql);
-
-        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
+        int status = Integer.parseInt(results.get("status"));
+        if (status == ResultStatusEnum.SUCCESS.getCode()) {
 
             baseResult = BaseResultGenerator.generate(
                     Integer.parseInt(results.get("status")),
-                    ResultCodeEnum.EXECUTE_SUCCESS.getCode(),
+                    ResultCodeEnum.SUCCESS.getCode(),
                     message.get(),
                     JsonMapper.fromJsonString(results.get("result"), Map.class),
                     null,
                     null,
                     QueryFormatEnum.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), message.get(),
+            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
+
+                    ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), message.get()),
                     StringUtil.isNotEmpty(results.get("message")) ? results.get("message") : results.get("result"), null, null, param.getFormat());
         }
         return build();
@@ -1009,8 +764,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else {
-            throw new BusinessException((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus(),
-                    ResultCodeEnum.SQL_EXECUTION_ERROR.getCode(), simplyErrorMessage(dataObject));
+            if (baseResult.getStatus() >= ResultStatusEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < ResultStatusEnum.SERVER_ERROR.getCode()) {
+                throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            }
+            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
         }
         return baseResult;
     }
@@ -1027,11 +786,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         message = message.startsWith("Code: ") ?
                 message.substring(i, !message.contains("(version ") ? message.length() : message.indexOf("(version "))
                 : message;
-        return StrUtil.removeAllLineBreaks("SQL Execution Error: ".concat(message)).trim();
+        return StrUtil.removeAllLineBreaks(message).trim();
     }
 
     private boolean containAggregateFunction(String sql) {
-        return (pAggregateFunStandard.matcher(sql).find()
+        return (SQLFunctionUtil.pAggregateFunStandard.matcher(sql).find()
                 || pAggregateFunSpecificOfCK.matcher(sql).find());
     }
 
@@ -1048,125 +807,17 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     /**
      * 通过递归方式将原SQL转换为样例SQL
      * 做数据集限制:
-     *  1. 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
-     *  2. 对where添加：OR 1=1
-     * 涉及from 和 where中存在子查询
+     * 1. 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
+     * 2. 对where、having添加：OR 1=1
      *
      * @param sql
      * @return
      * @throws JSQLParserException
      */
-    private SelectBody convertSampleSql(String sql) throws JSQLParserException {
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        if (parse instanceof Select) {
-            Select select = (Select) parse;
-            SelectBody selectBody = select.getSelectBody();
-            if (selectBody instanceof PlainSelect) {
-                PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-                FromItem fromItem = plainSelect.getFromItem();
-                if (fromItem instanceof SubSelect) {
-                    SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
-                    subSelect.setSelectBody(convertSampleSql(subSelect.getSelectBody().toString()));
-                } else if (fromItem instanceof Table) {
-                    Table table = (Table) fromItem;
-                    plainSelect.setFromItem(generateSampleDatasetSql(table.getName(), table.getAlias() != null ? table.getAlias().getName() : table.getName()));
-                }
-                if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
-                    plainSelect.setWhere(generateDatasetWhereSql(plainSelect.getWhere().toString()));
-                }
-                if (StringUtil.isNotEmpty(plainSelect.getHaving())) {
-                    plainSelect.setHaving(generateDatasetWhereSql(plainSelect.getHaving().toString()));
-                }
-                convertWhereForSampleSql(plainSelect.getWhere());
-                return plainSelect;
-            } else if (selectBody instanceof SetOperationList) {
-                SetOperationList setOperationList = (SetOperationList) selectBody;
-                List<SelectBody> selects = setOperationList.getSelects();
-                for (int i = 0; i < selects.size(); i++) {
-                    selects.set(i, convertSampleSql(selects.get(i).toString()));
-                }
-                return setOperationList;
-            } else {
-                throw new BusinessException("Only support selectBody operation: PlainSelect or SetOperationList");
-            }
-        }
-        throw new BusinessException("Only support statement operation as select");
-    }
-
-    /**
-     * 将where中子查询语句表名更新为数据集形式,类同from中表的替换
-     *
-     * @param whereExpression
-     * @throws JSQLParserException
-     */
-    private void convertWhereForSampleSql(Expression whereExpression) throws JSQLParserException {
-        if (whereExpression instanceof ComparisonOperator) {
-            ComparisonOperator whereOperator = (ComparisonOperator) whereExpression;
-            Expression left = whereOperator.getLeftExpression();
-            setSampleSelectBody(left);
-            Expression right = whereOperator.getRightExpression();
-            setSampleSelectBody(right);
-        } else if (whereExpression instanceof InExpression) {
-            InExpression inExpression = (InExpression) whereExpression;
-            Expression leftExpression = inExpression.getLeftExpression();
-            setSampleSelectBody(leftExpression);
-            ItemsList rightItemsList = inExpression.getRightItemsList();
-            if (rightItemsList instanceof SubSelect) {
-                SubSelect subSelect = (SubSelect) rightItemsList;
-                setSampleSelectBody(subSelect);
-            }
-        } else if (whereExpression instanceof Between) {
-            Between whereBetween = (Between) whereExpression;
-            Expression betweenExpressionStart = whereBetween.getBetweenExpressionStart();
-            setSampleSelectBody(betweenExpressionStart);
-            Expression betweenExpressionEnd = whereBetween.getBetweenExpressionEnd();
-            setSampleSelectBody(betweenExpressionEnd);
-        } else if (whereExpression instanceof AndExpression) {
-            AndExpression whereAnd = (AndExpression) whereExpression;
-            convertWhereForSampleSql(whereAnd.getLeftExpression());
-            convertWhereForSampleSql(whereAnd.getRightExpression());
-        } else if (whereExpression instanceof OrExpression) {
-            OrExpression whereOr = (OrExpression) whereExpression;
-            convertWhereForSampleSql(whereOr.getLeftExpression());
-            convertWhereForSampleSql(whereOr.getRightExpression());
-        } else if (whereExpression instanceof Parenthesis) {
-            Parenthesis whereExpressionParenthesis = (Parenthesis) whereExpression;
-            Expression expression = whereExpressionParenthesis.getExpression();
-            convertWhereForSampleSql(expression);
-        }
-    }
-
-    private void setSampleSelectBody(Expression expression) throws JSQLParserException {
-        if (expression instanceof SubSelect) {
-            SubSelect subSelect = (SubSelect) expression;
-            SelectBody selectBody = subSelect.getSelectBody();
-            subSelect.setSelectBody(convertSampleSql(selectBody.toString()));
-        }
-    }
-
-    /**
-     * 生成数据集: 以FromItem对象形式的数据集表 sql,用来替换table
-     *
-     * @param tableName
-     * @param alias
-     * @return
-     * @throws JSQLParserException
-     */
-    private FromItem generateSampleDatasetSql(String tableName, String alias) throws JSQLParserException {
-        String sql = StrUtil.format("SELECT 1 FROM (SELECT * FROM {} ) as {} ",
-                BooleanUtil.isTrue(param.getSampled()) ? tableName + " WHERE rand() % 100 = 0 LIMIT 1000 " : tableName + " LIMIT 0 ", alias);
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        Select select = (Select) parse;
-        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-        return plainSelect.getFromItem();
-    }
-
-    private Expression generateDatasetWhereSql(String where) throws JSQLParserException {
-        String sql = String.format("SELECT * FROM tableName WHERE  %s %s ", where, "OR 1=1");
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        Select select = (Select) parse;
-        PlainSelect selectBody = (PlainSelect) select.getSelectBody();
-        return selectBody.getWhere();
+    private String convertSampleSql(String sql) throws JSQLParserException {
+        String dataSet = StrUtil.format("SELECT * FROM {}",
+                BooleanUtil.isTrue(param.getSampled()) ? " {} WHERE rand() % 100 = 0 LIMIT 1000 " : " {} LIMIT 0 ");
+        return new ClickhouseSampleSQLHelper(sql, dataSet).build();
     }
 
     /**
@@ -1194,7 +845,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             param.setOption(QueryOptionEnum.LONG_TERM.getValue());
         }
 
-       if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
+        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())) {
             clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkLongTermAccountSocketTimeOut());
             queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName);

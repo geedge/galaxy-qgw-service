@@ -1,7 +1,7 @@
 package com.mesalab.qgw.service;
 
 
-import com.mesalab.common.base.BaseResult;
+import com.mesalab.common.entity.BaseResult;
 import org.apache.avro.Schema;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,7 @@ public interface MetadataService {
      * @param name
      * @return
      */
-    Map getSchemaInfo(String type, String name);
+    Map getSchemaInfo(String type, String name, boolean displayStorageSize);
 
     /**
      * 查询字典信息
