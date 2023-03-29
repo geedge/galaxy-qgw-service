@@ -122,7 +122,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             data.putAll(summaryData.get(0));
         }
 
-        if (!summaryData.isEmpty()) {
+        if (!appData.isEmpty()) {
             data.putAll(appData.get(0));
         }
 
