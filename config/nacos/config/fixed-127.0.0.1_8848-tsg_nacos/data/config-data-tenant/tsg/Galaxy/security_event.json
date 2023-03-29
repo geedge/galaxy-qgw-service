@@ -874,6 +874,10 @@
           {
             "code": "96",
             "value": "Allow"
+          },
+          {
+            "code": "128",
+            "value": "Allow(Deprecated)"
           }
         ],
         "visibility": "enabled",
