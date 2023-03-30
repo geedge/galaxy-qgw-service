@@ -1,0 +1,189 @@
+{
+  "type": "record",
+  "name": "traffic_shaping_rule_hits",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "filters": [
+        "data_center",
+        "device_group"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!="
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "rule_id",
+      "label": "Shaping Rule ID",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "profile_id",
+      "label": "Shaping Profile ID",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "priority",
+      "label": "Priority",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "in_drop_pkts",
+      "label": "Incoming Drop Packets",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "out_drop_pkts",
+      "label": "Outgoing Drop Packets",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "in_max_latency_us",
+      "label": "Incoming Max Latency (us)",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "out_max_latency_us",
+      "label": "Outgoing Max Latency (us)",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "in_queue_len",
+      "label": "Incoming Queue Length",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "out_queue_len",
+      "label": "Outgoing Queue Length",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled"
+      }
+    }
+  ]
+}

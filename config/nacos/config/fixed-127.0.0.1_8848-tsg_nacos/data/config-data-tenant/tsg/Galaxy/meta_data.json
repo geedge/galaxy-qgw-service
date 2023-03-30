@@ -56,7 +56,7 @@
         "traffic_metrics_log",
         "traffic_app_stat_log",
         "traffic_top_destination_ip_metrics_log",
-        "traffic_shaping_metrics",
+        "traffic_shaping_rule_hits",
         "sys_storage_log",
         "service_chaining_metrics",
         "service_function_status",
