@@ -511,7 +511,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 if (StringUtil.isNotEmpty(schemaDoc)) {
                     map = (Map<String, Object>) schemaDoc;
                 }
-                if (StringUtil.isEmpty(map.get("ttl")) || ttl < Long.parseLong(map.get("ttl").toString())) {
+                if (StringUtil.isNotEmpty(map.get("ttl")) && ttl < Long.parseLong(map.get("ttl").toString())) {
                     map.put("ttl", ttl);
                     schemaMap.put("doc", map);
                 }
@@ -528,7 +528,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                         field.put("doc", fieldDoc);
                         continue;
                     }
-                    if (StringUtil.isEmpty(fieldDoc.get("ttl")) || ttl < Long.parseLong(fieldDoc.get("ttl").toString())) {
+                    if (StringUtil.isNotEmpty(fieldDoc.get("ttl")) && ttl < Long.parseLong(fieldDoc.get("ttl").toString())) {
                         fieldDoc.put("ttl", ttl);
                         field.put("doc", fieldDoc);
                     }
