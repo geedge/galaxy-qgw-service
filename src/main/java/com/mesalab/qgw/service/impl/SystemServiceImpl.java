@@ -501,9 +501,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             for (String tableName : list) {
                 Map schemaMap = metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName);
                 List<Object> schemaDocTTL = JsonPath.read(schemaMap, "$.[?(@.doc.ttl != null)].doc.ttl");
-                List<Object> schemaDocDefaultTTL = JsonPath.read(schemaMap, "$.[?(@.doc.default_ttl != null)].doc.default_ttl");
                 List<Object> fieldDocTTL = JsonPath.read(schemaMap, "$.fields[?(@.doc.ttl != null)].doc.ttl");
-                if (schemaDocDefaultTTL.isEmpty() && schemaDocTTL.isEmpty() && fieldDocTTL.isEmpty()) {
+                if (schemaDocTTL.isEmpty() && fieldDocTTL.isEmpty()) {
                     continue;
                 }
                 previous.put(tableName, metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName));
