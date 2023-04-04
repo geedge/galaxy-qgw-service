@@ -84,6 +84,15 @@
       "type": "long"
     },
     {
+      "name": "profile_id",
+      "label": "Profile ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
       "name": "vsys_id",
       "label": "Vsys ID",
       "doc": {
