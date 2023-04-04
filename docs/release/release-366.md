@@ -6,4 +6,4 @@ Release 366 (TSG-23.04)
 * 新增Schema，新增traffic_shaping_rule_hits整形流量统计(TSG-14493)
 * 删除Schema，删除traffic_shaping_metrics(TSG-14493)
 * 扩展Schema，DoS Event Schema增加字段profile_id(TSG-14520)
-* 修复储存配额更新接口，只操作schema指定了ttl && ttl由大变小的schema
+* 完善储存配额更新接口及Schema更新逻辑。
