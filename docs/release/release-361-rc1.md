@@ -10,4 +10,4 @@ Release 361-rc1 (TSG-22.11)
 * 修改Schema，对会话、过渡日志部分SSL协议字段进行隐藏(TSG-13973)
 * 扩展DSL服务接口，基于ISO 8601标准，DSL/SQL支持识别更多的字符串日期格式(GAL-300)
 * 修复DSL接口，修正Live Traffic Chart 和 Session Records 中相同的NOT IN 条件查询下，统计预期不一致(TSG-14449)
-* 修复储存配额更新接口，只操作schema指定了ttl && ttl由大变小的schema
+* 完善储存配额更新接口及Schema更新逻辑。
