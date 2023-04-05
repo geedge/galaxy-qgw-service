@@ -17,6 +17,10 @@ public class IPUtil {
 
     private static IpLookupV2 ipLookup;
 
+    static {
+        ipLookupBuild();
+    }
+
     public static void ipLookupBuild() {
         ipLookup = new IpLookupV2.Builder(false)
                 .loadDataFileV4(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4 + KnowledgeConstant.MMDB)
