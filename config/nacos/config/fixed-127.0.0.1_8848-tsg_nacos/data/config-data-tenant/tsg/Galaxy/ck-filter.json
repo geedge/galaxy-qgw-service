@@ -61,7 +61,7 @@
         "common_server_ip='116.177.248.126' and common_client_ip='120.242.132.200'",
         "common_server_ip='116.177.248.126' and common_stream_trace_id=1153021139190754263",
         "common_client_ip='120.242.132.200' and common_server_ip='116.177.248.126'",
-        "http_domain='qq.com' or common_server_ip='120.239.72.226'",
+        "(http_domain='qq.com' or common_server_ip='120.239.72.226')",
         "common_server_port not in (80,443)",
         "http_domain not like '%qq.com'"
       ]
@@ -92,7 +92,7 @@
           "common_server_ip='116.177.248.126' and common_client_ip='120.242.132.200'",
           "common_server_ip='116.177.248.126' and common_stream_trace_id=1153021139190754263",
           "common_client_ip='120.242.132.200' and common_server_ip='116.177.248.126'",
-          "http_domain='qq.com' or common_server_ip='120.239.72.226'"
+          "(http_domain='qq.com' or common_server_ip='120.239.72.226')"
         ]
     }
   ]
