@@ -10,6 +10,7 @@ import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -145,6 +146,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult commitSavedQuery(HashMap<String, Object> map) {
         validateReport(map);
+        Map<String, Object> job = getRepeatJob(map);
+        if(!job.isEmpty()){
+            return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildData(job.get("job_uuid").toString()));
+        }
         map.put("UUID", System.currentTimeMillis());
         String id = DigestUtil.md5Hex16(JobConfig.REPORT)
                 .concat(JobConfig.DELIMIT)
@@ -539,6 +544,18 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         }
     }
 
+    private Map<String, Object> getRepeatJob(HashMap<String, Object> map) {
+        List field = new LinkedList();
+        field.add("query_sql");
+        field.add("job_uuid");
+        String sql = String.format(Objects.requireNonNull(env.getProperty("SYNTAX_VALIDATION")), String.join(",", field), "report_result", String.format(" query_sql = '%s' AND status IN(0,1)", map.get("custom.report.sql").toString().replace("'", "\\'")));
+        List<Record> jobs = Db.find(sql);
+        Map<String, Object> job = new HashMap<>();
+        if(!jobs.isEmpty()){
+            job = jobs.get(0).getColumns();
+        }
+        return job;
+    }
 
     private void syntaxValidationFieldDiscovery(HashMap<String, Object> map) {
         String syntaxValidation = env.getProperty("SYNTAX_VALIDATION");
