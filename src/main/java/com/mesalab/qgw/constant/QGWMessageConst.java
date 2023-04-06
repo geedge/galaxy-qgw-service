@@ -10,6 +10,7 @@ package com.mesalab.qgw.constant;
 public class QGWMessageConst {
 
     public static final String SCHEMA_ERROR_TTL_VALUE = "Schema error, invalid TTL value.";
+    public static final String SCHEMA_ERROR_TTL_SIZE = "Not allowed, schema fields TTL cannot be greater than table TTL";
 
     public static final String SCHEMA_ERROR_VISIBILITY_VALUE = "Schema error, invalid visibility value.";
 
