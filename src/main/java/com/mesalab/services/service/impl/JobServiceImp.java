@@ -146,19 +146,17 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult commitSavedQuery(HashMap<String, Object> map) {
         validateReport(map);
-        Map<String, Object> job = getRepeatJob(map);
-        if(!job.isEmpty()){
-            return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildData(job.get("job_uuid").toString()));
+        String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL).toString(), false).replace("'", "\\'");
+        String id = getSameJob(sql);
+        if (StringUtil.isNotBlank(id)) {
+            return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildData(id));
         }
         map.put("UUID", System.currentTimeMillis());
-        String id = DigestUtil.md5Hex16(JobConfig.REPORT)
+        id = DigestUtil.md5Hex16(JobConfig.REPORT)
                 .concat(JobConfig.DELIMIT)
                 .concat(DigestUtil.md5Hex16(String.valueOf(map)));
-
-        String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL).toString(), false).replace("'", "\\'");
         String currentDate = DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS);
-        sql = String.format(Objects.requireNonNull(env.getProperty("REPORT_INSERT")), currentDate, sql, currentDate, currentDate, currentDate, currentDate, id, TimeZone.getDefault().getID());
-        Db.update(sql);
+        Db.update(String.format(Objects.requireNonNull(env.getProperty("REPORT_INSERT")), currentDate, sql, currentDate, currentDate, currentDate, currentDate, id, TimeZone.getDefault().getID()));
         return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildData(id));
     }
 
@@ -544,17 +542,12 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         }
     }
 
-    private Map<String, Object> getRepeatJob(HashMap<String, Object> map) {
-        List field = new LinkedList();
-        field.add("query_sql");
-        field.add("job_uuid");
-        String sql = String.format(Objects.requireNonNull(env.getProperty("SYNTAX_VALIDATION")), String.join(",", field), "report_result", String.format(" query_sql = '%s' AND status IN(0,1)", map.get("custom.report.sql").toString().replace("'", "\\'")));
-        List<Record> jobs = Db.find(sql);
-        Map<String, Object> job = new HashMap<>();
-        if(!jobs.isEmpty()){
-            job = jobs.get(0).getColumns();
+    private String getSameJob(String paramSQL) {
+        List<Record> jobs = Db.find(String.format(Objects.requireNonNull(env.getProperty("REPORT_SAME")), paramSQL));
+        if (jobs.isEmpty()) {
+            return StringUtil.EMPTY;
         }
-        return job;
+        return jobs.get(0).get("id");
     }
 
     private void syntaxValidationFieldDiscovery(HashMap<String, Object> map) {
