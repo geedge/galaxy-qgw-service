@@ -27,7 +27,7 @@ management:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.44.55:3306/tsg-bifang?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false
+    url: jdbc:mysql://192.168.44.55:3306/tsg-bifang?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
     username: ENC(TOq791VPxSFyX/S4fqcv0g==)
     pin: ENC(Qii8wWRNnB61f/0wnrVIbXr2VmnncK2c)
 ## Hbase configuration
