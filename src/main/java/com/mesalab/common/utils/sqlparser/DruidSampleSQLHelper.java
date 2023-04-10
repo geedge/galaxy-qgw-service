@@ -24,21 +24,22 @@ public class DruidSampleSQLHelper {
 
     private final String originalSQL;
     private final String filterExpr;
+    private final boolean isInvalidCondExpr;
 
     /**
      * Desc: TODO
      *
-     * @param originalSQL     原始SQL
-     * @param dataSetTemplate 数据集SQL模版。表名通过解析 originalSQL 获取，不需指定，如：
-     *                        1. SELECT * FROM {} LIMIT 0
-     *                        2. SELECT * FROM {} WHERE rand() % 100 = 0 LIMIT 1000
+     * @param originalSQL       原始SQL
+     * @param filterExpr        置换后的 WHERE 过滤条件
+     * @param isInvalidCondExpr 是否失效 HAVING 过滤条件
      * @return {@link null}
      * @created by wWei
-     * @date 2023/3/23 15:17
+     * @date 2023/4/10 11:03
      */
-    public DruidSampleSQLHelper(String originalSQL, String dataSetTemplate) {
-        this.filterExpr = dataSetTemplate;
+    public DruidSampleSQLHelper(String originalSQL, String filterExpr, boolean isInvalidCondExpr) {
         this.originalSQL = originalSQL;
+        this.filterExpr = filterExpr;
+        this.isInvalidCondExpr = isInvalidCondExpr;
     }
 
     /**
@@ -102,14 +103,16 @@ public class DruidSampleSQLHelper {
 
             Expression having = plainSelect.getHaving();
             if (having != null) {
-                OrExpression orExpression = new OrExpression();
-                orExpression.setRightExpression(having);
-                EqualsTo equalsTo = new EqualsTo();
-                LongValue longValue = new LongValue(1);
-                equalsTo.setLeftExpression(longValue);
-                equalsTo.setRightExpression(longValue);
-                orExpression.setLeftExpression(equalsTo);
-                plainSelect.setHaving(orExpression);
+                if (isInvalidCondExpr) {
+                    OrExpression orExpression = new OrExpression();
+                    orExpression.setRightExpression(having);
+                    EqualsTo equalsTo = new EqualsTo();
+                    LongValue longValue = new LongValue(1);
+                    equalsTo.setLeftExpression(longValue);
+                    equalsTo.setRightExpression(longValue);
+                    orExpression.setLeftExpression(equalsTo);
+                    plainSelect.setHaving(orExpression);
+                }
                 having.accept(new ExpressionAdapter());
             }
         }

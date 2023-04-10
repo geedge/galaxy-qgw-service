@@ -225,9 +225,10 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
+        boolean isSampled = BooleanUtil.isTrue(param.getSampled());
         String filterExpr = String.format("%s >= CURRENT_TIMESTAMP - INTERVAL '%s' HOUR ",
-                param.getDbQuerySource().getPartitionKey(), BooleanUtil.isTrue(param.getSampled()) ? 12 : 0);
-        return new DruidSampleSQLHelper(sql, filterExpr).build();
+                param.getDbQuerySource().getPartitionKey(), isSampled ? 12 : 0);
+        return new DruidSampleSQLHelper(sql, filterExpr, isSampled).build();
     }
 
     private List<Map<String, String>> unifyMeta(List<Object> list) {

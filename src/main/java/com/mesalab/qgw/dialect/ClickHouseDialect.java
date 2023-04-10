@@ -229,6 +229,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
          * 1.不支持 count(1) 需转为count(*)
          * 2.针对非聚合SQL，非分组sql in/not in 替换为 Global in/not
+         *
          * @return
          */
         public Converter generateStandard() {
@@ -516,6 +517,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * Desc: 针对单条查询Top做优化
          * settings distributed_group_by_no_merge=1
          * If you set it to 1, then intermediate results from remote servers will not be merged.
+         *
          * @param
          * @return {@link Optimizer}
          * @created by wWei
@@ -803,21 +805,21 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
 
-
     /**
      * 通过递归方式将原SQL转换为样例SQL
      * 做数据集限制:
      * 1. 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
-     * 2. 对where、having添加：OR 1=1
+     * 2. 可对where、having添加：OR 1=1
      *
-     * @param sql
-     * @return
+     * @param sql 原始sql
+     * @return 经转换后的样例SQL
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
+        boolean isSampled = BooleanUtil.isTrue(param.getSampled());
         String dataSet = StrUtil.format("SELECT * FROM {}",
-                BooleanUtil.isTrue(param.getSampled()) ? " {} WHERE rand() % 100 = 0 LIMIT 1000 " : " {} LIMIT 0 ");
-        return new ClickhouseSampleSQLHelper(sql, dataSet).build();
+                isSampled ? " {} WHERE rand() % 100 = 0 LIMIT 1000 " : " {} LIMIT 0 ");
+        return new ClickhouseSampleSQLHelper(sql, dataSet, isSampled).build();
     }
 
     /**
