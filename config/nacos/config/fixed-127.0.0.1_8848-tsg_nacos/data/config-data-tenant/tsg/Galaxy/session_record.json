@@ -1126,7 +1126,7 @@
       "label": "Traffic Vsys ID",
       "doc": {
         "allow_query": "false",
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "int"
