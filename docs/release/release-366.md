@@ -8,3 +8,4 @@ Release 366 (TSG-23.04)
 * 扩展Schema，DoS Event Schema增加字段profile_id(TSG-14520)
 * 完善储存配额更新接口及Schema更新逻辑。
 * 优化离线任务提交，新增未完成且相同任务业务逻辑，避免任务多次提交(GAL-310)
+* 优化SQL语句校验，完善SQL语句校验功能(TSG-13953)
