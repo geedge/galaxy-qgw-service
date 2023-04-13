@@ -60,7 +60,8 @@
         "sys_storage_log",
         "service_chaining_metrics",
         "service_function_status",
-        "security_rule_hits"
+        "security_rule_hits",
+        "proxy_rule_hits"
       ]
     },
     {
