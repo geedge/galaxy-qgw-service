@@ -93,3 +93,6 @@ SELECT name, engine_full AS table_ttl FROM tables WHERE name ='%s_local' AND  "d
 #sql("GTPC_KNOWLEDGE_BASE")
 SELECT uplink_teid AS teid, apn, phone_number, imsi, imei, last_update_time,vsys_id FROM tsg_galaxy.gtpc_knowledge_base WHERE msg_type = 1 and uplink_teid !=0 %s order by last_update_time desc limit %s
 #end
+#sql("UNSTRUCTURED_DATA_PATH")
+SELECT common_log_id AS log_id,%s AS file_path FROM %s where %s AND notEmpty(%s) ORDER BY common_recv_time DESC LIMIT %s
+#end

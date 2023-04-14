@@ -1,0 +1,54 @@
+{
+  "all": {
+    "clientId": null,
+    "query": {
+      "dataEngine": "BusinessEngine",
+      "dataSource": "tsg_galaxy_v3",
+      "limit": "1000",
+      "parameters": {
+        "intervals": [
+          "2023-03-01T00:00:00+08:00/2023-04-06T00:00:00+08:00"
+        ]
+      }
+    }
+  },
+  "mail": {
+    "clientId": null,
+    "query": {
+      "dataEngine": "BusinessEngine",
+      "dataSource": "session_record",
+      "limit": "1000",
+      "parameters": {
+        "intervals": [
+          "2023-03-01T00:00:00+08:00/2023-04-06T00:00:00+08:00"
+        ]
+      }
+    }
+  },
+  "http": {
+    "clientId": null,
+    "query": {
+      "dataEngine": "BusinessEngine",
+      "dataSource": "security_event",
+      "limit": "1000",
+      "parameters": {
+        "intervals": [
+          "2023-03-01T00:00:00+08:00/2023-04-06T00:00:00+08:00"
+        ]
+      }
+    }
+  },
+  "pcap": {
+    "clientId": null,
+    "query": {
+      "dataEngine": "BusinessEngine",
+      "dataSource": "voip_record",
+      "limit": "1000",
+      "parameters": {
+        "intervals": [
+          "2023-03-01T00:00:00+08:00/2023-04-06T00:00:00+08:00"
+        ]
+      }
+    }
+  }
+}
