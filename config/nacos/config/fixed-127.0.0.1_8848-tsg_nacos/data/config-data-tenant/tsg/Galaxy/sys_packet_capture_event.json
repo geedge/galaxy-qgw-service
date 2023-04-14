@@ -1136,6 +1136,9 @@
       "name": "packet_url",
       "type": "string",
       "doc": {
+        "constraints": {
+          "type": "file"
+        },
         "visibility": "enabled"
       },
       "label": "Packet URL"
