@@ -115,3 +115,7 @@ SELECT app_name,SUM(sessions) as sessions,sum(c2s_byte_num + s2c_byte_num) as by
 #sql("TABLE_INDEX_KEY")
 SELECT any(splitByString(', ',sorting_key)) AS index_key FROM tables_cluster where name = '%s_local' AND "database" = '%s'
 #end
+
+#sql("UNSTRUCTURED_DATA_PATH")
+SELECT common_log_id AS log_id,%s AS file_path FROM %s where %s AND notEmpty(%s) ORDER BY common_recv_time DESC LIMIT %s
+#end
