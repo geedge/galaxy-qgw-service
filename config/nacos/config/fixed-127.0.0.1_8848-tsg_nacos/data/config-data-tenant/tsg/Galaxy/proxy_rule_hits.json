@@ -11,6 +11,10 @@
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
+    },
+    "measurements": {
+      "granularity": 1,
+      "ingestion_delay": 15
     }
   },
   "fields": [
