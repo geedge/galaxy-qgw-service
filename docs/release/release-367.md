@@ -1,2 +1,5 @@
 Release 367 (TSG-23.05)
 * 新增Schema，新增Metrics proxy_rule_hits代理策略规则命中统计(TSG-14640)
+* 新增非结构化数据-文件路径列表应用接口(GAL-312)
+* 扩展Schema，新增service_chaining_rule_hits服务链统计表(TSG-14691)
+* 扩展Schema，部分Metrics统计表增加doc.measurements属性(TSG-14741)
