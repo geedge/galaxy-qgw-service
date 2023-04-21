@@ -598,6 +598,46 @@
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
+    },
+    "measurements": {
+      "aggregates": {
+        "sessions": [
+          {
+            "fn": "sum",
+            "column": "common_sessions",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          }
+        ],
+        "bytes": [
+          {
+            "fn": "sum",
+            "column": "common_c2s_byte_diff + common_s2c_byte_diff",
+            "value": "bytes",
+            "label": "Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "incoming_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(common_flags, 8) = 8, common_s2c_byte_diff, common_c2s_byte_diff)",
+            "value": "incoming_bytes",
+            "label": "Incoming Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "outgoing_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(common_flags, 8) = 8, common_c2s_byte_diff, common_s2c_byte_diff)",
+            "value": "outgoing_bytes",
+            "label": "Outgoing Bytes",
+            "unit": "bytes"
+          }
+        ]
+      }
     }
   },
   "fields": [
