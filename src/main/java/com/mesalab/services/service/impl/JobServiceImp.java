@@ -20,12 +20,15 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.services.common.enums.MetricFunction;
+import com.mesalab.services.common.enums.MetricType;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -523,11 +526,25 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     private void validateAdHocQuery(HashMap<String, Object> body) {
         Object type = body.get(JobConfig.KEY_QUERY_TYPE);
         if (JobConfig.FIELD_DISCOVERY.equals(type)) {
+            validCustomParamsOfFieldDiscovery(body);
             List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
             body.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));
             syntaxValidationFieldDiscovery(body);
         } else if (JobConfig.STATISTICS.equals(type)) {
             syntaxValidationStatistics(body);
+        }
+    }
+
+    private void validCustomParamsOfFieldDiscovery(HashMap<String, Object> body) {
+        Object metric = body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
+        if (StringUtil.isEmpty(metric)) {
+            return;
+        }
+        boolean validMetric = MetricType.isValid(String.valueOf(metric));
+        boolean validFn = MetricFunction.isValid(String.valueOf(body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN)));
+        if (!validMetric || !validFn) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
         }
     }
 

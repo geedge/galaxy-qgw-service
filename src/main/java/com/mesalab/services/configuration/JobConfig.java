@@ -44,6 +44,8 @@ public class JobConfig {
     public static final String DELIMIT = "-";
 
     public static final String KEY_CUSTOM_FIELD_DISCOVERY_FIELDS = "custom.field_discovery.fields";
+    public static final String KEY_CUSTOM_FIELD_DISCOVERY_METRIC = "custom.field_discovery.metric";
+    public static final String KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN = "custom.field_discovery.metric.fn";
     public static final String KEY_CUSTOM_FIELD_DISCOVERY_FILTER = "custom.field_discovery.filter";
     public static final String KEY_CUSTOM_STATISTICS_SQL = "custom.statistics.sql";
     public static final String KEY_CUSTOM_REPORT_SQL = "custom.report.sql";

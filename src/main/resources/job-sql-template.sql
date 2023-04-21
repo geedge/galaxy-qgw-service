@@ -11,19 +11,19 @@ ALTER TABLE "tsg_galaxy"."job_result" ADD "%s"."%s" VARCHAR
 SELECT field_discovery.* FROM job_result LIMIT 1
 #end
 #sql("JOB_LOG_COUNT")
-SELECT count(1) AS count FROM %s %s LIMIT 1
+SELECT count(*) AS count, %s AS totalMetric FROM %s %s LIMIT 1
 #end
 #sql("JOB_UPDATE_PROGRESS")
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."duration_time") VALUES('%s', %s, %s, %s)
 #end
 #sql("JOB_TOPK_DEFAULT")
-SELECT %s AS value, count(*) AS count FROM %s %s GROUP BY value ORDER BY count DESC limit 10000
+SELECT %s AS value, %s(%s) AS %s FROM %s %s GROUP BY value ORDER BY %s DESC limit 10000
 #end
 #sql("JOB_TOPK_ARRAY")
-SELECT value, SUM(count) AS count FROM (SELECT arrayJoin(items) AS value, count FROM (SELECT %s AS items, count(*) AS count FROM %s WHERE notEmpty(%s) %s GROUP BY %s )) GROUP BY value ORDER BY count DESC LIMIT 10000
+SELECT value, %s(metric) AS %s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT %s AS items, %s AS metric FROM %s WHERE notEmpty(%s) %s GROUP BY items )) GROUP BY value ORDER BY %s DESC LIMIT 10000
 #end
 #sql("JOB_TOPK_BIT")
-SELECT value, SUM(count) AS count FROM (SELECT arrayJoin(items) AS value, count FROM (SELECT bitmaskToArray(%s) AS items, count(*) AS count FROM %s %s GROUP BY %s )) GROUP BY value ORDER BY count DESC LIMIT 10000
+SELECT value, %s(metric) AS %s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT bitmaskToArray(%s) AS items, %s AS metric FROM %s %s GROUP BY items )) GROUP BY value ORDER BY %s DESC LIMIT 10000
 #end
 #sql("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")
 UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', '%s')

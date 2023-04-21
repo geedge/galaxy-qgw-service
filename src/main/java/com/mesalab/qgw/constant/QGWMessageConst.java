@@ -106,5 +106,7 @@ public class QGWMessageConst {
 
     public static final String QUERY_DATA_SOURCE_ERROR = "The param query.data_source illegal.";
 
+    public static final String QUERY_CUSTOM_FIELD_DISCOVERY_ERROR = "The param custom.field_discovery.* illegal.";
+
 
 }

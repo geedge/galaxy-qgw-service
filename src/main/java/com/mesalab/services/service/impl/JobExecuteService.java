@@ -6,6 +6,8 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
@@ -117,7 +119,7 @@ public class JobExecuteService implements EnvironmentAware {
             return;
         }
 
-        long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), countFilter);
+        long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), countFilter, "count(*)").get("count");
         if (currentCount == 0) {
             return;
         }
@@ -206,7 +208,21 @@ public class JobExecuteService implements EnvironmentAware {
         if (isCancel(jobInfo.getId())) {
             return;
         }
-        long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter);
+        String dataSource = param.get(JobConfig.QUERY_DATA_SOURCE).toString();
+        String totalMetric = "count(*)";
+        Object metric = param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
+        if (StringUtil.isNotEmpty(metric)) {
+            Object fn = param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN);
+            String measurements = metadataService.getValueByKeyInSchemaDoc(dataSource, "measurements");
+            List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
+            if (!read.isEmpty()) {
+                String column = read.get(0).get("column");
+                totalMetric = "SUM(" + column + ")";
+            }
+        }
+
+        Map<String, Long> map = getCount(dataSource, newFilter, totalMetric);
+        long currentCount = map.get("count");
         if (currentCount == 0) {
             return;
         }
@@ -216,7 +232,8 @@ public class JobExecuteService implements EnvironmentAware {
         List<Future<Boolean>> list = Lists.newArrayList();
         List<String> fields = (List<String>) param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         for (String field : fields) {
-            list.add(taskExecuteService.executeFieldDiscovery(jobInfo.getId(), param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter, field, currentCount));
+            list.add(taskExecuteService.executeFieldDiscovery(jobInfo.getId(), param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter, field,
+                    param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC), param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN), map.get("totalMetric")));
         }
         waitAsyncResultAndUpdateProcess(jobInfo, list);
     }
@@ -260,17 +277,19 @@ public class JobExecuteService implements EnvironmentAware {
         return false;
     }
 
-    private long getCount(String logType, String filter) {
+    private Map<String, Long> getCount(String logType, String filter, String totalMetric) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_LOG_COUNT")),
-                logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
+                totalMetric, logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
         BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
         if (!baseResult.isSuccess()) {
             log.error("Job-get log count failed, message: {}", baseResult.getMessage());
             throw new QGWBusinessException(baseResult.getStatus(), baseResult.getCode(), "Job-get log count failed, message: " + baseResult.getMessage());
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-        Object count = data.get(0).get("count");
-        return Long.parseLong(count.toString());
+        Map<String, Long> map = Maps.newHashMap();
+        map.put("count", Long.parseLong(data.get(0).get("count").toString()));
+        map.put("totalMetric", Long.parseLong(data.get(0).get("totalMetric").toString()));
+        return map;
     }
 
     private DecimalFormat getDecimalFormat() {
