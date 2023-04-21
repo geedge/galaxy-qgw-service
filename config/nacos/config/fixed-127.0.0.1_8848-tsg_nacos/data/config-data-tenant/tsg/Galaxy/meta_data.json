@@ -54,6 +54,7 @@
         "traffic_summary_log",
         "traffic_protocol_stat_log",
         "traffic_metrics_log",
+        "traffic_general_stat",
         "traffic_app_stat_log",
         "traffic_top_destination_ip_metrics_log",
         "traffic_shaping_rule_hits",

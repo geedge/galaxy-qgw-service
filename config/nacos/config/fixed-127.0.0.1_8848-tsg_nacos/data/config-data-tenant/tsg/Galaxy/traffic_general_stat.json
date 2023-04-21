@@ -1,0 +1,181 @@
+{
+  "type": "record",
+  "name": "traffic_general_stat",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "granularity": 1,
+      "ingestion_delay": 15
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "active_sessions",
+      "label": "Active Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "closed_sessions",
+      "label": "Closed Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "asymmetric_c2s_flows",
+      "label": "Asymmetric Flows (c2s)",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "asymmetric_s2c_flows",
+      "label": "Asymmetric Flows (s2c)",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_syn_pkts",
+      "label": "TCP SYN Packets",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_syn_ack_pkts",
+      "label": "TCP SYN/ACK Packets",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_ack_pkts",
+      "label": "TCP ACK Packets",
+      "type": "long",
+      "doc": {
+        "visibility": "enabled"
+      }
+    }
+  ]
+}
