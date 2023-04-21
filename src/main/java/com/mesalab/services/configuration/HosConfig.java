@@ -27,4 +27,7 @@ public class HosConfig implements Serializable {
     @NacosValue(value = "${hos.multiUploadStartSize}", autoRefreshed = true)
     private Long multiUploadStartSize;
 
+    @NacosValue(value = "${hos.multiUploadPartSize}", autoRefreshed = true)
+    private Long multiUploadPartSize;
+
 }

@@ -120,6 +120,7 @@ hos:
   bucket: knowledge_base_hos_bucket
   token: c21f969b5f03d33d43e04f8f136e7682
   multiUploadStartSize: 1073741824
+  multiUploadPartSize: 10485760
 ## knowledge value 格式 name:版本
 knowledge:
   ipLocation:
@@ -152,7 +153,7 @@ job:
   longPolling:
     enabled: true
   interactive:
-    timeout: 100000000
+    timeout: 10000
   response:
     timeout: 3000
   execution:
