@@ -67,7 +67,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private CuratorFramework client;
 
     private static final String ZK_LOCK_PATH = "/zkLock";
-    private static final int HOS_PART_SIZE = 1024 * 1024 * 100;
     private static final String HOS_ETAG = "ETag";
     private static final String HOS_PART = "Part";
     private static final String HOS_PART_NUM = "PartNumber";
@@ -289,7 +288,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     long hadReadLength = 0;
                     int count = 1;
                     while (hadReadLength < totalLength) {
-                        byte[] waitUploadBytes = new byte[HOS_PART_SIZE <= (totalLength - hadReadLength) ? HOS_PART_SIZE : (int) (totalLength - hadReadLength)];
+                        byte[] waitUploadBytes = new byte[hosConfig.getMultiUploadPartSize() <= (totalLength - hadReadLength) ? hosConfig.getMultiUploadPartSize().intValue() : (int) (totalLength - hadReadLength)];
                         hadReadLength = hadReadLength + randomAccessFile.read(waitUploadBytes);
                         InputStream inputStream = new ByteArrayInputStream(waitUploadBytes);
                         HttpResponse httpResponse = uploadPart(url, uploadId, count, inputStream, header);
