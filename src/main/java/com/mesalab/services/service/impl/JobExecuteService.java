@@ -26,6 +26,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -98,7 +99,9 @@ public class JobExecuteService implements EnvironmentAware {
                     && StringUtil.isNotEmpty(property.get(JobConfig.JOB_PROPERTY_K_OPTION))) {
                 executeSlicingStatisticsJob(jobInfo, param, interval);
             } else {
-                executeStatisticsJob(jobInfo, param, getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(), false);
+                Expression where = getWhereOuter(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
+                Expression whereInner = getWhereInner(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
+                executeStatisticsJob(jobInfo, param, where == null ? " 1=1 " : where.toString(), whereInner == null ? " 1=1 " : whereInner.toString(), false);
             }
         } catch (Exception e) {
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
@@ -109,12 +112,12 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private void executeStatisticsJob(JobInfo jobInfo, Map<String, Object> param, String newFilter, boolean isSecBuild) throws JSQLParserException {
+    private void executeStatisticsJob(JobInfo jobInfo, Map<String, Object> param, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
         if (isCancel(jobInfo.getId())) {
             return;
         }
 
-        long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter);
+        long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), countFilter);
         if (currentCount == 0) {
             return;
         }
@@ -189,9 +192,9 @@ public class JobExecuteService implements EnvironmentAware {
             long start = dateList.get(dateList.size() <= index ? dateList.size() - 1 : index).getTime() / 1000;
             long end = dateList.get((int) (index - step)).getTime() / 1000;
             String newFilter = String.format("(%s) AND ( %s >= %s AND %s < %s)",
-                        getWhere(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(),
+                        getWhereOuter(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(),
                     partitionKey, start, partitionKey, end);
-            executeStatisticsJob(jobInfo, param, newFilter, true);
+            executeStatisticsJob(jobInfo, param, newFilter, newFilter, true);
             if (start <= interval.getStart()) {
                 break;
             }
@@ -302,11 +305,34 @@ public class JobExecuteService implements EnvironmentAware {
         return interval;
     }
 
-    private Expression getWhere(String sql) throws JSQLParserException {
+    private Expression getWhereOuter(String sql) throws JSQLParserException {
         Select parse = (Select) CCJSqlParserUtil.parse(sql);
         PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
         Expression where = plainSelect.getWhere();
         return where;
+    }
+
+    private Expression getWhereInner(String sql) throws JSQLParserException {
+        Select parse = (Select) CCJSqlParserUtil.parse(sql);
+        PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
+        int count = 0;
+        while (count++ <= 5) {
+            PlainSelect inner = exploreInnerSql(plainSelect);
+            if (plainSelect.equals(inner)) {
+                break;
+            }
+            plainSelect = inner;
+        }
+        return plainSelect.getWhere();
+    }
+
+    private static PlainSelect exploreInnerSql(PlainSelect plainSelect) {
+        FromItem fromItem = plainSelect.getFromItem();
+        if (fromItem instanceof Table) {
+            return plainSelect;
+        }
+        SubSelect subSelect = (SubSelect) fromItem;
+        return (PlainSelect) subSelect.getSelectBody();
     }
 
 
