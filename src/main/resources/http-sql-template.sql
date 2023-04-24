@@ -1,23 +1,27 @@
 #sql("NETWORK_STATISTICS_SUMMARY")
-SELECT APPROX_COUNT_DISTINCT_DS_HLL(ip_object) AS uniq_client_ip,  SUM(one_sided_connections) AS one_sided_connections,  SUM(fragmentation_packets) AS fragmentation_packets,  SUM(sequence_gap_loss) AS sequence_gap_loss_bytes,  SUM(s2c_byte_num+c2s_byte_num) AS total_bytes,  SUM(s2c_pkt_num+c2s_pkt_num) AS total_packets,  SUM(sessions) AS total_sessions  FROM %s  WHERE %s  %s LIMIT 1
+SELECT SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows_bytes, SUM(in_bytes + out_bytes) AS total_bytes_used_on_asymmetric_flows FROM traffic_general_stat  WHERE %s  %s LIMIT 1
 #end
 
 #sql("TRAFFIC_DYNAMIC_STATISTICS")
-SELECT SUM(c2s_byte_num + s2c_byte_num) as dynamic_bytes, SUM(sessions) as dynamic_sessions, (SUM(c2s_byte_num + s2c_byte_num) * 8)/(%s -%s) AS data_rate  FROM traffic_protocol_stat_log  WHERE %s %s AND protocol_id = '%s' LIMIT 1
+SELECT	APPROX_COUNT_DISTINCT_DS_HLL(client_ip_sketch) AS uniq_client_ip, SUM(c2s_fragments + s2c_fragments) AS fragmentation_packets, SUM(c2s_bytes + s2c_bytes) AS total_bytes, SUM(c2s_pkts + s2c_pkts) AS total_packets, SUM(sessions) AS total_sessions, (SUM(c2s_bytes + s2c_bytes) * 8)/(%s -%s) AS data_rate  FROM %s  WHERE %s %s AND protocol_stack_id = '%s' LIMIT 1
+#end
+
+#sql("TCP_STATISTICS_SUMMARY")
+SELECT SUM(c2s_tcp_retransmitted_pkts + s2c_tcp_retransmitted_pkts) AS tcp_retransmissions_packets, SUM(c2s_pkts + s2c_pkts) AS tcp_total_packets FROM %s  WHERE %s %s AND RIGHT(protocol_stack_id, 4) = '.TCP' LIMIT 1
 #end
 
 #sql("APP_STATISTICS_SUMMARY")
-SELECT SUM(c2s_byte_num + s2c_byte_num) as unknown_app_bytes FROM traffic_protocol_stat_log WHERE %s %s AND app_name = 'unknown' LIMIT 1
+SELECT SUM(c2s_bytes + s2c_bytes) as unknown_app_bytes FROM %s WHERE %s %s AND app_name = 'unknown' LIMIT 1
 #end
 
 #sql("PROTOCOL_TREE_SUMMARY")
-SELECT protocol_id, SUM(sessions) as sessions,SUM(c2s_byte_num) as c2s_byte_num, SUM(c2s_pkt_num) as c2s_pkt_num, SUM(s2c_byte_num) as s2c_byte_num, SUM(s2c_pkt_num) as s2c_pkt_num FROM %s WHERE %s %s GROUP BY protocol_id
+SELECT protocol_stack_id, SUM(sessions) as sessions,SUM(c2s_bytes) as c2s_bytes, SUM(c2s_pkts) as c2s_pkts, SUM(s2c_bytes) as s2c_bytes, SUM(s2c_pkts) as s2c_pkts FROM %s WHERE %s %s GROUP BY protocol_stack_id
 #end
 
 #sql("PROTOCOL_DATA_RATE_SUMMARY")
-(SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes from %s where %s %s and protocol_id = '%s' group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id order by stat_time asc)
+(SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_stack_id as type, sum(c2s_bytes + s2c_bytes) as bytes from %s where %s %s and protocol_stack_id = '%s' group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_stack_id order by stat_time asc)
 union all
-(SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_id as type, sum(c2s_byte_num + s2c_byte_num) as bytes from %s where %s %s and protocol_id like CONCAT('%s','.%s') and LENGTH(protocol_id) = LENGTH(REPLACE(protocol_id,'.','')) + 1 + %s group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_id order by stat_time asc)
+(SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, protocol_stack_id as type, sum(c2s_bytes + s2c_bytes) as bytes from %s where %s %s and protocol_stack_id like CONCAT('%s','.%s') and LENGTH(protocol_stack_id) = LENGTH(REPLACE(protocol_stack_id,'.','')) + 1 + %s group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), protocol_stack_id order by stat_time asc)
 #end
 
 #sql("APP_DATA_SUMMARY")

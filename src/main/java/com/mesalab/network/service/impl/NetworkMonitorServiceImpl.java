@@ -68,7 +68,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         LOGICAL_FIELD.put("data_center", "common_data_center");
         LOGICAL_FIELD.put("device_group", "common_device_group");
         LOGICAL_FIELD.put("vsys_id", "common_vsys_id");
-        LOGICAL_FIELD.put("protocol_id", "common_protocol_label");
+        LOGICAL_FIELD.put("protocol_stack_id", "common_protocol_label");
         LOGICAL_FIELD.put("app_name", "common_app_label");
     }
 
@@ -101,6 +101,10 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(currentSessionResult.get("status"))) {
             throw new BusinessException(Integer.parseInt(currentSessionResult.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dataRateResult.get("message")));
         }
+        Map<String, String> tcpResult = executeQuery(generateTCPStatSql(dslObject.getQuery(), environment.getProperty("TCP_STATISTICS_SUMMARY")));
+        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(currentSessionResult.get("status"))) {
+            throw new BusinessException(Integer.parseInt(currentSessionResult.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dataRateResult.get("message")));
+        }
         Map<String, String> appStatisticsResult = executeQuery(generateAppStatisticsSql(dslObject.getQuery(), environment.getProperty("APP_STATISTICS_SUMMARY")));
         if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(appStatisticsResult.get("status"))) {
             throw new BusinessException(Integer.parseInt(appStatisticsResult.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dataRateResult.get("message")));
@@ -110,6 +114,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         List<Map> statData = (List<Map>) statDataResult.get("data");
         Map summaryDataResult = JsonMapper.fromJsonString(dataRateResult.get("result"), Map.class);
         List<Map> summaryData = (List<Map>) summaryDataResult.get("data");
+        Map tcpDataResult = JsonMapper.fromJsonString(tcpResult.get("result"), Map.class);
+        List<Map> tcpData = (List<Map>) tcpDataResult.get("data");
         Map appDataResult = JsonMapper.fromJsonString(appStatisticsResult.get("result"), Map.class);
         List<Map> appData = (List<Map>) appDataResult.get("data");
 
@@ -122,9 +128,19 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             data.putAll(summaryData.get(0));
         }
 
+        if (!tcpData.isEmpty()) {
+            data.putAll(tcpData.get(0));
+        }
+
         if (!appData.isEmpty()) {
             data.putAll(appData.get(0));
         }
+
+
+        long asymmetricFlowsBytes = Long.parseLong(String.valueOf(
+                data.get(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES)));
+        long totalBytesUseOnAsymmetricFlows = Long.parseLong(String.valueOf(
+                data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS)));
 
         long uniqClientIp = Long.parseLong(String.valueOf(
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP)));
@@ -134,44 +150,44 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES)));
         long totalPackets = Long.parseLong(String.valueOf(
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS)));
-        long unknownAppBytes = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES)));
-        long oneSidedConnections = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS)));
-        long sequenceGapLossBytes = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES)));
+
         long fragmentationPackets = Long.parseLong(String.valueOf(
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS)));
-
-        long dynamicSessions = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS)));
-        long dynamicBytes = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES)));
         long dataRate = Long.parseLong(String.valueOf(
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE)));
 
-        String unknownAppPercent = dynamicBytes == 0 ? String.valueOf(0)
-                : NumberUtil.div(BigDecimal.valueOf(unknownAppBytes), BigDecimal.valueOf(dynamicBytes), 4).toPlainString();
-        String oneSidedPercent = totalSessions == 0 ? String.valueOf(0)
-                : NumberUtil.div(BigDecimal.valueOf(oneSidedConnections), BigDecimal.valueOf(totalSessions), 4).toPlainString();
-        String sequenceGapLossBytesPercent = sequenceGapLossBytes == 0 ? String.valueOf(0)
-                : NumberUtil.div(BigDecimal.valueOf(sequenceGapLossBytes), BigDecimal.valueOf(totalBytes + sequenceGapLossBytes), 4).toPlainString();
+        long tcpRetransmissionsPackets = Long.parseLong(String.valueOf(
+                data.get(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS)));
+        long tcpTotalPackets = Long.parseLong(String.valueOf(
+                data.get(Constants.NETWORK_OVERVIEW_METRIC_TCP_TOTAL_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TCP_TOTAL_PACKETS)));
+        long unknownAppBytes = Long.parseLong(String.valueOf(
+                data.get(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES)));
+
+
+
+        String unknownAppPercent = totalBytes == 0 ? String.valueOf(0)
+                : NumberUtil.div(BigDecimal.valueOf(unknownAppBytes), BigDecimal.valueOf(totalBytes), 4).toPlainString();
+        String asymmetricFlowsPercent = totalBytesUseOnAsymmetricFlows == 0 ? String.valueOf(0)
+                : NumberUtil.div(BigDecimal.valueOf(asymmetricFlowsBytes), BigDecimal.valueOf(totalBytesUseOnAsymmetricFlows), 4).toPlainString();
+        String tcpRetransmissionsPercent = tcpTotalPackets == 0 ? String.valueOf(0)
+                : NumberUtil.div(BigDecimal.valueOf(tcpRetransmissionsPackets), BigDecimal.valueOf(tcpTotalPackets), 4).toPlainString();
         String fragmentationPacketsPercent = totalPackets == 0 ? String.valueOf(0)
                 : NumberUtil.div(BigDecimal.valueOf(fragmentationPackets), BigDecimal.valueOf(totalPackets), 4).toPlainString();
 
-
+        System.out.println(totalBytesUseOnAsymmetricFlows);
+        System.out.println(fragmentationPackets);
         List result = new ArrayList<>();
         Map resultMap = new LinkedHashMap<>();
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP, uniqClientIp);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, dynamicSessions);
+        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, totalSessions);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE, dataRate);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, dynamicBytes);
+        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, totalBytes);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES, unknownAppBytes);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_PERCENT, unknownAppPercent);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_CONNECTIONS, oneSidedConnections);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ONE_SIDED_PERCENT, oneSidedPercent);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_BYTES, sequenceGapLossBytes);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_SEQUENCE_GAP_LOSS_PERCENT, sequenceGapLossBytesPercent);
+        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES, asymmetricFlowsBytes);
+        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_PERCENT, asymmetricFlowsPercent);
+        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS, tcpRetransmissionsPackets);
+        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PERCENT, tcpRetransmissionsPercent);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS, fragmentationPackets);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PERCENT, fragmentationPacketsPercent);
         result.add(resultMap);
@@ -216,18 +232,24 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         return String.format(sqlTemplate,
                 "UNIX_TIMESTAMP('".concat(intervals[1]).concat("')"),
                 "UNIX_TIMESTAMP('".concat(intervals[0]).concat("')"),
-                whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE);
+                queryParam.getDataSource(), whereOfTime, whereOfExactly, Constants.PROTOCOL_ETHERNET_NODE);
+    }
+
+    private String generateTCPStatSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
+        String whereOfTime = getWhereOfTime(queryParam.getParameters());
+        String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, null);
+        return String.format(sqlTemplate, queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
 
     private String generateAppStatisticsSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, null);
-        return String.format(sqlTemplate, whereOfTime, whereOfExactly);
+        return String.format(sqlTemplate, queryParam.getDataSource(), whereOfTime, whereOfExactly);
     }
 
     private String generateProtocolDataRateSql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
-        String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, Lists.newArrayList("protocol_id"));
+        String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, Lists.newArrayList("protocol_stack_id"));
         String protocolStr = null;
         List<DSLObject.QueryBean.Parameters.FilterBean> match = queryParam.getParameters().getMatch();
         for (DSLObject.QueryBean.Parameters.FilterBean item : match) {
@@ -246,9 +268,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     private String generateNetworkStatSummarySql(DSLObject.QueryBean queryParam, String sqlTemplate) {
         String whereOfTime = getWhereOfTime(queryParam.getParameters());
         String whereOfExactly = getWhereFilter(queryParam.getParameters(), false, null);
-
         return String.format(sqlTemplate,
-                queryParam.getDataSource(), whereOfTime, whereOfExactly);
+                whereOfTime, whereOfExactly);
     }
 
     private String getWhereOfTime(DSLObject.QueryBean.Parameters parameters) {
@@ -383,21 +404,21 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         ProtocolTree protocolTree = null;
         try {
             Map<String, Object> results = (Map<String, Object>) JsonMapper.fromJsonString(protocolString, Map.class);
-            String protocolId = String.valueOf(results.get("protocol_id"));
+            String protocolId = String.valueOf(results.get("protocol_stack_id"));
             if (StringUtil.isBlank(protocolId)) {
-                log.warn("Protocol ID is NULL {}", protocolString);
+                log.warn("Protocol Stack ID is NULL {}", protocolString);
                 return null;
             }
             long sessions = Long.parseLong(Optional.ofNullable(
                     results.get(Constants.PROTOCOL_TREE_METRIC_SESSIONS)).orElse(0).toString());
             long sentBytes = Long.parseLong(Optional.ofNullable(
-                    results.get(Constants.PROTOCOL_TREE_METRIC_C2S_BYTE_NUM)).orElse(0).toString());
+                    results.get(Constants.PROTOCOL_TREE_METRIC_C2S_BYTES)).orElse(0).toString());
             long receivedBytes = Long.parseLong(Optional.ofNullable(
-                    results.get(Constants.PROTOCOL_TREE_METRIC_S2C_BYTE_NUM)).orElse(0).toString());
+                    results.get(Constants.PROTOCOL_TREE_METRIC_S2C_BYTES)).orElse(0).toString());
             long sentPackets = Long.parseLong(Optional.ofNullable(
-                    results.get(Constants.PROTOCOL_TREE_METRIC_C2S_PKT_NUM)).orElse(0).toString());
+                    results.get(Constants.PROTOCOL_TREE_METRIC_C2S_PKTS)).orElse(0).toString());
             long receivedPackets = Long.parseLong(Optional.ofNullable(
-                    results.get(Constants.PROTOCOL_TREE_METRIC_S2C_PKT_NUM)).orElse(0).toString());
+                    results.get(Constants.PROTOCOL_TREE_METRIC_S2C_PKTS)).orElse(0).toString());
             List<String> protocols = Splitter.on(Constants.ENCAPSULATION_PATH_SEPARATOR).omitEmptyStrings().splitToList(protocolId);
             String protocolName = StringUtil.isNotEmpty(protocols) ? protocols.get(protocols.size() - 1) : null;
             protocolTree = new ProtocolTree(protocolId, protocolName, null);
