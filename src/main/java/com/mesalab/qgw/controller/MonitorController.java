@@ -1,6 +1,7 @@
 package com.mesalab.qgw.controller;
 
-import com.mesalab.qgw.model.api.VersionInfo;
+import com.alibaba.fastjson.JSONObject;
+import com.mesalab.qgw.service.MonitorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,10 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class MonitorController {
 
     @Autowired
-    private VersionInfo version;
+    private MonitorService monitorService;
 
     @RequestMapping("/info")
-    public VersionInfo config() {
-        return version;
+    public JSONObject config() {
+        return monitorService.getVersionInfo();
     }
 }
