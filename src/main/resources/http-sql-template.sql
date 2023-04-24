@@ -25,11 +25,19 @@ union all
 #end
 
 #sql("APP_DATA_SUMMARY")
-SELECT app_name as app_name, SUM(bytes) as bytes, SUM(sessions) as sessions, MAX(bytes_rate) as max_rate, AVG(bytes_rate) as avg_rate FROM ( SELECT app_name as app_name, SUM(sessions) as sessions, SUM(c2s_byte_num + s2c_byte_num) as bytes, SUM(c2s_byte_num + s2c_byte_num) * 8 / %s as bytes_rate FROM %s WHERE %s %s AND notEmpty(app_name) GROUP BY app_name, time_floor(TIMESTAMP_TO_MILLIS(__time), '%s') ORDER BY bytes DESC ) GROUP BY app_name ORDER BY bytes DESC %s
+SELECT app_name as app_name, SUM(bytes) as bytes, SUM(sessions) as sessions, MAX(bytes_rate) as max_rate, AVG(bytes_rate) as avg_rate FROM (SELECT app_name as app_name, SUM(sessions) as sessions, SUM(c2s_bytes + s2c_bytes) as bytes, SUM(c2s_bytes + s2c_bytes) * 8 / %s as bytes_rate FROM %s WHERE %s %s AND notEmpty(app_name) GROUP BY app_name, time_floor(TIMESTAMP_TO_MILLIS(__time), '%s') ORDER BY bytes DESC ) GROUP BY app_name ORDER BY bytes DESC %s
 #end
 
 #sql("APP_INTERNAL_IP_SUMMARY")
 SELECT common_internal_ip AS ip, SUM(common_c2s_byte_num + common_s2c_byte_num) AS bytes FROM %s WHERE %s %s GROUP BY ip ORDER BY bytes DESC %s
+#end
+
+#sql("APP_DATA_RATE_SUMMARY")
+SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/ 1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, app_name , sum(c2s_bytes + s2c_bytes) as bytes from %s where %s %s group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/ 1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), app_name order by stat_time asc
+#end
+
+#sql("APP_TRAFFIC_SUMMARY")
+SELECT app_name, SUM(sessions) as sessions, sum(c2s_bytes + s2c_bytes) as bytes, sum(s2c_bytes) as received_bytes, sum(c2s_bytes) as sent_bytes, sum(c2s_pkts + s2c_pkts) as packets, sum(c2s_pkts) as sent_packets, sum(s2c_pkts) as received_packets from %s where %s %s group by app_name
 #end
 
 #sql("ENTITY_ACTIVE_CLIENT_IP")
@@ -108,12 +116,6 @@ SELECT name, engine_full AS table_ttl FROM tables WHERE name ='%s_local' AND  "d
 
 #sql("GTPC_KNOWLEDGE_BASE")
 SELECT uplink_teid AS teid, apn, phone_number, imsi, imei, last_update_time,vsys_id FROM tsg_galaxy.gtpc_knowledge_base WHERE msg_type = 1 and uplink_teid !=0 %s order by last_update_time desc limit %s
-#end
-#sql("APP_DATA_RATE_SUMMARY")
-SELECT TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss') as stat_time, app_name , sum(c2s_byte_num + s2c_byte_num) as bytes from %s where %s %s  group by TIME_FORMAT(MILLIS_TO_TIMESTAMP( 1000 * TIME_FLOOR_WITH_FILL(TIMESTAMP_TO_MILLIS(__time)/1000, '%s', 'zero')), 'yyyy-MM-dd HH:mm:ss'), app_name order by stat_time asc
-#end
-#sql("APP_TRAFFIC_SUMMARY")
-SELECT app_name,SUM(sessions) as sessions,sum(c2s_byte_num + s2c_byte_num) as bytes,sum(s2c_byte_num) as received_bytes,sum(c2s_byte_num) as sent_bytes,sum(c2s_pkt_num+s2c_pkt_num) as packets,sum(c2s_pkt_num) as sent_packets,sum(s2c_pkt_num) as received_packets from %s where %s %s group by app_name
 #end
 
 #sql("TABLE_INDEX_KEY")
