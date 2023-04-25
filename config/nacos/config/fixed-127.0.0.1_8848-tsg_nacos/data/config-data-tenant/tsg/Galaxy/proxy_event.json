@@ -364,6 +364,9 @@
       }
     },
     "schema_type": {
+      "SSL": {
+        "$ref": "public_schema_info.json#/schema_type/SSL"
+      },
       "HTTP": {
         "$ref": "public_schema_info.json#/schema_type/HTTP"
       },
@@ -620,6 +623,10 @@
           {
             "code": "2",
             "value": "Intercept"
+          },
+          {
+            "code": "3",
+            "value": "No Intercept"
           },
           {
             "code": "16",
@@ -1629,6 +1636,209 @@
         "visibility": "hidden",
         "ttl": null
       }
+    },
+    {
+      "name": "intercept_pinning_status",
+      "label": "Intercept Pinning Status",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_status",
+      "label": "Intercept Status",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_passthrough_reason",
+      "label": "Intercept Passthrough Reason",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "intercept_server_side_latency",
+      "label": "Intercept Server Side Latency",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_client_side_latency",
+      "label": "Intercept Client Side Latency",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_server_side_version",
+      "label": "Intercept Server Side Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "intercept_client_side_version",
+      "label": "Intercept Client Side Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "Intercept_cert_verify",
+      "label": "Intercept Cert Verify",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_error",
+      "label": "Intercept Error",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_version",
+      "label": "SSL.Version",
+      "doc": {
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_sni",
+      "label": "SSL.SNI",
+      "doc": {
+        "format": [
+          {
+            "function": "sub_domain",
+            "appendTo": "http_domain"
+          },
+          {
+            "function": "sub_domain",
+            "appendTo": "common_server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_server_fqdn"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_san",
+      "label": "SSL.SAN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cn",
+      "label": "SSL.CN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_con_latency_ms",
+      "label": "SSL.Handshake Latency (ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_ja3_fingerprint",
+      "label": "SSL.JA3",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3_hash",
+      "label": "SSL.JA3 hash",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3s_fingerprint",
+      "label": "SSL.JA3S",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3s_hash",
+      "label": "SSL.JA3S hash",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_issuer",
+      "label": "SSL.Issuer",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_subject",
+      "label": "SSL.Subject",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "http_url",

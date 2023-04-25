@@ -95,20 +95,62 @@
     {
       "name": "action",
       "label": "Action",
-      "type": "string",
+      "type": "int",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
         },
         "data": [
           {
-            "code": "intercept",
+            "code": "2",
             "value": "Intercept"
           },
           {
-            "code": "no_intercept",
+            "code": "3",
             "value": "No Intercept"
           },
+          {
+            "code": "48",
+            "value": "Manipulate"
+          }
+        ],
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "pinning_status",
+      "label": "Pinning Status",
+      "type": "int",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "Not Pinning"
+          },
+          {
+            "code": "1",
+            "value": "Pinning"
+          },
+          {
+            "code": "2",
+            "value": "Maybe Pinning"
+          }
+        ],
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "sub_action",
+      "label": "Sub Action",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": [
           {
             "code": "deny",
             "value": "Deny"
