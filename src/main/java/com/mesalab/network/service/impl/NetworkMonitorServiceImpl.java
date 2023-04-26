@@ -93,39 +93,39 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     @Override
     public BaseResult buildNetworkOverviewResult(DSLObject dslObject) {
-        Map<String, String> dataRateResult = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), environment.getProperty("NETWORK_STATISTICS_SUMMARY")));
-        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataRateResult.get("status"))) {
-            throw new BusinessException(Integer.parseInt(dataRateResult.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dataRateResult.get("message")));
+        Map<String, String> asymmetricFlowsRsp = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), environment.getProperty("NETWORK_OVERVIEW_ASYMMETRIC_FLOWS_STAT")));
+        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(asymmetricFlowsRsp.get("status"))) {
+            throw new BusinessException(Integer.parseInt(asymmetricFlowsRsp.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
         }
-        Map<String, String> currentSessionResult = executeQuery(generateDynamicStatSql(dslObject.getQuery(), environment.getProperty("TRAFFIC_DYNAMIC_STATISTICS")));
-        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(currentSessionResult.get("status"))) {
-            throw new BusinessException(Integer.parseInt(currentSessionResult.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dataRateResult.get("message")));
+        Map<String, String> statRsp = executeQuery(generateDynamicStatSql(dslObject.getQuery(), environment.getProperty("NETWORK_OVERVIEW_STAT")));
+        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(statRsp.get("status"))) {
+            throw new BusinessException(Integer.parseInt(statRsp.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
         }
-        Map<String, String> tcpResult = executeQuery(generateTCPStatSql(dslObject.getQuery(), environment.getProperty("TCP_STATISTICS_SUMMARY")));
-        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(currentSessionResult.get("status"))) {
-            throw new BusinessException(Integer.parseInt(currentSessionResult.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dataRateResult.get("message")));
+        Map<String, String> tcpRsp = executeQuery(generateTCPStatSql(dslObject.getQuery(), environment.getProperty("NETWORK_OVERVIEW_TCP_STAT")));
+        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(statRsp.get("status"))) {
+            throw new BusinessException(Integer.parseInt(statRsp.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
         }
-        Map<String, String> appStatisticsResult = executeQuery(generateAppStatisticsSql(dslObject.getQuery(), environment.getProperty("APP_STATISTICS_SUMMARY")));
-        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(appStatisticsResult.get("status"))) {
-            throw new BusinessException(Integer.parseInt(appStatisticsResult.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dataRateResult.get("message")));
+        Map<String, String> appRsp = executeQuery(generateAppStatisticsSql(dslObject.getQuery(), environment.getProperty("NETWORK_OVERVIEW_APP_STAT")));
+        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(appRsp.get("status"))) {
+            throw new BusinessException(Integer.parseInt(appRsp.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
         }
 
-        Map statDataResult = JsonMapper.fromJsonString(currentSessionResult.get("result"), Map.class);
-        List<Map> statData = (List<Map>) statDataResult.get("data");
-        Map summaryDataResult = JsonMapper.fromJsonString(dataRateResult.get("result"), Map.class);
-        List<Map> summaryData = (List<Map>) summaryDataResult.get("data");
-        Map tcpDataResult = JsonMapper.fromJsonString(tcpResult.get("result"), Map.class);
-        List<Map> tcpData = (List<Map>) tcpDataResult.get("data");
-        Map appDataResult = JsonMapper.fromJsonString(appStatisticsResult.get("result"), Map.class);
-        List<Map> appData = (List<Map>) appDataResult.get("data");
+        Map statResult = JsonMapper.fromJsonString(statRsp.get("result"), Map.class);
+        List<Map> statData = (List<Map>) statResult.get("data");
+        Map asymmetricFlowsResult = JsonMapper.fromJsonString(asymmetricFlowsRsp.get("result"), Map.class);
+        List<Map> asymmetricFlowsData = (List<Map>) asymmetricFlowsResult.get("data");
+        Map tcpResult = JsonMapper.fromJsonString(tcpRsp.get("result"), Map.class);
+        List<Map> tcpData = (List<Map>) tcpResult.get("data");
+        Map appResult = JsonMapper.fromJsonString(appRsp.get("result"), Map.class);
+        List<Map> appData = (List<Map>) appResult.get("data");
 
         Map<String, Object> data = new HashMap<>(16);
         if (!statData.isEmpty()) {
             data.putAll(statData.get(0));
         }
 
-        if (!summaryData.isEmpty()) {
-            data.putAll(summaryData.get(0));
+        if (!asymmetricFlowsData.isEmpty()) {
+            data.putAll(asymmetricFlowsData.get(0));
         }
 
         if (!tcpData.isEmpty()) {
@@ -137,9 +137,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         }
 
 
-        long asymmetricFlowsBytes = Long.parseLong(String.valueOf(
+        long asymmetricFlows = Long.parseLong(String.valueOf(
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES)));
-        long totalBytesUseOnAsymmetricFlows = Long.parseLong(String.valueOf(
+        long totalSessionUseOnAsymmetricFlows = Long.parseLong(String.valueOf(
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS)));
 
         long uniqClientIp = Long.parseLong(String.valueOf(
@@ -167,15 +167,13 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
         String unknownAppPercent = totalBytes == 0 ? String.valueOf(0)
                 : NumberUtil.div(BigDecimal.valueOf(unknownAppBytes), BigDecimal.valueOf(totalBytes), 4).toPlainString();
-        String asymmetricFlowsPercent = totalBytesUseOnAsymmetricFlows == 0 ? String.valueOf(0)
-                : NumberUtil.div(BigDecimal.valueOf(asymmetricFlowsBytes), BigDecimal.valueOf(totalBytesUseOnAsymmetricFlows), 4).toPlainString();
+        String asymmetricFlowsPercent = totalSessionUseOnAsymmetricFlows == 0 ? String.valueOf(0)
+                : NumberUtil.div(BigDecimal.valueOf(asymmetricFlows), BigDecimal.valueOf(totalSessionUseOnAsymmetricFlows), 4).toPlainString();
         String tcpRetransmissionsPercent = tcpTotalPackets == 0 ? String.valueOf(0)
                 : NumberUtil.div(BigDecimal.valueOf(tcpRetransmissionsPackets), BigDecimal.valueOf(tcpTotalPackets), 4).toPlainString();
         String fragmentationPacketsPercent = totalPackets == 0 ? String.valueOf(0)
                 : NumberUtil.div(BigDecimal.valueOf(fragmentationPackets), BigDecimal.valueOf(totalPackets), 4).toPlainString();
 
-        System.out.println(totalBytesUseOnAsymmetricFlows);
-        System.out.println(fragmentationPackets);
         List result = new ArrayList<>();
         Map resultMap = new LinkedHashMap<>();
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP, uniqClientIp);
@@ -184,7 +182,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, totalBytes);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES, unknownAppBytes);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_PERCENT, unknownAppPercent);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES, asymmetricFlowsBytes);
+        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES, asymmetricFlows);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_PERCENT, asymmetricFlowsPercent);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS, tcpRetransmissionsPackets);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PERCENT, tcpRetransmissionsPercent);
@@ -192,9 +190,9 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PERCENT, fragmentationPacketsPercent);
         result.add(resultMap);
 
-        Map statistics = (Map) summaryDataResult.get("statistics");
-        Map statStatistics = (Map) statDataResult.get("statistics");
-        Map appStatistics = (Map) appDataResult.get("statistics");
+        Map statistics = (Map) asymmetricFlowsResult.get("statistics");
+        Map statStatistics = (Map) statResult.get("statistics");
+        Map appStatistics = (Map) appResult.get("statistics");
         for (Object key : statistics.keySet()) {
             if ("result_rows".equals(key.toString())) {
                 continue;

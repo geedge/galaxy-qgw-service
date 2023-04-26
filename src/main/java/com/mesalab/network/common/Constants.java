@@ -27,8 +27,8 @@ public class Constants {
     public static final String NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS = "total_packets";
     public static final String NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES = "unknown_app_bytes";
     public static final String NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_PERCENT = "unknown_app_percent";
-    public static final String NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES = "asymmetric_flows_bytes";
-    public static final String NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS = "total_bytes_used_on_asymmetric_flows";
+    public static final String NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES = "asymmetric_flows";
+    public static final String NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS = "total_session_used_on_asymmetric_flows";
     public static final String NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_PERCENT = "asymmetric_flows_percent";
     public static final String NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS = "tcp_retransmissions_packets";
     public static final String NETWORK_OVERVIEW_METRIC_TCP_TOTAL_PACKETS = "tcp_total_packets";
@@ -37,8 +37,6 @@ public class Constants {
     public static final String NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PERCENT = "fragmentation_percent";
 
 
-    public static final String NETWORK_OVERVIEW_METRIC_DYNAMIC_SESSIONS = "dynamic_sessions";
-    public static final String NETWORK_OVERVIEW_METRIC_DYNAMIC_BYTES = "dynamic_bytes";
     public static final String NETWORK_OVERVIEW_METRIC_DATA_RATE = "data_rate";
 
 }
