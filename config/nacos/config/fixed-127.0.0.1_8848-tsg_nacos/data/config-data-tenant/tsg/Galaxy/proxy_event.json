@@ -1641,6 +1641,20 @@
       "name": "intercept_pinning_status",
       "label": "Intercept Pinning Status",
       "doc": {
+        "data": [
+          {
+            "code": "0",
+            "value": "not pinning"
+          },
+          {
+            "code": "1",
+            "value": "pinning"
+          },
+          {
+            "code": "2",
+            "value": "maybe pinning"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1650,6 +1664,20 @@
       "name": "intercept_status",
       "label": "Intercept Status",
       "doc": {
+        "data": [
+          {
+            "code": "0",
+            "value": "passthrough"
+          },
+          {
+            "code": "1",
+            "value": "intercept"
+          },
+          {
+            "code": "2",
+            "value": "shutdown"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1701,7 +1729,7 @@
       "type": "string"
     },
     {
-      "name": "Intercept_cert_verify",
+      "name": "intercept_cert_verify",
       "label": "Intercept Cert Verify",
       "doc": {
         "visibility": "enabled",
