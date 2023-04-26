@@ -905,7 +905,7 @@
           },
           {
             "code": "2",
-            "value": "Intercept"
+            "value": "Intercept(Deprecated)"
           },
           {
             "code": "16",
