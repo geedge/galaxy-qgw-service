@@ -1,16 +1,16 @@
-#sql("NETWORK_STATISTICS_SUMMARY")
-SELECT SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows_bytes, SUM(in_bytes + out_bytes) AS total_bytes_used_on_asymmetric_flows FROM traffic_general_stat  WHERE %s  %s LIMIT 1
+#sql("NETWORK_OVERVIEW_ASYMMETRIC_FLOWS_STAT")
+SELECT SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows, SUM(sessions) AS total_session_used_on_asymmetric_flows FROM traffic_general_stat  WHERE %s  %s LIMIT 1
 #end
 
-#sql("TRAFFIC_DYNAMIC_STATISTICS")
+#sql("NETWORK_OVERVIEW_STAT")
 SELECT	APPROX_COUNT_DISTINCT_DS_HLL(client_ip_sketch) AS uniq_client_ip, SUM(c2s_fragments + s2c_fragments) AS fragmentation_packets, SUM(c2s_bytes + s2c_bytes) AS total_bytes, SUM(c2s_pkts + s2c_pkts) AS total_packets, SUM(sessions) AS total_sessions, (SUM(c2s_bytes + s2c_bytes) * 8)/(%s -%s) AS data_rate  FROM %s  WHERE %s %s AND protocol_stack_id = '%s' LIMIT 1
 #end
 
-#sql("TCP_STATISTICS_SUMMARY")
+#sql("NETWORK_OVERVIEW_TCP_STAT")
 SELECT SUM(c2s_tcp_retransmitted_pkts + s2c_tcp_retransmitted_pkts) AS tcp_retransmissions_packets, SUM(c2s_pkts + s2c_pkts) AS tcp_total_packets FROM %s  WHERE %s %s AND RIGHT(protocol_stack_id, 4) = '.TCP' LIMIT 1
 #end
 
-#sql("APP_STATISTICS_SUMMARY")
+#sql("NETWORK_OVERVIEW_APP_STAT")
 SELECT SUM(c2s_bytes + s2c_bytes) as unknown_app_bytes FROM %s WHERE %s %s AND app_name = 'unknown' LIMIT 1
 #end
 
