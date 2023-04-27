@@ -42,6 +42,7 @@ public class SQLFunctionUtil {
     public static final String IP_TO_ASN_ORG = "IP_TO_ASN_ORG";
     public static final String MAX_DURATION = "MAX_DURATION";
 
+    public static final String CONCAT = "concat";
     public static final String NOT_EMPTY = "notEmpty";
     public static final String EMPTY = "empty";
 
@@ -120,6 +121,7 @@ public class SQLFunctionUtil {
     public static final Pattern pMedian = Pattern.compile("\\WMEDIAN\\s*\\(");
     public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
     public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");
+    public static final Pattern pConcat = Pattern.compile("\\b" + CONCAT + "\\((?!toString|CAST)");
 
     /**
      * 解析mysql函数替换为对应数据库类型函数
@@ -233,7 +235,7 @@ public class SQLFunctionUtil {
     }
 
     /**
-     * Desc: notEmpty、empty
+     * Desc: notEmpty、empty、concat
      *
      * @param dbType
      * @param resultSql
@@ -244,6 +246,7 @@ public class SQLFunctionUtil {
     private static String translateStrFun(String dbType, String resultSql) {
         resultSql = translateByPattern(resultSql, dbType, pNotEmpty);
         resultSql = translateByPattern(resultSql, dbType, pEmpty);
+        resultSql = translateByPattern(resultSql, dbType, pConcat);
         return resultSql;
     }
 
@@ -1665,6 +1668,9 @@ public class SQLFunctionUtil {
             case EMPTY:
                 data = translateEmpty(fun, dbType);
                 break;
+            case CONCAT:
+                data = translateConcat(fun, dbType);
+                break;
             case IP_TO_GEO:
             case IP_TO_CITY:
             case IP_TO_COUNTRY:
@@ -1817,6 +1823,28 @@ public class SQLFunctionUtil {
         return fun.toString();
     }
 
+    /**
+     * Desc: 转义concat
+     *
+     * @param function
+     * @param dbType
+     * @return
+     */
+    private static String translateConcat(Function function, String dbType) {
+        StringBuffer sb = new StringBuffer();
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            for (String param : function.getParamsList()) {
+                sb.append("toString("+param+"), ");
+            }
+            return String.format("concat(%s'')", sb.toString());
+        }else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            for (String param : function.getParamsList()) {
+                sb.append("CAST("+param+" AS VARCHAR), ");
+            }
+            return String.format("concat(%s'')", sb.toString());
+        }
+        return function.toString();
+    }
 
     @Data
     static class Function {
