@@ -121,7 +121,7 @@ public class SQLFunctionUtil {
     public static final Pattern pMedian = Pattern.compile("\\WMEDIAN\\s*\\(");
     public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
     public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");
-    public static final Pattern pConcat = Pattern.compile("\\b" + CONCAT + "\\((?!toString|CAST)");
+    public static final Pattern pConcat = Pattern.compile("\\b" + CONCAT + "\\((?!toString\\(|CAST\\()", Pattern.CASE_INSENSITIVE);
 
     /**
      * 解析mysql函数替换为对应数据库类型函数
@@ -1668,9 +1668,6 @@ public class SQLFunctionUtil {
             case EMPTY:
                 data = translateEmpty(fun, dbType);
                 break;
-            case CONCAT:
-                data = translateConcat(fun, dbType);
-                break;
             case IP_TO_GEO:
             case IP_TO_CITY:
             case IP_TO_COUNTRY:
@@ -1681,6 +1678,10 @@ public class SQLFunctionUtil {
                 data = translateIpLocation(fun);
                 break;
             default:
+                if(CONCAT.equalsIgnoreCase(fun.getName())) {
+                    data = translateConcat(fun, dbType);
+                    break;
+                }
                 data = parseFunDefaultValue(fun);
         }
         return data;
