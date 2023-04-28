@@ -82,6 +82,8 @@ public class QGWMessageConst {
 
     public static final String DATASOURCE_IS_INVALID = "DSLObject.query.dataSource is invalid";
 
+    public static final String DATASOURCE_NOT_EXIST = "DSLObject.query.dataSource is not registered on the platform, please contact the person in charge of the data platform";
+
     public static final String RANGE_TYPE_IS_INVALID = "DSLObject.query.Range type is invalid";
 
     public static final String SORT_TYPE_IS_INVALID = "DSLObject.query.Sort type is invalid";
