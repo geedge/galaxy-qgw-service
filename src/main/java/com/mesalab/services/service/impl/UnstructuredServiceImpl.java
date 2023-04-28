@@ -10,6 +10,8 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.ClickHouseHttpSource;
@@ -113,9 +115,13 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     @Override
     public BaseResult getUnstructuredData(String param, ComDSLObject dslObject) {
         Stopwatch watch = Stopwatch.createStarted();
-        Map<String, Object> fileTypeInSchema = getUnstructuredFields();
         List<Map> dataList = Lists.newArrayList();
         String dataSource = dslObject.getQuery().getDataSource();
+        validationDataSource(dataSource);
+        Map<String, Object> fileTypeInSchema = getUnstructuredFields();
+        if (!fileTypeInSchema.containsKey(dataSource) && !dataSource.equals(clickHouseHttpSource.getDbName())) {
+            return build(dataList, watch);
+        }
         int limit = StringUtil.isBlank(dslObject.getQuery().getLimit()) ? engineConfigSource.getDefaultResultNum() : Integer.parseInt(dslObject.getQuery().getLimit());
         if (!param.equalsIgnoreCase(UnstructuredDataType.ALL.getType())) {
             if (!dataSource.equals(clickHouseHttpSource.getDbName())) {
@@ -201,6 +207,13 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
         return ApiParam.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
     }
 
+    private void validationDataSource(String dataSource) {
+        List<String> allTable = metadataService.getAllTable();
+        if (!allTable.contains(dataSource) && !dataSource.equals(clickHouseHttpSource.getDbName())) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DATASOURCE_NOT_EXIST));
+        }
+    }
 
     @Override
     public void setEnvironment(Environment environment) {
