@@ -27,7 +27,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
-import net.sf.jsqlparser.statement.select.OrderByElement;
+import net.sf.jsqlparser.statement.select.*;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -263,8 +263,20 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         Expression whereExpression = sqlQuerySource.getWhereExpression();
         String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableName());
         WhereTimeRange whereTimeRange = new WhereTimeRange();
+        if (sqlQuerySource.getSubSelect() != null) {
+            Map<String, String> aliasFields = sqlQuerySource.getSubSqlQuerySources().get(0).getAliasFields();
+            for (String alias : aliasFields.keySet()) {
+                if (aliasFields.get(alias).contains(sqlQuerySource.getPartitionKey())) {
+                    partitionKey = alias;
+                    break;
+                }
+            }
+        }
         parserWhereExpressionForWhereTimeRange(whereTimeRange, whereExpression, partitionKey, dbType);
-
+        if (StringUtil.isEmpty(whereTimeRange.getStart()) && StringUtil.isEmpty(whereTimeRange.getEnd()) && sqlQuerySource.getSubSelect() != null) {
+            SQLQuerySource subSqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
+            parserWhereExpressionForWhereTimeRange(whereTimeRange, subSqlQuerySource.getWhereExpression(), subSqlQuerySource.getPartitionKey(), dbType);
+        }
         return whereTimeRange;
     }
 
