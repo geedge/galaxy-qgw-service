@@ -85,7 +85,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
         try {
             KnowledgeBase knowledgeBase = null;
-            if (lock.acquire(10000, TimeUnit.SECONDS)) {
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
                 knowledgeBase = setKnowledgeBase(multipartFile, knowledge, knowledgeBaseList);
                 Boolean b = updateLatestKnowledge(knowledgeBaseList, knowledgeBase);
@@ -116,7 +116,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         String id = knowledgeBase.getId();
         try {
             // 尝试获取锁，最长等待10s，超时放弃获取
-            if (lock.acquire(10000, TimeUnit.SECONDS)) {
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
                 String deletePath = null;
                 for (int i = 0; i < knowledgeBaseList.size(); i++) {
@@ -157,7 +157,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         KnowledgeBase knowledgeBase = null;
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
         try {
-            if (lock.acquire(10000, TimeUnit.SECONDS)) {
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
                 int originalSize = knowledgeBaseList.size();
                 Iterator<KnowledgeBase> iterator = knowledgeBaseList.iterator();
