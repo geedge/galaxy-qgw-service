@@ -19,5 +19,6 @@ public class KnowledgeConstant {
     public static final String MMDB = ".mmdb";
     public static final String LATEST = "latest";
     public static final String TOKEN = "token";
+    public static final Integer VALID = 1;
 
 }

@@ -187,6 +187,39 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         return BaseResultGenerator.success(map);
     }
 
+    @Override
+    public BaseResult toggleKnowledge(KnowledgeBase knowledgeBase) throws Exception {
+        InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
+        String id = knowledgeBase.getId();
+        try {
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
+                List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
+                String Path = null;
+                for (int i = 0; i < knowledgeBaseList.size(); i++) {
+                    KnowledgeBase knowledge = knowledgeBaseList.get(i);
+                    if (StringUtil.equals(id, knowledge.getId()) && !StringUtil.equals(knowledge.getVersion(), KnowledgeConstant.LATEST)) {
+                        Path = knowledge.getPath();
+                        knowledge.setIsValid(knowledgeBase.getIsValid());
+                        updateLatestKnowledge(knowledgeBaseList, knowledge);
+                        break;
+                    }
+                }
+                saveKnowledgeBaseList(knowledgeBaseList);
+                Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
+                httpClientService.httpDelete(Path, httpConfig.getServerResponseTimeOut(), header);
+            }
+        } catch (RuntimeException e) {
+            log.error("toggle knowledge error: {}", e.getMessage());
+            throw new BusinessException(e.getMessage());
+        } finally {
+            lock.release();
+        }
+
+        Map map = new HashMap();
+        map.put("id", id);
+        return BaseResultGenerator.success(map);
+    }
+
     public List<KnowledgeBase> queryKnowledgeBaseList() {
         List<KnowledgeBase> knowledgeBaseList = new ArrayList<>();
         try {
@@ -220,6 +253,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         knowledge.setVersion(version);
         knowledge.setSize(file.getSize());
         knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
+        knowledge.setIsValid(KnowledgeConstant.VALID);
         return knowledge;
     }
 
@@ -380,6 +414,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 base.setSha256(knowledgeBase.getSha256());
                 base.setOriginUrl(knowledgeBase.getOriginUrl());
                 base.setUpdateTime(knowledgeBase.getUpdateTime());
+                base.setIsValid(knowledgeBase.getIsValid());
                 knowledgeBaseList.set(i, base);
                 return false;
             }

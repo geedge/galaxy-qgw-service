@@ -65,6 +65,16 @@ public class KnowledgeBaseController {
         }
     }
 
+    @PatchMapping
+    public BaseResult toggleKnowledge(KnowledgeBase knowledgeBase) {
+        try {
+            return knowledgeService.toggleKnowledge(knowledgeBase);
+        } catch (Exception e) {
+            log.error("toggle knowledge error: {}", e.getMessage());
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "toggle knowledge error:" + e.getMessage());
+        }
+    }
+
     private KnowledgeBase validateKnowledge(KnowledgeBase knowledge) {
         if (StringUtil.isEmpty(knowledge.getName())) {
             throw new BusinessException("Name is required");
