@@ -1061,6 +1061,7 @@
         "common_ingestion_time",
         "common_mirrored_pkts",
         "common_mirrored_bytes",
+        "ssl_version",
         "ssl_sni",
         "ssl_san",
         "ssl_cn",

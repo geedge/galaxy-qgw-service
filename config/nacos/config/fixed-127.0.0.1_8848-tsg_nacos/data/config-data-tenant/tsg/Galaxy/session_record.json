@@ -3040,7 +3040,7 @@
     },
     {
       "name": "ssl_pinningst",
-      "label": "SSL.Pinning",
+      "label": "SSL.Pinning(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3066,7 +3066,7 @@
     },
     {
       "name": "ssl_intercept_state",
-      "label": "SSL.Intercept State",
+      "label": "SSL.Intercept State(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3092,7 +3092,7 @@
     },
     {
       "name": "ssl_passthrough_reason",
-      "label": "SSL.Passthrough Reason",
+      "label": "SSL.Passthrough Reason(Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -3101,7 +3101,7 @@
     },
     {
       "name": "ssl_server_side_latency",
-      "label": "SSL.Server Side Latency (ms)",
+      "label": "SSL.Server Side Latency (ms)(Deprecated)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -3113,7 +3113,7 @@
     },
     {
       "name": "ssl_client_side_latency",
-      "label": "SSL.Client Side Latency (ms)",
+      "label": "SSL.Client Side Latency (ms)(Deprecated)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -3125,7 +3125,7 @@
     },
     {
       "name": "ssl_server_side_version",
-      "label": "SSL.Server Side Version",
+      "label": "SSL.Server Side Version(Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -3134,7 +3134,7 @@
     },
     {
       "name": "ssl_client_side_version",
-      "label": "SSL.Client Side Version",
+      "label": "SSL.Client Side Version(Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -3143,7 +3143,7 @@
     },
     {
       "name": "ssl_cert_verify",
-      "label": "SSL.Certificate Verify",
+      "label": "SSL.Certificate Verify(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3165,7 +3165,7 @@
     },
     {
       "name": "ssl_error",
-      "label": "SSL.Error",
+      "label": "SSL.Error(Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
