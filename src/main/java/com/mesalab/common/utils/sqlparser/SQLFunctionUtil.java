@@ -1654,6 +1654,13 @@ public class SQLFunctionUtil {
      * @return
      */
     private static String translateFunction(Function fun, String dbType) {
+        if (CONCAT.equalsIgnoreCase(fun.getName())) {
+            return translateConcat(fun, dbType);
+        }
+        return translateCaseInsensitive(fun, dbType);
+    }
+
+    private static String translateCaseInsensitive(Function fun, String dbType) {
         String data;
         switch (fun.getName()){
             case TIME_FLOOR_WITH_FILL:
@@ -1678,10 +1685,6 @@ public class SQLFunctionUtil {
                 data = translateIpLocation(fun);
                 break;
             default:
-                if(CONCAT.equalsIgnoreCase(fun.getName())) {
-                    data = translateConcat(fun, dbType);
-                    break;
-                }
                 data = parseFunDefaultValue(fun);
         }
         return data;
@@ -1837,14 +1840,14 @@ public class SQLFunctionUtil {
             for (String param : function.getParamsList()) {
                 sb.append("toString("+param+"), ");
             }
-            return String.format("concat(%s'')", sb.toString());
+            return String.format("concat(%s'')", sb);
         }else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
             for (String param : function.getParamsList()) {
                 sb.append("CAST("+param+" AS VARCHAR), ");
             }
-            return String.format("concat(%s'')", sb.toString());
+            return String.format("concat(%s'')", sb);
         }
-        return function.toString();
+        return parseFunDefaultValue(function);
     }
 
     @Data
