@@ -43,21 +43,21 @@ public class KnowledgeBaseController {
         }
     }
 
-    @PutMapping
-    public BaseResult updateKnowledge(@RequestPart(value = "file") MultipartFile file, KnowledgeBase knowledge) {
-
+    @PutMapping(value = {"/{id}", ""})
+    public BaseResult updateKnowledge(@PathVariable(required = false) String id, @RequestPart(value = "file") MultipartFile file, KnowledgeBase knowledge) {
         try {
-            return knowledgeService.updateKnowledge(file, knowledge);
+            id = id==null ? knowledge.getId() : id;
+            return knowledgeService.updateKnowledge(id, file, knowledge);
         } catch (Exception e) {
             log.error("update knowledge error: {}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "update knowledge error: " + e.getMessage());
         }
     }
 
-    @DeleteMapping
-    public BaseResult deleteKnowledge(@RequestParam String id) {
-
+    @DeleteMapping(value = {"/{id}", ""})
+    public BaseResult deleteKnowledge(@PathVariable(required = false) String id, KnowledgeBase knowledgeBase) {
         try {
+            id = id==null ? knowledgeBase.getId() : id;
             return knowledgeService.deleteKnowledge(id);
         } catch (Exception e) {
             log.error("delete knowledge error: {}", e.getMessage());
@@ -65,10 +65,10 @@ public class KnowledgeBaseController {
         }
     }
 
-    @PatchMapping
-    public BaseResult toggleKnowledge(KnowledgeBase knowledgeBase) {
+    @PatchMapping(value = "/{id}")
+    public BaseResult toggleKnowledge(@PathVariable String id, KnowledgeBase knowledgeBase) {
         try {
-            return knowledgeService.toggleKnowledge(knowledgeBase);
+            return knowledgeService.toggleKnowledge(id, knowledgeBase);
         } catch (Exception e) {
             log.error("toggle knowledge error: {}", e.getMessage());
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "toggle knowledge error:" + e.getMessage());

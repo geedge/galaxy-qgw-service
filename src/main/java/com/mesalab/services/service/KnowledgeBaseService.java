@@ -13,9 +13,9 @@ public interface KnowledgeBaseService {
 
     BaseResult publishKnowledge(MultipartFile file, KnowledgeBase knowledge) throws Exception;
 
-    BaseResult updateKnowledge(MultipartFile file, KnowledgeBase knowledgeBase) throws Exception;
+    BaseResult updateKnowledge(String id, MultipartFile file, KnowledgeBase knowledgeBase) throws Exception;
 
     BaseResult deleteKnowledge(String id) throws Exception;
 
-    BaseResult toggleKnowledge(KnowledgeBase knowledgeBase) throws Exception;
+    BaseResult toggleKnowledge(String id, KnowledgeBase knowledgeBase) throws Exception;
 }

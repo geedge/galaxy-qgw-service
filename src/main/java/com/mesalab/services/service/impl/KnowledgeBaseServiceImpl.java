@@ -110,10 +110,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     }
 
     @Override
-    public BaseResult updateKnowledge(MultipartFile file, KnowledgeBase knowledgeBase) throws Exception {
+    public BaseResult updateKnowledge(String id, MultipartFile file, KnowledgeBase knowledgeBase) throws Exception {
 
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
-        String id = knowledgeBase.getId();
         try {
             // 尝试获取锁，最长等待10s，超时放弃获取
             if (lock.acquire(10, TimeUnit.SECONDS)) {
@@ -188,24 +187,19 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     }
 
     @Override
-    public BaseResult toggleKnowledge(KnowledgeBase knowledgeBase) throws Exception {
+    public BaseResult toggleKnowledge(String id, KnowledgeBase knowledgeBase) throws Exception {
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
-        String id = knowledgeBase.getId();
         try {
             if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
-                String Path = null;
                 for (int i = 0; i < knowledgeBaseList.size(); i++) {
                     KnowledgeBase knowledge = knowledgeBaseList.get(i);
                     if (StringUtil.equals(id, knowledge.getId())) {
-                        Path = knowledge.getPath();
                         knowledge.setIsValid(knowledgeBase.getIsValid());
                         knowledgeBaseList.set(i,knowledge);
                     }
                 }
                 saveKnowledgeBaseList(knowledgeBaseList);
-                Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
-                httpClientService.httpDelete(Path, httpConfig.getServerResponseTimeOut(), header);
             }
         } catch (RuntimeException e) {
             log.error("toggle knowledge error: {}", e.getMessage());
