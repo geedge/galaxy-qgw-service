@@ -197,11 +197,10 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 String Path = null;
                 for (int i = 0; i < knowledgeBaseList.size(); i++) {
                     KnowledgeBase knowledge = knowledgeBaseList.get(i);
-                    if (StringUtil.equals(id, knowledge.getId()) && !StringUtil.equals(knowledge.getVersion(), KnowledgeConstant.LATEST)) {
+                    if (StringUtil.equals(id, knowledge.getId())) {
                         Path = knowledge.getPath();
                         knowledge.setIsValid(knowledgeBase.getIsValid());
-                        updateLatestKnowledge(knowledgeBaseList, knowledge);
-                        break;
+                        knowledgeBaseList.set(i,knowledge);
                     }
                 }
                 saveKnowledgeBaseList(knowledgeBaseList);
