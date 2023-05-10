@@ -1,5 +1,5 @@
 #sql("NETWORK_OVERVIEW_ASYMMETRIC_FLOWS_STAT")
-SELECT SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows, SUM(sessions) AS total_session_used_on_asymmetric_flows FROM traffic_general_stat  WHERE %s  %s LIMIT 1
+SELECT SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows, SUM(closed_sessions) AS total_session_used_on_asymmetric_flows FROM traffic_general_stat  WHERE %s  %s LIMIT 1
 #end
 
 #sql("NETWORK_OVERVIEW_STAT")
