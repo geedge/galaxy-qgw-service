@@ -126,9 +126,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 }
 
                 List<Date> leftDateRange = DateUtils.getLeftDateRange(benchmarkDate,
-                        DateUtils.convertStringToDate((whereTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+                        DateUtil.parse(whereTimeRange.getStart()), period);
                 List<Date> rightDateRange = DateUtils.getRightDateRange(benchmarkDate,
-                        DateUtils.convertStringToDate((whereTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+                        DateUtil.parse(whereTimeRange.getEnd()), period);
 
                 Collections.reverse(leftDateRange);
                 dateRangeList = Lists.newArrayList(Iterables.concat(leftDateRange, rightDateRange));
@@ -139,7 +139,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
             if (StringUtil.isNotEmpty(dateRangeList)
                     && !whereTimeRange.isMinorThanEquals()
-                    && DateUtil.toInstant(DateUtils.convertStringToDate((whereTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS))
+                    && DateUtil.toInstant(DateUtil.parse(whereTimeRange.getEnd()))
                     .compareTo(DateUtil.toInstant(dateRangeList.get(dateRangeList.size() - 1))) == 0) {
                 dateRangeList.remove(dateRangeList.size() - 1);
             }
