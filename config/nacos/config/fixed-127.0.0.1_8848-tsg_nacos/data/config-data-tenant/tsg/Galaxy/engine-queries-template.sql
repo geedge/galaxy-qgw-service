@@ -136,3 +136,5 @@ SELECT IP_TO_GEO(common_client_ip) AS geo, IP_TO_ISP(common_client_ip) AS isp FR
 SELECT FROM_UNIXTIME(UNIX_TIMESTAMP('2023-02-08T00:00:00+0800')) FROM proxy_event_hits_log limit 1
 --Q69.time format ISO8601, ck
 SELECT FROM_UNIXTIME(UNIX_TIMESTAMP('2023-02-08T00:00:00+0800')) FROM session_record limit 1
+--Q70.subQuery optimizing, filter field contain table name
+SELECT FROM_UNIXTIME(common_recv_time) AS stat_time FROM session_record WHERE common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) AND (common_client_ip = '5.32.144.55') AND session_record.common_vsys_id IN (32, 1, 27, 4) ORDER BY common_recv_time DESC LIMIT 0, 50
