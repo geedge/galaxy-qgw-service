@@ -541,7 +541,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(metadataService.getIndexKey(param.getTableName()))) {
                 return StringUtil.EMPTY;
             }
-            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields());
+            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields(), false, null);
             List<String> actualFieldOfWhere = CondExpressionHelper.getDistinctFields(expression.toString());
             table:
             for (String tempIndexTable : indexTables) {
@@ -632,7 +632,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             StringBuilder subQuery = new StringBuilder();
 
             subQuery.append("select " + columnName + " from ").append(tableName)
-                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields()));
+                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields(), true, tableName));
 
             //order by中元素存在别名时做替换处理
             List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
@@ -681,7 +681,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             }
             for (OrderByElement order : listOrderElement) {
                 OrderByElement orderByElement = new OrderByElement();
-                Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(String.valueOf(order.getExpression()), param.getDbQuerySource().getAliasFields());
+                Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(String.valueOf(order.getExpression()), param.getDbQuerySource().getAliasFields(), false, null);
                 orderByElement.setExpression(expression);
                 List<String> fields = CondExpressionHelper.getDistinctFieldsOfOrderBy(orderByElement);
                 for (String field : fields) {

@@ -130,3 +130,5 @@ SELECT QUANTILE(common_c2s_byte_num) AS c2s FROM session_record WHERE common_rec
 SELECT QUANTILE(established_conn_num, 0.6) FROM traffic_metrics_log WHERE __time >= @start AND __time < @end limit 1
 --Q66.Top Optimizer
 SELECT common_client_ip AS common_client_ip, count(*) AS count, sum(common_c2s_byte_num + common_s2c_byte_num) / 1024 / 1024 AS bytes_MB FROM session_record WHERE common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) GROUP BY common_client_ip ORDER BY count DESC LIMIT 10
+--Q70.subQuery optimizing, filter field contain table name
+SELECT FROM_UNIXTIME(common_recv_time) AS stat_time FROM session_record WHERE common_recv_time >= toDateTime(@start) AND common_recv_time < toDateTime(@end) AND (common_client_ip = '5.32.144.55') AND session_record.common_vsys_id IN (32, 1, 27, 4) ORDER BY common_recv_time DESC LIMIT 0, 50
