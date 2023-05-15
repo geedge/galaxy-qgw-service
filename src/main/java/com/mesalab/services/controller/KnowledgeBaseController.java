@@ -35,15 +35,11 @@ public class KnowledgeBaseController {
 
     @PostMapping(produces = "application/json")
     public BaseResult publishKnowledge(@RequestParam("file") MultipartFile file, KnowledgeBase knowledge) {
+        KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
         try {
-            KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
             return knowledgeService.publishKnowledge(file, knowledgeBase);
         } catch (Exception e) {
             log.error("publish knowledge error: {}", e.getMessage());
-            if(e instanceof BusinessException) {
-                BusinessException be = (BusinessException) e;
-                return BaseResultGenerator.failure(be.getStatus(),be.getCode(),"publish knowledge error: " + e.getMessage());
-            }
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "publish knowledge error: " + e.getMessage());
         }
     }

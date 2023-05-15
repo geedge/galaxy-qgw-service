@@ -234,20 +234,14 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
         String lastVersion = queryLastKnowledgeVersion(knowledgeBaseList, knowledge);
         String version = generateVersion(lastVersion);
-        String id = null;
         if (StringUtils.isBlank(knowledge.getId())) {
-            id = DigestUtil.md5Hex16(knowledge.getType())
+            knowledge.setId(DigestUtil.md5Hex16(knowledge.getType())
                     .concat("-")
-                    .concat(DigestUtil.md5Hex16(knowledge.getName()
-                            .concat(knowledge.getFormat())
-                            .concat(version)));
-        } else {
-            validKnowledgeId(knowledge.getId(),knowledgeBaseList);
-            id = knowledge.getId();
+                    .concat(DigestUtil.md5Hex16(knowledge.getName().concat(knowledge.getFormat()).concat(version))));
         }
+        validKnowledgeId(knowledge.getId(), knowledgeBaseList);
         String path = uploadFile(file);
         String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
-        knowledge.setId(id);
         knowledge.setPath(path);
         knowledge.setSha256(sha256Hex);
         knowledge.setVersion(version);
