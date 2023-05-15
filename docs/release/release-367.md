@@ -10,6 +10,7 @@ Release 367 (TSG-23.05)
 * 扩展Schema，新增traffic_general_stat流量基础指标统计(TSG-14746)
 * 扩展Schema，注册流量Top类统计聚合表(TSG-14867)
 * 优化数据平台版本信息接口,移除原有结构体封装(GAL-325)
+* 优化知识库管理发布接口，支持指定ID(GAL-333)
 * 优化补全函数TIME_FLOOR_WITH_FILL补全能力(TSG-14895)
 * 升级JsqlParser工具类至4.6版本
 * 基于重构后的Metrics表结构，更新、完善相关测试集SQL(TSG-14745)
