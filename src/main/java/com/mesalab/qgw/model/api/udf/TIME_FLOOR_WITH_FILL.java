@@ -259,25 +259,49 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
      * @return
      */
     private WhereTimeRange getWhereTimeRange(SQLQuerySource sqlQuerySource) {
-        String partitionKey = sqlQuerySource.getPartitionKey();
-        Expression whereExpression = sqlQuerySource.getWhereExpression();
         String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableName());
         WhereTimeRange whereTimeRange = new WhereTimeRange();
-        if (sqlQuerySource.getSubSelect() != null) {
-            Map<String, String> aliasFields = sqlQuerySource.getSubSqlQuerySources().get(0).getAliasFields();
-            for (String alias : aliasFields.keySet()) {
-                if (aliasFields.get(alias).contains(sqlQuerySource.getPartitionKey())) {
-                    partitionKey = alias;
+        List<FillParam> outToInnerList = getFillParams(sqlQuerySource);
+        for (FillParam fillParam : outToInnerList) {
+            parserWhereExpressionForWhereTimeRange(whereTimeRange, fillParam.getWhereExpression(), fillParam.getPartitionKey(), dbType);
+            if (StringUtil.isNotEmpty(whereTimeRange.getStart()) || StringUtil.isNotEmpty(whereTimeRange.getEnd())) {
+                break;
+            }
+        }
+        return whereTimeRange;
+    }
+
+    private List<FillParam> getFillParams(SQLQuerySource sqlQuerySource) {
+        List<FillParam> result = Lists.newArrayList();
+        SQLQuerySource currentSource = sqlQuerySource;
+        boolean isOriginalDataSource = false;
+        while (!isOriginalDataSource) {
+            FillParam currentParam = new FillParam();
+            if (currentSource.getSubSelect() == null) {
+                isOriginalDataSource = true;
+                currentParam.setPartitionKey(currentSource.getPartitionKey());
+            }
+            currentParam.setAliasFields(currentSource.getAliasFields());
+            currentParam.setWhereExpression(currentSource.getWhereExpression());
+            result.add(currentParam);
+            if (!isOriginalDataSource) {
+                currentSource = currentSource.getSubSqlQuerySources().get(0);
+            }
+        }
+        for (int i = result.size() - 1; i >= 0; i--) {
+            if (result.size() - 1 == i) {
+                continue;
+            }
+            FillParam subFillParam = result.get(i + 1);
+            Map<String, String> subAliasFields = subFillParam.getAliasFields();
+            for (String subKey : subAliasFields.keySet()) {
+                if (subAliasFields.get(subKey).contains(subFillParam.getPartitionKey())) {
+                    result.get(i).setPartitionKey(subKey);
                     break;
                 }
             }
         }
-        parserWhereExpressionForWhereTimeRange(whereTimeRange, whereExpression, partitionKey, dbType);
-        if (StringUtil.isEmpty(whereTimeRange.getStart()) && StringUtil.isEmpty(whereTimeRange.getEnd()) && sqlQuerySource.getSubSelect() != null) {
-            SQLQuerySource subSqlQuerySource = sqlQuerySource.getSubSqlQuerySources().get(0);
-            parserWhereExpressionForWhereTimeRange(whereTimeRange, subSqlQuerySource.getWhereExpression(), subSqlQuerySource.getPartitionKey(), dbType);
-        }
-        return whereTimeRange;
+        return result;
     }
 
     /**
@@ -433,5 +457,11 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         }
     }
 
-
+    @Data
+    @NoArgsConstructor
+    private class FillParam {
+        private Map<String, String> aliasFields;
+        private Expression whereExpression;
+        private String partitionKey;
+    }
 }
