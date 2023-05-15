@@ -14,3 +14,4 @@ Release 367 (TSG-23.05)
 * 升级JsqlParser工具类至4.6版本
 * 基于重构后的Metrics表结构，更新、完善相关测试集SQL(TSG-14745)
 * 扩展Schema，安全、会话日志 schema支持measurements.aggregates(TSG-14817)
+* 完善子查询优化，解决回表优化查询条件携带别名情况(TSG-15045)
