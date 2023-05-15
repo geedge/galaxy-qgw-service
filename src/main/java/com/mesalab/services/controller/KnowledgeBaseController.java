@@ -4,6 +4,7 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.services.common.entity.KnowledgeBase;
@@ -39,6 +40,10 @@ public class KnowledgeBaseController {
             return knowledgeService.publishKnowledge(file, knowledgeBase);
         } catch (Exception e) {
             log.error("publish knowledge error: {}", e.getMessage());
+            if(e instanceof BusinessException) {
+                BusinessException be = (BusinessException) e;
+                return BaseResultGenerator.failure(be.getStatus(),be.getCode(),"publish knowledge error: " + e.getMessage());
+            }
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "publish knowledge error: " + e.getMessage());
         }
     }
@@ -77,16 +82,16 @@ public class KnowledgeBaseController {
 
     private KnowledgeBase validateKnowledge(KnowledgeBase knowledge) {
         if (StringUtil.isEmpty(knowledge.getName())) {
-            throw new BusinessException("Name is required");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),"Name is required");
         }
         if (knowledge.getName().contains(":")) {
-            throw new BusinessException("Name cannot contain ':'");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"Name cannot contain ':'");
         }
         if (knowledge.getName().contains(".")) {
-            throw new BusinessException("Name cannot contain '.'");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"Name cannot contain '.'");
         }
         if (StringUtil.isEmpty(knowledge.getFormat())) {
-            throw new BusinessException("Format is required");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"Format is required");
         }
         return knowledge;
     }

@@ -13,6 +13,7 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConst;
@@ -100,9 +101,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             Map map = new HashMap();
             map.put("id", knowledgeBase.getId());
             return BaseResultGenerator.success(map);
-        } catch (RuntimeException e) {
+        } catch (BusinessException e) {
             log.error("publish knowledge error: {}", e.getMessage());
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException(e.getStatus(), e.getCode(), e.getMessage());
         } finally {
             lock.release();
         }
@@ -223,7 +224,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             }
         } catch (NacosException e) {
             log.error("get knowledge meta error: {}", e.getMessage());
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         return knowledgeBaseList;
     }
@@ -233,11 +234,17 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
         String lastVersion = queryLastKnowledgeVersion(knowledgeBaseList, knowledge);
         String version = generateVersion(lastVersion);
-        String id = DigestUtil.md5Hex16(knowledge.getType())
-                .concat("-")
-                .concat(DigestUtil.md5Hex16(knowledge.getName()
-                        .concat(knowledge.getFormat())
-                        .concat(version)));
+        String id = null;
+        if (StringUtils.isBlank(knowledge.getId())) {
+            id = DigestUtil.md5Hex16(knowledge.getType())
+                    .concat("-")
+                    .concat(DigestUtil.md5Hex16(knowledge.getName()
+                            .concat(knowledge.getFormat())
+                            .concat(version)));
+        } else {
+            validKnowledgeId(knowledge.getId(),knowledgeBaseList);
+            id = knowledge.getId();
+        }
         String path = uploadFile(file);
         String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
         knowledge.setId(id);
@@ -248,6 +255,14 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
         knowledge.setIsValid(KnowledgeConstant.VALID);
         return knowledge;
+    }
+
+    private void validKnowledgeId(String id, List<KnowledgeBase> knowledgeBaseList) {
+        for (KnowledgeBase knowledge : knowledgeBaseList) {
+            if (StringUtil.equals(id, knowledge.getId())) {
+                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"knowledge id is repeated.");
+            }
+        }
     }
 
     private String queryLastKnowledgeVersion(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge) {
@@ -269,11 +284,11 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         try {
             boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
             if (!b) {
-                throw new BusinessException("update knowledge meta error.");
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),"update knowledge meta error.");
             }
         } catch (RuntimeException | NacosException e) {
             log.error("update knowledge meta error: {}", e.getMessage());
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         while (true) {
             Thread.sleep(100);
@@ -299,7 +314,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 HttpResponse httpResponse = httpClientService.httpPutStream(url, in, httpConfig.getServerResponseTimeOut(), header);
                 if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != ResultStatusEnum.SUCCESS.getCode()) {
                     log.error("execute upload file failed.");
-                    throw new BusinessException("upload file failed.");
+                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),"upload file failed.");
                 }
             } else {
                 File fileTemp = null;
@@ -326,7 +341,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     completeMultipartUpload(url, uploadId, completeBody, header);
                 } catch (IOException | RuntimeException ex) {
                     log.error("execute upload part file failed.");
-                    throw new BusinessException(ex.getMessage());
+                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),ex.getMessage());
                 } finally {
                     if (fileTemp != null && fileTemp.exists()) {
                         FileUtil.del(fileTemp);
@@ -334,7 +349,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 }
             }
         } catch (IOException e) {
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         return url;
     }
