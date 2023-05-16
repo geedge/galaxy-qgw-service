@@ -908,6 +908,10 @@
             "value": "Intercept(Deprecated)"
           },
           {
+            "code": "3",
+            "value": "No Intercept(Deprecated)"
+          },
+          {
             "code": "16",
             "value": "Deny"
           },
