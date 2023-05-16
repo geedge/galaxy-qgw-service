@@ -18,3 +18,4 @@ Release 367 (TSG-23.05)
 * 完善子查询优化，解决回表优化查询条件携带别名情况(TSG-15045)
 * 扩展Schema，Dos Events 时间字段支持查询与字段发现(TSG-15069)
 * 修改Schema，修正common_sub_action别名为Sub Action(TSG-15086)
+* 扩展Schema，完善安全事件日志common_action字段数据字典
