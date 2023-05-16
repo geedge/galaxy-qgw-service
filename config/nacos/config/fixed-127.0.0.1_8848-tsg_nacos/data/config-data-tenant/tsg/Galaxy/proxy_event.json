@@ -1113,7 +1113,7 @@
     },
     {
       "name": "common_sub_action",
-      "label": "Action",
+      "label": "Sub Action",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
