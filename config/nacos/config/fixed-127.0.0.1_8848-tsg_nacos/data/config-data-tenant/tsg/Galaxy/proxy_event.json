@@ -567,6 +567,19 @@
       "http_request_body",
       "http_response_body"
     ],
+    "action_columns": {
+      "intercept": [
+        "intercept_pinning_status",
+        "intercept_status",
+        "intercept_passthrough_reason",
+        "intercept_server_side_version",
+        "intercept_client_side_version",
+        "intercept_server_side_latency",
+        "intercept_client_side_latency",
+        "intercept_cert_verify",
+        "intercept_error"
+      ]
+    },
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
     }
@@ -780,10 +793,6 @@
         },
         "data": [
           {
-            "code": "1",
-            "value": "Monitor"
-          },
-          {
             "code": "2",
             "value": "Intercept"
           },
@@ -792,20 +801,8 @@
             "value": "No Intercept"
           },
           {
-            "code": "16",
-            "value": "Deny"
-          },
-          {
             "code": "48",
             "value": "Manipulation"
-          },
-          {
-            "code": "96",
-            "value": "Allow"
-          },
-          {
-            "code": "128",
-            "value": "Allow(Deprecated)"
           }
         ],
         "visibility": "enabled",
@@ -1041,6 +1038,10 @@
           "operator_functions": "=,!=,in,not in"
         },
         "data": [
+          {
+            "code": "SSL",
+            "value": "SSL"
+          },
           {
             "code": "HTTP",
             "value": "HTTP"
