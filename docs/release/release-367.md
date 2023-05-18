@@ -21,3 +21,4 @@ Release 367 (TSG-23.05)
 * 扩展Schema，完善安全事件日志common_action字段数据字典
 * 修改Schema，修复Proxy Events下Intercept Schema Type字段缺少SSL选项(TSG-15089)
 * 修改Schema，Proxy Events删除RDP协议字段(TSG-15175)
+* 扩展liveChart，网络协议分布新增总包数指标(TSG-15173)
