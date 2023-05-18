@@ -19,3 +19,5 @@ Release 367 (TSG-23.05)
 * 扩展Schema，Dos Events 时间字段支持查询与字段发现(TSG-15069)
 * 修改Schema，修正common_sub_action别名为Sub Action(TSG-15086)
 * 扩展Schema，完善安全事件日志common_action字段数据字典
+* 修改Schema，修复Proxy Events下Intercept Schema Type字段缺少SSL选项(TSG-15089)
+* 修改Schema，Proxy Events删除RDP协议字段(TSG-15175)
