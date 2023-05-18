@@ -180,6 +180,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, totalSessions);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE, dataRate);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, totalBytes);
+        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS, totalPackets);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES, unknownAppBytes);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_PERCENT, unknownAppPercent);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES, asymmetricFlows);
