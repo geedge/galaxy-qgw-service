@@ -11,7 +11,7 @@ ALTER TABLE "tsg_galaxy"."job_result" ADD "%s"."%s" VARCHAR
 SELECT field_discovery.* FROM job_result LIMIT 1
 #end
 #sql("JOB_LOG_COUNT")
-SELECT count(*) AS count, %s AS totalMetric FROM %s %s LIMIT 1
+SELECT count(*) AS logCount, %s AS totalMetric FROM %s %s LIMIT 1
 #end
 #sql("JOB_UPDATE_PROGRESS")
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."duration_time") VALUES('%s', %s, %s, %s)

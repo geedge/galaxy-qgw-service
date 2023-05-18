@@ -101,9 +101,14 @@ public class JobExecuteService implements EnvironmentAware {
                     && StringUtil.isNotEmpty(property.get(JobConfig.JOB_PROPERTY_K_OPTION))) {
                 executeSlicingStatisticsJob(jobInfo, param, interval);
             } else {
-                Expression where = getWhereOuter(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
-                Expression whereInner = getWhereInner(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
-                executeStatisticsJob(jobInfo, param, where == null ? " 1=1 " : where.toString(), whereInner == null ? " 1=1 " : whereInner.toString(), false);
+                PlainSelect plainSelectOuter = getWhereOuter(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
+                Expression whereOuter = plainSelectOuter.getWhere();
+
+                PlainSelect plainSelectInner = getSelectInner(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
+                Expression whereInner = plainSelectInner.getWhere();
+                FromItem fromItemInner = plainSelectInner.getFromItem();
+
+                executeStatisticsJob(jobInfo, param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), fromItemInner.toString(), whereOuter == null ? " 1=1 " : whereOuter.toString(), whereInner == null ? " 1=1 " : whereInner.toString(), false);
             }
         } catch (Exception e) {
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
@@ -114,22 +119,21 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private void executeStatisticsJob(JobInfo jobInfo, Map<String, Object> param, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
+    private void executeStatisticsJob(JobInfo jobInfo, String cusSql, String countDataSource, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
         if (isCancel(jobInfo.getId())) {
             return;
         }
 
-        long currentCount = getCount(param.get(JobConfig.QUERY_DATA_SOURCE).toString(), countFilter, "count(*)").get("count");
+        long currentCount = getCount(countDataSource, countFilter, "count(*)").get("logCount");
         if (currentCount == 0) {
             return;
         }
         long count = jobInfo.getCount() + currentCount;
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.COUNT, jobInfo.getId(), count));
         jobInfo.setCount(count);
-        String sql = param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString();
         Select parse = (Select) CCJSqlParserUtil.parse("SELECT 1 FROM table WHERE " + newFilter);
         PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
-        Select parseSQL = (Select) CCJSqlParserUtil.parse(sql);
+        Select parseSQL = (Select) CCJSqlParserUtil.parse(cusSql);
         PlainSelect plainSelectSQL = (PlainSelect) parseSQL.getSelectBody();
         plainSelectSQL.setWhere(plainSelect.getWhere());
         Limit limit = plainSelectSQL.getLimit();
@@ -141,7 +145,7 @@ public class JobExecuteService implements EnvironmentAware {
         waitAsyncResultAndUpdateProcess(jobInfo, list);
     }
 
-    private void executeSlicingFieldDiscoveryJob(JobInfo jobInfo, Map<String, Object> param, Interval interval, String partitionKey) {
+    private void executeSlicingFieldDiscoveryJob(JobInfo jobInfo, Map<String, Object> param, Interval interval, String partitionKey) throws JSQLParserException {
         jobInfo.setTotalTimes((int) ((interval.getEnd() - interval.getStart()) / jobCfg.getTimeSlicingInterval() + 1));
         while (true) {
             jobInfo.setCurrentTimes(jobInfo.getCurrentTimes() + 1);
@@ -193,10 +197,11 @@ public class JobExecuteService implements EnvironmentAware {
             int index = (int) (jobInfo.currentTimes * step);
             long start = dateList.get(dateList.size() <= index ? dateList.size() - 1 : index).getTime() / 1000;
             long end = dateList.get((int) (index - step)).getTime() / 1000;
+            PlainSelect plainSelect = getWhereOuter(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
             String newFilter = String.format("(%s) AND ( %s >= %s AND %s < %s)",
-                        getWhereOuter(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString()).toString(),
+                    plainSelect.getWhere(),
                     partitionKey, start, partitionKey, end);
-            executeStatisticsJob(jobInfo, param, newFilter, newFilter, true);
+            executeStatisticsJob(jobInfo, param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), plainSelect.getFromItem().toString(), newFilter, newFilter, true);
             if (start <= interval.getStart()) {
                 break;
             }
@@ -204,7 +209,7 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private void executeFieldDiscoveryJob(JobInfo jobInfo, Map<String, Object> param, String newFilter) {
+    private void executeFieldDiscoveryJob(JobInfo jobInfo, Map<String, Object> param, String newFilter) throws JSQLParserException {
         if (isCancel(jobInfo.getId())) {
             return;
         }
@@ -222,7 +227,7 @@ public class JobExecuteService implements EnvironmentAware {
         }
 
         Map<String, Long> map = getCount(dataSource, newFilter, totalMetric);
-        long currentCount = map.get("count");
+        long currentCount = map.get("logCount");
         if (currentCount == 0) {
             return;
         }
@@ -287,7 +292,7 @@ public class JobExecuteService implements EnvironmentAware {
         }
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         Map<String, Long> map = Maps.newHashMap();
-        map.put("count", Long.parseLong(data.get(0).get("count").toString()));
+        map.put("logCount", Long.parseLong(data.get(0).get("logCount").toString()));
         map.put("totalMetric", Long.parseLong(data.get(0).get("totalMetric").toString()));
         return map;
     }
@@ -324,14 +329,12 @@ public class JobExecuteService implements EnvironmentAware {
         return interval;
     }
 
-    private Expression getWhereOuter(String sql) throws JSQLParserException {
+    private PlainSelect getWhereOuter(String sql) throws JSQLParserException {
         Select parse = (Select) CCJSqlParserUtil.parse(sql);
-        PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
-        Expression where = plainSelect.getWhere();
-        return where;
+        return  (PlainSelect) parse.getSelectBody();
     }
 
-    private Expression getWhereInner(String sql) throws JSQLParserException {
+    private PlainSelect getSelectInner(String sql) throws JSQLParserException {
         Select parse = (Select) CCJSqlParserUtil.parse(sql);
         PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
         int count = 0;
@@ -342,7 +345,7 @@ public class JobExecuteService implements EnvironmentAware {
             }
             plainSelect = inner;
         }
-        return plainSelect.getWhere();
+        return plainSelect;
     }
 
     private static PlainSelect exploreInnerSql(PlainSelect plainSelect) {
