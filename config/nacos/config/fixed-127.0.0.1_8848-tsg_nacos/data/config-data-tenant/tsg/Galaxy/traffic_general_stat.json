@@ -13,7 +13,7 @@
       }
     },
     "measurements": {
-      "granularity": 1,
+      "granularity": 5,
       "ingestion_delay": 15
     }
   },
