@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileMode;
 import cn.hutool.core.text.StrFormatter;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.XmlUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
@@ -82,24 +83,21 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     @Override
     public BaseResult publishKnowledge(MultipartFile multipartFile, KnowledgeBase knowledge) throws Exception {
-
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
         try {
-            KnowledgeBase knowledgeBase = null;
+            String id = null;
             if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
-                knowledgeBase = setKnowledgeBase(multipartFile, knowledge, knowledgeBaseList);
-                Boolean b = updateLatestKnowledge(knowledgeBaseList, knowledgeBase);
-                if (b) {
-                    KnowledgeBase base = saveLatestKnowledge(knowledgeBase);
-                    knowledgeBaseList.add(base);
-                }
-                knowledgeBaseList.add(knowledgeBase);
+                String expirePath = buildKnowledgeBaseList(multipartFile, knowledge, knowledgeBaseList);
                 saveKnowledgeBaseList(knowledgeBaseList);
+                id = knowledge.getId();
+                if (StringUtil.isNotEmpty(expirePath)) {
+                    Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
+                    httpClientService.httpDelete(expirePath, httpConfig.getServerResponseTimeOut(), header);
+                }
             }
-
-            Map map = new HashMap();
-            map.put("id", knowledgeBase.getId());
+            Map<String, Object> map = Maps.newHashMap();
+            map.put("id", id);
             return BaseResultGenerator.success(map);
         } catch (BusinessException e) {
             log.error("publish knowledge error: {}", e.getMessage());
@@ -107,7 +105,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         } finally {
             lock.release();
         }
-
     }
 
     @Override
@@ -244,54 +241,98 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     }
 
 
-    private KnowledgeBase setKnowledgeBase(MultipartFile file, KnowledgeBase knowledge, List<KnowledgeBase> knowledgeBaseList) throws IOException {
-
-        String lastVersion = queryLastKnowledgeVersion(knowledgeBaseList, knowledge);
-        String version = generateVersion(lastVersion);
-        if (StringUtils.isBlank(knowledge.getId())) {
-            knowledge.setId(DigestUtil.md5Hex16(knowledge.getType())
-                    .concat("-")
-                    .concat(DigestUtil.md5Hex16(knowledge.getName().concat(knowledge.getFormat()).concat(version))));
-        }
-        validKnowledgeId(knowledge.getId(), knowledgeBaseList);
-        String path = uploadFile(file);
-        String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
-        knowledge.setPath(path);
-        knowledge.setSha256(sha256Hex);
-        knowledge.setVersion(version);
-        knowledge.setSize(file.getSize());
-        knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
-        if (StringUtil.isNotEmpty(knowledge.getIsValid())) {
-            knowledge.setIsValid(knowledge.getIsValid());
-        } else {
+    private String buildKnowledgeBaseList(MultipartFile file, KnowledgeBase knowledge, List<KnowledgeBase> knowledgeBaseList) throws Exception {
+        if (StringUtil.isEmpty(knowledge.getIsValid())) {
             knowledge.setIsValid(KnowledgeConstant.VALID);
         }
-        return knowledge;
+        String newPath = uploadFile(file);
+        knowledge.setPath(newPath);
+        knowledge.setSha256(DigestUtil.sha256Hex(file.getBytes()));
+        knowledge.setSize(file.getSize());
+        knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
+
+        if (StringUtils.isNotBlank(knowledge.getId()) && knowledgeBaseList.stream().anyMatch(o -> StringUtil.equals(o.getId(), knowledge.getId()))) {
+            KnowledgeBase knowledgeRep = new KnowledgeBase();
+            String expirePath = null;
+            for (KnowledgeBase item : knowledgeBaseList) {
+                if (StringUtil.equals(knowledge.getId(), item.getId())) {
+                    expirePath = item.getPath();
+                    BeanUtils.copyProperties(item, knowledgeRep);
+                    break;
+                }
+            }
+            for (KnowledgeBase item : knowledgeBaseList) {
+                if (StringUtil.equals(knowledge.getId(), item.getId())) {
+                    knowledge.setVersion(item.getVersion());
+                    if (StringUtil.equals(item.getVersion(), KnowledgeConstant.LATEST)) {
+                        BeanUtils.copyProperties(knowledge, item);
+                        item.setVersion(KnowledgeConstant.LATEST);
+                    } else {
+                        BeanUtils.copyProperties(knowledge, item);
+                    }
+                }
+                if (StringUtil.equals(item.getName(), knowledgeRep.getName()) && StringUtil.equals(item.getType(), knowledgeRep.getType()) && StringUtil.equals(item.getVersion(), KnowledgeConstant.LATEST)) {
+                    BeanUtils.copyProperties(knowledge, item);
+                    item.setVersion(KnowledgeConstant.LATEST);
+                }
+            }
+            return expirePath;
+        } else {
+            String lastVersion = queryLastKnowledgeVersion(knowledgeBaseList, knowledge);
+            String version = generateVersion(lastVersion);
+            if (StringUtil.isBlank(knowledge.getId())) {
+                knowledge.setId(DigestUtil.md5Hex16(knowledge.getType()).concat("-").concat(DigestUtil.md5Hex16(knowledge.getName().concat(knowledge.getFormat()).concat(version))));
+            }
+            knowledge.setVersion(version);
+            knowledgeBaseList.add(knowledge);
+            addKnowledgeLatest(knowledge, knowledgeBaseList);
+            return null;
+        }
     }
 
-    private void validKnowledgeId(String id, List<KnowledgeBase> knowledgeBaseList) {
-        for (KnowledgeBase knowledge : knowledgeBaseList) {
-            if (StringUtil.equals(id, knowledge.getId())) {
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"knowledge id is repeated.");
+    private void addKnowledgeLatest(KnowledgeBase knowledge, List<KnowledgeBase> knowledgeBaseList) {
+        boolean hadLatestRep = knowledgeBaseList.stream().anyMatch(o -> StringUtil.equals(o.getName(), knowledge.getName())
+                && StringUtil.equals(o.getType(), knowledge.getType())
+                && StringUtil.equals(o.getVersion(), KnowledgeConstant.LATEST));
+        if (hadLatestRep) {
+            for (KnowledgeBase item : knowledgeBaseList) {
+                if (!StringUtil.equals(item.getName(), knowledge.getName())
+                        || !StringUtil.equals(item.getType(), knowledge.getType())
+                        || !StringUtil.equals(item.getVersion(), KnowledgeConstant.LATEST)) {
+                    continue;
+                }
+                BeanUtils.copyProperties(knowledge, item);
+                item.setVersion(KnowledgeConstant.LATEST);
             }
+        } else {
+            KnowledgeBase knowledgeLatest = new KnowledgeBase();
+            BeanUtils.copyProperties(knowledge, knowledgeLatest);
+            knowledgeLatest.setVersion(KnowledgeConstant.LATEST);
+            knowledgeBaseList.add(knowledgeLatest);
         }
     }
 
     private String queryLastKnowledgeVersion(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge) {
-
-        if (CollectionUtil.isNotEmpty(knowledgeBaseList)) {
-            for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
-                if (!StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)
-                        && StringUtil.equals(knowledgeBase.getType(), knowledge.getType())
-                        && StringUtil.equals(knowledgeBase.getName(), knowledge.getName())) {
-                    return knowledgeBase.getVersion();
-                }
+        if (CollectionUtil.isEmpty(knowledgeBaseList)) {
+            return null;
+        }
+        knowledgeBaseList = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getName).thenComparingInt(o -> Integer.parseInt(o.getVersion().replace("_", "").replace(KnowledgeConstant.LATEST, "0"))).reversed()).collect(Collectors.toList());
+        for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
+            if (!StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)
+                    && StringUtil.equals(knowledgeBase.getType(), knowledge.getType())
+                    && StringUtil.equals(knowledgeBase.getName(), knowledge.getName())) {
+                return knowledgeBase.getVersion();
             }
         }
         return null;
     }
 
-    private void saveKnowledgeBaseList(List<KnowledgeBase> knowledgeBaseList) throws NacosException, InterruptedException {
+    public static void main(String[] args) {
+        String e = "ee".replace("e", "3").replace("3", "4");
+        System.out.println(e);
+    }
+
+    private void saveKnowledgeBaseList(List<KnowledgeBase> knowledgeBaseList) throws BusinessException, InterruptedException {
 
         try {
             boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
