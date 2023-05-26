@@ -53,7 +53,7 @@ public class KnowledgeBaseTest extends GalaxyQGWApplicationTests {
                 ContentType.APPLICATION_OCTET_STREAM.toString(), inputStream);
         KnowledgeBase knowledgeBase = new KnowledgeBase();
         knowledgeBase.setId(id);
-        BaseResult result = knowledgeService.updateKnowledge(id, multipartFile, knowledgeBase);
+        BaseResult result = knowledgeService.updateKnowledge(multipartFile, knowledgeBase);
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }
 
@@ -62,7 +62,7 @@ public class KnowledgeBaseTest extends GalaxyQGWApplicationTests {
         KnowledgeBase knowledgeBase = new KnowledgeBase();
         knowledgeBase.setId(id);
         knowledgeBase.setIsValid(KnowledgeConstant.VALID);
-        BaseResult result = knowledgeService.toggleKnowledge(id, knowledgeBase);
+        BaseResult result = knowledgeService.toggleKnowledge(knowledgeBase);
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }
 

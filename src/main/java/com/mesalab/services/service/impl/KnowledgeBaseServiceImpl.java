@@ -111,35 +111,49 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     }
 
     @Override
-    public BaseResult updateKnowledge(String id, MultipartFile file, KnowledgeBase knowledgeBase) throws Exception {
-
+    public BaseResult updateKnowledge(MultipartFile file, KnowledgeBase knowledgeBase) throws Exception {
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
         try {
             // 尝试获取锁，最长等待10s，超时放弃获取
             if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
-                String deletePath = null;
-                for (int i = 0; i < knowledgeBaseList.size(); i++) {
-                    KnowledgeBase knowledge = knowledgeBaseList.get(i);
-                    if (StringUtil.equals(id, knowledge.getId()) && !StringUtil.equals(knowledge.getVersion(), KnowledgeConstant.LATEST)) {
-                        if (StringUtil.equals(knowledge.getId(), knowledgeBase.getId())) {
-                            if (!StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)) {
-                                deletePath = knowledge.getPath();
-                                String path = uploadFile(file);
-                                String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
-                                knowledge.setPath(path);
-                                knowledge.setSha256(sha256Hex);
-                                knowledge.setSize(file.getSize());
-                                knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
-                                updateLatestKnowledge(knowledgeBaseList, knowledge);
-                                break;
-                            }
+                String expirePath = null;
+                String newPath = null;
+                String fileSha256 = DigestUtil.sha256Hex(file.getBytes());
+                String currentDate = DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ");
+                for (KnowledgeBase knowledgeBaseRep : knowledgeBaseList) {
+                    if (StringUtil.equals(knowledgeBase.getId(), knowledgeBaseRep.getId())) {
+                        if (StringUtil.isBlank(newPath)) {
+                            newPath = uploadFile(file);
+                            expirePath = knowledgeBaseRep.getPath();
                         }
+                        if (StringUtil.isNotBlank(knowledgeBase.getName())) {
+                            knowledgeBaseRep.setName(knowledgeBase.getName());
+                        }
+                        if (StringUtil.isNotBlank(knowledgeBase.getFormat())) {
+                            knowledgeBaseRep.setFormat(knowledgeBase.getFormat());
+                        }
+                        if (StringUtil.isNotBlank(knowledgeBase.getType())) {
+                            knowledgeBaseRep.setType(knowledgeBase.getType());
+                        }
+                        if (StringUtil.isNotEmpty(knowledgeBase.getIsValid())) {
+                            knowledgeBaseRep.setIsValid(knowledgeBase.getIsValid());
+                        }
+                        if (StringUtil.isNotBlank(knowledgeBase.getOriginUrl())) {
+                            knowledgeBaseRep.setOriginUrl(knowledgeBase.getOriginUrl());
+                        }
+                        knowledgeBaseRep.setPath(newPath);
+                        knowledgeBaseRep.setSha256(fileSha256);
+                        knowledgeBaseRep.setSize(file.getSize());
+                        knowledgeBaseRep.setUpdateTime(currentDate);
+
                     }
                 }
-                saveKnowledgeBaseList(knowledgeBaseList);
-                Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
-                httpClientService.httpDelete(deletePath, httpConfig.getServerResponseTimeOut(), header);
+                if (StringUtil.isNotBlank(newPath)) {
+                    saveKnowledgeBaseList(knowledgeBaseList);
+                    Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
+                    httpClientService.httpDelete(expirePath, httpConfig.getServerResponseTimeOut(), header);
+                }
             }
         } catch (RuntimeException e) {
             log.error("update knowledge error: {}", e.getMessage());
@@ -147,8 +161,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         } finally {
             lock.release();
         }
-        Map map = new HashMap();
-        map.put("id", id);
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("id", knowledgeBase.getId());
         return BaseResultGenerator.success(map);
     }
 
@@ -188,16 +202,16 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     }
 
     @Override
-    public BaseResult toggleKnowledge(String id, KnowledgeBase knowledgeBase) throws Exception {
+    public BaseResult toggleKnowledge(KnowledgeBase knowledgeBase) throws Exception {
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
         try {
             if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
                 for (int i = 0; i < knowledgeBaseList.size(); i++) {
-                    KnowledgeBase knowledge = knowledgeBaseList.get(i);
-                    if (StringUtil.equals(id, knowledge.getId())) {
-                        knowledge.setIsValid(knowledgeBase.getIsValid());
-                        knowledgeBaseList.set(i,knowledge);
+                    KnowledgeBase knowledgeBaseRep = knowledgeBaseList.get(i);
+                    if (StringUtil.equals(knowledgeBase.getId(), knowledgeBaseRep.getId())) {
+                        knowledgeBaseRep.setIsValid(knowledgeBase.getIsValid());
+                        knowledgeBaseList.set(i,knowledgeBaseRep);
                     }
                 }
                 saveKnowledgeBaseList(knowledgeBaseList);
@@ -209,8 +223,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             lock.release();
         }
 
-        Map map = new HashMap();
-        map.put("id", id);
+        Map<String, String> map = Maps.newHashMap();
+        map.put("id", knowledgeBase.getId());
         return BaseResultGenerator.success(map);
     }
 
@@ -247,7 +261,11 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         knowledge.setVersion(version);
         knowledge.setSize(file.getSize());
         knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
-        knowledge.setIsValid(KnowledgeConstant.VALID);
+        if (StringUtil.isNotEmpty(knowledge.getIsValid())) {
+            knowledge.setIsValid(knowledge.getIsValid());
+        } else {
+            knowledge.setIsValid(KnowledgeConstant.VALID);
+        }
         return knowledge;
     }
 

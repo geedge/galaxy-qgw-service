@@ -47,8 +47,10 @@ public class KnowledgeBaseController {
     @PutMapping(value = {"/{id}", ""})
     public BaseResult updateKnowledge(@PathVariable(required = false) String id, @RequestPart(value = "file") MultipartFile file, KnowledgeBase knowledge) {
         try {
-            id = id==null ? knowledge.getId() : id;
-            return knowledgeService.updateKnowledge(id, file, knowledge);
+            if (StringUtil.isNotBlank(id)) {
+                knowledge.setId(id);
+            }
+            return knowledgeService.updateKnowledge(file, knowledge);
         } catch (Exception e) {
             log.error("update knowledge error: {}", e);
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "update knowledge error: " + e.getMessage());
@@ -58,8 +60,7 @@ public class KnowledgeBaseController {
     @DeleteMapping(value = {"/{id}", ""})
     public BaseResult deleteKnowledge(@PathVariable(required = false) String id, KnowledgeBase knowledgeBase) {
         try {
-            id = id==null ? knowledgeBase.getId() : id;
-            return knowledgeService.deleteKnowledge(id);
+            return knowledgeService.deleteKnowledge(StringUtil.isNotBlank(id) ? id : knowledgeBase.getId());
         } catch (Exception e) {
             log.error("delete knowledge error: {}", e.getMessage());
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "delete knowledge error:" + e.getMessage());
@@ -69,7 +70,10 @@ public class KnowledgeBaseController {
     @PatchMapping(value = "/{id}")
     public BaseResult toggleKnowledge(@PathVariable String id, KnowledgeBase knowledgeBase) {
         try {
-            return knowledgeService.toggleKnowledge(id, knowledgeBase);
+            if (StringUtil.isNotBlank(id)) {
+                knowledgeBase.setId(id);
+            }
+            return knowledgeService.toggleKnowledge(knowledgeBase);
         } catch (Exception e) {
             log.error("toggle knowledge error: {}", e.getMessage());
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "toggle knowledge error:" + e.getMessage());
