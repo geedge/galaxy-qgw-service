@@ -3,15 +3,11 @@ package com.mesalab.qgw.model.api.udf;
 import com.google.common.collect.Lists;
 import com.mesalab.common.utils.IPUtil;
 import com.mesalab.qgw.model.api.SQLQuerySource;
-import com.zdjizhi.utils.IpLookup;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.StringValue;
-
 import java.util.List;
 import java.util.Map;
 
