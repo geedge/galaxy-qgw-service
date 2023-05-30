@@ -10,7 +10,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.utils.sqlparser.DruidSampleSQLHelper;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -29,11 +29,6 @@ import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.*;
 import org.apache.commons.compress.utils.Lists;
 
 import java.util.*;
@@ -100,7 +95,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     public String getSampleQuery() {
         String sampleSQL = param.getDbQuerySource().getSqlBody();
         try {
-            sampleSQL = convertQuery(String.valueOf(convertSampleSql(sampleSQL)));
+            sampleSQL = convertQuery(convertSampleSql(sampleSQL));
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sampleSQL, sampleSQL = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
@@ -229,51 +224,11 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @return
      * @throws JSQLParserException
      */
-    private SelectBody convertSampleSql(String sql) throws JSQLParserException {
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        if (parse instanceof Select) {
-            Select select = (Select) parse;
-            SelectBody selectBody = select.getSelectBody();
-            if (selectBody instanceof PlainSelect) {
-                PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-                FromItem fromItem = plainSelect.getFromItem();
-                if (fromItem instanceof SubSelect) {
-                    SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
-                    subSelect.setSelectBody(convertSampleSql(subSelect.getSelectBody().toString()));
-                } else if (fromItem instanceof Table) {
-                    plainSelect.setWhere(generateDataSetSql());
-                    return plainSelect;
-                }
-                return plainSelect;
-            } else if (selectBody instanceof SetOperationList) {
-                SetOperationList setOperationList = (SetOperationList) selectBody;
-                List<SelectBody> selects = setOperationList.getSelects();
-                for (int i = 0; i < selects.size(); i++) {
-                    selects.set(i, convertSampleSql(selects.get(i).toString()));
-                }
-                return setOperationList;
-            } else {
-                throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
-            }
-        }
-        throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
-    }
-
-
-    /**
-     * 生成where条件: 以Expression对象形式
-     *
-     * @return
-     * @throws JSQLParserException
-     */
-    private Expression generateDataSetSql() throws JSQLParserException {
-        String sql = String.format("SELECT * FROM tableName WHERE %s >= CURRENT_TIMESTAMP - INTERVAL '%s' HOUR ", param.getDbQuerySource().getPartitionKey(), BooleanUtil.isTrue(param.getSampled()) ? 12 : 0);
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        Select select = (Select) parse;
-        PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-        return plainSelect.getWhere();
+    private String convertSampleSql(String sql) throws JSQLParserException {
+        boolean isSampled = BooleanUtil.isTrue(param.getSampled());
+        String filterExpr = String.format("%s >= CURRENT_TIMESTAMP - INTERVAL '%s' HOUR ",
+                param.getDbQuerySource().getPartitionKey(), isSampled ? 12 : 0);
+        return new DruidSampleSQLHelper(sql, filterExpr, isSampled).build();
     }
 
     private List<Map<String, String>> unifyMeta(List<Object> list) {
