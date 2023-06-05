@@ -7,6 +7,7 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -736,7 +737,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     Integer.parseInt(results.get("status")),
                     ResultCodeEnum.SUCCESS.getCode(),
                     message.get(),
-                    JsonMapper.fromJsonString(results.get("result"), Map.class),
+                    JSON.parseObject(results.get("result"), Map.class),
                     null,
                     null,
                     QueryFormatEnum.JSON.getValue());

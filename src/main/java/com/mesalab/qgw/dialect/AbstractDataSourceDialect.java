@@ -1,9 +1,9 @@
 package com.mesalab.qgw.dialect;
 
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.zdjizhi.utils.Encodes;
-import com.zdjizhi.utils.JsonMapper;
 import lombok.Data;
 
 import java.util.Map;
@@ -86,7 +86,7 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         Map sqlMap = Maps.newHashMap();
         sqlMap.put("OriginalSQL", Encodes.encodeBase64(getOriginalQuery().getBytes()));
         sqlMap.put("transformedSQL", Encodes.encodeBase64(transformedSQL.getBytes()));
-        return generateBaseResult(transformedSQL, Optional.of(JsonMapper.toJsonString(sqlMap)));
+        return generateBaseResult(transformedSQL, Optional.of(JSON.toJSONString(sqlMap)));
     }
 
 

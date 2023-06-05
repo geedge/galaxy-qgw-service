@@ -1,9 +1,9 @@
 package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
-import com.zdjizhi.utils.JsonMapper;
 import lombok.Data;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
@@ -47,13 +47,13 @@ public class ElasticsearchHealthIndicator extends AbstractHealthIndicator {
         Request request = new Request("POST", "/_sql?format=json");
         HashMap<String, Object> queryParam = Maps.newHashMap();
         queryParam.put("query", "select format(now(),'Z') as timeZone, now() as curTimestamp");
-        request.setJsonEntity(com.zdjizhi.utils.JsonMapper.toJsonString(queryParam));
+        request.setJsonEntity(JSON.toJSONString(queryParam));
         Response response;
         try {
             response = restClient.performRequest(request);
             String responseBody = EntityUtils.toString(response.getEntity());
             ResponseEntity<String> responseEntity = new ResponseEntity<>(responseBody, org.springframework.http.HttpStatus.OK);
-            Map<String, Object> body = (Map<String, Object>) JsonMapper.fromJsonString(responseEntity.getBody(), Map.class);
+            Map<String, Object> body = JSON.parseObject(responseEntity.getBody(), Map.class);
             String timeZone = ((List) ((List) body.get("rows")).get(0)).get(0).toString();
             String curTimestamp = ((List) ((List) body.get("rows")).get(0)).get(1).toString();
             builder.up()

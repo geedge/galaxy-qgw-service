@@ -6,6 +6,7 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -136,9 +137,9 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private Map<String, String> executeHttpPost(String sql) {
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidQueryParam druidQueryParam = getDruidQueryParam(sql);
-        log.info("DB engine is :{},execute query is: {}", DBTypeEnum.DRUID.getValue(), JsonMapper.toJsonString(druidQueryParam));
+        log.info("DB engine is :{},execute query is: {}", DBTypeEnum.DRUID.getValue(), JSON.toJSONString(druidQueryParam));
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
-        return httpClientService.httpPost(queryURL, JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
+        return httpClientService.httpPost(queryURL, JSON.toJSONString(druidQueryParam), socketTimeOut);
     }
 
     private DruidQueryParam getDruidQueryParam(String sql) {
@@ -159,7 +160,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         int status = Integer.parseInt(results.get("status"));
         if (status == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), message.get(),
-                    (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+                    (List<Object>) JSON.parseObject(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
 

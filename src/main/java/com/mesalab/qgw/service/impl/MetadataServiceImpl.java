@@ -7,6 +7,7 @@ import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
@@ -31,7 +32,6 @@ import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaParseException;
@@ -98,7 +98,7 @@ public class MetadataServiceImpl implements MetadataService {
     public String getPartitionKey(String tableName) {
         String partitionKey = StringUtil.EMPTY;
         Schema schema = getSchemaByName(tableName);
-        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        Map doc = (Map) JSON.parseObject(schema.getDoc(), Map.class);
         if (StringUtil.isNotEmpty(doc)) {
             Object partition_key = doc.get("partition_key");
             partitionKey = StringUtil.isEmpty(partition_key) ? StringUtil.EMPTY : partition_key.toString();
@@ -120,7 +120,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public String getValueByKeyInSchemaDoc(String tableName, String key) {
         Schema schema = getSchemaByName(tableName);
-        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        Map doc = (Map) JSON.parseObject(schema.getDoc(), Map.class);
         if (StringUtil.isNotEmpty(doc)) {
             Object value = doc.get(key);
             if (value instanceof Map) {
@@ -241,7 +241,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     private boolean updateSchema(String name, Map<String, Object> paramMap, String content) throws NacosException {
         if (StringUtil.isNotEmpty(content)) {
-            Map<String, Object> data = (Map<String, Object>) JsonMapper.fromJsonString(content, Map.class);
+            Map<String, Object> data = JSON.parseObject(content, Map.class);
             data.put("doc", rewriteDoc("ttl", data.get("doc"), paramMap.get("doc")));
             List<Map<String, Object>> fields = (List<Map<String, Object>>) data.get("fields");
             List<String> indexKey = getIndexKey(name);
@@ -317,8 +317,8 @@ public class MetadataServiceImpl implements MetadataService {
         if (StringUtil.isEmpty(schema)) {
             throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), QGWMessageConst.SCHEMA_URL_NOT_FOUND);
         }
-        Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
-        Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        Map resultMap = JSON.parseObject(String.valueOf(schema), Map.class);
+        Map schemaDoc = JSON.parseObject(schema.getDoc(), Map.class);
         if (StringUtil.isEmpty(schemaDoc) &&
                 StringUtil.isNotEmpty(schema.getDoc())) {
             log.error("{} schema's doc isn't jsonString and won't convert: {}", name, schema.getDoc());
@@ -334,7 +334,7 @@ public class MetadataServiceImpl implements MetadataService {
         List<Map> fields = (List<Map>) resultMap.get("fields");
         Map mapDoc;
         for (Map next : fields) {
-            mapDoc = (Map) JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
+            mapDoc = JSON.parseObject((String) next.get("doc"), Map.class);
             mapDoc = fillFieldStorageSize(data, mapDoc, next);
             if (StringUtil.isNotEmpty(mapDoc)) {
                 next.put("doc", mapDoc);
@@ -552,7 +552,7 @@ public class MetadataServiceImpl implements MetadataService {
         if (StrUtil.isBlank(configInfo)) return null;
         Map schemaMap = null;
         try {
-            schemaMap = (Map) JsonMapper.fromJsonString(configInfo, Map.class);
+            schemaMap = JSON.parseObject(configInfo, Map.class);
             Object docSchema;
             if (StringUtil.isNotEmpty(docSchema = schemaMap.get("doc"))) {
                 schemaMap.put("doc", JSONUtil.toJsonStr(JSONUtil.parseObj(docSchema)));

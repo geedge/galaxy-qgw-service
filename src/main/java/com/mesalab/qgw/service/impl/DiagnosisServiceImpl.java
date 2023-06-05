@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -446,7 +447,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private Map<String, List<String>> getCfgCDN() {
         Object codeInfo = metadataService.getCfg("public_code_info.json");
         if (StringUtil.isNotEmpty(codeInfo)) {
-            Map<String, Map<String, List<String>>> data = (Map<String, Map<String, List<String>>>) com.mesalab.common.utils.JsonMapper.fromJsonString(codeInfo.toString(), Map.class);
+            Map<String, Map<String, List<String>>> data = JSON.parseObject(codeInfo.toString(), Map.class);
             return Maps.newHashMap(data.get("CDN"));
         }
         return Maps.newHashMap();
@@ -608,7 +609,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Map<String, String> results = druidExecuteHttpPost(sql);
         if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    (List<Object>) com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+                    (List<Object>) JSON.parseObject(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             List<Object> allResults = (List<Object>) dataObject;
             Map<String, Object> statistics = Maps.newLinkedHashMap();
@@ -632,9 +633,9 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
-        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), com.mesalab.common.utils.JsonMapper.toJsonString(druidQueryParam));
+        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JSON.toJSONString(druidQueryParam));
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
-        return httpClientService.httpPost(queryURL, com.mesalab.common.utils.JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
+        return httpClientService.httpPost(queryURL, JSON.toJSONString(druidQueryParam), socketTimeOut);
     }
 
 
@@ -651,7 +652,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Map<String, String> results = clickHouseExecuteHttpPost(sql);
         if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    com.mesalab.common.utils.JsonMapper.fromJsonString(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+                    JSON.parseObject(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
             dataObject = baseResult.getData();
             Map<String, Object> resultMap = (Map<String, Object>) dataObject;
             Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
@@ -680,7 +681,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
         clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
         clickHouseHttpQuery.setQueryParameter(queryParamBuilder.toString());
-        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), com.mesalab.common.utils.JsonMapper.toJsonString(clickHouseHttpQuery));
+        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), JSON.toJSONString(clickHouseHttpQuery));
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
         return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase()), clickHouseHttpQuery.getSocketTimeOut());
     }
@@ -693,13 +694,13 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Request request = new Request("POST", "/_sql?format=json");
         HashMap<String, Object> queryParam = Maps.newHashMap();
         queryParam.put("query", sql);
-        request.setJsonEntity(JsonMapper.toJsonString(queryParam));
+        request.setJsonEntity(JSON.toJSONString(queryParam));
         Response response;
         try {
             response = restClient.performRequest(request);
             ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
             baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+                    (Map<String, Object>) JSON.parseObject(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), e.getMessage());
@@ -781,7 +782,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                         QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
                         String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage()," The Table[" + tableName + "] Structure query failed"));
             }
-            List<Map<String, Object>> dbFields = JsonPath.read(JsonMapper.toJsonString(baseResult.getData()), "$.fields.*");
+            List<Map<String, Object>> dbFields = JsonPath.read(JSON.toJSONString(baseResult.getData()), "$.fields.*");
 
             Map<String, Object> dbFieldMap = Maps.newHashMap();
             dbFields.stream().forEach(objectMap -> {
@@ -857,7 +858,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : tables) {
             Schema schema = metadataService.getSchemaByName(tableName);
-            Map schemaMap = (Map) JsonMapper.fromJsonString(schema.toString(), Map.class);
+            Map schemaMap = JSON.parseObject(schema.toString(), Map.class);
             if (!dbName.equals(schema.getNamespace())) continue;
             List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
             infoMap.put(tableName, fields.size() + " Fields");

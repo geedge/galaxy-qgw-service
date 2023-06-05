@@ -6,6 +6,7 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -13,7 +14,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -275,7 +275,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         }
         Object tableTTLInDB = null;
         Map<String, Object> tableDiff = Maps.newHashMap();
-        Map o = (Map)JsonMapper.fromJsonString(result.get("result"), Map.class);
+        Map o = (Map) JSON.parseObject(result.get("result"), Map.class);
         Map<String, Object> resultMap = (Map<String, Object>) o;
         for (Map<String, Object> datum : (List<Map<String, Object>>)resultMap.get("data")) {
             Matcher matcher = pTTL.matcher(String.valueOf(datum.get("table_ttl")));
@@ -580,7 +580,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private StorageDeletionInfo getStorageDeletionInfoByHandler(String logType, String jobHandlerValue) {
         Map trafficDate = getDataByHandler(jobHandlerValue);
         XxlJobInfo xxlJobInfo = mapToBean(trafficDate, XxlJobInfo.class);
-        StorageDeletionInfo executorParam = JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), StorageDeletionInfo.class);
+        StorageDeletionInfo executorParam = JSON.parseObject(xxlJobInfo.getExecutorParam(), StorageDeletionInfo.class);
         executorParam.setLogType(logType);
         return executorParam;
     }
@@ -636,7 +636,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                     String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"The service is busy, please contact the scheduling platform!"));
         } else {
             if (resultMap.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
-                Map result = (Map) com.zdjizhi.utils.JsonMapper.fromJsonString(String.valueOf(resultMap.get("result")), Map.class);
+                Map result = JSON.parseObject(resultMap.get("result"), Map.class);
                 if (result.get("code").equals(ResultStatusEnum.SUCCESS.getCode())) {
                     baseResult = BaseResultGenerator.success("ok", null);
                 } else if (result.get("code").equals(ResultStatusEnum.LOCKED.getCode())) {
@@ -700,10 +700,10 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                 append(handlerValue);
         Map<String, String> resultPageList = httpClientService.httpGet(url.toString(), headers, httpConfig.getServerResponseTimeOut());
         if (StringUtil.isNotEmpty(resultPageList) && resultPageList.get("status").equals(String.valueOf(ResultStatusEnum.SUCCESS.getCode()))) {
-            Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(resultPageList.get("result"), Map.class);
+            Map<String, Object> maps = JSON.parseObject(resultPageList.get("result"), Map.class);
             if (StringUtil.isEmpty(maps)) {
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Get or package result exception: " + JsonMapper.toJsonString(resultPageList)));
+                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Get or package result exception: " + JSON.toJSONString(resultPageList)));
             }
             List<Map> data = (List) maps.get("data");
             if (data.size() >= 1) {
@@ -714,7 +714,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             }
         }
         throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
-                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Get scheduled task exception: " + JsonMapper.toJsonString(resultPageList)));
+                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),"Get scheduled task exception: " + JSON.toJSONString(resultPageList)));
     }
 
     /**
@@ -726,9 +726,9 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
      */
     private XxlJobInfo setXxlJobInfoParam(Map data, ExecutorParam executorParam) {
         XxlJobInfo xxlJobInfo = mapToBean(data, XxlJobInfo.class);
-        ExecutorParam executor = JsonMapper.fromJsonString(xxlJobInfo.getExecutorParam(), ExecutorParam.class);
+        ExecutorParam executor = JSON.parseObject(xxlJobInfo.getExecutorParam(), ExecutorParam.class);
         executorParam.setDefaultMaxDays(executor.getDefaultMaxDays());
-        xxlJobInfo.setExecutorParam(JsonMapper.toJsonString(executorParam));
+        xxlJobInfo.setExecutorParam(JSON.toJSONString(executorParam));
         return xxlJobInfo;
     }
 

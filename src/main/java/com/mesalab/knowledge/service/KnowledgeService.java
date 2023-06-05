@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateException;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -25,7 +26,6 @@ import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.mesalab.knowledge.strategy.QueryProvider;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.Validate;
@@ -67,8 +67,8 @@ public class KnowledgeService {
 
     public BaseResult query(Object object) {
         //1.结构校验
-        validateJson(JsonMapper.toJsonString(object));
-        DSLObject dSLObject = (DSLObject) JsonMapper.fromJsonString(JsonMapper.toJsonString(object), DSLObject.class);
+        validateJson(JSON.toJSONString(object));
+        DSLObject dSLObject = JSON.parseObject(JSON.toJSONString(object), DSLObject.class);
         validate(dSLObject);
         DSLObject.DSLQuery dslQeruy = dSLObject.getQuery();
         //2.查询

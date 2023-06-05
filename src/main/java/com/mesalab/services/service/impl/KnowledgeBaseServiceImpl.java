@@ -9,6 +9,7 @@ import cn.hutool.core.util.XmlUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
@@ -25,7 +26,6 @@ import com.mesalab.services.common.entity.KnowledgeConstant;
 import com.mesalab.services.configuration.HosConfig;
 import com.mesalab.services.service.KnowledgeBaseService;
 import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -230,7 +230,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         try {
             String config = pubConfigService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, httpConfig.getServerRequestTimeOut());
             if (StringUtil.isNotEmpty(config)) {
-                knowledgeBaseList = com.mesalab.common.utils.JsonMapper.fromJsonString(config, List.class, KnowledgeBase.class);
+                knowledgeBaseList = JSON.parseObject(config, List.class, KnowledgeBase.class);
                 knowledgeBaseList = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList());
             }
         } catch (NacosException e) {
@@ -335,7 +335,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private void saveKnowledgeBaseList(List<KnowledgeBase> knowledgeBaseList) throws BusinessException, InterruptedException {
 
         try {
-            boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
+            boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JSON.toJSONString(knowledgeBaseList));
             if (!b) {
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),"update knowledge meta error.");
             }
@@ -345,8 +345,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         }
         while (true) {
             Thread.sleep(100);
-            String local = JsonMapper.toJsonString(knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList()));
-            String nacos = JsonMapper.toJsonString(queryKnowledgeBaseList());
+            String local = JSON.toJSONString(knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList()));
+            String nacos = JSON.toJSONString(queryKnowledgeBaseList());
             if (StringUtil.equals(local, nacos)) {
                 break;
             }

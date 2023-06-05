@@ -3,6 +3,7 @@ package com.mesalab.qgw.dialect;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -22,7 +23,6 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.*;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
@@ -114,13 +114,13 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     @Override
     BaseResult generateBaseResult(String sql, Optional<String> message) {
         Request request = new Request("POST", "/_sql?format=json");
-        request.setJsonEntity(JsonMapper.toJsonString(getQueryParam(sql)));
+        request.setJsonEntity(JSON.toJSONString(sql));
         Response response;
         try {
             response = restClient.performRequest(request);
             ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
             baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), message.get(),
-                    (Map<String, Object>) JsonMapper.fromJsonString(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+                    (Map<String, Object>) JSON.parseObject(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
 
         } catch (IOException e) {
             log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);

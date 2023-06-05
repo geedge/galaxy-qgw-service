@@ -2,6 +2,7 @@ package com.mesalab.knowledge.strategy;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -11,7 +12,6 @@ import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.JwtCache;
 import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.JsonMapper;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +50,8 @@ public class BaseQueryProvider {
         Map<String, String> params = new HashMap<>();
         params.put("username", arangoConfig.getUsername());
         params.put("password", arangoConfig.getPin());
-        String res = httpClientService.httpPost(arangoConfig.getJwturl(), JsonMapper.toJsonString(params));
-        Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
+        String res = httpClientService.httpPost(arangoConfig.getJwturl(), JSON.toJSONString(params));
+        Map resMap = JSON.parseObject(res, Map.class);
         if (Objects.isNull(resMap.get(Constant.JWT))) {
             throw new BusinessException("获取Arango jwt 失败");
         }
@@ -72,20 +72,20 @@ public class BaseQueryProvider {
         Header header = new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt());
         String res = "";
         try {
-            res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), header);
+            res = httpClientService.httpPost(arangoConfig.getQueryurl(), JSON.toJSONString(queryMap), header);
         } catch (BusinessException e) {
             if (e.getMessage() != null && e.getMessage().contains("not authorized to execute this request")) {
                 //刷新jwt
                 JwtCache.remove(Constant.ARANGO_CACHE_JWT);
                 log.warn("Arango jwt 失效后重置");
-                res = httpClientService.httpPost(arangoConfig.getQueryurl(), JsonMapper.toJsonString(queryMap), new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt()));
+                res = httpClientService.httpPost(arangoConfig.getQueryurl(), JSON.toJSONString(queryMap), new BasicHeader(HttpHeaders.AUTHORIZATION, getJwt()));
             } else {
                 log.error(e.getMessage());
                 throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
                         String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),e.getMessage()));
             }
         }
-        Map jsonMap = (Map) JsonMapper.fromJsonString(res, Map.class);
+        Map jsonMap = JSON.parseObject(res, Map.class);
         Object result = jsonMap.get("result");
         return result;
     }

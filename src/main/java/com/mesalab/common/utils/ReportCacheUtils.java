@@ -3,6 +3,7 @@ package com.mesalab.common.utils;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
@@ -42,7 +43,7 @@ public class ReportCacheUtils {
     public static BaseResult<Object> get(String resultId, String query) {
         BaseResult baseResult;
         Map<String, Object> result = query(resultId, query);
-        Map map = (Map) JsonMapper.fromJsonString((String) result.get("result"), Map.class);
+        Map map = JSON.parseObject((String)result.get("result"), Map.class);
         if (StringUtil.isEmpty(map)) {
             log.warn("The report result [resultId:{}] is unavailable. It Has been deleted or does not exist.", resultId);
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "The report result [resultId:" + resultId + "] is unavailable. It Has been deleted or does not exist.");

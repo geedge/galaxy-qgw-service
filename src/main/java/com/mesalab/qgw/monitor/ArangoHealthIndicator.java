@@ -1,11 +1,11 @@
 package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson2.JSON;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.JwtCache;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +41,8 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
             if (StringUtil.isEmpty(jwt)) {
                 params.put("username", arangoConfig.getUsername());
                 params.put("password", arangoConfig.getPin());
-                String res = httpClientService.httpPost(arangoConfig.getJwturl(), JsonMapper.toJsonString(params));
-                Map resMap = (Map) JsonMapper.fromJsonString(res, Map.class);
+                String res = httpClientService.httpPost(arangoConfig.getJwturl(), JSON.toJSONString(params));
+                Map resMap = JSON.parseObject(res, Map.class);
                 if (StringUtil.isEmpty(resMap) || StringUtil.isEmpty(resMap.get(Constant.JWT))) {
                     builder.down()
                             .withDetail("app", APP)
@@ -55,7 +55,7 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
             }
             String result = httpClientService.httpPost(arangoConfig.getServer() + "/_db/" + arangoConfig.getDatabase() + "/_api/version",
                     StringUtil.EMPTY, new BasicHeader(HttpHeaders.AUTHORIZATION, String.valueOf(jwt)));
-            Map map = (Map) JsonMapper.fromJsonString(result, Map.class);
+            Map map = JSON.parseObject(result, Map.class);
             if (StringUtil.isEmpty(map) || StringUtil.isEmpty(map.get("version"))) {
                 builder.down()
                         .withDetail("app", APP)

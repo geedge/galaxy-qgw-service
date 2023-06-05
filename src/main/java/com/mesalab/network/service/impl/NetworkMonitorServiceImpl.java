@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -16,7 +17,6 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.TreeUtils;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
@@ -78,7 +78,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String sql = generateProtocolTreeSql(dslObject.getQuery(), environment.getProperty("PROTOCOL_TREE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
-            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> resultList = (List<Map>) resultMap.get("data");
             if (StringUtil.isEmpty(resultList)) {
                 return BaseResultGenerator.success("ok", resultList, (Map) resultMap.get("statistics"));
@@ -110,13 +110,13 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
             throw new BusinessException(Integer.parseInt(appRsp.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
         }
 
-        Map statResult = JsonMapper.fromJsonString(statRsp.get("result"), Map.class);
+        Map statResult = JSON.parseObject(statRsp.get("result"), Map.class);
         List<Map> statData = (List<Map>) statResult.get("data");
-        Map asymmetricFlowsResult = JsonMapper.fromJsonString(asymmetricFlowsRsp.get("result"), Map.class);
+        Map asymmetricFlowsResult = JSON.parseObject(asymmetricFlowsRsp.get("result"), Map.class);
         List<Map> asymmetricFlowsData = (List<Map>) asymmetricFlowsResult.get("data");
-        Map tcpResult = JsonMapper.fromJsonString(tcpRsp.get("result"), Map.class);
+        Map tcpResult = JSON.parseObject(tcpRsp.get("result"), Map.class);
         List<Map> tcpData = (List<Map>) tcpResult.get("data");
-        Map appResult = JsonMapper.fromJsonString(appRsp.get("result"), Map.class);
+        Map appResult = JSON.parseObject(appRsp.get("result"), Map.class);
         List<Map> appData = (List<Map>) appResult.get("data");
 
         Map<String, Object> data = new HashMap<>(16);
@@ -210,7 +210,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String sql = generateProtocolDataRateSql(dslObject.getQuery(), environment.getProperty("PROTOCOL_DATA_RATE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
-            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             data.forEach(o -> {
                 String[] protocolIds = String.valueOf(o.get("type")).split("\\.");
@@ -363,7 +363,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     public List<ProtocolTree> buildFlatStructure(List<Map> protocolData) {
         List<ProtocolTree> nodes = Lists.newArrayList();
         for (Map protocolMap : protocolData) {
-            ProtocolTree protocolTree = convertStringToObject(JsonMapper.toJsonString(protocolMap));
+            ProtocolTree protocolTree = convertStringToObject(JSON.toJSONString(protocolMap));
             if (StringUtil.isNotEmpty(protocolTree)) {
                 nodes.add(protocolTree);
             }
@@ -402,7 +402,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     private ProtocolTree convertStringToObject(String protocolString) {
         ProtocolTree protocolTree = null;
         try {
-            Map<String, Object> results = (Map<String, Object>) JsonMapper.fromJsonString(protocolString, Map.class);
+            Map<String, Object> results = JSON.parseObject(protocolString, Map.class);
             String protocolId = String.valueOf(results.get("protocol_stack_id"));
             if (StringUtil.isBlank(protocolId)) {
                 log.warn("Protocol Stack ID is NULL {}", protocolString);
@@ -491,7 +491,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                 period.toStandardSeconds().getSeconds(), dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, granularity, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
         Map<String, String> dataResult = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
-            return JsonMapper.fromJsonString(dataResult.get("result"), BaseResult.class);
+            return JSON.parseObject(dataResult.get("result"), BaseResult.class);
         } else {
             throw new BusinessException(dataResult.get("result"));
         }
@@ -508,7 +508,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                 dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
         Map<String, String> dataResult = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
-            return JsonMapper.fromJsonString(dataResult.get("result"), BaseResult.class);
+            return JSON.parseObject(dataResult.get("result"), BaseResult.class);
         } else {
             throw new BusinessException(dataResult.get("result"));
         }
@@ -529,7 +529,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         );
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
-            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
         } else {
@@ -551,7 +551,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         );
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
-            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
         } else {

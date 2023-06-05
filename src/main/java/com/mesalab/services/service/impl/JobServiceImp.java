@@ -7,6 +7,7 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jfinal.plugin.activerecord.Db;
@@ -33,7 +34,6 @@ import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
@@ -107,10 +107,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         validateAdHocQuery(reqBody);
         String id = DigestUtil.md5Hex16(String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE)).toLowerCase()).concat(JobConfig.DELIMIT).concat(DigestUtil.md5Hex16(String.valueOf(reqBody)));
         if (isExist(id)) {
-            log.info("Hoc Job already exist, ID is {}, params is {}", id, JsonMapper.toJsonString(reqBody));
+            log.info("Hoc Job already exist, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
             return BaseResultGenerator.success("ok", buildData(id));
         }
-        log.info("Add Hoc Job, ID is {}, params is {}", id, JsonMapper.toJsonString(reqBody));
+        log.info("Add Hoc Job, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
         Map<String, Object> property = Maps.newLinkedHashMap();
         String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
@@ -128,7 +128,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         if (!isValidProperty(property)) {
             property.remove(JobConfig.JOB_PROPERTY_K_OPTION);
         }
-        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
+        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JSON.toJSONString(property), 0, 0));
     }
 
     private boolean isValidProperty(Map<String, Object> property) {
@@ -268,7 +268,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         updateQueryTime(id, System.currentTimeMillis());
         Map<String, Object> job = Maps.newHashMap();
         Map<String, Object> map = data.get(0);
-        Map jobProperty = (Map) JsonMapper.fromJsonString(map.get(JobConfig.JOB_PROPERTY).toString(), Map.class);
+        Map jobProperty = JSON.parseObject(map.get(JobConfig.JOB_PROPERTY).toString(), Map.class);
         Object fields = jobProperty.get(JobConfig.JOB_PROPERTY_K_RESULT_FIELD);
         String[] list = StringUtil.isEmpty(fields) ? new String[0] : fields.toString().split(",");
         List<Map<String, Object>> resultList = Lists.newArrayList();
@@ -339,7 +339,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), JobConfig.FIELD_DISCOVERY, field));
         }
         property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, String.join(",", fields));
-        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
+        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JSON.toJSONString(property), 0, 0));
     }
 
     private void buildPropertyOfStatistics(String sql, Map<String, Object> property) {

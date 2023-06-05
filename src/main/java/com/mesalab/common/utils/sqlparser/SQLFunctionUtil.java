@@ -1,6 +1,7 @@
 package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.core.util.URLUtil;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -12,7 +13,6 @@ import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
-import com.zdjizhi.utils.JsonMapper;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
@@ -284,7 +284,7 @@ public class SQLFunctionUtil {
             query = generateDateFunction("select " + query + " as actualValue", dbType);
             query = Encodes.urlEncode(query);
             Map<String, String> results = executeHttpGetOfCK(query);
-            Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
+            Map<String, Object> maps = JSON.parseObject(results.get("result"), Map.class);
             List<Map<String, Object>> dates = (List<Map<String, Object>>) maps.get("data");
             Map<String, Object> data = dates.get(0);
             Object actualValue = data.get("actualValue");
@@ -292,7 +292,7 @@ public class SQLFunctionUtil {
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             query = generateDateFunction("select TIME_FORMAT(" + query + ", 'yyyy-MM-dd HH:mm:ss') as actualValue", dbType);
             Map<String, String> results = executeHttpPostOfDruid(query);
-            List<Object> maps = (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class);
+            List<Object> maps = (List<Object>) JSON.parseObject(results.get("result"), Object.class);
             Map<String, Object> data = (Map<String, Object>) maps.get(0);
             Object actualValue = data.get("actualValue");
             return actualValue.toString();
@@ -314,7 +314,7 @@ public class SQLFunctionUtil {
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
-        Map<String, String> stringStringMap = httpClientService.httpPost(queryURL, JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
+        Map<String, String> stringStringMap = httpClientService.httpPost(queryURL, JSON.toJSONString(druidQueryParam), socketTimeOut);
         return stringStringMap;
 
     }

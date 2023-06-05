@@ -2,6 +2,7 @@ package com.mesalab.services.service.impl;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.clearspring.analytics.util.Lists;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
@@ -22,7 +23,6 @@ import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.UnstructuredDataType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.UnstructuredService;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,12 +75,12 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
         List<String> allTable = metadataService.getAllTable();
         for (String tableName : allTable) {
             Schema schema = metadataService.getSchemaByName(tableName);
-            Map schemaMap = (Map) JsonMapper.fromJsonString(schema.toString(), Map.class);
+            Map schemaMap = JSON.parseObject(schema.toString(), Map.class);
             List<String> fieldList = new ArrayList<>();
             if (!clickHouseHttpSource.getDbName().equals(schema.getNamespace())) continue;
             List<Map> fields = (List<Map>) schemaMap.get("fields");
             for (Map field : fields) {
-                Map schemaDoc = (Map) JsonMapper.fromJsonString(field.get("doc").toString(), Map.class);
+                Map schemaDoc = JSON.parseObject(field.get("doc").toString(), Map.class);
                 if (schemaDoc.containsKey("constraints") && schemaDoc.get("visibility").equals("enabled")) {
                     Map<String, String> SchemaConstraints = (Map<String, String>) schemaDoc.get("constraints");
                     String typeStr = SchemaConstraints.containsKey("type") ? SchemaConstraints.get("type") : StringUtil.EMPTY;
