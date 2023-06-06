@@ -157,7 +157,7 @@ public class KnowledgeListener {
         if (StringUtil.isEmpty(knowledgeMetadata)) {
             return Lists.newArrayList();
         }
-        return JSON.parseObject(knowledgeMetadata, List.class, KnowledgeBase.class);
+        return JSON.parseArray(knowledgeMetadata, KnowledgeBase.class);
     }
 
     private Map<String, KnowledgeBase> buildIPKnowledgeInfo(List<KnowledgeBase> knowledgeBaseList) {
