@@ -41,7 +41,7 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
                             stats.requestCount(), stats.hitCount(), stats.hitRate(), stats.missCount());
                     response.setCharacterEncoding("UTF-8");
                     response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write(JSON.toJSONString(request));
+                    response.getWriter().write(JSON.toJSONString(result));
                     return false;
 
                 }

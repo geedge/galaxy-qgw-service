@@ -230,7 +230,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         try {
             String config = pubConfigService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, httpConfig.getServerRequestTimeOut());
             if (StringUtil.isNotEmpty(config)) {
-                knowledgeBaseList = JSON.parseObject(config, List.class, KnowledgeBase.class);
+                knowledgeBaseList = JSON.parseArray(config, KnowledgeBase.class);
                 knowledgeBaseList = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList());
             }
         } catch (NacosException e) {
