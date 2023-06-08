@@ -316,7 +316,24 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         if (CollectionUtil.isEmpty(knowledgeBaseList)) {
             return null;
         }
-        knowledgeBaseList = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getName).thenComparingInt(o -> Integer.parseInt(o.getVersion().replace("_", "").replace(KnowledgeConstant.LATEST, "0"))).reversed()).collect(Collectors.toList());
+        knowledgeBaseList = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getName)
+                .thenComparingInt(o -> {
+                            String version = o.getVersion();
+                            int i = version.indexOf("_");
+                            String dateVersion = i > 0 ? version.substring(0, i) : "0";
+                            return Integer.parseInt(
+                                    NumberUtil.isInteger(dateVersion) ? dateVersion : "0");
+                        }
+                )
+                .thenComparingInt(o -> {
+                            String version = o.getVersion();
+                            int i = version.indexOf("_");
+                            String serial = i > 0 && i < version.length() - 1 ? version.substring(i + 1) : "0";
+                            return Integer.parseInt(
+                                    NumberUtil.isInteger(serial) ? serial : "0");
+                        }
+                )
+                .reversed()).collect(Collectors.toList());
         for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
             if (!StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)
                     && StringUtil.equals(knowledgeBase.getType(), knowledge.getType())
@@ -325,11 +342,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             }
         }
         return null;
-    }
-
-    public static void main(String[] args) {
-        String e = "ee".replace("e", "3").replace("3", "4");
-        System.out.println(e);
     }
 
     private void saveKnowledgeBaseList(List<KnowledgeBase> knowledgeBaseList) throws BusinessException, InterruptedException {
