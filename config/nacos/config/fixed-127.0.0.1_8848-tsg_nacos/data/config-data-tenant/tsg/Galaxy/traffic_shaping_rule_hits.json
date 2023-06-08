@@ -59,7 +59,7 @@
       "type": "string",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -75,7 +75,7 @@
       "type": "string",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -90,6 +90,9 @@
       "label": "Shaping Rule ID",
       "type": "int",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
         "visibility": "enabled"
       }
     },

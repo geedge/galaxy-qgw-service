@@ -85,6 +85,9 @@
       "name": "rule_id",
       "label": "Rule ID",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
         "visibility": "enabled"
       },
       "type": "int"
