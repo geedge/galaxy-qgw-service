@@ -30,7 +30,8 @@ import java.util.stream.Collectors;
  */
 public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItemVisitor {
     private static final Log log = LogFactory.get();
-    private static final long topInnerLimitRatio = 10;
+    private static final long TOP_INNER_LIMIT_RATIO = 10;
+    private static final long TOP_INNER_LIMIT_LOWER = 100000;
     private static final Pattern pLimitSetting = Pattern.compile("\\blimit(.*?)(\\))", Pattern.CASE_INSENSITIVE);
     private List<String> groupByList;
     private List<String> orderByList;
@@ -112,10 +113,12 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
                     long rowCount = Long.parseLong(limit.getRowCount().toString());
                     if (StringUtil.isNotEmpty(limit.getOffset())) {
                         long offset = Long.parseLong(limit.getOffset().toString());
-                        limit.setRowCount(new LongValue((offset + rowCount) * topInnerLimitRatio));
+                        LongValue longValue = new LongValue((offset + rowCount) * TOP_INNER_LIMIT_RATIO);
+                        limit.setRowCount(longValue.getValue() < TOP_INNER_LIMIT_LOWER ? new LongValue(TOP_INNER_LIMIT_LOWER) : longValue);
                         limit.setOffset(null);
                     } else {
-                        limit.setRowCount(new LongValue(rowCount * topInnerLimitRatio));
+                        LongValue longValue = new LongValue(rowCount * TOP_INNER_LIMIT_RATIO);
+                        limit.setRowCount(longValue.getValue() < TOP_INNER_LIMIT_LOWER ? new LongValue(TOP_INNER_LIMIT_LOWER) : longValue);
                     }
                 }
             }
