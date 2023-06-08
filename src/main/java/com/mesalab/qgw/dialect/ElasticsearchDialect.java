@@ -114,7 +114,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     @Override
     BaseResult generateBaseResult(String sql, Optional<String> message) {
         Request request = new Request("POST", "/_sql?format=json");
-        request.setJsonEntity(JSON.toJSONString(sql));
+        request.setJsonEntity(JSON.toJSONString(getQueryParam(sql)));
         Response response;
         try {
             response = restClient.performRequest(request);
