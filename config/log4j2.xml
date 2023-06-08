@@ -7,8 +7,6 @@
         <property name="LOG_SIZE">5M</property>
         <!--最多产生10个压缩文件-->
         <property name="LOG_NUMS">10</property>
-        <!--日志打印等级-->
-        <property name="LOG_LEVEL">info</property>
         <!--日志文件路径-->
         <property name="LOG_PATH">logs</property>
         <!--日志文件名称-->
@@ -19,20 +17,73 @@
 
     <appenders>
         <Console name="consoleSystemOutAppender" target="SYSTEM_OUT">
-            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            <ThresholdFilter level="ALL"/>
             <PatternLayout pattern="${LOG_PATTERN}"/>
         </Console>
 
-        <RollingFile name="rollingFileAllAppender"
-                     fileName="${LOG_PATH}/${LOG_FILE_NAME}.log"
-                     filePattern="${LOG_PATH}/history/$${date:yyyy-MM-dd}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz">
+        <!--Info级别日志输出-->
+        <RollingFile name="rollingInfoFile"
+                     fileName="${LOG_PATH}/info.${LOG_FILE_NAME}.log"
+                     filePattern="${LOG_PATH}/history/$${date:yyyy-MM-dd}/info.${LOG_FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="${LOG_PATTERN}"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
             </Policies>
             <Filters>
-                <ThresholdFilter level="all" onMatch="ACCEPT" onMismatch="DENY"/>
+                <ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <DefaultRolloverStrategy max="${LOG_NUMS}">
+                <Delete basePath="${LOG_PATH}/history" maxDepth="1">
+                    <IfFileName glob="*.log.gz">
+                        <IfLastModified age="90d">
+                            <IfAny>
+                                <IfAccumulatedFileSize exceeds="200 GB" />
+                            </IfAny>
+                        </IfLastModified>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!--Warn级别日志输出-->
+        <RollingFile name="rollingWarnFile"
+                     fileName="${LOG_PATH}/warn.${LOG_FILE_NAME}.log"
+                     filePattern="${LOG_PATH}/history/$${date:yyyy-MM-dd}/warn.${LOG_FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <DefaultRolloverStrategy max="${LOG_NUMS}">
+                <Delete basePath="${LOG_PATH}/history" maxDepth="1">
+                    <IfFileName glob="*.log.gz">
+                        <IfLastModified age="90d">
+                            <IfAny>
+                                <IfAccumulatedFileSize exceeds="200 GB" />
+                            </IfAny>
+                        </IfLastModified>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!--Error级别日志输出-->
+        <RollingFile name="rollingErrorFile"
+                     fileName="${LOG_PATH}/error.${LOG_FILE_NAME}.log"
+                     filePattern="${LOG_PATH}/history/$${date:yyyy-MM-dd}/error.${LOG_FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="${LOG_SIZE}"/>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
             </Filters>
             <DefaultRolloverStrategy max="${LOG_NUMS}">
                 <Delete basePath="${LOG_PATH}/history" maxDepth="1">
@@ -50,11 +101,13 @@
     <loggers>
 
         <logger name="org.apache.phoenix" level="info" additivity="false">
-            <AppenderRef ref="rollingFileAllAppender"/>
+            <AppenderRef ref="rollingInfoFile"/>
         </logger>
-        <root level="${LOG_LEVEL}">
+        <root level="INFO">
             <appender-ref ref="consoleSystemOutAppender"/>
-            <appender-ref ref="rollingFileAllAppender"/>
+            <appender-ref ref="rollingInfoFile"/>
+            <appender-ref ref="rollingWarnFile"/>
+            <appender-ref ref="rollingErrorFile"/>
         </root>
     </loggers>
 </configuration>
