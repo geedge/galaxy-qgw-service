@@ -91,11 +91,6 @@
         "ssl_sni",
         "ssl_san",
         "ssl_cn",
-        "ssl_pinningst",
-        "ssl_intercept_state",
-        "ssl_passthrough_reason",
-        "ssl_server_side_version",
-        "ssl_client_side_version",
         "ssl_ja3_hash",
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
@@ -236,11 +231,6 @@
         "ssl_sni",
         "ssl_san",
         "ssl_cn",
-        "ssl_pinningst",
-        "ssl_intercept_state",
-        "ssl_passthrough_reason",
-        "ssl_server_side_version",
-        "ssl_client_side_version",
         "ssl_ja3_hash",
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
@@ -400,11 +390,6 @@
         "ssl_sni",
         "ssl_san",
         "ssl_cn",
-        "ssl_pinningst",
-        "ssl_intercept_state",
-        "ssl_passthrough_reason",
-        "ssl_server_side_version",
-        "ssl_client_side_version",
         "ssl_con_latency_ms",
         "ssl_ja3_hash",
         "ssl_ja3s_hash",
@@ -3123,7 +3108,7 @@
             "value": "Maybe Pinning"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3149,7 +3134,7 @@
             "value": "Shutdown"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3158,7 +3143,7 @@
       "name": "ssl_passthrough_reason",
       "label": "SSL.Passthrough Reason(Deprecated)",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -3170,7 +3155,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3182,7 +3167,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3191,7 +3176,7 @@
       "name": "ssl_server_side_version",
       "label": "SSL.Server Side Version(Deprecated)",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -3200,7 +3185,7 @@
       "name": "ssl_client_side_version",
       "label": "SSL.Client Side Version(Deprecated)",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -3222,7 +3207,7 @@
             "value": "Yes"
           }
         ],
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -3231,7 +3216,7 @@
       "name": "ssl_error",
       "label": "SSL.Error(Deprecated)",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
