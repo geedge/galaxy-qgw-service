@@ -195,7 +195,7 @@ public class FederationDialect extends AbstractEngineDialect{
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
             List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,
-                    (List<Object>) baseResult.getData());
+                    baseResult);
             baseResult.setData(targetResult);
         }
     }
