@@ -255,7 +255,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
                 field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
             }
-            content = JSONUtil.toJsonStr(JSONUtil.parseObj(data));
+            content = JSON.toJSONString(data);
             log.info("push Schema, content is: {}", content);
             return systemConfigService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
@@ -317,8 +317,8 @@ public class MetadataServiceImpl implements MetadataService {
         if (StringUtil.isEmpty(schema)) {
             throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), QGWMessageConst.SCHEMA_URL_NOT_FOUND);
         }
-        Map resultMap = JSON.parseObject(String.valueOf(schema), Map.class);
-        Map schemaDoc = JSON.parseObject(schema.getDoc(), Map.class);
+        LinkedHashMap resultMap = JSON.parseObject(String.valueOf(schema), LinkedHashMap.class);
+        LinkedHashMap schemaDoc = JSON.parseObject(schema.getDoc(), LinkedHashMap.class);
         if (StringUtil.isEmpty(schemaDoc) &&
                 StringUtil.isNotEmpty(schema.getDoc())) {
             log.error("{} schema's doc isn't jsonString and won't convert: {}", name, schema.getDoc());
@@ -326,16 +326,16 @@ public class MetadataServiceImpl implements MetadataService {
         List<Map> data = Lists.newArrayList();
         if (displayStorageSize) {
             data = getStorageSize(name);
-            schemaDoc = fillSchemaStorageSize(schemaDoc, data);
+            schemaDoc = (LinkedHashMap) fillSchemaStorageSize(schemaDoc, data);
         }
         if (StringUtil.isNotEmpty(schemaDoc)) {
             resultMap.put("doc", schemaDoc);
         }
         List<Map> fields = (List<Map>) resultMap.get("fields");
-        Map mapDoc;
+        LinkedHashMap mapDoc;
         for (Map next : fields) {
-            mapDoc = JSON.parseObject((String) next.get("doc"), Map.class);
-            mapDoc = fillFieldStorageSize(data, mapDoc, next);
+            mapDoc = JSON.parseObject((String) next.get("doc"), LinkedHashMap.class);
+            mapDoc = (LinkedHashMap) fillFieldStorageSize(data, mapDoc, next);
             if (StringUtil.isNotEmpty(mapDoc)) {
                 next.put("doc", mapDoc);
             }
@@ -347,12 +347,12 @@ public class MetadataServiceImpl implements MetadataService {
         return resultMap;
     }
 
-    private Map fillSchemaStorageSize(Map schemaDoc, List<Map> data) {
+    private Map fillSchemaStorageSize(LinkedHashMap schemaDoc, List<Map> data) {
         if (CollectionUtil.isEmpty(data)) {
             return schemaDoc;
         }
         if (StringUtil.isEmpty(schemaDoc)) {
-            schemaDoc = Maps.newHashMap();
+            schemaDoc = new LinkedHashMap();
         }
         long total = 0;
         for (Map datum : data) {
@@ -362,12 +362,12 @@ public class MetadataServiceImpl implements MetadataService {
         return schemaDoc;
     }
 
-    private Map fillFieldStorageSize(List<Map> data, Map mapDoc, Map next) {
+    private Map fillFieldStorageSize(List<Map> data, LinkedHashMap mapDoc, Map next) {
         if (CollectionUtil.isEmpty(data)) {
             return mapDoc;
         }
         if (StringUtil.isEmpty(mapDoc)) {
-            mapDoc = Maps.newHashMap();
+            mapDoc = new LinkedHashMap();
         }
         try {
             List<Object> name = JsonPath.read(data, "$.[?(@.field == \"" + next.get("name") + "\")].bytes");
@@ -555,7 +555,7 @@ public class MetadataServiceImpl implements MetadataService {
             schemaMap = JSON.parseObject(configInfo, Map.class);
             Object docSchema;
             if (StringUtil.isNotEmpty(docSchema = schemaMap.get("doc"))) {
-                schemaMap.put("doc", JSONUtil.toJsonStr(JSONUtil.parseObj(docSchema)));
+                schemaMap.put("doc", JSON.toJSONString(docSchema));
             }
             Object fieldsObj;
             if (StringUtil.isNotEmpty(fieldsObj = schemaMap.get("fields"))) {
@@ -565,12 +565,12 @@ public class MetadataServiceImpl implements MetadataService {
                     if (StringUtil.isEmpty(docField = next.get("doc"))) {
                         continue;
                     }
-                    next.put("doc", JSONUtil.toJsonStr(JSONUtil.parseObj(docField)));
+                    next.put("doc", JSON.toJSONString(docField));
                 }
             }
         } catch (JSONException | SchemaParseException | ClassCastException e) {
             log.error("update Schema error: {}", e);
         }
-        return new Schema.Parser().parse(JSONUtil.toJsonStr(JSONUtil.parseObj(schemaMap)));
+       return new Schema.Parser().parse(JSON.toJSONString(schemaMap));
     }
 }
