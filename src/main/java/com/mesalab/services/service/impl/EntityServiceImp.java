@@ -6,6 +6,7 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
@@ -176,7 +177,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         Map statistics = baseResult.getStatistics();
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS) + (StringUtil.isEmpty(statistics.get("elapsed")) ? 0 : Long.parseLong(statistics.get("elapsed").toString())));
         statistics.put("result_rows", result.size());
-        statistics.put("result_size", baseResult.getData().toString().getBytes().length);
+        statistics.put("result_size", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
         return baseResult;
     }
 
