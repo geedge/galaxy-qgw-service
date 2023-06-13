@@ -1,6 +1,7 @@
 package com.mesalab.qgw.model.api.udf;
 
 import com.google.common.collect.Lists;
+import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.IPUtil;
 import com.mesalab.qgw.model.api.SQLQuerySource;
 import com.zdjizhi.utils.StringUtil;
@@ -26,7 +27,8 @@ public class IP_TO_GEO implements  UDF {
     }
 
     @Override
-    public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
+    public Object execute(SQLQuerySource sqlQuerySource, BaseResult baseResult) {
+        List<Object> results = (List<Object>)baseResult.getData();
         List<Map<String, Object>>  targetResult = Lists.newArrayList();
         String addressLabel = StringUtil.EMPTY;
 
