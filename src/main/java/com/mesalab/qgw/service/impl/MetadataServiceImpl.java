@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
@@ -255,7 +256,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
                 field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
             }
-            content = JSON.toJSONString(data);
+            content = JSON.toJSONString(data, JSONWriter.Feature.WriteNulls);
             log.info("push Schema, content is: {}", content);
             return systemConfigService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
@@ -555,7 +556,7 @@ public class MetadataServiceImpl implements MetadataService {
             schemaMap = JSON.parseObject(configInfo, Map.class);
             Object docSchema;
             if (StringUtil.isNotEmpty(docSchema = schemaMap.get("doc"))) {
-                schemaMap.put("doc", JSON.toJSONString(docSchema));
+                schemaMap.put("doc", JSON.toJSONString(docSchema, JSONWriter.Feature.WriteNulls));
             }
             Object fieldsObj;
             if (StringUtil.isNotEmpty(fieldsObj = schemaMap.get("fields"))) {
@@ -565,12 +566,12 @@ public class MetadataServiceImpl implements MetadataService {
                     if (StringUtil.isEmpty(docField = next.get("doc"))) {
                         continue;
                     }
-                    next.put("doc", JSON.toJSONString(docField));
+                    next.put("doc", JSON.toJSONString(docField, JSONWriter.Feature.WriteNulls));
                 }
             }
         } catch (JSONException | SchemaParseException | ClassCastException e) {
             log.error("update Schema error: {}", e);
         }
-       return new Schema.Parser().parse(JSON.toJSONString(schemaMap));
+       return new Schema.Parser().parse(JSON.toJSONString(schemaMap, JSONWriter.Feature.WriteNulls));
     }
 }
