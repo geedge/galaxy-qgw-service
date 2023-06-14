@@ -4,6 +4,7 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.google.common.cache.CacheStats;
 import com.mesalab.common.utils.HttpHelper;
 import com.mesalab.common.utils.QueryCacheUtils;
@@ -41,7 +42,7 @@ public class QuerySubmitInterceptor extends HandlerInterceptorAdapter {
                             stats.requestCount(), stats.hitCount(), stats.hitRate(), stats.missCount());
                     response.setCharacterEncoding("UTF-8");
                     response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write(JSON.toJSONString(result));
+                    response.getWriter().write(JSON.toJSONString(result, JSONWriter.Feature.LargeObject));
                     return false;
 
                 }

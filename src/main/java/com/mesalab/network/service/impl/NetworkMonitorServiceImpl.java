@@ -8,6 +8,7 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -363,7 +364,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     public List<ProtocolTree> buildFlatStructure(List<Map> protocolData) {
         List<ProtocolTree> nodes = Lists.newArrayList();
         for (Map protocolMap : protocolData) {
-            ProtocolTree protocolTree = convertStringToObject(JSON.toJSONString(protocolMap));
+            ProtocolTree protocolTree = convertStringToObject(JSON.toJSONString(protocolMap, JSONWriter.Feature.LargeObject));
             if (StringUtil.isNotEmpty(protocolTree)) {
                 nodes.add(protocolTree);
             }
