@@ -588,12 +588,12 @@
           {
             "function": "flattenSpec",
             "appendTo": "common_data_center",
-            "param": "$.tags[?(@.tag=='data_center')].value"
+            "param": "$.tags[?(@.tag=='data_center')][0].value"
           },
           {
             "function": "flattenSpec",
             "appendTo": "common_device_group",
-            "param": "$.tags[?(@.tag=='device_group')].value"
+            "param": "$.tags[?(@.tag=='device_group')][0].value"
           }
         ]
       },
@@ -678,7 +678,7 @@
           {
             "function": "gtpc_match",
             "appendTo": "common_imsi,common_imei,common_phone_number",
-            "param": "$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_b2a_teid"
+            "param": "$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_b2a_teid"
           }
         ]
       },

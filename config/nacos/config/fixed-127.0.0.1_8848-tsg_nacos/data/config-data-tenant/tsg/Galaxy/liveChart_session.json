@@ -126,13 +126,13 @@
         "function": "flattenSpec",
         "name": "device_group",
         "fieldName": "common_device_tag",
-        "parameters": "$.tags[?(@.tag=='device_group')].value"
+        "parameters": "$.tags[?(@.tag=='data_center')][0].value"
       },
       {
         "function": "flattenSpec",
         "name": "data_center",
         "fieldName": "common_device_tag",
-        "parameters": "$.tags[?(@.tag=='data_center')].value"
+        "parameters": "$.tags[?(@.tag=='device_group')][0].value"
       },
       {
         "function": "hierarchy",
