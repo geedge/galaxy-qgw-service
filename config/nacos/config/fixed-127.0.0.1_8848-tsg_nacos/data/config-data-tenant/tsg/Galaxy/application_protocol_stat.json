@@ -97,6 +97,9 @@
       "name": "app_name",
       "label": "APP Name",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
         "visibility": "enabled"
       },
       "type": "string"
