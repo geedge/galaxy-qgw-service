@@ -114,10 +114,6 @@
             "value": "Monitor"
           },
           {
-            "code": "2",
-            "value": "Intercept"
-          },
-          {
             "code": "16",
             "value": "Deny"
           },
