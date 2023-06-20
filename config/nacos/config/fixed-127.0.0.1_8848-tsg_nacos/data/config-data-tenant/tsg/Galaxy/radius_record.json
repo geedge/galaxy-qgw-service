@@ -39,10 +39,12 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_server_device_mac",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
         "common_tunnel_endpoint_b_desc",
         "common_subscriber_id",
+        "common_client_device_mac",
         "radius_nas_ip",
         "radius_framed_ip",
         "radius_packet_type",
@@ -73,6 +75,7 @@
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
+        "common_client_device_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
@@ -80,6 +83,7 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_server_device_mac",
         "common_l4_protocol",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -122,6 +126,7 @@
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
+        "common_client_device_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
@@ -129,6 +134,7 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_server_device_mac",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
         "common_tunnel_endpoint_b_desc",
@@ -200,7 +206,8 @@
           "common_subscriber_id",
           "common_imei",
           "common_imsi",
-          "common_phone_number"
+          "common_phone_number",
+          "common_client_device_mac"
         ],
         "destination": [
           "common_server_ip",
@@ -209,7 +216,8 @@
           "common_server_location",
           "common_server_asn",
           "common_server_fqdn",
-          "common_server_domain"
+          "common_server_domain",
+          "common_server_device_mac"
         ],
         "application": [
           "common_app_id",
@@ -366,6 +374,15 @@
       "label": "Phone Number",
       "doc": {
         "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_client_device_mac",
+      "label": "Client Device MAC",
+      "doc": {
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -597,6 +614,15 @@
     {
       "name": "common_server_domain",
       "label": "Server Domain",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_server_device_mac",
+      "label": "Server Device MAC",
       "doc": {
         "visibility": "enabled",
         "ttl": null

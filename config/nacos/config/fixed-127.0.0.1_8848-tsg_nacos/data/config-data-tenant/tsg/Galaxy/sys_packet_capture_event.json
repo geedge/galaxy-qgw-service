@@ -83,6 +83,14 @@
       "label": "Phone Number"
     },
     {
+      "name": "common_client_device_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Client Device MAC"
+    },
+    {
       "name": "common_client_ip",
       "type": "string",
       "doc": {
@@ -286,6 +294,14 @@
         "visibility": "enabled"
       },
       "label": "Server Domain"
+    },
+    {
+      "name": "common_server_device_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Server Device MAC"
     },
     {
       "name": "common_sessions",
