@@ -83,12 +83,21 @@
       "label": "Phone Number"
     },
     {
-      "name": "common_client_device_mac",
+      "name": "common_incoming_source_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled"
       },
-      "label": "Client Device MAC"
+      "label": "Incoming Source MAC"
+    },
+    {
+      "name": "common_outgoing_source_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Outgoing Source MAC"
     },
     {
       "name": "common_client_ip",
@@ -276,12 +285,20 @@
       "label": "Server ASN"
     },
     {
-      "name": "common_server_device_mac",
+      "name": "common_incoming_destination_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled"
       },
-      "label": "Server Device MAC"
+      "label": "Incoming Destination MAC"
+    },
+    {
+      "name": "common_outgoing_destination_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Outgoing Destination MAC"
     },
     {
       "name": "common_sessions",
