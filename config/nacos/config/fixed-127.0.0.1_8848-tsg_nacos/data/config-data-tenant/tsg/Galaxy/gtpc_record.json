@@ -40,11 +40,13 @@
         "common_client_port",
         "common_client_location",
         "common_client_asn",
+        "common_client_device_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_device_mac",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
@@ -77,11 +79,13 @@
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
+        "common_client_device_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_device_mac",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
@@ -127,11 +131,13 @@
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
+        "common_client_device_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_device_mac",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
@@ -194,14 +200,16 @@
           "common_subscriber_id",
           "common_imei",
           "common_imsi",
-          "common_phone_number"
+          "common_phone_number",
+          "common_client_device_mac"
         ],
         "destination": [
           "common_server_ip",
           "common_external_ip",
           "common_server_port",
           "common_server_location",
-          "common_server_asn"
+          "common_server_asn",
+          "common_server_device_mac"
         ],
         "application": [
           "common_app_id",
@@ -272,6 +280,7 @@
           "common_imei",
           "common_imsi",
           "common_phone_number",
+          "common_client_device_mac",
           "common_client_ip",
           "common_client_port",
           "common_internal_ip",
@@ -288,6 +297,7 @@
           "common_client_asn",
           "common_server_location",
           "common_server_asn",
+          "common_server_device_mac",
           "common_sessions",
           "common_c2s_pkt_num",
           "common_s2c_pkt_num",
@@ -462,6 +472,15 @@
       "label": "Phone Number",
       "doc": {
         "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_client_device_mac",
+      "label": "Client Device MAC",
+      "doc": {
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -694,6 +713,15 @@
     {
       "name": "common_server_asn",
       "label": "Server ASN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_server_device_mac",
+      "label": "Server Device MAC",
       "doc": {
         "visibility": "enabled",
         "ttl": null

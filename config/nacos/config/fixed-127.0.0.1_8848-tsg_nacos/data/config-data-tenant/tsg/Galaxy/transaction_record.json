@@ -44,11 +44,13 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_client_device_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_device_mac",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
@@ -98,11 +100,13 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_client_device_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_device_mac",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
@@ -181,11 +185,13 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_client_device_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
         "common_server_location",
         "common_server_asn",
+        "common_server_device_mac",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
@@ -281,14 +287,16 @@
           "common_subscriber_id",
           "common_imei",
           "common_imsi",
-          "common_phone_number"
+          "common_phone_number",
+          "common_client_device_mac"
         ],
         "destination": [
           "common_server_ip",
           "common_external_ip",
           "common_server_port",
           "common_server_location",
-          "common_server_asn"
+          "common_server_asn",
+          "common_server_device_mac"
         ],
         "application": [
           "common_app_id",
@@ -480,6 +488,15 @@
         "ttl": null
       },
       "label": "Phone Number"
+    },
+    {
+      "name": "common_client_device_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Client Device MAC"
     },
     {
       "name": "common_client_ip",
@@ -718,6 +735,15 @@
         "ttl": null
       },
       "label": "Server ASN"
+    },
+    {
+      "name": "common_server_device_mac",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Server Device MAC"
     },
     {
       "name": "common_sessions",
