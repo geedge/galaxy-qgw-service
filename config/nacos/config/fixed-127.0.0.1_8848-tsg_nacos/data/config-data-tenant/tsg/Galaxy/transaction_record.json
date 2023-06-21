@@ -44,15 +44,15 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
-        "common_incoming_source_mac",
-        "common_outgoing_source_mac",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
         "common_server_location",
         "common_server_asn",
-        "common_incoming_destination_mac",
-        "common_outgoing_destination_mac",
+        "common_in_dst_mac",
+        "common_out_dst_mac",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
@@ -102,15 +102,15 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
-        "common_incoming_source_mac",
-        "common_outgoing_source_mac",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
         "common_server_location",
         "common_server_asn",
-        "common_incoming_destination_mac",
-        "common_outgoing_destination_mac",
+        "common_in_dst_mac",
+        "common_out_dst_mac",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
@@ -189,15 +189,15 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
-        "common_incoming_source_mac",
-        "common_outgoing_source_mac",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
         "common_server_location",
         "common_server_asn",
-        "common_incoming_destination_mac",
-        "common_outgoing_destination_mac",
+        "common_in_dst_mac",
+        "common_out_dst_mac",
         "common_app_identify_info",
         "common_app_label",
         "common_app_behavior",
@@ -294,8 +294,8 @@
           "common_imei",
           "common_imsi",
           "common_phone_number",
-          "common_incoming_source_mac",
-          "common_outgoing_source_mac"
+          "common_in_src_mac",
+          "common_out_src_mac"
         ],
         "destination": [
           "common_server_ip",
@@ -303,8 +303,8 @@
           "common_server_port",
           "common_server_location",
           "common_server_asn",
-          "common_incoming_destination_mac",
-          "common_outgoing_destination_mac"
+          "common_in_dst_mac",
+          "common_out_dst_mac"
         ],
         "application": [
           "common_app_id",
@@ -498,7 +498,7 @@
       "label": "Phone Number"
     },
     {
-      "name": "common_incoming_source_mac",
+      "name": "common_in_src_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled",
@@ -507,7 +507,7 @@
       "label": "Incoming Source MAC"
     },
     {
-      "name": "common_outgoing_source_mac",
+      "name": "common_out_src_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled",
@@ -754,7 +754,7 @@
       "label": "Server ASN"
     },
     {
-      "name": "common_incoming_destination_mac",
+      "name": "common_in_dst_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled",
@@ -763,7 +763,7 @@
       "label": "Incoming Destination MAC"
     },
     {
-      "name": "common_outgoing_destination_mac",
+      "name": "common_out_dst_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled",
