@@ -83,7 +83,7 @@
       "label": "Phone Number"
     },
     {
-      "name": "common_incoming_source_mac",
+      "name": "common_in_src_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled"
@@ -91,7 +91,7 @@
       "label": "Incoming Source MAC"
     },
     {
-      "name": "common_outgoing_source_mac",
+      "name": "common_out_src_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled"
@@ -304,7 +304,7 @@
       "label": "Server Domain"
     },
     {
-      "name": "common_incoming_destination_mac",
+      "name": "common_in_dst_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled"
@@ -312,7 +312,7 @@
       "label": "Incoming Destination MAC"
     },
     {
-      "name": "common_outgoing_destination_mac",
+      "name": "common_out_dst_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled"
