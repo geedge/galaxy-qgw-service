@@ -304,7 +304,7 @@
       "label": "Server Domain"
     },
     {
-      "name": "common_in_dst_mac",
+      "name": "common_in_dest_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled"
@@ -312,7 +312,7 @@
       "label": "Incoming Destination MAC"
     },
     {
-      "name": "common_out_dst_mac",
+      "name": "common_out_dest_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled"

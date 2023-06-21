@@ -49,8 +49,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
-        "common_in_dst_mac",
-        "common_out_dst_mac",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -111,8 +111,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
-        "common_in_dst_mac",
-        "common_out_dst_mac",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -199,8 +199,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
-        "common_in_dst_mac",
-        "common_out_dst_mac",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -310,8 +310,8 @@
           "common_server_asn",
           "common_server_fqdn",
           "common_server_domain",
-          "common_in_dst_mac",
-          "common_out_dst_mac"
+          "common_in_dest_mac",
+          "common_out_dest_mac"
         ],
         "application": [
           "common_app_id",
@@ -789,7 +789,7 @@
       "type": "string"
     },
     {
-      "name": "common_in_dst_mac",
+      "name": "common_in_dest_mac",
       "label": "Incoming Destination MAC",
       "doc": {
         "visibility": "enabled",
@@ -798,7 +798,7 @@
       "type": "string"
     },
     {
-      "name": "common_out_dst_mac",
+      "name": "common_out_dest_mac",
       "type": "string",
       "doc": {
         "visibility": "enabled",
