@@ -43,8 +43,8 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
-        "common_in_dst_mac",
-        "common_out_dst_mac",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_l7_protocol",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
@@ -85,8 +85,8 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
-        "common_in_dst_mac",
-        "common_out_dst_mac",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_l7_protocol",
         "common_l4_protocol",
         "common_c2s_pkt_num",
@@ -138,8 +138,8 @@
         "common_server_port",
         "common_server_location",
         "common_server_asn",
-        "common_in_dst_mac",
-        "common_out_dst_mac",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_l7_protocol",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
@@ -220,8 +220,8 @@
           "common_server_port",
           "common_server_location",
           "common_server_asn",
-          "common_in_dst_mac",
-          "common_out_dst_mac"
+          "common_in_dest_mac",
+          "common_out_dest_mac"
         ],
         "application": [
           "common_app_id",
@@ -606,7 +606,7 @@
       "type": "string"
     },
     {
-      "name": "common_in_dst_mac",
+      "name": "common_in_dest_mac",
       "label": "Incoming Destination MAC",
       "doc": {
         "visibility": "enabled",
@@ -615,7 +615,7 @@
       "type": "string"
     },
     {
-      "name": "common_out_dst_mac",
+      "name": "common_out_dest_mac",
       "label": "Outgoing Destination MAC",
       "doc": {
         "visibility": "enabled",
