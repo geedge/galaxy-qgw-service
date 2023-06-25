@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "cn_entity_relation",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "create_time",
+    "index_key": [
+      "ip",
+      "fqdn",
+      "app_name"
+    ]
+  },
+  "fields": [
+  ]
+}
