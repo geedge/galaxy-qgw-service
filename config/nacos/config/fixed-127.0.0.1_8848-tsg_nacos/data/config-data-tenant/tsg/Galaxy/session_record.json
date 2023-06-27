@@ -2094,24 +2094,6 @@
       "type": "string"
     },
     {
-      "name": "http_request_body_key",
-      "label": "HTTP.Request Body Key",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_response_body_key",
-      "label": "HTTP.Response Body Key",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "http_proxy_flag",
       "label": "HTTP.Proxy Flag",
       "doc": {
@@ -2161,24 +2143,6 @@
       "label": "HTTP.User Agent",
       "doc": {
         "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_content_length",
-      "label": "HTTP.Content Length",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_content_type",
-      "label": "HTTP.Content Type",
-      "doc": {
-        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -3487,60 +3451,6 @@
     {
       "name": "bgp_route",
       "label": "BGP.Route",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "voip_calling_account",
-      "label": "VoIP.Calling Account",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "voip_called_account",
-      "label": "VoIP.Called Account",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "voip_calling_number",
-      "label": "VoIP.Calling Number",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "voip_called_number",
-      "label": "VoIP.Called Number",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "streaming_media_url",
-      "label": "Streaming.Media URL",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "streaming_media_protocol",
-      "label": "Streaming.Media Protocol",
       "doc": {
         "visibility": "disabled",
         "ttl": null

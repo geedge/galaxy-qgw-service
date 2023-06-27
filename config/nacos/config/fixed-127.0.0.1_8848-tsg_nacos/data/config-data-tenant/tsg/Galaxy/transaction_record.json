@@ -1845,24 +1845,6 @@
       "label": "HTTP.Response Body"
     },
     {
-      "name": "http_request_body_key",
-      "type": "string",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "label": "HTTP.Request Body Key"
-    },
-    {
-      "name": "http_response_body_key",
-      "type": "string",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "label": "HTTP.Response Body Key"
-    },
-    {
       "name": "http_proxy_flag",
       "type": "int",
       "doc": {
@@ -1915,24 +1897,6 @@
         "ttl": null
       },
       "label": "HTTP.User Agent"
-    },
-    {
-      "name": "http_content_length",
-      "type": "string",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "label": "HTTP.Content Length"
-    },
-    {
-      "name": "http_content_type",
-      "type": "string",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "label": "HTTP.Content Type"
     },
     {
       "name": "http_set_cookie",
