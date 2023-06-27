@@ -1,0 +1,4 @@
+Release 369 (TSG-23.07)
+* 修改Schema，修正application_protocol_stat schema Label APP Name 为 App Name(TSG-15640)
+* 修改Schema，删除ClickHouse表schema无用字段描述(TSG-15702)
+* 修改查询任务接口,支持在分组数据基础上进行再次过滤；数据源存在子查询时不做分片查询处理(TSG-15337)
