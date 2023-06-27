@@ -3,6 +3,7 @@ package com.mesalab.common.utils.sqlparser;
 import com.alibaba.druid.util.JdbcConstants;
 import com.google.common.collect.Lists;
 import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -14,6 +15,7 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.ExplainStatement;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
@@ -207,5 +209,40 @@ public class SQLHelper {
             }
         }
         return Lists.newArrayList();
+    }
+
+    /**
+     * Desc: 获取子查询SQL
+     * @param sql
+     * @return {@link String}
+     * @created by wWei
+     * @date 2021/2/24 4:39 下午
+     */
+    public static PlainSelect getSelectInner(String sql) {
+        try {
+            Select parse = (Select) CCJSqlParserUtil.parse(sql);
+            PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
+            int count = 0;
+            while (count++ <= 5) {
+                PlainSelect inner = exploreInnerSql(plainSelect);
+                if (plainSelect.equals(inner)) {
+                    break;
+                }
+                plainSelect = inner;
+            }
+            return plainSelect;
+        }catch (JSQLParserException | RuntimeException e) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"statistics job init error: ".concat(e.getMessage())));
+        }
+    }
+
+    private static PlainSelect exploreInnerSql(PlainSelect plainSelect) {
+        FromItem fromItem = plainSelect.getFromItem();
+        if (fromItem instanceof Table) {
+            return plainSelect;
+        }
+        SubSelect subSelect = (SubSelect) fromItem;
+        return (PlainSelect) subSelect.getSelectBody();
     }
 }

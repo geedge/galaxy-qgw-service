@@ -104,7 +104,7 @@ public class JobExecuteService implements EnvironmentAware {
                 PlainSelect plainSelectOuter = getWhereOuter(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
                 Expression whereOuter = plainSelectOuter.getWhere();
 
-                PlainSelect plainSelectInner = getSelectInner(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
+                PlainSelect plainSelectInner = SQLHelper.getSelectInner(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
                 Expression whereInner = plainSelectInner.getWhere();
                 FromItem fromItemInner = plainSelectInner.getFromItem();
 
@@ -333,30 +333,6 @@ public class JobExecuteService implements EnvironmentAware {
         Select parse = (Select) CCJSqlParserUtil.parse(sql);
         return  (PlainSelect) parse.getSelectBody();
     }
-
-    private PlainSelect getSelectInner(String sql) throws JSQLParserException {
-        Select parse = (Select) CCJSqlParserUtil.parse(sql);
-        PlainSelect plainSelect = (PlainSelect) parse.getSelectBody();
-        int count = 0;
-        while (count++ <= 5) {
-            PlainSelect inner = exploreInnerSql(plainSelect);
-            if (plainSelect.equals(inner)) {
-                break;
-            }
-            plainSelect = inner;
-        }
-        return plainSelect;
-    }
-
-    private static PlainSelect exploreInnerSql(PlainSelect plainSelect) {
-        FromItem fromItem = plainSelect.getFromItem();
-        if (fromItem instanceof Table) {
-            return plainSelect;
-        }
-        SubSelect subSelect = (SubSelect) fromItem;
-        return (PlainSelect) subSelect.getSelectBody();
-    }
-
 
     private Interval parseInterval(List<Expression> list, Interval interval, String partitionKey) {
         if (interval.isValid()) {

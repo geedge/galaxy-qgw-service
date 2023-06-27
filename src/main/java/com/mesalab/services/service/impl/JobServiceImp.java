@@ -347,6 +347,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, JobConfig.STATISTICS_RESULT);
         try {
             PlainSelect plainSelect = checkParam(sql, CCJSqlParserUtil.parse(sql));
+            PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
+
             if (StringUtil.isNotEmpty(plainSelect.getOffset())
                     || (StringUtil.isNotEmpty(plainSelect.getLimit()) && StringUtil.isNotEmpty(plainSelect.getLimit().getOffset()))) {
                 return;
@@ -356,7 +358,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             }
             if (StringUtil.isEmpty(plainSelect.getGroupBy())
                     || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList())
-                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList().getExpressions())) {
+                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList().getExpressions())
+                    || StringUtil.isEmpty(plainSelectInner.getGroupBy())) {
                 return;
             }
 
@@ -495,7 +498,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                     
         }
         PlainSelect plainSelect = (PlainSelect) selectBody;
-        if (StringUtil.isEmpty(plainSelect.getGroupBy())) {
+        PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
+        if (StringUtil.isEmpty(plainSelect.getGroupBy()) && StringUtil.isEmpty(plainSelectInner.getGroupBy())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "statistics job init error, not support non-aggregate SQL is: " + sql));
         }
