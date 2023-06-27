@@ -95,7 +95,7 @@
     },
     {
       "name": "app_name",
-      "label": "APP Name",
+      "label": "App Name",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
