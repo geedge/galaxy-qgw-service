@@ -83,7 +83,7 @@
     },
     {
       "name": "rule_id",
-      "label": "Rule ID",
+      "label": "Rule",
       "type": "long",
       "doc": {
         "constraints": {

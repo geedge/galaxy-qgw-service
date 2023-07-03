@@ -87,7 +87,7 @@
     },
     {
       "name": "rule_id",
-      "label": "Shaping Rule ID",
+      "label": "Rule ID",
       "type": "int",
       "doc": {
         "constraints": {
@@ -98,7 +98,7 @@
     },
     {
       "name": "profile_id",
-      "label": "Shaping Profile ID",
+      "label": "Profile ID",
       "type": "int",
       "doc": {
         "visibility": "enabled"
