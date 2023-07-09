@@ -12,12 +12,18 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum MetricFunction {
-    SUM("sum");
+public enum MetricFunction
+{
+    SUM("sum"),
+    AVG("avg"),
+    MIN("min"),
+    MAX("max"),
+    COUNT("count");
 
     private final String type;
 
-    public static boolean isValid(String function) {
+    public static boolean isValid(String function)
+    {
         for (MetricFunction item : values()) {
             if (item.type.equals(function)) {
                 return true;

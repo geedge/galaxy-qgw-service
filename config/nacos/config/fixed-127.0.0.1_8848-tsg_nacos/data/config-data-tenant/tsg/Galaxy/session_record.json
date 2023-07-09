@@ -620,7 +620,7 @@
       "aggregates": {
         "sessions": [
           {
-            "fn": "sum",
+            "fn": "count",
             "column": "common_sessions",
             "value": "sessions",
             "label": "Sessions",

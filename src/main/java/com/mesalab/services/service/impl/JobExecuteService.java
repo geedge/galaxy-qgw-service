@@ -222,7 +222,7 @@ public class JobExecuteService implements EnvironmentAware {
             List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
             if (!read.isEmpty()) {
                 String column = read.get(0).get("column");
-                totalMetric = "SUM(" + column + ")";
+                totalMetric = read.get(0).get("fn") + "(" + column + ")";
             }
         }
 
