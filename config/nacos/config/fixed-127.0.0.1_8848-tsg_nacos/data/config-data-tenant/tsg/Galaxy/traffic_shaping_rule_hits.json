@@ -87,7 +87,7 @@
     },
     {
       "name": "rule_id",
-      "label": "Rule ID",
+      "label": "Rule",
       "type": "int",
       "doc": {
         "constraints": {

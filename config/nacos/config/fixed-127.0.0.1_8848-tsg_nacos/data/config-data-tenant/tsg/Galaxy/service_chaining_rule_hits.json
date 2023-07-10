@@ -83,7 +83,7 @@
     },
     {
       "name": "rule_id",
-      "label": "Rule ID",
+      "label": "Rule",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
