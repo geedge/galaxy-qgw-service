@@ -96,6 +96,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             PROPERTIES.setProperty("zookeeper.recovery.retry.intervalmill", "200");
             PROPERTIES.setProperty("zookeeper.recovery.retry", "3");
             PROPERTIES.setProperty("hbase.client.retries.number", "3");
+            PROPERTIES.setProperty("hbase.client.keyvalue.maxsize","209715200");
         } catch (ClassNotFoundException e) {
             log.error("PhoenixDriver load error. ", e);
         }
