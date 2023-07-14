@@ -57,7 +57,9 @@
         "service_chaining_rule_hits",
         "service_function_status",
         "security_rule_hits",
-        "proxy_rule_hits"
+        "proxy_rule_hits",
+        "statistics_rule",
+        "statistics_object"
       ]
     },
     {

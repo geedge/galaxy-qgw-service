@@ -1,0 +1,670 @@
+{
+  "type": "record",
+  "name": "statistics_rule",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "dimensions": [
+        "client_ip",
+        "server_ip",
+        "server_fqdn",
+        "server_domain",
+        "application",
+        "fqdn_category",
+        "client_ip_object",
+        "server_ip_object"
+      ],
+      "filters": [
+        "data_center",
+        "device_group"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "granularity": 5,
+      "ingestion_delay": 15,
+      "aggregates": {
+        "incoming_bytes": [
+          {
+            "fn": "sum",
+            "column": "in_bytes",
+            "expression": "sum(in_bytes)",
+            "value": "in_bytes",
+            "label": "Incoming Bytes",
+            "unit": "bytes"
+          },
+          {
+            "fn": "avg",
+            "column": "in_bytes",
+            "expression": "(avg(in_bytes)*8)/$granularity",
+            "value": "avg_in_bits_per_sec",
+            "label": "Average Incoming bits/s",
+            "unit": "bps"
+          }
+        ],
+        "outgoing_bytes": [
+          {
+            "fn": "sum",
+            "column": "out_bytes",
+            "expression": "sum(out_bytes)",
+            "value": "out_bytes",
+            "label": "Outgoing Bytes",
+            "unit": "bytes"
+          },
+          {
+            "fn": "avg",
+            "column": "out_bytes",
+            "expression": "(avg(out_bytes)*8)/$granularity",
+            "value": "avg_out_bits_per_sec",
+            "label": "Average Outgoing bits/s",
+            "unit": "bps"
+          }
+        ],
+        "bytes": [
+          {
+            "fn": "sum",
+            "column": "bytes",
+            "expression": "sum(bytes)",
+            "value": "bytes",
+            "label": "Bytes",
+            "unit": "bytes"
+          },
+          {
+            "fn": "avg",
+            "column": "bytes",
+            "expression": "(avg(bytes)*8)/$granularity",
+            "value": "avg_bits_per_sec",
+            "label": "Average bits/s",
+            "unit": "bps"
+          }
+        ],
+        "new_c2s_flows": [
+          {
+            "fn": "sum",
+            "column": "new_c2s_flows",
+            "expression": "sum(new_c2s_flows)",
+            "value": "new_c2s_flows",
+            "label": "New C2S Flows",
+            "unit": "flows"
+          },
+          {
+            "fn": "avg",
+            "column": "new_c2s_flows",
+            "expression": "avg(new_c2s_flows)/$granularity",
+            "value": "avg_new_c2s_flows_per_sec",
+            "label": "Average New C2S flows/s",
+            "unit": "fps"
+          }
+        ],
+        "new_s2c_flows": [
+          {
+            "fn": "sum",
+            "column": "new_s2c_flows",
+            "expression": "sum(new_s2c_flows)",
+            "value": "new_s2c_flows",
+            "label": "New S2C Flows",
+            "unit": "flows"
+          },
+          {
+            "fn": "avg",
+            "column": "new_s2c_flows",
+            "expression": "avg(new_s2c_flows)/$granularity",
+            "value": "avg_new_s2c_flows_per_sec",
+            "label": "Average New S2C flows/s",
+            "unit": "fps"
+          }
+        ],
+        "new_incoming_sessions": [
+          {
+            "fn": "sum",
+            "column": "new_in_sessions",
+            "expression": "sum(new_in_sessions)",
+            "value": "new_in_sessions",
+            "label": "New Incoming Sessions",
+            "unit": "sessions"
+          },
+          {
+            "fn": "avg",
+            "column": "new_in_sessions",
+            "expression": "avg(new_in_sessions)/$granularity",
+            "value": "avg_new_in_sessions_per_sec",
+            "label": "Average New Incoming sessions/s",
+            "unit": "sps"
+          }
+        ],
+        "new_outgoing_sessions": [
+          {
+            "fn": "sum",
+            "column": "new_out_sessions",
+            "expression": "sum(new_out_sessions)",
+            "value": "new_out_sessions",
+            "label": "New Outgoing Sessions",
+            "unit": "sessions"
+          },
+          {
+            "fn": "avg",
+            "column": "new_out_sessions",
+            "expression": "avg(new_out_sessions)/$granularity",
+            "value": "avg_new_out_sessions_per_sec",
+            "label": "Average New Outgoing sessions/s",
+            "unit": "sps"
+          }
+        ],
+        "sessions": [
+          {
+            "fn": "sum",
+            "column": "sessions",
+            "expression": "sum(sessions)",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          },
+          {
+            "fn": "avg",
+            "column": "sessions",
+            "expression": "avg(sessions)/$granularity",
+            "value": "avg_sessions_per_sec",
+            "label": "Average sessions/s",
+            "unit": "sps"
+          }
+        ],
+        "new_unestablished_sessions": [
+          {
+            "fn": "sum",
+            "column": "new_unestablished_sessions",
+            "expression": "sum(new_unestablished_sessions)",
+            "value": "new_unestablished_sessions",
+            "label": "New Unestablished Sessions",
+            "unit": "sessions"
+          },
+          {
+            "fn": "avg",
+            "column": "new_unestablished_sessions",
+            "expression": "avg(new_unestablished_sessions)/$granularity",
+            "value": "avg_new_unestablished_sessions_per_sec",
+            "label": "Average New Unestablished sessions/s",
+            "unit": "sps"
+          }
+        ],
+        "syn_packets": [
+          {
+            "fn": "sum",
+            "column": "syn_pkts",
+            "expression": "sum(syn_pkts)",
+            "value": "syn_pkts",
+            "label": "SYN Packets",
+            "unit": "packets"
+          },
+          {
+            "fn": "avg",
+            "column": "syn_pkts",
+            "expression": "avg(syn_pkts)/$granularity",
+            "value": "avg_syn_pkts_per_sec",
+            "label": "Average SYN packets/s",
+            "unit": "pps"
+          }
+        ],
+        "active_sessions": [
+          {
+            "fn": "APPROX_COUNT_DISTINCT_HLLD",
+            "column": "session_identifier_sketch",
+            "expression": "APPROX_COUNT_DISTINCT_HLLD(session_identifier_sketch)",
+            "value": "active_sessions",
+            "label": "Active Sessions",
+            "unit": "sessions"
+          }
+        ],
+        "unique_client_ips": [
+          {
+            "fn": "APPROX_COUNT_DISTINCT_HLLD",
+            "column": "client_ip_sketch",
+            "expression": "APPROX_COUNT_DISTINCT_HLLD(client_ip_sketch)",
+            "value": "unique_client_ips",
+            "label": "Unique Client IPs",
+            "unit": "unique_ip"
+          }
+        ],
+        "unique_server_ips": [
+          {
+            "fn": "APPROX_COUNT_DISTINCT_HLLD",
+            "column": "server_ip_sketch",
+            "expression": "APPROX_COUNT_DISTINCT_HLLD(server_ip_sketch)",
+            "value": "unique_server_ips",
+            "label": "Unique Server IPs",
+            "unit": "unique_ip"
+          }
+        ],
+        "tcp_incoming_latency": [
+          {
+            "fn": "APPROX_QUANTILE_HDR",
+            "rank": 0.5,
+            "column": "in_latency_ms_sketch",
+            "expression": "APPROX_QUANTILE_HDR(in_latency_ms_sketch,0.5)",
+            "value": "p50th_tcp_in_latency_ms",
+            "label": "Median TCP Incoming Latency (ms)",
+            "unit": "latency_ms"
+          },
+          {
+            "fn": "APPROX_QUANTILE_HDR",
+            "rank": 0.98,
+            "column": "in_latency_ms_sketch",
+            "expression": "APPROX_QUANTILE_HDR(in_latency_ms_sketch,0.98)",
+            "value": "p98th_tcp_in_latency_ms",
+            "label": "98th TCP Incoming Latency (ms)",
+            "unit": "latency_ms"
+          },
+          {
+            "fn": "APPROX_QUANTILE_HDR",
+            "rank": 0.99,
+            "column": "in_latency_ms_sketch",
+            "expression": "APPROX_QUANTILE_HDR(in_latency_ms_sketch,0.99)",
+            "value": "p99th_tcp_in_latency_ms",
+            "label": "99th TCP Incoming Latency (ms)",
+            "unit": "latency_ms"
+          },
+          {
+            "post_fn": "HDR_GET_PERCENTILES",
+            "fn": "HDR_HISTOGRAM",
+            "column": "in_latency_ms_sketch",
+            "expression": "HDR_GET_PERCENTILES(HDR_HISTOGRAM(in_latency_ms_sketch))",
+            "value": "histogram_tcp_in_latency_ms",
+            "label": "Histogram TCP Incoming Latency (ms)",
+            "unit": "histogram"
+          }
+        ],
+        "tcp_outgoing_latency": [
+          {
+            "fn": "APPROX_QUANTILE_HDR",
+            "rank": 0.5,
+            "column": "out_latency_ms_sketch",
+            "expression": "APPROX_QUANTILE_HDR(out_latency_ms_sketch,0.5)",
+            "value": "p50th_tcp_out_latency_ms",
+            "label": "Median TCP Outgoing Latency (ms)",
+            "unit": "latency_ms"
+          },
+          {
+            "fn": "APPROX_QUANTILE_HDR",
+            "rank": 0.98,
+            "column": "out_latency_ms_sketch",
+            "expression": "APPROX_QUANTILE_HDR(out_latency_ms_sketch,0.98)",
+            "value": "p98th_tcp_out_latency_ms",
+            "label": "98th TCP Outgoing Latency (ms)",
+            "unit": "latency_ms"
+          },
+          {
+            "fn": "APPROX_QUANTILE_HDR",
+            "rank": 0.99,
+            "column": "out_latency_ms_sketch",
+            "expression": "APPROX_QUANTILE_HDR(out_latency_ms_sketch,0.99)",
+            "value": "p99th_tcp_out_latency_ms",
+            "label": "99th TCP Outgoing Latency (ms)",
+            "unit": "latency_ms"
+          },
+          {
+            "post_fn": "HDR_GET_PERCENTILES",
+            "fn": "HDR_HISTOGRAM",
+            "column": "out_latency_ms_sketch",
+            "expression": "HDR_GET_PERCENTILES(HDR_HISTOGRAM(out_latency_ms_sketch))",
+            "value": "histogram_tcp_out_latency_ms",
+            "label": "Histogram TCP Outgoing Latency (ms)",
+            "unit": "histogram"
+          }
+        ],
+        "tcp_latency": [
+          {
+            "fn": "APPROX_QUANTILE_HDR",
+            "rank": 0.5,
+            "column": "latency_ms_sketch",
+            "expression": "APPROX_QUANTILE_HDR(latency_ms_sketch,0.5)",
+            "value": "p50th_tcp_latency_ms",
+            "label": "Median TCP Latency (ms)",
+            "unit": "latency_ms"
+          },
+          {
+            "fn": "APPROX_QUANTILE_HDR",
+            "rank": 0.98,
+            "column": "latency_ms_sketch",
+            "expression": "APPROX_QUANTILE_HDR(latency_ms_sketch,0.98)",
+            "value": "p98th_tcp_latency_ms",
+            "label": "98th TCP Latency (ms)",
+            "unit": "latency_ms"
+          },
+          {
+            "fn": "APPROX_QUANTILE_HDR",
+            "rank": 0.99,
+            "column": "latency_ms_sketch",
+            "expression": "APPROX_QUANTILE_HDR(latency_ms_sketch,0.99)",
+            "value": "p99th_tcp_latency_ms",
+            "label": "99th TCP Latency (ms)",
+            "unit": "latency_ms"
+          },
+          {
+            "post_fn": "HDR_GET_PERCENTILES",
+            "fn": "HDR_HISTOGRAM",
+            "column": "latency_ms_sketch",
+            "expression": "HDR_GET_PERCENTILES(HDR_HISTOGRAM(latency_ms_sketch))",
+            "value": "histogram_tcp_latency_ms",
+            "label": "Histogram TCP Latency (ms)",
+            "unit": "histogram"
+          }
+        ]
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "rule_id",
+      "label": "Rule",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "template_id",
+      "label": "Template ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "chart_id",
+      "label": "Chart ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "version",
+      "label": "Version",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_ip_object",
+      "label": "Client IP Object",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_ip_object",
+      "label": "Server IP Object",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "fqdn_category",
+      "label": "FQDN Category",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_ip",
+      "label": "Client IP",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_ip",
+      "label": "Server IP",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_fqdn",
+      "label": "Server FQDN",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_domain",
+      "label": "Server Domain",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "application",
+      "label": "Application",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_c2s_flows",
+      "label": "New C2S Flows",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_s2c_flows",
+      "label": "New S2C Flows",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_in_sessions",
+      "label": "New Incoming Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_out_sessions",
+      "label": "New Outgoing Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_unestablished_sessions",
+      "label": "New Unestablished Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "syn_pkts",
+      "label": "SYN Packets",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "session_identifier_sketch",
+      "label": "Sessioin Identifier Sketch",
+      "doc": {
+        "constraints": {
+          "type": "HLLDSketchMerge"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_ip_sketch",
+      "label": "Client IP Sketch",
+      "doc": {
+        "constraints": {
+          "type": "HLLDSketchMerge"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_ip_sketch",
+      "label": "Server IP Sketch",
+      "doc": {
+        "constraints": {
+          "type": "HLLDSketchMerge"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "in_latency_ms_sketch",
+      "label": "Incoming Latency(ms) Sketch",
+      "doc": {
+        "constraints": {
+          "type": "HdrHistogramSketchMerge"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "out_latency_ms_sketch",
+      "label": "Outgoing Latency(ms) Sketch",
+      "doc": {
+        "constraints": {
+          "type": "HdrHistogramSketchMerge"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "latency_ms_sketch",
+      "label": "Latency(ms) Sketch",
+      "doc": {
+        "constraints": {
+          "type": "HdrHistogramSketchMerge"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    }
+  ]
+}

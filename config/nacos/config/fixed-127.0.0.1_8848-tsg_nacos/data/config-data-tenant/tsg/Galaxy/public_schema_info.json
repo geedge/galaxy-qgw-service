@@ -386,6 +386,38 @@
         "label": "Bitwise AND",
         "function": "bitAnd(expr, value)"
       }
+    ],
+    "sketch": [
+      {
+        "name": "APPROX_COUNT_DISTINCT_HLLD",
+        "label": "APPROX_COUNT_DISTINCT_HLLD",
+        "function": "APPROX_COUNT_DISTINCT_HLLD(expr, precision,round)"
+      },
+      {
+        "name": "HLLD",
+        "label": "HLLD",
+        "function": "HLLD(expr, precision)"
+      },
+      {
+        "name": "APPROX_QUANTILE_HDR",
+        "label": "APPROX_QUANTILE_HDR",
+        "function": "APPROX_QUANTILE_HDR(expr,probability,numberOfSignificantValueDigits)"
+      },
+      {
+        "name": "HDR_HISTOGRAM",
+        "label": "HDR_HISTOGRAM",
+        "function": "HDR_HISTOGRAM(expr, numberOfSignificantValueDigits)"
+      },
+      {
+        "name": "HDR_GET_QUANTILES",
+        "label": "HDR_GET_QUANTILES",
+        "function": "HDR_GET_QUANTILES(expr,probability0, probability1, ...)"
+      },
+      {
+        "name": "HDR_GET_PERCENTILES",
+        "label": "HDR_GET_PERCENTILES",
+        "function": "HDR_GET_QUANTILES(expr,percentileTicksPerHalfDistance)"
+      }
     ]
   },
   "schema_query": {
