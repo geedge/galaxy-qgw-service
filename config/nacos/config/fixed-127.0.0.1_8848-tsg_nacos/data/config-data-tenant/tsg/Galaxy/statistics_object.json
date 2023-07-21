@@ -17,13 +17,14 @@
       }
     },
     "measurements": {
-      "granularity": 5,
+      "granularity": 15,
       "ingestion_delay": 15,
       "aggregates": {
         "incoming_bytes": [
           {
             "fn": "sum",
             "column": "in_bytes",
+            "metric_type": "counter",
             "expression": "sum(in_bytes)",
             "value": "in_bytes",
             "label": "Incoming Bytes",
@@ -32,6 +33,7 @@
           {
             "fn": "avg",
             "column": "in_bytes",
+            "metric_type": "gauge",
             "expression": "(avg(in_bytes)*8)/$granularity",
             "value": "avg_in_bits_per_sec",
             "label": "Average Incoming bits/s",
@@ -42,6 +44,7 @@
           {
             "fn": "sum",
             "column": "out_bytes",
+            "metric_type": "counter",
             "expression": "sum(out_bytes)",
             "value": "out_bytes",
             "label": "Outgoing Bytes",
@@ -50,6 +53,7 @@
           {
             "fn": "avg",
             "column": "out_bytes",
+            "metric_type": "gauge",
             "expression": "(avg(out_bytes)*8)/$granularity",
             "value": "avg_out_bits_per_sec",
             "label": "Average Outgoing bits/s",
@@ -60,6 +64,7 @@
           {
             "fn": "sum",
             "column": "bytes",
+            "metric_type": "counter",
             "expression": "sum(bytes)",
             "value": "bytes",
             "label": "Bytes",
@@ -68,6 +73,7 @@
           {
             "fn": "avg",
             "column": "bytes",
+            "metric_type": "gauge",
             "expression": "(avg(bytes)*8)/$granularity",
             "value": "avg_bits_per_sec",
             "label": "Average bits/s",
@@ -78,6 +84,7 @@
           {
             "fn": "sum",
             "column": "new_in_sessions",
+            "metric_type": "counter",
             "expression": "sum(new_in_sessions)",
             "value": "new_in_sessions",
             "label": "New Incoming Sessions",
@@ -86,6 +93,7 @@
           {
             "fn": "avg",
             "column": "new_in_sessions",
+            "metric_type": "gauge",
             "expression": "avg(new_in_sessions)/$granularity",
             "value": "avg_new_in_sessions_per_sec",
             "label": "Average New Incoming sessions/s",
@@ -96,6 +104,7 @@
           {
             "fn": "sum",
             "column": "new_out_sessions",
+            "metric_type": "counter",
             "expression": "sum(new_out_sessions)",
             "value": "new_out_sessions",
             "label": "New Outgoing Sessions",
@@ -104,6 +113,7 @@
           {
             "fn": "avg",
             "column": "new_out_sessions",
+            "metric_type": "gauge",
             "expression": "avg(new_out_sessions)/$granularity",
             "value": "avg_new_out_sessions_per_sec",
             "label": "Average New Outgoing sessions/s",
@@ -114,6 +124,7 @@
           {
             "fn": "sum",
             "column": "sessions",
+            "metric_type": "counter",
             "expression": "sum(sessions)",
             "value": "sessions",
             "label": "Sessions",
@@ -122,6 +133,7 @@
           {
             "fn": "avg",
             "column": "sessions",
+            "metric_type": "gauge",
             "expression": "avg(sessions)/$granularity",
             "value": "avg_sessions_per_sec",
             "label": "Average sessions/s",
