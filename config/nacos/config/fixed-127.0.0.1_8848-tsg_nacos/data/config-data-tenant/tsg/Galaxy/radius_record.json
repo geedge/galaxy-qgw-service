@@ -196,8 +196,8 @@
           "common_ingestion_time",
           "common_entrance_id",
           "common_device_id",
-          "common_egress_link_id",
-          "common_ingress_link_id",
+          "common_out_link_id",
+          "common_in_link_id",
           "common_isp",
           "common_data_center",
           "common_device_group",
@@ -942,8 +942,8 @@
       "type": "string"
     },
     {
-      "name": "common_egress_link_id",
-      "label": "Egress Link ID",
+      "name": "common_out_link_id",
+      "label": "Outgoing Link ID",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -951,8 +951,8 @@
       "type": "int"
     },
     {
-      "name": "common_ingress_link_id",
-      "label": "Ingress Link ID",
+      "name": "common_in_link_id",
+      "label": "Incoming Link ID",
       "doc": {
         "visibility": "hidden",
         "ttl": null
