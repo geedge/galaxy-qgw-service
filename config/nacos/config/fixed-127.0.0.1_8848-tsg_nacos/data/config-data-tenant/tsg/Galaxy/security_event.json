@@ -724,7 +724,7 @@
     },
     {
       "name": "common_policy_id",
-      "label": "Policy ID",
+      "label": "Rule ID",
       "doc": {
         "visibility": "enabled",
         "ttl": null
