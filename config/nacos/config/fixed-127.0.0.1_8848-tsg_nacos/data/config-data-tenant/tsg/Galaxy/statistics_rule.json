@@ -294,19 +294,19 @@
             "metric_type": "gauge",
             "expression": "APPROX_QUANTILE_HDR(in_latency_ms_sketch,0.5)",
             "sub_expression": "HDR_HISTOGRAM(in_latency_ms_sketch)",
-            "value": "p50th_tcp_in_latency_ms",
+            "value": "median_tcp_in_latency_ms",
             "label": "Median TCP Incoming Latency (ms)",
             "unit": "latency_ms"
           },
           {
             "fn": "APPROX_QUANTILE_HDR",
-            "rank": 0.98,
+            "rank": 0.95,
             "column": "in_latency_ms_sketch",
             "metric_type": "gauge",
-            "expression": "APPROX_QUANTILE_HDR(in_latency_ms_sketch,0.98)",
+            "expression": "APPROX_QUANTILE_HDR(in_latency_ms_sketch,0.95)",
             "sub_expression": "HDR_HISTOGRAM(in_latency_ms_sketch)",
-            "value": "p98th_tcp_in_latency_ms",
-            "label": "98th TCP Incoming Latency (ms)",
+            "value": "p95th_tcp_in_latency_ms",
+            "label": "95th TCP Incoming Latency (ms)",
             "unit": "latency_ms"
           },
           {
@@ -340,19 +340,19 @@
             "metric_type": "gauge",
             "expression": "APPROX_QUANTILE_HDR(out_latency_ms_sketch,0.5)",
             "sub_expression": "HDR_HISTOGRAM(out_latency_ms_sketch)",
-            "value": "p50th_tcp_out_latency_ms",
+            "value": "median_tcp_out_latency_ms",
             "label": "Median TCP Outgoing Latency (ms)",
             "unit": "latency_ms"
           },
           {
             "fn": "APPROX_QUANTILE_HDR",
-            "rank": 0.98,
+            "rank": 0.95,
             "column": "out_latency_ms_sketch",
             "metric_type": "gauge",
-            "expression": "APPROX_QUANTILE_HDR(out_latency_ms_sketch,0.98)",
+            "expression": "APPROX_QUANTILE_HDR(out_latency_ms_sketch,0.95)",
             "sub_expression": "HDR_HISTOGRAM(out_latency_ms_sketch)",
-            "value": "p98th_tcp_out_latency_ms",
-            "label": "98th TCP Outgoing Latency (ms)",
+            "value": "p95th_tcp_out_latency_ms",
+            "label": "95th TCP Outgoing Latency (ms)",
             "unit": "latency_ms"
           },
           {
@@ -386,19 +386,19 @@
             "metric_type": "gauge",
             "expression": "APPROX_QUANTILE_HDR(latency_ms_sketch,0.5)",
             "sub_expression": "HDR_HISTOGRAM(latency_ms_sketch)",
-            "value": "p50th_tcp_latency_ms",
+            "value": "median_tcp_latency_ms",
             "label": "Median TCP Latency (ms)",
             "unit": "latency_ms"
           },
           {
             "fn": "APPROX_QUANTILE_HDR",
-            "rank": 0.98,
+            "rank": 0.95,
             "column": "latency_ms_sketch",
             "metric_type": "gauge",
-            "expression": "APPROX_QUANTILE_HDR(latency_ms_sketch,0.98)",
+            "expression": "APPROX_QUANTILE_HDR(latency_ms_sketch,0.95)",
             "sub_expression": "HDR_HISTOGRAM(latency_ms_sketch)",
-            "value": "p98th_tcp_latency_ms",
-            "label": "98th TCP Latency (ms)",
+            "value": "p95th_tcp_latency_ms",
+            "label": "95th TCP Latency (ms)",
             "unit": "latency_ms"
           },
           {
