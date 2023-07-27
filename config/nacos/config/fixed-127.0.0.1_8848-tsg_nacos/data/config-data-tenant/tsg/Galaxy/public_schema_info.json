@@ -1,4 +1,251 @@
 {
+  "functions": {
+    "aggregation": [
+      {
+        "name": "COUNT",
+        "label": "COUNT",
+        "function": "count(expr)"
+      },
+      {
+        "name": "COUNT_DISTINCT",
+        "label": "COUNT_DISTINCT",
+        "function": "count(distinct expr)"
+      },
+      {
+        "name": "AVG",
+        "label": "AVG",
+        "function": "avg(expr)"
+      },
+      {
+        "name": "SUM",
+        "label": "SUM",
+        "function": "sum(expr)"
+      },
+      {
+        "name": "MAX",
+        "label": "MAX",
+        "function": "max(expr)"
+      },
+      {
+        "name": "MIN",
+        "label": "MIN",
+        "function": "min(expr)"
+      },
+      {
+        "name": "MEDIAN",
+        "label": "MEDIAN",
+        "function": "MEDIAN(expr)"
+      },
+      {
+        "name": "QUANTILE",
+        "label": "QUANTILE",
+        "function": "QUANTILE(expr,level)"
+      },
+      {
+        "name": "TIME_FLOOR_WITH_FILL",
+        "label": "TIME_FLOOR_WITH_FILL",
+        "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
+      }
+    ],
+    "date": [
+      {
+        "name": "UNIX_TIMESTAMP",
+        "label": "UNIX_TIMESTAMP",
+        "function": "UNIX_TIMESTAMP(expr)"
+      },
+      {
+        "name": "FROM_UNIXTIME",
+        "label": "FROM_UNIXTIME",
+        "function": "FROM_UNIXTIME(expr)"
+      },
+      {
+        "name": "DATE_FORMAT",
+        "label": "DATE_FORMAT",
+        "function": "DATE_FORMAT(expr,format)"
+      },
+      {
+        "name": "CONVERT_TZ",
+        "label": "CONVERT_TZ",
+        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
+      }
+    ],
+    "operator": [
+      {
+        "name": "=",
+        "label": "=",
+        "function": "expr = value"
+      },
+      {
+        "name": "!=",
+        "label": "!=",
+        "function": "expr != value"
+      },
+      {
+        "name": ">",
+        "label": ">",
+        "function": "expr > value"
+      },
+      {
+        "name": "<",
+        "label": "<",
+        "function": "expr < value"
+      },
+      {
+        "name": ">=",
+        "label": ">=",
+        "function": "expr >= value"
+      },
+      {
+        "name": "<=",
+        "label": "<=",
+        "function": "expr <= value"
+      },
+      {
+        "name": "has",
+        "label": "HAS",
+        "function": "has(expr, value)"
+      },
+      {
+        "name": "in",
+        "label": "IN",
+        "function": "expr in (values)"
+      },
+      {
+        "name": "not in",
+        "label": "NOT IN",
+        "function": "expr not in (values)"
+      },
+      {
+        "name": "like",
+        "label": "LIKE",
+        "function": "expr like value"
+      },
+      {
+        "name": "not like",
+        "label": "NOT LIKE",
+        "function": "expr not like value"
+      },
+      {
+        "name": "notEmpty",
+        "label": "NOT EMPTY",
+        "function": "notEmpty(expr)"
+      },
+      {
+        "name": "empty",
+        "label": "EMPTY",
+        "function": "empty(expr)"
+      },
+      {
+        "name": "bitAnd",
+        "label": "Bitwise AND",
+        "function": "bitAnd(expr, value)"
+      }
+    ],
+    "sketch": [
+      {
+        "name": "APPROX_COUNT_DISTINCT_HLLD",
+        "label": "APPROX_COUNT_DISTINCT_HLLD",
+        "function": "APPROX_COUNT_DISTINCT_HLLD(expr, precision,round)"
+      },
+      {
+        "name": "HLLD",
+        "label": "HLLD",
+        "function": "HLLD(expr, precision)"
+      },
+      {
+        "name": "APPROX_QUANTILE_HDR",
+        "label": "APPROX_QUANTILE_HDR",
+        "function": "APPROX_QUANTILE_HDR(expr,probability,numberOfSignificantValueDigits)"
+      },
+      {
+        "name": "HDR_HISTOGRAM",
+        "label": "HDR_HISTOGRAM",
+        "function": "HDR_HISTOGRAM(expr, numberOfSignificantValueDigits)"
+      },
+      {
+        "name": "HDR_GET_QUANTILES",
+        "label": "HDR_GET_QUANTILES",
+        "function": "HDR_GET_QUANTILES(expr,probability0, probability1, ...)"
+      },
+      {
+        "name": "HDR_GET_PERCENTILES",
+        "label": "HDR_GET_PERCENTILES",
+        "function": "HDR_GET_QUANTILES(expr,percentileTicksPerHalfDistance)"
+      }
+    ]
+  },
+  "units": {
+    "bytes": {
+      "label": "Bytes",
+      "abbr": "B"
+    },
+    "bits": {
+      "label": "Bits",
+      "abbr": "b"
+    },
+    "packets": {
+      "label": "Packets",
+      "abbr": "Pkts"
+    },
+    "flows": {
+      "label": "Flows",
+      "abbr": "Flows"
+    },
+    "sessions": {
+      "label": "Sessions",
+      "abbr": "Sessions"
+    },
+    "hit_count": {
+      "label": "Hit Count",
+      "abbr": "Hit Count"
+    },
+    "bps": {
+      "label": "bits/s",
+      "abbr": "bps",
+      "desc": "bit per second"
+    },
+    "Bps": {
+      "label": "Bytes/s",
+      "abbr": "Bps",
+      "desc": "Byte per second"
+    },
+    "pps": {
+      "label": "Packets/s",
+      "abbr": "pps",
+      "desc": "Packet per second"
+    },
+    "fps": {
+      "label": "Flows/s",
+      "abbr": "fps",
+      "desc": "Flow per second"
+    },
+    "sps": {
+      "label": "Sessions/s",
+      "abbr": "Sessions/s",
+      "desc": "Session per second"
+    },
+    "hps": {
+      "label": "Hits/s",
+      "abbr": "Hits/s",
+      "desc": "Hit per second"
+    },
+    "ms": {
+      "label": "millisecond",
+      "abbr": "ms"
+    },
+    "s": {
+      "label": "second",
+      "abbr": "s"
+    },
+    "unique_ip": {
+      "label": "Unique IPs",
+      "abbr": "Unique IPs"
+    },
+    "percentage": {
+      "label": "%",
+      "abbr": "%"
+    }
+  },
   "radius_onff_log": {
     "index_key": {
       "log_id": [
@@ -244,181 +491,6 @@
         "common_log_id"
       ]
     }
-  },
-  "functions": {
-    "aggregation": [
-      {
-        "name": "COUNT",
-        "label": "COUNT",
-        "function": "count(expr)"
-      },
-      {
-        "name": "COUNT_DISTINCT",
-        "label": "COUNT_DISTINCT",
-        "function": "count(distinct expr)"
-      },
-      {
-        "name": "AVG",
-        "label": "AVG",
-        "function": "avg(expr)"
-      },
-      {
-        "name": "SUM",
-        "label": "SUM",
-        "function": "sum(expr)"
-      },
-      {
-        "name": "MAX",
-        "label": "MAX",
-        "function": "max(expr)"
-      },
-      {
-        "name": "MIN",
-        "label": "MIN",
-        "function": "min(expr)"
-      },
-      {
-        "name": "MEDIAN",
-        "label": "MEDIAN",
-        "function": "MEDIAN(expr)"
-      },
-      {
-        "name": "QUANTILE",
-        "label": "QUANTILE",
-        "function": "QUANTILE(expr,level)"
-      },
-      {
-        "name": "TIME_FLOOR_WITH_FILL",
-        "label": "TIME_FLOOR_WITH_FILL",
-        "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
-      }
-    ],
-    "date": [
-      {
-        "name": "UNIX_TIMESTAMP",
-        "label": "UNIX_TIMESTAMP",
-        "function": "UNIX_TIMESTAMP(expr)"
-      },
-      {
-        "name": "FROM_UNIXTIME",
-        "label": "FROM_UNIXTIME",
-        "function": "FROM_UNIXTIME(expr)"
-      },
-      {
-        "name": "DATE_FORMAT",
-        "label": "DATE_FORMAT",
-        "function": "DATE_FORMAT(expr,format)"
-      },
-      {
-        "name": "CONVERT_TZ",
-        "label": "CONVERT_TZ",
-        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
-      }
-    ],
-    "operator": [
-      {
-        "name": "=",
-        "label": "=",
-        "function": "expr = value"
-      },
-      {
-        "name": "!=",
-        "label": "!=",
-        "function": "expr != value"
-      },
-      {
-        "name": ">",
-        "label": ">",
-        "function": "expr > value"
-      },
-      {
-        "name": "<",
-        "label": "<",
-        "function": "expr < value"
-      },
-      {
-        "name": ">=",
-        "label": ">=",
-        "function": "expr >= value"
-      },
-      {
-        "name": "<=",
-        "label": "<=",
-        "function": "expr <= value"
-      },
-      {
-        "name": "has",
-        "label": "HAS",
-        "function": "has(expr, value)"
-      },
-      {
-        "name": "in",
-        "label": "IN",
-        "function": "expr in (values)"
-      },
-      {
-        "name": "not in",
-        "label": "NOT IN",
-        "function": "expr not in (values)"
-      },
-      {
-        "name": "like",
-        "label": "LIKE",
-        "function": "expr like value"
-      },
-      {
-        "name": "not like",
-        "label": "NOT LIKE",
-        "function": "expr not like value"
-      },
-      {
-        "name": "notEmpty",
-        "label": "NOT EMPTY",
-        "function": "notEmpty(expr)"
-      },
-      {
-        "name": "empty",
-        "label": "EMPTY",
-        "function": "empty(expr)"
-      },
-      {
-        "name": "bitAnd",
-        "label": "Bitwise AND",
-        "function": "bitAnd(expr, value)"
-      }
-    ],
-    "sketch": [
-      {
-        "name": "APPROX_COUNT_DISTINCT_HLLD",
-        "label": "APPROX_COUNT_DISTINCT_HLLD",
-        "function": "APPROX_COUNT_DISTINCT_HLLD(expr, precision,round)"
-      },
-      {
-        "name": "HLLD",
-        "label": "HLLD",
-        "function": "HLLD(expr, precision)"
-      },
-      {
-        "name": "APPROX_QUANTILE_HDR",
-        "label": "APPROX_QUANTILE_HDR",
-        "function": "APPROX_QUANTILE_HDR(expr,probability,numberOfSignificantValueDigits)"
-      },
-      {
-        "name": "HDR_HISTOGRAM",
-        "label": "HDR_HISTOGRAM",
-        "function": "HDR_HISTOGRAM(expr, numberOfSignificantValueDigits)"
-      },
-      {
-        "name": "HDR_GET_QUANTILES",
-        "label": "HDR_GET_QUANTILES",
-        "function": "HDR_GET_QUANTILES(expr,probability0, probability1, ...)"
-      },
-      {
-        "name": "HDR_GET_PERCENTILES",
-        "label": "HDR_GET_PERCENTILES",
-        "function": "HDR_GET_QUANTILES(expr,percentileTicksPerHalfDistance)"
-      }
-    ]
   },
   "schema_query": {
     "references": {
