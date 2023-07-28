@@ -14,7 +14,10 @@
     },
     "measurements": {
       "granularity": 1,
-      "ingestion_delay": 5
+      "ingestion_delay": 5,
+      "units": {
+        "$ref": "public_schema_info.json#/units"
+      }
     }
   },
   "fields": [

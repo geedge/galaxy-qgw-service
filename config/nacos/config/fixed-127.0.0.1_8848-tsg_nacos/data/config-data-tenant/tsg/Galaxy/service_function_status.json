@@ -11,6 +11,11 @@
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
+    },
+    "measurements": {
+      "units": {
+        "$ref": "public_schema_info.json#/units"
+      }
     }
   },
   "fields": [
