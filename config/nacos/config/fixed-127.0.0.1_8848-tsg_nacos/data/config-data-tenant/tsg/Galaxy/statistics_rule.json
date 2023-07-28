@@ -296,7 +296,7 @@
             "sub_expression": "HDR_HISTOGRAM(in_latency_ms_sketch)",
             "value": "median_tcp_in_latency_ms",
             "label": "Median TCP Incoming Latency (ms)",
-            "unit": "latency_ms"
+            "unit": "ms"
           },
           {
             "fn": "APPROX_QUANTILE_HDR",
@@ -307,7 +307,7 @@
             "sub_expression": "HDR_HISTOGRAM(in_latency_ms_sketch)",
             "value": "p95th_tcp_in_latency_ms",
             "label": "95th TCP Incoming Latency (ms)",
-            "unit": "latency_ms"
+            "unit": "ms"
           },
           {
             "fn": "APPROX_QUANTILE_HDR",
@@ -318,7 +318,7 @@
             "sub_expression": "HDR_HISTOGRAM(in_latency_ms_sketch)",
             "value": "p99th_tcp_in_latency_ms",
             "label": "99th TCP Incoming Latency (ms)",
-            "unit": "latency_ms"
+            "unit": "ms"
           },
           {
             "post_fn": "HDR_GET_PERCENTILES",
@@ -328,8 +328,7 @@
             "expression": "HDR_GET_PERCENTILES(HDR_HISTOGRAM(in_latency_ms_sketch))",
             "sub_expression": "HDR_HISTOGRAM(in_latency_ms_sketch)",
             "value": "histogram_tcp_in_latency_ms",
-            "label": "Histogram TCP Incoming Latency (ms)",
-            "unit": "histogram"
+            "label": "Histogram TCP Incoming Latency (ms)"
           }
         ],
         "tcp_outgoing_latency": [
@@ -342,7 +341,7 @@
             "sub_expression": "HDR_HISTOGRAM(out_latency_ms_sketch)",
             "value": "median_tcp_out_latency_ms",
             "label": "Median TCP Outgoing Latency (ms)",
-            "unit": "latency_ms"
+            "unit": "ms"
           },
           {
             "fn": "APPROX_QUANTILE_HDR",
@@ -353,7 +352,7 @@
             "sub_expression": "HDR_HISTOGRAM(out_latency_ms_sketch)",
             "value": "p95th_tcp_out_latency_ms",
             "label": "95th TCP Outgoing Latency (ms)",
-            "unit": "latency_ms"
+            "unit": "ms"
           },
           {
             "fn": "APPROX_QUANTILE_HDR",
@@ -364,7 +363,7 @@
             "sub_expression": "HDR_HISTOGRAM(out_latency_ms_sketch)",
             "value": "p99th_tcp_out_latency_ms",
             "label": "99th TCP Outgoing Latency (ms)",
-            "unit": "latency_ms"
+            "unit": "ms"
           },
           {
             "post_fn": "HDR_GET_PERCENTILES",
@@ -374,8 +373,7 @@
             "expression": "HDR_GET_PERCENTILES(HDR_HISTOGRAM(out_latency_ms_sketch))",
             "sub_expression": "HDR_HISTOGRAM(out_latency_ms_sketch)",
             "value": "histogram_tcp_out_latency_ms",
-            "label": "Histogram TCP Outgoing Latency (ms)",
-            "unit": "histogram"
+            "label": "Histogram TCP Outgoing Latency (ms)"
           }
         ],
         "tcp_latency": [
@@ -388,7 +386,7 @@
             "sub_expression": "HDR_HISTOGRAM(latency_ms_sketch)",
             "value": "median_tcp_latency_ms",
             "label": "Median TCP Latency (ms)",
-            "unit": "latency_ms"
+            "unit": "ms"
           },
           {
             "fn": "APPROX_QUANTILE_HDR",
@@ -399,7 +397,7 @@
             "sub_expression": "HDR_HISTOGRAM(latency_ms_sketch)",
             "value": "p95th_tcp_latency_ms",
             "label": "95th TCP Latency (ms)",
-            "unit": "latency_ms"
+            "unit": "ms"
           },
           {
             "fn": "APPROX_QUANTILE_HDR",
@@ -410,7 +408,7 @@
             "sub_expression": "HDR_HISTOGRAM(latency_ms_sketch)",
             "value": "p99th_tcp_latency_ms",
             "label": "99th TCP Latency (ms)",
-            "unit": "latency_ms"
+            "unit": "ms"
           },
           {
             "post_fn": "HDR_GET_PERCENTILES",
@@ -420,8 +418,7 @@
             "expression": "HDR_GET_PERCENTILES(HDR_HISTOGRAM(latency_ms_sketch))",
             "sub_expression": "HDR_HISTOGRAM(latency_ms_sketch)",
             "value": "histogram_tcp_latency_ms",
-            "label": "Histogram TCP Latency (ms)",
-            "unit": "histogram"
+            "label": "Histogram TCP Latency (ms)"
           }
         ]
       }
