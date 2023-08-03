@@ -177,73 +177,73 @@
   "units": {
     "bytes": {
       "label": "Bytes",
-      "abbr": "B"
+      "abbreviation": "B"
     },
     "bits": {
       "label": "Bits",
-      "abbr": "b"
+      "abbreviation": "b"
     },
     "packets": {
       "label": "Packets",
-      "abbr": "Pkts"
+      "abbreviation": "Pkts"
     },
     "flows": {
       "label": "Flows",
-      "abbr": "Flows"
+      "abbreviation": "Flows"
     },
     "sessions": {
       "label": "Sessions",
-      "abbr": "Sessions"
+      "abbreviation": "Sessions"
     },
     "hit_count": {
       "label": "Hit Count",
-      "abbr": "Hit Count"
+      "abbreviation": "Hit Count"
     },
     "bps": {
       "label": "bits/s",
-      "abbr": "bps",
+      "abbreviation": "bps",
       "desc": "bit per second"
     },
     "Bps": {
       "label": "Bytes/s",
-      "abbr": "Bps",
+      "abbreviation": "Bps",
       "desc": "Byte per second"
     },
     "pps": {
       "label": "Packets/s",
-      "abbr": "pps",
+      "abbreviation": "pps",
       "desc": "Packet per second"
     },
     "fps": {
       "label": "Flows/s",
-      "abbr": "fps",
+      "abbreviation": "fps",
       "desc": "Flow per second"
     },
     "sps": {
       "label": "Sessions/s",
-      "abbr": "Sessions/s",
+      "abbreviation": "Sessions/s",
       "desc": "Session per second"
     },
-    "hps": {
-      "label": "Hits/s",
-      "abbr": "Hits/s",
-      "desc": "Hit per second"
+    "cps": {
+      "label": "Count/s",
+      "abbreviation": "Count/s",
+      "desc": "count per second"
     },
     "ms": {
       "label": "millisecond",
-      "abbr": "ms"
+      "abbreviation": "ms"
     },
     "s": {
       "label": "second",
-      "abbr": "s"
+      "abbreviation": "s"
     },
     "unique_ip": {
       "label": "Unique IPs",
-      "abbr": "Unique IPs"
+      "abbreviation": "Unique IPs"
     },
     "percentage": {
       "label": "%",
-      "abbr": "%"
+      "abbreviation": "%"
     }
   },
   "radius_onff_log": {
