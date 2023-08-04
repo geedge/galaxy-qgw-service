@@ -59,7 +59,8 @@
         "security_rule_hits",
         "proxy_rule_hits",
         "statistics_rule",
-        "statistics_object"
+        "statistics_object",
+        "statistics_rule_hits"
       ]
     },
     {
