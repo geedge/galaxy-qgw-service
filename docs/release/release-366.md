@@ -3,3 +3,12 @@ Release 366 (TSG-23.04)
 * 扩展Schema，新增安全策略规则命中统计表(TSG-14353)
 * 修改Schema，Receive Time映射函数，使用common_ingestion_time作为默认值(TSG-14414)
 * 优化SQL语句校验功能(GAL-303)
+* 新增Schema，新增traffic_shaping_rule_hits整形流量统计(TSG-14493)
+* 删除Schema，删除traffic_shaping_metrics(TSG-14493)
+* 扩展Schema，DoS Event Schema增加字段profile_id(TSG-14520)
+* 完善储存配额更新接口及Schema更新逻辑。
+* 优化离线任务提交，新增未完成且相同任务业务逻辑，避免任务多次提交(GAL-310)
+* 优化SQL语句校验，完善SQL语句校验功能(TSG-13953)
+* 扩展Schema，会话、过渡会话日志显示common_t_vsys_id(TSG-14626)
+* 修复job statistics，修复嵌套统计构建异常
+* 修改配置，提取并设置知识库分片上传文件大小为10M

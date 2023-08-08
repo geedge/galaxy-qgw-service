@@ -1,6 +1,7 @@
 package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.core.util.URLUtil;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -12,7 +13,6 @@ import com.mesalab.qgw.model.api.ClickHouseHttpSource;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
-import com.zdjizhi.utils.JsonMapper;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
@@ -42,6 +42,7 @@ public class SQLFunctionUtil {
     public static final String IP_TO_ASN_ORG = "IP_TO_ASN_ORG";
     public static final String MAX_DURATION = "MAX_DURATION";
 
+    public static final String CONCAT = "concat";
     public static final String NOT_EMPTY = "notEmpty";
     public static final String EMPTY = "empty";
 
@@ -120,6 +121,7 @@ public class SQLFunctionUtil {
     public static final Pattern pMedian = Pattern.compile("\\WMEDIAN\\s*\\(");
     public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
     public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");
+    public static final Pattern pConcat = Pattern.compile("\\b" + CONCAT + "\\((?!toString\\(|CAST\\()", Pattern.CASE_INSENSITIVE);
 
     /**
      * 解析mysql函数替换为对应数据库类型函数
@@ -233,7 +235,7 @@ public class SQLFunctionUtil {
     }
 
     /**
-     * Desc: notEmpty、empty
+     * Desc: notEmpty、empty、concat
      *
      * @param dbType
      * @param resultSql
@@ -244,6 +246,7 @@ public class SQLFunctionUtil {
     private static String translateStrFun(String dbType, String resultSql) {
         resultSql = translateByPattern(resultSql, dbType, pNotEmpty);
         resultSql = translateByPattern(resultSql, dbType, pEmpty);
+        resultSql = translateByPattern(resultSql, dbType, pConcat);
         return resultSql;
     }
 
@@ -281,7 +284,7 @@ public class SQLFunctionUtil {
             query = generateDateFunction("select " + query + " as actualValue", dbType);
             query = Encodes.urlEncode(query);
             Map<String, String> results = executeHttpGetOfCK(query);
-            Map<String, Object> maps = (Map<String, Object>) JsonMapper.fromJsonString(results.get("result"), Map.class);
+            Map<String, Object> maps = JSON.parseObject(results.get("result"), Map.class);
             List<Map<String, Object>> dates = (List<Map<String, Object>>) maps.get("data");
             Map<String, Object> data = dates.get(0);
             Object actualValue = data.get("actualValue");
@@ -289,7 +292,7 @@ public class SQLFunctionUtil {
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             query = generateDateFunction("select TIME_FORMAT(" + query + ", 'yyyy-MM-dd HH:mm:ss') as actualValue", dbType);
             Map<String, String> results = executeHttpPostOfDruid(query);
-            List<Object> maps = (List<Object>) JsonMapper.fromJsonString(results.get("result"), Object.class);
+            List<Object> maps = (List<Object>) JSON.parseObject(results.get("result"), Object.class);
             Map<String, Object> data = (Map<String, Object>) maps.get(0);
             Object actualValue = data.get("actualValue");
             return actualValue.toString();
@@ -311,7 +314,7 @@ public class SQLFunctionUtil {
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
         int socketTimeOut = httpConfig.getDruidSocketTimeOut();
-        Map<String, String> stringStringMap = httpClientService.httpPost(queryURL, JsonMapper.toJsonString(druidQueryParam), socketTimeOut);
+        Map<String, String> stringStringMap = httpClientService.httpPost(queryURL, JSON.toJSONString(druidQueryParam), socketTimeOut);
         return stringStringMap;
 
     }
@@ -1651,6 +1654,13 @@ public class SQLFunctionUtil {
      * @return
      */
     private static String translateFunction(Function fun, String dbType) {
+        if (CONCAT.equalsIgnoreCase(fun.getName())) {
+            return translateConcat(fun, dbType);
+        }
+        return translateCaseInsensitive(fun, dbType);
+    }
+
+    private static String translateCaseInsensitive(Function fun, String dbType) {
         String data;
         switch (fun.getName()){
             case TIME_FLOOR_WITH_FILL:
@@ -1817,6 +1827,28 @@ public class SQLFunctionUtil {
         return fun.toString();
     }
 
+    /**
+     * Desc: 转义concat
+     *
+     * @param function
+     * @param dbType
+     * @return
+     */
+    private static String translateConcat(Function function, String dbType) {
+        StringBuffer sb = new StringBuffer();
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            for (String param : function.getParamsList()) {
+                sb.append("toString("+param+"), ");
+            }
+            return String.format("concat(%s'')", sb);
+        }else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
+            for (String param : function.getParamsList()) {
+                sb.append("CAST("+param+" AS VARCHAR), ");
+            }
+            return String.format("concat(%s'')", sb);
+        }
+        return parseFunDefaultValue(function);
+    }
 
     @Data
     static class Function {

@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "service_chaining_metrics",
+  "name": "top_server_fqdns",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -8,8 +8,19 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "filters": [
+        "data_center",
+        "device_group"
+      ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "granularity": 300,
+      "ingestion_delay": 15,
+      "units": {
+        "$ref": "public_schema_info.json#/units"
       }
     }
   },
@@ -24,6 +35,39 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
         },
         "visibility": "enabled"
       }
@@ -45,89 +89,56 @@
       }
     },
     {
-      "name": "device_group",
-      "label": "Device Group",
-      "type": "string",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,in"
-        },
-        "data": {
-          "$ref": "device_tag.json#",
-          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
-          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        },
-        "visibility": "enabled"
-      }
-    },
-    {
-      "name": "device_id",
-      "label": "Device ID",
+      "name": "fqdn",
+      "label": "FQDN",
       "doc": {
         "visibility": "enabled"
       },
       "type": "string"
     },
     {
-      "name": "vsys_id",
-      "label": "Vsys ID",
+      "name": "metric",
+      "label": "Metric",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
-      "default": 1
+      "type": "string"
     },
     {
-      "name": "rule_id",
-      "label": "Rule ID",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "int"
-    },
-    {
-      "name": "sff_profile_id",
-      "label": "Service Function Forwarder Profile ID",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "int"
-    },
-    {
-      "name": "sf_profile_id",
-      "label": "Service Function Profile ID",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "int"
-    },
-    {
-      "name": "recv_bytes",
-      "label": "Bytes Received",
+      "name": "sessions",
+      "label": "Sessions",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "sent_bytes",
-      "label": "Bytes Sent",
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "recv_pkts",
-      "label": "Packets Received",
+      "name": "in_pkts",
+      "label": "Incoming Packets",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "sent_pkts",
-      "label": "Packets Sent",
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
       "doc": {
         "visibility": "enabled"
       },

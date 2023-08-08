@@ -10,6 +10,7 @@ package com.mesalab.qgw.constant;
 public class QGWMessageConst {
 
     public static final String SCHEMA_ERROR_TTL_VALUE = "Schema error, invalid TTL value.";
+    public static final String SCHEMA_ERROR_TTL_SIZE = "Not allowed, schema fields TTL cannot be greater than table TTL";
 
     public static final String SCHEMA_ERROR_VISIBILITY_VALUE = "Schema error, invalid visibility value.";
 
@@ -81,6 +82,8 @@ public class QGWMessageConst {
 
     public static final String DATASOURCE_IS_INVALID = "DSLObject.query.dataSource is invalid";
 
+    public static final String DATASOURCE_NOT_EXIST = "DSLObject.query.dataSource is not registered on the platform, please contact the person in charge of the data platform";
+
     public static final String RANGE_TYPE_IS_INVALID = "DSLObject.query.Range type is invalid";
 
     public static final String SORT_TYPE_IS_INVALID = "DSLObject.query.Sort type is invalid";
@@ -104,6 +107,8 @@ public class QGWMessageConst {
     public static final String QUERY_DATA_SOURCE_NOT_NULL = "The param must contain query.data_source.";
 
     public static final String QUERY_DATA_SOURCE_ERROR = "The param query.data_source illegal.";
+
+    public static final String QUERY_CUSTOM_FIELD_DISCOVERY_ERROR = "The param custom.field_discovery.* illegal.";
 
 
 }

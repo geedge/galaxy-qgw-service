@@ -58,7 +58,18 @@ public class KnowledgeBaseTest extends GalaxyQGWApplicationTests {
     }
 
     @Test(priority = 3)
+    public void toggle() throws Exception{
+        KnowledgeBase knowledgeBase = new KnowledgeBase();
+        knowledgeBase.setId(id);
+        knowledgeBase.setIsValid(KnowledgeConstant.VALID);
+        BaseResult result = knowledgeService.toggleKnowledge(knowledgeBase);
+        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
+    }
+
+    @Test(priority = 4)
     public void delete() throws Exception {
+        KnowledgeBase knowledgeBase = new KnowledgeBase();
+        knowledgeBase.setId(id);
         BaseResult result = knowledgeService.deleteKnowledge(id);
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }

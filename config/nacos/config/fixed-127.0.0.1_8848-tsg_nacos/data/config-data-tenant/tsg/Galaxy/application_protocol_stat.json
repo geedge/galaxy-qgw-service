@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "traffic_shaping_metrics",
+  "name": "application_protocol_stat",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -14,6 +14,13 @@
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "granularity": 15,
+      "ingestion_delay": 15,
+      "units": {
+        "$ref": "public_schema_info.json#/units"
       }
     }
   },
@@ -55,7 +62,7 @@
       "type": "string",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -71,7 +78,7 @@
       "type": "string",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -82,148 +89,187 @@
       }
     },
     {
-      "name": "rule_id",
-      "label": "Shaping Rule ID",
-      "type": "int",
+      "name": "protocol_stack_id",
+      "label": "Protocol Stack ID",
       "doc": {
         "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_name",
+      "label": "App Name",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "client_ip_sketch",
+      "label": "Client IP Sketch",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
       }
     },
     {
-      "name": "profile_id",
-      "label": "Shaping Profile ID",
-      "type": "int",
+      "name": "c2s_pkts",
+      "label": "Packets Sent",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "priority",
-      "label": "Priority",
-      "type": "int",
+      "name": "s2c_pkts",
+      "label": "Packets Received",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "active_sessions",
-      "label": "Active Sessions",
-      "type": "int",
+      "name": "c2s_bytes",
+      "label": "Bytes Sent",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "in_rx_pkts",
-      "label": "Incoming Receive Packets",
-      "type": "int",
+      "name": "s2c_bytes",
+      "label": "Bytes Received",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "in_tx_pkts",
-      "label": "Incoming Transmit Packets",
-      "type": "int",
+      "name": "c2s_fragments",
+      "label": "Fragmentation Packets (c2s)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "in_rx_bytes",
-      "label": "Incoming Receive Bytes",
-      "type": "int",
+      "name": "s2c_fragments",
+      "label": "Fragmentation Packets (s2c)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "in_tx_bytes",
-      "label": "Incoming Transmit Bytes",
-      "type": "int",
+      "name": "c2s_tcp_lost_bytes",
+      "label": "Sequence Gap Loss (c2s)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "out_rx_pkts",
-      "label": "Outgoing Receive Packets",
-      "type": "int",
+      "name": "s2c_tcp_lost_bytes",
+      "label": "Sequence Gap Loss (s2c)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "out_tx_pkts",
-      "label": "Outgoing Transmit Packets",
-      "type": "int",
+      "name": "c2s_tcp_ooorder_pkts",
+      "label": "TCP out-of-order Packets (c2s)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "out_rx_bytes",
-      "label": "Outgoing Receive Bytes",
-      "type": "int",
+      "name": "s2c_tcp_ooorder_pkts",
+      "label": "TCP out-of-order Packets (s2c)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "out_tx_bytes",
-      "label": "Outgoing Transmit Bytes",
-      "type": "int",
+      "name": "c2s_tcp_retransmitted_pkts",
+      "label": "TCP Retransmission Packets (c2s)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "in_drop_pkts",
-      "label": "Incoming Drop Packets",
-      "type": "int",
+      "name": "s2c_tcp_retransmitted_pkts",
+      "label": "TCP Retransmission Packets (s2c)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "out_drop_pkts",
-      "label": "Outgoing Drop Packets",
-      "type": "int",
+      "name": "c2s_tcp_retransmitted_bytes",
+      "label": "TCP Retransmission Bytes (c2s)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "in_max_latency_us",
-      "label": "Incoming Max Latency (us)",
-      "type": "int",
+      "name": "s2c_tcp_retransmitted_bytes",
+      "label": "TCP Retransmission Bytes (s2c)",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "out_max_latency_us",
-      "label": "Outgoing Max Latency (us)",
-      "type": "int",
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "in_queue_len",
-      "label": "Incoming Queue Length",
-      "type": "int",
+      "name": "in_pkts",
+      "label": "Incoming Packets",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
     },
     {
-      "name": "out_queue_len",
-      "label": "Outgoing Queue Length",
-      "type": "int",
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
       "doc": {
         "visibility": "enabled"
-      }
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
     }
   ]
 }

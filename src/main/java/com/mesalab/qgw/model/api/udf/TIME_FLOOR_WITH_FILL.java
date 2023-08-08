@@ -7,6 +7,8 @@ import cn.hutool.log.LogFactory;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
@@ -27,9 +29,8 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
-import net.sf.jsqlparser.statement.select.OrderByElement;
+import net.sf.jsqlparser.statement.select.*;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -37,7 +38,6 @@ import java.util.*;
 @NoArgsConstructor
 public class TIME_FLOOR_WITH_FILL implements UDF{
     private static final Log log = LogFactory.get();
-    @Autowired
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private String name;
@@ -89,7 +89,8 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
 
     @Override
-    public Object execute(SQLQuerySource sqlQuerySource, List<Object> results) {
+    public Object execute(SQLQuerySource sqlQuerySource, BaseResult baseResult) {
+        List<Object> results = (List<Object>)baseResult.getData();
         List<Map<String, Object>> targetResult = Lists.newArrayList();
         List<String> groupLabels = Lists.newArrayList();
         String timeGranLabel = null;
@@ -126,9 +127,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 }
 
                 List<Date> leftDateRange = DateUtils.getLeftDateRange(benchmarkDate,
-                        DateUtils.convertStringToDate((whereTimeRange.getStart()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+                        DateUtil.parse(whereTimeRange.getStart()), period);
                 List<Date> rightDateRange = DateUtils.getRightDateRange(benchmarkDate,
-                        DateUtils.convertStringToDate((whereTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS), period);
+                        DateUtil.parse(whereTimeRange.getEnd()), period);
 
                 Collections.reverse(leftDateRange);
                 dateRangeList = Lists.newArrayList(Iterables.concat(leftDateRange, rightDateRange));
@@ -139,7 +140,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
             if (StringUtil.isNotEmpty(dateRangeList)
                     && !whereTimeRange.isMinorThanEquals()
-                    && DateUtil.toInstant(DateUtils.convertStringToDate((whereTimeRange.getEnd()), DateUtils.YYYY_MM_DD_HH24_MM_SS))
+                    && DateUtil.toInstant(DateUtil.parse(whereTimeRange.getEnd()))
                     .compareTo(DateUtil.toInstant(dateRangeList.get(dateRangeList.size() - 1))) == 0) {
                 dateRangeList.remove(dateRangeList.size() - 1);
             }
@@ -183,7 +184,42 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             }
         }
         sortByTime(sqlQuerySource, targetResult, timeGranLabel);
+        List<String> objects = Lists.newArrayList();
+        objects.add(timeGranLabel);
+        objects.addAll(groupLabels);
+        unifiedDataType((List<Map<String, String>>) baseResult.getMeta(), targetResult, objects);
         return targetResult;
+    }
+
+    private void unifiedDataType(List<Map<String, String>> meta, List<Map<String, Object>> targetResult, List<String> convertKey) {
+        Map<String, String> keyType = Maps.newHashMap();
+        for (Map<String, String> item : meta) {
+            String key = item.get("name");
+            if (convertKey.contains(key) && !DataTypeMapping.STRING.equals(item.get("type"))) {
+                keyType.put(key, item.get("type"));
+            }
+        }
+        if (keyType.isEmpty()) {
+            return;
+        }
+        targetResult.forEach(x -> {
+            for (String key : x.keySet()) {
+                if (DataTypeMapping.STRING.equals(keyType.get(key))) {
+                    continue;
+                }
+                if (DataTypeMapping.INT.equals(keyType.get(key))) {
+                    x.put(key, Integer.parseInt(String.valueOf(x.get(key))));
+                } else if (DataTypeMapping.LONG.equals(keyType.get(key))) {
+                    x.put(key, Long.parseLong(String.valueOf(x.get(key))));
+                } else if (DataTypeMapping.DOUBLE.equals(keyType.get(key))) {
+                    x.put(key, Double.parseDouble(String.valueOf(x.get(key))));
+                } else if (DataTypeMapping.FLOAT.equals(keyType.get(key))) {
+                    x.put(key, Float.parseFloat(String.valueOf(x.get(key))));
+                } else if (DataTypeMapping.BOOLEAN.equals(keyType.get(key))) {
+                    x.put(key, Boolean.parseBoolean(String.valueOf(x.get(key))));
+                }
+            }
+        });
     }
 
     private void sortByTime(SQLQuerySource sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
@@ -259,13 +295,49 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
      * @return
      */
     private WhereTimeRange getWhereTimeRange(SQLQuerySource sqlQuerySource) {
-        String partitionKey = sqlQuerySource.getPartitionKey();
-        Expression whereExpression = sqlQuerySource.getWhereExpression();
         String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableName());
         WhereTimeRange whereTimeRange = new WhereTimeRange();
-        parserWhereExpressionForWhereTimeRange(whereTimeRange, whereExpression, partitionKey, dbType);
-
+        List<FillParam> outToInnerList = getFillParams(sqlQuerySource);
+        for (FillParam fillParam : outToInnerList) {
+            parserWhereExpressionForWhereTimeRange(whereTimeRange, fillParam.getWhereExpression(), fillParam.getPartitionKey(), dbType);
+            if (StringUtil.isNotEmpty(whereTimeRange.getStart()) || StringUtil.isNotEmpty(whereTimeRange.getEnd())) {
+                break;
+            }
+        }
         return whereTimeRange;
+    }
+
+    private List<FillParam> getFillParams(SQLQuerySource sqlQuerySource) {
+        List<FillParam> result = Lists.newArrayList();
+        SQLQuerySource currentSource = sqlQuerySource;
+        boolean isOriginalDataSource = false;
+        while (!isOriginalDataSource) {
+            FillParam currentParam = new FillParam();
+            if (currentSource.getSubSelect() == null) {
+                isOriginalDataSource = true;
+                currentParam.setPartitionKey(currentSource.getPartitionKey());
+            }
+            currentParam.setAliasFields(currentSource.getAliasFields());
+            currentParam.setWhereExpression(currentSource.getWhereExpression());
+            result.add(currentParam);
+            if (!isOriginalDataSource) {
+                currentSource = currentSource.getSubSqlQuerySources().get(0);
+            }
+        }
+        for (int i = result.size() - 1; i >= 0; i--) {
+            if (result.size() - 1 == i) {
+                continue;
+            }
+            FillParam subFillParam = result.get(i + 1);
+            Map<String, String> subAliasFields = subFillParam.getAliasFields();
+            for (String subKey : subAliasFields.keySet()) {
+                if (subAliasFields.get(subKey).contains(subFillParam.getPartitionKey())) {
+                    result.get(i).setPartitionKey(subKey);
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -421,5 +493,11 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         }
     }
 
-
+    @Data
+    @NoArgsConstructor
+    private class FillParam {
+        private Map<String, String> aliasFields;
+        private Expression whereExpression;
+        private String partitionKey;
+    }
 }

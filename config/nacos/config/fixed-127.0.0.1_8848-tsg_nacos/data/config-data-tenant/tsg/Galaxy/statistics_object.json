@@ -1,0 +1,296 @@
+{
+  "type": "record",
+  "name": "statistics_object",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "filters": [
+        "data_center",
+        "device_group"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "granularity": 15,
+      "ingestion_delay": 15,
+      "units": {
+        "$ref": "public_schema_info.json#/units"
+      },
+      "aggregates": {
+        "incoming_bytes": [
+          {
+            "fn": "sum",
+            "column": "in_bytes",
+            "metric_type": "counter",
+            "expression": "sum(in_bytes)",
+            "value": "in_bytes",
+            "label": "Incoming Bytes",
+            "unit": "bytes"
+          },
+          {
+            "fn": "avg",
+            "column": "in_bytes",
+            "metric_type": "gauge",
+            "expression": "(avg(in_bytes)*8)/$granularity",
+            "value": "avg_in_bits_per_sec",
+            "label": "Average Incoming bits/s",
+            "unit": "bps"
+          }
+        ],
+        "outgoing_bytes": [
+          {
+            "fn": "sum",
+            "column": "out_bytes",
+            "metric_type": "counter",
+            "expression": "sum(out_bytes)",
+            "value": "out_bytes",
+            "label": "Outgoing Bytes",
+            "unit": "bytes"
+          },
+          {
+            "fn": "avg",
+            "column": "out_bytes",
+            "metric_type": "gauge",
+            "expression": "(avg(out_bytes)*8)/$granularity",
+            "value": "avg_out_bits_per_sec",
+            "label": "Average Outgoing bits/s",
+            "unit": "bps"
+          }
+        ],
+        "bytes": [
+          {
+            "fn": "sum",
+            "column": "bytes",
+            "metric_type": "counter",
+            "expression": "sum(bytes)",
+            "value": "bytes",
+            "label": "Bytes",
+            "unit": "bytes"
+          },
+          {
+            "fn": "avg",
+            "column": "bytes",
+            "metric_type": "gauge",
+            "expression": "(avg(bytes)*8)/$granularity",
+            "value": "avg_bits_per_sec",
+            "label": "Average bits/s",
+            "unit": "bps"
+          }
+        ],
+        "new_incoming_sessions": [
+          {
+            "fn": "sum",
+            "column": "new_in_sessions",
+            "metric_type": "counter",
+            "expression": "sum(new_in_sessions)",
+            "value": "new_in_sessions",
+            "label": "New Incoming Sessions",
+            "unit": "sessions"
+          },
+          {
+            "fn": "avg",
+            "column": "new_in_sessions",
+            "metric_type": "gauge",
+            "expression": "avg(new_in_sessions)/$granularity",
+            "value": "avg_new_in_sessions_per_sec",
+            "label": "Average New Incoming sessions/s",
+            "unit": "sps"
+          }
+        ],
+        "outgoing_new_sessions": [
+          {
+            "fn": "sum",
+            "column": "new_out_sessions",
+            "metric_type": "counter",
+            "expression": "sum(new_out_sessions)",
+            "value": "new_out_sessions",
+            "label": "New Outgoing Sessions",
+            "unit": "sessions"
+          },
+          {
+            "fn": "avg",
+            "column": "new_out_sessions",
+            "metric_type": "gauge",
+            "expression": "avg(new_out_sessions)/$granularity",
+            "value": "avg_new_out_sessions_per_sec",
+            "label": "Average New Outgoing sessions/s",
+            "unit": "sps"
+          }
+        ],
+        "sessions": [
+          {
+            "fn": "sum",
+            "column": "sessions",
+            "metric_type": "counter",
+            "expression": "sum(sessions)",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          },
+          {
+            "fn": "avg",
+            "column": "sessions",
+            "metric_type": "gauge",
+            "expression": "avg(sessions)/$granularity",
+            "value": "avg_sessions_per_sec",
+            "label": "Average sessions/s",
+            "unit": "sps"
+          }
+        ]
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "object_id",
+      "label": "Object",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "item_id",
+      "label": "Item ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_in_sessions",
+      "label": "New Incoming Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "new_out_sessions",
+      "label": "New Outgoing Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

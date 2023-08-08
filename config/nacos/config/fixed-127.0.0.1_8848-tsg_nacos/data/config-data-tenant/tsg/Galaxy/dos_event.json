@@ -32,8 +32,7 @@
     ],
     "internal_columns": [
       "start_time",
-      "log_id",
-      "end_time"
+      "log_id"
     ]
   },
   "fields": [
@@ -41,7 +40,6 @@
       "name": "start_time",
       "label": "Start Time",
       "doc": {
-        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         },
@@ -57,7 +55,6 @@
       "name": "end_time",
       "label": "End Time",
       "doc": {
-        "allow_query": "false",
         "constraints": {
           "type": "timestamp"
         },
@@ -78,6 +75,15 @@
             "function": "snowflake_id"
           }
         ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "profile_id",
+      "label": "Profile ID",
+      "doc": {
         "visibility": "enabled",
         "ttl": null
       },

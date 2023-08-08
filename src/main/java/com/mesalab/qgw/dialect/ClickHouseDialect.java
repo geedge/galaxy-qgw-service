@@ -7,6 +7,7 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -229,6 +230,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
          * 1.不支持 count(1) 需转为count(*)
          * 2.针对非聚合SQL，非分组sql in/not in 替换为 Global in/not
+         *
          * @return
          */
         public Converter generateStandard() {
@@ -516,6 +518,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * Desc: 针对单条查询Top做优化
          * settings distributed_group_by_no_merge=1
          * If you set it to 1, then intermediate results from remote servers will not be merged.
+         *
          * @param
          * @return {@link Optimizer}
          * @created by wWei
@@ -540,7 +543,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(metadataService.getIndexKey(param.getTableName()))) {
                 return StringUtil.EMPTY;
             }
-            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields());
+            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields(), false, null);
             List<String> actualFieldOfWhere = CondExpressionHelper.getDistinctFields(expression.toString());
             table:
             for (String tempIndexTable : indexTables) {
@@ -631,7 +634,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             StringBuilder subQuery = new StringBuilder();
 
             subQuery.append("select " + columnName + " from ").append(tableName)
-                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields()));
+                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields(), true, tableName));
 
             //order by中元素存在别名时做替换处理
             List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
@@ -680,7 +683,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             }
             for (OrderByElement order : listOrderElement) {
                 OrderByElement orderByElement = new OrderByElement();
-                Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(String.valueOf(order.getExpression()), param.getDbQuerySource().getAliasFields());
+                Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(String.valueOf(order.getExpression()), param.getDbQuerySource().getAliasFields(), false, null);
                 orderByElement.setExpression(expression);
                 List<String> fields = CondExpressionHelper.getDistinctFieldsOfOrderBy(orderByElement);
                 for (String field : fields) {
@@ -734,7 +737,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     Integer.parseInt(results.get("status")),
                     ResultCodeEnum.SUCCESS.getCode(),
                     message.get(),
-                    JsonMapper.fromJsonString(results.get("result"), Map.class),
+                    JSON.parseObject(results.get("result"), Map.class),
                     null,
                     null,
                     QueryFormatEnum.JSON.getValue());
@@ -803,21 +806,21 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
 
-
     /**
      * 通过递归方式将原SQL转换为样例SQL
      * 做数据集限制:
      * 1. 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
-     * 2. 对where、having添加：OR 1=1
+     * 2. 可对where、having添加：OR 1=1
      *
-     * @param sql
-     * @return
+     * @param sql 原始sql
+     * @return 经转换后的样例SQL
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
+        boolean isSampled = BooleanUtil.isTrue(param.getSampled());
         String dataSet = StrUtil.format("SELECT * FROM {}",
-                BooleanUtil.isTrue(param.getSampled()) ? " {} WHERE rand() % 100 = 0 LIMIT 1000 " : " {} LIMIT 0 ");
-        return new ClickhouseSampleSQLHelper(sql, dataSet).build();
+                isSampled ? " {} WHERE rand() % 100 = 0 LIMIT 1000 " : " {} LIMIT 0 ");
+        return new ClickhouseSampleSQLHelper(sql, dataSet, isSampled).build();
     }
 
     /**

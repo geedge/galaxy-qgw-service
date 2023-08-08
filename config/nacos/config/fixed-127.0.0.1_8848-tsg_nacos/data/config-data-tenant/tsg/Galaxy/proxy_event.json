@@ -28,6 +28,7 @@
         "common_address_type",
         "common_schema_type",
         "common_vsys_id",
+        "common_action",
         "common_sub_action",
         "common_policy_id",
         "common_client_ip",
@@ -54,6 +55,19 @@
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
         "common_tunnel_endpoint_b_desc",
+        "intercept_pinning_status",
+        "intercept_status",
+        "intercept_passthrough_reason",
+        "intercept_server_side_version",
+        "intercept_client_side_version",
+        "ssl_version",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_ja3_hash",
+        "ssl_ja3s_hash",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
         "http_host",
         "http_domain",
         "http_url",
@@ -129,6 +143,20 @@
         "common_s2c_pkt_retrans",
         "common_c2s_byte_retrans",
         "common_s2c_byte_retrans",
+        "intercept_pinning_status",
+        "intercept_status",
+        "intercept_passthrough_reason",
+        "intercept_server_side_version",
+        "intercept_client_side_version",
+        "ssl_version",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_ja3_hash",
+        "ssl_ja3s_hash",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
+        "ssl_con_latency_ms",
         "http_host",
         "http_domain",
         "http_url",
@@ -214,6 +242,20 @@
         "common_s2c_pkt_retrans",
         "common_c2s_byte_retrans",
         "common_s2c_byte_retrans",
+        "intercept_pinning_status",
+        "intercept_status",
+        "intercept_passthrough_reason",
+        "intercept_server_side_version",
+        "intercept_client_side_version",
+        "ssl_version",
+        "ssl_sni",
+        "ssl_san",
+        "ssl_cn",
+        "ssl_con_latency_ms",
+        "ssl_ja3_hash",
+        "ssl_ja3s_hash",
+        "ssl_cert_issuer",
+        "ssl_cert_subject",
         "http_host",
         "http_domain",
         "http_url",
@@ -273,8 +315,8 @@
           "common_ingestion_time",
           "common_entrance_id",
           "common_device_id",
-          "common_egress_link_id",
-          "common_ingress_link_id",
+          "common_out_link_id",
+          "common_in_link_id",
           "common_isp",
           "common_data_center",
           "common_device_group",
@@ -297,7 +339,9 @@
           "common_subscriber_id",
           "common_imei",
           "common_imsi",
-          "common_phone_number"
+          "common_phone_number",
+          "common_in_src_mac",
+          "common_out_src_mac"
         ],
         "destination": [
           "common_server_ip",
@@ -306,7 +350,9 @@
           "common_server_location",
           "common_server_asn",
           "common_server_fqdn",
-          "common_server_domain"
+          "common_server_domain",
+          "common_in_dest_mac",
+          "common_out_dest_mac"
         ],
         "application": [
           "common_app_id",
@@ -364,14 +410,142 @@
       }
     },
     "schema_type": {
+      "SSL": {
+        "columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_imei",
+          "common_imsi",
+          "common_phone_number",
+          "common_in_src_mac",
+          "common_out_src_mac",
+          "common_client_ip",
+          "common_client_port",
+          "common_internal_ip",
+          "common_l4_protocol",
+          "common_address_type",
+          "common_server_ip",
+          "common_server_port",
+          "common_external_ip",
+          "common_direction",
+          "common_entrance_id",
+          "common_sled_ip",
+          "common_client_location",
+          "common_client_asn",
+          "common_server_location",
+          "common_server_asn",
+          "common_server_fqdn",
+          "common_server_domain",
+          "common_in_dest_mac",
+          "common_out_dest_mac",
+          "common_sessions",
+          "common_c2s_pkt_num",
+          "common_s2c_pkt_num",
+          "common_c2s_byte_num",
+          "common_s2c_byte_num",
+          "common_c2s_pkt_diff",
+          "common_s2c_pkt_diff",
+          "common_c2s_byte_diff",
+          "common_s2c_byte_diff",
+          "common_service",
+          "common_schema_type",
+          "common_vsys_id",
+          "common_t_vsys_id",
+          "common_flags",
+          "common_flags_identify_info",
+          "common_user_tags",
+          "common_action",
+          "common_sub_action",
+          "common_user_region",
+          "common_shaping_rule_ids",
+          "common_device_id",
+          "common_out_link_id",
+          "common_in_link_id",
+          "common_isp",
+          "common_device_tag",
+          "common_data_center",
+          "common_device_group",
+          "common_app_behavior",
+          "common_encapsulation",
+          "common_app_label",
+          "common_tunnels",
+          "common_protocol_label",
+          "common_app_id",
+          "common_app_full_path",
+          "common_userdefine_app_name",
+          "common_app_identify_info",
+          "common_app_surrogate_id",
+          "common_l7_protocol",
+          "common_service_category",
+          "common_start_time",
+          "common_end_time",
+          "common_establish_latency_ms",
+          "common_con_duration_ms",
+          "common_stream_dir",
+          "common_address_list",
+          "common_has_dup_traffic",
+          "common_stream_error",
+          "common_stream_trace_id",
+          "common_link_info_c2s",
+          "common_link_info_s2c",
+          "common_packet_capture_file",
+          "common_tunnel_endpoint_a_desc",
+          "common_tunnel_endpoint_b_desc",
+          "common_c2s_ipfrag_num",
+          "common_s2c_ipfrag_num",
+          "common_c2s_tcp_lostlen",
+          "common_s2c_tcp_lostlen",
+          "common_c2s_tcp_unorder_num",
+          "common_s2c_tcp_unorder_num",
+          "common_c2s_pkt_retrans",
+          "common_s2c_pkt_retrans",
+          "common_c2s_byte_retrans",
+          "common_s2c_byte_retrans",
+          "common_tcp_client_isn",
+          "common_tcp_server_isn",
+          "common_first_ttl",
+          "common_processing_time",
+          "common_ingestion_time",
+          "common_mirrored_pkts",
+          "common_mirrored_bytes",
+          "intercept_pinning_status",
+          "intercept_status",
+          "intercept_passthrough_reason",
+          "intercept_server_side_version",
+          "intercept_client_side_version",
+          "intercept_server_side_latency",
+          "intercept_client_side_latency",
+          "intercept_cert_verify",
+          "intercept_error",
+          "ssl_version",
+          "ssl_sni",
+          "ssl_san",
+          "ssl_cn",
+          "ssl_con_latency_ms",
+          "ssl_ja3_fingerprint",
+          "ssl_ja3_hash",
+          "ssl_ja3s_fingerprint",
+          "ssl_ja3s_hash",
+          "ssl_cert_issuer",
+          "ssl_cert_subject"
+        ],
+        "default_columns": [
+          "common_recv_time",
+          "common_log_id",
+          "common_policy_id",
+          "common_subscriber_id",
+          "common_client_ip",
+          "common_server_ip",
+          "common_server_port"
+        ]
+      },
       "HTTP": {
         "$ref": "public_schema_info.json#/schema_type/HTTP"
       },
       "DoH": {
         "$ref": "public_schema_info.json#/schema_type/DoH"
-      },
-      "RDP": {
-        "$ref": "public_schema_info.json#/schema_type/RDP"
       }
     },
     "default_columns": [
@@ -381,7 +555,7 @@
       "common_client_ip",
       "common_server_ip",
       "common_server_port",
-      "common_sub_action",
+      "common_action",
       "common_schema_type"
     ],
     "internal_columns": [
@@ -397,6 +571,19 @@
       "http_request_body",
       "http_response_body"
     ],
+    "action_columns": {
+      "intercept": [
+        "intercept_pinning_status",
+        "intercept_status",
+        "intercept_passthrough_reason",
+        "intercept_server_side_version",
+        "intercept_client_side_version",
+        "intercept_server_side_latency",
+        "intercept_client_side_latency",
+        "intercept_cert_verify",
+        "intercept_error"
+      ]
+    },
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
     }
@@ -433,7 +620,7 @@
     },
     {
       "name": "common_policy_id",
-      "label": "Policy ID",
+      "label": "Rule ID",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -472,6 +659,24 @@
       "label": "Phone Number",
       "doc": {
         "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_in_src_mac",
+      "label": "Incoming Source MAC",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_out_src_mac",
+      "label": "Outgoing Source MAC",
+      "doc": {
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -610,31 +815,19 @@
         },
         "data": [
           {
-            "code": "0",
-            "value": "None"
-          },
-          {
-            "code": "1",
-            "value": "Monitor"
-          },
-          {
             "code": "2",
             "value": "Intercept"
           },
           {
-            "code": "16",
-            "value": "Deny"
+            "code": "3",
+            "value": "No Intercept"
           },
           {
             "code": "48",
             "value": "Manipulation"
-          },
-          {
-            "code": "96",
-            "value": "Allow"
           }
         ],
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "int"
@@ -732,6 +925,24 @@
       "label": "Server Domain",
       "doc": {
         "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_in_dest_mac",
+      "label": "Incoming Destination MAC",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_out_dest_mac",
+      "label": "Outgoing Destination MAC",
+      "doc": {
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -868,6 +1079,10 @@
         },
         "data": [
           {
+            "code": "SSL",
+            "value": "SSL"
+          },
+          {
             "code": "HTTP",
             "value": "HTTP"
           },
@@ -941,7 +1156,7 @@
     },
     {
       "name": "common_sub_action",
-      "label": "Action",
+      "label": "Sub Action",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -1024,8 +1239,8 @@
       "type": "string"
     },
     {
-      "name": "common_egress_link_id",
-      "label": "Egress Link ID",
+      "name": "common_out_link_id",
+      "label": "Outgoing Link ID",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1033,8 +1248,8 @@
       "type": "int"
     },
     {
-      "name": "common_ingress_link_id",
-      "label": "Ingress Link ID",
+      "name": "common_in_link_id",
+      "label": "Incoming Link ID",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1059,12 +1274,12 @@
           {
             "function": "flattenSpec",
             "appendTo": "common_data_center",
-            "param": "$.tags[?(@.tag=='data_center')].value"
+            "param": "$.tags[?(@.tag=='data_center')][0].value"
           },
           {
             "function": "flattenSpec",
             "appendTo": "common_device_group",
-            "param": "$.tags[?(@.tag=='device_group')].value"
+            "param": "$.tags[?(@.tag=='device_group')][0].value"
           }
         ],
         "ttl": null
@@ -1148,7 +1363,7 @@
           {
             "function": "gtpc_match",
             "appendTo": "common_imsi,common_imei,common_phone_number",
-            "param": "$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_b2a_teid"
+            "param": "$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_b2a_teid"
           }
         ]
       },
@@ -1627,6 +1842,237 @@
       }
     },
     {
+      "name": "intercept_pinning_status",
+      "label": "Intercept Pinning Status",
+      "doc": {
+        "data": [
+          {
+            "code": "0",
+            "value": "not pinning"
+          },
+          {
+            "code": "1",
+            "value": "pinning"
+          },
+          {
+            "code": "2",
+            "value": "maybe pinning"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_status",
+      "label": "Intercept Status",
+      "doc": {
+        "data": [
+          {
+            "code": "0",
+            "value": "passthrough"
+          },
+          {
+            "code": "1",
+            "value": "intercept"
+          },
+          {
+            "code": "2",
+            "value": "shutdown"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_passthrough_reason",
+      "label": "Intercept Passthrough Reason",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "intercept_server_side_latency",
+      "label": "Intercept Server Side Latency",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_client_side_latency",
+      "label": "Intercept Client Side Latency",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_server_side_version",
+      "label": "Intercept Server Side Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "intercept_client_side_version",
+      "label": "Intercept Client Side Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "intercept_cert_verify",
+      "label": "Intercept Cert Verify",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "intercept_error",
+      "label": "Intercept Error",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_version",
+      "label": "SSL.Version",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_sni",
+      "label": "SSL.SNI",
+      "doc": {
+        "format": [
+          {
+            "function": "sub_domain",
+            "appendTo": "http_domain"
+          },
+          {
+            "function": "sub_domain",
+            "appendTo": "common_server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "common_server_fqdn"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_san",
+      "label": "SSL.SAN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cn",
+      "label": "SSL.CN",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_con_latency_ms",
+      "label": "SSL.Handshake Latency (ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_ja3_fingerprint",
+      "label": "SSL.JA3",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3_hash",
+      "label": "SSL.JA3 hash",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3s_fingerprint",
+      "label": "SSL.JA3S",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_ja3s_hash",
+      "label": "SSL.JA3S hash",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_issuer",
+      "label": "SSL.Issuer",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ssl_cert_subject",
+      "label": "SSL.Subject",
+      "doc": {
+        "constraints": {
+          "type": "items"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "http_url",
       "label": "HTTP.URL",
       "doc": {
@@ -1784,24 +2230,6 @@
       "type": "string"
     },
     {
-      "name": "http_request_body_key",
-      "label": "HTTP.Request Body Key",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_response_body_key",
-      "label": "HTTP.Response Body Key",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "http_proxy_flag",
       "label": "HTTP.Proxy Flag",
       "doc": {
@@ -1851,24 +2279,6 @@
       "label": "HTTP.User Agent",
       "doc": {
         "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_content_length",
-      "label": "HTTP.Content Length",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_content_type",
-      "label": "HTTP.Content Type",
-      "doc": {
-        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -2288,144 +2698,6 @@
       "label": "DoH.RR",
       "doc": {
         "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_cookie",
-      "label": "RDP.Cookie",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_security_protocol",
-      "label": "RDP.Security Protocol",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_client_channels",
-      "label": "RDP.Client Channels",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_keyboard_layout",
-      "label": "RDP.Keyboard Layout",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_client_version",
-      "label": "RDP.Client Version",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_client_name",
-      "label": "RDP.Client Name",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_client_product_id",
-      "label": "RDP.Client Product ID",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_desktop_width",
-      "label": "RDP. Desktop Width",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_desktop_height",
-      "label": "RDP.Desktop Height",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_requested_color_depth",
-      "label": "RDP.Requested Color Depth",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_certificate_type",
-      "label": "RDP.Certificate Type",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_certificate_count",
-      "label": "RDP.Certificate Count",
-      "doc": {
-        "constraints": {
-          "type": "decimal"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
-      "name": "rdp_certificate_permanent",
-      "label": "RDP.Certificate Permanent",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
-      "name": "rdp_encryption_level",
-      "label": "RDP.Encryption Level",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "rdp_encryption_method",
-      "label": "RDP.Encryption Method",
-      "doc": {
-        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"

@@ -43,6 +43,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
@@ -50,6 +52,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -155,6 +159,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
@@ -162,6 +168,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -297,6 +305,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
@@ -304,6 +314,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_app_full_path",
         "common_app_identify_info",
         "common_app_label",
@@ -441,8 +453,8 @@
           "common_ingestion_time",
           "common_entrance_id",
           "common_device_id",
-          "common_egress_link_id",
-          "common_ingress_link_id",
+          "common_out_link_id",
+          "common_in_link_id",
           "common_isp",
           "common_data_center",
           "common_device_group",
@@ -457,7 +469,9 @@
           "common_subscriber_id",
           "common_imei",
           "common_imsi",
-          "common_phone_number"
+          "common_phone_number",
+          "common_in_src_mac",
+          "common_out_src_mac"
         ],
         "destination": [
           "common_server_ip",
@@ -466,7 +480,9 @@
           "common_server_location",
           "common_server_asn",
           "common_server_fqdn",
-          "common_server_domain"
+          "common_server_domain",
+          "common_in_dest_mac",
+          "common_out_dest_mac"
         ],
         "application": [
           "common_app_id",
@@ -598,6 +614,46 @@
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
+    },
+    "measurements": {
+      "aggregates": {
+        "sessions": [
+          {
+            "fn": "count",
+            "column": "common_sessions",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          }
+        ],
+        "bytes": [
+          {
+            "fn": "sum",
+            "column": "common_c2s_byte_diff + common_s2c_byte_diff",
+            "value": "bytes",
+            "label": "Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "incoming_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(common_flags, 8) = 8, common_s2c_byte_diff, common_c2s_byte_diff)",
+            "value": "incoming_bytes",
+            "label": "Incoming Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "outgoing_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(common_flags, 8) = 8, common_c2s_byte_diff, common_s2c_byte_diff)",
+            "value": "outgoing_bytes",
+            "label": "Outgoing Bytes",
+            "unit": "bytes"
+          }
+        ]
+      }
     }
   },
   "fields": [
@@ -669,6 +725,24 @@
     {
       "name": "common_phone_number",
       "label": "Phone Number",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_in_src_mac",
+      "label": "Incoming Source MAC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_out_src_mac",
+      "label": "Outgoing Source MAC",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -828,6 +902,10 @@
           {
             "code": "96",
             "value": "Allow"
+          },
+          {
+            "code": "128",
+            "value": "Allow(Deprecated)"
           }
         ],
         "ttl": null
@@ -925,6 +1003,24 @@
     {
       "name": "common_server_domain",
       "label": "Server Domain",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_in_dest_mac",
+      "label": "Incoming Destination MAC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_out_dest_mac",
+      "label": "Outgoing Destination MAC",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1121,7 +1217,7 @@
       "label": "Traffic Vsys ID",
       "doc": {
         "allow_query": "false",
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "int"
@@ -1237,8 +1333,8 @@
       "type": "string"
     },
     {
-      "name": "common_egress_link_id",
-      "label": "Egress Link ID",
+      "name": "common_out_link_id",
+      "label": "Outgoing Link ID",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1246,8 +1342,8 @@
       "type": "int"
     },
     {
-      "name": "common_ingress_link_id",
-      "label": "Ingress Link ID",
+      "name": "common_in_link_id",
+      "label": "Incoming Link ID",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1272,12 +1368,12 @@
           {
             "function": "flattenSpec",
             "appendTo": "common_data_center",
-            "param": "$.tags[?(@.tag=='data_center')].value"
+            "param": "$.tags[?(@.tag=='data_center')][0].value"
           },
           {
             "function": "flattenSpec",
             "appendTo": "common_device_group",
-            "param": "$.tags[?(@.tag=='device_group')].value"
+            "param": "$.tags[?(@.tag=='device_group')][0].value"
           }
         ],
         "ttl": null
@@ -1361,7 +1457,7 @@
           {
             "function": "gtpc_match",
             "appendTo": "common_imsi,common_imei,common_phone_number",
-            "param": "$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_b2a_teid"
+            "param": "$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_b2a_teid"
           }
         ]
       },
@@ -1997,24 +2093,6 @@
       "type": "string"
     },
     {
-      "name": "http_request_body_key",
-      "label": "HTTP.Request Body Key",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_response_body_key",
-      "label": "HTTP.Response Body Key",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "http_proxy_flag",
       "label": "HTTP.Proxy Flag",
       "doc": {
@@ -2064,24 +2142,6 @@
       "label": "HTTP.User Agent",
       "doc": {
         "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_content_length",
-      "label": "HTTP.Content Length",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_content_type",
-      "label": "HTTP.Content Type",
-      "doc": {
-        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -2995,7 +3055,7 @@
     },
     {
       "name": "ssl_pinningst",
-      "label": "SSL.Pinning",
+      "label": "SSL.Pinning(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3021,7 +3081,7 @@
     },
     {
       "name": "ssl_intercept_state",
-      "label": "SSL.Intercept State",
+      "label": "SSL.Intercept State(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3047,7 +3107,7 @@
     },
     {
       "name": "ssl_passthrough_reason",
-      "label": "SSL.Passthrough Reason",
+      "label": "SSL.Passthrough Reason(Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -3056,7 +3116,7 @@
     },
     {
       "name": "ssl_server_side_latency",
-      "label": "SSL.Server Side Latency (ms)",
+      "label": "SSL.Server Side Latency (ms)(Deprecated)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -3068,7 +3128,7 @@
     },
     {
       "name": "ssl_client_side_latency",
-      "label": "SSL.Client Side Latency (ms)",
+      "label": "SSL.Client Side Latency (ms)(Deprecated)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -3080,7 +3140,7 @@
     },
     {
       "name": "ssl_server_side_version",
-      "label": "SSL.Server Side Version",
+      "label": "SSL.Server Side Version(Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -3089,7 +3149,7 @@
     },
     {
       "name": "ssl_client_side_version",
-      "label": "SSL.Client Side Version",
+      "label": "SSL.Client Side Version(Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -3098,7 +3158,7 @@
     },
     {
       "name": "ssl_cert_verify",
-      "label": "SSL.Certificate Verify",
+      "label": "SSL.Certificate Verify(Deprecated)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3120,7 +3180,7 @@
     },
     {
       "name": "ssl_error",
-      "label": "SSL.Error",
+      "label": "SSL.Error(Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -3390,60 +3450,6 @@
     {
       "name": "bgp_route",
       "label": "BGP.Route",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "voip_calling_account",
-      "label": "VoIP.Calling Account",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "voip_called_account",
-      "label": "VoIP.Called Account",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "voip_calling_number",
-      "label": "VoIP.Calling Number",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "voip_called_number",
-      "label": "VoIP.Called Number",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "streaming_media_url",
-      "label": "Streaming.Media URL",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "streaming_media_protocol",
-      "label": "Streaming.Media Protocol",
       "doc": {
         "visibility": "disabled",
         "ttl": null

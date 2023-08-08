@@ -6,6 +6,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -13,7 +14,6 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
@@ -67,7 +67,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
-            BaseResult result = JsonMapper.fromJsonString(baseResult.getMessage(), BaseResult.class);
+            BaseResult result = JSON.parseObject(baseResult.getMessage(), BaseResult.class);
             throw new QGWBusinessException(baseResult.getStatus(), baseResult.getCode(), result.getMessage());
         }
         return baseResult;

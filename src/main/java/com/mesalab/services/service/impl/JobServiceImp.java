@@ -7,9 +7,11 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -19,17 +21,19 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.HBaseAPISource;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.services.common.enums.MetricFunction;
+import com.mesalab.services.common.enums.MetricType;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
@@ -92,6 +96,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             PROPERTIES.setProperty("zookeeper.recovery.retry.intervalmill", "200");
             PROPERTIES.setProperty("zookeeper.recovery.retry", "3");
             PROPERTIES.setProperty("hbase.client.retries.number", "3");
+            PROPERTIES.setProperty("hbase.client.keyvalue.maxsize","209715200");
         } catch (ClassNotFoundException e) {
             log.error("PhoenixDriver load error. ", e);
         }
@@ -103,10 +108,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         validateAdHocQuery(reqBody);
         String id = DigestUtil.md5Hex16(String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE)).toLowerCase()).concat(JobConfig.DELIMIT).concat(DigestUtil.md5Hex16(String.valueOf(reqBody)));
         if (isExist(id)) {
-            log.info("Hoc Job already exist, ID is {}, params is {}", id, JsonMapper.toJsonString(reqBody));
+            log.info("Hoc Job already exist, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
             return BaseResultGenerator.success("ok", buildData(id));
         }
-        log.info("Add Hoc Job, ID is {}, params is {}", id, JsonMapper.toJsonString(reqBody));
+        log.info("Add Hoc Job, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
         Map<String, Object> property = Maps.newLinkedHashMap();
         String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
@@ -124,7 +129,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         if (!isValidProperty(property)) {
             property.remove(JobConfig.JOB_PROPERTY_K_OPTION);
         }
-        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
+        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JSON.toJSONString(property), 0, 0));
     }
 
     private boolean isValidProperty(Map<String, Object> property) {
@@ -145,15 +150,17 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult commitSavedQuery(HashMap<String, Object> map) {
         validateReport(map);
+        String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL).toString(), false).replace("'", "\\'");
+        String id = getSameJob(sql);
+        if (StringUtil.isNotBlank(id)) {
+            return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildData(id));
+        }
         map.put("UUID", System.currentTimeMillis());
-        String id = DigestUtil.md5Hex16(JobConfig.REPORT)
+        id = DigestUtil.md5Hex16(JobConfig.REPORT)
                 .concat(JobConfig.DELIMIT)
                 .concat(DigestUtil.md5Hex16(String.valueOf(map)));
-
-        String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL).toString(), false).replace("'", "\\'");
         String currentDate = DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS);
-        sql = String.format(Objects.requireNonNull(env.getProperty("REPORT_INSERT")), currentDate, sql, currentDate, currentDate, currentDate, currentDate, id, TimeZone.getDefault().getID());
-        Db.update(sql);
+        Db.update(String.format(Objects.requireNonNull(env.getProperty("REPORT_INSERT")), currentDate, sql, currentDate, currentDate, currentDate, currentDate, id, TimeZone.getDefault().getID()));
         return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildData(id));
     }
 
@@ -262,7 +269,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         updateQueryTime(id, System.currentTimeMillis());
         Map<String, Object> job = Maps.newHashMap();
         Map<String, Object> map = data.get(0);
-        Map jobProperty = (Map) JsonMapper.fromJsonString(map.get(JobConfig.JOB_PROPERTY).toString(), Map.class);
+        Map jobProperty = JSON.parseObject(map.get(JobConfig.JOB_PROPERTY).toString(), Map.class);
         Object fields = jobProperty.get(JobConfig.JOB_PROPERTY_K_RESULT_FIELD);
         String[] list = StringUtil.isEmpty(fields) ? new String[0] : fields.toString().split(",");
         List<Map<String, Object>> resultList = Lists.newArrayList();
@@ -333,7 +340,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             execute(String.format(Objects.requireNonNull(env.getProperty("JOB_ADD_COLUMN")), JobConfig.FIELD_DISCOVERY, field));
         }
         property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, String.join(",", fields));
-        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JsonMapper.toJsonString(property), 0, 0));
+        execute(String.format(Objects.requireNonNull(env.getProperty("JOB_INIT")), id, false, 0, false, false, System.currentTimeMillis(), JSON.toJSONString(property), 0, 0));
     }
 
     private void buildPropertyOfStatistics(String sql, Map<String, Object> property) {
@@ -341,6 +348,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, JobConfig.STATISTICS_RESULT);
         try {
             PlainSelect plainSelect = checkParam(sql, CCJSqlParserUtil.parse(sql));
+            PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
+
             if (StringUtil.isNotEmpty(plainSelect.getOffset())
                     || (StringUtil.isNotEmpty(plainSelect.getLimit()) && StringUtil.isNotEmpty(plainSelect.getLimit().getOffset()))) {
                 return;
@@ -350,7 +359,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             }
             if (StringUtil.isEmpty(plainSelect.getGroupBy())
                     || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList())
-                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList().getExpressions())) {
+                    || StringUtil.isEmpty(plainSelect.getGroupBy().getGroupByExpressionList().getExpressions())
+                    || StringUtil.isEmpty(plainSelectInner.getGroupBy())) {
                 return;
             }
 
@@ -489,7 +499,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                     
         }
         PlainSelect plainSelect = (PlainSelect) selectBody;
-        if (StringUtil.isEmpty(plainSelect.getGroupBy())) {
+        PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
+        if (StringUtil.isEmpty(plainSelect.getGroupBy()) && StringUtil.isEmpty(plainSelectInner.getGroupBy())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "statistics job init error, not support non-aggregate SQL is: " + sql));
         }
@@ -520,11 +531,25 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     private void validateAdHocQuery(HashMap<String, Object> body) {
         Object type = body.get(JobConfig.KEY_QUERY_TYPE);
         if (JobConfig.FIELD_DISCOVERY.equals(type)) {
+            validCustomParamsOfFieldDiscovery(body);
             List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
             body.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));
             syntaxValidationFieldDiscovery(body);
         } else if (JobConfig.STATISTICS.equals(type)) {
             syntaxValidationStatistics(body);
+        }
+    }
+
+    private void validCustomParamsOfFieldDiscovery(HashMap<String, Object> body) {
+        Object metric = body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
+        if (StringUtil.isEmpty(metric)) {
+            return;
+        }
+        boolean validMetric = MetricType.isValid(String.valueOf(metric));
+        boolean validFn = MetricFunction.isValid(String.valueOf(body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN)));
+        if (!validMetric || !validFn) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
         }
     }
 
@@ -539,6 +564,13 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         }
     }
 
+    private String getSameJob(String paramSQL) {
+        List<Record> jobs = Db.find(String.format(Objects.requireNonNull(env.getProperty("REPORT_SAME")), paramSQL));
+        if (jobs.isEmpty()) {
+            return StringUtil.EMPTY;
+        }
+        return jobs.get(0).get("id");
+    }
 
     private void syntaxValidationFieldDiscovery(HashMap<String, Object> map) {
         String syntaxValidation = env.getProperty("SYNTAX_VALIDATION");

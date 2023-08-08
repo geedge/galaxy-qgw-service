@@ -4,15 +4,18 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileMode;
 import cn.hutool.core.text.StrFormatter;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.XmlUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConst;
@@ -23,7 +26,6 @@ import com.mesalab.services.common.entity.KnowledgeConstant;
 import com.mesalab.services.configuration.HosConfig;
 import com.mesalab.services.service.KnowledgeBaseService;
 import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -67,7 +69,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private CuratorFramework client;
 
     private static final String ZK_LOCK_PATH = "/zkLock";
-    private static final int HOS_PART_SIZE = 1024 * 1024 * 100;
     private static final String HOS_ETAG = "ETag";
     private static final String HOS_PART = "Part";
     private static final String HOS_PART_NUM = "PartNumber";
@@ -82,65 +83,74 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     @Override
     public BaseResult publishKnowledge(MultipartFile multipartFile, KnowledgeBase knowledge) throws Exception {
-
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
         try {
-            KnowledgeBase knowledgeBase = null;
-            if (lock.acquire(10000, TimeUnit.SECONDS)) {
+            String id = null;
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
-                knowledgeBase = setKnowledgeBase(multipartFile, knowledge, knowledgeBaseList);
-                Boolean b = updateLatestKnowledge(knowledgeBaseList, knowledgeBase);
-                if (b) {
-                    KnowledgeBase base = saveLatestKnowledge(knowledgeBase);
-                    knowledgeBaseList.add(base);
-                }
-                knowledgeBaseList.add(knowledgeBase);
+                String expirePath = buildKnowledgeBaseList(multipartFile, knowledge, knowledgeBaseList);
                 saveKnowledgeBaseList(knowledgeBaseList);
+                id = knowledge.getId();
+                if (StringUtil.isNotEmpty(expirePath)) {
+                    Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
+                    httpClientService.httpDelete(expirePath, httpConfig.getServerResponseTimeOut(), header);
+                }
             }
-
-            Map map = new HashMap();
-            map.put("id", knowledgeBase.getId());
+            Map<String, Object> map = Maps.newHashMap();
+            map.put("id", id);
             return BaseResultGenerator.success(map);
-        } catch (RuntimeException e) {
+        } catch (BusinessException e) {
             log.error("publish knowledge error: {}", e.getMessage());
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException(e.getStatus(), e.getCode(), e.getMessage());
         } finally {
             lock.release();
         }
-
     }
 
     @Override
     public BaseResult updateKnowledge(MultipartFile file, KnowledgeBase knowledgeBase) throws Exception {
-
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
-        String id = knowledgeBase.getId();
         try {
             // 尝试获取锁，最长等待10s，超时放弃获取
-            if (lock.acquire(10000, TimeUnit.SECONDS)) {
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
-                String deletePath = null;
-                for (int i = 0; i < knowledgeBaseList.size(); i++) {
-                    KnowledgeBase knowledge = knowledgeBaseList.get(i);
-                    if (StringUtil.equals(id, knowledge.getId()) && !StringUtil.equals(knowledge.getVersion(), KnowledgeConstant.LATEST)) {
-                        if (StringUtil.equals(knowledge.getId(), knowledgeBase.getId())) {
-                            if (!StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)) {
-                                deletePath = knowledge.getPath();
-                                String path = uploadFile(file);
-                                String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
-                                knowledge.setPath(path);
-                                knowledge.setSha256(sha256Hex);
-                                knowledge.setSize(file.getSize());
-                                knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
-                                updateLatestKnowledge(knowledgeBaseList, knowledge);
-                                break;
-                            }
+                String expirePath = null;
+                String newPath = null;
+                String fileSha256 = DigestUtil.sha256Hex(file.getBytes());
+                String currentDate = DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ");
+                for (KnowledgeBase knowledgeBaseRep : knowledgeBaseList) {
+                    if (StringUtil.equals(knowledgeBase.getId(), knowledgeBaseRep.getId())) {
+                        if (StringUtil.isBlank(newPath)) {
+                            newPath = uploadFile(file);
+                            expirePath = knowledgeBaseRep.getPath();
                         }
+                        if (StringUtil.isNotBlank(knowledgeBase.getName())) {
+                            knowledgeBaseRep.setName(knowledgeBase.getName());
+                        }
+                        if (StringUtil.isNotBlank(knowledgeBase.getFormat())) {
+                            knowledgeBaseRep.setFormat(knowledgeBase.getFormat());
+                        }
+                        if (StringUtil.isNotBlank(knowledgeBase.getType())) {
+                            knowledgeBaseRep.setType(knowledgeBase.getType());
+                        }
+                        if (StringUtil.isNotEmpty(knowledgeBase.getIsValid())) {
+                            knowledgeBaseRep.setIsValid(knowledgeBase.getIsValid());
+                        }
+                        if (StringUtil.isNotBlank(knowledgeBase.getOriginUrl())) {
+                            knowledgeBaseRep.setOriginUrl(knowledgeBase.getOriginUrl());
+                        }
+                        knowledgeBaseRep.setPath(newPath);
+                        knowledgeBaseRep.setSha256(fileSha256);
+                        knowledgeBaseRep.setSize(file.getSize());
+                        knowledgeBaseRep.setUpdateTime(currentDate);
+
                     }
                 }
-                saveKnowledgeBaseList(knowledgeBaseList);
-                Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
-                httpClientService.httpDelete(deletePath, httpConfig.getServerResponseTimeOut(), header);
+                if (StringUtil.isNotBlank(newPath)) {
+                    saveKnowledgeBaseList(knowledgeBaseList);
+                    Header header = new BasicHeader(KnowledgeConstant.TOKEN, hosConfig.getToken());
+                    httpClientService.httpDelete(expirePath, httpConfig.getServerResponseTimeOut(), header);
+                }
             }
         } catch (RuntimeException e) {
             log.error("update knowledge error: {}", e.getMessage());
@@ -148,8 +158,8 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         } finally {
             lock.release();
         }
-        Map map = new HashMap();
-        map.put("id", id);
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("id", knowledgeBase.getId());
         return BaseResultGenerator.success(map);
     }
 
@@ -158,7 +168,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         KnowledgeBase knowledgeBase = null;
         InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
         try {
-            if (lock.acquire(10000, TimeUnit.SECONDS)) {
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
                 List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
                 int originalSize = knowledgeBaseList.size();
                 Iterator<KnowledgeBase> iterator = knowledgeBaseList.iterator();
@@ -188,71 +198,167 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         return BaseResultGenerator.success(map);
     }
 
+    @Override
+    public BaseResult toggleKnowledge(KnowledgeBase knowledgeBase) throws Exception {
+        InterProcessMutex lock = new InterProcessMutex(client, ZK_LOCK_PATH);
+        try {
+            if (lock.acquire(10, TimeUnit.SECONDS)) {
+                List<KnowledgeBase> knowledgeBaseList = queryKnowledgeBaseList();
+                for (int i = 0; i < knowledgeBaseList.size(); i++) {
+                    KnowledgeBase knowledgeBaseRep = knowledgeBaseList.get(i);
+                    if (StringUtil.equals(knowledgeBase.getId(), knowledgeBaseRep.getId())) {
+                        knowledgeBaseRep.setIsValid(knowledgeBase.getIsValid());
+                        knowledgeBaseList.set(i,knowledgeBaseRep);
+                    }
+                }
+                saveKnowledgeBaseList(knowledgeBaseList);
+            }
+        } catch (RuntimeException e) {
+            log.error("toggle knowledge error: {}", e.getMessage());
+            throw new BusinessException(e.getMessage());
+        } finally {
+            lock.release();
+        }
+
+        Map<String, String> map = Maps.newHashMap();
+        map.put("id", knowledgeBase.getId());
+        return BaseResultGenerator.success(map);
+    }
+
     public List<KnowledgeBase> queryKnowledgeBaseList() {
         List<KnowledgeBase> knowledgeBaseList = new ArrayList<>();
         try {
             String config = pubConfigService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, httpConfig.getServerRequestTimeOut());
             if (StringUtil.isNotEmpty(config)) {
-                knowledgeBaseList = com.mesalab.common.utils.JsonMapper.fromJsonString(config, List.class, KnowledgeBase.class);
+                knowledgeBaseList = JSON.parseArray(config, KnowledgeBase.class);
                 knowledgeBaseList = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList());
             }
         } catch (NacosException e) {
             log.error("get knowledge meta error: {}", e.getMessage());
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         return knowledgeBaseList;
     }
 
 
-    private KnowledgeBase setKnowledgeBase(MultipartFile file, KnowledgeBase knowledge, List<KnowledgeBase> knowledgeBaseList) throws IOException {
-
-        String lastVersion = queryLastKnowledgeVersion(knowledgeBaseList, knowledge);
-        String version = generateVersion(lastVersion);
-        String id = DigestUtil.md5Hex16(knowledge.getType())
-                .concat("-")
-                .concat(DigestUtil.md5Hex16(knowledge.getName()
-                        .concat(knowledge.getFormat())
-                        .concat(version)));
-        String path = uploadFile(file);
-        String sha256Hex = DigestUtil.sha256Hex(file.getBytes());
-        knowledge.setId(id);
-        knowledge.setPath(path);
-        knowledge.setSha256(sha256Hex);
-        knowledge.setVersion(version);
+    private String buildKnowledgeBaseList(MultipartFile file, KnowledgeBase knowledge, List<KnowledgeBase> knowledgeBaseList) throws Exception {
+        if (StringUtil.isEmpty(knowledge.getIsValid())) {
+            knowledge.setIsValid(KnowledgeConstant.VALID);
+        }
+        String newPath = uploadFile(file);
+        knowledge.setPath(newPath);
+        knowledge.setSha256(DigestUtil.sha256Hex(file.getBytes()));
         knowledge.setSize(file.getSize());
         knowledge.setUpdateTime(DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ssZ"));
-        return knowledge;
+
+        if (StringUtils.isNotBlank(knowledge.getId()) && knowledgeBaseList.stream().anyMatch(o -> StringUtil.equals(o.getId(), knowledge.getId()))) {
+            KnowledgeBase knowledgeRep = new KnowledgeBase();
+            String expirePath = null;
+            for (KnowledgeBase item : knowledgeBaseList) {
+                if (StringUtil.equals(knowledge.getId(), item.getId())) {
+                    expirePath = item.getPath();
+                    BeanUtils.copyProperties(item, knowledgeRep);
+                    break;
+                }
+            }
+            for (KnowledgeBase item : knowledgeBaseList) {
+                if (StringUtil.equals(knowledge.getId(), item.getId())) {
+                    knowledge.setVersion(item.getVersion());
+                    if (StringUtil.equals(item.getVersion(), KnowledgeConstant.LATEST)) {
+                        BeanUtils.copyProperties(knowledge, item);
+                        item.setVersion(KnowledgeConstant.LATEST);
+                    } else {
+                        BeanUtils.copyProperties(knowledge, item);
+                    }
+                }
+                if (StringUtil.equals(item.getName(), knowledgeRep.getName()) && StringUtil.equals(item.getType(), knowledgeRep.getType()) && StringUtil.equals(item.getVersion(), KnowledgeConstant.LATEST)) {
+                    BeanUtils.copyProperties(knowledge, item);
+                    item.setVersion(KnowledgeConstant.LATEST);
+                }
+            }
+            return expirePath;
+        } else {
+            String lastVersion = queryLastKnowledgeVersion(knowledgeBaseList, knowledge);
+            String version = generateVersion(lastVersion);
+            if (StringUtil.isBlank(knowledge.getId())) {
+                knowledge.setId(DigestUtil.md5Hex16(knowledge.getType()).concat("-").concat(DigestUtil.md5Hex16(knowledge.getName().concat(knowledge.getFormat()).concat(version))));
+            }
+            knowledge.setVersion(version);
+            knowledgeBaseList.add(knowledge);
+            addKnowledgeLatest(knowledge, knowledgeBaseList);
+            return null;
+        }
+    }
+
+    private void addKnowledgeLatest(KnowledgeBase knowledge, List<KnowledgeBase> knowledgeBaseList) {
+        boolean hadLatestRep = knowledgeBaseList.stream().anyMatch(o -> StringUtil.equals(o.getName(), knowledge.getName())
+                && StringUtil.equals(o.getType(), knowledge.getType())
+                && StringUtil.equals(o.getVersion(), KnowledgeConstant.LATEST));
+        if (hadLatestRep) {
+            for (KnowledgeBase item : knowledgeBaseList) {
+                if (!StringUtil.equals(item.getName(), knowledge.getName())
+                        || !StringUtil.equals(item.getType(), knowledge.getType())
+                        || !StringUtil.equals(item.getVersion(), KnowledgeConstant.LATEST)) {
+                    continue;
+                }
+                BeanUtils.copyProperties(knowledge, item);
+                item.setVersion(KnowledgeConstant.LATEST);
+            }
+        } else {
+            KnowledgeBase knowledgeLatest = new KnowledgeBase();
+            BeanUtils.copyProperties(knowledge, knowledgeLatest);
+            knowledgeLatest.setVersion(KnowledgeConstant.LATEST);
+            knowledgeBaseList.add(knowledgeLatest);
+        }
     }
 
     private String queryLastKnowledgeVersion(List<KnowledgeBase> knowledgeBaseList, KnowledgeBase knowledge) {
-
-        if (CollectionUtil.isNotEmpty(knowledgeBaseList)) {
-            for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
-                if (!StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)
-                        && StringUtil.equals(knowledgeBase.getType(), knowledge.getType())
-                        && StringUtil.equals(knowledgeBase.getName(), knowledge.getName())) {
-                    return knowledgeBase.getVersion();
-                }
+        if (CollectionUtil.isEmpty(knowledgeBaseList)) {
+            return null;
+        }
+        knowledgeBaseList = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getName)
+                .thenComparingInt(o -> {
+                            String version = o.getVersion();
+                            int i = version.indexOf("_");
+                            String dateVersion = i > 0 ? version.substring(0, i) : "0";
+                            return Integer.parseInt(
+                                    NumberUtil.isInteger(dateVersion) ? dateVersion : "0");
+                        }
+                )
+                .thenComparingInt(o -> {
+                            String version = o.getVersion();
+                            int i = version.indexOf("_");
+                            String serial = i > 0 && i < version.length() - 1 ? version.substring(i + 1) : "0";
+                            return Integer.parseInt(
+                                    NumberUtil.isInteger(serial) ? serial : "0");
+                        }
+                )
+                .reversed()).collect(Collectors.toList());
+        for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
+            if (!StringUtil.equals(knowledgeBase.getVersion(), KnowledgeConstant.LATEST)
+                    && StringUtil.equals(knowledgeBase.getType(), knowledge.getType())
+                    && StringUtil.equals(knowledgeBase.getName(), knowledge.getName())) {
+                return knowledgeBase.getVersion();
             }
         }
         return null;
     }
 
-    private void saveKnowledgeBaseList(List<KnowledgeBase> knowledgeBaseList) throws NacosException, InterruptedException {
+    private void saveKnowledgeBaseList(List<KnowledgeBase> knowledgeBaseList) throws BusinessException, InterruptedException {
 
         try {
-            boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JsonMapper.toJsonString(knowledgeBaseList));
+            boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JSON.toJSONString(knowledgeBaseList));
             if (!b) {
-                throw new BusinessException("update knowledge meta error.");
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),"update knowledge meta error.");
             }
         } catch (RuntimeException | NacosException e) {
             log.error("update knowledge meta error: {}", e.getMessage());
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         while (true) {
             Thread.sleep(100);
-            String local = JsonMapper.toJsonString(knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList()));
-            String nacos = JsonMapper.toJsonString(queryKnowledgeBaseList());
+            String local = JSON.toJSONString(knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList()));
+            String nacos = JSON.toJSONString(queryKnowledgeBaseList());
             if (StringUtil.equals(local, nacos)) {
                 break;
             }
@@ -273,7 +379,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 HttpResponse httpResponse = httpClientService.httpPutStream(url, in, httpConfig.getServerResponseTimeOut(), header);
                 if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != ResultStatusEnum.SUCCESS.getCode()) {
                     log.error("execute upload file failed.");
-                    throw new BusinessException("upload file failed.");
+                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),"upload file failed.");
                 }
             } else {
                 File fileTemp = null;
@@ -289,7 +395,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     long hadReadLength = 0;
                     int count = 1;
                     while (hadReadLength < totalLength) {
-                        byte[] waitUploadBytes = new byte[HOS_PART_SIZE <= (totalLength - hadReadLength) ? HOS_PART_SIZE : (int) (totalLength - hadReadLength)];
+                        byte[] waitUploadBytes = new byte[hosConfig.getMultiUploadPartSize() <= (totalLength - hadReadLength) ? hosConfig.getMultiUploadPartSize().intValue() : (int) (totalLength - hadReadLength)];
                         hadReadLength = hadReadLength + randomAccessFile.read(waitUploadBytes);
                         InputStream inputStream = new ByteArrayInputStream(waitUploadBytes);
                         HttpResponse httpResponse = uploadPart(url, uploadId, count, inputStream, header);
@@ -300,7 +406,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     completeMultipartUpload(url, uploadId, completeBody, header);
                 } catch (IOException | RuntimeException ex) {
                     log.error("execute upload part file failed.");
-                    throw new BusinessException(ex.getMessage());
+                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),ex.getMessage());
                 } finally {
                     if (fileTemp != null && fileTemp.exists()) {
                         FileUtil.del(fileTemp);
@@ -308,7 +414,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 }
             }
         } catch (IOException e) {
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         return url;
     }
@@ -381,6 +487,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 base.setSha256(knowledgeBase.getSha256());
                 base.setOriginUrl(knowledgeBase.getOriginUrl());
                 base.setUpdateTime(knowledgeBase.getUpdateTime());
+                base.setIsValid(knowledgeBase.getIsValid());
                 knowledgeBaseList.set(i, base);
                 return false;
             }

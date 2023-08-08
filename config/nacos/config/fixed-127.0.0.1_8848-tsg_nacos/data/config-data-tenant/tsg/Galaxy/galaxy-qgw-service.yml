@@ -27,7 +27,7 @@ management:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.44.12:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=GMT&failOverReadOnly=false
+    url: jdbc:mysql://192.168.44.12:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=GMT&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
     username: ENC(63aTpwv2vH0vPikW+3Jjig==)
     pin: ENC(LDEb2OekU7iZWiFw6pUYBSozVKP27r1y)
 ## Hbase configuration
@@ -119,7 +119,8 @@ hos:
   uri: http://192.168.44.12:9098/hos
   bucket: knowledge_base_hos_bucket
   token: c21f969b5f03d33d43e04f8f136e7682
-  multiUploadStartSize: 1073741824
+  multiUploadStartSize: 5368709120
+  multiUploadPartSize: 10485760
 ## knowledge value 格式 name:版本
 knowledge:
   ipLocation:
@@ -152,7 +153,7 @@ job:
   longPolling:
     enabled: true
   interactive:
-    timeout: 100000000
+    timeout: 10000
   response:
     timeout: 3000
   execution:

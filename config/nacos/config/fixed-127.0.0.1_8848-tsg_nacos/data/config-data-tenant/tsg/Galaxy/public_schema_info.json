@@ -1,4 +1,251 @@
 {
+  "functions": {
+    "aggregation": [
+      {
+        "name": "COUNT",
+        "label": "COUNT",
+        "function": "count(expr)"
+      },
+      {
+        "name": "COUNT_DISTINCT",
+        "label": "COUNT_DISTINCT",
+        "function": "count(distinct expr)"
+      },
+      {
+        "name": "AVG",
+        "label": "AVG",
+        "function": "avg(expr)"
+      },
+      {
+        "name": "SUM",
+        "label": "SUM",
+        "function": "sum(expr)"
+      },
+      {
+        "name": "MAX",
+        "label": "MAX",
+        "function": "max(expr)"
+      },
+      {
+        "name": "MIN",
+        "label": "MIN",
+        "function": "min(expr)"
+      },
+      {
+        "name": "MEDIAN",
+        "label": "MEDIAN",
+        "function": "MEDIAN(expr)"
+      },
+      {
+        "name": "QUANTILE",
+        "label": "QUANTILE",
+        "function": "QUANTILE(expr,level)"
+      },
+      {
+        "name": "TIME_FLOOR_WITH_FILL",
+        "label": "TIME_FLOOR_WITH_FILL",
+        "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
+      }
+    ],
+    "date": [
+      {
+        "name": "UNIX_TIMESTAMP",
+        "label": "UNIX_TIMESTAMP",
+        "function": "UNIX_TIMESTAMP(expr)"
+      },
+      {
+        "name": "FROM_UNIXTIME",
+        "label": "FROM_UNIXTIME",
+        "function": "FROM_UNIXTIME(expr)"
+      },
+      {
+        "name": "DATE_FORMAT",
+        "label": "DATE_FORMAT",
+        "function": "DATE_FORMAT(expr,format)"
+      },
+      {
+        "name": "CONVERT_TZ",
+        "label": "CONVERT_TZ",
+        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
+      }
+    ],
+    "operator": [
+      {
+        "name": "=",
+        "label": "=",
+        "function": "expr = value"
+      },
+      {
+        "name": "!=",
+        "label": "!=",
+        "function": "expr != value"
+      },
+      {
+        "name": ">",
+        "label": ">",
+        "function": "expr > value"
+      },
+      {
+        "name": "<",
+        "label": "<",
+        "function": "expr < value"
+      },
+      {
+        "name": ">=",
+        "label": ">=",
+        "function": "expr >= value"
+      },
+      {
+        "name": "<=",
+        "label": "<=",
+        "function": "expr <= value"
+      },
+      {
+        "name": "has",
+        "label": "HAS",
+        "function": "has(expr, value)"
+      },
+      {
+        "name": "in",
+        "label": "IN",
+        "function": "expr in (values)"
+      },
+      {
+        "name": "not in",
+        "label": "NOT IN",
+        "function": "expr not in (values)"
+      },
+      {
+        "name": "like",
+        "label": "LIKE",
+        "function": "expr like value"
+      },
+      {
+        "name": "not like",
+        "label": "NOT LIKE",
+        "function": "expr not like value"
+      },
+      {
+        "name": "notEmpty",
+        "label": "NOT EMPTY",
+        "function": "notEmpty(expr)"
+      },
+      {
+        "name": "empty",
+        "label": "EMPTY",
+        "function": "empty(expr)"
+      },
+      {
+        "name": "bitAnd",
+        "label": "Bitwise AND",
+        "function": "bitAnd(expr, value)"
+      }
+    ],
+    "sketch": [
+      {
+        "name": "APPROX_COUNT_DISTINCT_HLLD",
+        "label": "APPROX_COUNT_DISTINCT_HLLD",
+        "function": "APPROX_COUNT_DISTINCT_HLLD(expr, precision,round)"
+      },
+      {
+        "name": "HLLD",
+        "label": "HLLD",
+        "function": "HLLD(expr, precision)"
+      },
+      {
+        "name": "APPROX_QUANTILE_HDR",
+        "label": "APPROX_QUANTILE_HDR",
+        "function": "APPROX_QUANTILE_HDR(expr,probability,numberOfSignificantValueDigits)"
+      },
+      {
+        "name": "HDR_HISTOGRAM",
+        "label": "HDR_HISTOGRAM",
+        "function": "HDR_HISTOGRAM(expr, numberOfSignificantValueDigits)"
+      },
+      {
+        "name": "HDR_GET_QUANTILES",
+        "label": "HDR_GET_QUANTILES",
+        "function": "HDR_GET_QUANTILES(expr,probability0, probability1, ...)"
+      },
+      {
+        "name": "HDR_GET_PERCENTILES",
+        "label": "HDR_GET_PERCENTILES",
+        "function": "HDR_GET_QUANTILES(expr,percentileTicksPerHalfDistance)"
+      }
+    ]
+  },
+  "units": {
+    "bytes": {
+      "label": "Bytes",
+      "abbreviation": "B"
+    },
+    "bits": {
+      "label": "Bits",
+      "abbreviation": "b"
+    },
+    "packets": {
+      "label": "Packets",
+      "abbreviation": "Pkts"
+    },
+    "flows": {
+      "label": "Flows",
+      "abbreviation": "Flows"
+    },
+    "sessions": {
+      "label": "Sessions",
+      "abbreviation": "Sessions"
+    },
+    "hit_count": {
+      "label": "Hit Count",
+      "abbreviation": "Hit Count"
+    },
+    "bps": {
+      "label": "bits/s",
+      "abbreviation": "bps",
+      "desc": "bit per second"
+    },
+    "Bps": {
+      "label": "Bytes/s",
+      "abbreviation": "Bps",
+      "desc": "Byte per second"
+    },
+    "pps": {
+      "label": "Packets/s",
+      "abbreviation": "pps",
+      "desc": "Packet per second"
+    },
+    "fps": {
+      "label": "Flows/s",
+      "abbreviation": "fps",
+      "desc": "Flow per second"
+    },
+    "sps": {
+      "label": "Sessions/s",
+      "abbreviation": "Sessions/s",
+      "desc": "Session per second"
+    },
+    "cps": {
+      "label": "Count/s",
+      "abbreviation": "Count/s",
+      "desc": "count per second"
+    },
+    "ms": {
+      "label": "millisecond",
+      "abbreviation": "ms"
+    },
+    "s": {
+      "label": "second",
+      "abbreviation": "s"
+    },
+    "unique_ip": {
+      "label": "Unique IPs",
+      "abbreviation": "Unique IPs"
+    },
+    "percentage": {
+      "label": "%",
+      "abbreviation": "%"
+    }
+  },
   "radius_onff_log": {
     "index_key": {
       "log_id": [
@@ -245,149 +492,6 @@
       ]
     }
   },
-  "functions": {
-    "aggregation": [
-      {
-        "name": "COUNT",
-        "label": "COUNT",
-        "function": "count(expr)"
-      },
-      {
-        "name": "COUNT_DISTINCT",
-        "label": "COUNT_DISTINCT",
-        "function": "count(distinct expr)"
-      },
-      {
-        "name": "AVG",
-        "label": "AVG",
-        "function": "avg(expr)"
-      },
-      {
-        "name": "SUM",
-        "label": "SUM",
-        "function": "sum(expr)"
-      },
-      {
-        "name": "MAX",
-        "label": "MAX",
-        "function": "max(expr)"
-      },
-      {
-        "name": "MIN",
-        "label": "MIN",
-        "function": "min(expr)"
-      },
-      {
-        "name": "MEDIAN",
-        "label": "MEDIAN",
-        "function": "MEDIAN(expr)"
-      },
-      {
-        "name": "QUANTILE",
-        "label": "QUANTILE",
-        "function": "QUANTILE(expr,level)"
-      },
-      {
-        "name": "TIME_FLOOR_WITH_FILL",
-        "label": "TIME_FLOOR_WITH_FILL",
-        "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
-      }
-    ],
-    "date": [
-      {
-        "name": "UNIX_TIMESTAMP",
-        "label": "UNIX_TIMESTAMP",
-        "function": "UNIX_TIMESTAMP(expr)"
-      },
-      {
-        "name": "FROM_UNIXTIME",
-        "label": "FROM_UNIXTIME",
-        "function": "FROM_UNIXTIME(expr)"
-      },
-      {
-        "name": "DATE_FORMAT",
-        "label": "DATE_FORMAT",
-        "function": "DATE_FORMAT(expr,format)"
-      },
-      {
-        "name": "CONVERT_TZ",
-        "label": "CONVERT_TZ",
-        "function": "CONVERT_TZ(expr, from_tz, to_tz)"
-      }
-    ],
-    "operator": [
-      {
-        "name": "=",
-        "label": "=",
-        "function": "expr = value"
-      },
-      {
-        "name": "!=",
-        "label": "!=",
-        "function": "expr != value"
-      },
-      {
-        "name": ">",
-        "label": ">",
-        "function": "expr > value"
-      },
-      {
-        "name": "<",
-        "label": "<",
-        "function": "expr < value"
-      },
-      {
-        "name": ">=",
-        "label": ">=",
-        "function": "expr >= value"
-      },
-      {
-        "name": "<=",
-        "label": "<=",
-        "function": "expr <= value"
-      },
-      {
-        "name": "has",
-        "label": "HAS",
-        "function": "has(expr, value)"
-      },
-      {
-        "name": "in",
-        "label": "IN",
-        "function": "expr in (values)"
-      },
-      {
-        "name": "not in",
-        "label": "NOT IN",
-        "function": "expr not in (values)"
-      },
-      {
-        "name": "like",
-        "label": "LIKE",
-        "function": "expr like value"
-      },
-      {
-        "name": "not like",
-        "label": "NOT LIKE",
-        "function": "expr not like value"
-      },
-      {
-        "name": "notEmpty",
-        "label": "NOT EMPTY",
-        "function": "notEmpty(expr)"
-      },
-      {
-        "name": "empty",
-        "label": "EMPTY",
-        "function": "empty(expr)"
-      },
-      {
-        "name": "bitAnd",
-        "label": "Bitwise AND",
-        "function": "bitAnd(expr, value)"
-      }
-    ]
-  },
   "schema_query": {
     "references": {
       "aggregation": [
@@ -478,6 +582,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -496,6 +602,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -516,8 +624,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -585,6 +693,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -603,6 +713,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -623,8 +735,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -687,16 +799,12 @@
         "http_response_content_type",
         "http_request_body",
         "http_response_body",
-        "http_request_body_key",
-        "http_response_body_key",
         "http_proxy_flag",
         "http_sequence",
         "http_snapshot",
         "http_cookie",
         "http_referer",
         "http_user_agent",
-        "http_content_length",
-        "http_content_type",
         "http_set_cookie",
         "http_version",
         "http_response_latency_ms",
@@ -723,6 +831,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -741,6 +851,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -761,8 +873,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -848,6 +960,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -866,6 +980,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -886,8 +1002,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -974,6 +1090,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -992,6 +1110,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1012,8 +1132,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -1061,6 +1181,7 @@
         "common_ingestion_time",
         "common_mirrored_pkts",
         "common_mirrored_bytes",
+        "ssl_version",
         "ssl_sni",
         "ssl_san",
         "ssl_cn",
@@ -1101,6 +1222,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -1119,6 +1242,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1139,8 +1264,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -1219,6 +1344,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -1237,6 +1364,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1257,8 +1386,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -1330,6 +1459,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -1348,6 +1479,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1368,8 +1501,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -1442,6 +1575,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -1460,6 +1595,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1480,8 +1617,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -1554,6 +1691,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -1572,6 +1711,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1592,8 +1733,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -1678,6 +1819,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -1696,6 +1839,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1716,8 +1861,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -1790,6 +1935,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -1808,6 +1955,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1828,8 +1977,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -1901,6 +2050,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -1919,6 +2070,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -1939,8 +2092,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -2037,6 +2190,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -2055,6 +2210,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -2075,8 +2232,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -2167,6 +2324,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -2185,6 +2344,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -2205,8 +2366,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -2286,6 +2447,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -2304,6 +2467,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -2324,8 +2489,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -2420,6 +2585,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -2438,6 +2605,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -2458,8 +2627,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -2529,6 +2698,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -2547,6 +2718,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -2567,8 +2740,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",
@@ -2649,6 +2822,8 @@
         "common_imei",
         "common_imsi",
         "common_phone_number",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_client_ip",
         "common_client_port",
         "common_internal_ip",
@@ -2667,6 +2842,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_sessions",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -2687,8 +2864,8 @@
         "common_user_region",
         "common_shaping_rule_ids",
         "common_device_id",
-        "common_egress_link_id",
-        "common_ingress_link_id",
+        "common_out_link_id",
+        "common_in_link_id",
         "common_isp",
         "common_device_tag",
         "common_data_center",

@@ -1,0 +1,16 @@
+Release 368 (TSG-23.06)
+* 优化知识库更新、发布接口
+* 升级Galaxy Tools到1.1.3, 标识JsonMapper已过时，删除IPLookUp工具类
+* json类库统一使用Fastjson2(GAL-342)
+* 修改Schema，Proxy Events Sub Action字段不作为默认Field discovery的Selected Fields的列(TSG-15133)
+* 完善TopN优化，解决Field Discovery与Statistics Top10结果差异较大问题(TSG-15360)
+* 修改Schema，统一定义Metrics Schema Data Center/Device Group 支持检索方式为 =,in(TSG-15431)
+* 修改log4j2配置，基于不同日志级别输出不同的日志文件(GAL-353)
+* 完善补全函数， 修复补全操作改变结果数据类型问题(TSG-15471)
+* 修复Logs详情分组展示顺序与文档Schema描述不一致的问题(TSG-15498)
+* 修改Schema，对schema type=ssl 标识为Deprecated的字段进行隐藏(TSG-15364)
+* 修复导致失败，完善fastjson2解析大对象OOM问题(TSG-15472)
+* 修改Schema，APP统计汇聚表app_name支持检索方式为 =,in(TSG-15572)
+* 修改Schema，更新gtpc_match、flattenSpec函数对应参数的Jsonpath表达式(TSG-15621)
+* 修改Schema，security_rule_hits schema Action 删除Intercept选项(TSG-15602)
+* 扩展Schema，新增公共字段common_in_src_mac、common_out_src_mac、common_in_dest_mac、common_out_dest_mac(TSG-15647)

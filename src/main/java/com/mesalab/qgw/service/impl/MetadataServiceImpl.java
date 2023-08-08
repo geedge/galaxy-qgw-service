@@ -7,6 +7,8 @@ import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
@@ -31,7 +33,6 @@ import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
 import com.mesalab.qgw.service.ApiService;
 import com.mesalab.qgw.service.MetadataService;
-import com.zdjizhi.utils.JsonMapper;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaParseException;
@@ -98,7 +99,7 @@ public class MetadataServiceImpl implements MetadataService {
     public String getPartitionKey(String tableName) {
         String partitionKey = StringUtil.EMPTY;
         Schema schema = getSchemaByName(tableName);
-        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        Map doc = (Map) JSON.parseObject(schema.getDoc(), Map.class);
         if (StringUtil.isNotEmpty(doc)) {
             Object partition_key = doc.get("partition_key");
             partitionKey = StringUtil.isEmpty(partition_key) ? StringUtil.EMPTY : partition_key.toString();
@@ -120,7 +121,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     public String getValueByKeyInSchemaDoc(String tableName, String key) {
         Schema schema = getSchemaByName(tableName);
-        Map doc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        Map doc = (Map) JSON.parseObject(schema.getDoc(), Map.class);
         if (StringUtil.isNotEmpty(doc)) {
             Object value = doc.get(key);
             if (value instanceof Map) {
@@ -241,7 +242,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     private boolean updateSchema(String name, Map<String, Object> paramMap, String content) throws NacosException {
         if (StringUtil.isNotEmpty(content)) {
-            Map<String, Object> data = (Map<String, Object>) JsonMapper.fromJsonString(content, Map.class);
+            Map<String, Object> data = JSON.parseObject(content, Map.class);
             data.put("doc", rewriteDoc("ttl", data.get("doc"), paramMap.get("doc")));
             List<Map<String, Object>> fields = (List<Map<String, Object>>) data.get("fields");
             List<String> indexKey = getIndexKey(name);
@@ -255,7 +256,7 @@ public class MetadataServiceImpl implements MetadataService {
                 }
                 field.put("doc", rewriteDoc("visibility", field.get("doc"), JsonPath.read(paramMap, "$.fields[?(@.name == \"" + field.get("name") + "\")].doc")));
             }
-            content = JSONUtil.toJsonStr(JSONUtil.parseObj(data));
+            content = JSON.toJSONString(data, JSONWriter.Feature.WriteNulls);
             log.info("push Schema, content is: {}", content);
             return systemConfigService.publishConfig(name.concat(".json"), nacosConfig.getGroup(), JSONUtil.formatJsonStr(content));
         } else {
@@ -317,8 +318,8 @@ public class MetadataServiceImpl implements MetadataService {
         if (StringUtil.isEmpty(schema)) {
             throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), QGWMessageConst.SCHEMA_URL_NOT_FOUND);
         }
-        Map resultMap = (Map) JsonMapper.fromJsonString(String.valueOf(schema), Map.class);
-        Map schemaDoc = (Map) JsonMapper.fromJsonString(schema.getDoc(), Map.class);
+        LinkedHashMap resultMap = JSON.parseObject(String.valueOf(schema), LinkedHashMap.class);
+        LinkedHashMap schemaDoc = JSON.parseObject(schema.getDoc(), LinkedHashMap.class);
         if (StringUtil.isEmpty(schemaDoc) &&
                 StringUtil.isNotEmpty(schema.getDoc())) {
             log.error("{} schema's doc isn't jsonString and won't convert: {}", name, schema.getDoc());
@@ -326,16 +327,16 @@ public class MetadataServiceImpl implements MetadataService {
         List<Map> data = Lists.newArrayList();
         if (displayStorageSize) {
             data = getStorageSize(name);
-            schemaDoc = fillSchemaStorageSize(schemaDoc, data);
+            schemaDoc = (LinkedHashMap) fillSchemaStorageSize(schemaDoc, data);
         }
         if (StringUtil.isNotEmpty(schemaDoc)) {
             resultMap.put("doc", schemaDoc);
         }
         List<Map> fields = (List<Map>) resultMap.get("fields");
-        Map mapDoc;
+        LinkedHashMap mapDoc;
         for (Map next : fields) {
-            mapDoc = (Map) JsonMapper.fromJsonString(String.valueOf(next.get("doc")), Map.class);
-            mapDoc = fillFieldStorageSize(data, mapDoc, next);
+            mapDoc = JSON.parseObject((String) next.get("doc"), LinkedHashMap.class);
+            mapDoc = (LinkedHashMap) fillFieldStorageSize(data, mapDoc, next);
             if (StringUtil.isNotEmpty(mapDoc)) {
                 next.put("doc", mapDoc);
             }
@@ -347,12 +348,12 @@ public class MetadataServiceImpl implements MetadataService {
         return resultMap;
     }
 
-    private Map fillSchemaStorageSize(Map schemaDoc, List<Map> data) {
+    private Map fillSchemaStorageSize(LinkedHashMap schemaDoc, List<Map> data) {
         if (CollectionUtil.isEmpty(data)) {
             return schemaDoc;
         }
         if (StringUtil.isEmpty(schemaDoc)) {
-            schemaDoc = Maps.newHashMap();
+            schemaDoc = new LinkedHashMap();
         }
         long total = 0;
         for (Map datum : data) {
@@ -362,12 +363,12 @@ public class MetadataServiceImpl implements MetadataService {
         return schemaDoc;
     }
 
-    private Map fillFieldStorageSize(List<Map> data, Map mapDoc, Map next) {
+    private Map fillFieldStorageSize(List<Map> data, LinkedHashMap mapDoc, Map next) {
         if (CollectionUtil.isEmpty(data)) {
             return mapDoc;
         }
         if (StringUtil.isEmpty(mapDoc)) {
-            mapDoc = Maps.newHashMap();
+            mapDoc = new LinkedHashMap();
         }
         try {
             List<Object> name = JsonPath.read(data, "$.[?(@.field == \"" + next.get("name") + "\")].bytes");
@@ -552,10 +553,10 @@ public class MetadataServiceImpl implements MetadataService {
         if (StrUtil.isBlank(configInfo)) return null;
         Map schemaMap = null;
         try {
-            schemaMap = (Map) JsonMapper.fromJsonString(configInfo, Map.class);
+            schemaMap = JSON.parseObject(configInfo, Map.class);
             Object docSchema;
             if (StringUtil.isNotEmpty(docSchema = schemaMap.get("doc"))) {
-                schemaMap.put("doc", JSONUtil.toJsonStr(JSONUtil.parseObj(docSchema)));
+                schemaMap.put("doc", JSON.toJSONString(docSchema, JSONWriter.Feature.WriteNulls));
             }
             Object fieldsObj;
             if (StringUtil.isNotEmpty(fieldsObj = schemaMap.get("fields"))) {
@@ -565,12 +566,12 @@ public class MetadataServiceImpl implements MetadataService {
                     if (StringUtil.isEmpty(docField = next.get("doc"))) {
                         continue;
                     }
-                    next.put("doc", JSONUtil.toJsonStr(JSONUtil.parseObj(docField)));
+                    next.put("doc", JSON.toJSONString(docField, JSONWriter.Feature.WriteNulls));
                 }
             }
         } catch (JSONException | SchemaParseException | ClassCastException e) {
             log.error("update Schema error: {}", e);
         }
-        return new Schema.Parser().parse(JSONUtil.toJsonStr(JSONUtil.parseObj(schemaMap)));
+       return new Schema.Parser().parse(JSON.toJSONString(schemaMap, JSONWriter.Feature.WriteNulls));
     }
 }

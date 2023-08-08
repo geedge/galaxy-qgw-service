@@ -2,9 +2,9 @@ package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.DruidIoHttpSource;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity request = new HttpEntity(JsonMapper.toJsonString(druidQueryParam), headers);
+            HttpEntity request = new HttpEntity(JSON.toJSONString(druidQueryParam), headers);
             ResponseEntity responseEntity = restTemplate.postForEntity(queryURL, request, Object.class);
 
             if (responseEntity.getStatusCodeValue() == ResultStatusEnum.SUCCESS.getCode()) {

@@ -4,7 +4,6 @@ package com.mesalab.services.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -59,11 +58,24 @@ public class TaskExecuteService implements EnvironmentAware {
     EngineConfigSource engineConfigSource;
 
     @Async("taskExecutor")
-    public Future<Boolean> executeFieldDiscovery(String id, String logType, String filter, String field, long currentCount) {
+    public Future<Boolean> executeFieldDiscovery(String id, String logType, String filter, String field, Object metric, Object fn, long currentTotalMetric) {
         try {
+            String fnDefault = "count";
+            String column = "*";
+            String value = "count";
+            if (StringUtil.isNotEmpty(metric)) {
+                String measurements = metadataService.getValueByKeyInSchemaDoc(logType, "measurements");
+                List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
+                if (!read.isEmpty()) {
+                    fnDefault = fn.toString();
+                    column = read.get(0).get("column");
+                    value = read.get(0).get("value");
+                }
+            }
+
             BaseResult currentTop = apiService.executeQuery(ApiParam.builder()
                     .option(QueryOptionEnum.REAL_TIME.getValue())
-                    .query(buildTopSQL(logType, filter, field))
+                    .query(buildTopSQL(logType, filter, field, fnDefault, column, value))
                     .build());
             if (!currentTop.isSuccess()) {
                 setJobFailed(id);
@@ -81,22 +93,22 @@ public class TaskExecuteService implements EnvironmentAware {
                 log.error("Field-Discovery task query lastTopK Error: ", lastTop.getMessage());
                 return new AsyncResult<>(false);
             }
-            Object lastCount = 0;
+            Object lastTotalMetric = 0;
             if (StringUtil.isNotEmpty(lastTop.getData())) {
                 List<Map> map = (List<Map>) lastTop.getData();
                 if (StringUtil.isNotEmpty(map.get(0).get("value"))) {
                     Map item = JSONUtil.toBean(String.valueOf(map.get(0).get("value")), Map.class);
                     if (StringUtil.isNotEmpty(item)) {
                         List<Map<String, Object>> topk = (List<Map<String, Object>>) item.get("topk");
-                        lastCount = item.get("count");
+                        lastTotalMetric = item.get(value);
                         Map<String, String> metrics = Maps.newHashMap();
-                        metrics.put("count", "sum");
+                        metrics.put(value, "count".equalsIgnoreCase(fnDefault) ? "sum" : fnDefault);
                         data = mergeData((List<Map<String, Object>>) JSONArray.parse(JSONUtil.toJsonStr(data)), topk, Lists.newArrayList("value"), metrics);
                     }
                 }
             }
-            data = sortDataAndSetMaxSize(data, "count", DataTypeMapping.LONG, false);
-            updateResult(id, field, currentCount, lastCount, data);
+            data = sortDataAndSetMaxSize(data, value, DataTypeMapping.LONG, false);
+            updateResult(id, field, currentTotalMetric, lastTotalMetric, value, data);
         } catch (RuntimeException ex) {
             log.error("Field-Discovery task execute error, message is: {}", ex.getMessage());
             setJobFailed(id);
@@ -254,7 +266,7 @@ public class TaskExecuteService implements EnvironmentAware {
         return lastData.size() > preData.size() ? lastData : preData;
     }
 
-    private String buildTopSQL(String tableName, String filter, String fieldName) {
+    private String buildTopSQL(String tableName, String filter, String fieldName, String fn, String column, String value) {
         Schema.Field field = metadataService.getSchemaByName(tableName).getField(fieldName);
         if (StringUtil.isNotEmpty(field)) {
             Schema schema = field.schema();
@@ -263,23 +275,24 @@ public class TaskExecuteService implements EnvironmentAware {
             if (StrUtil.equalsIgnoreCase(Schema.Type.ARRAY.getName(), type)
                     || StrUtil.equalsIgnoreCase(Schema.Type.ARRAY.getName(), logicalType)) {
                 return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_ARRAY")),
-                        fieldName, tableName, fieldName, StrUtil.isBlankIfStr(filter) ? "" : " AND ".concat(filter), fieldName);
+                        "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, fieldName, StrUtil.isBlankIfStr(filter) ? "" : " AND ".concat(filter), value);
             } else if (StrUtil.equalsIgnoreCase("bit", type)
                     || StrUtil.equalsIgnoreCase("bit", logicalType)) {
+
                 return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_BIT")),
-                        fieldName, tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), fieldName);
+                        "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value);
             }
 
         }
         return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_DEFAULT")),
-                fieldName, tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter));
+                fieldName, fn, column, value, tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value);
     }
 
-    private void updateResult(String id, String field, long currentCount, Object lastCount, List<Map<String, Object>> topList) {
+    private void updateResult(String id, String field, long currentTotalMetric, Object lastTotalMetric, String value, List<Map<String, Object>> topList) {
         Map<String, Object> map = Maps.newHashMap();
         map.put("topk", topList);
         map.put("distinct_count", Math.min(topList.size(), 100));
-        map.put("count", currentCount + Long.parseLong(lastCount.toString()));
+        map.put(value, currentTotalMetric + Long.parseLong(lastTotalMetric.toString()));
         String result = JSONUtil.quote(JSONUtil.toJsonStr(map), false).replace("'", "\\'");
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.FIELD_DISCOVERY, field, id, result));
     }

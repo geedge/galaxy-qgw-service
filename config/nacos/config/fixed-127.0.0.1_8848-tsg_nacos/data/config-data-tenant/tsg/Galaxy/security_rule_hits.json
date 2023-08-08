@@ -11,6 +11,13 @@
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
+    },
+    "measurements": {
+      "granularity": 1,
+      "ingestion_delay": 15,
+      "units": {
+        "$ref": "public_schema_info.json#/units"
+      }
     }
   },
   "fields": [
@@ -66,7 +73,7 @@
       "label": "Data Center",
       "doc": {
         "constraints": {
-          "operator_functions": "=,!="
+          "operator_functions": "=,in"
         },
         "data": {
           "$ref": "device_tag.json#",
@@ -79,7 +86,7 @@
     },
     {
       "name": "rule_id",
-      "label": "Rule ID",
+      "label": "Rule",
       "type": "long",
       "doc": {
         "constraints": {
@@ -108,10 +115,6 @@
           {
             "code": "1",
             "value": "Monitor"
-          },
-          {
-            "code": "2",
-            "value": "Intercept"
           },
           {
             "code": "16",

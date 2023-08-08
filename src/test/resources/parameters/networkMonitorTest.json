@@ -3,7 +3,7 @@
     "clientId": null,
     "query": {
       "queryType": "appDataSummary",
-      "dataSource": "traffic_protocol_stat_log",
+      "dataSource": "application_protocol_stat",
       "limit": "100",
       "offset": "10",
       "parameters": {
@@ -99,7 +99,7 @@
     "clientId": null,
     "query": {
       "queryType": "appDataRateSummary",
-      "dataSource": "traffic_protocol_stat_log",
+      "dataSource": "application_protocol_stat",
       "parameters": {
         "granularity": "PT30S",
         "match": [
@@ -146,7 +146,7 @@
     "clientId": null,
     "query": {
       "queryType": "appTrafficSummary",
-      "dataSource": "traffic_protocol_stat_log",
+      "dataSource": "application_protocol_stat",
       "parameters": {
         "match": [
           {

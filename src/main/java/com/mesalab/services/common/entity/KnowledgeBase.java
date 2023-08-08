@@ -28,4 +28,6 @@ public class KnowledgeBase {
     private String version;
 
     private String updateTime;
+
+    private Integer isValid;
 }

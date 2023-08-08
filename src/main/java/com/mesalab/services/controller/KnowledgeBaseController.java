@@ -4,6 +4,7 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.services.common.entity.KnowledgeBase;
@@ -34,8 +35,8 @@ public class KnowledgeBaseController {
 
     @PostMapping(produces = "application/json")
     public BaseResult publishKnowledge(@RequestParam("file") MultipartFile file, KnowledgeBase knowledge) {
+        KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
         try {
-            KnowledgeBase knowledgeBase = validateKnowledge(knowledge);
             return knowledgeService.publishKnowledge(file, knowledgeBase);
         } catch (Exception e) {
             log.error("publish knowledge error: {}", e.getMessage());
@@ -43,10 +44,12 @@ public class KnowledgeBaseController {
         }
     }
 
-    @PutMapping
-    public BaseResult updateKnowledge(@RequestPart(value = "file") MultipartFile file, KnowledgeBase knowledge) {
-
+    @PutMapping(value = {"/{id}", ""})
+    public BaseResult updateKnowledge(@PathVariable(required = false) String id, @RequestPart(value = "file") MultipartFile file, KnowledgeBase knowledge) {
         try {
+            if (StringUtil.isNotBlank(id)) {
+                knowledge.setId(id);
+            }
             return knowledgeService.updateKnowledge(file, knowledge);
         } catch (Exception e) {
             log.error("update knowledge error: {}", e);
@@ -54,29 +57,41 @@ public class KnowledgeBaseController {
         }
     }
 
-    @DeleteMapping
-    public BaseResult deleteKnowledge(@RequestParam String id) {
-
+    @DeleteMapping(value = {"/{id}", ""})
+    public BaseResult deleteKnowledge(@PathVariable(required = false) String id, KnowledgeBase knowledgeBase) {
         try {
-            return knowledgeService.deleteKnowledge(id);
+            return knowledgeService.deleteKnowledge(StringUtil.isNotBlank(id) ? id : knowledgeBase.getId());
         } catch (Exception e) {
             log.error("delete knowledge error: {}", e.getMessage());
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "delete knowledge error:" + e.getMessage());
         }
     }
 
+    @PatchMapping(value = "/{id}")
+    public BaseResult toggleKnowledge(@PathVariable String id, KnowledgeBase knowledgeBase) {
+        try {
+            if (StringUtil.isNotBlank(id)) {
+                knowledgeBase.setId(id);
+            }
+            return knowledgeService.toggleKnowledge(knowledgeBase);
+        } catch (Exception e) {
+            log.error("toggle knowledge error: {}", e.getMessage());
+            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "toggle knowledge error:" + e.getMessage());
+        }
+    }
+
     private KnowledgeBase validateKnowledge(KnowledgeBase knowledge) {
         if (StringUtil.isEmpty(knowledge.getName())) {
-            throw new BusinessException("Name is required");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),"Name is required");
         }
         if (knowledge.getName().contains(":")) {
-            throw new BusinessException("Name cannot contain ':'");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"Name cannot contain ':'");
         }
         if (knowledge.getName().contains(".")) {
-            throw new BusinessException("Name cannot contain '.'");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"Name cannot contain '.'");
         }
         if (StringUtil.isEmpty(knowledge.getFormat())) {
-            throw new BusinessException("Format is required");
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"Format is required");
         }
         return knowledge;
     }

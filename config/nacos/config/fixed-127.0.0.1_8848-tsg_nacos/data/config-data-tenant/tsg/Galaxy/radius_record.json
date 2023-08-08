@@ -39,10 +39,14 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
         "common_tunnel_endpoint_b_desc",
         "common_subscriber_id",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "radius_nas_ip",
         "radius_framed_ip",
         "radius_packet_type",
@@ -73,6 +77,8 @@
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
@@ -80,6 +86,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_l4_protocol",
         "common_c2s_pkt_num",
         "common_s2c_pkt_num",
@@ -122,6 +130,8 @@
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
+        "common_in_src_mac",
+        "common_out_src_mac",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
@@ -129,6 +139,8 @@
         "common_server_asn",
         "common_server_fqdn",
         "common_server_domain",
+        "common_in_dest_mac",
+        "common_out_dest_mac",
         "common_l4_protocol",
         "common_tunnel_endpoint_a_desc",
         "common_tunnel_endpoint_b_desc",
@@ -184,8 +196,8 @@
           "common_ingestion_time",
           "common_entrance_id",
           "common_device_id",
-          "common_egress_link_id",
-          "common_ingress_link_id",
+          "common_out_link_id",
+          "common_in_link_id",
           "common_isp",
           "common_data_center",
           "common_device_group",
@@ -200,7 +212,9 @@
           "common_subscriber_id",
           "common_imei",
           "common_imsi",
-          "common_phone_number"
+          "common_phone_number",
+          "common_in_src_mac",
+          "common_out_src_mac"
         ],
         "destination": [
           "common_server_ip",
@@ -209,7 +223,9 @@
           "common_server_location",
           "common_server_asn",
           "common_server_fqdn",
-          "common_server_domain"
+          "common_server_domain",
+          "common_in_dest_mac",
+          "common_out_dest_mac"
         ],
         "application": [
           "common_app_id",
@@ -371,6 +387,24 @@
       "type": "string"
     },
     {
+      "name": "common_in_src_mac",
+      "label": "Incoming Source MAC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_out_src_mac",
+      "label": "Outgoing Source MAC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "common_client_ip",
       "label": "Client IP",
       "doc": {
@@ -496,6 +530,10 @@
           {
             "code": "96",
             "value": "Allow"
+          },
+          {
+            "code": "128",
+            "value": "Allow(Deprecated)"
           }
         ],
         "ttl": null
@@ -593,6 +631,24 @@
     {
       "name": "common_server_domain",
       "label": "Server Domain",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_in_dest_mac",
+      "label": "Incoming Destination MAC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "common_out_dest_mac",
+      "label": "Outgoing Destination MAC",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -886,8 +942,8 @@
       "type": "string"
     },
     {
-      "name": "common_egress_link_id",
-      "label": "Egress Link ID",
+      "name": "common_out_link_id",
+      "label": "Outgoing Link ID",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -895,8 +951,8 @@
       "type": "int"
     },
     {
-      "name": "common_ingress_link_id",
-      "label": "Ingress Link ID",
+      "name": "common_in_link_id",
+      "label": "Incoming Link ID",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -921,12 +977,12 @@
           {
             "function": "flattenSpec",
             "appendTo": "common_data_center",
-            "param": "$.tags[?(@.tag=='data_center')].value"
+            "param": "$.tags[?(@.tag=='data_center')][0].value"
           },
           {
             "function": "flattenSpec",
             "appendTo": "common_device_group",
-            "param": "$.tags[?(@.tag=='device_group')].value"
+            "param": "$.tags[?(@.tag=='device_group')][0].value"
           }
         ],
         "ttl": null
@@ -1010,7 +1066,7 @@
           {
             "function": "gtpc_match",
             "appendTo": "common_imsi,common_imei,common_phone_number",
-            "param": "$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')].gtp_endpoint_b2a_teid"
+            "param": "$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_b2a_teid"
           }
         ]
       },

@@ -3,9 +3,9 @@ package com.mesalab.qgw.service;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Stopwatch;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.network.service.NetworkMonitorService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class ProtocolTreeTest extends GalaxyQGWApplicationTests {
 
     private List<Map> getLiveChartsData(String fileName) {
         File file = new File("benchmark" + File.separator + "live_traffic_chart" + File.separator + fileName);
-        Map resultMap = (Map) JsonMapper.fromJsonString(FileReader.create(file).readString(), Map.class);
+        Map resultMap = JSON.parseObject(FileReader.create(file).readString(), Map.class);
         List<Map> resultList = (List<Map>) resultMap.get("data");
         return resultList;
     }

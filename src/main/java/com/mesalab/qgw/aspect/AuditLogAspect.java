@@ -4,9 +4,9 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.common.utils.HttpHelper;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
@@ -74,8 +74,7 @@ public class AuditLogAspect {
         AuditServiceLog logAfter =  auditLog.get();
         logAfter.setQueryKey("");
         logAfter.setParam(Arrays.toString(joinPoint.getArgs()));
-        log.error("Audit Log [error]:{}", JsonMapper.toJsonString(logAfter));
-
+        log.error("Audit Log [error]:{}", JSON.toJSONString(logAfter));
     }
 
 
@@ -102,7 +101,7 @@ public class AuditLogAspect {
         Long exeTime = System.currentTimeMillis() - startTime.get();
         logAfter.setExeTime(exeTime);
 
-        log.info("Audit Log [completed]:{}", JsonMapper.toJsonString(logAfter));
+        log.info("Audit Log [completed]:{}", JSON.toJSONString(logAfter));
 
     }
 

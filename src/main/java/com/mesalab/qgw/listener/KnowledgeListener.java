@@ -3,6 +3,7 @@ package com.mesalab.qgw.listener;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.AbstractListener;
 import com.alibaba.nacos.api.exception.NacosException;
@@ -10,7 +11,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.common.utils.IPUtil;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.model.api.HttpConfig;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.entity.KnowledgeConfig;
@@ -157,7 +157,7 @@ public class KnowledgeListener {
         if (StringUtil.isEmpty(knowledgeMetadata)) {
             return Lists.newArrayList();
         }
-        return JsonMapper.fromJsonString(knowledgeMetadata, List.class, KnowledgeBase.class);
+        return JSON.parseArray(knowledgeMetadata, KnowledgeBase.class);
     }
 
     private Map<String, KnowledgeBase> buildIPKnowledgeInfo(List<KnowledgeBase> knowledgeBaseList) {

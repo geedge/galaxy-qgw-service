@@ -5,6 +5,8 @@
       "group": "CLICKHOUSE_GROUP",
       "tables": [
         "session_record_cn",
+        "cn_entity_relation",
+        "cn_dynamic_info_relation",
         "metric_ip",
         "metric_region",
         "metric_asn",

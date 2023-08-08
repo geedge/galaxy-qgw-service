@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "traffic_summary_log",
+  "name": "service_chaining_rule_hits",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -10,6 +10,13 @@
     "schema_query": {
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "granularity": 1,
+      "ingestion_delay": 5,
+      "units": {
+        "$ref": "public_schema_info.json#/units"
       }
     }
   },
@@ -61,6 +68,14 @@
       }
     },
     {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
       "name": "vsys_id",
       "label": "Vsys ID",
       "doc": {
@@ -70,85 +85,34 @@
       "default": 1
     },
     {
-      "name": "isp",
-      "label": "ISP",
-      "type": "string",
+      "name": "rule_id",
+      "label": "Rule",
       "doc": {
-        "visibility": "disabled"
-      }
-    },
-    {
-      "name": "schema_type",
-      "label": "Schema Type",
-      "type": "string",
-      "doc": {
-        "data": [
-          {
-            "code": "BASE",
-            "value": "BASE"
-          },
-          {
-            "code": "MAIL",
-            "value": "MAIL"
-          },
-          {
-            "code": "DNS",
-            "value": "DNS"
-          },
-          {
-            "code": "HTTP",
-            "value": "HTTP"
-          },
-          {
-            "code": "SSL",
-            "value": "SSL"
-          },
-          {
-            "code": "QUIC",
-            "value": "QUIC"
-          },
-          {
-            "code": "FTP",
-            "value": "FTP"
-          },
-          {
-            "code": "SSH",
-            "value": "SSH"
-          },
-          {
-            "code": "Stratum",
-            "value": "Stratum"
-          }
-        ],
+        "constraints": {
+          "operator_functions": "=,in"
+        },
         "visibility": "enabled"
-      }
+      },
+      "type": "int"
     },
     {
-      "name": "ip_object",
-      "label": "IP Object",
+      "name": "sff_profile_id",
+      "label": "Service Function Forwarder Profile ID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "string"
+      "type": "int"
     },
     {
-      "name": "sessions",
-      "label": "Sessions",
+      "name": "sf_profile_id",
+      "label": "Service Function Profile ID",
       "doc": {
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": "int"
     },
     {
-      "name": "c2s_byte_num",
-      "label": "Bytes Sent",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "s2c_byte_num",
+      "name": "recv_bytes",
       "label": "Bytes Received",
       "doc": {
         "visibility": "enabled"
@@ -156,15 +120,15 @@
       "type": "long"
     },
     {
-      "name": "c2s_pkt_num",
-      "label": "Packets Sent",
+      "name": "sent_bytes",
+      "label": "Bytes Sent",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "s2c_pkt_num",
+      "name": "recv_pkts",
       "label": "Packets Received",
       "doc": {
         "visibility": "enabled"
@@ -172,40 +136,8 @@
       "type": "long"
     },
     {
-      "name": "one_sided_connections",
-      "label": "One Sided Connections",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "uncategorized_bytes",
-      "label": "Uncategorized Bytes",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "fragmentation_packets",
-      "label": "Fragmentation Packets",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "sequence_gap_loss",
-      "label": "Sequence Gap Loss",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "unorder_packets",
-      "label": "Unorder Packets",
+      "name": "sent_pkts",
+      "label": "Packets Sent",
       "doc": {
         "visibility": "enabled"
       },

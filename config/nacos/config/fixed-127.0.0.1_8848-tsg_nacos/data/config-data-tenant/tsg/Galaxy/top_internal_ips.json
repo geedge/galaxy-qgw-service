@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_external_host_log",
+  "name": "top_internal_ips",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
@@ -8,8 +8,19 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "filters": [
+        "data_center",
+        "device_group"
+      ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "granularity": 300,
+      "ingestion_delay": 15,
+      "units": {
+        "$ref": "public_schema_info.json#/units"
       }
     }
   },
@@ -24,6 +35,39 @@
       "doc": {
         "constraints": {
           "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
         },
         "visibility": "enabled"
       }
@@ -45,40 +89,23 @@
       }
     },
     {
-      "name": "device_group",
-      "label": "Device Group",
-      "type": "string",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,in"
-        },
-        "data": {
-          "$ref": "device_tag.json#",
-          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
-          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
-        },
-        "visibility": "enabled"
-      }
-    },
-    {
-      "name": "vsys_id",
-      "label": "Vsys ID",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "int",
-      "default": 1
-    },
-    {
-      "name": "destination",
-      "label": "External IP",
+      "name": "internal_ip",
+      "label": "Internal IP",
       "doc": {
         "visibility": "enabled"
       },
       "type": "string"
     },
     {
-      "name": "session_num",
+      "name": "metric",
+      "label": "Metric",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "sessions",
       "label": "Sessions",
       "doc": {
         "visibility": "enabled"
@@ -86,44 +113,36 @@
       "type": "long"
     },
     {
-      "name": "c2s_byte_num",
-      "label": "Bytes Sent",
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "s2c_byte_num",
-      "label": "Bytes Received",
+      "name": "in_pkts",
+      "label": "Incoming Packets",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "c2s_pkt_num",
-      "label": "Packets Sent",
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
     },
     {
-      "name": "s2c_pkt_num",
-      "label": "Packets Received",
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
       "doc": {
         "visibility": "enabled"
       },
       "type": "long"
-    },
-    {
-      "name": "order_by",
-      "label": "Order By",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "string"
     }
   ]
 }

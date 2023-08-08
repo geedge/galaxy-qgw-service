@@ -5,6 +5,8 @@ import cn.hutool.core.util.*;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
@@ -19,7 +21,6 @@ import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.common.utils.JsonMapper;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
@@ -116,7 +117,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
-            BaseResult result = JsonMapper.fromJsonString(baseResult.getMessage(), BaseResult.class);
+            BaseResult result = JSON.parseObject(baseResult.getMessage(), BaseResult.class);
             throw new QGWBusinessException(baseResult.getStatus(), baseResult.getCode(), result.getMessage());
         }
         return baseResult;
@@ -176,7 +177,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         Map statistics = baseResult.getStatistics();
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS) + (StringUtil.isEmpty(statistics.get("elapsed")) ? 0 : Long.parseLong(statistics.get("elapsed").toString())));
         statistics.put("result_rows", result.size());
-        statistics.put("result_size", baseResult.getData().toString().getBytes().length);
+        statistics.put("result_size", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
         return baseResult;
     }
 
@@ -333,7 +334,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     private Map<String, List<String>> getCfgCDN() {
         Object codeInfo = metadataService.getCfg("public_code_info.json");
         if (StringUtil.isNotEmpty(codeInfo)) {
-            Map<String, Map<String, List<String>>> data = (Map<String, Map<String, List<String>>>) JsonMapper.fromJsonString(codeInfo.toString(), Map.class);
+            Map<String, Map<String, List<String>>> data = JSON.parseObject(codeInfo.toString(), Map.class);
             return Maps.newHashMap(data.get("CDN"));
         }
         return Maps.newHashMap();
@@ -384,7 +385,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             });
             resultList.forEach(r -> {
                 if (ObjectUtil.isNotEmpty(r)) {
-                    List<Object> list = (List<Object>) JsonMapper.fromJsonList(String.valueOf(r.get("client_ip")), Object.class);
+                    List<Object> list = (List<Object>) JSON.parseObject((String)(r.get("client_ip")), Object.class);
                     alterationResultList.addAll(list);
                 }
             });
@@ -404,7 +405,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                 dataResult.add(clientIp);
             }
             baseResult.getStatistics().put("result_rows", dataResult.size());
-            baseResult.getStatistics().put("result_size", JsonMapper.toJsonString(dataResult).getBytes().length);
+            baseResult.getStatistics().put("result_size", JSON.toJSONString(dataResult).getBytes().length);
             return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), dataResult, baseResult.getMeta(), baseResult.getStatistics(), QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.error(baseResult.getStatus(), baseResult.getMessage());
@@ -476,17 +477,17 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             data = hashSet;
         }
         Map<String, Object> statistics = Maps.newHashMap();
-        Map tcpSessionResultMap = (Map) JsonMapper.fromJsonString(tcpSessionResult.get("result"), Map.class);
+        Map tcpSessionResultMap = JSON.parseObject(tcpSessionResult.get("result"), Map.class);
         Map tcpSessionStatistics = (Map) tcpSessionResultMap.get("statistics");
-        Map tcpClientIpResultMap = (Map) JsonMapper.fromJsonString(tcpClientIpResult.get("result"), Map.class);
+        Map tcpClientIpResultMap = JSON.parseObject(tcpClientIpResult.get("result"), Map.class);
         Map tcpClientIpStatistics = (Map) tcpClientIpResultMap.get("statistics");
-        Map udpSessionResultMap = (Map) JsonMapper.fromJsonString(udpSessionResult.get("result"), Map.class);
+        Map udpSessionResultMap = JSON.parseObject(udpSessionResult.get("result"), Map.class);
         Map udpSessionStatistics = (Map) udpSessionResultMap.get("statistics");
-        Map udpClientIpResultMap = (Map) JsonMapper.fromJsonString(udpClientIpsResult.get("result"), Map.class);
+        Map udpClientIpResultMap = (Map) JSON.parseObject(udpClientIpsResult.get("result"), Map.class);
         Map udpClientIpStatistics = (Map) udpClientIpResultMap.get("statistics");
         for (Object key : tcpSessionStatistics.keySet()) {
             if ("result_size".equals(key.toString())) {
-                statistics.put(key.toString(), JsonMapper.toJsonString(data).getBytes().length);
+                statistics.put(key.toString(), JSON.toJSONString(data).getBytes().length);
             } else if ("result_rows".equals(key.toString())) {
                 statistics.put(key.toString(), data.size());
             } else {
@@ -500,7 +501,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     public List<Map> getData(Map<String, String> result) {
-        Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+        Map resultMap = JSON.parseObject(result.get("result"), Map.class);
         List<Map<String, Object>> dataList = (List<Map<String, Object>>) resultMap.get("data");
         List<Map> serverIpList = Lists.newArrayList();
         for (Map item : dataList) {
@@ -542,7 +543,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         BaseResult baseResult;
         Map<String, String> result = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
-            Map resultMap = (Map) JsonMapper.fromJsonString(result.get("result"), Map.class);
+            Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
         } else {

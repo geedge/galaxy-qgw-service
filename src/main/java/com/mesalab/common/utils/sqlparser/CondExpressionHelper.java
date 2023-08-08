@@ -1,8 +1,6 @@
 package com.mesalab.common.utils.sqlparser;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.zdjizhi.utils.StringUtil;
 import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -44,15 +42,14 @@ public class CondExpressionHelper {
      * Desc: rewrite conditional expression, replace alias with exact value
      *
      * @param condExpr conditional expression after where
-     * @param map      key-alias, value-ExactValue
+     * @param aliasFields      key-alias, value-ExactValue
      * @return {@link Expression}
      * @created by wWei
      * @date 2023/3/2 09:52
      */
-    public static Expression rewireCondExprBaseOnCK(String condExpr, Map<String, String> map) throws JSQLParserException {
+    public static Expression rewireCondExprBaseOnCK(String condExpr, Map<String, String> aliasFields, boolean updateTable, String table) throws JSQLParserException {
         Expression expr = CCJSqlParserUtil.parseCondExpression(condExpr, false);
-        ExprActualFieldParser exprParseAlias = new ExprActualFieldParser();
-        exprParseAlias.addAliasFields(map);
+        ExprActualFieldParser exprParseAlias = new ExprActualFieldParser(aliasFields, updateTable, table);
         expr.accept(exprParseAlias);
         return expr;
     }
@@ -93,15 +90,22 @@ public class CondExpressionHelper {
     }
 
     private static class ExprActualFieldParser extends ExpressionVisitorAdapter {
-        private final Map<String, Object> map = Maps.newHashMap();
+        private final Map<String, String> map;
+        private final Boolean updateTable;
+        private final String tableName;
 
-        public void addAliasFields(Map<String, String> aliasFields) {
-            map.putAll(aliasFields);
+        private ExprActualFieldParser(Map<String, String> map, Boolean updateTable, String tableName) {
+            this.map = map;
+            this.updateTable = updateTable;
+            this.tableName = tableName;
         }
 
         @Override
         public void visit(Column column) {
-            if (StringUtil.isNotEmpty(column.getTable())) {
+            if (column.getTable() != null) {
+                if (updateTable) {
+                    column.getTable().setName(tableName);
+                }
                 return;
             }
             String columnName = getFieldName(column);

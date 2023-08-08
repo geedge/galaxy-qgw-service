@@ -1,12 +1,12 @@
 package com.mesalab.qgw.controller;
 
+import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.qgw.model.api.ApiParam;
 import com.mesalab.qgw.model.api.AuditLog;
 import com.mesalab.qgw.model.api.CachedSubmitCheck;
 import com.mesalab.qgw.service.ApiService;
-import com.zdjizhi.utils.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +26,7 @@ public class ApiController {
     public BaseResult get(ApiParam apiParam) {
         if (apiParam.queryParamIsNull())
             return BaseResultGenerator.success4Message("ok");
-        log.debug("Quest Params:{}", JsonMapper.toJsonString(apiParam));
+        log.debug("Quest Params:{}", JSON.toJSONString(apiParam));
         return apiService.executeQuery(apiParam);
     }
 
@@ -38,7 +38,7 @@ public class ApiController {
         if (apiParam.queryParamIsNull()) {
             return BaseResultGenerator.success4Message("ok");
         }
-        log.debug("Quest Params:{}", JsonMapper.toJsonString(apiParam));
+        log.debug("Quest Params:{}", JSON.toJSONString(apiParam));
         return apiService.executeQuery(apiParam);
 
     }

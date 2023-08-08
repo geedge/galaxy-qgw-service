@@ -1,5 +1,7 @@
 package com.mesalab.qgw.dialect;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
@@ -146,7 +148,7 @@ public class FederationDialect extends AbstractEngineDialect{
             statisticMap.put("result_size", 0);
             statisticMap.put("result_rows", 0);
         } else {
-            statisticMap.put("result_size", baseResult.getData().toString().getBytes().length);
+            statisticMap.put("result_size", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
         extendMetaInfo(baseResult.getMeta());
@@ -195,7 +197,7 @@ public class FederationDialect extends AbstractEngineDialect{
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
             List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,
-                    (List<Object>) baseResult.getData());
+                    baseResult);
             baseResult.setData(targetResult);
         }
     }
