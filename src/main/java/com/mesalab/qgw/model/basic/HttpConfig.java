@@ -1,4 +1,4 @@
-package com.mesalab.qgw.model.api;
+package com.mesalab.qgw.model.basic;
 
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import lombok.Data;

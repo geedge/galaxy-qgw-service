@@ -19,7 +19,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConst;
-import com.mesalab.qgw.model.api.HttpConfig;
+import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.entity.KnowledgeBase;
 import com.mesalab.services.common.entity.KnowledgeConstant;

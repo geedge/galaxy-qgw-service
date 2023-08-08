@@ -10,9 +10,9 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.HBaseAPISource;
-import com.mesalab.qgw.service.impl.ApiServiceImpl;
+import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.HBaseAPISource;
+import com.mesalab.qgw.service.impl.QueryServiceImpl;
 import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -55,15 +55,15 @@ public class ReportCacheUtils {
     }
 
     private static Map<String, Object> query(String id, String query) {
-        ApiServiceImpl apiService = new ApiServiceImpl();
-        ApiParam param = new ApiParam();
+        QueryServiceImpl queryService = new QueryServiceImpl();
+        QueryProfile param = new QueryProfile();
         StringBuffer sb = new StringBuffer();
         String rowKey = DigestUtil.md5Hex(id + query.trim());
         sb.append("select ").append(hBaseAPISource.getColumnName());
         sb.append(" from ").append(hBaseAPISource.getDbName()).append(".").append(hBaseAPISource.getTableName());
         sb.append(" where ").append("ROWKEY=").append("\'" + rowKey + "\'");
         param.setQuery(sb.toString());
-        BaseResult result = apiService.executeQuery(param);
+        BaseResult result = queryService.executeQuery(param);
         Map<String, Object> resultMap = Maps.newHashMap();
         if (StringUtil.isNotEmpty(result.getData())) {
             List<Map<String, Object>> dataList = (List<Map<String, Object>>) result.getData();

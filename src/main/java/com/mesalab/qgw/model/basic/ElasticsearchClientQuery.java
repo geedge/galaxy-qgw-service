@@ -1,10 +1,8 @@
-package com.mesalab.qgw.model.api;
+package com.mesalab.qgw.model.basic;
 
 import cn.hutool.core.util.StrUtil;
 import org.apache.http.HttpHost;
-import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;

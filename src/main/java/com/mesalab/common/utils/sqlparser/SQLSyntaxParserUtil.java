@@ -4,16 +4,11 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mesalab.common.entity.BaseResult;
-import com.mesalab.common.enums.QueryOptionEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.service.QueryService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,7 +39,7 @@ public class SQLSyntaxParserUtil {
 
     private static final Log log = LogFactory.get();
 
-    private static ApiService apiService = (ApiService) SpringContextUtil.getBean("apiService");
+    private static QueryService queryService = (QueryService) SpringContextUtil.getBean("queryService");
 
     public static List syntaxParse(String sql) {
         List resultList = Lists.newArrayList();

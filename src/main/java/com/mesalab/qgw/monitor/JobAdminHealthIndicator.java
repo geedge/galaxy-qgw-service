@@ -2,7 +2,7 @@ package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.qgw.model.api.JobAdminHttpSource;
+import com.mesalab.qgw.model.basic.JobAdminHttpSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;

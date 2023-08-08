@@ -4,8 +4,8 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.cn.entity.pojo.*;
 import com.mesalab.cn.service.CNService;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.service.QueryService;
 import com.mesalab.ua.analyser.UaAnalyser;
 import com.mesalab.ua.analyser.enums.UserInfo;
 import com.mesalab.ua.analyser.impl.UaAnalyserImpl;
@@ -36,15 +36,15 @@ public class CNServiceImpl implements CNService {
     private CNParser cnParser;
 
     @Autowired
-    private ApiService apiService;
+    private QueryService queryService;
 
     @Override
     public BaseResult shareNetQuery(DSLObject dslObject) throws BusinessException {
         dslObject.getQuery().getParameters().setGranularity("user_id,ip");
         String executeSql = cnParser.buildShareNetSQL(dslObject);
-        ApiParam apiParam = new ApiParam();
-        apiParam.setQuery(executeSql);
-        BaseResult baseResult = apiService.executeQuery(apiParam);
+        QueryProfile queryProfile = new QueryProfile();
+        queryProfile.setQuery(executeSql);
+        BaseResult baseResult = queryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             return baseResult;
         }
@@ -68,9 +68,9 @@ public class CNServiceImpl implements CNService {
     public BaseResult bannedAppQuery(DSLObject dslObject) throws BusinessException {
         dslObject.getQuery().getParameters().setGranularity("user_id,ip");
         String executeSql = cnParser.bannedAppSQL(dslObject);
-        ApiParam apiParam = new ApiParam();
-        apiParam.setQuery(executeSql);
-        BaseResult baseResult = apiService.executeQuery(apiParam);
+        QueryProfile queryProfile = new QueryProfile();
+        queryProfile.setQuery(executeSql);
+        BaseResult baseResult = queryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             return baseResult;
         }

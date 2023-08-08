@@ -14,8 +14,8 @@ import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
@@ -28,7 +28,6 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -62,7 +61,7 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     Environment env;
     @Autowired
-    ApiService apiService;
+    QueryService queryService;
     @Autowired
     TaskExecuteService taskExecuteService;
     @Autowired
@@ -176,7 +175,7 @@ public class JobExecuteService implements EnvironmentAware {
         List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
         String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
         String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBTypeEnum.CLICKHOUSE.getValue());
-        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1", function, param.get(JobConfig.QUERY_DATA_SOURCE))).build());
+        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1", function, param.get(JobConfig.QUERY_DATA_SOURCE))).build());
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         long statTime = Long.parseLong(data.get(0).get("stat_time").toString()) * 1000;
 
@@ -268,9 +267,9 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     private boolean isCancel(String id) {
-        ApiParam build = ApiParam.builder().query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id)).
+        QueryProfile build = QueryProfile.builder().query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id)).
                 option(QueryOptionEnum.REAL_TIME.getValue()).build();
-        BaseResult baseResult = apiService.executeQuery(build);
+        BaseResult baseResult = queryService.executeQuery(build);
         if (baseResult.isSuccess() && (StringUtil.isNotEmpty(baseResult.getData()))) {
             List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
             long statTime = Long.parseLong(list.get(0).get("value").toString());
@@ -285,7 +284,7 @@ public class JobExecuteService implements EnvironmentAware {
     private Map<String, Long> getCount(String logType, String filter, String totalMetric) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_LOG_COUNT")),
                 totalMetric, logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
-        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
+        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
         if (!baseResult.isSuccess()) {
             log.error("Job-get log count failed, message: {}", baseResult.getMessage());
             throw new QGWBusinessException(baseResult.getStatus(), baseResult.getCode(), "Job-get log count failed, message: " + baseResult.getMessage());

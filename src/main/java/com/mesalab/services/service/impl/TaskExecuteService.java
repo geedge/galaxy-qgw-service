@@ -15,9 +15,9 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.EngineConfigSource;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.EngineConfigSource;
+import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
@@ -51,7 +51,7 @@ public class TaskExecuteService implements EnvironmentAware {
     @Autowired
     Environment env;
     @Autowired
-    ApiService apiService;
+    QueryService queryService;
     @Autowired
     MetadataService metadataService;
     @Autowired
@@ -73,7 +73,7 @@ public class TaskExecuteService implements EnvironmentAware {
                 }
             }
 
-            BaseResult currentTop = apiService.executeQuery(ApiParam.builder()
+            BaseResult currentTop = queryService.executeQuery(QueryProfile.builder()
                     .option(QueryOptionEnum.REAL_TIME.getValue())
                     .query(buildTopSQL(logType, filter, field, fnDefault, column, value))
                     .build());
@@ -84,7 +84,7 @@ public class TaskExecuteService implements EnvironmentAware {
             }
             List<Map<String, Object>> data = (List<Map<String, Object>>) currentTop.getData();
 
-            BaseResult lastTop = apiService.executeQuery(ApiParam.builder()
+            BaseResult lastTop = queryService.executeQuery(QueryProfile.builder()
                     .option(QueryOptionEnum.REAL_TIME.getValue())
                     .query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.FIELD_DISCOVERY, field, id))
                     .build());
@@ -119,8 +119,8 @@ public class TaskExecuteService implements EnvironmentAware {
     @Async("taskExecutor")
     public Future<Boolean> executeStatistics(String id, String sql) {
         try {
-            BaseResult lastResult = apiService.executeQuery(ApiParam.builder().query(sql).build());
-            BaseResult preResult = apiService.executeQuery(ApiParam.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
+            BaseResult lastResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+            BaseResult preResult = queryService.executeQuery(QueryProfile.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
             List<Map<String, Object>> lastData = (List<Map<String, Object>>) lastResult.getData();
             List<Map<String, Object>> lastMeta = (List<Map<String, Object>>) lastResult.getMeta();
             Map preDataFirst = ((List<Map>) preResult.getData()).get(0);

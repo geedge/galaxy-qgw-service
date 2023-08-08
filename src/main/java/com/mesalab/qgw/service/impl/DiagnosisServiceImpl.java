@@ -23,13 +23,13 @@ import com.mesalab.qgw.benchmark.elasticsearch.ElasticSearchWriter;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.api.*;
+import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
 import com.mesalab.qgw.benchmark.druid.DruidWriter;
 import com.mesalab.qgw.benchmark.engine.EngineWriter;
 import com.mesalab.qgw.benchmark.hbase.HbaseWriter;
 import com.mesalab.qgw.dialect.HbaseDialect;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.enums.EntityQueryType;
@@ -84,7 +84,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private HttpConfig httpConfig;
 
     @Autowired
-    private ApiService apiService;
+    private QueryService queryService;
 
     @Autowired
     private ClickhouseWriter clickhouseWriter;
@@ -333,31 +333,31 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private String getTopServerIpMessage(String timeInterval, String datasource) {
         String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, timeInterval,
                 entityConfigSource.getTopServerIPByTCPSession());
-        List<Map> tcpSessionResult = getData(apiService.executeQuery(queryBuild(tcpSessionSql)));
+        List<Map> tcpSessionResult = getData(queryService.executeQuery(queryBuild(tcpSessionSql)));
 
         String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOP_ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
                 datasource, timeInterval, entityConfigSource.getTopServerIPByTCPUniqClientIP());
-        List<Map> tcpClientIpsResult = getData(apiService.executeQuery(queryBuild(tcpClientIpsSql)));
+        List<Map> tcpClientIpsResult = getData(queryService.executeQuery(queryBuild(tcpClientIpsSql)));
 
         String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval,
                 entityConfigSource.getTopServerIPByUDPBySession());
-        List<Map> udpSessionResult = getData(apiService.executeQuery(queryBuild(udpSessionSql)));
+        List<Map> udpSessionResult = getData(queryService.executeQuery(queryBuild(udpSessionSql)));
 
         String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOP_ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
                 datasource, timeInterval, entityConfigSource.getTopServerIPByUDPUniqClientIP());
-        List<Map> udpClientIpsResult = getData(apiService.executeQuery(queryBuild(udpClientIpsSql)));
+        List<Map> udpClientIpsResult = getData(queryService.executeQuery(queryBuild(udpClientIpsSql)));
 
         String tcpTotalSessionSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_TCP_SESSION")), datasource, timeInterval);
-        List<Map> tcpTotalSessionResult = getData(apiService.executeQuery(queryBuild(tcpTotalSessionSql)));
+        List<Map> tcpTotalSessionResult = getData(queryService.executeQuery(queryBuild(tcpTotalSessionSql)));
 
         String tcpTotalClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
-        List<Map> tcpTotalClientIpResult = getData(apiService.executeQuery(queryBuild(tcpTotalClientIpsSql)));
+        List<Map> tcpTotalClientIpResult = getData(queryService.executeQuery(queryBuild(tcpTotalClientIpsSql)));
 
         String udpTotalSessionSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_UDP_SESSION")), datasource, timeInterval);
-        List<Map> udpTotalSessionResult = getData(apiService.executeQuery(queryBuild(udpTotalSessionSql)));
+        List<Map> udpTotalSessionResult = getData(queryService.executeQuery(queryBuild(udpTotalSessionSql)));
 
         String udpTotalClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
-        List<Map> udpTotalClientIpsResult = getData(apiService.executeQuery(queryBuild(udpTotalClientIpsSql)));
+        List<Map> udpTotalClientIpsResult = getData(queryService.executeQuery(queryBuild(udpTotalClientIpsSql)));
 
         long tcpSessions = 0;
         long tcpClientIps = 0;
@@ -394,10 +394,10 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private String getTopSniMessage(String timeInterval, String datasource) {
         String topSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TOP_SNI")), datasource, timeInterval,
                 entityConfigSource.getTopSNIDefaultSize());
-        List<Map> topSniResult = getData(apiService.executeQuery(queryBuild(topSniSql)));
+        List<Map> topSniResult = getData(queryService.executeQuery(queryBuild(topSniSql)));
 
         String totalSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_SNI_TOTAL")), datasource, timeInterval);
-        List<Map> totalSniResult = getData(apiService.executeQuery(queryBuild(totalSniSql)));
+        List<Map> totalSniResult = getData(queryService.executeQuery(queryBuild(totalSniSql)));
 
         int cdnCount = 0;
         long topSniBytes = 0;
@@ -471,7 +471,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                     continue;
                 }
                 Stopwatch watch = Stopwatch.createStarted();
-                BaseResult queryResult = getBaseResultByEngine(ApiParam.builder().option(queryOption).query(line).build());
+                BaseResult queryResult = getBaseResultByEngine(QueryProfile.builder().option(queryOption).query(line).build());
                 if (StringUtil.isEmpty(queryResult.getStatistics())) {
                     Map<String, Object> statistics = Maps.newLinkedHashMap();
                     statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
@@ -541,7 +541,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                         continue;
                     }
                     BaseResult queryResult = getBaseResultByEngine(
-                            ApiParam.builder().option(queryOption).format(QueryFormatEnum.CSV.getValue()).query(line).build());
+                            QueryProfile.builder().option(queryOption).format(QueryFormatEnum.CSV.getValue()).query(line).build());
                     processQueryResult(file, infoMap, writer, index, queryResult);
                 }
             } else if (StringUtil.lowerCase(benchFileName).startsWith(ES_PREFIX)) {
@@ -729,8 +729,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         return baseResult;
     }
 
-    private ApiParam queryBuild(String sql) {
-        return ApiParam.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
+    private QueryProfile queryBuild(String sql) {
+        return QueryProfile.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
     }
 
     private String converter(String sql) {
@@ -775,7 +775,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         for (String tableName : tables) {
             Schema schema = metadataService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
-            BaseResult baseResult = getBaseResultByEngine(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
+            BaseResult baseResult = getBaseResultByEngine(QueryProfile.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
             if (ResultStatusEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
@@ -821,7 +821,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         for (String tableName : tables) {
             Schema schema = metadataService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
-            BaseResult indexKeyResult = getBaseResultByEngine(ApiParam.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query(String.format(Objects.requireNonNull(env.getProperty("TABLE_INDEX_KEY")), tableName, clickHouseHttpSource.getDbName())).build());
+            BaseResult indexKeyResult = getBaseResultByEngine(QueryProfile.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query(String.format(Objects.requireNonNull(env.getProperty("TABLE_INDEX_KEY")), tableName, clickHouseHttpSource.getDbName())).build());
             if (ResultStatusEnum.SUCCESS.getCode() != indexKeyResult.getStatus()) {
                 log.error("The Table[" + tableName + "] index key query failed" + indexKeyResult.getMessage());
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
@@ -841,8 +841,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                             String.format("%s schema index key is: %s, db index key is: %s", tableName, schemaIndexKey, dbIndexKey)));
         }
     }
-    private BaseResult getBaseResultByEngine(ApiParam apiParam) {
-        return apiService.executeQuery(apiParam);
+    private BaseResult getBaseResultByEngine(QueryProfile queryProfile) {
+        return queryService.executeQuery(queryProfile);
     }
 
 

@@ -1,9 +1,9 @@
-package com.mesalab.qgw.model.api.udf;
+package com.mesalab.qgw.model.basic.udf;
 
 import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.IPUtil;
-import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.basic.SQLQuerySource;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,12 +17,12 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class IP_TO_ASN_DETAIL implements  UDF {
+public class IP_TO_ASN_ORG implements  UDF {
     private String name;
     private String address;
 
 
-    public IP_TO_ASN_DETAIL(UDFElements udfElements) {
+    public IP_TO_ASN_ORG(UDFElements udfElements) {
         this.name = udfElements.getName();
         this.address = udfElements.getParams().get(0).toString();
     }
@@ -46,7 +46,7 @@ public class IP_TO_ASN_DETAIL implements  UDF {
         for (Object source: results) {
             Map<String, Object> sourceMap = ((Map<String, Object>) source);
             if (sourceMap.containsKey(addressLabel)) {
-                sourceMap.put(addressLabel, IPUtil.getAsnDetail(sourceMap.get(addressLabel).toString()));
+                sourceMap.put(addressLabel, IPUtil.getAsnOrganization(sourceMap.get(addressLabel).toString()));
             }
             targetResult.add(sourceMap);
         }

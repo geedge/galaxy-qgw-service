@@ -3,7 +3,7 @@ package com.mesalab.qgw.monitor;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;

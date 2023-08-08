@@ -1,15 +1,14 @@
-package com.mesalab.qgw.model.api.udf;
+package com.mesalab.qgw.model.basic.udf;
 
 import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.IPUtil;
-import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.basic.SQLQuerySource;
 import com.zdjizhi.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.StringValue;
 
 import java.util.List;
 import java.util.Map;
@@ -18,12 +17,12 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class IP_TO_CITY implements  UDF {
+public class IP_TO_ASN_DETAIL implements  UDF {
     private String name;
     private String address;
 
 
-    public IP_TO_CITY(UDFElements udfElements) {
+    public IP_TO_ASN_DETAIL(UDFElements udfElements) {
         this.name = udfElements.getName();
         this.address = udfElements.getParams().get(0).toString();
     }
@@ -34,6 +33,7 @@ public class IP_TO_CITY implements  UDF {
         List<Map<String, Object>>  targetResult = Lists.newArrayList();
         String addressLabel = StringUtil.EMPTY;
 
+
         for (String alias : sqlQuerySource.getAliasFields().keySet()) {
             if (sqlQuerySource.getAliasFields().get(alias).contains(address) &&
                     sqlQuerySource.getAliasFields().get(alias).contains(name) ) {
@@ -42,13 +42,14 @@ public class IP_TO_CITY implements  UDF {
             }
         }
 
+
         for (Object source: results) {
-             Map<String, Object> sourceMap = ((Map<String, Object>) source);
-             if (sourceMap.containsKey(addressLabel)) {
-                 sourceMap.put(addressLabel, IPUtil.getCityDetail(sourceMap.get(addressLabel).toString()));
-             }
-               targetResult.add(sourceMap);
-         }
+            Map<String, Object> sourceMap = ((Map<String, Object>) source);
+            if (sourceMap.containsKey(addressLabel)) {
+                sourceMap.put(addressLabel, IPUtil.getAsnDetail(sourceMap.get(addressLabel).toString()));
+            }
+            targetResult.add(sourceMap);
+        }
 
 
 

@@ -5,7 +5,7 @@ import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.model.api.HttpConfig;
+import com.mesalab.qgw.model.basic.HttpConfig;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
