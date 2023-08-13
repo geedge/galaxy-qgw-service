@@ -20,8 +20,8 @@ import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.service.RewriteTable;
-import com.mesalab.qgw.model.api.HttpConfig;
-import com.mesalab.qgw.model.api.*;
+import com.mesalab.qgw.model.basic.HttpConfig;
+import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.Encodes;
@@ -58,7 +58,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
-    public ApiParam param;
+    public QueryProfile param;
     public BaseResult baseResult;
 
     private final static double PERCENT_UP_LINE = 0.98;
@@ -86,7 +86,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         metaMap.put("DateTime", DataTypeMapping.TIMESTAMP);
     }
 
-    public ClickHouseDialect(ApiParam param) {
+    public ClickHouseDialect(QueryProfile param) {
         this.param = param;
     }
 

@@ -27,11 +27,11 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
+import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.avro.Schema;
@@ -62,7 +62,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
-    private ApiService apiService;
+    private QueryService queryService;
     @Autowired
     public MetadataConfig metadataConfig;
     @Autowired
@@ -386,7 +386,7 @@ public class MetadataServiceImpl implements MetadataService {
             if (symbols.contains(name)) {
                 sql = String.format(Objects.requireNonNull(environment.getProperty("SCHEMA_STORAGE_SIZE")), name, clickHouseHttpSource.getDbName());
             }
-            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : apiService.executeQuery(ApiParam.builder().query(sql).build());
+            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : queryService.executeQuery(QueryProfile.builder().query(sql).build());
             if (baseResult.isSuccess()) {
                 return (List<Map>) baseResult.getData();
             } else {

@@ -3,7 +3,7 @@ package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
 import com.mesalab.qgw.dialect.HbaseDialect;
-import com.mesalab.qgw.model.api.HBaseAPISource;
+import com.mesalab.qgw.model.basic.HBaseAPISource;
 import org.apache.phoenix.jdbc.PhoenixResultSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;

@@ -11,7 +11,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.common.utils.IPUtil;
-import com.mesalab.qgw.model.api.HttpConfig;
+import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.entity.KnowledgeConfig;
 import com.mesalab.services.common.entity.KnowledgeBase;

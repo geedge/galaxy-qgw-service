@@ -21,11 +21,8 @@ import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.api.HttpConfig;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
-import com.mesalab.qgw.model.api.EngineConfigSource;
-import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.basic.*;
+import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
@@ -44,10 +41,10 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private int pageOffset;
     private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "com.zdjizhi.calcite.runtime.CalciteContextException: ";
     private Stopwatch watch = Stopwatch.createUnstarted();
-    public ApiParam param;
+    public QueryProfile param;
     public BaseResult baseResult;
 
-    public DruidDialect(ApiParam param) {
+    public DruidDialect(QueryProfile param) {
         this.param = param;
     }
 

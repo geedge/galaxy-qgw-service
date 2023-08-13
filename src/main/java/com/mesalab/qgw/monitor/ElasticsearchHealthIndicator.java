@@ -3,7 +3,7 @@ package com.mesalab.qgw.monitor;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
-import com.mesalab.qgw.model.api.ElasticsearchHttpSource;
+import com.mesalab.qgw.model.basic.ElasticsearchHttpSource;
 import lombok.Data;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;

@@ -1,4 +1,4 @@
-package com.mesalab.qgw.model.api;
+package com.mesalab.qgw.model.basic;
 
 import com.zdjizhi.utils.StringUtil;
 import lombok.*;
@@ -7,7 +7,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApiParam implements Serializable {
+public class QueryProfile implements Serializable {
 
     private String query;
     private String option;

@@ -5,7 +5,7 @@ import cn.hutool.core.util.URLUtil;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.qgw.model.api.DruidIoHttpSource;
+import com.mesalab.qgw.model.basic.DruidIoHttpSource;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;

@@ -11,13 +11,12 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.EngineConfigSource;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
+import com.mesalab.qgw.model.basic.EngineConfigSource;
+import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.UnstructuredDataType;
@@ -66,7 +65,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     @Autowired
     private EngineConfigSource engineConfigSource;
     @Autowired
-    private ApiService apiService;
+    private QueryService queryService;
     private Environment env;
 
     @Override
@@ -172,7 +171,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
             List<String> listFields = tableFileType.get(param);
             for (String field : listFields) {
                 String sql = String.format(Objects.requireNonNull(env.getProperty("UNSTRUCTURED_DATA_PATH")), field, dataSource, generateWhereOfTime(dslObject.getQuery()), field, limit);
-                BaseResult result = apiService.executeQuery(queryBuild(sql));
+                BaseResult result = queryService.executeQuery(queryBuild(sql));
                 if (!result.isSuccess()) {
                     log.error("Query unstructured data status error: {}", result.getMessage());
                     throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), "Query unstructured data status error: " + result.getMessage());
@@ -203,8 +202,8 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     }
 
 
-    private ApiParam queryBuild(String sql) {
-        return ApiParam.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
+    private QueryProfile queryBuild(String sql) {
+        return QueryProfile.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
     }
 
     private void validationDataSource(String dataSource) {

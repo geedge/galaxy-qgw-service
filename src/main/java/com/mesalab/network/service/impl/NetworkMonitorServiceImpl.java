@@ -19,7 +19,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.TreeUtils;
-import com.mesalab.qgw.model.api.HttpConfig;
+import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.network.common.Constants;
 import com.mesalab.network.dsl.DSLObject;

@@ -1,4 +1,4 @@
-package com.mesalab.qgw.model.api;
+package com.mesalab.qgw.model.basic;
 
 
 import java.lang.annotation.*;

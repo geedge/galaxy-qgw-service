@@ -20,16 +20,13 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.api.HttpConfig;
+import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.EntityConfigSource;
+import com.mesalab.qgw.model.basic.EntityConfigSource;
 import com.mesalab.qgw.service.MetadataService;
-import com.mesalab.qgw.service.impl.ApiServiceImpl;
+import com.mesalab.qgw.service.impl.QueryServiceImpl;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.dsl.ComDSLParse;
@@ -64,7 +61,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     private static final Log log = LogFactory.get();
 
     @Autowired
-    private ApiServiceImpl apiService;
+    private QueryServiceImpl queryService;
     @Autowired
     private HttpClientService httpClientServiceTemp;
     @Autowired

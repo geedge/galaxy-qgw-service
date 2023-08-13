@@ -18,16 +18,16 @@ import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.api.ClickHouseHttpSource;
-import com.mesalab.qgw.model.api.HttpConfig;
+import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
+import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.dialect.Dialect;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.JobAdminHttpSource;
+import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.JobAdminHttpSource;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.SystemService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -63,7 +63,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private static final String trafficPort = "8123";
     private Environment env;
     @Autowired
-    private ApiService apiService;
+    private QueryService queryService;
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
@@ -83,9 +83,9 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult getStorageQuota() {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
-        ApiParam param = new ApiParam();
+        QueryProfile param = new QueryProfile();
         param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
-        BaseResult result = apiService.executeQuery(param);
+        BaseResult result = queryService.executeQuery(param);
         return resetBaseResult(result, "log_type");
     }
 
@@ -100,10 +100,10 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         }
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
-            ApiParam param = new ApiParam();
+            QueryProfile param = new QueryProfile();
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
             param.setQuery(sql);
-            BaseResult result = apiService.executeQuery(param);
+            BaseResult result = queryService.executeQuery(param);
             return resetBaseResult(result, "type");
         } else {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -327,7 +327,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
 
     private List<String> getClusterAddressOfCK() {
         List<String> endpointList = new ArrayList<>();
-        BaseResult baseResult = apiService.executeQuery(ApiParam.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
+        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
         if (baseResult.isSuccess()) {
             List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
             for (Map<String, Object> datum : data) {
@@ -351,18 +351,18 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     }
 
     public Dialect buildAndGetDialect(String queryId) {
-        ApiParam apiParam = new ApiParam();
-        apiParam.setDbType(parseDBType(queryId));
-        return getDialect(apiParam);
+        QueryProfile queryProfile = new QueryProfile();
+        queryProfile.setDbType(parseDBType(queryId));
+        return getDialect(queryProfile);
     }
 
-    private Dialect getDialect(ApiParam apiParam) {
+    private Dialect getDialect(QueryProfile queryProfile) {
         Dialect dialect;
         try {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
-                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, apiParam.getDbType()) + "Dialect");
-            Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
-            dialect = (Dialect) constructor.newInstance(apiParam);
+                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, queryProfile.getDbType()) + "Dialect");
+            Constructor constructor = dialectClazz.getConstructor(QueryProfile.class);
+            dialect = (Dialect) constructor.newInstance(queryProfile);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),

@@ -1,4 +1,4 @@
-package com.mesalab.qgw.model.api.udf;
+package com.mesalab.qgw.model.basic.udf;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

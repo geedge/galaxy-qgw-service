@@ -6,7 +6,6 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.druid.sql.ast.statement.*;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
@@ -23,10 +22,10 @@ import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.dialect.FederationDialect;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.api.*;
-import com.mesalab.qgw.model.api.udf.UDF;
-import com.mesalab.qgw.model.api.udf.UDFElements;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.model.basic.*;
+import com.mesalab.qgw.model.basic.udf.UDF;
+import com.mesalab.qgw.model.basic.udf.UDFElements;
+import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.SystemService;
 import com.zdjizhi.utils.StringUtil;
@@ -51,8 +50,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Service("apiService")
-public class ApiServiceImpl implements ApiService {
+@Service("queryService")
+public class QueryServiceImpl implements QueryService {
     private static final Log log = LogFactory.get();
     @Autowired
     private MetadataService metadataServiceTemp;
@@ -75,11 +74,11 @@ public class ApiServiceImpl implements ApiService {
 
 
     @Override
-    public BaseResult executeQuery(ApiParam param) {
-        validateAndSetDefaultValue(param);
+    public BaseResult executeQuery(QueryProfile queryProfile) {
+        validateAndSetDefaultValue(queryProfile);
         Statement statement;
         try {
-            statement = CCJSqlParserUtil.parse(param.getQuery());
+            statement = CCJSqlParserUtil.parse(queryProfile.getQuery());
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: {}", e);
             String message = getJSQLParserSimpleErrorMessage(e);
@@ -87,16 +86,16 @@ public class ApiServiceImpl implements ApiService {
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),message));
         }
         BaseResult baseResult;
-        log.debug("Request option ：{}, SQL ：{}", param.getOption(), param.getQuery());
+        log.debug("Request option ：{}, SQL ：{}", queryProfile.getOption(), queryProfile.getQuery());
         if (statement instanceof Select) {
-            baseResult = executeSelectStatement(param);
+            baseResult = executeSelectStatement(queryProfile);
         } else if (statement instanceof DescribeStatement) {
             DescribeStatement describeStatement = (DescribeStatement) statement;
-            baseResult = executeDescStatement(param, describeStatement);
+            baseResult = executeDescStatement(queryProfile, describeStatement);
         } else if (statement instanceof ShowStatement) {
-            baseResult = executeShowStatement(param);
+            baseResult = executeShowStatement(queryProfile);
         } else if (statement instanceof ExplainStatement) {
-            baseResult = executeExplainStatement(param);
+            baseResult = executeExplainStatement(queryProfile);
         } else {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.ONLY_SUPPORT_STATEMENT_OPERATIONS_FOR_SELECT));
@@ -104,7 +103,7 @@ public class ApiServiceImpl implements ApiService {
         return baseResult;
     }
 
-    private void validateAndSetDefaultValue(ApiParam param) {
+    private void validateAndSetDefaultValue(QueryProfile param) {
         if (StringUtil.isBlank(param.getQuery())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.SQL_MUST_BE_EXISTS));
@@ -167,7 +166,7 @@ public class ApiServiceImpl implements ApiService {
      * @param param 请求参数
      * @return BaseResult 执行结果
      */
-    private BaseResult executeSelectStatement(ApiParam param) {
+    private BaseResult executeSelectStatement(QueryProfile param) {
         if (QueryOptionEnum.SYNTAX_PARSE.getValue().equalsIgnoreCase(param.getOption())) {
             return executeSyntaxParse(param);
         } else if (QueryOptionEnum.SYNTAX_VALIDATION.getValue().equalsIgnoreCase(param.getOption())) {
@@ -181,15 +180,15 @@ public class ApiServiceImpl implements ApiService {
 
     }
 
-    private BaseResult executeSyntaxParse(ApiParam param) {
+    private BaseResult executeSyntaxParse(QueryProfile param) {
        return BaseResultGenerator.success(SQLSyntaxParserUtil.syntaxParse(param.getQuery()));
     }
 
-    private BaseResult executeSyntaxValidation(ApiParam param) {
+    private BaseResult executeSyntaxValidation(QueryProfile param) {
         return new FederationDialect(param, getDBDialect(param).executeSyntaxCheck()).executeSyntaxCheck();
     }
 
-    private BaseResult executeLongTermQuery(ApiParam param) {
+    private BaseResult executeLongTermQuery(QueryProfile param) {
         BaseResult baseResult = ReportCacheUtils.get(param.getResultId(), param.getQuery());
         if (baseResult.isSuccess()) {
             return baseResult;
@@ -201,7 +200,7 @@ public class ApiServiceImpl implements ApiService {
     }
 
 
-    private BaseResult executeRealTimeQuery(ApiParam param) {
+    private BaseResult executeRealTimeQuery(QueryProfile param) {
         if (BooleanUtil.isTrue(param.getSampled())) {
             return new FederationDialect(param, getDBDialect(param).executeSampleQuery()).executeSampleQuery();
         } else {
@@ -210,7 +209,7 @@ public class ApiServiceImpl implements ApiService {
     }
 
 
-    private Dialect getDBDialect(ApiParam param) {
+    private Dialect getDBDialect(QueryProfile param) {
         param.setTableName(SQLHelper.getTableName(param.getQuery()));
         param.setDbType(metadataService.getDBTypeByTableName(param.getTableName()));
         param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
@@ -219,12 +218,12 @@ public class ApiServiceImpl implements ApiService {
     }
 
 
-    private Dialect getReflectiveDialectObject(ApiParam param) {
+    private Dialect getReflectiveDialectObject(QueryProfile param) {
         Dialect dialect;
         try {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
                     CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType()) + "Dialect");
-            Constructor constructor = dialectClazz.getConstructor(ApiParam.class);
+            Constructor constructor = dialectClazz.getConstructor(QueryProfile.class);
             dialect = (Dialect) constructor.newInstance(param);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}",e);
@@ -243,7 +242,7 @@ public class ApiServiceImpl implements ApiService {
      *
      * @param sqlQuerySource SQL解析对象
      */
-    public static void convertQueryRecursive(ApiParam param, SQLQuerySource sqlQuerySource) {
+    public static void convertQueryRecursive(QueryProfile param, SQLQuerySource sqlQuerySource) {
         SQLQuerySource engineQuerySource = null;
         SQLQuerySource dbQuerySource = null;
 
@@ -472,7 +471,7 @@ public class ApiServiceImpl implements ApiService {
         UDF udf;
         String funName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_UNDERSCORE, fun.getName());
         try {
-            Class dialectClazz = Class.forName("com.mesalab.qgw.model.api.udf." + CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_UNDERSCORE, fun.getName().toUpperCase()));
+            Class dialectClazz = Class.forName("com.mesalab.qgw.model.basic.udf." + CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_UNDERSCORE, fun.getName().toUpperCase()));
             Constructor constructor = dialectClazz.getConstructor(UDFElements.class);
             UDFElements udfElements = new UDFElements(funName, expressions);
             udf = (UDF) constructor.newInstance(udfElements);
@@ -493,7 +492,7 @@ public class ApiServiceImpl implements ApiService {
      * @param statement
      * @return
      */
-    private BaseResult executeDescStatement(ApiParam param, DescribeStatement statement) {
+    private BaseResult executeDescStatement(QueryProfile param, DescribeStatement statement) {
         String tableName = statement == null ? param.getTableName() : statement.getTable().getName();
         param.setTableName(tableName);
         String dbType = metadataService.getDBTypeByTableName(param.getTableName());
@@ -532,7 +531,7 @@ public class ApiServiceImpl implements ApiService {
         return baseResult;
     }
 
-    private BaseResult executeExplainStatement(ApiParam param) {
+    private BaseResult executeExplainStatement(QueryProfile param) {
         return getDBDialect(param).executeExplainPlan();
     }
 
@@ -542,7 +541,7 @@ public class ApiServiceImpl implements ApiService {
      * @param param
      * @return
      */
-    private BaseResult executeShowStatement(ApiParam param) {
+    private BaseResult executeShowStatement(QueryProfile param) {
         return getAllDatabaseTables(param);
     }
 
@@ -552,11 +551,11 @@ public class ApiServiceImpl implements ApiService {
      *
      * @return
      */
-    private BaseResult getAllDatabaseTables(ApiParam apiParam) {
+    private BaseResult getAllDatabaseTables(QueryProfile queryProfile) {
         Map<String, Object> dataMap = new LinkedHashMap<>();
         dataMap.put("type", "enum");
         Arrays.stream(DBTypeEnum.values()).forEach(dbTypeEnum -> {
-            ApiParam dbParam = new ApiParam();
+            QueryProfile dbParam = new QueryProfile();
             if (dbTypeEnum.getValue().equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
                 dbParam.setQuery("show tables");
                 dbParam.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
@@ -613,7 +612,7 @@ public class ApiServiceImpl implements ApiService {
      * @param param
      * @return
      */
-    public BaseResult dataEncapsulationOfSchema(BaseResult result, ApiParam param) {
+    public BaseResult dataEncapsulationOfSchema(BaseResult result, QueryProfile param) {
         SchemaBase schema = new SchemaBase();
         schema.setName(param.getTableName());
         List<Map> fields = new ArrayList<>();

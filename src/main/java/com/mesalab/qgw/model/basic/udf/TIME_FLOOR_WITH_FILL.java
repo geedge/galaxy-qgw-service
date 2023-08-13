@@ -1,4 +1,4 @@
-package com.mesalab.qgw.model.api.udf;
+package com.mesalab.qgw.model.basic.udf;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -13,8 +13,8 @@ import com.mesalab.common.utils.ConvertUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
-import com.mesalab.qgw.model.api.EngineConfigSource;
-import com.mesalab.qgw.model.api.SQLQuerySource;
+import com.mesalab.qgw.model.basic.EngineConfigSource;
+import com.mesalab.qgw.model.basic.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
 import com.zdjizhi.utils.DateUtils;
 import com.zdjizhi.utils.StringUtil;

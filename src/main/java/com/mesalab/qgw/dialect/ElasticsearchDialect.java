@@ -22,7 +22,7 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.api.*;
+import com.mesalab.qgw.model.basic.*;
 import com.zdjizhi.utils.StringUtil;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
@@ -46,7 +46,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     private static final Map<String, String> metaMap = Maps.newHashMap();
     private RestClient restClient = (RestClient) SpringContextUtil.getBean("restClient");
     private int pageOffset;
-    public ApiParam param;
+    public QueryProfile param;
     public BaseResult baseResult;
 
     private Stopwatch watch = Stopwatch.createUnstarted();
@@ -59,7 +59,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
         metaMap.put("text", DataTypeMapping.STRING);
     }
 
-    public ElasticsearchDialect(ApiParam param) {
+    public ElasticsearchDialect(QueryProfile param) {
         this.param = param;
     }
 

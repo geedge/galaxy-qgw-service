@@ -8,9 +8,9 @@ import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.HttpHelper;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.AuditLog;
-import com.mesalab.qgw.model.api.AuditServiceLog;
+import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.AuditLog;
+import com.mesalab.qgw.model.basic.AuditServiceLog;
 import com.zdjizhi.utils.IPUtil;
 import com.zdjizhi.utils.StringUtil;
 import org.aspectj.lang.JoinPoint;
@@ -35,7 +35,7 @@ public class AuditLogAspect {
     private static final Log log = LogFactory.get();
 
 
-    @Pointcut("@annotation(com.mesalab.qgw.model.api.AuditLog)")
+    @Pointcut("@annotation(com.mesalab.qgw.model.basic.AuditLog)")
     public void annotationPointCut(){}
 
     @Before("annotationPointCut()")
@@ -80,8 +80,8 @@ public class AuditLogAspect {
 
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
-       if (joinPoint.getArgs()[0] instanceof ApiParam) {
-           ApiParam param = (ApiParam) joinPoint.getArgs()[0];
+       if (joinPoint.getArgs()[0] instanceof QueryProfile) {
+           QueryProfile param = (QueryProfile) joinPoint.getArgs()[0];
            auditLog.get().setDbType(param.getDbType());
        }
     }

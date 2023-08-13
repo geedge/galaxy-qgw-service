@@ -16,10 +16,9 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.api.ApiParam;
-import com.mesalab.qgw.model.api.EntityConfigSource;
-import com.mesalab.qgw.service.ApiService;
+import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.EntityConfigSource;
+import com.mesalab.qgw.service.QueryService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.dsl.ComDSLParse;
 import com.mesalab.services.common.enums.EntityQueryType;
@@ -47,7 +46,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     @Value("${arango.maxrows}")
     private String defLimit;//查询最大条数
     @Autowired
-    private ApiService apiService;
+    private QueryService queryService;
     @Autowired
     private EntityConfigSource entityConfigSource;
 
@@ -58,11 +57,11 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     public BaseResult getRealRelation(String param, ComDSLObject comDSLObject) {
         BaseResult baseResult;
         if (param.equals(EntityQueryType.SUBSCRIBERIDPOOL.getType())) {
-            baseResult = formatResult(apiService.executeQuery(queryBuild(comDSLObject.getQuery())));
+            baseResult = formatResult(queryService.executeQuery(queryBuild(comDSLObject.getQuery())));
         } else if (param.equals(EntityQueryType.GTPC.getType())) {
             String querySql = generateQuerySql(comDSLObject.getQuery());
-            ApiParam apiParam = ApiParam.builder().option("real-time").query(querySql).build();
-            baseResult = deduplicationData(apiService.executeQuery(apiParam),comDSLObject.getQuery());
+            QueryProfile queryProfile = QueryProfile.builder().option("real-time").query(querySql).build();
+            baseResult = deduplicationData(queryService.executeQuery(queryProfile),comDSLObject.getQuery());
         } else {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
         }
@@ -74,14 +73,14 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     }
 
 
-    private ApiParam queryBuild(ComDSLObject.Query query) {
+    private QueryProfile queryBuild(ComDSLObject.Query query) {
         String range = ComDSLParse.parseRange(query.getParameters().getRange());
         List<ComDSLObject.Query.FilterBean> match = getMatchAfterTranslation(query.getParameters().getMatch());
         String fieldWhere = ComDSLParse.parseMath(match);
         String timeWhere = ComDSLParse.parseInterval(query, "last_update_time", true);
         String sql = String.format(Objects.requireNonNull(env.getProperty("RELATION_SUBSCRIBER_ID")), timeWhere.concat(range).concat(fieldWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
         log.info("real time relation subscribe id query sql: {}", sql);
-        return ApiParam.builder().option("real-time").query(sql).build();
+        return QueryProfile.builder().option("real-time").query(sql).build();
     }
 
     private List<ComDSLObject.Query.FilterBean> getMatchAfterTranslation(List<ComDSLObject.Query.FilterBean> match) {
