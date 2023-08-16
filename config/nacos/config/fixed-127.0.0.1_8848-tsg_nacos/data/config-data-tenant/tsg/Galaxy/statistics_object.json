@@ -211,6 +211,30 @@
       }
     },
     {
+      "name": "template_id",
+      "label": "Template ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "chart_id",
+      "label": "Chart ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "version",
+      "label": "Version",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
       "name": "object_id",
       "label": "Object",
       "doc": {
