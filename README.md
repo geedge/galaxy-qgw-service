@@ -92,11 +92,6 @@
 5. 查看日志tail -f /home/tsg/galaxy/galaxy-qgw-service/logs/galaxy-qgw-service.log
 6. 备份镜像文件 docker save 79470009165e  > /home/tsg/galaxy/docker_image_galaxy-qgw-service_[version].tar 
 
-- GIT 提交规范
-  - [purpose][module name] Description (JIRA Issue ID)
-  - purpose : Fix, Feature, Improve, Docs
-  - module name : engine, cn, network 
-
 - 部署前提
 
   1. 修改 Dockerfile
