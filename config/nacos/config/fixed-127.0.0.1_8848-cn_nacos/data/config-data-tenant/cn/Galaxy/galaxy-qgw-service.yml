@@ -29,7 +29,18 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://192.168.44.55:3306/tsg-bifang?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
     username: ENC(TOq791VPxSFyX/S4fqcv0g==)
-    pin: ENC(Qii8wWRNnB61f/0wnrVIbXr2VmnncK2c)
+    password: ENC(Qii8wWRNnB61f/0wnrVIbXr2VmnncK2c)
+  flyway:
+    enabled: true              # 是否开启
+    encoding: UTF-8            # 编码
+    sql-migration-prefix: V    # 脚本文件的前缀，默认为V
+    sql-migration-separator: __ #  双下划线
+    baseline-on-migrate: true  # 连接数据库中存在表时设置为true
+    check-location: false
+    locations: filesystem:./config/flyway/tsg   # 脚本路径
+    clean-disabled: true      # flyway 的 clean 命令会删除指定 schema 下的所有 table, 生产务必禁掉。这个默认值是 false 理论上作为默认配置是不科学的
+    validate-on-migrate: true # 执行迁移时是否自动调用验证   当你的 版本不符合逻辑 比如 你先执行了 DML 而没有 对应的DDL 会抛出异常
+    placeholder-replacement: false  # 不做取值替换 默认替换为 ${} ，初始化sql中有sql语句存在freemarker替换，所以禁用此项
 ## Hbase configuration
 hbase:
   zookeeperQuorum: 192.168.44.55:2181
