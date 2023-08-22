@@ -64,14 +64,6 @@
       ]
     },
     {
-      "namespace": "etl",
-      "group": "ETL_GROUP",
-      "tables": [
-        "liveChart_session",
-        "liveChart_interim"
-      ]
-    },
-    {
       "namespace":"tsg",
       "group":"HBASE_GROUP",
       "tables":[
