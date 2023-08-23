@@ -59,7 +59,7 @@
         "security_rule_hits",
         "proxy_rule_hits",
         "statistics_rule",
-        "statistics_object",
+        "object_statistics",
         "statistics_rule_hits"
       ]
     },
