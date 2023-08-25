@@ -1,6 +1,6 @@
 package com.mesalab.knowledge.enums;
 
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.EnumUtils;

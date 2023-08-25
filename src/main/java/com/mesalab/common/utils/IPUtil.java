@@ -1,8 +1,8 @@
 package com.mesalab.common.utils;
 
 import com.mesalab.services.common.entity.KnowledgeConstant;
-import com.zdjizhi.utils.IpLookupV2;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.IpLookupV2;
+import com.geedgenetworks.utils.StringUtil;
 
 import java.io.File;
 
@@ -62,6 +62,10 @@ public class IPUtil {
 
     public static String getAsnOrganization(String ip) {
         return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.asnLookupOrganization(ip);
+    }
+
+    public static Object getResponseObject(String ip) {
+        return StringUtil.isEmpty(ip) ? StringUtil.EMPTY : ipLookup.infoLookup(ip);
     }
 
 }

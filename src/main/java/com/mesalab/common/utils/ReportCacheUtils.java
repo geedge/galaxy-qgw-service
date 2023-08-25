@@ -13,7 +13,7 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.service.impl.QueryServiceImpl;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

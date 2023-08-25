@@ -21,7 +21,7 @@ import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.springframework.beans.factory.annotation.Autowired;

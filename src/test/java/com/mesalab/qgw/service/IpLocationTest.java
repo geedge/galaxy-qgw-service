@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.utils.IPUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,11 @@ public class IpLocationTest extends GalaxyQGWApplicationTests {
     public void testIpToOrganization() {
         log.info(IPUtil.getOrganization("157.255.77.80"));
 
+    }
+
+    @Test
+    public void testIpResponseObject() {
+        log.info(JSONObject.toJSONString(IPUtil.getResponseObject("157.255.77.80")));
     }
 
 }

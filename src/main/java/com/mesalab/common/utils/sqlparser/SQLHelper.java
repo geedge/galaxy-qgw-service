@@ -1,6 +1,7 @@
 package com.mesalab.common.utils.sqlparser;
 
 import com.alibaba.druid.util.JdbcConstants;
+import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -8,7 +9,6 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.zdjizhi.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;

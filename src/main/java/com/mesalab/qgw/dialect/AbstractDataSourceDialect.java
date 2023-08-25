@@ -3,7 +3,7 @@ package com.mesalab.qgw.dialect;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
-import com.zdjizhi.utils.Encodes;
+import com.geedgenetworks.utils.Encodes;
 import lombok.Data;
 
 import java.util.Map;

@@ -35,7 +35,7 @@ import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
-import com.zdjizhi.utils.*;
+import com.geedgenetworks.utils.*;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;

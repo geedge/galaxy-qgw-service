@@ -12,7 +12,7 @@ import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.network.exception.NWErrorCode;
 import com.mesalab.network.exception.NWErrorMessage;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
 import org.joda.time.format.DateTimeFormat;

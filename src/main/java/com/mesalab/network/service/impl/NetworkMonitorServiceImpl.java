@@ -28,7 +28,7 @@ import com.mesalab.network.model.protocol.ProtocolTree;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.dsl.ComDSLParse;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.joda.time.Period;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;

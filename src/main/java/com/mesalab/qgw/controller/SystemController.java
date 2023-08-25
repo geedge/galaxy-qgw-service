@@ -14,7 +14,7 @@ import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.service.SystemService;
 import com.mesalab.services.configuration.ThreadPoolMonitor;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

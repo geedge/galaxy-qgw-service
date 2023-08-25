@@ -4,7 +4,7 @@ import cn.hutool.core.util.TypeUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.google.common.base.CharMatcher;
 import com.mesalab.knowledge.enums.MatchEnum;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.Data;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.util.ObjectUtils;

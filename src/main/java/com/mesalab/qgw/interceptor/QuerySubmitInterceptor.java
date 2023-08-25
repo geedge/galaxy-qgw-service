@@ -9,7 +9,7 @@ import com.google.common.cache.CacheStats;
 import com.mesalab.common.utils.HttpHelper;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.qgw.model.basic.CachedSubmitCheck;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;

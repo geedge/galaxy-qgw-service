@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
-import static com.zdjizhi.utils.StringUtil.setDefaultIfEmpty;
+import static com.geedgenetworks.utils.StringUtil.setDefaultIfEmpty;
 
 
 public class CalciteMemoryUtils {

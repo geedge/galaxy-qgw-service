@@ -2,7 +2,7 @@ package com.mesalab.knowledge.entity;
 
 import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.Data;
 import org.springframework.util.ObjectUtils;
 

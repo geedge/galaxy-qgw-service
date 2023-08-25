@@ -2,6 +2,7 @@ package com.mesalab.cn.entity.pojo;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.geedgenetworks.utils.StringUtil;
 import com.google.common.base.Joiner;
 import com.mesalab.cn.constant.ErrorMessage;
 import com.mesalab.cn.constant.SqlKeywords;
@@ -10,7 +11,6 @@ import com.mesalab.cn.exception.CNErrorCode;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.zdjizhi.utils.StringUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 

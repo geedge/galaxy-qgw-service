@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.IPUtil;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

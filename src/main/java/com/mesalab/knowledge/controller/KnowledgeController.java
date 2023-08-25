@@ -10,7 +10,7 @@ import com.mesalab.knowledge.enums.QueryTypeEnum;
 import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
 import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.mesalab.knowledge.service.KnowledgeService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

@@ -1,6 +1,6 @@
 package com.mesalab.qgw.model.basic;
 
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.*;
 import java.io.Serializable;
 @Data

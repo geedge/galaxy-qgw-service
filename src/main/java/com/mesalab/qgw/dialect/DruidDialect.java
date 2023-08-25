@@ -24,7 +24,7 @@ import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.compress.utils.Lists;

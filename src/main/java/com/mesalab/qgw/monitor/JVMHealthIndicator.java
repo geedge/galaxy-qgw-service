@@ -1,6 +1,6 @@
 package com.mesalab.qgw.monitor;
 
-import com.zdjizhi.utils.DateUtils;
+import com.geedgenetworks.utils.DateUtils;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;

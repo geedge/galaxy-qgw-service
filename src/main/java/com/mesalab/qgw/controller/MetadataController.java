@@ -11,7 +11,7 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.service.MetadataService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

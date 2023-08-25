@@ -9,7 +9,7 @@ import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.knowledge.enums.SortEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.stereotype.Component;

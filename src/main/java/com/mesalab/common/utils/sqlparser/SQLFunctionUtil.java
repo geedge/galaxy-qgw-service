@@ -2,6 +2,7 @@ package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.core.util.URLUtil;
 import com.alibaba.fastjson2.JSON;
+import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.DBTypeEnum;
@@ -12,7 +13,6 @@ import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.Encodes;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
