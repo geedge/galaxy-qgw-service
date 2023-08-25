@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "statistics_object",
+  "name": "object_statistics",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",

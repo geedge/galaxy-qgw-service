@@ -3194,6 +3194,10 @@
         {
           "code": "16384",
           "value": "S2C"
+        },
+        {
+          "code": "32768",
+          "value": "Bidirectional"
         }
       ]
     }

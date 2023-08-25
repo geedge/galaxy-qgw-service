@@ -23,12 +23,12 @@ public class ActiveRecordInit {
     @NacosValue("${spring.datasource.username}")
     private String userName;
 
-    @NacosValue("${spring.datasource.pin}")
-    private String pin;
+    @NacosValue("${spring.datasource.password}")
+    private String password;
 
     @PostConstruct
     public void initDialect() {
-        DruidPlugin dp = new DruidPlugin(url, userName, pin);
+        DruidPlugin dp = new DruidPlugin(url, userName, password);
         ArpStartPlugin arp = new ArpStartPlugin(dp);
         dp.start();
         arp.start();
