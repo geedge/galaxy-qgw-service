@@ -13,11 +13,23 @@
   },
   {
     "key": "rule_id",
-    "default": 2
+    "default": 1
+  },
+  {
+    "key": "template_id",
+    "default": 1
+  },
+  {
+    "key": "chart_id",
+    "default": 1
+  },
+  {
+    "key": "version",
+    "default": 1
   },
   {
     "key": "object_id",
-    "default": 3
+    "default": 1
   },
   {
     "key": "limit",
@@ -62,5 +74,13 @@
   {
     "key": "filter",
     "default": ""
+  },
+  {
+    "key": "order",
+    "default": "DESC"
+  },
+  {
+    "key": "timestampdiff_second",
+    "default": 86400
   }
 ]

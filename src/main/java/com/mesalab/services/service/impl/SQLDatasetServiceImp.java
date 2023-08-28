@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jfinal.plugin.activerecord.Db;
@@ -16,7 +17,6 @@ import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.SQLDatasetService;
-import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
@@ -28,6 +28,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * TODO
@@ -42,6 +44,10 @@ public class SQLDatasetServiceImp
         implements SQLDatasetService
 {
     private static final Log log = LogFactory.get();
+    private static Pattern pFieldVariable = Pattern.compile("\\$\\{(metric|dimension)_(.*?)\\}", Pattern.CASE_INSENSITIVE);
+    private static Pattern pLeftRightFlag = Pattern.compile("\\[\\[(.*?)\\]\\]", Pattern.CASE_INSENSITIVE);
+    private final static String SQL_TEXT = "sql_text";
+
     @Autowired
     Environment env;
     @Autowired
@@ -64,18 +70,20 @@ public class SQLDatasetServiceImp
     public Map<String, Object> getDataset(String datasetId)
     {
         List<Map<String, Object>> results = new ArrayList<>();
-        List<Record> list = Db.find(buildSQL(Lists.newArrayList(datasetId), null, null));
+        List<Record> list = Db.find(buildGetDatasetSQL(Lists.newArrayList(datasetId), null, null));
         if (CollectionUtils.isEmpty(list)) {
             return Maps.newHashMap();
         }
         list.forEach(record -> results.add(record.getColumns()));
-        return results.get(0);
+        Map<String, Object> result = results.get(0);
+        log.info("SQL Dataset, ID is: {}, SQL is: {}", datasetId, result);
+        return result;
     }
 
     @Override
     public Map<String, Object> getDatasets(List<String> ids, String category, String title)
     {
-        String sql = buildSQL(ids, category, title);
+        String sql = buildGetDatasetSQL(ids, category, title);
         List<Map<String, Object>> data = new ArrayList<>();
         List<Record> list = Db.find(sql);
         if (CollectionUtils.isEmpty(list)) {
@@ -90,13 +98,23 @@ public class SQLDatasetServiceImp
     @Override
     public BaseResult getPreview(String datasetId)
     {
-        List<LinkedHashMap> variables = getVariable();
-
         Map<String, Object> dataset = getDataset(datasetId);
-        if (dataset.isEmpty() || StrUtil.isBlankIfStr(dataset.get("sql_text"))) {
+        if (dataset.isEmpty() || StrUtil.isBlankIfStr(dataset.get(SQL_TEXT))) {
             return BaseResultGenerator.success();
         }
-        String sql = String.valueOf(dataset.get("sql_text"));
+        String sqlTemplate = String.valueOf(dataset.get(SQL_TEXT));
+        String sql = buildExecSQL(getVariable(), sqlTemplate);
+        log.info("Dataset Preview, ID is: {}, Exec SQL is: {}", datasetId, sql);
+        return queryService.executeQuery(QueryProfile.builder().query(sql).build());
+    }
+
+    private String buildExecSQL(List<LinkedHashMap> variables, String sql)
+    {
+        Matcher matcher = pLeftRightFlag.matcher(sql);
+        while (matcher.find()) {
+            sql = processOptionalClause(sql, "[[", "]]");
+        }
+        sql = processFieldVariable(sql);
         for (LinkedHashMap linkedHashMap : variables) {
             String variable = String.valueOf(linkedHashMap.get("key"));
             String def = String.valueOf(linkedHashMap.get("default"));
@@ -106,10 +124,10 @@ public class SQLDatasetServiceImp
             String parameter = "${".concat(variable).concat("}");
             sql = sql.replace(parameter, def);
         }
-        return queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        return sql;
     }
 
-    private String buildSQL(List<String> ids, String category, String title)
+    private String buildGetDatasetSQL(List<String> ids, String category, String title)
     {
         List<String> filterList = Lists.newArrayList();
         if (!ids.isEmpty()) {
@@ -123,5 +141,44 @@ public class SQLDatasetServiceImp
         }
         String filter = String.join(" AND ", filterList);
         return String.format(Objects.requireNonNull(env.getProperty("SQL_DATASETS")), StrUtil.isNotBlank(filter) ? "WHERE ".concat(filter) : "");
+    }
+
+    private String processFieldVariable(String str)
+    {
+        Matcher matcher = pFieldVariable.matcher(str);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, matcher.group(2));
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
+    private String processOptionalClause(String str, String leftFlag, String rightFlag)
+    {
+        String left = "";
+        String right = "";
+        String center = "";
+        boolean leftMark = false;
+        for (int i = 0; i < str.length(); i++) {
+            String element = str.substring(i, i + 1);
+            if (leftFlag.startsWith(element) && leftFlag.equals(str.substring(i, i + leftFlag.length()))) {
+                left = str.substring(0, i);
+                leftMark = true;
+                continue;
+            }
+            if (leftMark) {
+                if (rightFlag.startsWith(element) && rightFlag.equals(str.substring(i, i + rightFlag.length()))) {
+                    right = str.substring(i + rightFlag.length());
+                    center = str.substring(left.length(), str.length() - (right.length()));
+                    break;
+                }
+            }
+        }
+        if (StrUtil.isNotEmpty(center)) {
+            String substring = center.substring(leftFlag.length(), center.length() - leftFlag.length());
+            str = left.concat(substring).concat(right);
+        }
+        return str;
     }
 }

@@ -29,7 +29,7 @@ import java.util.Arrays;
 @RequestMapping(value = "/v1/sql")
 public class SQLDatasetController
 {
-
+    private static final Log log = LogFactory.get();
     @Autowired
     SQLDatasetService sqlDatasetService;
 
@@ -42,12 +42,14 @@ public class SQLDatasetController
     @GetMapping(value = "/datasets/{datasetId}")
     public BaseResult getDataset(@PathVariable String datasetId)
     {
+        log.info("Get Dataset, ID is: {}", datasetId);
         return BaseResultGenerator.success(sqlDatasetService.getDataset(datasetId));
     }
 
     @GetMapping(value = "/datasets")
     public BaseResult getDatasets(@RequestParam(value = "identifier_names") String datasetIds, String category, String title)
     {
+        log.info("Get Datasets. IDs is: {}, category is: {}, title is: {}", datasetIds, category, title);
         return BaseResultGenerator.success(sqlDatasetService.getDatasets(Arrays.asList(StrUtil.split(datasetIds, ",")), category, title));
     }
 
