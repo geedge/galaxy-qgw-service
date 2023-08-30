@@ -2220,7 +2220,7 @@
     },
     {
       "name": "http_status_code",
-      "label": "Status Code",
+      "label": "HTTP.Status Code",
       "doc": {
         "visibility": "enabled",
         "ttl": null

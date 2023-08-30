@@ -1926,7 +1926,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "label": "Status Code"
+      "label": "HTTP.Status Code"
     },
     {
       "name": "http_response_latency_ms",
