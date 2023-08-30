@@ -807,6 +807,7 @@
         "http_user_agent",
         "http_set_cookie",
         "http_version",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "http_action_file_size"

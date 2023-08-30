@@ -72,6 +72,7 @@
         "http_request_line",
         "http_response_line",
         "http_version",
+        "http_status_code",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -147,6 +148,7 @@
         "http_request_content_type",
         "http_response_content_length",
         "http_response_content_type",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "dns_message_id",
@@ -240,6 +242,7 @@
         "http_response_content_length",
         "http_response_content_type",
         "http_set_cookie",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "dns_message_id",
@@ -1915,6 +1918,15 @@
         "ttl": null
       },
       "label": "HTTP.Version"
+    },
+    {
+      "name": "http_status_code",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Status Code"
     },
     {
       "name": "http_response_latency_ms",

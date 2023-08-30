@@ -75,6 +75,7 @@
         "http_request_line",
         "http_response_line",
         "http_version",
+        "http_status_code",
         "mail_protocol_type",
         "mail_account",
         "mail_from_cmd",
@@ -204,6 +205,7 @@
         "http_request_content_type",
         "http_response_content_length",
         "http_response_content_type",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "mail_protocol_type",
@@ -355,6 +357,7 @@
         "http_response_content_length",
         "http_response_content_type",
         "http_set_cookie",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "mail_protocol_type",
@@ -2163,6 +2166,15 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "http_status_code",
+      "label": "Status Code",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "http_response_latency_ms",
