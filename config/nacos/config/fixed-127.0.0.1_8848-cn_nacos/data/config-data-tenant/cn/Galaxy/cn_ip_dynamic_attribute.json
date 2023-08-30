@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "cn_dynamic_info_relation",
+  "name": "cn_ip_dynamic_attribute",
   "namespace": "cyber_narrator_galaxy",
   "doc": {
     "partition_key": "create_time",
