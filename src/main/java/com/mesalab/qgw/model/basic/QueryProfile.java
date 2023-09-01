@@ -1,6 +1,7 @@
 package com.mesalab.qgw.model.basic;
 
 import com.geedgenetworks.utils.StringUtil;
+import com.mesalab.common.enums.DBTypeEnum;
 import lombok.*;
 import java.io.Serializable;
 @Data
@@ -13,39 +14,26 @@ public class QueryProfile implements Serializable {
     private String option;
     private Boolean sampled;
     private String format;
-    private String schema;
-    private String tableName;
+    private String queryId;
+    private String resultId;
+    @Deprecated
+    private String reportId;
     /**
-     * @see com.mesalab.common.enums.DBTypeEnum
+     * @see DBTypeEnum
      */
-    private String dbType;// 数据库类型
-    private String queryId;// SQL 语句的唯一标识
-
-    private String dialectDBType; //方言数据库类型，用于SQL格式解析校验
-    private String reportId;//离线统计报告唯一ID
-    private String resultId;//离线统计报告结果ID
-
-    private String sql;//当前执行的SQL
-
-    private SQLQuerySource engineQuerySource; //网关引擎处理SQL对象
-
-    private SQLQuerySource dbQuerySource; //下沉数据源引擎的SQL对象
-
+    private String dbType;
+    /**
+     * 方言数据库类型，用于SQL格式解析校验
+     */
+    private String dialectDBType;
+    private SQLQuerySource engineQuerySource;
+    private SQLQuerySource dbQuerySource;
 
     public String getResultId() {
-
         return StringUtil.isNotBlank(reportId) ? reportId : resultId;
     }
 
-    public void setResultId(String resultId) {
-        this.resultId = resultId;
-    }
-
-    public void setIsSampled(Boolean isSampled) {
-        this.sampled = isSampled;
-    }
-
-    public  boolean queryParamIsNull() {
+    public boolean queryParamIsNull() {
         return StringUtil.isBlank(query);
     }
 }

@@ -76,6 +76,7 @@ public class QueryServiceImpl implements QueryService {
     @Override
     public BaseResult executeQuery(QueryProfile queryProfile) {
         validateAndSetDefaultValue(queryProfile);
+        init(queryProfile);
         Statement statement;
         try {
             statement = CCJSqlParserUtil.parse(queryProfile.getQuery());
@@ -103,13 +104,25 @@ public class QueryServiceImpl implements QueryService {
         return baseResult;
     }
 
+    private void init(QueryProfile param) {
+        if(SQLHelper.getTableName(param.getQuery()).isEmpty()){
+            return;
+        }
+        String tableName = SQLHelper.getTableName(param.getQuery()).get(0);
+        param.setDbType(metadataService.getDBTypeByTableName(tableName));
+        param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
+    }
+
     private void validateAndSetDefaultValue(QueryProfile param) {
+        if (StringUtil.isBlank(param.getOption())) {
+            param.setOption(QueryOptionEnum.REAL_TIME.getValue());
+        }
+        if (StringUtil.isBlank(param.getFormat())) {
+            param.setFormat(QueryFormatEnum.JSON.getValue());
+        }
         if (StringUtil.isBlank(param.getQuery())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.SQL_MUST_BE_EXISTS));
-        }
-        if (StringUtil.isBlank(param.getOption())) {
-            param.setOption(QueryOptionEnum.REAL_TIME.getValue());
         }
         if (Arrays.stream(QueryOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getOption()))) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -120,9 +133,6 @@ public class QueryServiceImpl implements QueryService {
                 && StringUtil.isBlank(param.getResultId())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.MUST_BE_REPORTID_OR_RESULTID));
-        }
-        if (StringUtil.isBlank(param.getFormat())) {
-            param.setFormat(QueryFormatEnum.JSON.getValue());
         }
         if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -210,9 +220,6 @@ public class QueryServiceImpl implements QueryService {
 
 
     private Dialect getDBDialect(QueryProfile param) {
-        param.setTableName(SQLHelper.getTableName(param.getQuery()));
-        param.setDbType(metadataService.getDBTypeByTableName(param.getTableName()));
-        param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
         convertQueryRecursive(param, parserSQLByAst(param.getQuery()));
         return getReflectiveDialectObject(param);
     }
@@ -269,10 +276,10 @@ public class QueryServiceImpl implements QueryService {
 
         if (StringUtil.isNotEmpty(indexUpSqlQuerySource)) {
             engineQuerySource = new SQLQuerySource();
-            String tableName = StringUtil.isEmpty(indexUpSqlQuerySource.getSubSelect().getAlias()) ? indexUpSqlQuerySource.getTableName() : indexUpSqlQuerySource.getSubSelect().getAlias().getName();
+            String tableName = StringUtil.isEmpty(indexUpSqlQuerySource.getSubSelect().getAlias()) ? indexUpSqlQuerySource.getTableNames().get(0) : indexUpSqlQuerySource.getSubSelect().getAlias().getName();
             String replace = sqlQuerySource.getSqlBody().replace(indexUpSqlQuerySource.getSubSelect().toString(), tableName);
             engineQuerySource.setSqlBody(replace);
-            engineQuerySource.setTableName(tableName);
+            engineQuerySource.getTableNames().add(0,tableName);
             engineQuerySource.setLimit(sqlQuerySource.getLimit());
         }
 
@@ -308,42 +315,27 @@ public class QueryServiceImpl implements QueryService {
             sqlQuerySource.setSqlBody(String.valueOf(selectStatement.getSelectBody()));
             TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
             List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
-
-            if (StringUtil.isNotEmpty(tableList)) {
-                String tableName = tableList.get(0);
-                int i = tableName.lastIndexOf(".");
-                tableName = i < 0 ? tableName : tableName.substring(i + 1);
-                sqlQuerySource.setTableName(tableName);
-                sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(tableName));
-            } else {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.SQL_PARSE_ERROR_NOT_FOUNT_TABLE));
-            }
-
+            tableList.forEach(o -> {
+                int i = o.lastIndexOf(".");
+                sqlQuerySource.getTableNames().add(i < 0 ? o : o.substring(i + 1));
+            });
+            sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(sqlQuerySource.getTableNames().get(0)));
             SelectBody body = selectStatement.getSelectBody();
             if (body instanceof PlainSelect) { //单条查询
 
                 PlainSelect select = (PlainSelect) body;
 
                 FromItem fromItem = select.getFromItem();
-                if (fromItem != null) {
-                    sqlQuerySource.setFromItem(fromItem.toString());
-                }
-
+                sqlQuerySource.setFromItem(fromItem);
+                sqlQuerySource.setJoins(select.getJoins());
                 Expression where = select.getWhere();
 
                 if (where != null) {
-                    sqlQuerySource.setExpr(where.toString());
                     sqlQuerySource.setWhereExpression(where);
                 }
 
                 List<SelectItem> selectItemsList = select.getSelectItems();
-
-                if (StringUtil.isNotEmpty(selectItemsList)) {
-                    String selectItemsString = Joiner.on(",").join(selectItemsList);
-                    sqlQuerySource.setSelectItems(selectItemsString);
-
-                }
+                sqlQuerySource.setSelectItems(selectItemsList);
 
                 for (SelectItem item : selectItemsList) {
                     if (item instanceof SelectExpressionItem) {
@@ -366,15 +358,7 @@ public class QueryServiceImpl implements QueryService {
                 if (StringUtil.isNotEmpty(groupBy = select.getGroupBy())) {
                     sqlQuerySource.setGroupByElement(groupBy);
                 }
-
-                List<OrderByElement> orderByList = select.getOrderByElements();
-                if (StringUtil.isNotEmpty(orderByList)) {
-                    String orderByString = Joiner.on(",").join(orderByList);
-                    sqlQuerySource.setOrderBy(orderByString);
-                    sqlQuerySource.setListOrderElement(orderByList);
-                }
-
-
+                sqlQuerySource.setOrderByElements(select.getOrderByElements());
                 FromItem subItem = select.getFromItem();
 
                 if (subItem instanceof SubSelect) {
@@ -493,10 +477,8 @@ public class QueryServiceImpl implements QueryService {
      * @return
      */
     private BaseResult executeDescStatement(QueryProfile param, DescribeStatement statement) {
-        String tableName = statement == null ? param.getTableName() : statement.getTable().getName();
-        param.setTableName(tableName);
-        String dbType = metadataService.getDBTypeByTableName(param.getTableName());
-
+        String tableName = statement.getTable().getName();
+        String dbType = param.getDbType();
         if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(dbType)) {
             param.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
             param.setDialectDBType(DBTypeEnum.CLICKHOUSE.getValue());
@@ -514,7 +496,7 @@ public class QueryServiceImpl implements QueryService {
         } else {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),
-                            param.getTableName() + ":" + QGWMessageConst.TABLE_NOT_EXIST));
+                            tableName + ":" + QGWMessageConst.TABLE_NOT_EXIST));
         }
 
         param.setFormat(QueryFormatEnum.JSON.getValue());
@@ -614,7 +596,7 @@ public class QueryServiceImpl implements QueryService {
      */
     public BaseResult dataEncapsulationOfSchema(BaseResult result, QueryProfile param) {
         SchemaBase schema = new SchemaBase();
-        schema.setName(param.getTableName());
+        schema.setName(SQLHelper.getTableName(param.getQuery()).get(0));
         List<Map> fields = new ArrayList<>();
         List<Map> list = (List<Map>) result.getData();
         for (Map resultMap : list) {

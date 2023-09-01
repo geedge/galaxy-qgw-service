@@ -106,46 +106,30 @@ public class SQLHelper {
     }
 
     /**
-     * Desc: 获取当前sql的表名
+     * Desc: Desc: 获取当前sql的表名
      *
      * @param sql
-     * @return {@link String}
+     * @return {@link List<String>}
      * @created by wWei
-     * @date 2021/2/24 4:39 下午
+     * @date 2023/8/30 14:38
      */
-    public static String getTableName(String sql) {
+    public static List<String> getTableName(String sql) {
+        List<String> result = Lists.newArrayList();
         try {
             Statement statement = CCJSqlParserUtil.parse(sql);
-            Select selectStatement = null;
-            if (statement instanceof Select) {
-                selectStatement = (Select) statement;
-            } else if (statement instanceof ExplainStatement)  {
-                selectStatement = ((ExplainStatement)statement).getStatement();
-            } else {
-                log.error("Not support DML Parser");
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.NOT_SUPPORT_DML_PARSER));
-            }
-
             TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-            List<String> tableList = tablesNamesFinder.getTableList(selectStatement);
-            if (StringUtil.isNotEmpty(tableList)) {
-                String tableName = tableList.get(0);
-                int i = tableName.lastIndexOf(".");
-                return i < 0 ? tableName : tableName.substring(i + 1);
-            } else {
-                log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}", sql);
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.GET_TABLE_NAME_ERROR));
-            }
-
+            List<String> tableList = tablesNamesFinder.getTableList(statement);
+            tableList.forEach(o -> {
+                int i = o.lastIndexOf(".");
+                result.add(i < 0 ? o : o.substring(i + 1));
+            });
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
+        return result;
     }
-
 
     /**
      * Desc: 从SQL中获取指定函数参数

@@ -223,11 +223,11 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     }
 
     private void sortByTime(SQLQuerySource sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
-        if(StringUtil.isEmpty(sqlQuerySource.getListOrderElement())){
+        if(StringUtil.isEmpty(sqlQuerySource.getOrderByElements())){
             return;
         }
         orderBy:
-        for (OrderByElement orderByElement : sqlQuerySource.getListOrderElement()) {
+        for (OrderByElement orderByElement : sqlQuerySource.getOrderByElements()) {
             String orderBy = String.valueOf(orderByElement.getExpression());
             if (orderBy.equals(timeGranLabel)) {
                 if (!orderByElement.isAsc()) {
@@ -295,7 +295,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
      * @return
      */
     private WhereTimeRange getWhereTimeRange(SQLQuerySource sqlQuerySource) {
-        String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableName());
+        String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableNames().get(0));
         WhereTimeRange whereTimeRange = new WhereTimeRange();
         List<FillParam> outToInnerList = getFillParams(sqlQuerySource);
         for (FillParam fillParam : outToInnerList) {

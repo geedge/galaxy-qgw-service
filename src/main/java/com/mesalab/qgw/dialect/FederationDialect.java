@@ -58,20 +58,22 @@ public class FederationDialect extends AbstractEngineDialect{
     @Override
     public void init() {
         if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-            param.setSql(param.getEngineQuerySource().getSqlBody());
+            param.getEngineQuerySource().setExecSQL(param.getEngineQuerySource().getSqlBody());
         } else {
-            param.setSql(null);
+            SQLQuerySource sqlQuerySource = new SQLQuerySource();
+            sqlQuerySource.setExecSQL(null);
+            param.setEngineQuerySource(sqlQuerySource);
         }
     }
 
     @Override
     public String getFederateQuery() {
-        return param.getSql();
+        return  param.getEngineQuerySource().getExecSQL();
     }
 
     @Override
     public String getSampleQuery() {
-        String sql = param.getSql();
+        String sql = param.getEngineQuerySource().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
@@ -86,7 +88,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public String getSyntaxCheckQuery() {
-        String sql = param.getSql();
+        String sql = param.getEngineQuerySource().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
@@ -110,7 +112,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public boolean isExecute() {
-        return StringUtil.isNotEmpty(param.getEngineQuerySource());
+        return StringUtil.isNotEmpty(param.getEngineQuerySource().getExecSQL());
     }
 
 
@@ -120,7 +122,7 @@ public class FederationDialect extends AbstractEngineDialect{
             watch.start();
             if (isExecute()) {
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableName(),
+                Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableNames().get(0),
                         (List<Map<String, String>>) baseResult.getMeta(),
                         (List<Map<String, Object>>) baseResult.getData(), sql);
                 baseResult.setData(resultMap.get("data"));

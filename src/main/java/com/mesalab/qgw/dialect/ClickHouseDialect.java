@@ -94,9 +94,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     @Override
     public void init() {
         if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
-            param.setSql(param.getDbQuerySource().getSqlBody());
+            param.getDbQuerySource().setExecSQL(param.getDbQuerySource().getSqlBody());
         } else {
-            param.setSql(param.getQuery());
+            SQLQuerySource sqlQuerySource = new SQLQuerySource();
+            sqlQuerySource.setExecSQL(param.getQuery());
+            param.setDbQuerySource(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
     }
@@ -169,7 +171,6 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         String tableName = "processes";
         String sql = StrUtil.format("select elapsed,total_rows_approx,read_rows from system.{} where query_id='{}'", tableName, queryId);
         param.setQuery(sql);
-        param.setTableName(tableName);
         BaseResult baseResult = generateBaseResult(sql, Optional.of("ok"));
         Map<String, Object> result = new HashMap<>(16);
         if (!baseResult.isSuccess()) {
@@ -495,7 +496,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          */
         public Optimizer generateSubQuery() {
 
-            if (StringUtil.isBlank(param.getDbQuerySource().getExpr())) {
+            if (StringUtil.isNotEmpty(param.getDbQuerySource().getJoins()) || param.getDbQuerySource().getTableNames().size() > 1) {
+                return this;
+            }
+            if (StringUtil.isEmpty(param.getDbQuerySource().getWhereExpression())) {
                 return this;
             }
             if (containAggregateFunction(sql) || containGroupBy(sql) || containDistinct(sql)) {
@@ -538,12 +542,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private String getAvailableIndexTable() throws JSQLParserException {
-            String str = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "index_table");
+            String str = metadataService.getValueByKeyInSchemaDoc(param.getDbQuerySource().getTableNames().get(0), "index_table");
             String[] indexTables = StringUtil.split(str, ",");
-            if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(metadataService.getIndexKey(param.getTableName()))) {
+            if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(metadataService.getIndexKey(param.getDbQuerySource().getTableNames().get(0)))) {
                 return StringUtil.EMPTY;
             }
-            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields(), false, null);
+            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getWhereExpression().toString(), param.getDbQuerySource().getAliasFields(), false, null);
             List<String> actualFieldOfWhere = CondExpressionHelper.getDistinctFields(expression.toString());
             table:
             for (String tempIndexTable : indexTables) {
@@ -576,21 +580,21 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          */
         private String getSubQueryByIndexTable(String indexTable) throws JSQLParserException {
 
-            String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getTableName(), "primary_key");
-            List<String> indexKey = metadataService.getIndexKey(param.getTableName());
+            String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getDbQuerySource().getTableNames().get(0), "primary_key");
+            List<String> indexKey = metadataService.getIndexKey(param.getDbQuerySource().getTableNames().get(0));
             indexKey = indexKey.subList(0, indexKey.contains(primaryKey) ? indexKey.indexOf(primaryKey) + 1 : indexKey.size());
 
             List<String> indexKeyMaster = Lists.newArrayList();
-            String nameMaster = metadataService.getSchemaByName(param.getTableName()).getName();
+            String nameMaster = metadataService.getSchemaByName(param.getDbQuerySource().getTableNames().get(0)).getName();
             indexKey.forEach(o -> indexKeyMaster.add(nameMaster.concat(".").concat(o)));
 
             String subQuery = getSubquerySql(String.join(",", indexKey), indexTable);
             StringBuffer sb = new StringBuffer();
-            sb.append("select ").append(param.getDbQuerySource().getSelectItems()).append(" from ").append(param.getTableName()).append(" where ( ").append(String.join(",", indexKeyMaster)).append(" ) in ( ").append(subQuery).append(")");
-            if (StringUtil.isNotBlank(param.getDbQuerySource().getExpr())) {
-                sb.append(" and (").append(param.getDbQuerySource().getExpr()).append(")");
+            sb.append("select ").append(param.getDbQuerySource().getSelect()).append(" from ").append(param.getDbQuerySource().getTableNames().get(0)).append(" where ( ").append(String.join(",", indexKeyMaster)).append(" ) in ( ").append(subQuery).append(")");
+            if (StringUtil.isNotEmpty(param.getDbQuerySource().getWhereExpression())) {
+                sb.append(" and (").append(param.getDbQuerySource().getWhereExpression().toString()).append(")");
             }
-            if (StringUtil.isNotBlank(param.getDbQuerySource().getOrderBy())) {
+            if (!param.getDbQuerySource().getOrderByElements().isEmpty()) {
                 sb.append(" order by ").append(param.getDbQuerySource().getOrderBy());
             }
             if (StringUtil.isNotBlank(param.getDbQuerySource().getLimit())) {
@@ -606,18 +610,18 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private String getSubQueryByPartitionKey(String sql) throws JSQLParserException {
-            String partitionKey = metadataService.getPartitionKey(param.getTableName());
+            String partitionKey = metadataService.getPartitionKey(param.getDbQuerySource().getTableNames().get(0));
             if (StringUtil.isBlank(partitionKey)) {
-                log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getTableName());
+                log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getDbQuerySource().getTableNames().get(0));
                 return sql;
             }
-            String subQuery = getSubquerySql(partitionKey, param.getTableName());
+            String subQuery = getSubquerySql(partitionKey, param.getDbQuerySource().getTableNames().get(0));
             subQuery = subQuery.replaceAll("\\\\", "$0$0");
             subQuery = subQuery.replaceAll("\\$", "\\\\\\$");
             Matcher m = pWhere.matcher(sql);
             StringBuffer sb = new StringBuffer();
             while (m.find()) {
-                m.appendReplacement(sb, "where  " + metadataService.getSchemaByName(param.getTableName()).getName().concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
+                m.appendReplacement(sb, "where  " + metadataService.getSchemaByName(param.getDbQuerySource().getTableNames().get(0)).getName().concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
             }
             m.appendTail(sb);
             return sb.toString();
@@ -634,10 +638,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             StringBuilder subQuery = new StringBuilder();
 
             subQuery.append("select " + columnName + " from ").append(tableName)
-                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getExpr(), param.getDbQuerySource().getAliasFields(), true, tableName));
+                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getWhereExpression().toString(), param.getDbQuerySource().getAliasFields(), true, tableName));
 
             //order by中元素存在别名时做替换处理
-            List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
+            List<OrderByElement> listOrderElement = param.getDbQuerySource().getOrderByElements();
             if (StringUtil.isNotEmpty(listOrderElement)) {
                 String orderBy = param.getDbQuerySource().getOrderBy();
                 for (OrderByElement order : listOrderElement) {
@@ -677,7 +681,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private boolean isValidOfOrderElementsInSchema(Schema schema) throws JSQLParserException {
-            List<OrderByElement> listOrderElement = param.getDbQuerySource().getListOrderElement();
+            List<OrderByElement> listOrderElement = param.getDbQuerySource().getOrderByElements();
             if (StringUtil.isEmpty(listOrderElement)) {
                 return true;
             }
@@ -842,8 +846,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private ClickHouseHttpQuery buildHttpQueryParameter() {
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
         StringBuilder queryParameterBuilder = new StringBuilder(1024);
-        String dbName = StringUtil.isNotBlank(param.getTableName())
-                ? metadataService.getDBNameByTableName(param.getTableName()) : clickHouseHttpSource.getDbName();
+        String dbName = StringUtil.isNotEmpty(param.getDbQuerySource().getTableNames())
+                ? metadataService.getDBNameByTableName(param.getDbQuerySource().getTableNames().get(0)) : clickHouseHttpSource.getDbName();
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
             param.setOption(QueryOptionEnum.LONG_TERM.getValue());
         }
