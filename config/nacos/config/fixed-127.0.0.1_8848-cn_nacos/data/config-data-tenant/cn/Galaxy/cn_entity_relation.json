@@ -6,7 +6,7 @@
     "partition_key": "create_time",
     "index_key": [
       "ip",
-      "fqdn",
+      "domain",
       "app_name"
     ]
   },

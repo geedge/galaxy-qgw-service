@@ -10,20 +10,17 @@
         "metric_ip",
         "metric_region",
         "metric_asn",
-        "metric_idc_renter",
         "metric_application",
         "metric_domain",
-        "metric_http_host",
-        "metric_ssl_sni",
         "metric_protocol",
+        "metric_link",
         "metric_dns_server_ip",
         "metric_dns_qname",
         "metric_dns_qtype",
         "metric_dns_rcode",
         "metric_dns_rr_a",
         "metric_dns_rr_aaaa",
-        "metric_dns_rr_cname",
-        "metric_link"
+        "metric_dns_rr_cname"
       ]
     },
     {

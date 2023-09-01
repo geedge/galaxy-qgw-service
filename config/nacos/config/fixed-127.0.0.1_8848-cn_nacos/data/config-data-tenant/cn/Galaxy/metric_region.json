@@ -6,9 +6,9 @@
     "partition_key": "stat_time",
     "index_key": [
       "stat_time",
-      "country",
-      "province",
-      "city"
+      "country_region",
+      "super_admin_area",
+      "admin_area"
     ]
   },
   "fields": [
