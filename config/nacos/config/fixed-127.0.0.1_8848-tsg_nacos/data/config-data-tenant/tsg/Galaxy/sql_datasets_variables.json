@@ -72,6 +72,14 @@
     "default": "test"
   },
   {
+    "key": "destination_ip",
+    "default": "8.8.8.8"
+  },
+  {
+    "key": "attack_type",
+    "default": "DNS Flood"
+  },
+  {
     "key": "filter",
     "default": ""
   },
