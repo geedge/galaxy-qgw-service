@@ -6,3 +6,4 @@ Release 371 (TSG-23.09)
 * 扩展公共查询接口，支持解析同源Join关联语句(GAL-398)
 * 修改Schema，statistics_object更新为object_statistics(TSG-16715)
 * 升级galaxy-tool工具类版本至v1.2
+* 扩展Schema，SSL协议增加ssl_esni_flag、ssl_ech_flag字段(TSG-16959)
