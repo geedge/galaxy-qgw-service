@@ -7,3 +7,4 @@ Release 371 (TSG-23.09)
 * 修改Schema，statistics_object更新为object_statistics(TSG-16715)
 * 升级galaxy-tool工具类版本至v1.2
 * 扩展Schema，SSL协议增加ssl_esni_flag、ssl_ech_flag字段(TSG-16959)
+* 优化引擎最大结果数据集限制规则(TSG-16924)
