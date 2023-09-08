@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteMemoryUtils;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
@@ -121,6 +122,7 @@ public class FederationDialect extends AbstractEngineDialect{
         try {
             watch.start();
             if (isExecute()) {
+                log.info("DB engine is :{},execute query is: {}", DBTypeEnum.ENGINE.getValue(), JSON.toJSONString(sql));
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
                 Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableNames().get(0),
                         (List<Map<String, String>>) baseResult.getMeta(),
