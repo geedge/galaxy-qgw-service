@@ -1201,7 +1201,9 @@
         "ssl_ja3s_fingerprint",
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
-        "ssl_cert_subject"
+        "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag"
       ],
       "default_columns": [
         "common_recv_time",

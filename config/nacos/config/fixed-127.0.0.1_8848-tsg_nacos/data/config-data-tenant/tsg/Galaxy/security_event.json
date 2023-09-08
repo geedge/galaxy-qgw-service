@@ -100,6 +100,8 @@
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
         "dtls_sni",
         "quic_sni",
         "quic_version",
@@ -246,6 +248,8 @@
         "ssl_cert_issuer",
         "ssl_cert_subject",
         "ssl_con_latency_ms",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
         "dtls_sni",
         "quic_sni",
         "quic_version",
@@ -410,6 +414,8 @@
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
         "dtls_sni",
         "quic_sni",
         "quic_version",
@@ -3320,6 +3326,24 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "ssl_esni_flag",
+      "label": "SSL.ESNI Flag",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_ech_flag",
+      "label": " SSL.ECH Flag",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "dtls_cookie",

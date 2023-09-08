@@ -68,6 +68,8 @@
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
         "http_host",
         "http_domain",
         "http_url",
@@ -157,6 +159,8 @@
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
         "ssl_con_latency_ms",
         "http_host",
         "http_domain",
@@ -258,6 +262,8 @@
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
         "http_host",
         "http_domain",
         "http_url",
@@ -532,7 +538,9 @@
           "ssl_ja3s_fingerprint",
           "ssl_ja3s_hash",
           "ssl_cert_issuer",
-          "ssl_cert_subject"
+          "ssl_cert_subject",
+          "ssl_esni_flag",
+          "ssl_ech_flag"
         ],
         "default_columns": [
           "common_recv_time",
@@ -2074,6 +2082,24 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "ssl_esni_flag",
+      "label": "SSL.ESNI Flag",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_ech_flag",
+      "label": " SSL.ECH Flag",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "http_url",
