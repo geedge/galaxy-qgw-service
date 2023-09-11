@@ -707,11 +707,11 @@
     },
     {
       "name": "session_identifier_sketch",
-      "label": "Sessioin Identifier Sketch",
+      "label": "Session Identifier Sketch",
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
-          "metric_type": "hll"
+          "metric_type": "gauge"
         },
         "visibility": "enabled"
       },
@@ -723,7 +723,7 @@
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
-          "metric_type": "hll"
+          "metric_type": "gauge"
         },
         "visibility": "enabled"
       },
@@ -735,7 +735,7 @@
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
-          "metric_type": "hll"
+          "metric_type": "gauge"
         },
         "visibility": "enabled"
       },
