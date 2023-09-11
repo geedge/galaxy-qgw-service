@@ -8,3 +8,5 @@ Release 371 (TSG-23.09)
 * 升级galaxy-tool工具类版本至v1.2
 * 扩展Schema，SSL协议增加ssl_esni_flag、ssl_ech_flag字段(TSG-16959)
 * 优化引擎最大结果数据集限制规则(TSG-16924)
+* 修改SQL数据集，predefined-top-security-policy-hits 新增action维度(TSG-15916)
+* 修改Schema，statistics_rule client_ip_sketch/server_ip_sketch/session_identifier_sketch metric_type 由hll改为gauge
