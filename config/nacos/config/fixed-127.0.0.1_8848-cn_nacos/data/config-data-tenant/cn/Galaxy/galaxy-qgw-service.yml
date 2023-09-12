@@ -37,7 +37,7 @@ spring:
     sql-migration-separator: __ #  双下划线
     baseline-on-migrate: true  # 连接数据库中存在表时设置为true
     check-location: false
-    locations: filesystem:./config/flyway/tsg   # 脚本路径
+    locations: filesystem:./config/flyway/cn   # 脚本路径
     clean-disabled: true      # flyway 的 clean 命令会删除指定 schema 下的所有 table, 生产务必禁掉。这个默认值是 false 理论上作为默认配置是不科学的
     validate-on-migrate: true # 执行迁移时是否自动调用验证   当你的 版本不符合逻辑 比如 你先执行了 DML 而没有 对应的DDL 会抛出异常
     placeholder-replacement: false  # 不做取值替换 默认替换为 ${} ，初始化sql中有sql语句存在freemarker替换，所以禁用此项
