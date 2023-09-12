@@ -28,8 +28,7 @@
       "group": "ELASTICSEARCH_GROUP",
       "tables": [
         "security_event",
-        "performance_event",
-        "entity_info"
+        "performance_event"
       ]
     },
     {
