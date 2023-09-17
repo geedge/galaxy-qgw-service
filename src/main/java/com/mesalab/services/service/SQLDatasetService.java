@@ -55,5 +55,15 @@ public interface SQLDatasetService
      * @created by wWei
      * @date 2023/8/16 19:33
      */
-    BaseResult getPreview(String datasetId);
+    BaseResult getPreview(String datasetId,String option);
+
+    /**
+     * Desc: 获取执行SQL
+     *
+     * @param
+     * @return
+     * @created by wanghao
+     * @date 2023/9/16 19:33
+     */
+    String buildExecSQL(List<LinkedHashMap> variables, String sql);
 }

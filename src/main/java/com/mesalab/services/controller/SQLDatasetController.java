@@ -47,15 +47,15 @@ public class SQLDatasetController
     }
 
     @GetMapping(value = "/datasets")
-    public BaseResult getDatasets(@RequestParam(value = "identifier_names") String datasetIds, String category, String title)
+    public BaseResult getDatasets(@RequestParam(value = "identifier_names",required = false) String datasetIds, @RequestParam(required = false) String category, @RequestParam(required = false) String title)
     {
         log.info("Get Datasets. IDs is: {}, category is: {}, title is: {}", datasetIds, category, title);
         return BaseResultGenerator.success(sqlDatasetService.getDatasets(Arrays.asList(StrUtil.split(datasetIds, ",")), category, title));
     }
 
     @GetMapping(value = "/datasets/{datasetId}/preview")
-    public BaseResult getPreview(@PathVariable String datasetId)
+    public BaseResult getPreview(@PathVariable String datasetId,@RequestParam(required = false) String option)
     {
-        return sqlDatasetService.getPreview(datasetId);
+        return sqlDatasetService.getPreview(datasetId,option);
     }
 }

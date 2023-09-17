@@ -4,7 +4,9 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.enums.DiagnosisCategoryEnum;
 import com.mesalab.common.enums.DiagnosisOptionEnum;
+import org.apache.hadoop.fs.loadGenerator.DataGenerator;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +34,7 @@ public class EngineTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void testPocSql() {
-        BaseResult baseResult = diagnosisService.runPocSQL(false, DiagnosisOptionEnum.PARSE.getValue());
+        BaseResult baseResult = diagnosisService.runPocSQL(false, DiagnosisOptionEnum.PARSE.getValue(), DiagnosisCategoryEnum.TROUBLE_SHOOTING.getValue());
         assertEquals("POC sql parse failure.", String.valueOf(baseResult.getStatus()), String.valueOf(HttpStatus.SC_OK));
     }
 
