@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.beust.jcommander.internal.Sets;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -257,16 +258,15 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     private List<Map<String, Object>> fillResultBasedOnTimeSeries(List<Object> results, List<String> groupLabels, String timeGranLabel) {
         Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap = ConvertUtil.convertResultListToTimeSeries(results,
                 groupLabels, timeGranLabel);
-        List<Date> dateRangeList = Lists.newArrayList();
+        Set<Date> dateSet = Sets.newHashSet();
         for (String key : targetTimeSeriesMap.keySet()) {
             Map<String, Map<String, Object>> stringMapMap = targetTimeSeriesMap.get(key);
-            for (String l : stringMapMap.keySet()) {
-                Date date = NumberUtil.isNumber(l) ? new Date(NumberUtil.parseLong(l) * 1000) : DateUtils.convertStringToDate(l, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                if (!dateRangeList.contains(date)) {
-                    dateRangeList.add(date);
-                }
+            for (String statDate : stringMapMap.keySet()) {
+                Date date = NumberUtil.isNumber(statDate) ? new Date(NumberUtil.parseLong(statDate) * 1000) : DateUtils.convertStringToDate(statDate, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+                dateSet.add(date);
             }
         }
+        List<Date> dateRangeList = new ArrayList<>(dateSet);
         Collections.sort(dateRangeList);
         if (StringUtil.isNotEmpty(dateRangeList)) {
             for (String key : targetTimeSeriesMap.keySet()) {
