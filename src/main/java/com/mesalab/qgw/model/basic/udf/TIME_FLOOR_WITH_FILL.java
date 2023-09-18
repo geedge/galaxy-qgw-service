@@ -112,6 +112,17 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 }
 
             }
+            int uniqueTimeOfResult = getSetByKey(results, timeGranLabel).size();
+            int uniqueGroupFactor = 1;
+            for (String groupLabel : groupLabels) {
+                Set<Object> values = getSetByKey(results, groupLabel);
+                uniqueGroupFactor = uniqueGroupFactor * values.size();
+            }
+            if (engineConfigSource.getMaxCacheNum() < (uniqueGroupFactor * uniqueTimeOfResult)) {
+                log.warn("The maximum cache limit has been exceeded and cannot completion. The completion function is invalid. max cache[{}], unique time[{}], unique group[{}]"
+                        , engineConfigSource.getMaxCacheNum(), uniqueTimeOfResult, uniqueGroupFactor);
+                return results;
+            }
 
             WhereTimeRange whereTimeRange = getWhereTimeRange(sqlQuerySource);
             Date benchmarkDate = getBenchmarkDate(resultsFirst, timeGranLabel);
@@ -147,26 +158,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             if (StringUtil.isEmpty(dateRangeList)) {
                 return targetResult;
             }
-            int maxSeriesNum = engineConfigSource.getMaxCacheNum() / dateRangeList.size();
-            if (maxSeriesNum == 0) {
-                log.warn("初始时间范围超出系统设置，无法进行补全[getMaxCacheNum:{} - dateRangeNum:{}],补全功能无效!", engineConfigSource.getMaxCacheNum(), dateRangeList.size());
+            if (engineConfigSource.getMaxCacheNum() < (uniqueGroupFactor * dateRangeList.size())) {
+                log.warn("The maximum cache limit has been exceeded and cannot completion. The completion function is invalid. max cache[{}], unique time[{}], unique group[{}]"
+                        , engineConfigSource.getMaxCacheNum(), dateRangeList.size(), uniqueGroupFactor);
                 return targetResult;
             }
             Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap = ConvertUtil.convertResultListToTimeSeries(Lists.newArrayList(targetResult),
                     groupLabels, timeGranLabel);
-            int actualSeriesNum = Math.min(maxSeriesNum, targetTimeSeriesMap.size());
-            if (actualSeriesNum > 0) {
-                Map<String, Map<String, Map<String, Object>>> limitTimeSeriesMap = Maps.newLinkedHashMap();
-                int i = 1;
-                for (Map.Entry<String, Map<String, Map<String, Object>>> entry : targetTimeSeriesMap.entrySet()) {
-                    limitTimeSeriesMap.put(entry.getKey(), entry.getValue());
-                    if (++i > actualSeriesNum) {
-                        break;
-                    }
-                }
-                targetTimeSeriesMap.clear();
-                targetTimeSeriesMap.putAll(limitTimeSeriesMap);
-            }
             if (StringUtil.isNotEmpty(dateRangeList)) {
                 for (String key : targetTimeSeriesMap.keySet()) {
                     targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill.toString()));
@@ -189,6 +187,16 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         objects.addAll(groupLabels);
         unifiedDataType((List<Map<String, String>>) baseResult.getMeta(), targetResult, objects);
         return targetResult;
+    }
+
+    private Set<Object> getSetByKey(List<Object> results, String key) {
+        Set<Object> values = new HashSet<>();
+        for (Object obj : results) {
+            Map<String, Object> map = (Map<String, Object>) obj;
+            Object value = map.get(key);
+            values.add(value);
+        }
+        return values;
     }
 
     private void unifiedDataType(List<Map<String, String>> meta, List<Map<String, Object>> targetResult, List<String> convertKey) {
