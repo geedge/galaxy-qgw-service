@@ -10,3 +10,4 @@ Release 371 (TSG-23.09)
 * 优化引擎最大结果数据集限制规则(TSG-16924)
 * 修改SQL数据集，predefined-top-security-policy-hits 新增action维度(TSG-15916)
 * 修改Schema，statistics_rule client_ip_sketch/server_ip_sketch/session_identifier_sketch metric_type 由hll改为gauge
+* 优化时序图补全条件，避免补全后结果数超出最大内存限制(TSG-17102) 
