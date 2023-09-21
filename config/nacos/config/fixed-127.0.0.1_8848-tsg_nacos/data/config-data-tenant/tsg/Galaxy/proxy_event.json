@@ -19,6 +19,8 @@
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_processing_time",
         "common_ingestion_time",
         "common_device_id",
@@ -94,6 +96,8 @@
       "metrics": [
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_device_id",
         "common_data_center",
         "common_sled_ip",
@@ -189,6 +193,8 @@
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_con_duration_ms",
         "common_establish_latency_ms",
         "common_processing_time",
@@ -309,6 +315,8 @@
           "common_stream_dir",
           "common_start_time",
           "common_end_time",
+          "common_start_timestamp_ms",
+          "common_end_timestamp_ms",
           "common_con_duration_ms",
           "common_establish_latency_ms",
           "common_processing_time",
@@ -481,6 +489,8 @@
           "common_service_category",
           "common_start_time",
           "common_end_time",
+          "common_start_timestamp_ms",
+          "common_end_timestamp_ms",
           "common_establish_latency_ms",
           "common_con_duration_ms",
           "common_stream_dir",
@@ -1481,6 +1491,38 @@
       "type": {
         "type": "long",
         "logicalType": "timestamp"
+      }
+    },
+    {
+      "name": "common_start_timestamp_ms",
+      "label": "Start Time (ms)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "datetime"
+      }
+    },
+    {
+      "name": "common_end_timestamp_ms",
+      "label": "End Time (ms)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "datetime"
       }
     },
     {
