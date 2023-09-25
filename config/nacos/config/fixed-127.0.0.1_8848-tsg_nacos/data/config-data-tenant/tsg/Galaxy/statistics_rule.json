@@ -546,7 +546,12 @@
       "name": "fqdn_category",
       "label": "FQDN Category",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "dict_location": {
+          "path": "/v1/category/dict",
+          "key": "categoryId",
+          "value": "categoryName"
+        }
       },
       "type": "string"
     },
