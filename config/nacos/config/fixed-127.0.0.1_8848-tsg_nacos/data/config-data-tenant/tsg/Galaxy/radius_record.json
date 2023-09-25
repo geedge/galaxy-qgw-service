@@ -1202,7 +1202,7 @@
           "operator_functions": "=,!=,>,<,>=,<=",
           "type": "datetime"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
@@ -1218,7 +1218,7 @@
           "operator_functions": "=,!=,>,<,>=,<=",
           "type": "datetime"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
