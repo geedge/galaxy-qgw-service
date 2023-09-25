@@ -6,9 +6,9 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.DiagnosisCategoryEnum;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -35,7 +35,7 @@ public class DruidTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void testSqlParser() {
-        String pocFile = dialectWriter.buildPocSQL(DiagnosisCategoryEnum.TROUBLE_SHOOTING.getValue(), DBTypeEnum.DRUID.getValue());
+        String pocFile = dialectWriter.buildPocSQL(Lists.newLinkedList(), DBTypeEnum.DRUID.getValue(), null);
         Optional<File> ckTestFile =  Optional.of(new File(pocFile));
         if (ckTestFile.isPresent()) {
             if (!ckTestFile.get().isFile()) {

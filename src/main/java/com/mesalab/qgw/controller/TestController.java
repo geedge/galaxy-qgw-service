@@ -3,7 +3,6 @@ package com.mesalab.qgw.controller;
 import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.DiagnosisCategoryEnum;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.qgw.model.basic.HttpConfig;
@@ -103,7 +102,7 @@ public class TestController {
     @GetMapping(value = "runSql")
     @Deprecated
     public BaseResult runSql() {
-        BaseResult result = diagnosisService.runPocSQL(false, "validation", DiagnosisCategoryEnum.TROUBLE_SHOOTING.getValue());
+        BaseResult result = diagnosisService.runPocSQL(false, "validation", null);
         return result;
     }
 

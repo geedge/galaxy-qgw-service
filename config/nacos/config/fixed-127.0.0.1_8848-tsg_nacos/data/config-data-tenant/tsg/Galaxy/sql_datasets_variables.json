@@ -32,6 +32,10 @@
     "default": 1
   },
   {
+    "key": "item_id",
+    "default": 40
+  },
+  {
     "key": "limit",
     "default": 20
   },
@@ -53,7 +57,7 @@
   },
   {
     "key": "metric",
-    "default": "sessions"
+    "default": 1
   },
   {
     "key": "sf_profile_id",

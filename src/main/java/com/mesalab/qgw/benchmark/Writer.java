@@ -138,7 +138,7 @@ public abstract class Writer {
         return filePath.toString();
     }
 
-    protected abstract String buildPocSQL(String category, String dialect);
+    protected abstract String buildPocSQL(List<String> dialectList, String dialect, String category);
 
 
 }

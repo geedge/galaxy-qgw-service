@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.DiagnosisCategoryEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.utils.StringUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
@@ -51,24 +50,16 @@ public class DiagnosisController {
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIAGNOSIS_OPTION_ERROR));
         }
-        if (StrUtil.isNotBlank(category) && Arrays.stream(DiagnosisCategoryEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(category))) {
-            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIAGNOSIS_CATEGORY_ERROR));
-        }
         return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved), option, category);
     }
 
-    @RequestMapping({"/sql", "/sql/{category}/{dialect}/{queryNo}"})
-    public BaseResult getPocSql(@PathVariable String category, @PathVariable String dialect, @PathVariable(required = false) Integer queryNo) {
-        if (Arrays.stream(DiagnosisCategoryEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(category))){
-            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIAGNOSIS_CATEGORY_ERROR));
-        }
+    @RequestMapping({"/sql", "/sql/{dialect}/{queryNo}"})
+    public BaseResult getPocSql(@PathVariable  String dialect, @PathVariable(required = false) Integer queryNo) {
         if (Arrays.stream(DBTypeEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(dialect))){
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIALECT_VALUE_ERROR));
         }
-        return diagnosisService.getPocSQL(category, dialect, queryNo);
+        return diagnosisService.getPocSQL(dialect, queryNo);
     }
 
     @RequestMapping(value = "/entity")

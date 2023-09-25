@@ -1,11 +1,13 @@
 package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpStatus;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
@@ -14,10 +16,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
+import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.benchmark.DialectWriter;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
@@ -31,6 +37,7 @@ import com.geedgenetworks.utils.*;
 import com.mesalab.services.service.SQLDatasetService;
 import lombok.Data;
 import org.apache.avro.Schema;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.math3.stat.StatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
@@ -39,6 +46,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -55,6 +65,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private static final String HBASE_DBNAME2 = "tsg_galaxy";
     private static final String EXECUTE_ENGINE= "execute_engine";
     private static final String IDENTIFIER_NAME = "identifier_name";
+    private static final String SQL_TEXT = "sql_text";
 
     @Autowired
     private QueryService queryService;
@@ -166,7 +177,6 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     public BaseResult runPocSQL(boolean isSaved, String option, String category) {
         BaseResult result = null;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
-        Map<String, Object> runPocResult = Maps.newLinkedHashMap();
         Map<String, Map<String, String>> mergeResult;
         Map<String, Map<String, String>> engineResult;
         Map<String, Map<String, String>> clickhouseResult;
@@ -174,61 +184,65 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Map<String, Map<String, String>> hbaseResult;
         Map<String, Map<String, String>> elasticsearchResult;
         try {
+            Map<String, Object> datasetResult = generateDatasets(category);
+            List<Map<String, String>> dataSetlist = (ArrayList<Map<String, String>>) datasetResult.get("list");
+            List<String> druidIdList = Lists.newLinkedList();
+            List<String> ckIdList = Lists.newLinkedList();
+            List<String> engineIdList = Lists.newLinkedList();
+            List<String> esIdList = Lists.newLinkedList();
+            List<String> hbaseIdList = Lists.newLinkedList();
+
+            List<String> druidSqlList = Lists.newLinkedList();
+            List<String> ckSqlList = Lists.newLinkedList();
+            List<String> engineSqlList = Lists.newLinkedList();
+            List<String> esSqlList = Lists.newLinkedList();
+            List<String> hbaseSqlList = Lists.newLinkedList();
             Stopwatch watch = Stopwatch.createStarted();
-            List<String> categorylist = Lists.newLinkedList();
-            if (StrUtil.isBlank(category)){
-                Arrays.stream(DiagnosisCategoryEnum.values()).forEach(o-> categorylist.add(o.getValue()));
-            }else {
-                categorylist.add(category);
-            }
-
-            String categoryName;
-            Iterator iterator = categorylist.iterator();
-            while (iterator.hasNext()) {
-                List<String> druidList = Lists.newLinkedList();
-                List<String> ckList = Lists.newLinkedList();
-                List<String> engineList = Lists.newLinkedList();
-                List<String> esList = Lists.newLinkedList();
-                List<String> hbaseList = Lists.newLinkedList();
-
-                categoryName = String.valueOf(iterator.next());
-                Map<String, Object> statisticsRule = sqlDatasetService.getDatasets(Lists.newArrayList(), categoryName, null);
-                List<Map<String, String>> dataSetlist = (ArrayList<Map<String, String>>) statisticsRule.get("list");
-                if (CollectionUtil.isNotEmpty(dataSetlist)){
-                    for (int i = 0; i < dataSetlist.size(); i++) {
-                        if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
-                            druidList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
-                            ckList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.ELASTICSEARCH.getValue())) {
-                            esList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.HBASE.getValue())) {
-                            hbaseList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        } else {
-                            engineList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        }
+            if (CollectionUtil.isNotEmpty(dataSetlist)){
+                for (int i = 0; i < dataSetlist.size(); i++) {
+                    if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
+                        druidIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        druidSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                    } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
+                        ckIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        ckSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                    } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.ELASTICSEARCH.getValue())) {
+                        esIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        esSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                    } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.HBASE.getValue())) {
+                        hbaseIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        hbaseSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                    } else {
+                        engineIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        engineSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
                     }
                 }
-
-                clickhouseResult = buildResult(DBTypeEnum.CLICKHOUSE.getValue(), ckList, isSaved, option);
-                druidResult = buildResult(DBTypeEnum.DRUID.getValue(), druidList, isSaved, option);
-                engineResult = buildResult(DBTypeEnum.ENGINE.getValue(), engineList, isSaved, option);
-                hbaseResult = buildResult(DBTypeEnum.HBASE.getValue(), hbaseList, isSaved, option);
-                elasticsearchResult = buildResult(DBTypeEnum.ELASTICSEARCH.getValue(), esList, isSaved, option);
-
-                mergeResult = Stream
-                        .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                mergeResult = Stream.concat(mergeResult.entrySet().stream(), hbaseResult.entrySet().stream())
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                mergeResult = Stream.concat(mergeResult.entrySet().stream(), elasticsearchResult.entrySet().stream())
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                runPocResult.put(categoryName,mergeResult);
             }
+
+            Optional.of(new File(dialectWriter.buildPocSQL(druidSqlList, DBTypeEnum.DRUID.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(ckSqlList, DBTypeEnum.CLICKHOUSE.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(hbaseSqlList, DBTypeEnum.HBASE.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(engineSqlList, DBTypeEnum.ENGINE.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(esSqlList, DBTypeEnum.ELASTICSEARCH.getValue(), category)));
+
+            clickhouseResult = buildResult(DBTypeEnum.CLICKHOUSE.getValue(), ckIdList, isSaved, option);
+            druidResult = buildResult(DBTypeEnum.DRUID.getValue(), druidIdList, isSaved, option);
+            engineResult = buildResult(DBTypeEnum.ENGINE.getValue(), engineIdList, isSaved, option);
+            hbaseResult = buildResult(DBTypeEnum.HBASE.getValue(), hbaseIdList, isSaved, option);
+            elasticsearchResult = buildResult(DBTypeEnum.ELASTICSEARCH.getValue(), esIdList, isSaved, option);
+
+            mergeResult = Stream
+                    .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergeResult = Stream.concat(mergeResult.entrySet().stream(), hbaseResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergeResult = Stream.concat(mergeResult.entrySet().stream(), elasticsearchResult.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            result = BaseResultGenerator.success("SQL Queries Success.", runPocResult, statistics);
+            result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
@@ -240,27 +254,32 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult getPocSQL(String category, String dialect, Integer queryNo) {
+    public BaseResult getPocSQL(String dialect, Integer queryNo) {
         BaseResult result;
         Optional<File> testFile;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
         Map<String, String> dialectResult = Maps.newHashMap();
-        testFile = Optional.of(new File(dialectWriter.buildPocSQL(category, dialect)));
-
-        try {
+        try{
             Stopwatch watch = Stopwatch.createStarted();
-            if (testFile.isPresent()) {
-                if (!testFile.get().isFile()) {
-                    log.warn("UnKnow File " + testFile.get());
-                    return null;
+            String path = new File("").getCanonicalPath()
+                    + File.separator + "benchmark" + File.separator + dialect + "_queries" + "_"
+                    + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql";
+            if (Files.exists(Paths.get(path))) {
+                dialectResult = getPocSqlByDatasource(Optional.of(new File(path)), queryNo);
+            } else {
+                testFile = Optional.of(new File(dialectWriter.buildPocSQL(Lists.newLinkedList(), dialect, null)));
+                if (testFile.isPresent()) {
+                    if (!testFile.get().isFile()) {
+                        log.warn("UnKnow File " + testFile.get());
+                        return null;
+                    }
+                    dialectResult = getPocSqlByDatasource(testFile, queryNo);
                 }
-                dialectResult = getPocSqlByDatasource(testFile, queryNo);
             }
-
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | IOException e) {
             log.error("Get Poc SQL Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
                     ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -417,6 +436,17 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             return Maps.newHashMap(data.get("CDN"));
         }
         return Maps.newHashMap();
+    }
+
+    private Map<String, Object> generateDatasets(String category) {
+        List<String> categorylist = Lists.newLinkedList();
+        List<Record> list = Db.find(String.format(Objects.requireNonNull(env.getProperty("SQL_DATASETS_CATEGORY"))));
+        list.forEach(record -> categorylist.add(String.valueOf(record.getColumns().get("category"))));
+        if (CollectionUtil.isNotEmpty(categorylist) && StrUtil.isNotBlank(category) && !categorylist.contains(category)) {
+            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIAGNOSIS_CATEGORY_ERROR));
+        }
+        return sqlDatasetService.getDatasets(Lists.newArrayList(), category, null);
     }
 
     private Map<String, Map<String,String>> buildResult(String executeEngine,List<String> list,boolean isSaved, String option) {

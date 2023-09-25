@@ -129,3 +129,6 @@ SELECT common_log_id AS log_id,%s AS file_path FROM %s where %s AND notEmpty(%s)
 #sql("SQL_DATASETS")
 SELECT id, identifier_name, category, execute_engine, sql_text, description, created_time, modified_time FROM sql_dataset %s ORDER BY modified_time DESC
 #end
+
+#sql("SQL_DATASETS_CATEGORY")
+SELECT category FROM sql_dataset GROUP BY category

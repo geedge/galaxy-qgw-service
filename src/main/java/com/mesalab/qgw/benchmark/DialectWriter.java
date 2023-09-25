@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,25 +37,26 @@ public class DialectWriter extends Writer {
     private SQLDatasetService sqlDatasetService;
 
     @Override
-    public String buildPocSQL(String category,String dialect) {
+    public String buildPocSQL(List<String> dialectList, String dialect, String category) {
         String pocSql = "";
-        Map<String, Object> statisticsRule = sqlDatasetService.getDatasets(Lists.newArrayList(), category, null);
-        ArrayList<Map<String, String>> list1 = (ArrayList<Map<String, String>>) statisticsRule.get("list");
-        List<String> dialectList = Lists.newLinkedList();
         try {
-            if (CollectionUtil.isNotEmpty(list1)){
-                for (int i = 0; i < list1.size(); i++) {
-                    if (list1.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(dialect)){
-                        dialectList.add(list1.get(i).get(SQL_TEXT));
+            String path = new File("").getCanonicalPath()
+                    + File.separator + "benchmark" + File.separator + dialect + "_queries" + "_"
+                    + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql";
+            if (CollectionUtil.isEmpty(dialectList) && !Files.exists(Paths.get(path))) {
+                Map<String, Object> datasetResult = sqlDatasetService.getDatasets(Lists.newArrayList(), category, null);
+                ArrayList<Map<String, String>> datasetList = (ArrayList<Map<String, String>>) datasetResult.get("list");
+                dialectList = Lists.newLinkedList();
+                if (CollectionUtil.isNotEmpty(datasetList)) {
+                    for (int i = 0; i < datasetList.size(); i++) {
+                        if (datasetList.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(dialect)) {
+                            dialectList.add(datasetList.get(i).get(SQL_TEXT));
+                        }
                     }
                 }
             }
-
-            File file = FileUtil.writeBytes("".getBytes(), new File("").getCanonicalPath()
-                    + File.separator + "benchmark" + File.separator + dialect + "_queries" + "_"
-                    + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql");
+            File file = FileUtil.writeBytes("".getBytes(), path);
             FileWriter writer = FileWriter.create(file);
-
             pocSql = generatePocSQL(dialectList, writer);
         } catch (IOException e) {
             log.error("Not found file {}", e);
