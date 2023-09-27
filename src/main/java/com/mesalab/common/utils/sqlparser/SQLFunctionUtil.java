@@ -119,6 +119,7 @@ public class SQLFunctionUtil {
     //other
     public static final Pattern pQuantile = Pattern.compile("\\WQUANTILE\\s*\\(");
     public static final Pattern pMedian = Pattern.compile("\\WMEDIAN\\s*\\(");
+    public static final Pattern pCast = Pattern.compile("\\WCAST\\s*\\(");
     public static final Pattern pNotEmpty = Pattern.compile("\\b" + NOT_EMPTY + "\\(");
     public static final Pattern pEmpty = Pattern.compile("\\b" + EMPTY + "\\(");
     public static final Pattern pConcat = Pattern.compile("\\b" + CONCAT + "\\((?!toString\\(|CAST\\()", Pattern.CASE_INSENSITIVE);
@@ -134,6 +135,7 @@ public class SQLFunctionUtil {
         sql = translateCommonFun(sql, dbType);
         sql = parseQuantile(sql, dbType);
         sql = parseMedian(sql, dbType);
+        sql = parseCast(sql, dbType);
         sql = parseMergepFunction(sql, dbType);
         sql = parseMarkDate(sql, dbType);
         sql = parseDateCalculateNum(sql, dbType);
@@ -502,6 +504,51 @@ public class SQLFunctionUtil {
             replaceValue = "PERCENTILE#[" + param + "," + 0.5 + "*100#]";
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             replaceValue = "APPROX_QUANTILE_DS#[" + param + "," + 0.5 + "#]";
+        }
+        return replaceValue;
+    }
+
+    public static String parseCast(String sql, String dbType) {
+        while (true) {
+            Matcher matcher = pCast.matcher(sql);
+            if (!matcher.find()) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, "(", false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseCastReplace(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    public static String parseCastReplace(String sqlParse, int num, String dbType) {
+        Pattern pNumCast = Pattern.compile("(CAST)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)");
+        Matcher matcher = pNumCast.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        if (matcher.find()) {
+            String group2 = matcher.group(2);
+            String replaceValue = group2;
+            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
+                replaceValue = castReplaceByDB(group2, dbType);
+            }
+            matcher.appendReplacement(sb, replaceValue);
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
+
+    private static String castReplaceByDB(String param, String dbType) {
+        String replaceValue;
+        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+            String[] expr = param.split(" ");
+            replaceValue = "CAST#[" + expr[0] + " " + expr[1] + " Nullable(" + expr[2] + ")#]";
+        } else {
+            replaceValue = "CAST#[" + param + "#]";
         }
         return replaceValue;
     }
