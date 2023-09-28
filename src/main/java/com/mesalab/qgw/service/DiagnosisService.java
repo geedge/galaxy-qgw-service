@@ -8,7 +8,7 @@ public interface DiagnosisService {
 
     BaseResult validateMetadata();
 
-    BaseResult runPocSQL(boolean isSaveResult, String option);
+    BaseResult runPocSQL(boolean isSaveResult, String option, String category);
 
     BaseResult getPocSQL(String dialect, Integer queryNo);
 

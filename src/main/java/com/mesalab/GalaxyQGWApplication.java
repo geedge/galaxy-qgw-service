@@ -1,7 +1,7 @@
 package com.mesalab;
 
 import com.mesalab.qgw.interceptor.QuerySubmitInterceptor;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;

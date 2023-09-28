@@ -32,7 +32,7 @@ public class EngineTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void testPocSql() {
-        BaseResult baseResult = diagnosisService.runPocSQL(false, DiagnosisOptionEnum.PARSE.getValue());
+        BaseResult baseResult = diagnosisService.runPocSQL(false, DiagnosisOptionEnum.PARSE.getValue(), null);
         assertEquals("POC sql parse failure.", String.valueOf(baseResult.getStatus()), String.valueOf(HttpStatus.SC_OK));
     }
 

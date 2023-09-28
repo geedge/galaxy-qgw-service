@@ -57,7 +57,7 @@
         <avro.version>1.9.1</avro.version>
         <active.record.version>4.9.01</active.record.version>
         <json.schema.version>2.2.10</json.schema.version>
-        <zdjizhi.version>1.1.3</zdjizhi.version>
+        <zdjizhi.version>1.2</zdjizhi.version>
         <uaAnalyser.version>1.0-RELEASE</uaAnalyser.version>
         <jsqlparser.version>4.6</jsqlparser.version>
         <hbase.client.version>2.2.3</hbase.client.version>
@@ -71,6 +71,7 @@
         <docker.registry.port>9080</docker.registry.port>
         <docker.image.prefix>tsg/galaxy</docker.image.prefix>
         <nacos.config.version>0.2.7</nacos.config.version>
+        <spotless.version>2.30.0</spotless.version>
     </properties>
 
     <dependencies>
@@ -229,7 +230,7 @@
             <version>1.0.0</version>
         </dependency>
         <dependency>
-            <groupId>com.zdjizhi</groupId>
+            <groupId>com.geedgenetworks</groupId>
             <artifactId>galaxy</artifactId>
             <version>${zdjizhi.version}</version>
             <exclusions>
@@ -305,6 +306,11 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>5.2.4</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>

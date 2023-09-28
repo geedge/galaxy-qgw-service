@@ -1,7 +1,7 @@
 package com.mesalab.common.utils;
 
 
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;

@@ -15,7 +15,7 @@ import com.mesalab.qgw.service.DeferredResultHolder;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;

@@ -26,7 +26,7 @@ import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.mesalab.knowledge.strategy.QueryProvider;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;

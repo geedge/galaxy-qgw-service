@@ -2,6 +2,7 @@ package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -9,7 +10,6 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.service.QueryService;
-import com.zdjizhi.utils.StringUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.sf.jsqlparser.JSQLParserException;

@@ -9,7 +9,7 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;

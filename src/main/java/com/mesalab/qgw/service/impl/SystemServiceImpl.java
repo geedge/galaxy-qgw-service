@@ -31,9 +31,9 @@ import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.SystemService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.Encodes;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.DateUtils;
+import com.geedgenetworks.utils.Encodes;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.http.NameValuePair;
@@ -180,7 +180,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
 
     @Override
     public String getCustomQueryId(String resultId, String query) {
-        String tableName = SQLHelper.getTableName(query);
+        String tableName = SQLHelper.getTableName(query).get(0);
         String dbType = metadataService.getDBTypeByTableName(tableName);
         return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }

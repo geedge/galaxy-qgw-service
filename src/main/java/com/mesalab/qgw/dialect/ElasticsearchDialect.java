@@ -23,7 +23,7 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
@@ -66,9 +66,11 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
     @Override
     void init() {
         if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
-            param.setSql(param.getDbQuerySource().getSqlBody());
+            param.getDbQuerySource().setExecSQL(param.getDbQuerySource().getSqlBody());
         } else {
-            param.setSql(param.getQuery());
+            SQLQuerySource sqlQuerySource = new SQLQuerySource();
+            sqlQuerySource.setExecSQL(param.getQuery());
+            param.setDbQuerySource(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
     }
@@ -80,7 +82,7 @@ public class ElasticsearchDialect extends AbstractDataSourceDialect {
 
     @Override
     String getBestQuery() {
-        return param.getSql();
+        return param.getDbQuerySource().getExecSQL();
     }
 
     @Override

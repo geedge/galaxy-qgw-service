@@ -520,6 +520,10 @@
           "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
         },
         {
+          "type": "datetime",
+          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        },
+        {
           "type": "timestamp",
           "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
         },
@@ -555,6 +559,10 @@
         },
         {
           "type": "date",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "dateTime",
           "functions": "=,!=,>,<,>=,<="
         },
         {
@@ -644,6 +652,8 @@
         "common_l7_protocol",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -755,6 +765,8 @@
         "common_l7_protocol",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -807,6 +819,7 @@
         "http_user_agent",
         "http_set_cookie",
         "http_version",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "http_action_file_size"
@@ -893,6 +906,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -1022,6 +1037,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -1152,6 +1169,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -1200,7 +1219,9 @@
         "ssl_ja3s_fingerprint",
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
-        "ssl_cert_subject"
+        "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag"
       ],
       "default_columns": [
         "common_recv_time",
@@ -1284,6 +1305,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -1406,6 +1429,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -1521,6 +1546,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -1637,6 +1664,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -1753,6 +1782,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -1881,6 +1912,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -1997,6 +2030,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -2112,6 +2147,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -2252,6 +2289,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -2386,6 +2425,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -2509,6 +2550,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -2647,6 +2690,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -2760,6 +2805,8 @@
         "common_service_category",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -2884,6 +2931,8 @@
         "common_l7_protocol",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_establish_latency_ms",
         "common_con_duration_ms",
         "common_stream_dir",
@@ -3194,6 +3243,10 @@
         {
           "code": "16384",
           "value": "S2C"
+        },
+        {
+          "code": "32768",
+          "value": "Bidirectional"
         }
       ]
     }

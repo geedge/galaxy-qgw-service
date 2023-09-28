@@ -38,6 +38,8 @@ public class NacosConst {
 
     public static final String META_DATA_ID = "meta_data.json";
 
+    public static final String SQL_DATASETS_VARIABLES = "sql_datasets_variables.json";
+
     public static final String CK_FILTER_DATA_ID = "ck-filter.json";
 
     public static final String CK_QUERIES_TEMPLATE_DATA_ID  = "ck-queries-template.sql";

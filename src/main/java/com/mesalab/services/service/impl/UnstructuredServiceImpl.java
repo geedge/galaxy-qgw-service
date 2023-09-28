@@ -22,7 +22,7 @@ import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.UnstructuredDataType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.UnstructuredService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.avro.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;

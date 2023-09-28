@@ -6,7 +6,7 @@ import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.JwtCache;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;

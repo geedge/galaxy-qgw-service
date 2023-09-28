@@ -24,6 +24,8 @@ public class QGWMessageConst {
 
     public static final String DIAGNOSIS_OPTION_ERROR = "not support option value.";
 
+    public static final String DIAGNOSIS_CATEGORY_ERROR = "not support category value.";
+
     public static final String NOT_SUPPORT_DML_PARSER = "not support DML Parser.";
 
     public static final String GET_TABLE_NAME_ERROR = "Get Table Name Error.";

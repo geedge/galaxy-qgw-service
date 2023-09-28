@@ -24,7 +24,7 @@ import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.service.impl.HttpClientService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.compress.utils.Lists;
@@ -51,9 +51,11 @@ public class DruidDialect extends AbstractDataSourceDialect {
     @Override
     void init() {
         if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
-            param.setSql(param.getDbQuerySource().getSqlBody());
+            param.getDbQuerySource().setExecSQL(param.getDbQuerySource().getSqlBody());
         } else {
-            param.setSql(param.getQuery());
+            SQLQuerySource sqlQuerySource = new SQLQuerySource();
+            sqlQuerySource.setExecSQL(param.getQuery());
+            param.setDbQuerySource(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
     }
@@ -299,18 +301,20 @@ public class DruidDialect extends AbstractDataSourceDialect {
         String sql = null;
 
         /**
-         * 对SQL最内层的结果数据集进行限制
+         * 对SQL执行结果数据量进行限制
          * 参见查询网关系统参数：engine.maxCacheNum
          *
          * @return
          */
         public Optimizer generateQueryLimit() {
-
-            setDefaultResultRows(StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
-
-            setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
-
-
+            if (StringUtil.isEmpty(param.getEngineQuerySource())) {
+                setDefaultResultRows(param.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+            } else {
+                setDefaultResultRows(param.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(param.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+                setMaxCacheResultRows(param.getEngineQuerySource(), engineConfigSource.getMaxCacheNum());
+            }
             return this;
         }
 
@@ -330,47 +334,27 @@ public class DruidDialect extends AbstractDataSourceDialect {
          * @return
          */
         private void setMaxCacheResultRows(SQLQuerySource sqlQuerySource, int maxCacheResultRows) {
-            SQLQuerySource innerSqlQuerySource = sqlQuerySource;
-            while (StringUtil.isNotEmpty(innerSqlQuerySource.getSubSelect())) {
-                innerSqlQuerySource = innerSqlQuerySource.getSubSqlQuerySources().get(0);
-            }
-
-            if (!innerSqlQuerySource.isEnableLimit()) {
+            if (!sqlQuerySource.isEnableLimit()) {
                 return;
             }
-
-            String orginInnerSql = innerSqlQuerySource.getSqlBody();
-
-            String limitInnerSql = innerSqlQuerySource.getSqlBody();
-            if (StringUtil.isNotBlank(innerSqlQuerySource.getLimit())) {
-
-                String[] limits = innerSqlQuerySource.getLimit().split(",");
-
+            String sqlBody = sqlQuerySource.getSqlBody();
+            if (StringUtil.isNotBlank(sqlQuerySource.getLimit())) {
+                String[] limits = sqlQuerySource.getLimit().split(",");
                 if (Integer.valueOf(limits[limits.length - 1]) > maxCacheResultRows) {
                     limits[limits.length - 1] = String.valueOf(maxCacheResultRows);
-
                     if (limits.length == 2) {
-                        limitInnerSql = SQLHelper.getLimitString(limitInnerSql, Integer.valueOf(limits[0]), Integer.valueOf(limits[1]));
+                        sqlBody = SQLHelper.getLimitString(sqlBody, Integer.valueOf(limits[0]), Integer.valueOf(limits[1]));
                     } else {
-                        limitInnerSql = SQLHelper.getLimitString(limitInnerSql, 0, Integer.valueOf(limits[0]));
+                        sqlBody = SQLHelper.getLimitString(sqlBody, 0, Integer.valueOf(limits[0]));
                     }
-
-                    innerSqlQuerySource.setLimit(String.join(",", limits).toString());
-                    innerSqlQuerySource.setSqlBody(limitInnerSql);
-
+                    sqlQuerySource.setLimit(String.join(",", limits).toString());
+                    sqlQuerySource.setSqlBody(sqlBody);
                 }
-
             } else {
-                limitInnerSql = innerSqlQuerySource.getSqlBody() + " limit " + maxCacheResultRows;
-                innerSqlQuerySource.setLimit(String.valueOf(maxCacheResultRows));
-                innerSqlQuerySource.setSqlBody(limitInnerSql);
-
+                sqlBody = sqlQuerySource.getSqlBody() + " limit " + maxCacheResultRows;
+                sqlQuerySource.setLimit(String.valueOf(maxCacheResultRows));
+                sqlQuerySource.setSqlBody(sqlBody);
             }
-
-            if (StringUtil.isNotEmpty(sqlQuerySource.getSubSqlQuerySources())) {
-                sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody().replace(orginInnerSql, limitInnerSql));
-            }
-
         }
 
         public Optimizer generateSQL() {

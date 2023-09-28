@@ -6,8 +6,10 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.qgw.benchmark.druid.DruidWriter;
+import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.qgw.benchmark.DialectWriter;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
@@ -27,13 +29,13 @@ public class DruidTest extends GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
 
     @Autowired
-    private DruidWriter writer;
+    private DialectWriter dialectWriter;
 
 
 
     @Test
     public void testSqlParser() {
-        String pocFile = writer.buildPocSQL();
+        String pocFile = dialectWriter.buildPocSQL(Lists.newLinkedList(), DBTypeEnum.DRUID.getValue(), null);
         Optional<File> ckTestFile =  Optional.of(new File(pocFile));
         if (ckTestFile.isPresent()) {
             if (!ckTestFile.get().isFile()) {

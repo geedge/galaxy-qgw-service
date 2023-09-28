@@ -2,6 +2,7 @@ package com.mesalab.cn.service.impl;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.cn.entity.pojo.*;
 import com.mesalab.cn.service.CNService;
 import com.mesalab.qgw.model.basic.QueryProfile;
@@ -13,7 +14,6 @@ import com.google.common.base.Joiner;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.exception.BusinessException;
-import com.zdjizhi.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;

@@ -1,11 +1,12 @@
 package com.mesalab.qgw.model.basic;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.basic.udf.UDF;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.select.*;
@@ -20,37 +21,36 @@ import java.util.Set;
 @Data
 public class SQLQuerySource {
 
+    private String execSQL;
     private String sqlBody;
-    private String tableName;
-    private String partitionKey;/** 分区键，多用于检索查询首要过滤列；例如timestamp **/
-    private String fromItem;
-    private String selectItems;
-    private String expr;
-    private String orderBy;
-    private String limit;
-    private SubSelect subSelect;
-    private Expression whereExpression; /** where 对象 **/
+    private List<String> tableNames = Lists.newArrayList();
+    private String partitionKey;
+    private List<Join> joins;
+    private FromItem fromItem;
+    private List<SelectItem> selectItems;
+    private Map<String, String> aliasFields = Maps.newHashMap();
+    private Expression whereExpression;
     private GroupByElement groupByElement;
-    private List<OrderByElement> listOrderElement;
-    private Map<String, String> aliasFields= Maps.newHashMap();/** k=alias,v=column **/
-    private Set<UDF> udfSet = Sets.newHashSet();
+    private List<OrderByElement> orderByElements;
     private Map<String, String> groupDimension = Maps.newHashMap();
-    private List<SQLQuerySource> subSqlQuerySources = Lists.newArrayList();
+    private String limit;
     private boolean isEnableLimit;
 
+    private SubSelect subSelect;
+    private List<SQLQuerySource> subSqlQuerySources = Lists.newArrayList();
+    private Set<UDF> udfSet = Sets.newHashSet();
 
     public boolean isEnableLimit() {
-        if (StringUtil.isNotBlank(limit) && limit.equalsIgnoreCase(SQLHelper.INVALID_LIMIT_DESC)) {
-            return false;
-        } else {
-            return true;
-        }
+        return !SQLHelper.INVALID_LIMIT_DESC.equalsIgnoreCase(limit);
     }
 
+    public String getSelect() {
+        return Joiner.on(",").join(this.selectItems);
+    }
 
-
-
-
+    public String getOrderBy() {
+        return Joiner.on(",").join(this.orderByElements);
+    }
     public Map<String, String> getGroupDimension() {
         if (groupByElement == null) {
             return null;
@@ -78,19 +78,4 @@ public class SQLQuerySource {
         }
         return groupDimension;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

@@ -1,8 +1,8 @@
 package com.mesalab.common.utils.sqlparser;
 
 import cn.hutool.core.util.StrUtil;
+import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Maps;
-import com.zdjizhi.utils.StringUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.*;

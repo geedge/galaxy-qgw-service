@@ -21,7 +21,7 @@ import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -82,9 +82,11 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     @Override
     void init() {
         if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
-            param.setSql(param.getDbQuerySource().getSqlBody());
+            param.getDbQuerySource().setExecSQL(param.getDbQuerySource().getSqlBody());
         } else {
-            param.setSql(param.getQuery());
+            SQLQuerySource sqlQuerySource = new SQLQuerySource();
+            sqlQuerySource.setExecSQL(param.getQuery());
+            param.setDbQuerySource(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
     }

@@ -33,7 +33,7 @@ import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaParseException;
 import org.springframework.beans.factory.annotation.Autowired;

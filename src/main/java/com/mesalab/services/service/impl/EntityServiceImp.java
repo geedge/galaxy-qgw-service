@@ -33,7 +33,7 @@ import com.mesalab.services.common.dsl.ComDSLParse;
 import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
-import com.zdjizhi.utils.*;
+import com.geedgenetworks.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.EnvironmentAware;

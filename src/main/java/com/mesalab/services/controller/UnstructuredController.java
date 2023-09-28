@@ -11,7 +11,7 @@ import com.mesalab.services.common.dsl.ComDSLValidate;
 import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.enums.UnstructuredDataType;
 import com.mesalab.services.service.UnstructuredService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

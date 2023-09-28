@@ -1,63 +1,54 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.URLUtil;
+import cn.hutool.http.HttpStatus;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
-import com.mesalab.qgw.benchmark.elasticsearch.ElasticSearchWriter;
+import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.benchmark.clickhouse.ClickhouseWriter;
-import com.mesalab.qgw.benchmark.druid.DruidWriter;
-import com.mesalab.qgw.benchmark.engine.EngineWriter;
-import com.mesalab.qgw.benchmark.hbase.HbaseWriter;
-import com.mesalab.qgw.dialect.HbaseDialect;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
-import com.zdjizhi.utils.*;
+import com.geedgenetworks.utils.*;
+import com.mesalab.services.service.SQLDatasetService;
 import lombok.Data;
-import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.select.Select;
 import org.apache.avro.Schema;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.math3.stat.StatUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.util.EntityUtils;
-import org.elasticsearch.client.Request;
-import org.elasticsearch.client.Response;
-import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -71,39 +62,22 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private static final String AVRO_SUFFIX = ".avsc";
     private static final String METADATA_PREFIX = "Metadata/";
     private static final String SCHEMA_PREFIX = "Schema/";
-    private static final String DRUID_PREFIX = "druid_";
-    private static final String CK_PREFIX = "ck_";
-    private static final String ENGINE_PREFIX = "engine_";
-    private static final String HBASE_PREFIX = "hbase_";
-    private static final String ES_PREFIX = "es_";
     private static final String HBASE_DBNAME2 = "tsg_galaxy";
-
-    @Autowired
-    private HttpClientService httpClientService;
-    @Autowired
-    private HttpConfig httpConfig;
+    private static final String EXECUTE_ENGINE= "execute_engine";
+    private static final String IDENTIFIER_NAME = "identifier_name";
+    private static final String SQL_TEXT = "sql_text";
 
     @Autowired
     private QueryService queryService;
 
     @Autowired
-    private ClickhouseWriter clickhouseWriter;
-    @Autowired
-    private EngineWriter engineWriter;
-    @Autowired
-    private DruidWriter druidWriter;
-    @Autowired
-    private HbaseWriter hbaseWriter;
-    @Autowired
-    private ElasticSearchWriter elasticSearchWriter;
+    private DialectWriter dialectWriter;
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
     @Autowired
     private HBaseAPISource hBaseAPISource;
-    @Autowired
-    private RestClient restClient;
     @Autowired
     private ElasticsearchHttpSource elasticsearchHttpSource;
     @Autowired
@@ -112,6 +86,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private EntityConfigSource entityConfigSourceTemp;
     @Autowired
     private EntityService entityService;
+    @Autowired
+    private SQLDatasetService sqlDatasetService;
 
     @PostConstruct
     public void init() {
@@ -198,7 +174,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
 
 
     @Override
-    public BaseResult runPocSQL(boolean isSaved, String option) {
+    public BaseResult runPocSQL(boolean isSaved, String option, String category) {
         BaseResult result = null;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
         Map<String, Map<String, String>> mergeResult;
@@ -208,36 +184,52 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Map<String, Map<String, String>> hbaseResult;
         Map<String, Map<String, String>> elasticsearchResult;
         try {
-            Stopwatch watch = Stopwatch.createStarted();
-            Optional<File> druidTestFile = Optional.of(new File(druidWriter.buildPocSQL()));
-            Optional<File> ckTestFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
-            Optional<File> hbaseTestFile = Optional.of(new File(hbaseWriter.buildPocSQL()));
-            Optional<File> engineTestFile = Optional.of(new File(engineWriter.buildPocSQL()));
-            Optional<File> esTestFile = Optional.of(new File(elasticSearchWriter.buildPocSQL()));
+            Map<String, Object> datasetResult = generateDatasets(category);
+            List<Map<String, String>> dataSetlist = (ArrayList<Map<String, String>>) datasetResult.get("list");
+            List<String> druidIdList = Lists.newLinkedList();
+            List<String> ckIdList = Lists.newLinkedList();
+            List<String> engineIdList = Lists.newLinkedList();
+            List<String> esIdList = Lists.newLinkedList();
+            List<String> hbaseIdList = Lists.newLinkedList();
 
-            if (DiagnosisOptionEnum.PARSE.getValue().equalsIgnoreCase(option)) {
-                druidResult = executeSyntaxCheckByDatasource(druidTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
-                clickhouseResult = executeSyntaxCheckByDatasource(ckTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
-                hbaseResult = executeSyntaxCheckByDatasource(hbaseTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
-                engineResult = executeSyntaxCheckByDatasource(engineTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
-                elasticsearchResult = executeSyntaxCheckByDatasource(esTestFile, QueryOptionEnum.SYNTAX_PARSE.getValue());
-            } else if (DiagnosisOptionEnum.VALIDATION.getValue().equalsIgnoreCase(option)) {
-                druidResult = executeSyntaxCheckByDatasource(druidTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
-                clickhouseResult = executeSyntaxCheckByDatasource(ckTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
-                hbaseResult = executeSyntaxCheckByDatasource(hbaseTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
-                engineResult = executeSyntaxCheckByDatasource(engineTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
-                elasticsearchResult = executeSyntaxCheckByDatasource(esTestFile, QueryOptionEnum.SYNTAX_VALIDATION.getValue());
-            } else if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
-                druidResult = executePocSqlByDatasource(druidTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
-                clickhouseResult = executePocSqlByDatasource(ckTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
-                hbaseResult = executePocSqlByDatasource(hbaseTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
-                engineResult = executePocSqlByDatasource(engineTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
-                elasticsearchResult = executePocSqlByDatasource(esTestFile, isSaved, QueryOptionEnum.REAL_TIME.getValue());
-            } else {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
-                        ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.OPTION_IS_NOT_SUPPORTED));
+            List<String> druidSqlList = Lists.newLinkedList();
+            List<String> ckSqlList = Lists.newLinkedList();
+            List<String> engineSqlList = Lists.newLinkedList();
+            List<String> esSqlList = Lists.newLinkedList();
+            List<String> hbaseSqlList = Lists.newLinkedList();
+            Stopwatch watch = Stopwatch.createStarted();
+            if (CollectionUtil.isNotEmpty(dataSetlist)){
+                for (int i = 0; i < dataSetlist.size(); i++) {
+                    if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
+                        druidIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        druidSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                    } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
+                        ckIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        ckSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                    } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.ELASTICSEARCH.getValue())) {
+                        esIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        esSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                    } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.HBASE.getValue())) {
+                        hbaseIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        hbaseSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                    } else {
+                        engineIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        engineSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                    }
+                }
             }
+
+            Optional.of(new File(dialectWriter.buildPocSQL(druidSqlList, DBTypeEnum.DRUID.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(ckSqlList, DBTypeEnum.CLICKHOUSE.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(hbaseSqlList, DBTypeEnum.HBASE.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(engineSqlList, DBTypeEnum.ENGINE.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(esSqlList, DBTypeEnum.ELASTICSEARCH.getValue(), category)));
+
+            clickhouseResult = buildResult(DBTypeEnum.CLICKHOUSE.getValue(), ckIdList, isSaved, option);
+            druidResult = buildResult(DBTypeEnum.DRUID.getValue(), druidIdList, isSaved, option);
+            engineResult = buildResult(DBTypeEnum.ENGINE.getValue(), engineIdList, isSaved, option);
+            hbaseResult = buildResult(DBTypeEnum.HBASE.getValue(), hbaseIdList, isSaved, option);
+            elasticsearchResult = buildResult(DBTypeEnum.ELASTICSEARCH.getValue(), esIdList, isSaved, option);
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
@@ -267,34 +259,27 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Optional<File> testFile;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
         Map<String, String> dialectResult = Maps.newHashMap();
-
-        if (dialect.equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
-            testFile = Optional.of(new File(clickhouseWriter.buildPocSQL()));
-        } else if (dialect.equalsIgnoreCase(DBTypeEnum.ENGINE.getValue())) {
-            testFile = Optional.of(new File(engineWriter.buildPocSQL()));
-        } else if (dialect.equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
-            testFile = Optional.of(new File(druidWriter.buildPocSQL()));
-        } else {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
-                    ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.DIALECT_VALUE_ERROR));
-        }
-
-
-        try {
+        try{
             Stopwatch watch = Stopwatch.createStarted();
-            if (testFile.isPresent()) {
-                if (!testFile.get().isFile()) {
-                    log.warn("UnKnow File " + testFile.get());
-                    return null;
+            String path = new File("").getCanonicalPath()
+                    + File.separator + "benchmark" + File.separator + dialect + "_queries" + "_"
+                    + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql";
+            if (Files.exists(Paths.get(path))) {
+                dialectResult = getPocSqlByDatasource(Optional.of(new File(path)), queryNo);
+            } else {
+                testFile = Optional.of(new File(dialectWriter.buildPocSQL(Lists.newLinkedList(), dialect, null)));
+                if (testFile.isPresent()) {
+                    if (!testFile.get().isFile()) {
+                        log.warn("UnKnow File " + testFile.get());
+                        return null;
+                    }
+                    dialectResult = getPocSqlByDatasource(testFile, queryNo);
                 }
-                dialectResult = getPocSqlByDatasource(testFile, queryNo);
             }
-
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
             result.setFormatType(QueryFormatEnum.JSON.getValue());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | IOException e) {
             log.error("Get Poc SQL Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
                     ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -453,112 +438,39 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         return Maps.newHashMap();
     }
 
-    /**
-     * 对各个数据库引擎的测试集SQL进行语法解析或验证
-     * @param file
-     * @param queryOption
-     * @return
-     */
-    private Map<String, Map<String, String>> executeSyntaxCheckByDatasource(Optional<File> file, String queryOption) {
-        Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
-        Map<String, String> infoMap = Maps.newLinkedHashMap();
-        if (file.isPresent() && file.get().isFile()) {
-            List<String> rawLines = new FileReader(file.get()).readLines();
-            int index = 0;
-            for (String line : rawLines) {
-                index++;
-                if (Strings.isNullOrEmpty(line)) {
-                    continue;
-                }
-                Stopwatch watch = Stopwatch.createStarted();
-                BaseResult queryResult = getBaseResultByEngine(QueryProfile.builder().option(queryOption).query(line).build());
-                if (StringUtil.isEmpty(queryResult.getStatistics())) {
-                    Map<String, Object> statistics = Maps.newLinkedHashMap();
-                    statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-                    queryResult.setStatistics(statistics);
-                }
-                processQueryResult(file, infoMap, null, index, queryResult);
-            }
-            resultMap.put(file.get().getName(), buildQueryTimeMetric(infoMap));
-        } else {
-            log.error("File is not exist or is a directory.");
+    private Map<String, Object> generateDatasets(String category) {
+        List<String> categorylist = Lists.newLinkedList();
+        List<Record> list = Db.find(String.format(Objects.requireNonNull(env.getProperty("SQL_DATASETS_CATEGORY"))));
+        list.forEach(record -> categorylist.add(String.valueOf(record.getColumns().get("category"))));
+        if (CollectionUtil.isNotEmpty(categorylist) && StrUtil.isNotBlank(category) && !categorylist.contains(category)) {
+            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIAGNOSIS_CATEGORY_ERROR));
         }
-        return resultMap;
-
+        return sqlDatasetService.getDatasets(Lists.newArrayList(), category, null);
     }
 
-    /**
-     * 执行POC SQL测试集，并返回执行结果
-     *
-     * @param file   sql 查询语句列表
-     * @param isSaved 是否保存查询结果
-     * @param queryOption  SQL诊断方式
-     * @return
-     */
-    private Map<String, Map<String, String>> executePocSqlByDatasource(Optional<File> file, boolean isSaved, String queryOption) {
+    private Map<String, Map<String,String>> buildResult(String executeEngine,List<String> list,boolean isSaved, String option) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newLinkedHashMap();
         FileWriter writer = null;
-        int index = 0;
-        if (file.isPresent() && file.get().isFile()) {
-            String benchFileName = file.get().getName();
-            List<String> rawLines = new FileReader(file.get()).readLines();
-            if (isSaved) {
-                writer = new FileWriter(file.get().getAbsolutePath() + "." + IdUtil.simpleUUID() + ".dat");
-            }
-
-            if (StringUtil.lowerCase(benchFileName).startsWith(DRUID_PREFIX)) {
-                for (String line : rawLines) {
-                    index++;
-                    if (Strings.isNullOrEmpty(line)) {
-                        continue;
-                    }
-                    BaseResult queryResult = generateDruidBaseResult(line);
-                    processQueryResult(file, infoMap, writer, index, queryResult);
-                }
-            } else if (StringUtil.lowerCase(benchFileName).startsWith(CK_PREFIX)) {
-                for (String line : rawLines) {
-                    index++;
-                    if (Strings.isNullOrEmpty(line)) {
-                        continue;
-                    }
-                    BaseResult queryResult = generateClickHouseBaseResult(line);
-                    processQueryResult(file, infoMap, writer, index, queryResult);
-                }
-            } else if (StringUtil.lowerCase(benchFileName).startsWith(HBASE_PREFIX)) {
-                for (String line : rawLines) {
-                    index++;
-                    if (Strings.isNullOrEmpty(line)) {
-                        continue;
-                    }
-                    BaseResult queryResult = generateHbaseBaseResult(line);
-                    processQueryResult(file, infoMap, writer, index, queryResult);
-                }
-            } else if (StringUtil.lowerCase(benchFileName).startsWith(ENGINE_PREFIX)) {
-                for (String line : rawLines) {
-                    index++;
-                    if (Strings.isNullOrEmpty(line)) {
-                        continue;
-                    }
-                    BaseResult queryResult = getBaseResultByEngine(
-                            QueryProfile.builder().option(queryOption).format(QueryFormatEnum.CSV.getValue()).query(line).build());
-                    processQueryResult(file, infoMap, writer, index, queryResult);
-                }
-            } else if (StringUtil.lowerCase(benchFileName).startsWith(ES_PREFIX)) {
-                for (String line : rawLines) {
-                    index++;
-                    if (Strings.isNullOrEmpty(line)) {
-                        continue;
-                    }
-                    BaseResult queryResult = generateElasticSearchBaseResult(line);
-                    processQueryResult(file, infoMap, writer, index, queryResult);
-                }
-            }
-
-            resultMap.put(file.get().getName(), buildQueryTimeMetric(infoMap));
-        } else {
-            log.error("File is not exist or is a directory.");
+        String benchFileName = executeEngine + "_queries_" + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql";
+        if (isSaved && DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
+            File file = new File("benchmark" + File.separator + benchFileName + "." + IdUtil.simpleUUID() + ".dat");
+            writer = FileWriter.create(file);
         }
+        int index = 0;
+        for (String line : list) {
+            index++;
+            Stopwatch watch = Stopwatch.createStarted();
+            BaseResult queryResult = sqlDatasetService.getPreview(line, option);
+            if (StringUtil.isEmpty(queryResult.getStatistics())) {
+                Map<String, Object> statistics = Maps.newLinkedHashMap();
+                statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+                queryResult.setStatistics(statistics);
+            }
+            processQueryResult(benchFileName, infoMap, writer, index, queryResult);
+        }
+        resultMap.put(benchFileName, buildQueryTimeMetric(infoMap));
         return resultMap;
     }
 
@@ -575,7 +487,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         return infoMap;
     }
 
-    private void processQueryResult(Optional<File> file, Map<String, String> infoMap, FileWriter writer, int index, BaseResult queryResult) {
+    private void processQueryResult(String name, Map<String, String> infoMap, FileWriter writer, int index, BaseResult queryResult) {
         int statusCode = Integer.parseInt(queryResult.getStatus().toString());
         if (statusCode == ResultStatusEnum.SUCCESS.getCode()) {
             if (writer != null) {
@@ -589,160 +501,13 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
 
         } else {
             throw new QGWBusinessException(statusCode, QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),file.get().getName()
-                    + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage()));
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),name
+                            + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage()));
         }
-    }
-
-    /**
-     * @param sql
-     * @return com.mesalab.common.base.BaseResult
-     * @Description druid SQL测试集在Druid数据源查询并获取查询结果
-     * @author wanghao
-     * @date 2021/9/9 17:42
-     */
-    private BaseResult generateDruidBaseResult(String sql) {
-        BaseResult baseResult;
-        Object dataObject;
-        Stopwatch watch = Stopwatch.createUnstarted();
-        watch.start();
-        Map<String, String> results = druidExecuteHttpPost(sql);
-        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    (List<Object>) JSON.parseObject(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
-            dataObject = baseResult.getData();
-            List<Object> allResults = (List<Object>) dataObject;
-            Map<String, Object> statistics = Maps.newLinkedHashMap();
-            statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            statistics.put("rows_read", allResults.size());
-            baseResult.setData(allResults);
-            baseResult.setStatistics(statistics);
-        } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), results.get("message"),
-                    results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
-            dataObject = baseResult.getData();
-            baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
-        }
-        return baseResult;
-    }
-
-
-    private Map<String, String> druidExecuteHttpPost(String sql) {
-        String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
-        DruidQueryParam druidQueryParam = new DruidQueryParam();
-        druidQueryParam.setQuery(sql);
-        druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
-        druidQueryParam.setResultFormat("object");
-        log.info("DB Engine is :{}, Execute Query is: {}", DBTypeEnum.DRUID.getValue(), JSON.toJSONString(druidQueryParam));
-        int socketTimeOut = httpConfig.getDruidSocketTimeOut();
-        return httpClientService.httpPost(queryURL, JSON.toJSONString(druidQueryParam), socketTimeOut);
-    }
-
-
-    /**
-     * @param sql
-     * @return com.mesalab.common.base.BaseResult
-     * @Description ck SQL测试集在ClickHouse数据源查询并获取查询结果
-     * @author wanghao
-     * @date 2021/9/9 17:39
-     */
-    private BaseResult generateClickHouseBaseResult(String sql) {
-        BaseResult baseResult;
-        Object dataObject;
-        Map<String, String> results = clickHouseExecuteHttpPost(sql);
-        if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    JSON.parseObject(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
-            dataObject = baseResult.getData();
-            Map<String, Object> resultMap = (Map<String, Object>) dataObject;
-            Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
-            Map<String, Object> statistics = Maps.newLinkedHashMap();
-            statistics.put("elapsed", Math.round(Double.parseDouble(String.valueOf(statisticMap.get("elapsed"))) * 1000));
-            statistics.put("rows_read", statisticMap.get("rows_read"));
-            baseResult.setData(resultMap.get("data"));
-            baseResult.setStatistics(statistics);
-        } else {
-            baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), null,
-                    results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
-            dataObject = baseResult.getData();
-            baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus());
-            baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
-        }
-        return baseResult;
-    }
-
-    private Map<String, String> clickHouseExecuteHttpPost(String sql) {
-        String ckQuery = Encodes.urlEncode(sql);
-        String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
-        StringBuilder queryParamBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
-                .append("database=").append(clickHouseHttpSource.getDbName());
-        ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
-        clickHouseHttpQuery.setSocketTimeOut(httpConfig.getCkRealTimeAccountSocketTimeOut());
-        clickHouseHttpQuery.setQueryParameter(queryParamBuilder.toString());
-        log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), JSON.toJSONString(clickHouseHttpQuery));
-        List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
-        return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase()), clickHouseHttpQuery.getSocketTimeOut());
-    }
-
-    private BaseResult generateElasticSearchBaseResult(String sql) {
-        BaseResult baseResult;
-        Object dataObject;
-        Stopwatch watch = Stopwatch.createUnstarted();
-        watch.start();
-        Request request = new Request("POST", "/_sql?format=json");
-        HashMap<String, Object> queryParam = Maps.newHashMap();
-        queryParam.put("query", sql);
-        request.setJsonEntity(JSON.toJSONString(queryParam));
-        Response response;
-        try {
-            response = restClient.performRequest(request);
-            ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
-            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    (Map<String, Object>) JSON.parseObject(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
-        } catch (IOException e) {
-            log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), e.getMessage());
-        }
-        dataObject = baseResult.getData();
-        Map<String, Object> resultMap = (Map<String, Object>) dataObject;
-        Map<String, Object> statistics = Maps.newLinkedHashMap();
-        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-        baseResult.setData(resultMap);
-        baseResult.setStatistics(statistics);
-        return baseResult;
-    }
-
-
-    /**
-     * @param sql
-     * @return com.mesalab.common.base.BaseResult
-     * @Description hbase SQL测试集在hbase数据源查询并获取查询结果
-     * @author wanghao
-     * @date 2021/11/11 10:01
-     */
-    private BaseResult generateHbaseBaseResult(String sql) {
-        BaseResult baseResult = null;
-        HbaseDialect hbaseDialect = new HbaseDialect(queryBuild(sql));
-        baseResult = hbaseDialect.generateBaseResult(converter(sql), Optional.of("OK"));
-        return baseResult;
     }
 
     private QueryProfile queryBuild(String sql) {
         return QueryProfile.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
-    }
-
-    private String converter(String sql) {
-        try {
-            Select select = (Select) CCJSqlParserUtil.parse(sql);
-            select.getSelectBody().accept(SQLVisitorUtil.getVisitorOfEscapeMetadataWithDoubleQuote());
-            return select.toString();
-        } catch (JSQLParserException | RuntimeException e) {
-            log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
-        }
     }
 
     private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {
@@ -803,7 +568,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
                         QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
                         String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),
-                        " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft));
+                                " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft));
 
             }
             Map<String, Object> entriesOnlyOnRight = difference.entriesOnlyOnRight();

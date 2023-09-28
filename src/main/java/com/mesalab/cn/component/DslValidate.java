@@ -1,5 +1,6 @@
 package com.mesalab.cn.component;
 
+import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.cn.entity.pojo.DSLObject;
 import com.mesalab.cn.enums.*;
 import com.mesalab.cn.exception.CNErrorCode;
@@ -8,7 +9,6 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.service.MetadataService;
-import com.zdjizhi.utils.StringUtil;
 import org.apache.commons.lang3.EnumUtils;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;

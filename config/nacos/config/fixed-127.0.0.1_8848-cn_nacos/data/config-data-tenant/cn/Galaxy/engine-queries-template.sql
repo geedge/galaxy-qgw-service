@@ -1,4 +1,0 @@
---Q01.Network Throughput
-SELECT TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(common_recv_time),'PT36S','zero') AS stat_time,ROUND(SUM(common_c2s_byte_num)/36) AS bytes_sent_rate,ROUND(SUM(common_s2c_byte_num)/36) AS bytes_received_rate,ROUND(SUM(common_c2s_byte_num + common_s2c_byte_num)/36) AS bytes_rate FROM session_record_cn WHERE common_recv_time >= toUnixTimestamp(@start) AND common_recv_time < toUnixTimestamp(@end) GROUP BY stat_time
---Q01.QUANTILE(elasticsearch)
-SELECT QUANTILE(domain_reputation_score, 0.6) AS quantile_score_6 FROM entity_info WHERE update_time >= cast(now() as long)/1000 -3600 AND update_time < cast(now() as long)/1000 -3600 limit 1

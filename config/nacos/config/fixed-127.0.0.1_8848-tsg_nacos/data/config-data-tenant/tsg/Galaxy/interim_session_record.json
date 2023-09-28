@@ -19,6 +19,8 @@
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_processing_time",
         "common_ingestion_time",
         "common_device_id",
@@ -75,6 +77,7 @@
         "http_request_line",
         "http_response_line",
         "http_version",
+        "http_status_code",
         "mail_protocol_type",
         "mail_account",
         "mail_from_cmd",
@@ -105,6 +108,8 @@
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
         "dtls_sni",
         "quic_sni",
         "quic_version",
@@ -140,6 +145,8 @@
       "metrics": [
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_device_id",
         "common_data_center",
         "common_sled_ip",
@@ -204,6 +211,7 @@
         "http_request_content_type",
         "http_response_content_length",
         "http_response_content_type",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "mail_protocol_type",
@@ -242,6 +250,8 @@
         "ssl_cert_issuer",
         "ssl_cert_subject",
         "ssl_con_latency_ms",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
         "dtls_sni",
         "quic_sni",
         "quic_version",
@@ -279,6 +289,8 @@
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_con_duration_ms",
         "common_establish_latency_ms",
         "common_processing_time",
@@ -355,6 +367,7 @@
         "http_response_content_length",
         "http_response_content_type",
         "http_set_cookie",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "mail_protocol_type",
@@ -397,6 +410,8 @@
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
+        "ssl_esni_flag",
+        "ssl_ech_flag",
         "dtls_sni",
         "quic_sni",
         "quic_version",
@@ -447,6 +462,8 @@
           "common_stream_dir",
           "common_start_time",
           "common_end_time",
+          "common_start_timestamp_ms",
+          "common_end_timestamp_ms",
           "common_con_duration_ms",
           "common_establish_latency_ms",
           "common_processing_time",
@@ -1578,6 +1595,38 @@
       }
     },
     {
+      "name": "common_start_timestamp_ms",
+      "label": "Start Time (ms)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "datetime"
+      }
+    },
+    {
+      "name": "common_end_timestamp_ms",
+      "label": "End Time (ms)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "datetime"
+      }
+    },
+    {
       "name": "common_establish_latency_ms",
       "label": "TCP Handshake Latency (ms)",
       "doc": {
@@ -2163,6 +2212,15 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "http_status_code",
+      "label": "HTTP.Status Code",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "http_response_latency_ms",
@@ -3258,6 +3316,24 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "ssl_esni_flag",
+      "label": "SSL.ESNI Flag",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "ssl_ech_flag",
+      "label": " SSL.ECH Flag",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "dtls_cookie",

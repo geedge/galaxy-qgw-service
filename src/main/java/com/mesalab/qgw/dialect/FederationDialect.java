@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteMemoryUtils;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
@@ -21,7 +22,7 @@ import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
 import com.mesalab.qgw.model.basic.udf.UDF;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -58,20 +59,22 @@ public class FederationDialect extends AbstractEngineDialect{
     @Override
     public void init() {
         if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-            param.setSql(param.getEngineQuerySource().getSqlBody());
+            param.getEngineQuerySource().setExecSQL(param.getEngineQuerySource().getSqlBody());
         } else {
-            param.setSql(null);
+            SQLQuerySource sqlQuerySource = new SQLQuerySource();
+            sqlQuerySource.setExecSQL(null);
+            param.setEngineQuerySource(sqlQuerySource);
         }
     }
 
     @Override
     public String getFederateQuery() {
-        return param.getSql();
+        return  param.getEngineQuerySource().getExecSQL();
     }
 
     @Override
     public String getSampleQuery() {
-        String sql = param.getSql();
+        String sql = param.getEngineQuerySource().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
@@ -86,7 +89,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public String getSyntaxCheckQuery() {
-        String sql = param.getSql();
+        String sql = param.getEngineQuerySource().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
@@ -110,7 +113,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public boolean isExecute() {
-        return StringUtil.isNotEmpty(param.getEngineQuerySource());
+        return StringUtil.isNotEmpty(param.getEngineQuerySource().getExecSQL());
     }
 
 
@@ -119,8 +122,9 @@ public class FederationDialect extends AbstractEngineDialect{
         try {
             watch.start();
             if (isExecute()) {
+                log.info("DB engine is :{},execute query is: {}", DBTypeEnum.ENGINE.getValue(), JSON.toJSONString(sql));
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableName(),
+                Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableNames().get(0),
                         (List<Map<String, String>>) baseResult.getMeta(),
                         (List<Map<String, Object>>) baseResult.getData(), sql);
                 baseResult.setData(resultMap.get("data"));
@@ -165,7 +169,7 @@ public class FederationDialect extends AbstractEngineDialect{
             return;
         }
         List<Map<String, Object>> data = JsonPath.read(meta, "$");
-        SQLQuerySource querySource = StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource();
+        SQLQuerySource querySource = StringUtil.isEmpty(param.getEngineQuerySource()) || StringUtil.isEmpty(param.getEngineQuerySource().getExecSQL()) ? param.getDbQuerySource() : param.getEngineQuerySource();
         Map<String, String> groupDimension = querySource.getGroupDimension();
         for (Map<String, Object> map : data) {
             String field = String.valueOf(map.get("name"));

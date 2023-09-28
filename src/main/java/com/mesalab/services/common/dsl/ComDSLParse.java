@@ -15,8 +15,8 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
-import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.DateUtils;
+import com.geedgenetworks.utils.StringUtil;
 import org.joda.time.format.ISODateTimeFormat;
 
 import java.text.ParseException;

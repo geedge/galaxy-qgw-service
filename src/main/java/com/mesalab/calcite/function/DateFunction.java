@@ -1,7 +1,7 @@
 package com.mesalab.calcite.function;
 
+import com.geedgenetworks.utils.DateUtils;
 import com.google.common.collect.Maps;
-import com.zdjizhi.utils.DateUtils;
 import java.util.Map;
 
 public class DateFunction {

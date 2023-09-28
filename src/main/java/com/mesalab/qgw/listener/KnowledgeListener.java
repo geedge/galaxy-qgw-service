@@ -17,7 +17,7 @@ import com.mesalab.services.common.entity.KnowledgeConfig;
 import com.mesalab.services.common.entity.KnowledgeBase;
 import com.mesalab.services.common.entity.KnowledgeConstant;
 import com.mesalab.services.configuration.HosConfig;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,8 +1,11 @@
 package com.mesalab.qgw.controller;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.utils.StringUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.DiagnosisOptionEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -11,6 +14,7 @@ import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.services.common.enums.EntityQueryType;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.expression.StringValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,16 +45,20 @@ public class DiagnosisController {
     }
 
     @RequestMapping(value = "/runSql")
-    public BaseResult executePocSql(String isSaved, @RequestParam(defaultValue = "validation") String option) throws BusinessException {
+    public BaseResult executePocSql(String isSaved, @RequestParam(defaultValue = "validation") String option, @RequestParam(required = false) String category) throws BusinessException {
         if (Arrays.stream(DiagnosisOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(option))) {
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIAGNOSIS_OPTION_ERROR));
         }
-        return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved), option);
+        return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved), option, category);
     }
 
     @RequestMapping({"/sql", "/sql/{dialect}/{queryNo}"})
-    public BaseResult getPocSql(@PathVariable String dialect, @PathVariable(required = false) Integer queryNo) {
+    public BaseResult getPocSql(@PathVariable  String dialect, @PathVariable(required = false) Integer queryNo) {
+        if (Arrays.stream(DBTypeEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(dialect))){
+            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIALECT_VALUE_ERROR));
+        }
         return diagnosisService.getPocSQL(dialect, queryNo);
     }
 

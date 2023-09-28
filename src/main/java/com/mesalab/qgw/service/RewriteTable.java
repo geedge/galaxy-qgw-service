@@ -2,7 +2,7 @@ package com.mesalab.qgw.service;
 
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.service.MetadataService;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.schema.Table;

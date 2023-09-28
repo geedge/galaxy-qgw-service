@@ -1,12 +1,13 @@
 {
   "type": "record",
-  "name": "metric_ssl_sni",
+  "name": "cn_ip_dynamic_attribute",
   "namespace": "cyber_narrator_galaxy",
   "doc": {
-    "partition_key": "stat_time",
+    "partition_key": "create_time",
     "index_key": [
-      "stat_time",
-      "ssl_sni"
+      "ip",
+      "port",
+      "l7_protocol"
     ]
   },
   "fields": [

@@ -5,6 +5,7 @@ import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.nacos.client.config.impl.LocalConfigInfoProcessor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -12,13 +13,17 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.StringUtil;
+import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.services.service.SQLDatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +32,10 @@ public abstract class Writer {
 
     @Autowired
     NacosConfig nacosConfig;
+    @Autowired
+    MetadataService metadataService;
+    @Autowired
+    SQLDatasetService sqlDatasetService;
 
     private static final Log log = LogFactory.get();
     public static final boolean IS_TITLE = false;
@@ -57,53 +66,23 @@ public abstract class Writer {
         return environment;
     }
 
-    protected String generatePocSQL(Map<String, List<String>> environment, FileReader templateReader, FileWriter writer) {
+    protected String generatePocSQL(List<String> list, FileWriter writer) {
         String pocSQL = "";
         try {
             if (writer.getFile().exists()) {
                 writer.getFile().createNewFile();
             }
-
-            List<String> rawLines = templateReader.readLines();
+            List<LinkedHashMap> variables = Lists.newArrayList();
+            Object codeInfo = metadataService.getCfg(NacosConst.SQL_DATASETS_VARIABLES);
+            if (StringUtil.isNotEmpty(codeInfo)) {
+                Object json = JSON.toJSON(codeInfo);
+                variables = (List<LinkedHashMap>) JSON.parseArray(json.toString(), LinkedHashMap.class);
+            }
             List<String> resultLines = Lists.newArrayList();
-            rawLines.stream().forEach(line -> {
-
-                if (line.contains(TITLE_PREFIX)) {
-                    if (IS_TITLE) {
-                        resultLines.add(line);
-                    }
-                } else {
-
-                    if (line.contains(LABEL_COMMON_FILTER)) {
-                        for (String filter : environment.get(LABEL_COMMON_FILTER)) {
-                            String replaceLine = line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
-                                    .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0))
-                                    .replaceAll(LABEL_COMMON_FILTER, filter);
-
-                            resultLines.add(replaceLine);
-
-                        }
-
-                    } else if (line.contains(LABEL_INDEX_FILTER)) {
-                        for (String filter : environment.get(LABEL_INDEX_FILTER)) {
-                            String replaceLine = line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
-                                    .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0))
-                                    .replaceAll(LABEL_INDEX_FILTER, filter);
-
-                            resultLines.add(replaceLine);
-
-                        }
-
-                    } else {
-                        resultLines.add(
-                                line.replaceAll(LABEL_TIME_START, environment.get(LABEL_TIME_START).get(0))
-                                        .replaceAll(LABEL_TIME_END, environment.get(LABEL_TIME_END).get(0)));
-                    }
-
-
-                }
-
-            });
+            for (String line : list){
+                String sql = sqlDatasetService.buildExecSQL(variables, line);
+                resultLines.add(sql);
+            }
             writer.appendLines(resultLines);
             resultLines.clear();
             pocSQL = writer.getFile().getAbsolutePath();
@@ -159,7 +138,7 @@ public abstract class Writer {
         return filePath.toString();
     }
 
-    protected abstract String buildPocSQL();
+    protected abstract String buildPocSQL(List<String> dialectList, String dialect, String category);
 
 
 }

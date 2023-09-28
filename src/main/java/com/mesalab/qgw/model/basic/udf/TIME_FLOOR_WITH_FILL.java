@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.beust.jcommander.internal.Sets;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -16,8 +17,8 @@ import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
 import com.mesalab.qgw.service.MetadataService;
-import com.zdjizhi.utils.DateUtils;
-import com.zdjizhi.utils.StringUtil;
+import com.geedgenetworks.utils.DateUtils;
+import com.geedgenetworks.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -112,6 +113,17 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 }
 
             }
+            int uniqueTimeOfResult = getSetByKey(results, timeGranLabel).size();
+            int uniqueGroupFactor = 1;
+            for (String groupLabel : groupLabels) {
+                Set<Object> values = getSetByKey(results, groupLabel);
+                uniqueGroupFactor = uniqueGroupFactor * values.size();
+            }
+            if (engineConfigSource.getMaxCacheNum() < (uniqueGroupFactor * uniqueTimeOfResult)) {
+                log.warn("The maximum cache limit has been exceeded and cannot completion. The completion function is invalid. max cache[{}], unique time[{}], unique group[{}]"
+                        , engineConfigSource.getMaxCacheNum(), uniqueTimeOfResult, uniqueGroupFactor);
+                return results;
+            }
 
             WhereTimeRange whereTimeRange = getWhereTimeRange(sqlQuerySource);
             Date benchmarkDate = getBenchmarkDate(resultsFirst, timeGranLabel);
@@ -147,26 +159,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             if (StringUtil.isEmpty(dateRangeList)) {
                 return targetResult;
             }
-            int maxSeriesNum = engineConfigSource.getMaxCacheNum() / dateRangeList.size();
-            if (maxSeriesNum == 0) {
-                log.warn("初始时间范围超出系统设置，无法进行补全[getMaxCacheNum:{} - dateRangeNum:{}],补全功能无效!", engineConfigSource.getMaxCacheNum(), dateRangeList.size());
+            if (engineConfigSource.getMaxCacheNum() < (uniqueGroupFactor * dateRangeList.size())) {
+                log.warn("The maximum cache limit has been exceeded and cannot completion. The completion function is invalid. max cache[{}], unique time[{}], unique group[{}]"
+                        , engineConfigSource.getMaxCacheNum(), dateRangeList.size(), uniqueGroupFactor);
                 return targetResult;
             }
             Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap = ConvertUtil.convertResultListToTimeSeries(Lists.newArrayList(targetResult),
                     groupLabels, timeGranLabel);
-            int actualSeriesNum = Math.min(maxSeriesNum, targetTimeSeriesMap.size());
-            if (actualSeriesNum > 0) {
-                Map<String, Map<String, Map<String, Object>>> limitTimeSeriesMap = Maps.newLinkedHashMap();
-                int i = 1;
-                for (Map.Entry<String, Map<String, Map<String, Object>>> entry : targetTimeSeriesMap.entrySet()) {
-                    limitTimeSeriesMap.put(entry.getKey(), entry.getValue());
-                    if (++i > actualSeriesNum) {
-                        break;
-                    }
-                }
-                targetTimeSeriesMap.clear();
-                targetTimeSeriesMap.putAll(limitTimeSeriesMap);
-            }
             if (StringUtil.isNotEmpty(dateRangeList)) {
                 for (String key : targetTimeSeriesMap.keySet()) {
                     targetTimeSeriesMap.put(key, ConvertUtil.completeTimeseries((TreeMap<String, Map<String, Object>>) targetTimeSeriesMap.get(key), dateRangeList, fill.toString()));
@@ -189,6 +188,16 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         objects.addAll(groupLabels);
         unifiedDataType((List<Map<String, String>>) baseResult.getMeta(), targetResult, objects);
         return targetResult;
+    }
+
+    private Set<Object> getSetByKey(List<Object> results, String key) {
+        Set<Object> values = new HashSet<>();
+        for (Object obj : results) {
+            Map<String, Object> map = (Map<String, Object>) obj;
+            Object value = map.get(key);
+            values.add(value);
+        }
+        return values;
     }
 
     private void unifiedDataType(List<Map<String, String>> meta, List<Map<String, Object>> targetResult, List<String> convertKey) {
@@ -223,11 +232,11 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     }
 
     private void sortByTime(SQLQuerySource sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
-        if(StringUtil.isEmpty(sqlQuerySource.getListOrderElement())){
+        if(StringUtil.isEmpty(sqlQuerySource.getOrderByElements())){
             return;
         }
         orderBy:
-        for (OrderByElement orderByElement : sqlQuerySource.getListOrderElement()) {
+        for (OrderByElement orderByElement : sqlQuerySource.getOrderByElements()) {
             String orderBy = String.valueOf(orderByElement.getExpression());
             if (orderBy.equals(timeGranLabel)) {
                 if (!orderByElement.isAsc()) {
@@ -249,16 +258,15 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
     private List<Map<String, Object>> fillResultBasedOnTimeSeries(List<Object> results, List<String> groupLabels, String timeGranLabel) {
         Map<String, Map<String, Map<String, Object>>> targetTimeSeriesMap = ConvertUtil.convertResultListToTimeSeries(results,
                 groupLabels, timeGranLabel);
-        List<Date> dateRangeList = Lists.newArrayList();
+        Set<Date> dateSet = Sets.newHashSet();
         for (String key : targetTimeSeriesMap.keySet()) {
             Map<String, Map<String, Object>> stringMapMap = targetTimeSeriesMap.get(key);
-            for (String l : stringMapMap.keySet()) {
-                Date date = NumberUtil.isNumber(l) ? new Date(NumberUtil.parseLong(l) * 1000) : DateUtils.convertStringToDate(l, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-                if (!dateRangeList.contains(date)) {
-                    dateRangeList.add(date);
-                }
+            for (String statDate : stringMapMap.keySet()) {
+                Date date = NumberUtil.isNumber(statDate) ? new Date(NumberUtil.parseLong(statDate) * 1000) : DateUtils.convertStringToDate(statDate, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+                dateSet.add(date);
             }
         }
+        List<Date> dateRangeList = new ArrayList<>(dateSet);
         Collections.sort(dateRangeList);
         if (StringUtil.isNotEmpty(dateRangeList)) {
             for (String key : targetTimeSeriesMap.keySet()) {
@@ -295,7 +303,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
      * @return
      */
     private WhereTimeRange getWhereTimeRange(SQLQuerySource sqlQuerySource) {
-        String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableName());
+        String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableNames().get(0));
         WhereTimeRange whereTimeRange = new WhereTimeRange();
         List<FillParam> outToInnerList = getFillParams(sqlQuerySource);
         for (FillParam fillParam : outToInnerList) {

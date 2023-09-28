@@ -19,6 +19,8 @@
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_processing_time",
         "common_ingestion_time",
         "common_device_id",
@@ -72,6 +74,7 @@
         "http_request_line",
         "http_response_line",
         "http_version",
+        "http_status_code",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -83,6 +86,8 @@
       "metrics": [
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_device_id",
         "common_data_center",
         "common_sled_ip",
@@ -147,6 +152,7 @@
         "http_request_content_type",
         "http_response_content_length",
         "http_response_content_type",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "dns_message_id",
@@ -167,6 +173,8 @@
         "common_stream_dir",
         "common_start_time",
         "common_end_time",
+        "common_start_timestamp_ms",
+        "common_end_timestamp_ms",
         "common_con_duration_ms",
         "common_establish_latency_ms",
         "common_processing_time",
@@ -240,6 +248,7 @@
         "http_response_content_length",
         "http_response_content_type",
         "http_set_cookie",
+        "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
         "dns_message_id",
@@ -276,6 +285,8 @@
           "common_stream_dir",
           "common_start_time",
           "common_end_time",
+          "common_start_timestamp_ms",
+          "common_end_timestamp_ms",
           "common_con_duration_ms",
           "common_establish_latency_ms",
           "common_processing_time",
@@ -1330,6 +1341,36 @@
       "label": "End Time"
     },
     {
+      "name": "common_start_timestamp_ms",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "datetime"
+      }
+    },
+    {
+      "name": "common_end_timestamp_ms",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,>,<,>=,<=",
+          "type": "datetime"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "datetime"
+      }
+    },
+    {
       "name": "common_establish_latency_ms",
       "type": "long",
       "doc": {
@@ -1915,6 +1956,15 @@
         "ttl": null
       },
       "label": "HTTP.Version"
+    },
+    {
+      "name": "http_status_code",
+      "type": "int",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "HTTP.Status Code"
     },
     {
       "name": "http_response_latency_ms",

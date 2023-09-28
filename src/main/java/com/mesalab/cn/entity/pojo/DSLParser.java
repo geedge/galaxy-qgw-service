@@ -1,10 +1,10 @@
 package com.mesalab.cn.entity.pojo;
 
+import com.geedgenetworks.utils.StringUtil;
 import com.google.common.base.Joiner;
 import com.mesalab.cn.constant.SqlKeywords;
 import com.mesalab.cn.enums.MatchTypeEnum;
 import com.mesalab.cn.enums.RangeTypeEnum;
-import com.zdjizhi.utils.StringUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
