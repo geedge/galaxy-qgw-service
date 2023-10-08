@@ -1863,6 +1863,11 @@
       "name": "http_request_body",
       "type": "string",
       "doc": {
+        "format": [
+          {
+            "function": "combine"
+          }
+        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"
@@ -1876,6 +1881,11 @@
       "name": "http_response_body",
       "type": "string",
       "doc": {
+        "format": [
+          {
+            "function": "combine"
+          }
+        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"
