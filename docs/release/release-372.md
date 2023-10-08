@@ -4,3 +4,4 @@ Release 372 (TSG-23.10)
 * 扩展Schema，新增公共毫秒级别时间戳字段(TSG-17187)
 * 修改Schema，统计策略、对象统计Schema删除聚合信息描述
 * 新增公共函数，统一CAST公共函数(TSG-17216)
+* 修改Schema，定义Combine函数(TSG-17239)
