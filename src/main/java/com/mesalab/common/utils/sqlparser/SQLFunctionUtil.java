@@ -545,8 +545,8 @@ public class SQLFunctionUtil {
     private static String castReplaceByDB(String param, String dbType) {
         String replaceValue;
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-            String[] expr = param.split(" ");
-            replaceValue = "CAST#[" + expr[0] + " " + expr[1] + " Nullable(" + expr[2] + ")#]";
+            String[] expr = param.split(" AS ");
+            replaceValue = "CAST#[" + expr[0] + " AS Nullable(" + expr[1] + ")#]";
         } else {
             replaceValue = "CAST#[" + param + "#]";
         }
