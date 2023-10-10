@@ -6,14 +6,21 @@ import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.StringUtil;
 import com.mesalab.common.utils.TimeZoneUtil;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import lombok.Data;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.CastExpression;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -530,10 +537,10 @@ public class SQLFunctionUtil {
         Matcher matcher = pNumCast.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
         if (matcher.find()) {
-            String group2 = matcher.group(2);
-            String replaceValue = group2;
-            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
-                replaceValue = castReplaceByDB(group2, dbType);
+            String group0 = matcher.group(0);
+            String replaceValue = group0;
+            if (StringUtil.getBracketsMatch(group0, "(", false)[0] >= 0) {
+                replaceValue = castReplaceByDB(group0, dbType);
             }
             matcher.appendReplacement(sb, replaceValue);
         }
@@ -543,12 +550,20 @@ public class SQLFunctionUtil {
 
 
     private static String castReplaceByDB(String param, String dbType) {
-        String replaceValue;
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-            String[] expr = param.split(" AS ");
-            replaceValue = "CAST#[" + expr[0] + " AS Nullable(" + expr[1] + ")#]";
-        } else {
-            replaceValue = "CAST#[" + param + "#]";
+        String replaceValue = "";
+        try {
+            Expression expression = CCJSqlParserUtil.parseExpression(param);
+            if (expression instanceof CastExpression) {
+                CastExpression castExpression = (CastExpression) expression;
+                if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                    String dataType = castExpression.getType().getDataType();
+                    castExpression.getType().setDataType("Nullable(" + dataType + ")");
+                }
+                replaceValue = String.valueOf(castExpression).replace("(", "#[").replace(")", "#]");
+            }
+        } catch (JSQLParserException e) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return replaceValue;
     }
