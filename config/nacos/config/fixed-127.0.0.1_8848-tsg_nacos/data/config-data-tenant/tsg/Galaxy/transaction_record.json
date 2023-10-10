@@ -1320,7 +1320,7 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "label": "Start Time"
@@ -1335,7 +1335,7 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "label": "End Time"
@@ -1353,7 +1353,8 @@
       "type": {
         "type": "long",
         "logicalType": "datetime"
-      }
+      },
+      "label": "Start Time"
     },
     {
       "name": "common_end_timestamp_ms",
@@ -1368,7 +1369,8 @@
       "type": {
         "type": "long",
         "logicalType": "datetime"
-      }
+      },
+      "label": "End Time"
     },
     {
       "name": "common_establish_latency_ms",

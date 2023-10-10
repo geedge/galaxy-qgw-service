@@ -1621,7 +1621,7 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
@@ -1636,7 +1636,7 @@
         "constraints": {
           "type": "timestamp"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
@@ -1646,7 +1646,7 @@
     },
     {
       "name": "common_start_timestamp_ms",
-      "label": "Start Time (ms)",
+      "label": "Start Time",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
@@ -1662,7 +1662,7 @@
     },
     {
       "name": "common_end_timestamp_ms",
-      "label": "End Time (ms)",
+      "label": "End Time",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
