@@ -169,6 +169,56 @@
       "name":"avg_ssl_con_latency_ms",
       "label":"AVG SSL.Handshake Latency (ms)",
       "type":"float"
+    },
+    {
+      "name":"asymmetric_sessions",
+      "label":"Asymmetric Sessions",
+      "type":"long"
+    },
+    {
+      "name":"bulky_sessions",
+      "label":"Bulky Sessions",
+      "type":"long"
+    },
+    {
+      "name":"cbr_streaming_sessions",
+      "label":"CBR Streaming Sessions",
+      "type":"long"
+    },
+    {
+      "name":"download_sessions",
+      "label":"Download Sessions",
+      "type":"long"
+    },
+    {
+      "name":"interactive_sessions",
+      "label":"Interactive Sessions",
+      "type":"long"
+    },
+    {
+      "name":"pseudo_unidirectional_sessions",
+      "label":"Pseudo Unidirectional Sessions",
+      "type":"long"
+    },
+    {
+      "name":"streaming_sessions",
+      "label":"Streaming Sessions",
+      "type":"long"
+    },
+    {
+      "name":"unidirectional_sessions",
+      "label":"Unidirectional Sessions",
+      "type":"long"
+    },
+    {
+      "name":"random_looking_sessions",
+      "label":"Random Looking Sessions",
+      "type":"long"
+    },
+    {
+      "name":"bidirectional_sessions",
+      "label":"Bidirectional Sessions",
+      "type":"long"
     }
   ]
 }
