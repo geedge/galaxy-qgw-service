@@ -11,5 +11,84 @@
     ]
   },
   "fields": [
+    {
+      "name":"create_time",
+      "label":"Create Time",
+      "type":"long"
+    },
+    {
+      "name":"update_time",
+      "label":"Update Time",
+      "type":"long"
+    },
+    {
+      "name":"entity_tags",
+      "label":"Tags",
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name":"app_name",
+      "label":"App.Name",
+      "type":"string"
+    },
+    {
+      "name":"app_category",
+      "label":"App.Category",
+      "type":"string"
+    },
+    {
+      "name":"app_subcategory",
+      "label":"App.Subcategory",
+      "type":"string"
+    },
+    {
+      "name":"domain",
+      "label":"Domain",
+      "type":"string"
+    },
+    {
+      "name":"domain_category_name",
+      "label":"Domain.Category",
+      "type":"string"
+    },
+    {
+      "name":"domain_category_group",
+      "label":"Domain.Category Group",
+      "type":"string"
+    },
+    {
+      "name":"ip",
+      "label":"IP",
+      "type":"string"
+    },
+    {
+      "name":"ip_country_region",
+      "label":"IP.Country",
+      "type":"string"
+    },
+    {
+      "name":"ip_super_admin_area",
+      "label":"IP.Region",
+      "type":"string"
+    },
+    {
+      "name":"ip_admin_area",
+      "label":"Ip.City",
+      "type":"string"
+    },
+    {
+      "name":"ip_asn",
+      "label":"IP.Asn",
+      "type":"string"
+    },
+    {
+      "name":"ip_isp",
+      "label":"IP.Isp",
+      "type":"string"
+    }
   ]
 }

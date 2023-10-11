@@ -10,5 +10,215 @@
     ]
   },
   "fields": [
+    {
+      "name":"ip",
+      "label":"IP",
+      "type":"string"
+    },
+    {
+      "name":"side",
+      "label":"Side",
+      "type":"string"
+    },
+    {
+      "name":"zone",
+      "label":"Zone",
+      "type":"string"
+    },
+    {
+      "name":"stat_time",
+      "label":"Stat Time",
+      "type":"long"
+    },
+    {
+      "name":"common_c2s_pkt_num",
+      "label":"Packets Sent",
+      "type":"long"
+    },
+    {
+      "name":"common_c2s_byte_num",
+      "label":"Bytes Sent",
+      "type":"long"
+    },
+    {
+      "name":"common_s2c_pkt_num",
+      "label":"Packets Received",
+      "type":"long"
+    },
+    {
+      "name":"common_s2c_byte_num",
+      "label":"Bytes Received",
+      "type":"long"
+    },
+    {
+      "name":"common_sessions",
+      "label":"Sessions",
+      "type":"long"
+    },
+    {
+      "name":"traffic_inbound_byte",
+      "label":"Traffic Inbound Bytes",
+      "type":"long"
+    },
+    {
+      "name":"traffic_inbound_pkt",
+      "label":"Traffic Inbound Packets",
+      "type":"long"
+    },
+    {
+      "name":"traffic_outbound_byte",
+      "label":"Traffic Outbound Bytes",
+      "type":"long"
+    },
+    {
+      "name":"traffic_outbound_pkt",
+      "label":"Traffic Outbound Packets",
+      "type":"long"
+    },
+    {
+      "name":"traffic_internal_byte",
+      "label":"Traffic Internal Bytes",
+      "type":"long"
+    },
+    {
+      "name":"traffic_internal_pkt",
+      "label":"Traffic Internal Packets",
+      "type":"long"
+    },
+    {
+      "name":"traffic_through_byte",
+      "label":"Traffic Through Bytes",
+      "type":"long"
+    },
+    {
+      "name":"traffic_through_pkt",
+      "label":"Traffic Through Packets",
+      "type":"long"
+    },
+    {
+      "name":"c2s_tcp_lostlen_ratio",
+      "label":"Sequence Gap Loss (c2s)",
+      "type":"float"
+    },
+    {
+      "name":"s2c_tcp_lostlen_ratio",
+      "label":"Sequence Gap Loss (s2c)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_lostlen_ratio",
+      "label":"Sequence Gap Loss",
+      "type":"float"
+    },
+    {
+      "name":"c2s_tcp_unorder_num_ratio",
+      "label":"Unordered Packets (c2s)",
+      "type":"float"
+    },
+    {
+      "name":"s2c_tcp_unorder_num_ratio",
+      "label":"Unordered Packets (s2c)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_unorder_num_ratio",
+      "label":"Unordered Packets",
+      "type":"float"
+    },
+    {
+      "name":"c2s_byte_retrans_ratio",
+      "label":"Byte Retransmission (c2s)",
+      "type":"float"
+    },
+    {
+      "name":"s2c_byte_retrans_ratio",
+      "label":"Byte Retransmission (s2c)",
+      "type":"float"
+    },
+    {
+      "name":"byte_retrans_ratio",
+      "label":"Byte Retransmission",
+      "type":"float"
+    },
+    {
+      "name":"c2s_pkt_retrans_ratio",
+      "label":"Packet Retransmission (c2s)",
+      "type":"float"
+    },
+    {
+      "name":"s2c_pkt_retrans_ratio",
+      "label":"Packet Retransmission (s2c)",
+      "type":"float"
+    },
+    {
+      "name":"pkt_retrans_ratio",
+      "label":"Packet Retransmission",
+      "type":"float"
+    },
+    {
+      "name":"avg_establish_latency_ms",
+      "label":"AVG TCP Handshake Latency (ms)",
+      "type":"float"
+    },
+    {
+      "name":"avg_http_response_latency_ms",
+      "label":"AVG HTTP.Response Latency (ms)",
+      "type":"float"
+    },
+    {
+      "name":"avg_ssl_con_latency_ms",
+      "label":"AVG SSL.Handshake Latency (ms)",
+      "type":"float"
+    },
+    {
+      "name":"asymmetric_sessions",
+      "label":"Asymmetric Sessions",
+      "type":"long"
+    },
+    {
+      "name":"bulky_sessions",
+      "label":"Bulky Sessions",
+      "type":"long"
+    },
+    {
+      "name":"cbr_streaming_sessions",
+      "label":"CBR Streaming Sessions",
+      "type":"long"
+    },
+    {
+      "name":"download_sessions",
+      "label":"Download Sessions",
+      "type":"long"
+    },
+    {
+      "name":"interactive_sessions",
+      "label":"Interactive Sessions",
+      "type":"long"
+    },
+    {
+      "name":"pseudo_unidirectional_sessions",
+      "label":"Pseudo Unidirectional Sessions",
+      "type":"long"
+    },
+    {
+      "name":"streaming_sessions",
+      "label":"Streaming Sessions",
+      "type":"long"
+    },
+    {
+      "name":"unidirectional_sessions",
+      "label":"Unidirectional Sessions",
+      "type":"long"
+    },
+    {
+      "name":"random_looking_sessions",
+      "label":"Random Looking Sessions",
+      "type":"long"
+    },
+    {
+      "name":"bidirectional_sessions",
+      "label":"Bidirectional Sessions",
+      "type":"long"
+    }
   ]
 }

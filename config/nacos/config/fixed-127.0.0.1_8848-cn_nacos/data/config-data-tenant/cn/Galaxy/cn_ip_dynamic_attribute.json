@@ -11,5 +11,30 @@
     ]
   },
   "fields": [
+    {
+      "name":"create_time",
+      "label":"Create Time",
+      "type":"long"
+    },
+    {
+      "name":"update_time",
+      "label":"Update Time",
+      "type":"long"
+    },
+    {
+      "name":"port",
+      "label":"Port",
+      "type":"int"
+    },
+    {
+      "name":"l7_protocol",
+      "label":"L7 Protocol",
+      "type":"string"
+    },
+    {
+      "name":"ip",
+      "label":"IP",
+      "type":"string"
+    }
   ]
 }
