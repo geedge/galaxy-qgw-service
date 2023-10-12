@@ -138,7 +138,7 @@
       {
         "name": "bitAnd",
         "label": "Bitwise AND",
-        "function": "bitAnd(expr, value)"
+        "function": "bitAnd(expr, value)=value"
       }
     ],
     "sketch": [
