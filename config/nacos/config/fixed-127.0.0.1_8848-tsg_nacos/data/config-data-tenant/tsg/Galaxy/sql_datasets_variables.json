@@ -88,10 +88,6 @@
     "default": ""
   },
   {
-    "key": "order",
-    "default": "DESC"
-  },
-  {
     "key": "timestampdiff_second",
     "default": 86400
   },
@@ -102,5 +98,9 @@
   {
     "key": "log_id",
     "default": 1153021139190754263
+  },
+  {
+    "key": "order_by",
+    "default": 1
   }
 ]
