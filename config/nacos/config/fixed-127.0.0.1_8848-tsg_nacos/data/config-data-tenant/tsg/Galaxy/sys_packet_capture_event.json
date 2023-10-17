@@ -129,6 +129,14 @@
       "label": "Client Port"
     },
     {
+      "name": "common_client_os_name",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Client OS"
+    },
+    {
       "name": "common_l4_protocol",
       "type": "string",
       "doc": {
@@ -172,6 +180,14 @@
         "visibility": "enabled"
       },
       "label": "Server Port"
+    },
+    {
+      "name": "common_server_os_name",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Server OS"
     },
     {
       "name": "common_external_ip",

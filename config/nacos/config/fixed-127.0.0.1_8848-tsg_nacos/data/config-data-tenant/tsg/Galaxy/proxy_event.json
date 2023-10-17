@@ -36,6 +36,7 @@
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
+        "common_client_os_name",
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
@@ -45,6 +46,7 @@
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
+        "common_server_os_name",
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
@@ -114,6 +116,7 @@
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
+        "common_client_os_name",
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
@@ -123,6 +126,7 @@
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
+        "common_server_os_name",
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
@@ -218,6 +222,7 @@
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
+        "common_client_os_name",
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
@@ -227,6 +232,7 @@
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
+        "common_server_os_name",
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
@@ -351,6 +357,7 @@
           "common_client_ip",
           "common_internal_ip",
           "common_client_port",
+          "common_client_os_name",
           "common_client_location",
           "common_client_asn",
           "common_subscriber_id",
@@ -364,6 +371,7 @@
           "common_server_ip",
           "common_external_ip",
           "common_server_port",
+          "common_server_os_name",
           "common_server_location",
           "common_server_asn",
           "common_server_fqdn",
@@ -440,11 +448,13 @@
           "common_out_src_mac",
           "common_client_ip",
           "common_client_port",
+          "common_client_os_name",
           "common_internal_ip",
           "common_l4_protocol",
           "common_address_type",
           "common_server_ip",
           "common_server_port",
+          "common_server_os_name",
           "common_external_ip",
           "common_direction",
           "common_entrance_id",
@@ -752,6 +762,14 @@
       "type": "int"
     },
     {
+      "name": "common_client_os_name",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Client OS"
+    },
+    {
       "name": "common_l4_protocol",
       "label": "L4 Protocol",
       "doc": {
@@ -808,6 +826,14 @@
         "ttl": null
       },
       "type": "int"
+    },
+    {
+      "name": "common_server_os_name",
+      "type": "string",
+      "doc": {
+        "visibility": "hidden"
+      },
+      "label": "Server OS"
     },
     {
       "name": "common_external_ip",

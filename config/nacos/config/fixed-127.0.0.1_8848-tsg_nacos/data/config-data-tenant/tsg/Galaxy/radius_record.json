@@ -32,11 +32,13 @@
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
+        "common_client_os_name",
         "common_client_location",
         "common_client_asn",
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
+        "common_server_os_name",
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
@@ -78,6 +80,7 @@
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
+        "common_client_os_name",
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
@@ -86,6 +89,7 @@
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
+        "common_server_os_name",
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
@@ -133,6 +137,7 @@
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
+        "common_client_os_name",
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
@@ -141,6 +146,7 @@
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
+        "common_server_os_name",
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
@@ -215,6 +221,7 @@
           "common_client_ip",
           "common_internal_ip",
           "common_client_port",
+          "common_client_os_name",
           "common_client_location",
           "common_client_asn",
           "common_subscriber_id",
@@ -228,6 +235,7 @@
           "common_server_ip",
           "common_external_ip",
           "common_server_port",
+          "common_server_os_name",
           "common_server_location",
           "common_server_asn",
           "common_server_fqdn",
@@ -431,6 +439,14 @@
       "type": "int"
     },
     {
+      "name": "common_client_os_name",
+      "label": "Client OS",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
       "name": "common_internal_ip",
       "label": "Internal IP",
       "doc": {
@@ -496,6 +512,14 @@
         "ttl": null
       },
       "type": "int"
+    },
+    {
+      "name": "common_server_os_name",
+      "label": "Server OS",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
     },
     {
       "name": "common_external_ip",
