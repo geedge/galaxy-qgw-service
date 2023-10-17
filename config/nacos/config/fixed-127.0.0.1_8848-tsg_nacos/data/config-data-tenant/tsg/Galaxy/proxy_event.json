@@ -765,7 +765,8 @@
       "name": "common_client_os_name",
       "type": "string",
       "doc": {
-        "visibility": "hidden"
+        "visibility": "hidden",
+        "ttl": null
       },
       "label": "Client OS"
     },
@@ -831,7 +832,8 @@
       "name": "common_server_os_name",
       "type": "string",
       "doc": {
-        "visibility": "hidden"
+        "visibility": "hidden",
+        "ttl": null
       },
       "label": "Server OS"
     },
