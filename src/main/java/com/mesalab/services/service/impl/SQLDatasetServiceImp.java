@@ -137,7 +137,7 @@ public class SQLDatasetServiceImp
         String execute_engine = String.valueOf(dataset.get(EXECUTE_ENGINE));
         String sql = buildExecSQL(getVariable(), sqlTemplate);
         log.info("Dataset Preview, ID is: {}, Exec SQL is: {}", datasetId, sql);
-        if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
+        if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option) || StrUtil.isBlank(option)) {
             if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(execute_engine)) {
                 return generateClickHouseBaseResult(sql);
             }
