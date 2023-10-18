@@ -834,14 +834,18 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
+        "visibility": "enabled"
       },
       "type": {
-        "type": "long",
-        "logicalType": "datetime"
+        "type": "string",
+        "logicalType": "datetime64"
       }
     },
     {
@@ -850,14 +854,18 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
+        "visibility": "enabled"
       },
       "type": {
-        "type": "long",
-        "logicalType": "datetime"
+        "type": "string",
+        "logicalType": "datetime64"
       }
     },
     {

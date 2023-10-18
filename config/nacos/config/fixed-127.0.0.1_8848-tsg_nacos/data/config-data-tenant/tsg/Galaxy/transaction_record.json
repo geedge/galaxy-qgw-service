@@ -1368,33 +1368,43 @@
     },
     {
       "name": "common_start_timestamp_ms",
+      "type": {
+        "type": "string",
+        "logicalType": "datetime64"
+      },
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
-      },
-      "type": {
-        "type": "long",
-        "logicalType": "datetime"
       },
       "label": "Start Time"
     },
     {
       "name": "common_end_timestamp_ms",
+      "type": {
+        "type": "string",
+        "logicalType": "datetime64"
+      },
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
-      },
-      "type": {
-        "type": "long",
-        "logicalType": "datetime"
       },
       "label": "End Time"
     },

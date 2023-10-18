@@ -1235,14 +1235,19 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
       "type": {
-        "type": "long",
-        "logicalType": "datetime"
+        "type": "string",
+        "logicalType": "datetime64"
       }
     },
     {
@@ -1251,14 +1256,19 @@
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
       "type": {
-        "type": "long",
-        "logicalType": "datetime"
+        "type": "string",
+        "logicalType": "datetime64"
       }
     },
     {
