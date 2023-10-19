@@ -123,7 +123,7 @@
     {
       "name": "pinning_status",
       "label": "Pinning Status",
-      "type": "int",
+      "type": "string",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
