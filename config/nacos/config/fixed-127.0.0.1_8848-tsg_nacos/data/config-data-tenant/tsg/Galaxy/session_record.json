@@ -610,6 +610,12 @@
       },
       "RDP": {
         "$ref": "public_schema_info.json#/schema_type/RDP"
+      },
+      "RTP": {
+        "$ref": "public_schema_info.json#/schema_type/RTP"
+      },
+      "SIP": {
+        "$ref": "public_schema_info.json#/schema_type/SIP"
       }
     },
     "default_columns": [
@@ -1239,6 +1245,14 @@
           {
             "code": "RDP",
             "value": "RDP"
+          },
+          {
+            "code": "RTP",
+            "value": "RTP"
+          },
+          {
+            "code": "SIP",
+            "value": "SIP"
           }
         ],
         "visibility": "enabled",

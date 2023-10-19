@@ -1288,6 +1288,14 @@
           {
             "code": "RDP",
             "value": "RDP"
+          },
+          {
+            "code": "RTP",
+            "value": "RTP"
+          },
+          {
+            "code": "SIP",
+            "value": "SIP"
           }
         ],
         "visibility": "enabled",
