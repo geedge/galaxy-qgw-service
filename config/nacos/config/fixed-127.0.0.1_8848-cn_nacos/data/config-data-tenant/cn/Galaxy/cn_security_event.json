@@ -1,0 +1,103 @@
+{
+  "type": "record",
+  "name": "cn_security_event",
+  "namespace": "cyber_narrator_galaxy",
+  "doc": {
+    "partition_key": "event_id",
+    "index_key": [
+      "event_id"
+    ]
+  },
+  "fields": [
+    {
+      "name":"event_id",
+      "label":"Event ID",
+      "type":"long"
+    },
+    {
+      "name":"event_type",
+      "label":"Event Type",
+      "type":"string"
+    },
+    {
+      "name":"event_name",
+      "label":"Event Name",
+      "type":"string"
+    },
+    {
+      "name":"event_key",
+      "label":"Event Key",
+      "type":"string"
+    },
+    {
+      "name":"rule_id",
+      "label":"Rule ID",
+      "type":"long"
+    },
+    {
+      "name":"rule_type",
+      "label":"Rule Type",
+      "type":"string"
+    },
+    {
+      "name":"is_builtin",
+      "label":"IS Builtin",
+      "type":"int"
+    },
+    {
+      "name":"severity",
+      "label":"Severity",
+      "type":"string"
+    },
+    {
+      "name":"offender_ip",
+      "label":"Offender IP",
+      "type":"string"
+    },
+    {
+      "name":"victim_ip",
+      "label":"Victim IP",
+      "type":"string"
+    },
+    {
+      "name":"domain",
+      "label":"Domain",
+      "type":"string"
+    },
+    {
+      "name":"app",
+      "label":"APP",
+      "type":"string"
+    },
+    {
+      "name":"start_time",
+      "label":"Start Time",
+      "type":"long"
+    },
+    {
+      "name":"end_time",
+      "label":"End Time",
+      "type":"long"
+    },
+    {
+      "name":"duration_s",
+      "label":"Duration (s)",
+      "type":"long"
+    },
+    {
+      "name":"match_times",
+      "label":"Match Time",
+      "type":"long"
+    },
+    {
+      "name":"status",
+      "label":"Status",
+      "type":"int"
+    },
+    {
+      "name":"event_info",
+      "label":"Event Info",
+      "type":"string"
+    }
+  ]
+}
