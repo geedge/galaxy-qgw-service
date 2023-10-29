@@ -416,7 +416,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         List<String> list = Lists.newArrayList(start.concat("/").concat(end));
         StringBuilder timeInterval = new StringBuilder();
         String[] intervals = getIntervals(list);
-        timeInterval.append("common_recv_time >= UNIX_TIMESTAMP('").append(intervals[0]).append("') AND common_recv_time< UNIX_TIMESTAMP('").append(intervals[1]).append("')");
+        timeInterval.append("recv_time >= UNIX_TIMESTAMP('").append(intervals[0]).append("') AND recv_time< UNIX_TIMESTAMP('").append(intervals[1]).append("')");
         return timeInterval.toString();
     }
 

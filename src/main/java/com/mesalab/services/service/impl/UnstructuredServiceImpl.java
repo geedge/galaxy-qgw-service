@@ -188,7 +188,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
 
     private String generateWhereOfTime(ComDSLObject.Query query) {
         String[] intervals = getIntervals(query.getParameters().getIntervals());
-        String whereOfTime = "common_recv_time >=  UNIX_TIMESTAMP('" + intervals[0] + "') AND common_recv_time <  UNIX_TIMESTAMP('" + intervals[1] + "')";
+        String whereOfTime = "recv_time >=  UNIX_TIMESTAMP('" + intervals[0] + "') AND recv_time <  UNIX_TIMESTAMP('" + intervals[1] + "')";
         return whereOfTime;
     }
 
