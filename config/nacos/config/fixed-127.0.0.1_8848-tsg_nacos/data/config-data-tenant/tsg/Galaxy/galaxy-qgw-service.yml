@@ -27,9 +27,9 @@ management:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.44.12:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=GMT&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
-    username: ENC(63aTpwv2vH0vPikW+3Jjig==)
-    password: ENC(LDEb2OekU7iZWiFw6pUYBSozVKP27r1y)
+    url: jdbc:mysql://192.168.44.55:3306/tsg-bifang?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
+    username: ENC(TOq791VPxSFyX/S4fqcv0g==)
+    password: ENC(Qii8wWRNnB61f/0wnrVIbXr2VmnncK2c)
   flyway:
     enabled: true              # 是否开启
     encoding: UTF-8            # 编码

@@ -3,6 +3,7 @@ package com.mesalab.services.controller;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.mesalab.cn.exception.CNErrorMessage;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -10,7 +11,6 @@ import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.service.DeferredResultHolder;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.configuration.JobConfig;
@@ -32,7 +32,7 @@ import static com.mesalab.services.configuration.JobConfig.*;
  * @Author wWei
  */
 @RestController
-@RequestMapping(value = "/admin/query/")
+@RequestMapping(value = {"/query", "/admin/query"})
 public class JobController {
     private static final Log log = LogFactory.get();
 
@@ -49,16 +49,15 @@ public class JobController {
     @PostMapping(value = "/jobs", produces = "application/json")
     public BaseResult commitJob(@RequestBody HashMap<String, Object> reqBody) {
         validateJobParams(reqBody);
-        BaseResult baseResult;
         String type = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
-        if (JobConfig.FIELD_DISCOVERY.equals(type) || STATISTICS.equals(type)) {
-            baseResult = jobService.commitAdHocQuery(reqBody);
+        if (JobConfig.FIELD_DISCOVERY.equals(type)
+                || JobConfig.STATISTICS.equals(type) || JobConfig.LONG_TERM.equals(type)) {
+            return jobService.commitAdHocQuery(reqBody);
         } else if (JobConfig.REPORT.equals(type)) {
-            baseResult = jobService.commitSavedQuery(reqBody);
-        } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "Not Support");
+            return jobService.commitSavedQuery(reqBody);
         }
-        return baseResult;
+        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Support"));
     }
 
     @GetMapping(value = "/jobs/{jobId}/field_discovery")
@@ -84,7 +83,7 @@ public class JobController {
         return deferredResult;
     }
 
-    @GetMapping(value = "/jobs/{jobId}/statistics")
+    @GetMapping(value = {"/jobs/{jobId}/long-term", "/jobs/{jobId}/statistics"})
     public DeferredResult<BaseResult> longPollingStatisticsResult(@PathVariable String jobId) {
         log.info("Long Polling Request,Job ID is {}", jobId);
         BaseResult baseResult = null;

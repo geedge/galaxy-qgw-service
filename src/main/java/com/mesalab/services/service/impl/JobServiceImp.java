@@ -106,26 +106,29 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult commitAdHocQuery(HashMap<String, Object> reqBody) {
         validateAdHocQuery(reqBody);
-        String id = DigestUtil.md5Hex16(String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE)).toLowerCase()).concat(JobConfig.DELIMIT).concat(DigestUtil.md5Hex16(String.valueOf(reqBody)));
+        String id = DigestUtil.md5Hex16(String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE)).toLowerCase())
+                .concat(JobConfig.DELIMIT)
+                .concat(DigestUtil.md5Hex16(String.valueOf(reqBody)));
+        String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (isExist(id)) {
             log.info("Hoc Job already exist, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
-            return BaseResultGenerator.success("ok", buildData(id));
+            return BaseResultGenerator.success("ok", buildJobInfo(id, queryType));
         }
         log.info("Add Hoc Job, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
         Map<String, Object> property = Maps.newLinkedHashMap();
-        String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
             initFieldDiscoveryJob(id, reqBody, property);
             jobExecuteService.addExecutorFieldDiscovery(id, reqBody);
-        } else if (JobConfig.STATISTICS.equals(queryType)) {
+        } else if (JobConfig.LONG_TERM.equals(queryType)
+                || JobConfig.STATISTICS.equals(queryType)) {
             initStatisticsJob(id, reqBody, property);
             jobExecuteService.addExecutorStatistics(id, reqBody, property);
         }
-        return BaseResultGenerator.success("ok", buildData(id));
+        return BaseResultGenerator.success("ok", buildJobInfo(id, queryType));
     }
 
     private void initStatisticsJob(String id, HashMap<String, Object> reqBody, Map<String, Object> property) {
-        buildPropertyOfStatistics(String.valueOf(reqBody.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL)), property);
+        buildPropertyOfStatistics(!StrUtil.isEmptyIfStr(reqBody.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL)) ? reqBody.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString() : reqBody.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), property);
         if (!isValidProperty(property)) {
             property.remove(JobConfig.JOB_PROPERTY_K_OPTION);
         }
@@ -152,8 +155,9 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         validateReport(map);
         String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL).toString(), false).replace("'", "\\'");
         String id = getSameJob(sql);
+        String queryType = String.valueOf(map.get(JobConfig.KEY_QUERY_TYPE));
         if (StringUtil.isNotBlank(id)) {
-            return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildData(id));
+            return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
         }
         map.put("UUID", System.currentTimeMillis());
         id = DigestUtil.md5Hex16(JobConfig.REPORT)
@@ -161,7 +165,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 .concat(DigestUtil.md5Hex16(String.valueOf(map)));
         String currentDate = DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS);
         Db.update(String.format(Objects.requireNonNull(env.getProperty("REPORT_INSERT")), currentDate, sql, currentDate, currentDate, currentDate, currentDate, id, TimeZone.getDefault().getID()));
-        return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildData(id));
+        return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
     }
 
     @Override
@@ -344,7 +348,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private void buildPropertyOfStatistics(String sql, Map<String, Object> property) {
-        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.STATISTICS);
+        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.LONG_TERM);
         property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, JobConfig.STATISTICS_RESULT);
         try {
             PlainSelect plainSelect = checkParam(sql, CCJSqlParserUtil.parse(sql));
@@ -535,7 +539,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
             body.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));
             syntaxValidationFieldDiscovery(body);
-        } else if (JobConfig.STATISTICS.equals(type)) {
+        } else if (JobConfig.LONG_TERM.equals(type) || JobConfig.STATISTICS.equals(type)) {
             syntaxValidationStatistics(body);
         }
     }
@@ -586,7 +590,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private void syntaxValidationStatistics(HashMap<String, Object> body) {
-        String sql = String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL));
+        String sql = String.valueOf(!StrUtil.isEmptyIfStr(body.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL)) ? body.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString() : body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
 
         BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build());
         if (!baseResult.isSuccess()) {
@@ -618,9 +622,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         return i == 1;
     }
 
-    private List buildData(String id) {
+    private List buildJobInfo(String id, String queryType) {
         Map<String, Object> data = Maps.newHashMap();
-        data.put("jobId", id);
+        data.put("job_id", id);
+        data.put("resource_path", id.concat("/").concat(queryType));
         return Lists.newArrayList(data);
     }
 
