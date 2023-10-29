@@ -29,7 +29,7 @@ SELECT app_name as app_name, SUM(bytes) as bytes, SUM(sessions) as sessions, MAX
 #end
 
 #sql("APP_INTERNAL_IP_SUMMARY")
-SELECT common_internal_ip AS ip, SUM(common_c2s_byte_num + common_s2c_byte_num) AS bytes FROM %s WHERE %s %s GROUP BY ip ORDER BY bytes DESC %s
+SELECT IF(bitAnd(flags, 8) = 8 AND bitAnd(flags, 16) != 16, client_ip, IF(bitAnd(flags, 8) != 8 AND bitAnd(flags, 16) = 16, server_ip, arrayJoin(splitByChar('_',concat(client_ip,'_',server_ip))))) AS ip, SUM(sent_bytes + received_bytes) AS bytes FROM %s WHERE %s %s AND (bitAnd(flags, 8) = 8 OR bitAnd(flags, 16) = 16) GROUP BY ip ORDER BY bytes DESC %s
 #end
 
 #sql("APP_DATA_RATE_SUMMARY")

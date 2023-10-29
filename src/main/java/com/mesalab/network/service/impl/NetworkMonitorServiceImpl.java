@@ -66,11 +66,8 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
-        LOGICAL_FIELD.put("data_center", "common_data_center");
-        LOGICAL_FIELD.put("device_group", "common_device_group");
-        LOGICAL_FIELD.put("vsys_id", "common_vsys_id");
-        LOGICAL_FIELD.put("protocol_stack_id", "common_protocol_label");
-        LOGICAL_FIELD.put("app_name", "common_app_label");
+        LOGICAL_FIELD.put("protocol_stack_id", "protocol_path");
+        LOGICAL_FIELD.put("app_name", "app");
     }
 
     @Override
@@ -502,7 +499,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     public BaseResult buildInternalIPData(DSLObject dslObject) {
         String whereOfExactly = getWhereFilter(dslObject.getQuery().getParameters(), true, null);
         String[] intervals = getIntervals(dslObject.getQuery().getParameters().getIntervals());
-        String whereOfTime = "common_recv_time >=  UNIX_TIMESTAMP('" + intervals[0] + "') AND common_recv_time <  UNIX_TIMESTAMP('" + intervals[1] + "')";
+        String whereOfTime = "recv_time >=  UNIX_TIMESTAMP('" + intervals[0] + "') AND recv_time <  UNIX_TIMESTAMP('" + intervals[1] + "')";
         Integer limit = dslObject.getQuery().getLimit();
         Integer offset = dslObject.getQuery().getOffset();
         String sql = String.format(Objects.requireNonNull(environment.getProperty("APP_INTERNAL_IP_SUMMARY")),
