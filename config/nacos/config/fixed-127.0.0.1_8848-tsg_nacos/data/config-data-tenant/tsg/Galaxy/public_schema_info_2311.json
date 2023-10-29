@@ -317,23 +317,6 @@
       ]
     }
   },
-  "interim_session_record": {
-    "index_key": {
-      "log_id": [
-        "common_log_id",
-        "common_data_center",
-        "common_recv_time",
-        "common_vsys_id"
-      ],
-      "vsys_id": [
-        "common_vsys_id",
-        "common_data_center",
-        "common_device_group",
-        "common_recv_time",
-        "common_log_id"
-      ]
-    }
-  },
   "transaction_record": {
     "index_key": {
       "log_id": [

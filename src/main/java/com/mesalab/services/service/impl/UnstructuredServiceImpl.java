@@ -31,10 +31,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -48,7 +45,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     private static final Log log = LogFactory.get();
     private final static Map<String, String> fileType = Maps.newHashMap();
     private static final String COMMONFILE = "common";
-
+    private static final String[] tables = new String[]{"session_record", "security_event", "transaction_record"};
     static {
         fileType.put("common_packet_capture_file", UnstructuredDataType.PCAP.getType());
         fileType.put("rtp_pcap_path", UnstructuredDataType.PCAP.getType());
@@ -170,7 +167,11 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
         if (tableFileType.containsKey(param)) {
             List<String> listFields = tableFileType.get(param);
             for (String field : listFields) {
-                String sql = String.format(Objects.requireNonNull(env.getProperty("UNSTRUCTURED_DATA_PATH")), field, dataSource, generateWhereOfTime(dslObject.getQuery()), field, limit);
+                String sql = String.format(
+                        Arrays.asList(tables).contains(dataSource) ? Objects.requireNonNull(env.getProperty("UNSTRUCTURED_DATA_PATH")) : Objects.requireNonNull(env.getProperty("UNSTRUCTURED_DATA_PATH_OLD"))
+                        , field, dataSource
+                        , generateWhereOfTime(Arrays.asList(tables).contains(dataSource) ? "recv_time" : "common_recv_time", dslObject.getQuery())
+                        , field, limit);
                 BaseResult result = queryService.executeQuery(queryBuild(sql));
                 if (!result.isSuccess()) {
                     log.error("Query unstructured data status error: {}", result.getMessage());
@@ -186,9 +187,9 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
         return dataResult;
     }
 
-    private String generateWhereOfTime(ComDSLObject.Query query) {
+    private String generateWhereOfTime(String timeKey, ComDSLObject.Query query) {
         String[] intervals = getIntervals(query.getParameters().getIntervals());
-        String whereOfTime = "recv_time >=  UNIX_TIMESTAMP('" + intervals[0] + "') AND recv_time <  UNIX_TIMESTAMP('" + intervals[1] + "')";
+        String whereOfTime = timeKey + " >=  UNIX_TIMESTAMP('" + intervals[0] + "') AND " + timeKey + " <  UNIX_TIMESTAMP('" + intervals[1] + "')";
         return whereOfTime;
     }
 

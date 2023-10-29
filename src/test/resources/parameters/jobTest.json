@@ -3,9 +3,9 @@
     "query.type": "field_discovery",
     "query.data_source": "session_record",
     "custom.field_discovery.fields": [
-      "common_log_id",
-      "common_action"
+      "log_id",
+      "security_action"
     ],
-    "custom.field_discovery.filter": "common_vsys_id in (1,2) and common_client_ip='192.168.0.1' AND common_server_port=80"
+    "custom.field_discovery.filter": "vsys_id in (1,2) and client_ip='192.168.0.1' AND server_port=80"
   }
 }
