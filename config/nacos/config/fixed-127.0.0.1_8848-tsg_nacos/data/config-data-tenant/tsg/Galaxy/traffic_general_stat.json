@@ -5,18 +5,18 @@
   "doc": {
     "partition_key": "__time",
     "functions": {
-      "$ref": "public_schema_info.json#/functions"
+      "$ref": "public_schema_info_2311.json#/functions"
     },
     "schema_query": {
       "references": {
-        "$ref": "public_schema_info.json#/schema_query/references"
+        "$ref": "public_schema_info_2311.json#/schema_query/references"
       }
     },
     "measurements": {
       "granularity": 5,
       "ingestion_delay": 15,
       "units": {
-        "$ref": "public_schema_info.json#/units"
+        "$ref": "public_schema_info_2311.json#/units"
       }
     }
   },

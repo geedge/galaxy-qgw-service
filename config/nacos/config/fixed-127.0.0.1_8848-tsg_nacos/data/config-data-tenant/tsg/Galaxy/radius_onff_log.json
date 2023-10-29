@@ -5,7 +5,7 @@
   "doc": {
     "partition_key": "event_timestamp",
     "index_key": {
-      "$ref": "public_schema_info.json#/radius_onff_log/index_key"
+      "$ref": "public_schema_info_2311.json#/radius_onff_log/index_key"
     }
   },
   "fields": [

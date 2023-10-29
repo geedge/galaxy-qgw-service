@@ -8,10 +8,10 @@
     "ttl": null,
     "default_ttl": 2592000,
     "index_key": {
-      "$ref": "public_schema_info.json#/proxy_event/index_key"
+      "$ref": "public_schema_info_2311.json#/proxy_event/index_key"
     },
     "functions": {
-      "$ref": "public_schema_info.json#/functions"
+      "$ref": "public_schema_info_2311.json#/functions"
     },
     "schema_query": {
       "dimensions": [
@@ -313,7 +313,7 @@
         "doh_rr"
       ],
       "references": {
-        "$ref": "public_schema_info.json#/schema_query/references"
+        "$ref": "public_schema_info_2311.json#/schema_query/references"
       },
       "details": {
         "general": [
@@ -573,10 +573,10 @@
         ]
       },
       "HTTP": {
-        "$ref": "public_schema_info.json#/schema_type/HTTP"
+        "$ref": "public_schema_info_2311.json#/schema_type/HTTP"
       },
       "DoH": {
-        "$ref": "public_schema_info.json#/schema_type/DoH"
+        "$ref": "public_schema_info_2311.json#/schema_type/DoH"
       }
     },
     "default_columns": [
@@ -616,7 +616,7 @@
       ]
     },
     "tunnel_type": {
-      "$ref": "public_schema_info.json#/tunnel_type"
+      "$ref": "public_schema_info_2311.json#/tunnel_type"
     }
   },
   "fields": [
@@ -1174,7 +1174,7 @@
           "operator_functions": "=,!=,bitAnd"
         },
         "data": {
-          "$ref": "public_schema_info.json#/fields/common_flags/data"
+          "$ref": "public_schema_info_2311.json#/fields/common_flags/data"
         },
         "allow_query": "false",
         "visibility": "hidden",
@@ -1386,7 +1386,7 @@
           "operator_functions": "=,!=,in,not in"
         },
         "data": {
-          "$ref": "public_schema_info.json#/fields/common_encapsulation/data"
+          "$ref": "public_schema_info_2311.json#/fields/common_encapsulation/data"
         },
         "visibility": "hidden",
         "ttl": null
@@ -1641,7 +1641,7 @@
           "operator_functions": "=,!=,in,not in"
         },
         "data": {
-          "$ref": "public_schema_info.json#/fields/common_has_dup_traffic/data"
+          "$ref": "public_schema_info_2311.json#/fields/common_has_dup_traffic/data"
         },
         "visibility": "hidden",
         "ttl": null
