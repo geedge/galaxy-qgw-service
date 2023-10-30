@@ -6,6 +6,7 @@ import com.alibaba.fastjson2.JSON;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.enums.MetadataTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.ResultStatusEnum;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/metadata")
+@RequestMapping(value = "v1/metadata")
 public class MetadataController {
 
     @Autowired
@@ -32,26 +33,36 @@ public class MetadataController {
     private final static List<String> VISIBILITY = Arrays.asList("enabled", "hidden", "disabled");
 
 
-    @RequestMapping("/schema/v1/{type}/{name}")
-    public BaseResult getSchema(@PathVariable String type, @PathVariable String name) {
-        log.debug("SCHEMA信息获取,参数为{} {}", type, name);
+    @RequestMapping("/schema/{table_name}")
+    public BaseResult getSchemaByTable(@PathVariable("table_name") String tableName) {
+        log.debug("SCHEMA信息获取,参数为{} {}", tableName);
 
-        if (StringUtil.isBlank(type) || StringUtil.isBlank(name)) {
-
+        if (StringUtil.isBlank(tableName)) {
             return BaseResultGenerator.success4Message("ok");
         }
-        return BaseResultGenerator.success(metadataService.getSchemaInfo(type, name, true));
+        return BaseResultGenerator.success(metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, true));
     }
 
-    @PutMapping("/schema/v1/fields/{name}")
-    public BaseResult updateSchema(@PathVariable String name, @RequestBody Map<String, Object> obj) {
-        log.info("update Schema api, params is: {}-{}", name, obj);
-        if (StringUtil.isBlank(name) || StringUtil.isEmpty(obj)) {
+    @PutMapping("/schema/{table_name}")
+    public BaseResult updateSchema(@PathVariable("table_name") String tableName, @RequestBody Map<String, Object> obj) {
+        log.info("update Schema api, params is: {}-{}", tableName, obj);
+        if (StringUtil.isBlank(tableName) || StringUtil.isEmpty(obj)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_PARAM_ERROR));
         }
-        validationParam(name, obj);
-        return metadataService.updateSchema(name, obj);
+        validationParam(tableName, obj);
+        return metadataService.updateSchema(tableName, obj);
+    }
+
+    @RequestMapping("/{database}/table")
+    public BaseResult getTableByDB(@PathVariable String database) {
+        log.debug("SCHEMA信息获取,参数为{} {}",database);
+
+        if (StringUtil.isBlank(database)) {
+
+            return BaseResultGenerator.success4Message("ok");
+        }
+        return BaseResultGenerator.success(metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), database, true));
     }
 
     private void validationParam(String name, Map<String, Object> obj) {

@@ -391,7 +391,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         } catch (UnsupportedEncodingException e) {
             log.error("sql Encode error: ", e);
         }
-        String queryURL = URLUtil.normalize(localHostAddress + ":" + getPort() + "/?query=");
+        String queryURL = URLUtil.normalize(localHostAddress + ":" + getPort() + "sql/?query=");
         int socketTimeOut = httpConfig.getServerResponseTimeOut();
         return httpClientService.httpGet(queryURL + sql, socketTimeOut);
     }

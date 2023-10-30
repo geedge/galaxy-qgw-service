@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/")
+@RequestMapping(value = "/sql")
 public class QueryController {
 
     @Autowired
