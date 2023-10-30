@@ -29,7 +29,7 @@ SELECT app_name as app_name, SUM(bytes) as bytes, SUM(sessions) as sessions, MAX
 #end
 
 #sql("APP_INTERNAL_IP_SUMMARY")
-SELECT IF(bitAnd(flags, 8) = 8 AND bitAnd(flags, 16) != 16, client_ip, IF(bitAnd(flags, 8) != 8 AND bitAnd(flags, 16) = 16, server_ip, arrayJoin(splitByChar('_',concat(client_ip,'_',server_ip))))) AS ip, SUM(sent_bytes + received_bytes) AS bytes FROM %s WHERE %s %s AND (bitAnd(flags, 8) = 8 OR bitAnd(flags, 16) = 16) GROUP BY ip ORDER BY bytes DESC %s
+SELECT if(bitAnd(flags, 8) = 8, client_ip, server_ip) AS ip, SUM(sent_bytes + received_bytes) AS bytes FROM %s WHERE %s %s GROUP BY ip ORDER BY bytes DESC %s
 #end
 
 #sql("APP_DATA_RATE_SUMMARY")
@@ -41,55 +41,55 @@ SELECT app_name, SUM(sessions) as sessions, sum(c2s_bytes + s2c_bytes) as bytes,
 #end
 
 #sql("ENTITY_ACTIVE_CLIENT_IP")
-select client_ip as client_ip, vsys_id as vsys_id from %s where %s %s AND notEmpty(client_ip) GROUP BY client_ip, app, vsys_id ORDER BY COUNT(session_id) DESC LIMIT %s
+select client_ip as client_ip, vsys_id as vsys_id from %s where %s %s AND notEmpty(client_ip) GROUP BY client_ip, app, vsys_id ORDER BY COUNT(1) DESC LIMIT %s
 #end
 
 #sql("ENTITY_UDP_SESSION")
-select server_ip as server_ip,vsys_id as vsys_id ,COUNT(session_id) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and server_port in (53 , 443) group by server_ip,vsys_id order by sessions desc limit %s
+select server_ip as server_ip,vsys_id as vsys_id ,COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') and server_port in (53 , 443) group by server_ip,vsys_id order by sessions desc limit %s
 #end
 
 #sql("ENTITY_UDP_UNIQ_CLIENT_IPS")
-select server_ip as server_ip, vsys_id as vsys_id  from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) group by server_ip,vsys_id order by COUNT(DISTINCT(client_ip)) desc limit %s
+select server_ip as server_ip, vsys_id as vsys_id  from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') group by server_ip,vsys_id order by COUNT(DISTINCT(client_ip)) desc limit %s
 #end
 
 #sql("ENTITY_TCP_SESSION")
-select server_ip as server_ip,vsys_id as vsys_id ,COUNT(session_id) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip,vsys_id order by sessions desc limit %s
+select server_ip as server_ip,vsys_id as vsys_id ,COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') group by server_ip,vsys_id order by sessions desc limit %s
 #end
 
 #sql("ENTITY_TCP_UNIQ_CLIENT_IPS")
-select server_ip as server_ip, vsys_id as vsys_id from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip, vsys_id order by COUNT(DISTINCT(client_ip)) desc limit %s
+select server_ip as server_ip, vsys_id as vsys_id from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') group by server_ip, vsys_id order by COUNT(DISTINCT(client_ip)) desc limit %s
 #end
 
 #sql("TOP_ENTITY_TCP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(client_ip)) as client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) AND server_ip in (select server_ip from %s as cc where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) group by server_ip order by COUNT(DISTINCT(client_ip)) desc limit %s)
+select COUNT(DISTINCT(client_ip)) as client_ips from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') AND server_ip in (select server_ip from %s as cc where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') group by server_ip order by COUNT(DISTINCT(client_ip)) desc limit %s)
 #end
 
 #sql("TOP_ENTITY_UDP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(client_ip)) as client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) AND server_ip in (select server_ip from %s as cc where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) group by server_ip order by COUNT(DISTINCT(client_ip)) desc limit %s)
+select COUNT(DISTINCT(client_ip)) as client_ips from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') AND server_ip in (select server_ip from %s as cc where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') group by server_ip order by COUNT(DISTINCT(client_ip)) desc limit %s)
 #end
 
 #sql("TOTAL_ENTITY_UDP_SESSION")
-select COUNT(session_id) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) and server_port in (53 , 443) limit 1
+select COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') and server_port in (53 , 443) limit 1
 #end
 
 #sql("TOTAL_ENTITY_UDP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(client_ip)) as uniq_client_ips from %s where %s AND (common_l4_protocol IN ('IPv4_UDP' , 'IPv6_UDP')) limit 1
+select COUNT(DISTINCT(client_ip)) as uniq_client_ips from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') limit 1
 #end
 
 #sql("TOTAL_ENTITY_TCP_SESSION")
-select COUNT(session_id) as sessions from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) limit 1
+select COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') limit 1
 #end
 
 #sql("TOTAL_ENTITY_TCP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(client_ip)) as uniq_client_ips  from %s where %s AND (common_l4_protocol IN ('IPv4_TCP' , 'IPv6_TCP')) limit 1
+select COUNT(DISTINCT(client_ip)) as uniq_client_ips  from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') limit 1
 #end
 
 #sql("ENTITY_TOP_SNI")
-select ssl_sni, SUM(sent_bytes + received_bytes) AS bytes, COUNT(session_id) AS sessions,vsys_id as vsys_id from %s where %s and notEmpty(ssl_sni) and decoded_as = 'SSL' group by ssl_sni,vsys_id order by  COUNT(session_id) desc limit %s
+select ssl_sni, SUM(sent_bytes + received_bytes) AS bytes, COUNT(1) AS sessions,vsys_id as vsys_id from %s where %s and notEmpty(ssl_sni) and decoded_as = 'SSL' group by ssl_sni,vsys_id order by  COUNT(1) desc limit %s
 #end
 
 #sql("ENTITY_SNI_TOTAL")
-select SUM(sent_bytes + received_bytes) AS bytes, COUNT(session_id) AS sessions from %s where %s and decoded_as = 'SSL' limit 1
+select SUM(sent_bytes + received_bytes) AS bytes, COUNT(1) AS sessions from %s where %s and decoded_as = 'SSL' limit 1
 #end
 
 #sql("SYSTEM_STORAGE_QUOTA")
