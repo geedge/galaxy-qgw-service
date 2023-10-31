@@ -139,6 +139,7 @@
         "stratum_cryptocurrency",
         "stratum_mining_pools",
         "stratum_mining_program",
+        "stratum_mining_subscribe",
         "rdp_cookie",
         "rdp_security_protocol",
         "rdp_client_channels",
@@ -286,6 +287,7 @@
         "stratum_cryptocurrency",
         "stratum_mining_pools",
         "stratum_mining_program",
+        "stratum_mining_subscribe",
         "rdp_cookie",
         "rdp_security_protocol",
         "rdp_client_channels",
@@ -457,6 +459,7 @@
         "stratum_cryptocurrency",
         "stratum_mining_pools",
         "stratum_mining_program",
+        "stratum_mining_subscribe",
         "rdp_cookie",
         "rdp_security_protocol",
         "rdp_client_channels",
@@ -3664,6 +3667,15 @@
     {
       "name": "stratum_mining_program",
       "label": "Stratum.Mining Program",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "stratum_mining_subscribe",
+      "label": "Stratum.Mining Subscribe",
       "doc": {
         "visibility": "enabled",
         "ttl": null
