@@ -600,6 +600,11 @@
       "name": "http_request_body",
       "label": "HTTP.Request Body",
       "doc": {
+        "format": [
+          {
+            "function": "combine"
+          }
+        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"
@@ -613,6 +618,11 @@
       "name": "http_response_body",
       "label": "HTTP.Response Body",
       "doc": {
+        "format": [
+          {
+            "function": "combine"
+          }
+        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"
