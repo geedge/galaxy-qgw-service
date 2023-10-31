@@ -93,9 +93,9 @@ select SUM(sent_bytes + received_bytes) AS bytes, COUNT(1) AS sessions from %s w
 #end
 
 #sql("SYSTEM_STORAGE_QUOTA")
-SELECT log_type, SUM(used_size) as used_size, SUM(max_size) * 7 / 10 as max_size, TIME_FORMAT(LATEST(last_storage) * 1000, 'YYYY-MM-dd') as first_storage FROM
-    (SELECT log_type, LATEST(used_size) as used_size, LATEST(max_size) as max_size, LATEST(last_storage) as last_storage FROM sys_storage_log WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '1' HOUR AND data_center != '' GROUP BY data_center, log_type)
-GROUP BY log_type
+SELECT type, SUM(used_size) as used_size, SUM(max_size) * 7 / 10 as max_size, TIME_FORMAT(LATEST(last_storage) * 1000, 'YYYY-MM-dd') as first_storage FROM
+    (SELECT log_type as type, LATEST(used_size) as used_size, LATEST(max_size) as max_size, LATEST(last_storage) as last_storage FROM sys_storage_log WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '1' HOUR AND data_center != '' GROUP BY data_center, log_type)
+GROUP BY type
 #end
 
 #sql("SYSTEM_DAILY_TREND_OF_STORAGE")

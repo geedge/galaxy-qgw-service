@@ -55,7 +55,7 @@ public class DiagnosisController {
     }
 
     @RequestMapping(value = "/sql_benchmark")
-    public BaseResult executePocSql(@RequestParam("is_saved") String isSaved, @RequestParam(defaultValue = "validation") String option, @RequestParam(required = false) String category) throws BusinessException {
+    public BaseResult executePocSql(@RequestParam(value = "is_saved",required = false) @JsonProperty("isSaved") String isSaved, @RequestParam(defaultValue = "validation") String option, @RequestParam(required = false) String category) throws BusinessException {
         if (Arrays.stream(DiagnosisOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(option))) {
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIAGNOSIS_OPTION_ERROR));

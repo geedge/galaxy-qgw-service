@@ -31,12 +31,12 @@ public class SystemController {
     ThreadPoolMonitor threadPoolMonitor;
 
 
-    @RequestMapping("setting/storage/quota")
+    @GetMapping ("setting/storage/quota")
     public BaseResult storageQuota() {
         return systemService.getStorageQuota();
     }
 
-    @PostMapping(value = "setting/storage/quota")
+    @PutMapping(value = "setting/storage/quota")
     public BaseResult storageDeletion(@RequestBody List<StorageDeletionInfo> list) {
         log.warn("数据配额设置, 参数: params is {}", list);
         if (StringUtil.isEmpty(list)) {
@@ -44,11 +44,11 @@ public class SystemController {
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.PARAMETER_NOT_OBTAINED));
         }
         for (StorageDeletionInfo info : list) {
-            if (StringUtil.isBlank(info.getLogType()) || StringUtil.isBlank(String.valueOf(info.getMaxDays()))) {
+            if (StringUtil.isBlank(info.getType()) || StringUtil.isBlank(String.valueOf(info.getMaxDays()))) {
                 throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.LOGTYPE_AND_MAXDAYS_NOT_NULL));
             }
-            if ("ALL".equalsIgnoreCase(info.getLogType()) && list.size() != 1) {
+            if ("ALL".equalsIgnoreCase(info.getType()) && list.size() != 1) {
                 throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.CANNOT_COEXIST_OTHER_TYPES));
             }
@@ -58,13 +58,6 @@ public class SystemController {
             }
         }
         return systemService.deleteStorage(list);
-    }
-
-    @GetMapping(value = "setting/storage/quota")
-    public BaseResult storageDeletionStatus(StorageDeletionInfo storageDeletionInfo) {
-
-        log.warn("数据配额设置状态, 参数: params is {}", storageDeletionInfo);
-        return systemService.getDeleteStorageStatus(storageDeletionInfo.getLogType());
     }
 
     @RequestMapping("setting/storage/quota/daily_trend")

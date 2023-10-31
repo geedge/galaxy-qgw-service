@@ -1,6 +1,7 @@
 package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
@@ -86,7 +87,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         QueryProfile param = new QueryProfile();
         param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         BaseResult result = queryService.executeQuery(param);
-        return resetBaseResult(result, "log_type");
+        return resetBaseResult(result, "type");
     }
 
     @Override
@@ -104,7 +105,9 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
             param.setQuery(sql);
             BaseResult result = queryService.executeQuery(param);
-            return resetBaseResult(result, "type");
+            List<Map> data = (List<Map>) result.getData();
+            data.forEach(o -> o.put("type", LogType.getLabelByValue(String.valueOf(o.get("type")))));
+            return result;
         } else {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.START_TIME_AND_END_TIME_NOT_NULL));
@@ -116,7 +119,14 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             return result;
         }
         List<Map> data = (List<Map>) result.getData();
-        data.forEach(o -> o.put(alias, LogType.getLabelByValue(String.valueOf(o.get(alias)))));
+        for (Map map : data){
+            String logType = LogType.getLabelByValue(String.valueOf(map.get(alias)));
+            BaseResult deleteStorageStatus = getDeleteStorageStatus(String.valueOf(map.get(alias)));
+            List<StorageDeletionInfo> data1 = (List<StorageDeletionInfo>) deleteStorageStatus.getData();
+            map.put(alias, logType);
+            map.put("max_days",data1.get(0).getMaxDays());
+            map.put("default_max_days",data1.get(0).getDefaultMaxDays());
+        }
         return result;
     }
 
@@ -168,15 +178,10 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         } else {
             return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "No matching log type: " + logType);
         }
-        list.forEach(o -> o.setLogType(LogType.getLabelByValue(o.getLogType())));
+        list.forEach(o -> o.setType(LogType.getLabelByValue(o.getType())));
         return BaseResultGenerator.success("ok", list);
     }
 
-    @Override
-    public BaseResult deleteQueryTask(String queryId) {
-        Dialect dialect = buildAndGetDialect(queryId);
-        return dialect.executeKillQuery(queryId);
-    }
 
     @Override
     public String getCustomQueryId(String resultId, String query) {
@@ -185,13 +190,6 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }
 
-
-
-    @Override
-    public BaseResult getProcessesByQueryId(String queryId) {
-        Dialect dialect = buildAndGetDialect(queryId);
-        return dialect.getProcesses(queryId);
-    }
 
     @Override
     public BaseResult getCiphertext(EncryptionInfo param) {
@@ -206,188 +204,12 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         return baseResult;
     }
 
-    @Override
-    public BaseResult consistencyCheck() {
-        List<Map<String, Object>> dataList = Lists.newArrayList();
-        Map<String, Object> logDiff = Maps.newHashMap();
-        Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
-        List<String> symbols = (List<String>) tables.get("symbols");
-        logDiff.put("logType", LogType.TRAFFIC_LOGS.getValue());
-        Map<String, Map<String, Object>> changeTTL = Maps.newHashMap();
-        List<String> ipPorts = getClusterAddressOfCK();
-        try {
-            for (String ipPort : ipPorts) {
-                if (!changeTTL.isEmpty()) {
-                    break;
-                }
-                if (ipPort.startsWith("127.0.0.1")) {
-                    String url = clickHouseHttpSource.getUrl();
-                    ipPort = url.substring(url.indexOf("//") + 2, url.lastIndexOf(":") + 1).concat(trafficPort);
-                }
-                for (String tableName : symbols) {
-                    Map schemaMap = metadataService.getSchemaInfo("fields", tableName, false);
-                    Object tableTTLInSchema = getTableTTLInSchema(schemaMap);
-                    Map<String, Object> tableDiff = getTableDiff(ipPort, tableName, tableTTLInSchema);
-                    List fieldDiff = getFieldDiff(ipPort, tableName, schemaMap);
-                    if (CollectionUtil.isNotEmpty(fieldDiff)) {
-                        tableDiff.put("fields", fieldDiff);
 
-                    }
-                    if (CollectionUtil.isNotEmpty(tableDiff)) {
-                        changeTTL.put(tableName, tableDiff);
-                        logDiff.put("tables", Lists.newArrayList(changeTTL));
-                        logDiff.put("address", Lists.newArrayList(ipPort));
-                    }
-                }
-            }
-        } catch (RuntimeException ex) {
-            log.error(" schema TTL check error: {}", ex);
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),ex.getMessage()));
-        }
-        if (changeTTL.isEmpty()) {
-            return BaseResultGenerator.success("ok", dataList);
-        }
-        dataList.add(logDiff);
-        return BaseResultGenerator.success("Log streaming setting task not executed or failed", dataList);
-    }
-
-    private Object getTableTTLInSchema(Map schemaMap) {
-        Object tableTTLInSchema = null;
-        if (StringUtil.isNotEmpty(schemaMap)) {
-            if (schemaMap.containsKey("doc")) {
-                Map<String, Object> schemaHasDoc = (Map<String, Object>) schemaMap.get("doc");
-                if (schemaHasDoc.containsKey("ttl")) {
-                    tableTTLInSchema = StringUtil.isEmpty(schemaHasDoc.get("ttl")) ? null : schemaHasDoc.get("ttl").toString();
-                }
-            }
-        }
-        return tableTTLInSchema;
-    }
-
-    private Map<String, Object> getTableDiff(String ipPort, String tableName, Object tableTTLInSchema) {
-        String sql = String.format(Objects.requireNonNull(env.getProperty("TABLE_TTL")), tableName, clickHouseHttpSource.getDbName());
-        Map<String, String> result = executeHttpGetOfCK(ipPort, sql, clickHouseHttpSource.getSystemDBName());
-        if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
-            log.error(" query table TTL error: {}", result.toString());
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),result.toString()));
-        }
-        Object tableTTLInDB = null;
-        Map<String, Object> tableDiff = Maps.newHashMap();
-        Map o = (Map) JSON.parseObject(result.get("result"), Map.class);
-        Map<String, Object> resultMap = (Map<String, Object>) o;
-        for (Map<String, Object> datum : (List<Map<String, Object>>)resultMap.get("data")) {
-            Matcher matcher = pTTL.matcher(String.valueOf(datum.get("table_ttl")));
-            tableTTLInDB = matcher.find() ? matcher.group(1) : null;
-        }
-        if (!String.valueOf(tableTTLInDB).equals(String.valueOf(tableTTLInSchema))) {
-            tableDiff.put("last_ttl", StringUtil.isEmpty(tableTTLInSchema) ? null : tableTTLInSchema.toString());
-            tableDiff.put("used_ttl", StringUtil.isEmpty(tableTTLInDB) ? null : tableTTLInDB.toString());
-            log.warn("table ttl: {} not consistency.", tableName);
-        }
-        return tableDiff;
-    }
-
-    private List<Map<String, Object>> getFieldDiff(String ipPort, String tableName, Map<String, Object> schemaMap) {
-        List<Map<String, Object>> fieldDiff = Lists.newArrayList();
-        Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
-        if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
-            log.error(" query table field TTL error: {}", result.toString());
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),result.toString()));
-        }
-        List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
-        for (Map<String, Object> field : fields) {
-            Object read = JsonPath.read(result, "$.result");
-            List<Object> fieldList = JsonPath.read(JSONUtil.toJsonStr(JSONUtil.parseObj(read)), "$.data[?(@.name == \"" + field.get("name") + "\")].ttl_expression");
-            Object fieldTTLInSchema = null;
-            Object fieldTTLInDB;
-            if (StringUtil.isNotEmpty(field.get("doc"))) {
-                Map<String, Object> doc = (Map<String, Object>) field.get("doc");
-                fieldTTLInSchema = StringUtil.isEmpty(doc.get("ttl")) ? null : doc.get("ttl");
-            }
-            Matcher matcher = pTTL.matcher(String.valueOf(fieldList.get(0)));
-            fieldTTLInDB = matcher.find() ? matcher.group(1) : null;
-            if (String.valueOf(fieldTTLInSchema).equals(String.valueOf(fieldTTLInDB))) {
-                continue;
-            }
-            log.warn("field ttl: address {} {}-{} not consistency.", ipPort, tableName, field.get("name"));
-            Map<String, Object> ttlDiff = Maps.newHashMap();
-            ttlDiff.put("last_ttl", StringUtil.isEmpty(fieldTTLInSchema) ? null : fieldTTLInSchema.toString());
-            ttlDiff.put("used_ttl", StringUtil.isEmpty(fieldTTLInDB) ? null : fieldTTLInDB.toString());
-            if (fieldDiff.stream().noneMatch(o -> o.containsKey(field.get("name").toString()))) {
-                Map<String, Object> item = Maps.newHashMap();
-                item.put(field.get("name").toString(), ttlDiff);
-                fieldDiff.add(item);
-            }
-        }
-        return fieldDiff;
-    }
-
-    private List<String> getClusterAddressOfCK() {
-        List<String> endpointList = new ArrayList<>();
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
-        if (baseResult.isSuccess()) {
-            List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
-            for (Map<String, Object> datum : data) {
-                endpointList.add(String.valueOf(datum.get("endpoint")));
-            }
-        }
-        return endpointList;
-    }
-
-    private Map<String, String> executeHttpGetOfCK(String ipPort, String sql, String dbName) {
-        String queryURL = URLUtil.normalize("http://" + ipPort + "/?");
-        StringBuilder paramBuilder = new StringBuilder("user=")
-                .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
-                .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
-                .append("database=").append(dbName).append("&")
-                .append("query=").append(sql)
-                .append(" FORMAT JSON;");
-        List<NameValuePair> values = URLEncodedUtils.parse(paramBuilder.toString(), StandardCharsets.UTF_8);
-        int socketTimeOut = httpConfig.getCkRealTimeAccountSocketTimeOut();
-        return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
-    }
-
-    public Dialect buildAndGetDialect(String queryId) {
-        QueryProfile queryProfile = new QueryProfile();
-        queryProfile.setDbType(parseDBType(queryId));
-        return getDialect(queryProfile);
-    }
-
-    private Dialect getDialect(QueryProfile queryProfile) {
-        Dialect dialect;
-        try {
-            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
-                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, queryProfile.getDbType()) + "Dialect");
-            Constructor constructor = dialectClazz.getConstructor(QueryProfile.class);
-            dialect = (Dialect) constructor.newInstance(queryProfile);
-        } catch (ReflectiveOperationException | RuntimeException e) {
-            log.error("Dialect conversion instance exception:{}", e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
-        }
-        return dialect;
-    }
-
-    private String parseDBType(String queryId) {
-        for (DBTypeEnum dbTypeEnum : DBTypeEnum.values()) {
-            if (queryId.startsWith(DigestUtil.md5Hex(dbTypeEnum.getValue()).concat(queryIdSeparator))) {
-                return dbTypeEnum.getValue();
-            }
-        }
-        if (queryId.contains(queryIdSeparator)) {
-            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
-        }
-        return DBTypeEnum.CLICKHOUSE.getValue();
-    }
 
 
     private boolean logTypeValid(List<StorageDeletionInfo> list) {
         for (StorageDeletionInfo info : list) {
-            String value = LogType.getValueByLabel(info.getLogType());
+            String value = LogType.getValueByLabel(info.getType());
             if (StringUtil.isEmpty(value)) {
                 return false;
             }
@@ -403,7 +225,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
      * @Created by wWei
      */
     private List<StorageDeletionInfo> preProcessOfLogType(List<StorageDeletionInfo> list) {
-        if (list.size() == 1 && LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getLogType())) {
+        if (list.size() == 1 && LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getType())) {
             StorageDeletionInfo deletionInfo = list.get(0);
             Integer maxDays = deletionInfo.getMaxDays();
             Integer defaultMaxDays = deletionInfo.getDefaultMaxDays();
@@ -414,7 +236,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays, defaultMaxDays));
             return list;
         }
-        list.forEach(o -> o.setLogType(LogType.getValueByLabel(o.getLogType())));
+        list.forEach(o -> o.setType(LogType.getValueByLabel(o.getType())));
         return list;
     }
 
@@ -422,11 +244,11 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         setCookie();
         for (StorageDeletionInfo info : list) {
 
-            String handler = getDeletePartHandlerByLogType(info.getLogType());
+            String handler = getDeletePartHandlerByLogType(info.getType());
             if (jobIsBusyByHandler(handler)) {
                 return true;
             }
-            handler = getDeleteAllHandlerByLogType(info.getLogType());
+            handler = getDeleteAllHandlerByLogType(info.getType());
             if (jobIsBusyByHandler(handler)) {
                 return true;
             }
@@ -458,7 +280,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
 
         BaseResult baseResult;
         String jobHandler;
-        String logType = info.getLogType();
+        String logType = info.getType();
         ExecutorParam executorParam = new ExecutorParam();
         if (0 == info.getMaxDays()) {
             jobHandler = getDeleteAllHandlerByLogType(logType);
@@ -469,12 +291,12 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             XxlJobInfo xxlJobInfo = setXxlJobInfoParam(dataByHandler, executorParam);
             baseResult = executeTriggerAndUpdate(xxlJobInfo);
         } else {
-            jobHandler = getDeletePartHandlerByLogType(info.getLogType());
+            jobHandler = getDeletePartHandlerByLogType(info.getType());
             executorParam.setMaxDays(info.getMaxDays());
             Map oldData = getDataByHandler(jobHandler);
             XxlJobInfo newData = setXxlJobInfoParam(oldData, executorParam);
             baseResult = executeManageJob("update", newData);
-            if (baseResult.isSuccess() && LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(info.getLogType())) {
+            if (baseResult.isSuccess() && LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(info.getType())) {
                 updateSchema(info, oldData);
             }
             if (baseResult.isSuccess()) {
@@ -580,8 +402,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private StorageDeletionInfo getStorageDeletionInfoByHandler(String logType, String jobHandlerValue) {
         Map trafficDate = getDataByHandler(jobHandlerValue);
         XxlJobInfo xxlJobInfo = mapToBean(trafficDate, XxlJobInfo.class);
-        StorageDeletionInfo executorParam = JSON.parseObject(xxlJobInfo.getExecutorParam(), StorageDeletionInfo.class);
-        executorParam.setLogType(logType);
+        StorageDeletionInfo executorParam = JSON.parseObject(StrUtil.toUnderlineCase(xxlJobInfo.getExecutorParam()), StorageDeletionInfo.class);
+        executorParam.setType(logType);
         return executorParam;
     }
 

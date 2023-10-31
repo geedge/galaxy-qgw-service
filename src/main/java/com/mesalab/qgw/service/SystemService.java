@@ -38,12 +38,6 @@ public interface SystemService {
      */
     BaseResult getDeleteStorageStatus(String logType);
 
-    /**
-     * 终止查询任务
-     * @param queryId
-     * @return
-     */
-    BaseResult deleteQueryTask(String queryId);
 
     /**
      * 自定义查询ID: 由 Catalog（数据库类型): resultID+query 组成。
@@ -59,15 +53,6 @@ public interface SystemService {
     /**
      * Desc: 通过queryId查询SQL任务执行状态
      *
-     * @param queryId
-     * @return {@link BaseResult}
-     * @created by wWei
-     * @date 2021/1/7 6:49 下午
-     */
-    BaseResult getProcessesByQueryId(String queryId);
-    /**
-     * Desc: 通过queryId查询SQL任务执行状态
-     *
      * @param param
      * @return {@link BaseResult}
      * @created by wWei
@@ -75,13 +60,5 @@ public interface SystemService {
      */
     BaseResult getCiphertext(EncryptionInfo param);
 
-    /**
-     * Desc: 一致性校验
-     *
-     * @param
-     * @return {@link BaseResult}
-     * @created by wWei
-     * @date 2022/6/5 9:24 下午
-     */
-    BaseResult consistencyCheck();
+
 }
