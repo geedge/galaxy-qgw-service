@@ -277,46 +277,6 @@
       ]
     }
   },
-  "session_record_common_client_ip": {
-    "index_key": {
-      "log_id": [
-        "common_client_ip",
-        "common_server_ip",
-        "common_recv_time"
-      ],
-      "vsys_id": [
-        "common_client_ip",
-        "common_server_ip",
-        "common_recv_time"
-      ]
-    }
-  },
-  "session_record_common_server_ip": {
-    "index_key": {
-      "log_id": [
-        "common_server_ip",
-        "common_client_ip",
-        "common_recv_time"
-      ],
-      "vsys_id": [
-        "common_server_ip",
-        "common_client_ip",
-        "common_recv_time"
-      ]
-    }
-  },
-  "session_record_common_server_domain": {
-    "index_key": {
-      "log_id": [
-        "common_server_domain",
-        "common_recv_time"
-      ],
-      "vsys_id": [
-        "common_server_domain",
-        "common_recv_time"
-      ]
-    }
-  },
   "transaction_record": {
     "index_key": {
       "log_id": [
