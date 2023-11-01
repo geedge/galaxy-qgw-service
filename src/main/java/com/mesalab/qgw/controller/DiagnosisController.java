@@ -38,7 +38,7 @@ public class DiagnosisController {
         return diagnosisService.getVersionInfo();
     }
 
-    @GetMapping(value = "ttl_consistency_check")
+    @RequestMapping(value = "ttl_consistency_check", method = RequestMethod.POST)
     public BaseResult monitorCluster() {
         log.info("consistency check interface.");
         return diagnosisService.consistencyCheck();

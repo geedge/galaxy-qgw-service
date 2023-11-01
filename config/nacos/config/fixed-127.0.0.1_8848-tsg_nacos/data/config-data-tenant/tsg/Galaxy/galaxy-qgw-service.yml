@@ -23,6 +23,8 @@ management:
         include: '*'
         exclude: env,auditevents,beans,conditions,info
       base-path: /v1/monitor
+      path-mapping:
+        health: /component_status
 #MySql configuration
 spring:
   datasource:

@@ -68,7 +68,7 @@ public class SystemController {
     }
 
 
-    @GetMapping(value = "setting/tool/password_encryption")
+    @PostMapping(value = "setting/tool/password_encryption")
     public BaseResult getCiphertext(EncryptionInfo param) {
         log.info("Plaintext encrypted,The plaintext argument is : {}", param);
         if (StringUtil.isEmpty(param.getPassword()) || StringUtil.isEmpty(param.getSalt())) {

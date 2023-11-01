@@ -40,7 +40,7 @@ public class QGWMessageConst {
 
     public static final String MAXDAYS_ERROR = "logType is not All: maxDays must be numeric and [0-2000]";
 
-    public static final String RESULTID_OR_QUERY_CANNOT_BE_EMPTY = "Param resultId or query cannot be empty.";
+    public static final String QUERY_CANNOT_BE_EMPTY = "Param query cannot be empty.";
 
     public static final String PASSWORD_OR_SALT_CANNOT_BE_EMPTY = "password or salt cannot be empty.";
 

@@ -3,6 +3,7 @@ package com.mesalab.services.controller;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.geedgenetworks.utils.StringUtil;
@@ -46,18 +47,19 @@ public class SQLDatasetController
     }
 
 
-    @RequestMapping(value = "sql/query/query_id")
-    public BaseResult getQueryId(@RequestParam Map<String, Object> param) {
-        log.info("获取当前SQL Query ID, 参数: {}", param);
-        Object resultId, query;
-        if (StringUtil.isEmpty(resultId = param.get("result_id"))
-                || StringUtil.isEmpty(query = param.get("query"))) {
-
+    @RequestMapping(value = "sql/query/query_id", method = RequestMethod.POST)
+    public BaseResult getQueryId(@RequestParam String query, @RequestParam(value = "result_id", required = false) @JsonProperty("resultId") Integer resultId) {
+        log.info("获取当前SQL Query ID, 参数: query ={}，result_id ={}", query, resultId);
+        if (StringUtil.isEmpty(query)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.RESULTID_OR_QUERY_CANNOT_BE_EMPTY));
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CANNOT_BE_EMPTY));
         }
-        String queryId = sqlDatasetService.getCustomQueryId(resultId.toString(), query.toString());
-
+        String queryId;
+        if (resultId != null) {
+            queryId = sqlDatasetService.getCustomQueryId(resultId.toString(), query.toString());
+        } else {
+            queryId = sqlDatasetService.getCustomQueryId("", query.toString());
+        }
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> map = new HashMap<>(16);
         map.put("queryId", queryId);
@@ -65,7 +67,7 @@ public class SQLDatasetController
         return BaseResultGenerator.success(result);
     }
 
-    @GetMapping(value = "sql/query/{query_id}/progress/")
+    @GetMapping(value = "sql/query/{query_id}/progress")
     public BaseResult getProcessesByQueryId(@PathVariable("query_id") String queryId) {
         log.info("查询SQL任务执行状态, 参数: queryId is {}", queryId);
         return sqlDatasetService.getProcessesByQueryId(queryId);

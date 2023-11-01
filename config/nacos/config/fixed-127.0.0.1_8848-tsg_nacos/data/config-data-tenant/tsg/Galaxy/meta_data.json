@@ -4,9 +4,6 @@
       "namespace": "tsg_galaxy_v3",
       "group": "CLICKHOUSE_GROUP",
       "tables": [
-        "session_record_2311",
-        "security_event_2311",
-        "transaction_record_2311",
         "radius_onff_log",
         "session_record",
         "transaction_record",
