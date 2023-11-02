@@ -401,7 +401,6 @@
                         <skip>true</skip>
                         <failOnViolation>true</failOnViolation>
                         <printFailingErrors>true</printFailingErrors>
-                        <targetJdk>${java.version}</targetJdk>
                         <sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
                         <minimumTokens>100</minimumTokens>
                         <excludes>
