@@ -94,20 +94,20 @@ public class JobExecuteService implements EnvironmentAware {
     public void addExecutorStatistics(String id, HashMap<String, Object> param, Map<String, Object> property) {
         JobInfo jobInfo = new JobInfo(id);
         try {
-            Interval interval = getInterval(!StrUtil.isEmptyIfStr(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL))?param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString():param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString()));
+            Interval interval = getInterval(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString(), metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString()));
             if (jobCfg.isTimeSlicingEnabled()
                     && interval.isValid()
                     && StringUtil.isNotEmpty(property.get(JobConfig.JOB_PROPERTY_K_OPTION))) {
                 executeSlicingStatisticsJob(jobInfo, param, interval);
             } else {
-                PlainSelect plainSelectOuter = getWhereOuter(!StrUtil.isEmptyIfStr(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL))?param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString():param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
+                PlainSelect plainSelectOuter = getWhereOuter(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString());
                 Expression whereOuter = plainSelectOuter.getWhere();
 
-                PlainSelect plainSelectInner = SQLHelper.getSelectInner(!StrUtil.isEmptyIfStr(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL))?param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString():param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
+                PlainSelect plainSelectInner = SQLHelper.getSelectInner(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString());
                 Expression whereInner = plainSelectInner.getWhere();
                 FromItem fromItemInner = plainSelectInner.getFromItem();
 
-                executeStatisticsJob(jobInfo, !StrUtil.isEmptyIfStr(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL))?param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString():param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), fromItemInner.toString(), whereOuter == null ? " 1=1 " : whereOuter.toString(), whereInner == null ? " 1=1 " : whereInner.toString(), false);
+                executeLongTerm(jobInfo, param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString(), fromItemInner.toString(), whereOuter == null ? " 1=1 " : whereOuter.toString(), whereInner == null ? " 1=1 " : whereInner.toString(), false);
             }
         } catch (Exception e) {
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
@@ -118,7 +118,7 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private void executeStatisticsJob(JobInfo jobInfo, String cusSql, String countDataSource, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
+    private void executeLongTerm(JobInfo jobInfo, String cusSql, String countDataSource, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
         if (isCancel(jobInfo.getId())) {
             return;
         }
@@ -140,7 +140,7 @@ public class JobExecuteService implements EnvironmentAware {
             LongValue longValue = new LongValue(Long.parseLong(limit.getRowCount().toString()) * 10);
             limit.setRowCount(longValue.getValue() > 10000 ? longValue : new LongValue(10000));
         }
-        List<Future<Boolean>> list = Lists.newArrayList(taskExecuteService.executeStatistics(jobInfo.getId(), parseSQL.toString()));
+        List<Future<Boolean>> list = Lists.newArrayList(taskExecuteService.executeLongTerm(jobInfo.getId(), parseSQL.toString()));
         waitAsyncResultAndUpdateProcess(jobInfo, list);
     }
 
@@ -172,7 +172,7 @@ public class JobExecuteService implements EnvironmentAware {
 
     private void executeSlicingStatisticsJob(JobInfo jobInfo, Map<String, Object> param, Interval interval) throws JSQLParserException {
         String partitionKey = metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
-        List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(!StrUtil.isEmptyIfStr(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL)) ? param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString() : param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
+        List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
         String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
         String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBTypeEnum.CLICKHOUSE.getValue());
         BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1", function, param.get(JobConfig.QUERY_DATA_SOURCE))).build());
@@ -196,11 +196,11 @@ public class JobExecuteService implements EnvironmentAware {
             int index = (int) (jobInfo.currentTimes * step);
             long start = dateList.get(dateList.size() <= index ? dateList.size() - 1 : index).getTime() / 1000;
             long end = dateList.get((int) (index - step)).getTime() / 1000;
-            PlainSelect plainSelect = getWhereOuter(!StrUtil.isEmptyIfStr(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL)) ? param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString() : param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
+            PlainSelect plainSelect = getWhereOuter(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString());
             String newFilter = String.format("(%s) AND ( %s >= %s AND %s < %s)",
                     plainSelect.getWhere(),
                     partitionKey, start, partitionKey, end);
-            executeStatisticsJob(jobInfo, !StrUtil.isEmptyIfStr(param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL)) ? param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString() : param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), plainSelect.getFromItem().toString(), newFilter, newFilter, true);
+            executeLongTerm(jobInfo, param.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString(), plainSelect.getFromItem().toString(), newFilter, newFilter, true);
             if (start <= interval.getStart()) {
                 break;
             }

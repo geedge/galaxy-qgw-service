@@ -32,7 +32,7 @@ UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', '%s')
 UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', %s)
 #end
 #sql("JOB_RESULT")
-SELECT is_done AS is_done, done_progress AS done_progress, duration_time AS duration_time, is_canceled AS is_canceled, is_failed AS is_failed, job_property AS job_property, count AS count, field_discovery.*, statistics.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
+SELECT is_done AS is_done, done_progress AS done_progress, duration_time AS duration_time, is_canceled AS is_canceled, is_failed AS is_failed, job_property AS job_property, count AS count, field_discovery.*, long_term.* FROM job_result WHERE ROWKEY = '%s' LIMIT 1
 #end
 #sql("UPDATE_IS_CANCELED")
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."last_query_time", "detail"."is_canceled") VALUES( '%s', %s, %s)
@@ -47,14 +47,14 @@ SELECT %s.%s AS value FROM job_result WHERE ROWKEY = '%s' LIMIT 1
 SELECT %s FROM %s WHERE %s LIMIT 1
 #end
 #sql("REPORT_INSERT")
-insert into report_result ( status, result_rows, create_time, excute_row, is_valid, excute_detail, result_name, query_sql, excute_process, issued_time, op_time, start_time, excute_time, end_time, job_uuid, is_send_notice, job_id, chart_id, op_user, time_granularity, is_display_traffic_trend, time_zone) values ( 0, 0, '%s', 0, 1, 'COMMIT', 'OFFLINE JOB', '%s', 0, '%s', '%s', '%s', 0, '%s', '%s', 0, 0, 0, 0, 0, 0, '%s')
+insert into job_report ( status, result_rows, create_time, excute_row, is_valid, excute_detail, result_name, query_sql, excute_process, issued_time, op_time, start_time, excute_time, end_time, job_uuid, is_send_notice, job_id, chart_id, op_user, time_granularity, is_display_traffic_trend, time_zone) values ( 0, 0, '%s', 0, 1, 'COMMIT', 'OFFLINE JOB', '%s', 0, '%s', '%s', '%s', 0, '%s', '%s', 0, 0, 0, 0, 0, 0, '%s')
 #end
 #sql("REPORT_STATUS")
-SELECT status, result_id, query_sql, excute_process, is_valid FROM report_result WHERE job_uuid = '%s' LIMIT 1
+SELECT status, result_id, query_sql, excute_process, is_valid FROM job_report WHERE job_uuid = '%s' LIMIT 1
 #end
 #sql("REPORT_SAME")
-SELECT job_uuid AS id FROM report_result WHERE is_valid = 1 AND status IN ( 0, 1) AND query_sql = '%s' LIMIT 1
+SELECT job_uuid AS id FROM job_report WHERE is_valid = 1 AND status IN ( 0, 1) AND query_sql = '%s' LIMIT 1
 #end
 #sql("REPORT_UPDATE")
-UPDATE report_result SET %s = %s  WHERE job_uuid = '%s'
+UPDATE job_report SET %s = %s  WHERE job_uuid = '%s'
 #end

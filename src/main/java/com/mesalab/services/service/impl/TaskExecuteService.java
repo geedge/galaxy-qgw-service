@@ -117,7 +117,7 @@ public class TaskExecuteService implements EnvironmentAware {
     }
 
     @Async("taskExecutor")
-    public Future<Boolean> executeStatistics(String id, String sql) {
+    public Future<Boolean> executeLongTerm(String id, String sql) {
         try {
             BaseResult lastResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
             BaseResult preResult = queryService.executeQuery(QueryProfile.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
@@ -135,7 +135,7 @@ public class TaskExecuteService implements EnvironmentAware {
                 result.put("data", lastData);
                 result.put("meta", lastMeta);
             }
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.STATISTICS, JobConfig.STATISTICS_RESULT, id, JSONUtil.quote(JSONUtil.toJsonStr(result), false).replace("'", "\\'")));
+            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.LONG_TERM_COLUMN_FAMILY, JobConfig.LONG_TERM_RESULT, id, JSONUtil.quote(JSONUtil.toJsonStr(result), false).replace("'", "\\'")));
         } catch (RuntimeException ex) {
             log.error("Statistics task execute error, message is: {}", ex.getMessage());
             setJobFailed(id);
@@ -153,8 +153,8 @@ public class TaskExecuteService implements EnvironmentAware {
         Map<String, String> metrics = JsonPath.read(JSONUtil.toJsonStr(preDataFirst.get(JobConfig.JOB_PROPERTY)), "$.sub_option.metric");
         Map<String, Boolean> isAsc = JsonPath.read(JSONUtil.toJsonStr(preDataFirst.get(JobConfig.JOB_PROPERTY)), "$.sub_option.isAsc");
         String sortKey = isAsc.keySet().stream().findFirst().get();
-        if (StringUtil.isNotEmpty(preDataFirst.get(JobConfig.STATISTICS_RESULT))) {
-            Map<String, Object> item = JSONUtil.toBean(preDataFirst.get(JobConfig.STATISTICS_RESULT).toString(), Map.class);
+        if (StringUtil.isNotEmpty(preDataFirst.get(JobConfig.LONG_TERM_RESULT))) {
+            Map<String, Object> item = JSONUtil.toBean(preDataFirst.get(JobConfig.LONG_TERM_RESULT).toString(), Map.class);
             preData = (List<Map<String, Object>>) item.get("data");
             lastMeta = (List<Map<String, Object>>) item.get("meta");
             lastData = mergeData(lastData, preData, dimensions, metrics);
@@ -168,8 +168,8 @@ public class TaskExecuteService implements EnvironmentAware {
 
     private void timechartData(List<Map<String, Object>> lastData, List<Map<String, Object>> lastMeta, Map preDataFirst, Map<String, Object> valueMap) {
         List<Map<String, Object>> preData;
-        if (StringUtil.isNotEmpty(preDataFirst.get(JobConfig.STATISTICS_RESULT))) {
-            Map<String, Object> item = JSONUtil.toBean(preDataFirst.get(JobConfig.STATISTICS_RESULT).toString(), Map.class);
+        if (StringUtil.isNotEmpty(preDataFirst.get(JobConfig.LONG_TERM_RESULT))) {
+            Map<String, Object> item = JSONUtil.toBean(preDataFirst.get(JobConfig.LONG_TERM_RESULT).toString(), Map.class);
             preData = (List<Map<String, Object>>) item.get("data");
             lastMeta = (List<Map<String, Object>>) item.get("meta");
             Map<String, Boolean> isAsc = JsonPath.read(JSONUtil.toJsonStr(preDataFirst.get(JobConfig.JOB_PROPERTY)), "$.sub_option.isAsc");

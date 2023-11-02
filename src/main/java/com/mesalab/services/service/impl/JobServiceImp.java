@@ -112,23 +112,22 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (isExist(id)) {
             log.info("Hoc Job already exist, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
-            return BaseResultGenerator.success("ok", buildJobInfo(id, queryType));
+            return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
         }
         log.info("Add Hoc Job, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
         Map<String, Object> property = Maps.newLinkedHashMap();
         if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
             initFieldDiscoveryJob(id, reqBody, property);
             jobExecuteService.addExecutorFieldDiscovery(id, reqBody);
-        } else if (JobConfig.LONG_TERM.equals(queryType)
-                || JobConfig.STATISTICS.equals(queryType)) {
+        } else if (JobConfig.LONG_TERM.equals(queryType)) {
             initStatisticsJob(id, reqBody, property);
             jobExecuteService.addExecutorStatistics(id, reqBody, property);
         }
-        return BaseResultGenerator.success("ok", buildJobInfo(id, queryType));
+        return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
     }
 
     private void initStatisticsJob(String id, HashMap<String, Object> reqBody, Map<String, Object> property) {
-        buildPropertyOfStatistics(!StrUtil.isEmptyIfStr(reqBody.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL)) ? reqBody.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString() : reqBody.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), property);
+        buildPropertyOfStatistics(String.valueOf(reqBody.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL)), property);
         if (!isValidProperty(property)) {
             property.remove(JobConfig.JOB_PROPERTY_K_OPTION);
         }
@@ -212,9 +211,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult cancelledReportJob(String jobId) {
+    public BaseResult cancelReportJob(String jobId) {
         Db.update(String.format(Objects.requireNonNull(env.getProperty("REPORT_UPDATE")), "is_valid", 0, jobId));
-        BaseResult<Object> accepted = BaseResultGenerator.success(ResultStatusEnum.ACCEPTED.getCode(), "Accepted", null);
         return BaseResultGenerator.success(ResultStatusEnum.ACCEPTED.getCode(), "Accepted", null);
     }
 
@@ -224,18 +222,18 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult getResultStatistics(String id) {
-        return buildResultStatistics(id);
+    public BaseResult longTermResult(String id) {
+        return buildLongTermResult(id);
     }
 
-    private BaseResult buildResultStatistics(String id) {
+    private BaseResult buildLongTermResult(String id) {
         List<Map<String, Object>> data = validationData(id);
         updateQueryTime(id, System.currentTimeMillis());
         Map<String, Object> job = Maps.newHashMap();
         Map<String, Object> map = data.get(0);
         List<Map<String, Object>> resultList = Lists.newArrayList();
         List<Map<String, Object>> meta = Lists.newArrayList();
-        Object item = map.get(JobConfig.STATISTICS_RESULT);
+        Object item = map.get(JobConfig.LONG_TERM_RESULT);
         Object property = map.get(JobConfig.JOB_PROPERTY);
         if (StringUtil.isNotEmpty(item) && StringUtil.isNotEmpty(property)) {
             try {
@@ -252,7 +250,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 }
                 meta = result.get("meta");
             } catch (RuntimeException e) {
-                log.error("parse jobId-{}, field-{} error, message is: {}", JobConfig.STATISTICS_RESULT, id, e.getMessage());
+                log.error("parse jobId-{}, field-{} error, message is: {}", JobConfig.LONG_TERM_RESULT, id, e.getMessage());
             }
         }
         HashMap<String, Object> statistics = Maps.newHashMap();
@@ -349,7 +347,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     private void buildPropertyOfStatistics(String sql, Map<String, Object> property) {
         property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.LONG_TERM);
-        property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, JobConfig.STATISTICS_RESULT);
+        property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, JobConfig.LONG_TERM_RESULT);
         try {
             PlainSelect plainSelect = checkParam(sql, CCJSqlParserUtil.parse(sql));
             PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
@@ -455,7 +453,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             }
         } catch (JSQLParserException | RuntimeException e) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"statistics job init error: ".concat(e.getMessage())));
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"long-term job init error: ".concat(e.getMessage())));
         }
     }
 
@@ -499,14 +497,14 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         SelectBody selectBody;
         if (!(statement instanceof Select) || !((selectBody = ((Select) statement).getSelectBody()) instanceof PlainSelect)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"statistics job init error, not support, SQL is: " + sql));
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"long-term job init error, not support, SQL is: " + sql));
                     
         }
         PlainSelect plainSelect = (PlainSelect) selectBody;
         PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
         if (StringUtil.isEmpty(plainSelect.getGroupBy()) && StringUtil.isEmpty(plainSelectInner.getGroupBy())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "statistics job init error, not support non-aggregate SQL is: " + sql));
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "long-term job init error, not support non-aggregate SQL is: " + sql));
         }
         return plainSelect;
     }
@@ -539,7 +537,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
             body.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));
             syntaxValidationFieldDiscovery(body);
-        } else if (JobConfig.LONG_TERM.equals(type) || JobConfig.STATISTICS.equals(type)) {
+        } else if (JobConfig.LONG_TERM.equals(type)) {
             syntaxValidationStatistics(body);
         }
     }
@@ -590,8 +588,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private void syntaxValidationStatistics(HashMap<String, Object> body) {
-        String sql = String.valueOf(!StrUtil.isEmptyIfStr(body.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL)) ? body.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL).toString() : body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString());
-
+        String sql = String.valueOf(body.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL));
         BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),

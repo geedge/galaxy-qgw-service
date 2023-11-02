@@ -39,7 +39,7 @@ public interface JobService {
      * @created by wWei
      * @date 2021/11/24 5:40 下午
      */
-    BaseResult getResultStatistics(String jobId);
+    BaseResult longTermResult(String jobId);
 
 
     /**
@@ -80,5 +80,5 @@ public interface JobService {
      * @created by wWei
      * @date 2022/3/28 5:29 下午
      */
-    BaseResult cancelledReportJob(String jobId);
+    BaseResult cancelReportJob(String jobId);
 }

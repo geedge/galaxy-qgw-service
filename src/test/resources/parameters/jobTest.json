@@ -1,11 +1,37 @@
 {
-  "jobTest": {
+  "field_discovery_default": {
     "query.type": "field_discovery",
     "query.data_source": "session_record",
     "custom.field_discovery.fields": [
       "log_id",
       "security_action"
     ],
-    "custom.field_discovery.filter": "vsys_id in (1,2) and client_ip='192.168.0.1' AND server_port=80"
+    "custom.field_discovery.filter": "vsys_id in (1,2) and client_ip='192.168.0.1' AND server_port = 80"
+  },
+  "field_discovery_bytes": {
+    "query.type": "field_discovery",
+    "query.data_source": "session_record",
+    "custom.field_discovery.metric": "bytes",
+    "custom.field_discovery.metric.fn": "sum",
+    "custom.field_discovery.fields": [
+      "security_action",
+      "proxy_action"
+    ],
+    "custom.field_discovery.filter": "vsys_id in (1,2) and client_ip='192.168.0.1' AND server_port = 80"
+  },
+  "long-term": {
+    "query.type": "long-term",
+    "query.data_source": "session_record",
+    "custom.long-term.sql": "select client_ip, count(*) as count from session_record where vsys_id in (1,2) and client_ip='192.168.0.1' AND server_port = 80 group by client_ip order by count asc limit 10"
+  },
+  "report": {
+    "query.type": "report",
+    "query.data_source": "session_record",
+    "custom.report.sql": "SELECT log_id, recv_time FROM session_record LIMIT 12 "
+  },
+  "statistics_top": {
+    "query.type": "statistics",
+    "query.data_source": "session_record",
+    "custom.statistics.sql": "select client_ip, count(*) as count from session_record where vsys_id in (1,2) and client_ip='192.168.0.1' AND server_port = 80 group by client_ip order by count desc limit 10"
   }
 }
