@@ -20,7 +20,7 @@ public class QueryController {
     @Autowired
     private QueryService queryService;
 
-    @GetMapping(value="/")
+    @GetMapping
     @AuditLog("QueryController.get")
     @CachedSubmitCheck
     public BaseResult get(QueryProfile queryProfile) {
