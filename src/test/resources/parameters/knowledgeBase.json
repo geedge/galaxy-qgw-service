@@ -1,7 +1,7 @@
 {
   "publishTest": {
-    "name": "ip_v4_built_in",
-    "format": "mmdb",
-    "type": "ip_location"
+    "name": "test",
+    "format": "test",
+    "type": "test"
   }
 }

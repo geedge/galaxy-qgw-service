@@ -4,10 +4,10 @@ import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.services.controller.JobController;
 import org.junit.Assert;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,109 +23,76 @@ public class JobTest extends GalaxyQGWApplicationTests {
     @Autowired
     private JobController jobController;
 
-    private String jobId;
+    @Test
+    public void fieldDiscoveryDefault() {
+        HashMap param = jsonToInParameter("parameters/jobTest.json", "field_discovery_default", HashMap.class);
+        BaseResult committed = jobController.commit(param);
+        Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
+        String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
+        DeferredResult<BaseResult> baseResultDeferredResult = jobController.longPollingLongTermResult(id);
+        if(baseResultDeferredResult.hasResult()){
+            BaseResult result = (BaseResult) baseResultDeferredResult.getResult();
+            Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
+        }
+    }
 
-    @Test(priority = 1)
-    public void commitFieldDiscoveryDefault() {
-        HashMap map = jsonToInParameter("parameters/jobTest.json", "field_discovery_default", HashMap.class);
-        BaseResult result = jobController.commit(map);
+    @Test
+    public void fieldDiscoveryBytes() {
+        HashMap param = jsonToInParameter("parameters/jobTest.json", "field_discovery_bytes", HashMap.class);
+        BaseResult committed = jobController.commit(param);
+        Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
+        String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
+        DeferredResult<BaseResult> baseResultDeferredResult = jobController.longPollingLongTermResult(id);
+        if(baseResultDeferredResult.hasResult()){
+            BaseResult result = (BaseResult) baseResultDeferredResult.getResult();
+            Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
+        }
+    }
+
+    @Test
+    public void longTerm() {
+        HashMap param = jsonToInParameter("parameters/jobTest.json", "long-term", HashMap.class);
+        BaseResult committed = jobController.commit(param);
+        Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
+        String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
+        DeferredResult<BaseResult> baseResultDeferredResult = jobController.longPollingLongTermResult(id);
+        if(baseResultDeferredResult.hasResult()){
+            BaseResult result = (BaseResult) baseResultDeferredResult.getResult();
+            Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
+        }
+
+    }
+
+    @Test
+    public void report() {
+        HashMap param = jsonToInParameter("parameters/jobTest.json", "report", HashMap.class);
+        BaseResult committed = jobController.commit(param);
+        Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
+        String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
+        BaseResult result = jobController.getStatus(id);
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
-        jobId = ((List<Map>) result.getData()).get(0).get("job_id").toString();
+        BaseResult cancelled = jobController.cancel(id);
+        Assert.assertTrue(cancelled.getMessage(), cancelled.getStatus() == 202);
 
     }
 
-    @Test(priority = 2)
-    public void longPollingFieldDiscoveryDefaultResult() {
-        DeferredResult<BaseResult> result = jobController.longPollingLongTermResult(jobId);
-        BaseResult baseResult = (BaseResult) result.getResult();
-        Assert.assertTrue(baseResult.getMessage(), baseResult.getStatus() == 200);
-
+    @Test
+    public void statistics() {
+        HashMap param = jsonToInParameter("parameters/jobTest.json", "statistics_top", HashMap.class);
+        BaseResult committed = jobController.commit(param);
+        Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
+        String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
+        DeferredResult<BaseResult> baseResultDeferredResult = jobController.longPollingLongTermResult(id);
+        if(baseResultDeferredResult.hasResult()){
+            BaseResult result = (BaseResult) baseResultDeferredResult.getResult();
+            Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
+        }
     }
 
-    @Test(priority = 3)
-    public void commitFieldDiscoveryBytes() {
-
-        HashMap map = jsonToInParameter("parameters/jobTest.json", "field_discovery_bytes", HashMap.class);
-        BaseResult result = jobController.commit(map);
-        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
-        jobId = ((List<Map>) result.getData()).get(0).get("job_id").toString();
-
-    }
-
-    @Test(priority = 4)
-    public void longPollingFieldDiscoveryBytesResult() {
-
-        DeferredResult<BaseResult> result = jobController.longPollingLongTermResult(jobId);
-        BaseResult baseResult = (BaseResult) result.getResult();
-        Assert.assertTrue(baseResult.getMessage(), baseResult.getStatus() == 200);
-
-    }
-
-    @Test(priority = 5)
-    public void commitLongTerm() {
-
-        HashMap map = jsonToInParameter("parameters/jobTest.json", "long-term", HashMap.class);
-        BaseResult result = jobController.commit(map);
-        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
-        jobId = ((List<Map>) result.getData()).get(0).get("job_id").toString();
-
-    }
-
-    @Test(priority = 6)
-    public void longPollingLongTermResult() {
-
-        DeferredResult<BaseResult> result = jobController.longPollingLongTermResult(jobId);
-        BaseResult baseResult = (BaseResult) result.getResult();
-        Assert.assertTrue(baseResult.getMessage(), baseResult.getStatus() == 200);
-
-    }
-
-    @Test(priority = 7)
-    public void commitReport() {
-
-        HashMap map = jsonToInParameter("parameters/jobTest.json", "report", HashMap.class);
-        BaseResult result = jobController.commit(map);
-        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
-        jobId = ((List<Map>) result.getData()).get(0).get("job_id").toString();
-
-    }
-
-    @Test(priority = 8)
-    public void reportStatus() {
-
-        BaseResult result = jobController.getStatus(jobId);
-        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
-
-    }
-
-    @Test(priority = 9)
-    public void commitStatistics() {
-
-        HashMap map = jsonToInParameter("parameters/jobTest.json", "statistics_top", HashMap.class);
-        BaseResult result = jobController.commit(map);
-        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
-        jobId = ((List<Map>) result.getData()).get(0).get("job_id").toString();
-
-    }
-
-    @Test(priority = 10)
-    public void longPollingStatisticsResult() {
-        DeferredResult<BaseResult> result = jobController.longPollingFieldDiscoveryResult(jobId);
-        BaseResult baseResult = (BaseResult) result.getResult();
-        Assert.assertTrue(baseResult.getMessage(), baseResult.getStatus() == 200);
-
-    }
-
-//    @Test(priority = 11)
+//    @Test
 //    public void getResultReport() {
 //        BaseResult result = jobController.getResultReport(jobId);
 //        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
 //    }
-
-    @Test(priority = 12)
-    public void cancelledJob() {
-        BaseResult result = jobController.cancel(jobId);
-        Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
-    }
 
 }

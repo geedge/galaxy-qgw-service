@@ -312,12 +312,6 @@
             <artifactId>flyway-core</artifactId>
             <version>5.2.4</version>
         </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.10</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>

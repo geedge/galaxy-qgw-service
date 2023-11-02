@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +21,7 @@ import java.util.Objects;
 @SpringBootTest(classes = {GalaxyQGWApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @EnableAutoConfiguration
 @ActiveProfiles("test")
-public class GalaxyQGWApplicationTests extends AbstractTestNGSpringContextTests {
+public class GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
 
     static {
