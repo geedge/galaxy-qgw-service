@@ -1597,7 +1597,7 @@ public class SQLFunctionUtil {
                     innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]";
                 } else {
                     if (matcherParse.group(2).startsWith("'") && matcherParse.group(2).endsWith("'")) {
-                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[ " + matcherParse.group(2) + "#]#]/1000";
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[TIME_FORMAT#[ TIMESTAMP " + matcherParse.group(2) + ", 'yyyy-MM-dd HH:mm:ss'#]#]#]/1000";
                     } else {
                         innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[ TIMESTAMP " + matcherParse.group(2) + "#]";
                     }
@@ -1840,7 +1840,7 @@ public class SQLFunctionUtil {
                 }
                 return String.format(format, timestamp, num);
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                String format = "TIMESTAMP_TO_MILLIS(time_floor(%s * 1000,%s))/1000";
+                String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP(%s * 1000),%s))/1000";
                 return String.format(format, timestamp, period);
             }
         }
@@ -1862,7 +1862,7 @@ public class SQLFunctionUtil {
                 }
                 return String.format(format, timestamp, num);
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                String format = "TIMESTAMP_TO_MILLIS(time_floor(%s * 1000,%s))/1000";
+                String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP(%s * 1000),%s))/1000";
                 return String.format(format, timestamp, period);
             }
         }
