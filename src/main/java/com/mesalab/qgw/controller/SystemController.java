@@ -2,6 +2,7 @@ package com.mesalab.qgw.controller;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.clearspring.analytics.util.Lists;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
@@ -37,7 +38,7 @@ public class SystemController {
     }
 
     @PutMapping(value = "setting/storage/quota")
-    public BaseResult storageDeletion(@RequestBody List<StorageDeletionInfo> list) {
+    public BaseResult storageSetting(@RequestBody List<StorageDeletionInfo> list) {
         log.warn("数据配额设置, 参数: params is {}", list);
         if (StringUtil.isEmpty(list)) {
             return BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -58,6 +59,16 @@ public class SystemController {
             }
         }
         return systemService.deleteStorage(list);
+    }
+
+    @RequestMapping(value = "setting/storage/quota",method = RequestMethod.DELETE)
+    public BaseResult storageDeletion(@RequestParam String type){
+        List<StorageDeletionInfo> deletionInfoList = Lists.newArrayList();
+        StorageDeletionInfo deletionInfo = new StorageDeletionInfo();
+        deletionInfo.setType(type);
+        deletionInfo.setMaxDays(0);
+        deletionInfoList.add(deletionInfo);
+        return systemService.deleteStorage(deletionInfoList);
     }
 
     @RequestMapping("setting/storage/quota/daily_trend")

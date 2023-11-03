@@ -225,16 +225,23 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
      * @Created by wWei
      */
     private List<StorageDeletionInfo> preProcessOfLogType(List<StorageDeletionInfo> list) {
-        if (list.size() == 1 && LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getType())) {
+        if (list.size() == 1){
             StorageDeletionInfo deletionInfo = list.get(0);
             Integer maxDays = deletionInfo.getMaxDays();
             Integer defaultMaxDays = deletionInfo.getDefaultMaxDays();
-
-            list.clear();
-            list.add(new StorageDeletionInfo(LogType.TRAFFIC_LOGS.getValue(), maxDays, defaultMaxDays));
-            list.add(new StorageDeletionInfo(LogType.REPORT_AND_METRICS.getValue(), maxDays, defaultMaxDays));
-            list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays, defaultMaxDays));
-            return list;
+            if (LogType.ALL.getValue().equalsIgnoreCase(list.get(0).getType())){
+                list.clear();
+                list.add(new StorageDeletionInfo(LogType.TRAFFIC_LOGS.getValue(), maxDays, defaultMaxDays));
+                list.add(new StorageDeletionInfo(LogType.REPORT_AND_METRICS.getValue(), maxDays, defaultMaxDays));
+                list.add(new StorageDeletionInfo(LogType.FILES.getValue(), maxDays, defaultMaxDays));
+                return list;
+            }else if (LogType.TRAFFIC_LOGS.getValue().equalsIgnoreCase(list.get(0).getType()) |
+                      LogType.FILES.getValue().equalsIgnoreCase(list.get(0).getType()) |
+                      LogType.REPORT_AND_METRICS.getLabel().equalsIgnoreCase(list.get(0).getType())) {
+                list.clear();
+                list.add(new StorageDeletionInfo(LogType.getValueByLabel(deletionInfo.getType()), maxDays, defaultMaxDays));
+                return list;
+            }
         }
         list.forEach(o -> o.setType(LogType.getValueByLabel(o.getType())));
         return list;
