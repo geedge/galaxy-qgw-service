@@ -1,1 +1,5 @@
 Release 373 (TSG-23.11)
+* 优化服务接口命名，Rest SQL、Async API、Admin API(TSG-17269)
+* 修改Schema，原公共Schema更新为public_schema_info_2311，新增public_schema_info(TSG-17493)
+* 修改Schema，重构会话、安全、事务日志，删除过渡会话日志(TSG-17493)
+* 修改Live Traffic Chart，App Internal IPs基于flags判定(TSG-17493)
