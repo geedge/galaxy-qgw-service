@@ -190,8 +190,7 @@
   "transaction_record": {
     "index_key": {
       "vsys_id": [
-        "common_vsys_id",
-        "decoded_as",
+        "vsys_id",
         "session_id",
         "recv_time"
       ]
