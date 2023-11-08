@@ -1007,12 +1007,16 @@
         },
         "data": [
           {
-            "code": "deny",
-            "value": "deny"
+            "code": "Deny",
+            "value": "Deny"
           },
           {
-            "code": "allow",
-            "value": "allow"
+            "code": "Allow",
+            "value": "Allow"
+          },
+          {
+            "code": "Shunt",
+            "value": "Shunt"
           }
         ],
         "ttl": null
@@ -1077,12 +1081,12 @@
         },
         "data": [
           {
-            "code": "intercept",
-            "value": "intercept"
+            "code": "Intercept",
+            "value": "Intercept"
           },
           {
-            "code": "no intercept",
-            "value": "no intercept"
+            "code": "No Intercept",
+            "value": "No Intercept"
           }
         ],
         "ttl": null
