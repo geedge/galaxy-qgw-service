@@ -40,7 +40,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidHealthIndicator.DruidQueryParam druidQueryParam = new DruidHealthIndicator.DruidQueryParam();
 
-        druidQueryParam.setQuery("select TIME_FORMAT(CURRENT_DATE,'z') as timeZone, CURRENT_TIMESTAMP as curTimestamp");
+        druidQueryParam.setQuery("select TIME_FORMAT(CURRENT_TIMESTAMP,'z') as timeZone, CURRENT_TIMESTAMP as curTimestamp");
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.setResultFormat("object");
         try {
