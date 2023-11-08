@@ -102,5 +102,17 @@
   {
     "key": "order_by",
     "default": 1
+  },
+  {
+    "key": "field_name",
+    "default": "log_id"
+  },
+  {
+    "key": "log_type",
+    "default": "session_record"
+  },
+  {
+    "key": "timestamp_field",
+    "default": "recv_time"
   }
 ]
