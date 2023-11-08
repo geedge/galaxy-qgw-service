@@ -825,7 +825,7 @@
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
         },
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": {
