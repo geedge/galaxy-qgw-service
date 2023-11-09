@@ -60,6 +60,37 @@
         "protocol_path",
         "tunnel_endpoint_a_desc",
         "tunnel_endpoint_b_desc",
+        "http_host",
+        "http_url",
+        "http_sequence",
+        "http_cookie",
+        "http_set_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_type",
+        "http_response_content_type",
+        "http_request_line",
+        "http_response_line",
+        "http_version",
+        "http_status_code",
+        "mail_protocol_type",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_password",
+        "mail_subject",
+        "mail_attachment_name",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_rcode",
+        "dns_qname",
+        "dns_qtype",
+        "dns_qclass",
         "ssl_version",
         "ssl_sni",
         "ssl_san",
@@ -77,6 +108,19 @@
         "ftp_account",
         "ftp_url",
         "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
         "ssh_version",
         "ssh_auth_success",
         "ssh_client_version",
@@ -156,6 +200,42 @@
         "tcp_s2c_rtx_pkts",
         "tcp_c2s_rtx_bytes",
         "tcp_s2c_rtx_bytes",
+        "http_host",
+        "http_url",
+        "http_cookie",
+        "http_set_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_request_content_type",
+        "http_response_content_length",
+        "http_response_content_type",
+        "http_status_code",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "mail_protocol_type",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_password",
+        "mail_attachment_name",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_rcode",
+        "dns_qname",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_qdcount",
+        "dns_ancount",
+        "dns_nscount",
+        "dns_arcount",
+        "dns_response_latency_ms",
         "ssl_version",
         "ssl_sni",
         "ssl_san",
@@ -174,6 +254,20 @@
         "ftp_account",
         "ftp_url",
         "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "sip_duration_s",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
         "ssh_version",
         "ssh_auth_success",
         "ssh_client_version",
@@ -262,6 +356,51 @@
         "tcp_s2c_rtx_pkts",
         "tcp_c2s_rtx_bytes",
         "tcp_s2c_rtx_bytes",
+        "http_host",
+        "http_url",
+        "http_request_line",
+        "http_response_line",
+        "http_request_body",
+        "http_response_body",
+        "http_sequence",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_request_content_type",
+        "http_response_content_length",
+        "http_response_content_type",
+        "http_set_cookie",
+        "http_status_code",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "mail_protocol_type",
+        "mail_account",
+        "mail_from_cmd",
+        "mail_to_cmd",
+        "mail_from",
+        "mail_to",
+        "mail_cc",
+        "mail_bcc",
+        "mail_subject",
+        "mail_password",
+        "mail_attachment_name",
+        "mail_eml_file",
+        "dns_message_id",
+        "dns_qr",
+        "dns_opcode",
+        "dns_rcode",
+        "dns_qdcount",
+        "dns_ancount",
+        "dns_nscount",
+        "dns_arcount",
+        "dns_response_latency_ms",
+        "dns_qname",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_sub",
+        "dns_cname",
+        "dns_rr",
         "ssl_version",
         "ssl_sni",
         "ssl_san",
@@ -280,6 +419,23 @@
         "ftp_account",
         "ftp_url",
         "ftp_link_type",
+        "sip_call_id",
+        "sip_originator_description",
+        "sip_responder_description",
+        "sip_user_agent",
+        "sip_server",
+        "sip_originator_sdp_connect_ip",
+        "sip_originator_sdp_media_port",
+        "sip_originator_sdp_media_type",
+        "sip_originator_sdp_content",
+        "sip_responder_sdp_connect_ip",
+        "sip_responder_sdp_media_port",
+        "sip_responder_sdp_media_type",
+        "sip_responder_sdp_content",
+        "sip_duration_s",
+        "sip_bye",
+        "rtp_payload_type_c2s",
+        "rtp_payload_type_s2c",
         "ssh_version",
         "ssh_auth_success",
         "ssh_client_version",
@@ -317,6 +473,15 @@
       "BASE": {
         "$ref": "public_schema_info.json#/decoded_as/BASE"
       },
+      "HTTP": {
+        "$ref": "public_schema_info.json#/decoded_as/HTTP"
+      },
+      "MAIL": {
+        "$ref": "public_schema_info.json#/decoded_as/MAIL"
+      },
+      "DNS": {
+        "$ref": "public_schema_info.json#/decoded_as/DNS"
+      },
       "SSL": {
         "$ref": "public_schema_info.json#/decoded_as/SSL"
       },
@@ -328,6 +493,12 @@
       },
       "FTP": {
         "$ref": "public_schema_info.json#/decoded_as/FTP"
+      },
+      "SIP": {
+        "$ref": "public_schema_info.json#/decoded_as/SIP"
+      },
+      "RTP": {
+        "$ref": "public_schema_info.json#/decoded_as/RTP"
       },
       "SSH": {
         "$ref": "public_schema_info.json#/decoded_as/SSH"
@@ -445,6 +616,18 @@
             "value": "BASE"
           },
           {
+            "code": "MAIL",
+            "value": "MAIL"
+          },
+          {
+            "code": "DNS",
+            "value": "DNS"
+          },
+          {
+            "code": "HTTP",
+            "value": "HTTP"
+          },
+          {
             "code": "SSL",
             "value": "SSL"
           },
@@ -471,6 +654,14 @@
           {
             "code": "RDP",
             "value": "RDP"
+          },
+          {
+            "code": "SIP",
+            "value": "SIP"
+          },
+          {
+            "code": "RTP",
+            "value": "RTP"
           }
         ],
         "visibility": "enabled",
@@ -1582,6 +1773,1068 @@
       "type": "string"
     },
     {
+      "name": "http_url",
+      "label": "HTTP.URL",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_host",
+      "label": "HTTP.Host",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_line",
+      "label": "HTTP.Request Line",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_line",
+      "label": "HTTP.Response Line",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_header",
+      "label": "HTTP.Request Header",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_header",
+      "label": "HTTP.Response Header",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_content",
+      "label": "HTTP.Request Content",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_content_length",
+      "label": "HTTP.Request Content Length",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_content_type",
+      "label": "HTTP.Request Content Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_content",
+      "label": "HTTP.Response Content",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_content_length",
+      "label": "HTTP.Response Content Length",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_content_type",
+      "label": "HTTP.Response Content Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_request_body",
+      "label": "HTTP.Request Body",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_response_body",
+      "label": "HTTP.Response Body",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_proxy_flag",
+      "label": "HTTP.Proxy Flag",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_sequence",
+      "label": "HTTP.Sequence",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_snapshot",
+      "label": "HTTP.Snapshot",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_cookie",
+      "label": "HTTP.Cookie",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_referer",
+      "label": "HTTP.Referer",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_user_agent",
+      "label": "HTTP.User Agent",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_set_cookie",
+      "label": "HTTP.Set Cookie",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_version",
+      "label": "HTTP.Version",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "http_status_code",
+      "label": "HTTP.Status Code",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_response_latency_ms",
+      "label": "HTTP.Response Latency (ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "http_action_file_size",
+      "label": "HTTP.Action File Size",
+      "doc": {
+        "constraints": {
+          "type": "bytes"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "http_session_duration_ms",
+      "label": "HTTP.Session Duration (ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "mail_protocol_type",
+      "label": "Mail.Protocol Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_account",
+      "label": "Mail.Account",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_from_cmd",
+      "label": "Mail.From CMD",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_to_cmd",
+      "label": "Mail.To CMD",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_from",
+      "label": "Mail.From",
+      "doc": {
+        "constraints": {
+          "type": "email"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_password",
+      "label": "Mail.Password",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_to",
+      "label": "Mail.To",
+      "doc": {
+        "constraints": {
+          "type": "email"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_cc",
+      "label": "Mail.CC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_bcc",
+      "label": "Mail.BCC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_subject",
+      "label": "Mail.Subject",
+      "doc": {
+        "format": [
+          {
+            "function": "decode_of_base64",
+            "param": "$.mail_subject_charset"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_subject_charset",
+      "label": "Mail.Subject Charset",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_content",
+      "label": "Mail.Content",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_content_charset",
+      "label": "Mail.Content Charset",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_name",
+      "label": "Mail.Attachment",
+      "doc": {
+        "format": [
+          {
+            "function": "decode_of_base64",
+            "param": "$.mail_attachment_name_charset"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_name_charset",
+      "label": "Mail.Attachment Charset",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_attachment_content",
+      "label": "Mail.Attachment Content",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_eml_file",
+      "label": "Mail.EML File",
+      "doc": {
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "mail_snapshot",
+      "label": "Mail.Snapshot",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_message_id",
+      "label": "DNS.Message ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_qr",
+      "label": "DNS.QR",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "QUERY"
+          },
+          {
+            "code": "1",
+            "value": "RESPONSE"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_opcode",
+      "label": "DNS.OPCODE",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "QUERY"
+          },
+          {
+            "code": "1",
+            "value": "IQUERY"
+          },
+          {
+            "code": "2",
+            "value": "STATUS"
+          },
+          {
+            "code": "5",
+            "value": "UPDATE"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_aa",
+      "label": "DNS.AA",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_tc",
+      "label": "DNS.TC",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_rd",
+      "label": "DNS.RD",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_ra",
+      "label": "DNS.RA",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_rcode",
+      "label": "DNS.RCODE",
+      "doc": {
+        "data": [
+          {
+            "code": 0,
+            "value": "NoError"
+          },
+          {
+            "code": 1,
+            "value": "FormErr"
+          },
+          {
+            "code": 2,
+            "value": "ServFail"
+          },
+          {
+            "code": 3,
+            "value": "NXDomain"
+          },
+          {
+            "code": 4,
+            "value": "NotImp"
+          },
+          {
+            "code": 5,
+            "value": "Refused"
+          },
+          {
+            "code": 6,
+            "value": "YXDomain"
+          },
+          {
+            "code": 7,
+            "value": "YXRRSet"
+          },
+          {
+            "code": 8,
+            "value": "NXRRSet"
+          },
+          {
+            "code": 9,
+            "value": "NotAuth"
+          },
+          {
+            "code": 10,
+            "value": "NotZone"
+          },
+          {
+            "code": 16,
+            "value": "BADSIG"
+          },
+          {
+            "code": 17,
+            "value": "BADKEY"
+          },
+          {
+            "code": 18,
+            "value": "BADTIME"
+          },
+          {
+            "code": 19,
+            "value": "BADMODE"
+          },
+          {
+            "code": 20,
+            "value": "BADNAME"
+          },
+          {
+            "code": 21,
+            "value": "BADALG"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_qdcount",
+      "label": "DNS.QDCOUNT",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_ancount",
+      "label": "DNS.ANCOUNT",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_nscount",
+      "label": "DNS.NSCOUNT",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_arcount",
+      "label": "DNS.ARCOUNT",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_qname",
+      "label": "DNS.QNAME",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_qtype",
+      "label": "DNS.QTYPE",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "A"
+          },
+          {
+            "code": "2",
+            "value": "NS"
+          },
+          {
+            "code": "3",
+            "value": "MD"
+          },
+          {
+            "code": "4",
+            "value": "MF"
+          },
+          {
+            "code": "5",
+            "value": "CNAME"
+          },
+          {
+            "code": "6",
+            "value": "SOA"
+          },
+          {
+            "code": "7",
+            "value": "MB"
+          },
+          {
+            "code": "8",
+            "value": "MG"
+          },
+          {
+            "code": "9",
+            "value": "MR"
+          },
+          {
+            "code": "10",
+            "value": "NULL"
+          },
+          {
+            "code": "11",
+            "value": "WKS"
+          },
+          {
+            "code": "12",
+            "value": "PTR"
+          },
+          {
+            "code": "13",
+            "value": "HINFO"
+          },
+          {
+            "code": "14",
+            "value": "MINFO"
+          },
+          {
+            "code": "15",
+            "value": "MX"
+          },
+          {
+            "code": "16",
+            "value": "TXT"
+          },
+          {
+            "code": "17",
+            "value": "RP"
+          },
+          {
+            "code": "18",
+            "value": "AFSDB"
+          },
+          {
+            "code": "19",
+            "value": "X25"
+          },
+          {
+            "code": "20",
+            "value": "ISDN"
+          },
+          {
+            "code": "21",
+            "value": "RT"
+          },
+          {
+            "code": "22",
+            "value": "NSAP"
+          },
+          {
+            "code": "23",
+            "value": "NSAP"
+          },
+          {
+            "code": "24",
+            "value": "SIG"
+          },
+          {
+            "code": "25",
+            "value": "KEY"
+          },
+          {
+            "code": "26",
+            "value": "PX"
+          },
+          {
+            "code": "27",
+            "value": "GPOS"
+          },
+          {
+            "code": "28",
+            "value": "AAAA"
+          },
+          {
+            "code": "29",
+            "value": "LOC"
+          },
+          {
+            "code": "30",
+            "value": "EID"
+          },
+          {
+            "code": "31",
+            "value": "NIMLOC"
+          },
+          {
+            "code": "32",
+            "value": "NB"
+          },
+          {
+            "code": "33",
+            "value": "SRV"
+          },
+          {
+            "code": "34",
+            "value": "ATMA"
+          },
+          {
+            "code": "35",
+            "value": "NAPTR"
+          },
+          {
+            "code": "36",
+            "value": "KX"
+          },
+          {
+            "code": "37",
+            "value": "CERT"
+          },
+          {
+            "code": "38",
+            "value": "A6"
+          },
+          {
+            "code": "39",
+            "value": "DNAME"
+          },
+          {
+            "code": "40",
+            "value": "SINK"
+          },
+          {
+            "code": "41",
+            "value": "OPT"
+          },
+          {
+            "code": "42",
+            "value": "APL"
+          },
+          {
+            "code": "43",
+            "value": "DS"
+          },
+          {
+            "code": "44",
+            "value": "SSHFP"
+          },
+          {
+            "code": "45",
+            "value": "IPSECKEY"
+          },
+          {
+            "code": "46",
+            "value": "RRSIG"
+          },
+          {
+            "code": "47",
+            "value": "NSEC"
+          },
+          {
+            "code": "48",
+            "value": "DNSKEY"
+          },
+          {
+            "code": "49",
+            "value": "DHCID"
+          },
+          {
+            "code": "50",
+            "value": "NSEC3"
+          },
+          {
+            "code": "51",
+            "value": "NSEC3PARAM"
+          },
+          {
+            "code": "52",
+            "value": "TLSA"
+          },
+          {
+            "code": "53",
+            "value": "SMIMEA"
+          },
+          {
+            "code": "55",
+            "value": "HIP"
+          },
+          {
+            "code": "59",
+            "value": "CDS"
+          },
+          {
+            "code": "60",
+            "value": "CDNSKEY"
+          },
+          {
+            "code": "61",
+            "value": "OPENPGPKEY"
+          },
+          {
+            "code": "62",
+            "value": "CSYNC"
+          },
+          {
+            "code": "63",
+            "value": "ZONEMD"
+          },
+          {
+            "code": "64",
+            "value": "SVCB"
+          },
+          {
+            "code": "65",
+            "value": "HTTPS"
+          },
+          {
+            "code": "99",
+            "value": "SPF"
+          },
+          {
+            "code": "100",
+            "value": "UINFO"
+          },
+          {
+            "code": "101",
+            "value": "UID"
+          },
+          {
+            "code": "102",
+            "value": "GID"
+          },
+          {
+            "code": "103",
+            "value": "UNSPEC"
+          },
+          {
+            "code": "108",
+            "value": "EUI48"
+          },
+          {
+            "code": "109",
+            "value": "EUI64"
+          },
+          {
+            "code": "249",
+            "value": "TKEY"
+          },
+          {
+            "code": "250",
+            "value": "TSIG"
+          },
+          {
+            "code": "251",
+            "value": "IXFR"
+          },
+          {
+            "code": "252",
+            "value": "AXFR"
+          },
+          {
+            "code": "253",
+            "value": "MAILB"
+          },
+          {
+            "code": "254",
+            "value": "MAILA"
+          },
+          {
+            "code": "255",
+            "value": "*"
+          },
+          {
+            "code": "256",
+            "value": "URI"
+          },
+          {
+            "code": "257",
+            "value": "CAA"
+          },
+          {
+            "code": "32768",
+            "value": "TA"
+          },
+          {
+            "code": "32769",
+            "value": "DLV"
+          },
+          {
+            "code": "65521",
+            "value": "INTEGRITY"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_qclass",
+      "label": "DNS.QCLASS",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_cname",
+      "label": "DNS.CNAME",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_sub",
+      "label": "DNS.SUB",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "DNS"
+          },
+          {
+            "code": "2",
+            "value": "DNSSEC"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "dns_rr",
+      "label": "DNS.RR",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "dns_response_latency_ms",
+      "label": "DNS.Response Latency (ms)",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "disabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
       "name": "ssl_version",
       "label": "SSL.Version",
       "doc": {
@@ -1862,6 +3115,427 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "sip_call_id",
+      "label": "SIP.Call-ID",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_description",
+      "label": "SIP.Originator",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_description",
+      "label": "SIP.Responder",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_user_agent",
+      "label": "SIP.User-Agent",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_server",
+      "label": "SIP.Server",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_connect_ip",
+      "label": "SIP.Originator IP",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_media_port",
+      "label": "SIP.Originator Port",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "sip_originator_sdp_media_type",
+      "label": "SIP.Originator Media Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_originator_sdp_content",
+      "label": "SIP.Originator Content",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_connect_ip",
+      "label": "SIP.Responder IP",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_media_port",
+      "label": "SIP.Responder Port",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "sip_responder_sdp_media_type",
+      "label": "SIP.Responder Media Type",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_responder_sdp_content",
+      "label": "SIP.Responder Content",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "sip_duration_s",
+      "label": "SIP.Duration (s)",
+      "doc": {
+        "constraints": {
+          "type": "decimal"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "sip_bye",
+      "label": "SIP.Bye",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rtp_payload_type_c2s",
+      "label": "RTP.Payload Type (c2s)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
+            "code": "1",
+            "value": "1016"
+          },
+          {
+            "code": "2",
+            "value": "G721"
+          },
+          {
+            "code": "3",
+            "value": "GSM"
+          },
+          {
+            "code": "4",
+            "value": "G723"
+          },
+          {
+            "code": "5",
+            "value": "DVI4_8000"
+          },
+          {
+            "code": "6",
+            "value": "DVI4_16000"
+          },
+          {
+            "code": "7",
+            "value": "LPC"
+          },
+          {
+            "code": "8",
+            "value": "PCMA"
+          },
+          {
+            "code": "9",
+            "value": "G722"
+          },
+          {
+            "code": "10",
+            "value": "L16_STEREO"
+          },
+          {
+            "code": "11",
+            "value": "L16_MONO"
+          },
+          {
+            "code": "12",
+            "value": "QCELP"
+          },
+          {
+            "code": "13",
+            "value": "CN"
+          },
+          {
+            "code": "14",
+            "value": "MPA"
+          },
+          {
+            "code": "15",
+            "value": "G728"
+          },
+          {
+            "code": "16",
+            "value": "DVI4_11025"
+          },
+          {
+            "code": "17",
+            "value": "DVI4_22050"
+          },
+          {
+            "code": "18",
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "rtp_payload_type_s2c",
+      "label": "RTP.Payload Type (s2c)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "PCMU"
+          },
+          {
+            "code": "1",
+            "value": "1016"
+          },
+          {
+            "code": "2",
+            "value": "G721"
+          },
+          {
+            "code": "3",
+            "value": "GSM"
+          },
+          {
+            "code": "4",
+            "value": "G723"
+          },
+          {
+            "code": "5",
+            "value": "DVI4_8000"
+          },
+          {
+            "code": "6",
+            "value": "DVI4_16000"
+          },
+          {
+            "code": "7",
+            "value": "LPC"
+          },
+          {
+            "code": "8",
+            "value": "PCMA"
+          },
+          {
+            "code": "9",
+            "value": "G722"
+          },
+          {
+            "code": "10",
+            "value": "L16_STEREO"
+          },
+          {
+            "code": "11",
+            "value": "L16_MONO"
+          },
+          {
+            "code": "12",
+            "value": "QCELP"
+          },
+          {
+            "code": "13",
+            "value": "CN"
+          },
+          {
+            "code": "14",
+            "value": "MPA"
+          },
+          {
+            "code": "15",
+            "value": "G728"
+          },
+          {
+            "code": "16",
+            "value": "DVI4_11025"
+          },
+          {
+            "code": "17",
+            "value": "DVI4_22050"
+          },
+          {
+            "code": "18",
+            "value": "G729"
+          },
+          {
+            "code": "19",
+            "value": "CN_OLD"
+          },
+          {
+            "code": "25",
+            "value": "CELB"
+          },
+          {
+            "code": "26",
+            "value": "JPEG"
+          },
+          {
+            "code": "28",
+            "value": "NV"
+          },
+          {
+            "code": "31",
+            "value": "H261"
+          },
+          {
+            "code": "32",
+            "value": "MPV"
+          },
+          {
+            "code": "33",
+            "value": "MP2T"
+          },
+          {
+            "code": "34",
+            "value": "H263"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "rtp_pcap_path",
+      "label": "RTP.PCAP",
+      "doc": {
+        "allow_query": "false",
+        "constraints": {
+          "type": "file"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "rtp_originator_dir",
+      "label": "RTP.Direction",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "0",
+            "value": "unknown"
+          },
+          {
+            "code": "1",
+            "value": "c2s"
+          },
+          {
+            "code": "2",
+            "value": "s2c"
+          }
+        ],
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "ssh_version",
