@@ -485,7 +485,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         Integer limit = dslObject.getQuery().getLimit();
         Integer offset = dslObject.getQuery().getOffset();
         String sql = String.format(Objects.requireNonNull(environment.getProperty("APP_DATA_SUMMARY")),
-                period.toStandardSeconds().getSeconds(), dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, granularity, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
+                period.toStandardSeconds().getSeconds(), dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
         Map<String, String> dataResult = executeQuery(sql);
         if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
             return JSON.parseObject(dataResult.get("result"), BaseResult.class);
