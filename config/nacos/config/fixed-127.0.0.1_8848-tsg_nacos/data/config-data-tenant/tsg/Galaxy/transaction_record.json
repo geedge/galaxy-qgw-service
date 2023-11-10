@@ -25,19 +25,30 @@
         "client_port",
         "server_ip",
         "server_port",
-        "http_host",
         "http_url",
-        "http_sequence",
-        "http_cookie",
-        "http_set_cookie",
-        "http_referer",
-        "http_user_agent",
-        "http_request_content_type",
-        "http_response_content_type",
+        "http_host",
         "http_request_line",
         "http_response_line",
+        "http_request_header",
+        "http_response_header",
+        "http_request_content",
+        "http_response_content",
+        "http_proxy_flag",
+        "http_sequence",
+        "http_snapshot",
+        "http_cookie",
+        "http_referer",
+        "http_user_agent",
+        "http_request_content_length",
+        "http_request_content_type",
+        "http_response_content_length",
+        "http_response_content_type",
+        "http_set_cookie",
         "http_version",
         "http_status_code",
+        "http_response_latency_ms",
+        "http_session_duration_ms",
+        "http_action_file_size",
         "mail_protocol_type",
         "mail_account",
         "mail_from_cmd",
@@ -48,14 +59,27 @@
         "mail_cc",
         "mail_bcc",
         "mail_subject",
+        "mail_subject_charset",
+        "mail_content",
+        "mail_content_charset",
         "mail_attachment_name",
+        "mail_attachment_name_charset",
+        "mail_attachment_content",
+        "mail_eml_file",
+        "mail_snapshot",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
+        "dns_aa",
+        "dns_tc",
+        "dns_rd",
+        "dns_ra",
         "dns_rcode",
         "dns_qname",
         "dns_qtype",
         "dns_qclass",
+        "dns_cname",
+        "dns_sub",
         "sip_call_id",
         "sip_originator_description",
         "sip_responder_description",
@@ -66,7 +90,10 @@
         "sip_originator_sdp_media_type",
         "sip_responder_sdp_connect_ip",
         "sip_responder_sdp_media_port",
-        "sip_responder_sdp_media_type"
+        "sip_responder_sdp_media_type",
+        "sip_responder_sdp_content",
+        "sip_duration_s",
+        "sip_bye"
       ],
       "metrics": [
         "address_type",
@@ -80,19 +107,30 @@
         "received_pkts",
         "sent_bytes",
         "received_bytes",
-        "http_host",
         "http_url",
+        "http_host",
+        "http_request_line",
+        "http_response_line",
+        "http_request_header",
+        "http_response_header",
+        "http_request_content",
+        "http_response_content",
+        "http_proxy_flag",
+        "http_sequence",
+        "http_snapshot",
         "http_cookie",
-        "http_set_cookie",
         "http_referer",
         "http_user_agent",
         "http_request_content_length",
         "http_request_content_type",
         "http_response_content_length",
         "http_response_content_type",
+        "http_set_cookie",
+        "http_version",
         "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
+        "http_action_file_size",
         "mail_protocol_type",
         "mail_account",
         "mail_from_cmd",
@@ -103,18 +141,33 @@
         "mail_cc",
         "mail_bcc",
         "mail_subject",
+        "mail_subject_charset",
+        "mail_content",
+        "mail_content_charset",
         "mail_attachment_name",
+        "mail_attachment_name_charset",
+        "mail_attachment_content",
+        "mail_eml_file",
+        "mail_snapshot",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
+        "dns_aa",
+        "dns_rd",
+        "dns_ra",
         "dns_rcode",
-        "dns_qname",
         "dns_qtype",
         "dns_qclass",
         "dns_qdcount",
         "dns_ancount",
         "dns_nscount",
         "dns_arcount",
+        "dns_qname",
+        "dns_qtype",
+        "dns_qclass",
+        "dns_cname",
+        "dns_sub",
+        "dns_rr",
         "dns_response_latency_ms",
         "sip_call_id",
         "sip_originator_description",
@@ -124,10 +177,13 @@
         "sip_originator_sdp_connect_ip",
         "sip_originator_sdp_media_port",
         "sip_originator_sdp_media_type",
+        "sip_originator_sdp_content",
         "sip_responder_sdp_connect_ip",
         "sip_responder_sdp_media_port",
         "sip_responder_sdp_media_type",
-        "sip_duration_s"
+        "sip_responder_sdp_content",
+        "sip_duration_s",
+        "sip_bye"
       ],
       "filters": [
         "session_id",
@@ -145,13 +201,17 @@
         "received_pkts",
         "sent_bytes",
         "received_bytes",
-        "http_host",
         "http_url",
+        "http_host",
         "http_request_line",
         "http_response_line",
-        "http_request_body",
-        "http_response_body",
+        "http_request_header",
+        "http_response_header",
+        "http_request_content",
+        "http_response_content",
+        "http_proxy_flag",
         "http_sequence",
+        "http_snapshot",
         "http_cookie",
         "http_referer",
         "http_user_agent",
@@ -160,9 +220,11 @@
         "http_response_content_length",
         "http_response_content_type",
         "http_set_cookie",
+        "http_version",
         "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
+        "http_action_file_size",
         "mail_protocol_type",
         "mail_account",
         "mail_from_cmd",
@@ -173,23 +235,34 @@
         "mail_cc",
         "mail_bcc",
         "mail_subject",
+        "mail_subject_charset",
+        "mail_content",
+        "mail_content_charset",
         "mail_attachment_name",
+        "mail_attachment_name_charset",
+        "mail_attachment_content",
         "mail_eml_file",
+        "mail_snapshot",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
+        "dns_aa",
+        "dns_rd",
+        "dns_ra",
         "dns_rcode",
+        "dns_qtype",
+        "dns_qclass",
         "dns_qdcount",
         "dns_ancount",
         "dns_nscount",
         "dns_arcount",
-        "dns_response_latency_ms",
         "dns_qname",
         "dns_qtype",
         "dns_qclass",
-        "dns_sub",
         "dns_cname",
+        "dns_sub",
         "dns_rr",
+        "dns_response_latency_ms",
         "sip_call_id",
         "sip_originator_description",
         "sip_responder_description",
@@ -510,7 +583,7 @@
       "name": "http_request_line",
       "label": "HTTP.Request Line",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -519,7 +592,7 @@
       "name": "http_response_line",
       "label": "HTTP.Response Line",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -528,7 +601,7 @@
       "name": "http_request_header",
       "label": "HTTP.Request Header",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -537,7 +610,7 @@
       "name": "http_response_header",
       "label": "HTTP.Response Header",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -546,7 +619,7 @@
       "name": "http_request_content",
       "label": "HTTP.Request Content",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -573,7 +646,7 @@
       "name": "http_response_content",
       "label": "HTTP.Response Content",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -636,7 +709,7 @@
       "name": "http_proxy_flag",
       "label": "HTTP.Proxy Flag",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "int"
@@ -645,7 +718,7 @@
       "name": "http_sequence",
       "label": "HTTP.Sequence",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "int"
@@ -654,7 +727,7 @@
       "name": "http_snapshot",
       "label": "HTTP.Snapshot",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -855,7 +928,7 @@
       "name": "mail_subject_charset",
       "label": "Mail.Subject Charset",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -864,7 +937,7 @@
       "name": "mail_content",
       "label": "Mail.Content",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -873,7 +946,7 @@
       "name": "mail_content_charset",
       "label": "Mail.Content Charset",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -897,7 +970,7 @@
       "name": "mail_attachment_name_charset",
       "label": "Mail.Attachment Charset",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -906,7 +979,7 @@
       "name": "mail_attachment_content",
       "label": "Mail.Attachment Content",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -932,7 +1005,7 @@
       "name": "mail_snapshot",
       "label": "Mail.Snapshot",
       "doc": {
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
