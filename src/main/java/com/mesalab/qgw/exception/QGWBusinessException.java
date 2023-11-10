@@ -20,13 +20,11 @@ public class QGWBusinessException extends RuntimeException {
     /**
      * 状态码
      */
-    @Builder.Default
     private int status = ResultStatusEnum.SERVER_ERROR.getCode();
 
     /**
      * 业务码
      */
-    @Builder.Default
     private String code = ResultCodeEnum.UNKNOWN_EXCEPTION.getCode();
 
 
