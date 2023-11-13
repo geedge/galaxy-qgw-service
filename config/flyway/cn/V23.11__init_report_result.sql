@@ -1,14 +1,14 @@
 /*
-* 23.11 init job_report sql
+* 23.11 init report_result sql
 */
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
--- Table structure for job_report
+-- Table structure for report_result
 -- ----------------------------
-DROP TABLE IF EXISTS `job_report`;
-CREATE TABLE `job_report` (
+DROP TABLE IF EXISTS `report_result`;
+CREATE TABLE `report_result` (
                    `result_id` int(11) NOT NULL AUTO_INCREMENT,
                    `result_name` varchar(512) NOT NULL COMMENT '任务名称',
                    `job_id` int(11) NOT NULL COMMENT '任务id',

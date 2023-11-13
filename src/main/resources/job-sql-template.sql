@@ -47,14 +47,14 @@ SELECT %s.%s AS value FROM job_result WHERE ROWKEY = '%s' LIMIT 1
 SELECT %s FROM %s WHERE %s LIMIT 1
 #end
 #sql("REPORT_INSERT")
-insert into job_report ( status, result_rows, create_time, excute_row, is_valid, excute_detail, result_name, query_sql, excute_process, issued_time, op_time, start_time, excute_time, end_time, job_uuid, is_send_notice, job_id, chart_id, op_user, time_granularity, is_display_traffic_trend, time_zone) values ( 0, 0, '%s', 0, 1, 'COMMIT', 'OFFLINE JOB', '%s', 0, '%s', '%s', '%s', 0, '%s', '%s', 0, 0, 0, 0, 0, 0, '%s')
+insert into report_result ( status, result_rows, create_time, excute_row, is_valid, excute_detail, result_name, query_sql, excute_process, issued_time, op_time, start_time, excute_time, end_time, job_uuid, is_send_notice, job_id, chart_id, op_user, time_granularity, is_display_traffic_trend, time_zone) values ( 0, 0, '%s', 0, 1, 'COMMIT', 'OFFLINE JOB', '%s', 0, '%s', '%s', '%s', 0, '%s', '%s', 0, 0, 0, 0, 0, 0, '%s')
 #end
 #sql("REPORT_STATUS")
-SELECT status, result_id, query_sql, excute_process, is_valid FROM job_report WHERE job_uuid = '%s' LIMIT 1
+SELECT status, result_id, query_sql, excute_process, is_valid FROM report_result WHERE job_uuid = '%s' LIMIT 1
 #end
 #sql("REPORT_SAME")
-SELECT job_uuid AS id FROM job_report WHERE is_valid = 1 AND status IN ( 0, 1) AND query_sql = '%s' LIMIT 1
+SELECT job_uuid AS id FROM report_result WHERE is_valid = 1 AND status IN ( 0, 1) AND query_sql = '%s' LIMIT 1
 #end
 #sql("REPORT_UPDATE")
-UPDATE job_report SET %s = %s  WHERE job_uuid = '%s'
+UPDATE report_result SET %s = %s  WHERE job_uuid = '%s'
 #end
