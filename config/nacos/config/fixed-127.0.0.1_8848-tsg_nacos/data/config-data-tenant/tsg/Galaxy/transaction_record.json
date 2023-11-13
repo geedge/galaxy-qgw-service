@@ -284,7 +284,23 @@
       },
       "details": {}
     },
-    "decoded_as": {},
+    "decoded_as": {
+      "BASE": {
+        "$ref": "public_schema_info.json#/decoded_as/BASE"
+      },
+      "DNS": {
+        "$ref": "public_schema_info.json#/decoded_as/DNS"
+      },
+      "HTTP": {
+        "$ref": "public_schema_info.json#/decoded_as/HTTP"
+      },
+      "MAIL": {
+        "$ref": "public_schema_info.json#/decoded_as/MAIL"
+      },
+      "SIP": {
+        "$ref": "public_schema_info.json#/decoded_as/SIP"
+      }
+    },
     "default_columns": [
       "recv_time",
       "client_ip",
