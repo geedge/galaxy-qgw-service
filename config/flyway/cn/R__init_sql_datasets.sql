@@ -20,9 +20,9 @@ CREATE TABLE `sql_dataset` (
                                PRIMARY KEY (`id`) USING BTREE,
                                UNIQUE(identifier_name)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
+
 -- ----------------------------
 -- Records of sql_dataset
 -- ----------------------------
-
 COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;
