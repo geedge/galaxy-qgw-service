@@ -43,7 +43,7 @@ public class KnowledgeBaseTest extends GalaxyQGWApplicationTests {
 
     private void publish() throws Exception {
         KnowledgeBase knowledgeBase = jsonToInParameter("parameters/knowledgeBase.json", "publishTest", KnowledgeBase.class);
-        File file = new File(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4 + KnowledgeConstant.MMDB);
+        File file = new File(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILTIN + KnowledgeConstant.MMDB);
         FileInputStream inputStream = new FileInputStream(file);
         MultipartFile multipartFile = new MockMultipartFile(file.getName(), file.getName(),
                 ContentType.APPLICATION_OCTET_STREAM.toString(), inputStream);
@@ -53,7 +53,7 @@ public class KnowledgeBaseTest extends GalaxyQGWApplicationTests {
     }
 
     private void update() throws Exception {
-        File file = new File(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4 + KnowledgeConstant.MMDB);
+        File file = new File(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILTIN + KnowledgeConstant.MMDB);
         FileInputStream inputStream = new FileInputStream(file);
         MultipartFile multipartFile = new MockMultipartFile(file.getName(), file.getName(),
                 ContentType.APPLICATION_OCTET_STREAM.toString(), inputStream);

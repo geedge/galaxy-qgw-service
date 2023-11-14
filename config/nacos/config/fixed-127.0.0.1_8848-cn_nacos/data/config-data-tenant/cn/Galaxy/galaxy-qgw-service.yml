@@ -135,14 +135,9 @@ hos:
 ## knowledge value 格式 name:版本
 knowledge:
   ipLocation:
-    ipV4:
-      userDefined: ip_v4_user_defined:latest
-      builtIn: ip_v4_built_in:latest
-      asn: asn_v4:latest
-    ipV6:
-      userDefined: ip_v6_user_defined:latest
-      builtIn: ip_v6_built_in:latest
-      asn: asn_v6:latest
+      userDefined: ip_user_defined:latest
+      builtIn: ip_builtin:latest
+      asn: asn_builtin:latest
 ## http pool config
 http:
   pool:

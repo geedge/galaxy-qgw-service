@@ -12,16 +12,10 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 public class KnowledgeConfig {
-    @NacosValue(value = "${knowledge.ipLocation.ipV4.userDefined}", autoRefreshed = true)
-    private String ipV4UserDefined;
-    @NacosValue(value = "${knowledge.ipLocation.ipV4.builtIn}", autoRefreshed = true)
-    private String ipV4BuiltIn;
-    @NacosValue(value = "${knowledge.ipLocation.ipV4.asn}", autoRefreshed = true)
-    private String ipV4Asn;
-    @NacosValue(value = "${knowledge.ipLocation.ipV6.userDefined}", autoRefreshed = true)
-    private String ipV6UserDefined;
-    @NacosValue(value = "${knowledge.ipLocation.ipV6.builtIn}", autoRefreshed = true)
-    private String ipV6BuiltIn;
-    @NacosValue(value = "${knowledge.ipLocation.ipV6.asn}", autoRefreshed = true)
-    private String ipV6Asn;
+    @NacosValue(value = "${knowledge.ipLocation.userDefined}", autoRefreshed = true)
+    private String ipUserDefined;
+    @NacosValue(value = "${knowledge.ipLocation.builtIn}", autoRefreshed = true)
+    private String ipBuiltIn;
+    @NacosValue(value = "${knowledge.ipLocation.asn}", autoRefreshed = true)
+    private String ipAsn;
 }
