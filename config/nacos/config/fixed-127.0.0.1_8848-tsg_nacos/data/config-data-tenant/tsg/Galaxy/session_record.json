@@ -431,7 +431,6 @@
         "imsi",
         "apn",
         "phone_number",
-        "packet_capture_file",
         "encapsulation_type",
         "in_src_mac",
         "out_src_mac",
@@ -1807,6 +1806,7 @@
       "name": "packet_capture_file",
       "label": "Packet Capture File",
       "doc": {
+        "allow_query": "false",
         "visibility": "enabled",
         "constraints": {
           "type": "file"
