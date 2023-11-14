@@ -1150,10 +1150,6 @@
           {
             "code": "Allow",
             "value": "Allow"
-          },
-          {
-            "code": "Shunt",
-            "value": "Shunt"
           }
         ],
         "ttl": null
