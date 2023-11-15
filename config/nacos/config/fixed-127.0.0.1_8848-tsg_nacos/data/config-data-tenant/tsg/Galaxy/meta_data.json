@@ -15,7 +15,8 @@
         "dos_event",
         "active_defence_event",
         "sys_packet_capture_event",
-        "assessment_event"
+        "assessment_event",
+        "monitor_event"
       ]
     },
     {
