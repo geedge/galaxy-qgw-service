@@ -35,9 +35,6 @@
         "security_action",
         "security_rule_list",
         "monitor_rule_list",
-        "shaping_rule_list",
-        "proxy_action",
-        "proxy_rule_list",
         "client_ip",
         "client_port",
         "client_os_desc",
@@ -212,7 +209,8 @@
         "decoded_as",
         "vsys_id",
         "security_action",
-        "proxy_action",
+        "security_mirrored_pkts",
+        "security_mirrored_bytes",
         "client_ip",
         "client_port",
         "client_os_desc",
@@ -417,11 +415,9 @@
         "flags",
         "flags_identify_info",
         "security_action",
+        "security_mirrored_pkts",
+        "security_mirrored_bytes",
         "security_rule_list",
-        "monitor_rule_list",
-        "shaping_rule_list",
-        "proxy_rule_list",
-        "proxy_action",
         "client_ip",
         "client_port",
         "client_os_desc",
@@ -1169,6 +1165,54 @@
       }
     },
     {
+      "name": "sc_rule_list",
+      "label": "Service Chaining Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rsp_raw",
+      "label": "Service Chaining Rendered Service Path (Raw)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "sc_rsp_decrypted",
+      "label": "Service Chaining Rendered Service Path (Decrypted)",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "shaping_rule_list",
       "label": "Shaping Rule List",
       "doc": {
@@ -1332,26 +1376,26 @@
       "type": "string"
     },
     {
-      "name": "sc_mirrored_pkts",
-      "label": "Service Chaining Mirrored Packets",
+      "name": "security_mirrored_pkts",
+      "label": "Security Mirrored Packets",
       "type": "int",
       "doc": {
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       }
     },
     {
-      "name": "sc_mirrored_bytes",
-      "label": "Service Chaining Mirrored Bytes",
+      "name": "security_mirrored_bytes",
+      "label": "Security Mirrored Bytes",
       "type": "int",
       "doc": {
         "constraints": {
           "type": "bytes"
         },
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       }
     },
@@ -1411,7 +1455,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "subscriber_id",
@@ -1510,7 +1554,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "server_fqdn",
