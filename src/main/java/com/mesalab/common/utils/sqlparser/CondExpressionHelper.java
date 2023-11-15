@@ -70,7 +70,8 @@ public class CondExpressionHelper {
      */
     public static String getFieldName(Column column) {
         String columnName = column.getColumnName();
-        if (columnName.startsWith("\"") && columnName.endsWith("\"")) {
+        if ((columnName.startsWith("\"") && columnName.endsWith("\""))
+                || (columnName.startsWith("`") && columnName.endsWith("`"))) {
             columnName = columnName.substring(1, columnName.length() - 1);
         }
         return columnName;

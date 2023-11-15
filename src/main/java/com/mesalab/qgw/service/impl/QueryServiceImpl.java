@@ -342,7 +342,8 @@ public class QueryServiceImpl implements QueryService {
                         SelectExpressionItem expressionItem = ((SelectExpressionItem) item);
                         if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
                             String aliasName = expressionItem.getAlias().getName();
-                            if (aliasName.startsWith("\"") && aliasName.endsWith("\"")) {
+                            if ((aliasName.startsWith("\"") && aliasName.endsWith("\""))
+                                    || ((aliasName.startsWith("`") && aliasName.endsWith("`")))) {
                                 aliasName = aliasName.substring(1, aliasName.length() - 1);
                             }
                             sqlQuerySource.getAliasFields().put(aliasName, expressionItem.getExpression().toString());

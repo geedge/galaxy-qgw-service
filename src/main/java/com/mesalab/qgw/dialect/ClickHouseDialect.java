@@ -636,7 +636,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 String orderBy = param.getDbQuerySource().getOrderBy();
                 for (OrderByElement order : listOrderElement) {
                     String orderField = order.getExpression().toString();
-                    if (orderField.startsWith("\"") && orderField.endsWith("\"")) {
+                    if ((orderField.startsWith("\"") && orderField.endsWith("\""))
+                            || (orderField.startsWith("`") && orderField.endsWith("`"))) {
                         orderField = orderField.substring(1, orderField.length() - 1);
                     }
                     String originalField = param.getDbQuerySource().getAliasFields().get(orderField);
