@@ -129,10 +129,9 @@ public class QueryServiceImpl implements QueryService {
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.OPTION_TYPE_ERROR));
         }
         if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())
-                && StringUtil.isBlank(param.getReportId())
                 && StringUtil.isBlank(param.getResultId())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.MUST_BE_REPORTID_OR_RESULTID));
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.MUST_BE_RESULTID));
         }
         if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),

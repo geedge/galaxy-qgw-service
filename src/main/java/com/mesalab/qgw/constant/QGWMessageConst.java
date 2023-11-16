@@ -54,7 +54,7 @@ public class QGWMessageConst {
 
     public static final String OPTION_TYPE_ERROR = "The option must be real-time or long-term or syntax-validation.";
 
-    public static final String MUST_BE_REPORTID_OR_RESULTID = "The option=long-term, must be reportId or resultId.";
+    public static final String MUST_BE_RESULTID = "The option=long-term, must be resultId.";
 
     public static final String FORMAT_TYPE_ERROR = "The format must be json or csv.";
 

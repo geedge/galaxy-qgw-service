@@ -1,5 +1,6 @@
 package com.mesalab.qgw.model.basic;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.common.enums.DBTypeEnum;
 import lombok.*;
@@ -15,9 +16,8 @@ public class QueryProfile implements Serializable {
     private Boolean sampled;
     private String format;
     private String queryId;
+    @JsonProperty("result_id")
     private String resultId;
-    @Deprecated
-    private String reportId;
     /**
      * @see DBTypeEnum
      */
@@ -30,10 +30,14 @@ public class QueryProfile implements Serializable {
     private SQLQuerySource dbQuerySource;
 
     public String getResultId() {
-        return StringUtil.isNotBlank(reportId) ? reportId : resultId;
+        return resultId;
     }
 
     public boolean queryParamIsNull() {
         return StringUtil.isBlank(query);
+    }
+
+    public void setResult_id(String resultId) {
+        this.resultId = resultId;
     }
 }
