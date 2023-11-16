@@ -175,52 +175,44 @@
     ]
   },
   "session_record": {
-    "index_key": {
-      "vsys_id": [
-        "vsys_id",
-        "security_action",
-        "proxy_action",
-        "decoded_as",
-        "data_center",
-        "device_group",
-        "recv_time"
-      ]
-    }
+    "index_key": [
+      "vsys_id",
+      "security_action",
+      "proxy_action",
+      "decoded_as",
+      "data_center",
+      "device_group",
+      "recv_time"
+    ]
   },
   "security_event": {
-    "index_key": {
-      "vsys_id": [
-        "vsys_id",
-        "security_action",
-        "proxy_action",
-        "decoded_as",
-        "data_center",
-        "device_group",
-        "recv_time"
-      ]
-    }
+    "index_key": [
+      "vsys_id",
+      "security_action",
+      "proxy_action",
+      "decoded_as",
+      "data_center",
+      "device_group",
+      "recv_time"
+    ]
   },
   "monitor_event": {
-    "index_key": {
-      "vsys_id": [
-        "vsys_id",
-        "security_action",
-        "proxy_action",
-        "decoded_as",
-        "data_center",
-        "device_group",
-        "recv_time"
-      ]
-    }
+    "index_key": [
+      "vsys_id",
+      "security_action",
+      "proxy_action",
+      "decoded_as",
+      "data_center",
+      "device_group",
+      "recv_time"
+    ]
   },
   "transaction_record": {
-    "index_key": {
-      "vsys_id": [
-        "vsys_id",
-        "session_id",
-        "recv_time"
-      ]
-    }
+    "index_key": [
+      "vsys_id",
+      "session_id",
+      "recv_time"
+    ]
   },
   "schema_query": {
     "references": {
