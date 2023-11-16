@@ -16,7 +16,6 @@ public class QueryProfile implements Serializable {
     private Boolean sampled;
     private String format;
     private String queryId;
-    @JsonProperty("result_id")
     private String resultId;
     /**
      * @see DBTypeEnum
