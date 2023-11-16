@@ -48,7 +48,7 @@ public class SQLDatasetController
 
 
     @RequestMapping(value = "sql/query/query_id", method = RequestMethod.POST)
-    public BaseResult getQueryId(@RequestParam String query, @RequestParam(value = "result_id", required = false) @JsonProperty("resultId") Integer resultId) {
+    public BaseResult getQueryId(@RequestParam String query, @RequestParam(value = "result_id", required = false) Integer resultId) {
         log.info("获取当前SQL Query ID, 参数: query ={}，result_id ={}", query, resultId);
         if (StringUtil.isEmpty(query)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
