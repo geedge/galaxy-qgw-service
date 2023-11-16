@@ -1845,7 +1845,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "tcp_server_isn",
@@ -1854,7 +1854,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "packet_capture_file",
