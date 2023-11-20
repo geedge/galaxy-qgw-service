@@ -44,7 +44,6 @@
         "apn",
         "phone_number",
         "packet_capture_file",
-        "encapsulation_type",
         "in_src_mac",
         "out_src_mac",
         "server_ip",
@@ -68,13 +67,8 @@
         "http_host",
         "http_request_line",
         "http_response_line",
-        "http_request_header",
-        "http_response_header",
-        "http_request_content",
-        "http_response_content",
         "http_proxy_flag",
         "http_sequence",
-        "http_snapshot",
         "http_cookie",
         "http_referer",
         "http_user_agent",
@@ -99,13 +93,9 @@
         "mail_bcc",
         "mail_subject",
         "mail_subject_charset",
-        "mail_content",
-        "mail_content_charset",
         "mail_attachment_name",
         "mail_attachment_name_charset",
-        "mail_attachment_content",
         "mail_eml_file",
-        "mail_snapshot",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -123,9 +113,7 @@
         "ssl_sni",
         "ssl_san",
         "ssl_cn",
-        "ssl_ja3_fingerprint",
         "ssl_ja3_hash",
-        "ssl_ja3s_fingerprint",
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
@@ -146,7 +134,6 @@
         "quic_user_agent",
         "ftp_account",
         "ftp_url",
-        "ftp_content",
         "ftp_link_type",
         "sip_call_id",
         "sip_originator_description",
@@ -217,7 +204,6 @@
         "apn",
         "phone_number",
         "packet_capture_file",
-        "encapsulation_type",
         "in_src_mac",
         "out_src_mac",
         "server_ip",
@@ -255,13 +241,8 @@
         "http_host",
         "http_request_line",
         "http_response_line",
-        "http_request_header",
-        "http_response_header",
-        "http_request_content",
-        "http_response_content",
         "http_proxy_flag",
         "http_sequence",
-        "http_snapshot",
         "http_cookie",
         "http_referer",
         "http_user_agent",
@@ -286,13 +267,9 @@
         "mail_bcc",
         "mail_subject",
         "mail_subject_charset",
-        "mail_content",
-        "mail_content_charset",
         "mail_attachment_name",
         "mail_attachment_name_charset",
-        "mail_attachment_content",
         "mail_eml_file",
-        "mail_snapshot",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -318,9 +295,7 @@
         "ssl_san",
         "ssl_cn",
         "ssl_handshake_latency_ms",
-        "ssl_ja3_fingerprint",
         "ssl_ja3_hash",
-        "ssl_ja3s_fingerprint",
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
@@ -341,7 +316,6 @@
         "quic_user_agent",
         "ftp_account",
         "ftp_url",
-        "ftp_content",
         "ftp_link_type",
         "sip_call_id",
         "sip_originator_description",
@@ -420,7 +394,6 @@
         "imsi",
         "apn",
         "phone_number",
-        "encapsulation_type",
         "in_src_mac",
         "out_src_mac",
         "server_ip",
@@ -460,13 +433,8 @@
         "http_host",
         "http_request_line",
         "http_response_line",
-        "http_request_header",
-        "http_response_header",
-        "http_request_content",
-        "http_response_content",
         "http_proxy_flag",
         "http_sequence",
-        "http_snapshot",
         "http_cookie",
         "http_referer",
         "http_user_agent",
@@ -491,13 +459,9 @@
         "mail_bcc",
         "mail_subject",
         "mail_subject_charset",
-        "mail_content",
-        "mail_content_charset",
         "mail_attachment_name",
         "mail_attachment_name_charset",
-        "mail_attachment_content",
         "mail_eml_file",
-        "mail_snapshot",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -523,9 +487,7 @@
         "ssl_san",
         "ssl_cn",
         "ssl_handshake_latency_ms",
-        "ssl_ja3_fingerprint",
         "ssl_ja3_hash",
-        "ssl_ja3s_fingerprint",
         "ssl_ja3s_hash",
         "ssl_cert_issuer",
         "ssl_cert_subject",
@@ -546,7 +508,6 @@
         "quic_user_agent",
         "ftp_account",
         "ftp_url",
-        "ftp_content",
         "ftp_link_type",
         "sip_call_id",
         "sip_originator_description",
@@ -661,8 +622,7 @@
       "app_content",
       "packet_capture_file",
       "tunnel_endpoint_a_desc",
-      "tunnel_endpoint_b_desc",
-      "address_list"
+      "tunnel_endpoint_b_desc"
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
@@ -1844,21 +1804,6 @@
       "type": "string"
     },
     {
-      "name": "encapsulation_type",
-      "label": "Encapsulation Type",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,!=,in,not in"
-        },
-        "data": {
-          "$ref": "public_schema_info.json#/fields/encapsulation_type/data"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
       "name": "in_src_mac",
       "label": "Incoming Source MAC",
       "doc": {
@@ -1907,15 +1852,6 @@
             "param": "$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_b2a_teid"
           }
         ]
-      },
-      "type": "string"
-    },
-    {
-      "name": "address_list",
-      "label": "Address List",
-      "doc": {
-        "visibility": "disabled",
-        "ttl": null
       },
       "type": "string"
     },
@@ -1989,33 +1925,6 @@
       "type": "string"
     },
     {
-      "name": "http_request_header",
-      "label": "HTTP.Request Header",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_response_header",
-      "label": "HTTP.Response Header",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_request_content",
-      "label": "HTTP.Request Content",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "http_request_content_length",
       "label": "HTTP.Request Content Length",
       "doc": {
@@ -2027,15 +1936,6 @@
     {
       "name": "http_request_content_type",
       "label": "HTTP.Request Content Type",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_response_content",
-      "label": "HTTP.Response Content",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2113,15 +2013,6 @@
         "ttl": null
       },
       "type": "int"
-    },
-    {
-      "name": "http_snapshot",
-      "label": "HTTP.Snapshot",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
     },
     {
       "name": "http_cookie",
@@ -2325,24 +2216,6 @@
       "type": "string"
     },
     {
-      "name": "mail_content",
-      "label": "Mail.Content",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "mail_content_charset",
-      "label": "Mail.Content Charset",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "mail_attachment_name",
       "label": "Mail.Attachment",
       "doc": {
@@ -2367,15 +2240,6 @@
       "type": "string"
     },
     {
-      "name": "mail_attachment_content",
-      "label": "Mail.Attachment Content",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "mail_eml_file",
       "label": "Mail.EML File",
       "doc": {
@@ -2387,15 +2251,6 @@
         "constraints": {
           "type": "file"
         },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "mail_snapshot",
-      "label": "Mail.Snapshot",
-      "doc": {
         "visibility": "enabled",
         "ttl": null
       },
@@ -3078,26 +2933,8 @@
       "type": "int"
     },
     {
-      "name": "ssl_ja3_fingerprint",
-      "label": "SSL.JA3",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "ssl_ja3_hash",
       "label": "SSL.JA3 hash",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "ssl_ja3s_fingerprint",
-      "label": "SSL.JA3S",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -3287,15 +3124,6 @@
     {
       "name": "ftp_url",
       "label": "FTP.URL",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "ftp_content",
-      "label": "FTP.Content",
       "doc": {
         "visibility": "enabled",
         "ttl": null
