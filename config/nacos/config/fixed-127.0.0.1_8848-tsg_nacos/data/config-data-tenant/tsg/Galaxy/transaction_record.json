@@ -29,13 +29,8 @@
         "http_host",
         "http_request_line",
         "http_response_line",
-        "http_request_header",
-        "http_response_header",
-        "http_request_content",
-        "http_response_content",
         "http_proxy_flag",
         "http_sequence",
-        "http_snapshot",
         "http_cookie",
         "http_referer",
         "http_user_agent",
@@ -60,13 +55,9 @@
         "mail_bcc",
         "mail_subject",
         "mail_subject_charset",
-        "mail_content",
-        "mail_content_charset",
         "mail_attachment_name",
         "mail_attachment_name_charset",
-        "mail_attachment_content",
         "mail_eml_file",
-        "mail_snapshot",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -111,13 +102,8 @@
         "http_host",
         "http_request_line",
         "http_response_line",
-        "http_request_header",
-        "http_response_header",
-        "http_request_content",
-        "http_response_content",
         "http_proxy_flag",
         "http_sequence",
-        "http_snapshot",
         "http_cookie",
         "http_referer",
         "http_user_agent",
@@ -142,13 +128,9 @@
         "mail_bcc",
         "mail_subject",
         "mail_subject_charset",
-        "mail_content",
-        "mail_content_charset",
         "mail_attachment_name",
         "mail_attachment_name_charset",
-        "mail_attachment_content",
         "mail_eml_file",
-        "mail_snapshot",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -205,13 +187,8 @@
         "http_host",
         "http_request_line",
         "http_response_line",
-        "http_request_header",
-        "http_response_header",
-        "http_request_content",
-        "http_response_content",
         "http_proxy_flag",
         "http_sequence",
-        "http_snapshot",
         "http_cookie",
         "http_referer",
         "http_user_agent",
@@ -236,13 +213,9 @@
         "mail_bcc",
         "mail_subject",
         "mail_subject_charset",
-        "mail_content",
-        "mail_content_charset",
         "mail_attachment_name",
         "mail_attachment_name_charset",
-        "mail_attachment_content",
         "mail_eml_file",
-        "mail_snapshot",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -614,33 +587,6 @@
       "type": "string"
     },
     {
-      "name": "http_request_header",
-      "label": "HTTP.Request Header",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_response_header",
-      "label": "HTTP.Response Header",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_request_content",
-      "label": "HTTP.Request Content",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "http_request_content_length",
       "label": "HTTP.Request Content Length",
       "doc": {
@@ -652,15 +598,6 @@
     {
       "name": "http_request_content_type",
       "label": "HTTP.Request Content Type",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "http_response_content",
-      "label": "HTTP.Response Content",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -738,15 +675,6 @@
         "ttl": null
       },
       "type": "int"
-    },
-    {
-      "name": "http_snapshot",
-      "label": "HTTP.Snapshot",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
     },
     {
       "name": "http_cookie",
@@ -950,24 +878,6 @@
       "type": "string"
     },
     {
-      "name": "mail_content",
-      "label": "Mail.Content",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "mail_content_charset",
-      "label": "Mail.Content Charset",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "mail_attachment_name",
       "label": "Mail.Attachment",
       "doc": {
@@ -992,15 +902,6 @@
       "type": "string"
     },
     {
-      "name": "mail_attachment_content",
-      "label": "Mail.Attachment Content",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "mail_eml_file",
       "label": "Mail.EML File",
       "doc": {
@@ -1012,15 +913,6 @@
         "constraints": {
           "type": "file"
         },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "mail_snapshot",
-      "label": "Mail.Snapshot",
-      "doc": {
         "visibility": "enabled",
         "ttl": null
       },
