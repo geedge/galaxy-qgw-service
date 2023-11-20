@@ -5,19 +5,33 @@
   "doc": {
     "partition_key": "__time",
     "functions": {
-      "$ref": "public_schema_info_2311.json#/functions"
+      "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
-      "filters": [
+      "dimensions": [
+        "log_type",
         "data_center"
       ],
+      "metrics": [
+        "log_type",
+        "data_center",
+        "used_size",
+        "max_size",
+        "aggregate_size",
+        "last_storage",
+        "__time"
+      ],
+      "filters": [
+        "log_type",
+        "data_center",
+        "used_size",
+        "max_size",
+        "aggregate_size",
+        "last_storage",
+        "__time"
+      ],
       "references": {
-        "$ref": "public_schema_info_2311.json#/schema_query/references"
-      }
-    },
-    "measurements": {
-      "units": {
-        "$ref": "public_schema_info_2311.json#/units"
+        "$ref": "public_schema_info.json#/schema_query/references"
       }
     }
   },

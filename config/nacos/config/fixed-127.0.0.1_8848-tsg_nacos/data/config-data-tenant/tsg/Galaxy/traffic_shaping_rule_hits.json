@@ -5,23 +5,63 @@
   "doc": {
     "partition_key": "__time",
     "functions": {
-      "$ref": "public_schema_info_2311.json#/functions"
+      "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
-      "filters": [
+      "dimensions": [
+        "vsys_id",
+        "device_id",
+        "device_group",
         "data_center",
-        "device_group"
+        "rule_id",
+        "profile_id",
+        "priority"
+      ],
+      "metrics": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id",
+        "profile_id",
+        "priority",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts",
+        "in_drop_pkt",
+        "out_drop_pkts",
+        "in_max_latency_us",
+        "out_max_latency_us",
+        "in_queue_len",
+        "out_queue_len"
+      ],
+      "filters": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id",
+        "profile_id",
+        "priority",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts",
+        "in_drop_pkt",
+        "out_drop_pkts",
+        "in_max_latency_us",
+        "out_max_latency_us",
+        "in_queue_len",
+        "out_queue_len"
       ],
       "references": {
-        "$ref": "public_schema_info_2311.json#/schema_query/references"
+        "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
       "granularity": 1,
-      "ingestion_delay": 5,
-      "units": {
-        "$ref": "public_schema_info_2311.json#/units"
-      }
+      "ingestion_delay": 5
     }
   },
   "fields": [

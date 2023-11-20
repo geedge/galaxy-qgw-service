@@ -5,19 +5,34 @@
   "doc": {
     "partition_key": "__time",
     "functions": {
-      "$ref": "public_schema_info_2311.json#/functions"
+      "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "dimensions": [
+        "vsys_id",
+        "destination_ip",
+        "attack_type"
+      ],
+      "metrics": [
+        "vsys_id",
+        "destination_ip",
+        "attack_type",
+        "session_rate",
+        "packet_rate",
+        "bit_rate",
+        "partition_num"
+      ],
       "filters": [
-        "vsys_id"
+        "vsys_id",
+        "destination_ip",
+        "attack_type",
+        "session_rate",
+        "packet_rate",
+        "bit_rate",
+        "partition_num"
       ],
       "references": {
-        "$ref": "public_schema_info_2311.json#/schema_query/references"
-      }
-    },
-    "measurements": {
-      "units": {
-        "$ref": "public_schema_info_2311.json#/units"
+        "$ref": "public_schema_info.json#/schema_query/references"
       }
     }
   },

@@ -5,23 +5,80 @@
   "doc": {
     "partition_key": "__time",
     "functions": {
-      "$ref": "public_schema_info_2311.json#/functions"
+      "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
-      "filters": [
+      "dimensions": [
+        "vsys_id",
+        "device_id",
+        "device_group",
         "data_center",
-        "device_group"
+        "protocol_label",
+        "app_full_path"
+      ],
+      "metrics": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "protocol_label",
+        "app_full_path",
+        "sessions",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts",
+        "c2s_pkts",
+        "s2c_pkts",
+        "c2s_bytes",
+        "s2c_bytes",
+        "c2s_fragments",
+        "s2c_fragments",
+        "c2s_tcp_lost_bytes",
+        "s2c_tcp_lost_bytes",
+        "c2s_tcp_ooorder_pkts",
+        "s2c_tcp_ooorder_pkts",
+        "c2s_tcp_retransmitted_pkts",
+        "s2c_tcp_retransmitted_pkts",
+        "c2s_tcp_retransmitted_bytes",
+        "s2c_tcp_retransmitted_bytes",
+        "client_ip_sketch"
+      ],
+      "filters": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "protocol_label",
+        "app_full_path",
+        "sessions",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts",
+        "c2s_pkts",
+        "s2c_pkts",
+        "c2s_bytes",
+        "s2c_bytes",
+        "c2s_fragments",
+        "s2c_fragments",
+        "c2s_tcp_lost_bytes",
+        "s2c_tcp_lost_bytes",
+        "c2s_tcp_ooorder_pkts",
+        "s2c_tcp_ooorder_pkts",
+        "c2s_tcp_retransmitted_pkts",
+        "s2c_tcp_retransmitted_pkts",
+        "c2s_tcp_retransmitted_bytes",
+        "s2c_tcp_retransmitted_bytes",
+        "client_ip_sketch"
       ],
       "references": {
-        "$ref": "public_schema_info_2311.json#/schema_query/references"
+        "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
       "granularity": 15,
-      "ingestion_delay": 15,
-      "units": {
-        "$ref": "public_schema_info_2311.json#/units"
-      }
+      "ingestion_delay": 15
     }
   },
   "fields": [

@@ -5,23 +5,61 @@
   "doc": {
     "partition_key": "__time",
     "functions": {
-      "$ref": "public_schema_info_2311.json#/functions"
+      "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
-      "filters": [
+      "dimensions": [
+        "vsys_id",
+        "device_id",
+        "device_group",
         "data_center",
-        "device_group"
+        "template_id",
+        "chart_id",
+        "version",
+        "object_id",
+        "item_id"
+      ],
+      "metrics": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "template_id",
+        "chart_id",
+        "version",
+        "object_id",
+        "item_id",
+        "in_bytes",
+        "out_bytes",
+        "bytes",
+        "new_in_sessions",
+        "new_out_sessions",
+        "sessions"
+      ],
+      "filters": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "template_id",
+        "chart_id",
+        "version",
+        "object_id",
+        "item_id",
+        "in_bytes",
+        "out_bytes",
+        "bytes",
+        "new_in_sessions",
+        "new_out_sessions",
+        "sessions"
       ],
       "references": {
-        "$ref": "public_schema_info_2311.json#/schema_query/references"
+        "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
       "granularity": 15,
-      "ingestion_delay": 15,
-      "units": {
-        "$ref": "public_schema_info_2311.json#/units"
-      }
+      "ingestion_delay": 15
     }
   },
   "fields": [

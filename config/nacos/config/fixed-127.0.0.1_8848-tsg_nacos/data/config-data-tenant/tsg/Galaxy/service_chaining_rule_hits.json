@@ -5,19 +5,51 @@
   "doc": {
     "partition_key": "__time",
     "functions": {
-      "$ref": "public_schema_info_2311.json#/functions"
+      "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "dimensions": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id",
+        "sff_profile_id",
+        "sf_profile_id"
+      ],
+      "metrics": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id",
+        "sff_profile_id",
+        "sf_profile_id",
+        "sent_pkts",
+        "sent_bytes",
+        "recv_pkts",
+        "recv_bytes"
+      ],
+      "filters": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id",
+        "sff_profile_id",
+        "sf_profile_id",
+        "sent_pkts",
+        "sent_bytes",
+        "recv_pkts",
+        "recv_bytes"
+      ],
       "references": {
-        "$ref": "public_schema_info_2311.json#/schema_query/references"
+        "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
       "granularity": 1,
-      "ingestion_delay": 5,
-      "units": {
-        "$ref": "public_schema_info_2311.json#/units"
-      }
+      "ingestion_delay": 5
     }
   },
   "fields": [
