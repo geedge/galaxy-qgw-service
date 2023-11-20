@@ -2896,7 +2896,7 @@
       "name": "ssl_version",
       "label": "SSL.Version",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
