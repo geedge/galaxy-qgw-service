@@ -22,12 +22,14 @@ management:
       exposure:
         include: '*'
         exclude: env,auditevents,beans,conditions,info
-      base-path: /monitor
+      base-path: /v1/monitor
+      path-mapping:
+        health: /component_status
 #MySql configuration
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.44.55:3306/tsg-bifang?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
+    url: jdbc:mysql://192.168.44.55:3306/cn_olap?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
     username: ENC(TOq791VPxSFyX/S4fqcv0g==)
     password: ENC(Qii8wWRNnB61f/0wnrVIbXr2VmnncK2c)
   flyway:
@@ -51,11 +53,6 @@ hbase:
     tableName: report_result
     columnFamily: response
     columnName: result
-## Elasticsearch configuration，Cluster Mode eg. ip1:port1,ip2:port2,ip3:port3
-elasticsearch:
-  url: 192.168.44.55:9200
-  dbname: elasticsearch
-  socketTimeOut: 60000
 ##############动态参数配置(修改后不需要重启项目)##############
 ## 项目参数
 project:
