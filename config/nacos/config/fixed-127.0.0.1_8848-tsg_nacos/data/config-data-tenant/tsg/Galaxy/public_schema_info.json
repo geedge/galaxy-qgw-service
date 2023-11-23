@@ -214,6 +214,17 @@
       "recv_time"
     ]
   },
+  "voip_record": {
+    "index_key": [
+      "vsys_id",
+      "security_action",
+      "proxy_action",
+      "decoded_as",
+      "data_center",
+      "device_group",
+      "recv_time"
+    ]
+  },
   "schema_query": {
     "references": {
       "aggregation": [
