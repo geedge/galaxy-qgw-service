@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "void_record",
+  "name": "voip_record",
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "log_id",
