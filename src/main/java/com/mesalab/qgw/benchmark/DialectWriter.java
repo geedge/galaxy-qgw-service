@@ -26,7 +26,7 @@ public class DialectWriter extends Writer {
 
     private static final Log log = LogFactory.get();
     private static final String EXECUTE_ENGINE= "execute_engine";
-    private static final String SQL_TEXT= "sql_text";
+    private static final String TEMPLATE= "template";
 
     @Autowired
     private NacosConfig nacosConfig;
@@ -50,7 +50,7 @@ public class DialectWriter extends Writer {
                 if (CollectionUtil.isNotEmpty(datasetList)) {
                     for (int i = 0; i < datasetList.size(); i++) {
                         if (datasetList.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(dialect)) {
-                            dialectList.add(datasetList.get(i).get(SQL_TEXT));
+                            dialectList.add(datasetList.get(i).get(TEMPLATE));
                         }
                     }
                 }
