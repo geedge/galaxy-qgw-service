@@ -154,9 +154,6 @@ public class MetadataServiceImpl implements MetadataService {
             case "CLICKHOUSE_GROUP":
                 type = DBTypeEnum.CLICKHOUSE.getValue();
                 break;
-            case "ELASTICSEARCH_GROUP":
-                type = DBTypeEnum.ELASTICSEARCH.getValue();
-                break;
             case "HBASE_GROUP":
                 type = DBTypeEnum.HBASE.getValue();
                 break;

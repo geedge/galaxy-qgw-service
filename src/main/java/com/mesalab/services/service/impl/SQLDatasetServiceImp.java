@@ -40,9 +40,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.util.EntityUtils;
-import org.elasticsearch.client.Request;
-import org.elasticsearch.client.Response;
-import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -91,8 +88,6 @@ public class SQLDatasetServiceImp
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
-    @Autowired
-    private RestClient restClient;
 
     @Override
     public BaseResult getProcessesByQueryId(String queryId) {
@@ -169,9 +164,6 @@ public class SQLDatasetServiceImp
             }
             if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(execute_engine)) {
                 return generateDruidBaseResult(sql);
-            }
-            if (DBTypeEnum.ELASTICSEARCH.getValue().equalsIgnoreCase(execute_engine)) {
-                return generateElasticSearchBaseResult(sql);
             }
             if (DBTypeEnum.HBASE.getValue().equalsIgnoreCase(execute_engine)) {
                 return generateHbaseBaseResult(sql);
@@ -348,33 +340,6 @@ public class SQLDatasetServiceImp
         return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase()), clickHouseHttpQuery.getSocketTimeOut());
     }
 
-    private BaseResult generateElasticSearchBaseResult(String sql) {
-        BaseResult baseResult;
-        Object dataObject;
-        Stopwatch watch = Stopwatch.createUnstarted();
-        watch.start();
-        Request request = new Request("POST", "/_sql?format=json");
-        HashMap<String, Object> queryParam = Maps.newHashMap();
-        queryParam.put("query", sql);
-        request.setJsonEntity(JSON.toJSONString(queryParam));
-        Response response;
-        try {
-            response = restClient.performRequest(request);
-            ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
-            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    (Map<String, Object>) JSON.parseObject(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
-        } catch (IOException e) {
-            log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), e.getMessage());
-        }
-        dataObject = baseResult.getData();
-        Map<String, Object> resultMap = (Map<String, Object>) dataObject;
-        Map<String, Object> statistics = Maps.newLinkedHashMap();
-        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-        baseResult.setData(resultMap);
-        baseResult.setStatistics(statistics);
-        return baseResult;
-    }
 
 
     /**

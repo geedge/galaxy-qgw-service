@@ -91,8 +91,6 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     @Autowired
     private HBaseAPISource hBaseAPISource;
     @Autowired
-    private ElasticsearchHttpSource elasticsearchHttpSource;
-    @Autowired
     private MetadataService metadataService;
     @Autowired
     private EntityConfigSource entityConfigSourceTemp;
@@ -153,13 +151,11 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbaseResult = parseSchemaByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbase2Result = parseSchemaByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
-            Map<String, Map<String, String>> elasticsearchResult = parseSchemaByDatasource(elasticsearchHttpSource.getDbname(), metadataService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            data.add(elasticsearchResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
@@ -192,13 +188,11 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbase2Result = checkMetadataByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
-            Map<String, Map<String, String>> elasticsearchResult = checkMetadataByDatasource(elasticsearchHttpSource.getDbname(), metadataService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            data.add(elasticsearchResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
@@ -222,20 +216,17 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Map<String, Map<String, String>> clickhouseResult;
         Map<String, Map<String, String>> druidResult;
         Map<String, Map<String, String>> hbaseResult;
-        Map<String, Map<String, String>> elasticsearchResult;
         try {
             Map<String, Object> datasetResult = generateDatasets(category);
             List<Map<String, String>> dataSetlist = (ArrayList<Map<String, String>>) datasetResult.get("list");
             List<String> druidIdList = Lists.newLinkedList();
             List<String> ckIdList = Lists.newLinkedList();
             List<String> engineIdList = Lists.newLinkedList();
-            List<String> esIdList = Lists.newLinkedList();
             List<String> hbaseIdList = Lists.newLinkedList();
 
             List<String> druidSqlList = Lists.newLinkedList();
             List<String> ckSqlList = Lists.newLinkedList();
             List<String> engineSqlList = Lists.newLinkedList();
-            List<String> esSqlList = Lists.newLinkedList();
             List<String> hbaseSqlList = Lists.newLinkedList();
             Stopwatch watch = Stopwatch.createStarted();
             if (CollectionUtil.isNotEmpty(dataSetlist)){
@@ -246,9 +237,6 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                     } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
                         ckIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
                         ckSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
-                    } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.ELASTICSEARCH.getValue())) {
-                        esIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        esSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
                     } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.HBASE.getValue())) {
                         hbaseIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
                         hbaseSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
@@ -263,13 +251,11 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             Optional.of(new File(dialectWriter.buildPocSQL(ckSqlList, DBTypeEnum.CLICKHOUSE.getValue(), category)));
             Optional.of(new File(dialectWriter.buildPocSQL(hbaseSqlList, DBTypeEnum.HBASE.getValue(), category)));
             Optional.of(new File(dialectWriter.buildPocSQL(engineSqlList, DBTypeEnum.ENGINE.getValue(), category)));
-            Optional.of(new File(dialectWriter.buildPocSQL(esSqlList, DBTypeEnum.ELASTICSEARCH.getValue(), category)));
 
             clickhouseResult = buildResult(DBTypeEnum.CLICKHOUSE.getValue(), ckIdList, isSaved, option);
             druidResult = buildResult(DBTypeEnum.DRUID.getValue(), druidIdList, isSaved, option);
             engineResult = buildResult(DBTypeEnum.ENGINE.getValue(), engineIdList, isSaved, option);
             hbaseResult = buildResult(DBTypeEnum.HBASE.getValue(), hbaseIdList, isSaved, option);
-            elasticsearchResult = buildResult(DBTypeEnum.ELASTICSEARCH.getValue(), esIdList, isSaved, option);
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
@@ -277,8 +263,6 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), hbaseResult.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            mergeResult = Stream.concat(mergeResult.entrySet().stream(), elasticsearchResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));

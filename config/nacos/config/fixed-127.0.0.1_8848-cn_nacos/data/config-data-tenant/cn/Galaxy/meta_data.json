@@ -25,14 +25,6 @@
       ]
     },
     {
-      "namespace": "elasticsearch",
-      "group": "ELASTICSEARCH_GROUP",
-      "tables": [
-        "security_event",
-        "performance_event"
-      ]
-    },
-    {
       "namespace": "system",
       "group": "CLICKHOUSE_GROUP",
       "tables": [

@@ -486,9 +486,6 @@ public class QueryServiceImpl implements QueryService {
             param.setDbType(DBTypeEnum.DRUID.getValue());
             param.setDialectDBType(DBTypeEnum.DRUID.getValue());
             param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
-        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equalsIgnoreCase(dbType)) {
-            param.setDbType(DBTypeEnum.ELASTICSEARCH.getValue());
-            param.setDialectDBType(DBTypeEnum.ELASTICSEARCH.getValue());
         } else if (DBTypeEnum.HBASE.getValue().equalsIgnoreCase(dbType)) {
             param.setDbType(DBTypeEnum.HBASE.getValue());
             param.setDialectDBType(DBTypeEnum.HBASE.getValue());
@@ -601,7 +598,7 @@ public class QueryServiceImpl implements QueryService {
         List<Map> list = (List<Map>) result.getData();
         for (Map resultMap : list) {
             Map schemaMap = Maps.newHashMap();
-            schemaMap.put("name", DBTypeEnum.ELASTICSEARCH.getValue().equals(param.getDbType()) ? resultMap.get("column") : resultMap.get("name"));
+            schemaMap.put("name", resultMap.get("name"));
             schemaMap.put("type", resultMap.get("type"));
             fields.add(schemaMap);
         }

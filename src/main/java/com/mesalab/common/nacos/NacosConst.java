@@ -34,8 +34,6 @@ public class NacosConst {
 
     public static final String DRUID_GROUP = "DRUID_GROUP";
 
-    public static final String ES_GROUP = "ES_GROUP";
-
     public static final String META_DATA_ID = "meta_data.json";
 
     public static final String SQL_DATASETS_VARIABLES = "sql_datasets_variables.json";
@@ -55,10 +53,6 @@ public class NacosConst {
     public static final String HBASE_FILTER_DATA_ID = "hbase-filter.json";
 
     public static final String HBASE_QUERIES_TEMPLATE_DATA_ID = "hbase-queries-template.sql";
-
-    public static final String ES_FILTER_DATA_ID = "es-filter.json";
-
-    public static final String ES_QUERIES_TEMPLATE_DATA_ID = "es-queries-template.sql";
 
     public static final String KNOWLEDGE_BASE_DATA_ID = "knowledge_base.json";
 
