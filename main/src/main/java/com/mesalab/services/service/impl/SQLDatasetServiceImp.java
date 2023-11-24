@@ -70,7 +70,7 @@ public class SQLDatasetServiceImp
     private static final Log log = LogFactory.get();
     private static Pattern pFieldVariable = Pattern.compile("\\$\\{(metric|dimension)_(.*?)\\}", Pattern.CASE_INSENSITIVE);
     private static Pattern pLeftRightFlag = Pattern.compile("\\[\\[(.*?)\\]\\]", Pattern.CASE_INSENSITIVE);
-    private final static String SQL_TEXT = "sql_text";
+    private final static String TEMPLATE = "template";
     private final static String EXECUTE_ENGINE = "execute_engine";
 
     public final static String queryIdSeparator = ":";
@@ -152,10 +152,10 @@ public class SQLDatasetServiceImp
     @Override
     public BaseResult getPreview(String datasetId, String option) {
         Map<String, Object> dataset = getDataset(datasetId);
-        if (dataset.isEmpty() || StrUtil.isBlankIfStr(dataset.get(SQL_TEXT))) {
+        if (dataset.isEmpty() || StrUtil.isBlankIfStr(dataset.get(TEMPLATE))) {
             return BaseResultGenerator.success();
         }
-        String sqlTemplate = String.valueOf(dataset.get(SQL_TEXT));
+        String sqlTemplate = String.valueOf(dataset.get(TEMPLATE));
         String execute_engine = String.valueOf(dataset.get(EXECUTE_ENGINE));
         String sql = buildExecSQL(getVariable(), sqlTemplate);
         log.info("Dataset Preview, ID is: {}, Exec SQL is: {}", datasetId, sql);

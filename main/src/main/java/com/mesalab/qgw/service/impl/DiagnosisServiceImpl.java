@@ -75,7 +75,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private static final String HBASE_DBNAME2 = "tsg_galaxy";
     private static final String EXECUTE_ENGINE= "execute_engine";
     private static final String IDENTIFIER_NAME = "identifier_name";
-    private static final String SQL_TEXT = "sql_text";
+    private static final String TEMPLATE = "template";
 
     @Autowired
     private QueryService queryService;
@@ -231,16 +231,16 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
                 for (int i = 0; i < dataSetlist.size(); i++) {
                     if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
                         druidIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        druidSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                        druidSqlList.add(dataSetlist.get(i).get(TEMPLATE));
                     } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
                         ckIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        ckSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                        ckSqlList.add(dataSetlist.get(i).get(TEMPLATE));
                     } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.HBASE.getValue())) {
                         hbaseIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        hbaseSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                        hbaseSqlList.add(dataSetlist.get(i).get(TEMPLATE));
                     } else {
                         engineIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        engineSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                        engineSqlList.add(dataSetlist.get(i).get(TEMPLATE));
                     }
                 }
             }
