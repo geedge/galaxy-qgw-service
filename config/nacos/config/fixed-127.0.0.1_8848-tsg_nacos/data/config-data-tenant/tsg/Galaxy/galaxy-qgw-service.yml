@@ -53,11 +53,6 @@ hbase:
     tableName: report_result
     columnFamily: response
     columnName: result
-## Elasticsearch configuration，Cluster Mode eg. ip1:port1,ip2:port2,ip3:port3
-elasticsearch:
-  url: 127.0.0.1:9200
-  dbname: elasticsearch
-  socketTimeOut: 60000
 ##############动态参数配置(修改后不需要重启项目)##############
 ## 项目参数
 project:
