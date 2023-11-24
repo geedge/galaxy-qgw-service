@@ -48,6 +48,11 @@ public class SQLFunctionUtil {
     public static final String IP_TO_ASN_DETAIL = "IP_TO_ASN_DETAIL";
     public static final String IP_TO_ASN_ORG = "IP_TO_ASN_ORG";
     public static final String MAX_DURATION = "MAX_DURATION";
+    public static final String MEDIAN_HDR = "MEDIAN_HDR";
+    public static final String QUANTILE_HDR = "QUANTILE_HDR";
+    public static final String PERCENTILES_HDR = "PERCENTILES_HDR";
+    public static final String COUNT_DISTINCT = "COUNT_DISTINCT";
+    public static final String APPROX_COUNT_DISTINCT_HLLD = "APPROX_COUNT_DISTINCT_HLLD";
 
     public static final String CONCAT = "concat";
     public static final String NOT_EMPTY = "notEmpty";
@@ -72,6 +77,17 @@ public class SQLFunctionUtil {
     public static final Pattern pIpToAsnOrg = Pattern.compile("\\b" + IP_TO_ASN_ORG + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfPT = Pattern.compile("PT(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfP = Pattern.compile("P(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pMedianHdr = Pattern.compile("\\b" + MEDIAN_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pQuantileHdr = Pattern.compile("\\b" + QUANTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pPercentilesHdr = Pattern.compile("\\b" + PERCENTILES_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pCountDistinct = Pattern.compile("\\b" + COUNT_DISTINCT + "\\(", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pApproxCountDistinctHlld = Pattern.compile("\\b" + APPROX_COUNT_DISTINCT_HLLD + "\\(", Pattern.CASE_INSENSITIVE);
+
     public static final HashMap<String, String> functions = Maps.newHashMap();
     private static final Map<String, String> distributedGroupByFunction = Maps.newHashMap();
 
@@ -276,6 +292,11 @@ public class SQLFunctionUtil {
         resultSql = translateByPattern(resultSql, dbType, pIpToAsn);
         resultSql = translateByPattern(resultSql, dbType, pIpToAsnDetail);
         resultSql = translateByPattern(resultSql, dbType, pIpToAsnOrg);
+        resultSql = translateByPattern(resultSql, dbType, pMedianHdr);
+        resultSql = translateByPattern(resultSql, dbType, pQuantileHdr);
+        resultSql = translateByPattern(resultSql, dbType, pPercentilesHdr);
+        resultSql = translateByPattern(resultSql, dbType, pCountDistinct);
+        resultSql = translateByPattern(resultSql, dbType, pApproxCountDistinctHlld);
         return resultSql;
     }
 
@@ -1622,6 +1643,15 @@ public class SQLFunctionUtil {
             case EMPTY:
                 data = translateEmpty(fun, dbType);
                 break;
+            case MEDIAN_HDR:
+            case QUANTILE_HDR:
+            case PERCENTILES_HDR:
+            case APPROX_COUNT_DISTINCT_HLLD:
+                data = translateHdrHistogram(fun, dbType);
+                break;
+            case COUNT_DISTINCT:
+                data = translateCountDistinct(fun, dbType);
+                break;
             case IP_TO_GEO:
             case IP_TO_CITY:
             case IP_TO_COUNTRY:
@@ -1764,6 +1794,46 @@ public class SQLFunctionUtil {
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
             return String.format("length(arrayReduce('max', alphaTokens(replaceAll(replaceAll(toString(arrayMap(x-> x<(%s+%s), arrayDifference(arraySort(groupUniqArray(%s))))),'1','a'),',','') ) )) * %s "
                     , interval, factor, timestampExpr, interval);
+        }
+        return fun.toString();
+    }
+
+    /**
+     * Desc: 转义自定义函数 MEDIAN_HDR/QUANTILE_HDR/PERCENTILES_HDR/APPROX_COUNT_DISTINCT_HLLD
+     *
+     * @param fun
+     * @param dbType
+     * @return
+     */
+
+    private static String translateHdrHistogram(Function fun, String dbType) {
+        String hdrSketchExpr = fun.getParamsList().get(0);
+        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            switch (fun.getName()) {
+                case MEDIAN_HDR:
+                    return String.format("APPROX_QUANTILE_HDR(%s,0.50)", hdrSketchExpr);
+                case QUANTILE_HDR:
+                    double probability = Double.parseDouble(fun.getParamsList().get(1));
+                    return String.format("APPROX_QUANTILE_HDR(%s,%s)", hdrSketchExpr, probability);
+                case PERCENTILES_HDR:
+                    return String.format("HDR_GET_PERCENTILES(HDR_HISTOGRAM(%s), 2)", hdrSketchExpr);
+                case APPROX_COUNT_DISTINCT_HLLD:
+                    return String.format("APPROX_COUNT_DISTINCT_HLLD#[%s#]", hdrSketchExpr);
+            }
+        }
+        return fun.toString();
+    }
+
+    /**
+     * Desc 转义 COUNT_DISTINCT
+     * @param fun
+     * @param dbType
+     * @return
+     */
+    private static String translateCountDistinct(Function fun, String dbType) {
+        String field = fun.getParamsList().get(0);
+        if (DBTypeEnum.DRUID.getValue().equals(dbType) || DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)){
+            return String.format("count(distinct %s)", field);
         }
         return fun.toString();
     }
