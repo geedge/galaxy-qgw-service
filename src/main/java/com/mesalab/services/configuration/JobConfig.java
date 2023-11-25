@@ -39,7 +39,7 @@ public class JobConfig {
     public static final String QUERY_DATA_SOURCE = "query.data_source";
     public static final String SAVED_QUERY = "saved_query";
     public static final String FIELD_DISCOVERY= "field_discovery";
-    public static final String LONG_TERM= "long-term";
+    public static final String LONG_TERM= "long_term";
     public static final String LONG_TERM_COLUMN_FAMILY = "long_term";
     public static final String STATISTICS_DEPRECATED = "statistics";
 
@@ -50,7 +50,7 @@ public class JobConfig {
     public static final String KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN = "custom.field_discovery.metric.fn";
     public static final String KEY_CUSTOM_FIELD_DISCOVERY_FILTER = "custom.field_discovery.filter";
     public static final String KEY_CUSTOM_STATISTICS_SQL_DEPRECATED = "custom.statistics.sql";
-    public static final String KEY_CUSTOM_LONG_TERM_SQL = "custom.long-term.sql";
+    public static final String KEY_CUSTOM_LONG_TERM_SQL = "custom.long_term.sql";
     public static final String KEY_CUSTOM_SAVED_QUERY_SQL = "custom.saved_query.sql";
     public static final String KEY_QUERY_TYPE = "query.type";
     public static final String KEY_QUERY_DATA_SOURCE = "query.data_source";

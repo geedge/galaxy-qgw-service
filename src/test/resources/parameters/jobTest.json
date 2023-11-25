@@ -19,10 +19,10 @@
     ],
     "custom.field_discovery.filter": "vsys_id in (1,2) and client_ip='192.168.0.1' AND server_port = 80"
   },
-  "long-term": {
-    "query.type": "long-term",
+  "long_term": {
+    "query.type": "long_term",
     "query.data_source": "session_record",
-    "custom.long-term.sql": "select client_ip, count(*) as count from session_record where vsys_id in (1,2) and client_ip='192.168.0.1' AND server_port = 80 group by client_ip order by count asc limit 10"
+    "custom.long_term.sql": "select client_ip, count(*) as count from session_record where vsys_id in (1,2) and client_ip='192.168.0.1' AND server_port = 80 group by client_ip order by count asc limit 10"
   },
   "report": {
     "query.type": "report",
