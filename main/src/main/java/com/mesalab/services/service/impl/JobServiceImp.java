@@ -33,7 +33,6 @@ import com.mesalab.services.common.enums.MetricType;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
@@ -152,39 +151,47 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult commitSavedQuery(HashMap<String, Object> map) {
         validateReport(map);
-        String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL).toString(), false).replace("'", "\\'");
+        String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL).toString(), false).replace("'", "\\'");
         String id = getSameJob(sql);
         String queryType = String.valueOf(map.get(JobConfig.KEY_QUERY_TYPE));
         if (StringUtil.isNotBlank(id)) {
             return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
         }
         map.put("UUID", System.currentTimeMillis());
-        id = DigestUtil.md5Hex16(JobConfig.REPORT)
+        id = DigestUtil.md5Hex16(JobConfig.SAVED_QUERY)
                 .concat(JobConfig.DELIMIT)
                 .concat(DigestUtil.md5Hex16(String.valueOf(map)));
-        String currentDate = DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS);
-        Db.update(String.format(Objects.requireNonNull(env.getProperty("REPORT_INSERT")), currentDate, sql, currentDate, currentDate, currentDate, currentDate, id, TimeZone.getDefault().getID()));
+        long currentTime = System.currentTimeMillis()/1000;
+        Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
         return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
     }
 
     @Override
-    public BaseResult getReportStatus(String jobId) {
-        List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("REPORT_STATUS")), jobId));
-        if (CollectionUtil.isEmpty(query)) {
-            return BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), "not found job");
-        }
-        List<Object> list = Arrays.asList((Object[]) query.get(0));
-        HashMap<String, Object> job = new HashMap<>();
-        job.put("is_canceled", !BooleanUtil.toBoolean(String.valueOf(list.get(4))));
-        job.put("is_failed", Integer.parseInt(String.valueOf(list.get(0))) > 2);
-        job.put("done_progress", Math.min(Double.parseDouble(String.valueOf(list.get(3))) / 100, 1));
-        job.put("is_done", Integer.parseInt(String.valueOf(list.get(0))) > 1);
+    public BaseResult getSavedQueryStatus(String jobId) {
+        HashMap<String, Object> job = buildJobStatus(jobId);
         return BaseResultGenerator.success("ok", Lists.newArrayList(job));
     }
 
+    private HashMap<String, Object> buildJobStatus(String jobId) {
+        List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), jobId));
+        if (CollectionUtil.isEmpty(query)) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No job found with the given ID");
+        }
+        List<Object> list = Arrays.asList((Object[]) query.get(0));
+        HashMap<String, Object> job = Maps.newLinkedHashMap();
+        job.put("is_done", "DONE".equalsIgnoreCase(String.valueOf(list.get(0))));
+        job.put("done_progress", Math.min(Double.parseDouble(String.valueOf(list.get(1))), 1));
+        job.put("is_canceled", !BooleanUtil.toBoolean(String.valueOf(list.get(3))));
+        job.put("is_failed", BooleanUtil.toBoolean(String.valueOf(list.get(2))));
+        job.put("start_time", list.get(4));
+        job.put("end_time", list.get(5));
+        job.put("count", list.get(6));
+        return job;
+    }
+
     @Override
-    public BaseResult getResultReport(String jobId) {
-        BaseResult reportStatus = getReportStatus(jobId);
+    public BaseResult getSavedQueryResult(String jobId) {
+        BaseResult reportStatus = getSavedQueryStatus(jobId);
         BaseResult<Object> result;
         if (reportStatus.isSuccess()) {
             List<HashMap<String, Object>> data = (List<HashMap<String, Object>>) reportStatus.getData();
@@ -193,26 +200,19 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             boolean isCanceled = Boolean.parseBoolean(jobInfo.get(JobConfig.IS_CANCELED).toString());
             boolean isFailed = Boolean.parseBoolean(jobInfo.get("is_failed").toString());
             if (!isCanceled && isDone && !isFailed) {
-                List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("REPORT_STATUS")), jobId));
-                if (query.size() > 0) {
-                    Object[] o = (Object[]) query.get(0);
-                    List<Object> list = Arrays.asList(o);
-                    String resultId = String.valueOf(list.get(1));
-                    String querySql = String.valueOf(list.get(2));
-                    result = ReportCacheUtils.get(resultId, querySql);
-                    result.setJob(jobInfo);
-                    return result;
-                }
+                result = ReportCacheUtils.getByRowKey(jobId);
+                result.setJob(jobInfo);
+                return result;
             } else {
-                BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), "job unfinished");
+                return BaseResultGenerator.success(null, jobInfo, null, null);
             }
         }
         return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "get job info error");
     }
 
     @Override
-    public BaseResult cancelReportJob(String jobId) {
-        Db.update(String.format(Objects.requireNonNull(env.getProperty("REPORT_UPDATE")), "is_valid", 0, jobId));
+    public BaseResult cancelSavedQuery(String jobId) {
+        Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB")), "is_valid", 0, jobId));
         return BaseResultGenerator.success(ResultStatusEnum.ACCEPTED.getCode(), "Accepted", null);
     }
 
@@ -556,7 +556,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private void validateReport(HashMap<String, Object> map) {
-        QueryProfile queryProfile = QueryProfile.builder().query(String.valueOf(map.get(JobConfig.KEY_CUSTOM_REPORT_SQL)))
+        QueryProfile queryProfile = QueryProfile.builder().query(String.valueOf(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL)))
                 .option(QueryOptionEnum.SYNTAX_PARSE.getValue())
                 .build();
         BaseResult baseResult = queryService.executeQuery(queryProfile);
@@ -567,7 +567,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private String getSameJob(String paramSQL) {
-        List<Record> jobs = Db.find(String.format(Objects.requireNonNull(env.getProperty("REPORT_SAME")), paramSQL));
+        List<Record> jobs = Db.find(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_SAME")), paramSQL));
         if (jobs.isEmpty()) {
             return StringUtil.EMPTY;
         }

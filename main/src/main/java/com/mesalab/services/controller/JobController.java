@@ -47,11 +47,12 @@ public class JobController {
 
     @PostMapping(value = "/jobs", produces = "application/json")
     public BaseResult commit(@RequestBody HashMap<String, Object> reqBody) {
+        log.info("Commit Job, param is {}", reqBody);
         validateJobParams(reqBody);
         String type = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (JobConfig.FIELD_DISCOVERY.equals(type) || JobConfig.LONG_TERM.equals(type)) {
             return jobService.commitAdHocQuery(reqBody);
-        } else if (JobConfig.REPORT.equals(type)) {
+        } else if (JobConfig.SAVED_QUERY.equals(type)) {
             return jobService.commitSavedQuery(reqBody);
         }
         throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -104,23 +105,23 @@ public class JobController {
         return deferredResult;
     }
 
-    @GetMapping(value = "/jobs/{jobId}/report")
-    public BaseResult reportResult(@PathVariable String jobId) {
-        return jobService.getResultReport(jobId);
+    @GetMapping(value = "/jobs/{jobId}/saved_query")
+    public BaseResult savedQueryResult(@PathVariable String jobId) {
+        return jobService.getSavedQueryResult(jobId);
     }
 
     @GetMapping(value = "/jobs/{jobId}/status")
     public BaseResult getStatus(@PathVariable String jobId) {
-        if (jobId.startsWith(DigestUtil.md5Hex16(REPORT).concat(DELIMIT))) {
-            return jobService.getReportStatus(jobId);
+        if (jobId.startsWith(DigestUtil.md5Hex16(SAVED_QUERY).concat(DELIMIT))) {
+            return jobService.getSavedQueryStatus(jobId);
         }
         return BaseResultGenerator.success();
     }
 
     @DeleteMapping(value = "/jobs/{jobId}")
     public BaseResult cancel(@PathVariable String jobId) {
-        if (jobId.startsWith(DigestUtil.md5Hex16(REPORT).concat(DELIMIT))) {
-            return jobService.cancelReportJob(jobId);
+        if (jobId.startsWith(DigestUtil.md5Hex16(SAVED_QUERY).concat(DELIMIT))) {
+            return jobService.cancelSavedQuery(jobId);
         }
         return BaseResultGenerator.success();
     }
@@ -146,5 +147,4 @@ public class JobController {
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_DATA_SOURCE_ERROR));
         }
     }
-
 }

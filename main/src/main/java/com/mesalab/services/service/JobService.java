@@ -60,7 +60,7 @@ public interface JobService {
      * @created by wWei
      * @date 2022/3/22 5:04 下午
      */
-    BaseResult getReportStatus(String jobId);
+    BaseResult getSavedQueryStatus(String jobId);
 
     /**
      * Desc: 获取Report结果
@@ -70,7 +70,7 @@ public interface JobService {
      * @created by wWei
      * @date 2022/3/24 3:39 下午
      */
-    BaseResult getResultReport(String jobId);
+    BaseResult getSavedQueryResult(String jobId);
 
     /**
      * Desc: 取消Report任务
@@ -80,5 +80,5 @@ public interface JobService {
      * @created by wWei
      * @date 2022/3/28 5:29 下午
      */
-    BaseResult cancelReportJob(String jobId);
+    BaseResult cancelSavedQuery(String jobId);
 }

@@ -40,13 +40,13 @@ public class ReportCacheUtils {
     }
 
 
-    public static BaseResult<Object> get(String resultId, String query) {
+    public static BaseResult<Object> getByRowKey(String rowKey) {
         BaseResult baseResult;
-        Map<String, Object> result = query(resultId, query);
+        Map<String, Object> result = query(rowKey);
         Map map = JSON.parseObject((String)result.get("result"), Map.class);
         if (StringUtil.isEmpty(map)) {
-            log.warn("The report result [resultId:{}] is unavailable. It Has been deleted or does not exist.", resultId);
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "The report result [resultId:" + resultId + "] is unavailable. It Has been deleted or does not exist.");
+            log.warn("The saved query job result [jobId:{}] is unavailable. It Has been deleted or does not exist.", rowKey);
+            baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "The saved query job result [jobId:" + rowKey + "] is unavailable. It Has been deleted or does not exist.");
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.SUCCESS.getCode(), String.valueOf(map.get("message")),
                     map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), QueryFormatEnum.JSON.getValue());
@@ -54,11 +54,10 @@ public class ReportCacheUtils {
         return baseResult;
     }
 
-    private static Map<String, Object> query(String id, String query) {
+    private static Map<String, Object> query(String rowKey) {
         QueryServiceImpl queryService = new QueryServiceImpl();
         QueryProfile param = new QueryProfile();
         StringBuffer sb = new StringBuffer();
-        String rowKey = DigestUtil.md5Hex(id + query.trim());
         sb.append("select ").append(hBaseAPISource.getColumnName());
         sb.append(" from ").append(hBaseAPISource.getDbName()).append(".").append(hBaseAPISource.getTableName());
         sb.append(" where ").append("ROWKEY=").append("\'" + rowKey + "\'");

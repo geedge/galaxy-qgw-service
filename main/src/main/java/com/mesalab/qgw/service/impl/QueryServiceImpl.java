@@ -198,14 +198,7 @@ public class QueryServiceImpl implements QueryService {
     }
 
     private BaseResult executeLongTermQuery(QueryProfile param) {
-        BaseResult baseResult = ReportCacheUtils.get(param.getResultId(), param.getQuery());
-        if (baseResult.isSuccess()) {
-            return baseResult;
-        } else {
-            log.info("Long-term Results not exist, execute real-time query: resultID-{}, sql-{}",
-                    param.getResultId(), StringUtil.strip(param.getQuery()));
-            return new FederationDialect(param, getDBDialect(param).executeQuery()).executeQuery();
-        }
+        return new FederationDialect(param, getDBDialect(param).executeQuery()).executeQuery();
     }
 
 
