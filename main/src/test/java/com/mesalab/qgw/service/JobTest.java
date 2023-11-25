@@ -51,7 +51,7 @@ public class JobTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void longTerm() {
-        HashMap param = jsonToInParameter("parameters/jobTest.json", "long-term", HashMap.class);
+        HashMap param = jsonToInParameter("parameters/jobTest.json", "long_term", HashMap.class);
         BaseResult committed = jobController.commit(param);
         Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
         String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();

@@ -82,7 +82,7 @@ public class JobController {
         return deferredResult;
     }
 
-    @GetMapping(value = {"/jobs/{jobId}/long-term", "/jobs/{jobId}/statistics"})
+    @GetMapping(value = {"/jobs/{jobId}/long_term", "/jobs/{jobId}/statistics"})
     public DeferredResult<BaseResult> longPollingLongTermResult(@PathVariable String jobId) {
         log.info("Long Polling Request,Job ID is {}", jobId);
         BaseResult baseResult = null;

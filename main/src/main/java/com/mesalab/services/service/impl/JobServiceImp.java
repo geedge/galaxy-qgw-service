@@ -453,7 +453,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             }
         } catch (JSQLParserException | RuntimeException e) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"long-term job init error: ".concat(e.getMessage())));
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"long_term job init error: ".concat(e.getMessage())));
         }
     }
 
@@ -497,14 +497,14 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         SelectBody selectBody;
         if (!(statement instanceof Select) || !((selectBody = ((Select) statement).getSelectBody()) instanceof PlainSelect)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"long-term job init error, not support, SQL is: " + sql));
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"long_term job init error, not support, SQL is: " + sql));
                     
         }
         PlainSelect plainSelect = (PlainSelect) selectBody;
         PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
         if (StringUtil.isEmpty(plainSelect.getGroupBy()) && StringUtil.isEmpty(plainSelectInner.getGroupBy())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "long-term job init error, not support non-aggregate SQL is: " + sql));
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "long_term job init error, not support non-aggregate SQL is: " + sql));
         }
         return plainSelect;
     }
