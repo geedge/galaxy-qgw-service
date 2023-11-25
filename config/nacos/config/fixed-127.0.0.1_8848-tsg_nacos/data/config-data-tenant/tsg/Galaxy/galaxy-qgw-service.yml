@@ -29,7 +29,7 @@ management:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.44.12:3306/tsg_olap?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
+    url: jdbc:mysql://192.168.44.12:3306/tsg_olap_ww?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
     username: ENC(63aTpwv2vH0vPikW+3Jjig==)
     password: ENC(LDEb2OekU7iZWiFw6pUYBSozVKP27r1y)
   flyway:
