@@ -7,7 +7,7 @@
     "statistics": {
         "elapsed": 463,
         "rows_read": 9224,
-        "result_size": 1329773,
+        "result_bytes": 1329773,
         "result_rows": 9224
     },
     "formatType": "json",

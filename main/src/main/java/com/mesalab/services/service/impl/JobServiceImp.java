@@ -257,7 +257,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         statistics.put("elapsed", map.get(JobConfig.DURATION_TIME));
         statistics.put("rows_read", resultList.size());
         statistics.put("result_rows", resultList.size());
-        statistics.put("result_size", String.valueOf(resultList).getBytes().length);
+        statistics.put("result_bytes", String.valueOf(resultList).getBytes().length);
         job.put(JobConfig.COUNT, StringUtil.isEmpty(map.get(JobConfig.COUNT)) ? 0 : map.get(JobConfig.COUNT));
         job.put(JobConfig.IS_DONE, StringUtil.isEmpty(map.get(JobConfig.IS_DONE)) ? false : map.get(JobConfig.IS_DONE));
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
@@ -295,7 +295,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         statistics.put("elapsed", map.get(JobConfig.DURATION_TIME));
         statistics.put("rows_read", resultList.size());
         statistics.put("result_rows", resultList.size());
-        statistics.put("result_size", String.valueOf(resultList).getBytes().length);
+        statistics.put("result_bytes", String.valueOf(resultList).getBytes().length);
         job.put(JobConfig.COUNT, StringUtil.isEmpty(map.get(JobConfig.COUNT)) ? 0 : map.get(JobConfig.COUNT));
         job.put(JobConfig.IS_DONE, StringUtil.isEmpty(map.get(JobConfig.IS_DONE)) ? false : map.get(JobConfig.IS_DONE));
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
