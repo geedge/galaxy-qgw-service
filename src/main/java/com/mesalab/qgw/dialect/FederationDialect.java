@@ -149,10 +149,10 @@ public class FederationDialect extends AbstractEngineDialect{
         Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
         statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
         if (StringUtil.isEmpty(baseResult.getData())) {
-            statisticMap.put("result_size", 0);
+            statisticMap.put("result_bytes", 0);
             statisticMap.put("result_rows", 0);
         } else {
-            statisticMap.put("result_size", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
+            statisticMap.put("result_bytes", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
         extendMetaInfo(baseResult.getMeta());

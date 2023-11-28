@@ -156,7 +156,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
         Map statistics = Maps.newHashMap();
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
         statistics.put("result_rows", dataList.size());
-        statistics.put("result_size", dataList.toString().getBytes().length);
+        statistics.put("result_bytes", dataList.toString().getBytes().length);
         baseResult = BaseResultGenerator.success("ok", dataList, statistics);
         return baseResult;
     }
