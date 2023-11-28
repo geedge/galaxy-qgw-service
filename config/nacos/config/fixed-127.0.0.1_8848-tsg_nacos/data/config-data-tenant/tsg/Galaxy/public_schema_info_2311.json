@@ -471,6 +471,10 @@
           "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
         },
         {
+          "type": "unix_timestamp",
+          "functions": "COUNT,COUNT_DISTINCT,MAX,MIN"
+        },
+        {
           "type": "array",
           "functions": "COUNT,COUNT_DISTINCT"
         },
@@ -510,6 +514,10 @@
         },
         {
           "type": "timestamp",
+          "functions": "=,!=,>,<,>=,<="
+        },
+        {
+          "type": "unix_timestamp",
           "functions": "=,!=,>,<,>=,<="
         },
         {
