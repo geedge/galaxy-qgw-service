@@ -56,5 +56,5 @@ SELECT state, done_progress, is_failed, is_valid, start_time, end_time, rows_rea
 SELECT job_id AS id FROM saved_query_job WHERE is_valid = 1 AND state IN ( 'PENDING', 'RUNNING') AND is_failed = 0 AND query_sql = '%s' LIMIT 1
 #end
 #sql("SAVED_QUERY_JOB_UPDATE")
-UPDATE saved_query_job SET %s = %s  WHERE job_uuid = '%s'
+UPDATE saved_query_job SET %s = %s  WHERE job_id = '%s'
 #end

@@ -109,7 +109,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (isExist(id)) {
             log.info("Hoc Job already exist, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
-            return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
+            return BaseResultGenerator.successCreate(buildJobResource(id, queryType));
         }
         log.info("Add Hoc Job, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
         Map<String, Object> property = Maps.newLinkedHashMap();
@@ -120,7 +120,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             initStatisticsJob(id, reqBody, property);
             jobExecuteService.addExecutorStatistics(id, reqBody, property);
         }
-        return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
+        return BaseResultGenerator.successCreate(buildJobResource(id, queryType));
     }
 
     private void initStatisticsJob(String id, HashMap<String, Object> reqBody, Map<String, Object> property) {
@@ -153,7 +153,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         String id = getSameJob(sql);
         String queryType = String.valueOf(map.get(JobConfig.KEY_QUERY_TYPE));
         if (StringUtil.isNotBlank(id)) {
-            return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
+            return BaseResultGenerator.successCreate(buildJobResource(id, queryType));
         }
         map.put("UUID", System.currentTimeMillis());
         id = DigestUtil.md5Hex16(JobConfig.SAVED_QUERY)
@@ -161,7 +161,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 .concat(DigestUtil.md5Hex16(String.valueOf(map)));
         long currentTime = System.currentTimeMillis() / 1000;
         Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
-        return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
+        return BaseResultGenerator.successCreate(buildJobResource(id, queryType));
     }
 
     @Override
@@ -195,10 +195,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             }
         }
         throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
-                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Get job statis error: " + statusBaseResult.getMessage()));
+                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Get job status error: " + statusBaseResult.getMessage()));
     }
 
-    private static List<BaseResult> buildBaseResults(List<String> ids, List<Map<String, Object>> jobStatus) {
+    private List<BaseResult> buildBaseResults(List<String> ids, List<Map<String, Object>> jobStatus) {
         BaseResult<Object> resultBaseResult;
         resultBaseResult = SavedQueryResultUtils.getByRowKey(ids);
         if (!resultBaseResult.isSuccess()) {
@@ -211,10 +211,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             BaseResult result;
             Map map = JSON.parseObject((String) data.get("result"), Map.class);
             result = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.SUCCESS.getCode(), String.valueOf(map.get("message")),
-                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), QueryFormatEnum.JSON.getValue());
+                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get(JobConfig.STATISTICS)), QueryFormatEnum.JSON.getValue());
             String rowKey = String.valueOf(data.get("ROWKEY"));
             jobStatus.forEach(o -> {
-                if (StrUtil.equals(rowKey, String.valueOf(o.get("job_id")))) {
+                if (StrUtil.equals(rowKey, String.valueOf(o.get(JobConfig.JOB_ID)))) {
                     result.setJob(o);
                 }
             });
@@ -225,7 +225,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     @Override
     public BaseResult cancelSavedQuery(String jobId) {
-        Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB")), "is_valid", 0, jobId));
+        Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_UPDATE")), "is_valid", 0, jobId));
         return BaseResultGenerator.success(ResultStatusEnum.ACCEPTED.getCode(), "ok", null);
     }
 
@@ -239,7 +239,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         });
         if (result.size() != ids.size()) {
             List<String> resultIds = Lists.newArrayList();
-            result.forEach(o -> resultIds.add(String.valueOf(o.get("job_id"))));
+            result.forEach(o -> resultIds.add(String.valueOf(o.get(JobConfig.JOB_ID))));
             List<String> collect = ids.stream().filter(item -> !resultIds.contains(item)).collect(Collectors.toList());
             throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Find Jobs: " + StrUtil.join(",", collect)));
@@ -249,22 +249,22 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     @Override
     public List<Map<String, Object>> batchSavedQueryResult(List<String> ids) {
-        List<Map<String, Object>> jobStatus = batchSavedQueryStatus(ids);
-        if (!jobStatus.isEmpty()) {
-            List<BaseResult> dataList = buildBaseResults(Lists.newArrayList(ids), jobStatus);
-            List<Map<String, Object>> result = Lists.newArrayList();
-            for (BaseResult baseResult1 : dataList) {
-                Map<String, Object> item = Maps.newLinkedHashMap();
-                item.put("job", baseResult1.getJob());
-                item.put("statistics", baseResult1.getStatistics());
-                item.put("meta", baseResult1.getMeta());
-                item.put("data", baseResult1.getData());
-                result.add(item);
+        List<Map<String, Object>> statusList = batchSavedQueryStatus(ids);
+        if (!statusList.isEmpty()) {
+            List<BaseResult> dataList = buildBaseResults(Lists.newArrayList(ids), statusList);
+            List<Map<String, Object>> resultList = Lists.newArrayList();
+            for (BaseResult item : dataList) {
+                Map<String, Object> result = Maps.newLinkedHashMap();
+                result.put(JobConfig.JOB, item.getJob());
+                result.put(JobConfig.STATISTICS, item.getStatistics());
+                result.put("meta", item.getMeta());
+                result.put("data", item.getData());
+                resultList.add(result);
             }
-            return result;
+            return resultList;
         }
         throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
-                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Get job statis error: " + jobStatus));
+                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Get job status error: " + statusList));
     }
 
     @Override
@@ -280,7 +280,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     private Map<String, Object> buildJobStatus(List<Object> list) {
         Map<String, Object> job = Maps.newLinkedHashMap();
-        job.put("job_id", list.get(8));
+        job.put(JobConfig.JOB_ID, list.get(8));
         job.put("is_done", "DONE".equalsIgnoreCase(String.valueOf(list.get(0))));
         job.put("done_progress", Math.min(Double.parseDouble(String.valueOf(list.get(1))), 1));
         job.put("is_canceled", !BooleanUtil.toBoolean(String.valueOf(list.get(3))));
@@ -557,7 +557,6 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
 
-
     private PlainSelect checkParam(String sql, net.sf.jsqlparser.statement.Statement statement) {
         SelectBody selectBody;
         if (!(statement instanceof Select) || !((selectBody = ((Select) statement).getSelectBody()) instanceof PlainSelect)) {
@@ -684,11 +683,11 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         return i == 1;
     }
 
-    private List buildJobInfo(String id, String queryType) {
-        Map<String, Object> data = Maps.newHashMap();
-        data.put("job_id", id);
-        data.put("resource_path", id.concat("/").concat(queryType));
-        return Lists.newArrayList(data);
+    private Map<String, Object> buildJobResource(String id, String queryType) {
+        Map<String, Object> result = Maps.newHashMap();
+        result.put(JobConfig.JOB_ID, id);
+        result.put(JobConfig.JOB_RESOURCE_PATH, id.concat("/").concat(queryType));
+        return result;
     }
 
     public static void execute(String sql) {

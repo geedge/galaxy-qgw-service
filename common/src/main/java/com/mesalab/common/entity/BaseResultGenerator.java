@@ -108,6 +108,19 @@ public class BaseResultGenerator {
                 ResultCodeEnum.SUCCESS.getMessage(), statistics, job, null, meta, data);
     }
 
+    /**
+     * Desc: 创建成功响应结果，自定义Job数据
+     *
+     * @param job
+     * @return {@link BaseResult<T>}
+     * @created by wWei
+     * @date 2023/11/29 11:46 上午
+     */
+    public static <T> BaseResult<T> successCreate(final Map<String, Object> job) {
+        return new BaseResult<>(ResultStatusEnum.CREATED.getCode(), ResultCodeEnum.SUCCESS.getCode(), null, true,
+                ResultCodeEnum.SUCCESS.getMessage(), null, job, null, null, null);
+    }
+
 
     /**
      * 操作成功响应结果，自定义信息，无数据

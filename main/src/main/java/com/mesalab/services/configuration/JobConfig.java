@@ -14,6 +14,11 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class JobConfig {
+
+    public static final String STATISTICS = "statistics";
+    public static final String JOB = "job";
+    public static final String JOB_RESOURCE_PATH = "resource_path";
+    public static final String JOB_ID = "job_id";
     public static final String COUNT = "count";
     public static final String IS_DONE = "is_done";
     public static final String DONE_PROGRESS = "done_progress";
@@ -40,7 +45,6 @@ public class JobConfig {
     public static final String SAVED_QUERY = "saved_query";
     public static final String FIELD_DISCOVERY= "field_discovery";
     public static final String LONG_TERM_COLUMN_FAMILY = "long_term";
-    public static final String STATISTICS = "statistics";
 
     public static final String DELIMIT = "-";
 
