@@ -53,7 +53,7 @@ INSERT INTO saved_query_job (job_id, query_sql, state, done_progress, is_failed,
 SELECT state, done_progress, is_failed, is_valid, start_time, end_time, rows_read, query_sql FROM saved_query_job WHERE job_id = '%s' LIMIT 1
 #end
 #sql("SAVED_QUERY_JOB_SAME")
-SELECT job_id AS id FROM saved_query_job WHERE is_valid = 1 AND state IN ( "PENDING", 'DONE') AND query_sql = '%s' LIMIT 1
+SELECT job_id AS id FROM saved_query_job WHERE is_valid = 1 AND state IN ( 'PENDING', 'RUNNING') AND is_failed = 0 AND query_sql = '%s' LIMIT 1
 #end
 #sql("SAVED_QUERY_JOB_UPDATE")
 UPDATE saved_query_job SET %s = %s  WHERE job_uuid = '%s'
