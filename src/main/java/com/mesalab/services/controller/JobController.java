@@ -146,6 +146,7 @@ public class JobController {
 
     @DeleteMapping(value = "/{jobId}/saved_query")
     public BaseResult cancelSavedQuery(@PathVariable String jobId) {
+        log.info("Cancel Saved Query Job, ID is {}", jobId);
         return jobService.cancelSavedQuery(jobId);
     }
 
