@@ -14,11 +14,9 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.utils.ReportCacheUtils;
+import com.mesalab.common.enums.*;
+import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.SavedQueryResultUtils;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.constant.QGWMessageConst;
@@ -95,7 +93,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             PROPERTIES.setProperty("zookeeper.recovery.retry.intervalmill", "200");
             PROPERTIES.setProperty("zookeeper.recovery.retry", "3");
             PROPERTIES.setProperty("hbase.client.retries.number", "3");
-            PROPERTIES.setProperty("hbase.client.keyvalue.maxsize","209715200");
+            PROPERTIES.setProperty("hbase.client.keyvalue.maxsize", "209715200");
         } catch (ClassNotFoundException e) {
             log.error("PhoenixDriver load error. ", e);
         }
@@ -118,7 +116,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
             initFieldDiscoveryJob(id, reqBody, property);
             jobExecuteService.addExecutorFieldDiscovery(id, reqBody);
-        } else if (JobConfig.LONG_TERM.equals(queryType)) {
+        } else if (JobConfig.STATISTICS.equals(queryType)) {
             initStatisticsJob(id, reqBody, property);
             jobExecuteService.addExecutorStatistics(id, reqBody, property);
         }
@@ -126,7 +124,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private void initStatisticsJob(String id, HashMap<String, Object> reqBody, Map<String, Object> property) {
-        buildPropertyOfStatistics(String.valueOf(reqBody.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL)), property);
+        buildPropertyOfStatistics(String.valueOf(reqBody.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL)), property);
         if (!isValidProperty(property)) {
             property.remove(JobConfig.JOB_PROPERTY_K_OPTION);
         }
@@ -161,59 +159,112 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         id = DigestUtil.md5Hex16(JobConfig.SAVED_QUERY)
                 .concat(JobConfig.DELIMIT)
                 .concat(DigestUtil.md5Hex16(String.valueOf(map)));
-        long currentTime = System.currentTimeMillis()/1000;
+        long currentTime = System.currentTimeMillis() / 1000;
         Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
         return BaseResultGenerator.success(ResultStatusEnum.CREATED.getCode(), "ok", buildJobInfo(id, queryType));
     }
 
     @Override
     public BaseResult getSavedQueryStatus(String jobId) {
-        HashMap<String, Object> job = buildJobStatus(jobId);
+        Map<String, Object> job = buildJobStatus(jobId);
         return BaseResultGenerator.success("ok", Lists.newArrayList(job));
     }
 
-    private HashMap<String, Object> buildJobStatus(String jobId) {
-        List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), jobId));
+    private Map<String, Object> buildJobStatus(String jobId) {
+        List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), jobId, 1));
         if (CollectionUtil.isEmpty(query)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No job found with the given ID");
         }
-        List<Object> list = Arrays.asList((Object[]) query.get(0));
-        HashMap<String, Object> job = Maps.newLinkedHashMap();
-        job.put("is_done", "DONE".equalsIgnoreCase(String.valueOf(list.get(0))));
-        job.put("done_progress", Math.min(Double.parseDouble(String.valueOf(list.get(1))), 1));
-        job.put("is_canceled", !BooleanUtil.toBoolean(String.valueOf(list.get(3))));
-        job.put("is_failed", BooleanUtil.toBoolean(String.valueOf(list.get(2))));
-        job.put("start_time", list.get(4));
-        job.put("end_time", list.get(5));
-        job.put("count", list.get(6));
-        return job;
+        return buildJobStatus(Arrays.asList((Object[]) query.get(0)));
     }
 
     @Override
     public BaseResult getSavedQueryResult(String jobId) {
-        BaseResult reportStatus = getSavedQueryStatus(jobId);
-        BaseResult<Object> result;
-        if (reportStatus.isSuccess()) {
-            List<HashMap<String, Object>> data = (List<HashMap<String, Object>>) reportStatus.getData();
-            HashMap<String, Object> jobInfo = data.get(0);
+        BaseResult statusBaseResult = getSavedQueryStatus(jobId);
+        if (statusBaseResult.isSuccess()) {
+            List<HashMap<String, Object>> statusData = (List<HashMap<String, Object>>) statusBaseResult.getData();
+            HashMap<String, Object> jobInfo = statusData.get(0);
             boolean isDone = Boolean.parseBoolean(jobInfo.get(JobConfig.IS_DONE).toString());
             boolean isCanceled = Boolean.parseBoolean(jobInfo.get(JobConfig.IS_CANCELED).toString());
-            boolean isFailed = Boolean.parseBoolean(jobInfo.get("is_failed").toString());
+            boolean isFailed = Boolean.parseBoolean(jobInfo.get(JobConfig.IS_FAILED).toString());
             if (!isCanceled && isDone && !isFailed) {
-                result = ReportCacheUtils.getByRowKey(jobId);
-                result.setJob(jobInfo);
-                return result;
+                List<BaseResult> resultList = buildBaseResults(Lists.newArrayList(jobId), Lists.newArrayList(jobInfo));
+                return resultList.get(0);
             } else {
                 return BaseResultGenerator.success(null, jobInfo, null, null);
             }
         }
-        return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "get job info error");
+        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Get job statis error: " + statusBaseResult.getMessage()));
+    }
+
+    private static List<BaseResult> buildBaseResults(List<String> ids, List<Map<String, Object>> jobStatus) {
+        BaseResult<Object> resultBaseResult;
+        resultBaseResult = SavedQueryResultUtils.getByRowKey(ids);
+        if (!resultBaseResult.isSuccess()) {
+            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Get job result error: " + resultBaseResult.getMessage()));
+        }
+        List<Map<String, Object>> resultData = (List<Map<String, Object>>) resultBaseResult.getData();
+        List<BaseResult> resultList = Lists.newArrayList();
+        for (Map<String, Object> data : resultData) {
+            BaseResult result;
+            Map map = JSON.parseObject((String) data.get("result"), Map.class);
+            result = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.SUCCESS.getCode(), String.valueOf(map.get("message")),
+                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), QueryFormatEnum.JSON.getValue());
+            String rowKey = String.valueOf(data.get("ROWKEY"));
+            jobStatus.forEach(o -> {
+                if (StrUtil.equals(rowKey, String.valueOf(o.get("job_id")))) {
+                    result.setJob(o);
+                }
+            });
+            resultList.add(result);
+        }
+        return resultList;
     }
 
     @Override
     public BaseResult cancelSavedQuery(String jobId) {
         Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB")), "is_valid", 0, jobId));
-        return BaseResultGenerator.success(ResultStatusEnum.ACCEPTED.getCode(), "Accepted", null);
+        return BaseResultGenerator.success(ResultStatusEnum.ACCEPTED.getCode(), "ok", null);
+    }
+
+    @Override
+    public List<Map<String, Object>> batchSavedQueryStatus(List<String> ids) {
+        List<Object> data = Db.query(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), StrUtil.join("', '", ids), ids.size()));
+        List<Map<String, Object>> result = Lists.newArrayList();
+        data.forEach(x -> {
+            Map<String, Object> job = buildJobStatus(Arrays.asList((Object[]) x));
+            result.add(job);
+        });
+        if (result.size() != ids.size()) {
+            List<String> resultIds = Lists.newArrayList();
+            result.forEach(o -> resultIds.add(String.valueOf(o.get("job_id"))));
+            List<String> collect = ids.stream().filter(item -> !resultIds.contains(item)).collect(Collectors.toList());
+            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Find Jobs: " + StrUtil.join(",", collect)));
+        }
+        return result;
+    }
+
+    @Override
+    public List<Map<String, Object>> batchSavedQueryResult(List<String> ids) {
+        List<Map<String, Object>> jobStatus = batchSavedQueryStatus(ids);
+        if (!jobStatus.isEmpty()) {
+            List<BaseResult> dataList = buildBaseResults(Lists.newArrayList(ids), jobStatus);
+            List<Map<String, Object>> result = Lists.newArrayList();
+            for (BaseResult baseResult1 : dataList) {
+                Map<String, Object> item = Maps.newLinkedHashMap();
+                item.put("job", baseResult1.getJob());
+                item.put("statistics", baseResult1.getStatistics());
+                item.put("meta", baseResult1.getMeta());
+                item.put("data", baseResult1.getData());
+                result.add(item);
+            }
+            return result;
+        }
+        throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Get job statis error: " + jobStatus));
     }
 
     @Override
@@ -224,6 +275,20 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult longTermResult(String id) {
         return buildLongTermResult(id);
+    }
+
+
+    private Map<String, Object> buildJobStatus(List<Object> list) {
+        Map<String, Object> job = Maps.newLinkedHashMap();
+        job.put("job_id", list.get(8));
+        job.put("is_done", "DONE".equalsIgnoreCase(String.valueOf(list.get(0))));
+        job.put("done_progress", Math.min(Double.parseDouble(String.valueOf(list.get(1))), 1));
+        job.put("is_canceled", !BooleanUtil.toBoolean(String.valueOf(list.get(3))));
+        job.put("is_failed", BooleanUtil.toBoolean(String.valueOf(list.get(2))));
+        job.put("start_time", list.get(4));
+        job.put("end_time", list.get(5));
+        job.put("count", list.get(6));
+        return job;
     }
 
     private BaseResult buildLongTermResult(String id) {
@@ -346,7 +411,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private void buildPropertyOfStatistics(String sql, Map<String, Object> property) {
-        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.LONG_TERM);
+        property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.STATISTICS);
         property.put(JobConfig.JOB_PROPERTY_K_RESULT_FIELD, JobConfig.LONG_TERM_RESULT);
         try {
             PlainSelect plainSelect = checkParam(sql, CCJSqlParserUtil.parse(sql));
@@ -453,7 +518,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             }
         } catch (JSQLParserException | RuntimeException e) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"long_term job init error: ".concat(e.getMessage())));
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "long_term job init error: ".concat(e.getMessage())));
         }
     }
 
@@ -497,8 +562,8 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         SelectBody selectBody;
         if (!(statement instanceof Select) || !((selectBody = ((Select) statement).getSelectBody()) instanceof PlainSelect)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),"long_term job init error, not support, SQL is: " + sql));
-                    
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), "long_term job init error, not support, SQL is: " + sql));
+
         }
         PlainSelect plainSelect = (PlainSelect) selectBody;
         PlainSelect plainSelectInner = SQLHelper.getSelectInner(sql);
@@ -537,7 +602,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
             body.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));
             syntaxValidationFieldDiscovery(body);
-        } else if (JobConfig.LONG_TERM.equals(type)) {
+        } else if (JobConfig.STATISTICS.equals(type)) {
             syntaxValidationStatistics(body);
         }
     }
@@ -562,7 +627,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         BaseResult baseResult = queryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),baseResult.getMessage()));
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));
         }
     }
 
@@ -583,16 +648,16 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         BaseResult baseResult = queryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),baseResult.getMessage()));
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));
         }
     }
 
     private void syntaxValidationStatistics(HashMap<String, Object> body) {
-        String sql = String.valueOf(body.get(JobConfig.KEY_CUSTOM_LONG_TERM_SQL));
+        String sql = String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL));
         BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),baseResult.getMessage()));
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));
         }
     }
 
@@ -642,7 +707,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         } catch (RuntimeException | SQLException e) {
             log.error("DB Engine is :{}, Query is error: {}", DBTypeEnum.HBASE.getValue(), e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
 
 
         } finally {

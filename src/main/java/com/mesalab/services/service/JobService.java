@@ -2,6 +2,8 @@ package com.mesalab.services.service;
 import com.mesalab.common.entity.BaseResult;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * TODO
@@ -81,4 +83,24 @@ public interface JobService {
      * @date 2022/3/28 5:29 下午
      */
     BaseResult cancelSavedQuery(String jobId);
+
+    /**
+     * Desc: 批量获取 saved query job状态
+     *
+     * @param ids
+     * @return
+     * @created by wWei
+     * @date 2023/11/29 10:04
+     */
+    List<Map<String, Object>> batchSavedQueryStatus(List<String> ids);
+
+    /**
+     * Desc: 批量获取 saved query job 结果
+     *
+     * @param ids
+     * @return
+     * @created by wWei
+     * @date 2023/11/29 10:04
+     */
+    List<Map<String, Object>> batchSavedQueryResult(List<String> ids);
 }

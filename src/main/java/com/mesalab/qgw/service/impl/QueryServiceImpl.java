@@ -14,7 +14,6 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.SchemaBase;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.sqlparser.SQLSyntaxParserUtil;

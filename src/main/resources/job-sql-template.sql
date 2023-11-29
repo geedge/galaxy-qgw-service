@@ -50,7 +50,7 @@ SELECT %s FROM %s WHERE %s LIMIT 1
 INSERT INTO saved_query_job (job_id, query_sql, state, done_progress, is_failed, result_message, elapsed, rows_read, bytes_read, result_rows, result_bytes, is_valid, start_time, end_time, last_update_time, generated_time ) VALUES ('%s', '%s', 'PENDING', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '%s', '%s')
 #end
 #sql("SAVED_QUERY_JOB_STATUS")
-SELECT state, done_progress, is_failed, is_valid, start_time, end_time, rows_read, query_sql FROM saved_query_job WHERE job_id = '%s' LIMIT 1
+SELECT state, done_progress, is_failed, is_valid, start_time, end_time, rows_read, query_sql, job_id FROM saved_query_job WHERE job_id IN ('%s') LIMIT %s
 #end
 #sql("SAVED_QUERY_JOB_SAME")
 SELECT job_id AS id FROM saved_query_job WHERE is_valid = 1 AND state IN ( 'PENDING', 'RUNNING') AND is_failed = 0 AND query_sql = '%s' LIMIT 1

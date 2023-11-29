@@ -29,7 +29,7 @@ public class JobTest extends GalaxyQGWApplicationTests {
         BaseResult committed = jobController.commit(param);
         Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
         String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
-        DeferredResult<BaseResult> baseResultDeferredResult = jobController.longPollingLongTermResult(id);
+        DeferredResult<BaseResult> baseResultDeferredResult = jobController.statisticsResult(id);
         if(baseResultDeferredResult.hasResult()){
             BaseResult result = (BaseResult) baseResultDeferredResult.getResult();
             Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
@@ -42,7 +42,7 @@ public class JobTest extends GalaxyQGWApplicationTests {
         BaseResult committed = jobController.commit(param);
         Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
         String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
-        DeferredResult<BaseResult> baseResultDeferredResult = jobController.longPollingLongTermResult(id);
+        DeferredResult<BaseResult> baseResultDeferredResult = jobController.statisticsResult(id);
         if(baseResultDeferredResult.hasResult()){
             BaseResult result = (BaseResult) baseResultDeferredResult.getResult();
             Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
@@ -55,7 +55,7 @@ public class JobTest extends GalaxyQGWApplicationTests {
         BaseResult committed = jobController.commit(param);
         Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
         String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
-        DeferredResult<BaseResult> baseResultDeferredResult = jobController.longPollingLongTermResult(id);
+        DeferredResult<BaseResult> baseResultDeferredResult = jobController.statisticsResult(id);
         if(baseResultDeferredResult.hasResult()){
             BaseResult result = (BaseResult) baseResultDeferredResult.getResult();
             Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
@@ -69,9 +69,9 @@ public class JobTest extends GalaxyQGWApplicationTests {
         BaseResult committed = jobController.commit(param);
         Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
         String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
-        BaseResult result = jobController.getStatus(id);
+        BaseResult result = jobController.savedQueryStatus(id);
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
-        BaseResult cancelled = jobController.cancel(id);
+        BaseResult cancelled = jobController.cancelSavedQuery(id);
         Assert.assertTrue(cancelled.getMessage(), cancelled.getStatus() == 202);
 
     }
@@ -82,7 +82,7 @@ public class JobTest extends GalaxyQGWApplicationTests {
         BaseResult committed = jobController.commit(param);
         Assert.assertTrue(committed.getMessage(), committed.getStatus() == 201);
         String id = ((List<Map>) committed.getData()).get(0).get("job_id").toString();
-        DeferredResult<BaseResult> baseResultDeferredResult = jobController.longPollingLongTermResult(id);
+        DeferredResult<BaseResult> baseResultDeferredResult = jobController.statisticsResult(id);
         if(baseResultDeferredResult.hasResult()){
             BaseResult result = (BaseResult) baseResultDeferredResult.getResult();
             Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
