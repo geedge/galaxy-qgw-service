@@ -6,7 +6,7 @@
     "partition_key": "stat_time",
     "index_key": [
       "stat_time",
-      "common_app_label",
+      "app",
       "app_category",
       "app_subcategory",
       "app_company"
@@ -14,7 +14,7 @@
   },
   "fields": [
     {
-      "name":"common_app_label",
+      "name":"app",
       "label":"Application Label",
       "type":"string"
     },
@@ -39,27 +39,27 @@
       "type":"long"
     },
     {
-      "name":"common_c2s_pkt_num",
+      "name":"sent_pkts",
       "label":"Packets Sent",
       "type":"long"
     },
     {
-      "name":"common_c2s_byte_num",
+      "name":"sent_bytes",
       "label":"Bytes Sent",
       "type":"long"
     },
     {
-      "name":"common_s2c_pkt_num",
+      "name":"received_pkts",
       "label":"Packets Received",
       "type":"long"
     },
     {
-      "name":"common_s2c_byte_num",
+      "name":"received_bytes",
       "label":"Bytes Received",
       "type":"long"
     },
     {
-      "name":"common_sessions",
+      "name":"sessions",
       "label":"Sessions",
       "type":"long"
     },
@@ -104,67 +104,67 @@
       "type":"long"
     },
     {
-      "name":"c2s_tcp_lostlen_ratio",
+      "name":"tcp_c2s_lost_bytes_ratio",
       "label":"Sequence Gap Loss (c2s)",
       "type":"float"
     },
     {
-      "name":"s2c_tcp_lostlen_ratio",
+      "name":"tcp_s2c_lost_bytes_ratio",
       "label":"Sequence Gap Loss (s2c)",
       "type":"float"
     },
     {
-      "name":"tcp_lostlen_ratio",
+      "name":"tcp_lost_bytes_ratio",
       "label":"Sequence Gap Loss",
       "type":"float"
     },
     {
-      "name":"c2s_tcp_unorder_num_ratio",
+      "name":"tcp_c2s_o3_pkts_ratio",
       "label":"Unordered Packets (c2s)",
       "type":"float"
     },
     {
-      "name":"s2c_tcp_unorder_num_ratio",
+      "name":"tcp_s2c_o3_pkts_ratio",
       "label":"Unordered Packets (s2c)",
       "type":"float"
     },
     {
-      "name":"tcp_unorder_num_ratio",
+      "name":"tcp_o3_pkts_ratio",
       "label":"Unordered Packets",
       "type":"float"
     },
     {
-      "name":"c2s_byte_retrans_ratio",
+      "name":"tcp_c2s_rtx_bytes_ratio",
       "label":"Byte Retransmission (c2s)",
       "type":"float"
     },
     {
-      "name":"s2c_byte_retrans_ratio",
+      "name":"tcp_s2c_rtx_bytes_ratio",
       "label":"Byte Retransmission (s2c)",
       "type":"float"
     },
     {
-      "name":"byte_retrans_ratio",
+      "name":"tcp_rtx_bytes_ratio",
       "label":"Byte Retransmission",
       "type":"float"
     },
     {
-      "name":"c2s_pkt_retrans_ratio",
+      "name":"tcp_c2s_rtx_pkts_ratio",
       "label":"Packet Retransmission (c2s)",
       "type":"float"
     },
     {
-      "name":"s2c_pkt_retrans_ratio",
+      "name":"tcp_s2c_rtx_pkts_ratio",
       "label":"Packet Retransmission (s2c)",
       "type":"float"
     },
     {
-      "name":"pkt_retrans_ratio",
+      "name":"tcp_rtx_pkts_ratio",
       "label":"Packet Retransmission",
       "type":"float"
     },
     {
-      "name":"avg_establish_latency_ms",
+      "name":"avg_tcp_rtt_ms",
       "label":"AVG TCP Handshake Latency (ms)",
       "type":"float"
     },
@@ -174,7 +174,7 @@
       "type":"float"
     },
     {
-      "name":"avg_ssl_con_latency_ms",
+      "name":"avg_ssl_handshake_latency_ms",
       "label":"AVG SSL.Handshake Latency (ms)",
       "type":"float"
     }

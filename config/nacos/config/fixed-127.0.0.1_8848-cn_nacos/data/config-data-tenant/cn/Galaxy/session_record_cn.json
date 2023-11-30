@@ -3,164 +3,189 @@
   "name": "session_record_cn",
   "namespace": "cyber_narrator_galaxy",
   "doc": {
-    "partition_key": "common_recv_time",
+    "partition_key": "recv_time",
 	"index_key": [
-		"common_recv_time"
+		"recv_time"
 	 ]
   },
   "fields": [
 	{
-		"name":"common_recv_time",
+		"name":"recv_time",
 		"label":"Receive Time",
 		"type":"long"
 	},
     {
-      "name":"common_log_id",
+      "name":"log_id",
       "label":"Log ID",
       "type":"long"
     },
     {
-      "name":"common_flags",
+      "name":"flags",
       "label":"Flags",
       "type":"long"
     },
     {
-      "name":"common_start_time",
+      "name":"start_timestamp_ms",
       "label":"Start Time",
       "type":"long"
     },
     {
-      "name":"common_end_time",
+      "name":"end_timestamp_ms",
       "label":"End Time",
       "type":"long"
     },
     {
-      "name":"common_con_duration_ms",
+      "name":"duration_ms",
       "label":"Duration (ms)",
       "type":"long"
     },
     {
-      "name":"common_schema_type",
-      "label":"Schema Type",
+      "name":"decoded_as",
+      "label":"Decoded AS",
       "type":"string"
     },
     {
-      "name":"common_client_ip",
+      "name":"client_ip",
       "label":"Client IP",
       "type":"string"
     },
     {
-      "name":"common_server_ip",
+      "name":"server_ip",
       "label":"Server IP",
       "type":"string"
     },
     {
-      "name":"common_client_port",
+      "name":"client_port",
       "label":"Client Port",
       "type":"int"
     },
     {
-      "name":"common_server_port",
+      "name":"server_port",
       "label":"Server Port",
       "type":"int"
     },
     {
-      "name":"common_app_label",
+      "name":"app",
       "label":"Application Label",
       "type":"string"
     },
     {
-      "name":"common_app_full_path",
-      "label":"Application Full Path",
+      "name":"app_path",
+      "label":"Application Path",
       "type":"string"
     },
     {
-      "name":"common_l4_protocol",
-      "label":"L4 Protocol",
+      "name":"protocol_path",
+      "label":"Protocol Path",
       "type":"string"
     },
     {
-      "name":"common_l7_protocol",
+      "name":"l7_protocol",
       "label":"L7 Protocol",
       "type":"string"
     },
     {
-      "name":"common_out_link_id",
+      "name":"out_link_id",
       "label":"Outgoing Link ID",
       "type":"int"
     },
     {
-      "name":"common_in_link_id",
+      "name":"in_link_id",
       "label":"Incoming Link ID",
       "type":"int"
     },
     {
-      "name":"common_c2s_pkt_num",
+      "name":"subscriber_id",
+      "label":"Subscriber ID",
+      "type":"string"
+    },
+    {
+      "name":"imei",
+      "label":"IMEI",
+      "type":"string"
+    },
+    {
+      "name":"imsi",
+      "label":"IMSI",
+      "type":"string"
+    },
+    {
+      "name":"phone_number",
+      "label":"Phone Number",
+      "type":"string"
+    },
+    {
+      "name":"apn",
+      "label":"APN",
+      "type":"string"
+    },
+    {
+      "name":"sent_pkts",
       "label":"Packets Sent",
       "type":"long"
     },
     {
-      "name":"common_c2s_byte_num",
+      "name":"sent_bytes",
       "label":"Bytes Sent",
       "type":"long"
     },
     {
-      "name":"common_s2c_pkt_num",
+      "name":"received_pkts",
       "label":"Packets Received",
       "type":"long"
     },
     {
-      "name":"common_s2c_byte_num",
+      "name":"received_bytes",
       "label":"Bytes Received",
       "type":"long"
     },
     {
-      "name":"common_sessions",
+      "name":"sessions",
       "label":"Sessions",
       "type":"long"
     },
     {
-      "name":"common_c2s_tcp_lostlen",
+      "name":"tcp_c2s_lost_bytes",
       "label":"Sequence Gap Loss (c2s)",
       "type":"long"
     },
     {
-      "name":"common_s2c_tcp_lostlen",
+      "name":"tcp_s2c_lost_bytes",
       "label":"Sequence Gap Loss (s2c)",
       "type":"long"
     },
     {
-      "name":"common_c2s_tcp_unorder_num",
+      "name":"tcp_c2s_o3_pkts",
       "label":"Unordered Packets (c2s)",
       "type":"long"
     },
     {
-      "name":"common_s2c_tcp_unorder_num",
+      "name":"tcp_s2c_o3_pkts",
       "label":"Unordered Packets (s2c)",
       "type":"long"
     },
     {
-      "name":"common_c2s_byte_retrans",
+      "name":"tcp_c2s_rtx_bytes",
       "label":"Byte Retransmission (c2s)",
       "type":"long"
     },
     {
-      "name":"common_s2c_byte_retrans",
+      "name":"tcp_s2c_rtx_bytes",
       "label":"Byte Retransmission (s2c)",
       "type":"long"
     },
     {
-      "name":"common_c2s_pkt_retrans",
+      "name":"tcp_c2s_rtx_pkts",
       "label":"Packet Retransmission (c2s)",
       "type":"long"
     },
     {
-      "name":"common_s2c_pkt_retrans",
+      "name":"tcp_s2c_rtx_pkts",
       "label":"Packet Retransmission (s2c)",
       "type":"string"
     },
     {
-      "name":"common_establish_latency_ms",
+      "name":"tcp_rtt_ms",
       "label":"TCP Handshake Latency (ms)",
       "type":"long"
     },
@@ -355,6 +380,11 @@
       "type":"string"
     },
     {
+      "name":"stratum_mining_subscribe",
+      "label":"Stratum.Mining Subscribe",
+      "type":"string"
+    },
+    {
       "name":"out_link_direction",
       "label":"Outgoing Link Direction",
       "type":"string"
@@ -541,7 +571,7 @@
       "type":"int"
     },
     {
-      "name":"ssl_con_latency_ms",
+      "name":"ssl_handshake_latency_ms",
       "label":"SSL.Handshake Latency (ms)",
       "type":"int"
     },
