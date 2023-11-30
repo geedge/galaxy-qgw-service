@@ -256,7 +256,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             for (BaseResult item : dataList) {
                 Map<String, Object> result = Maps.newLinkedHashMap();
                 result.put(JobConfig.JOB, item.getJob());
-                statusListTmp.remove(item.getJob()); p
+                statusListTmp.remove(item.getJob());
                 result.put(JobConfig.STATISTICS, item.getStatistics());
                 result.put("meta", item.getMeta());
                 result.put("data", item.getData());
