@@ -31,3 +31,9 @@ SELECT FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time),'$granularity',
 #sql("APPLICATION_AND_PROTOCOL_APP_SUMMARY")
 SELECT app_name, SUM(sessions) AS sessions, SUM(c2s_bytes + s2c_bytes) AS bytes, SUM(s2c_bytes) AS received_bytes, SUM(c2s_bytes) AS sent_bytes, SUM(c2s_pkts + s2c_pkts) AS packets, SUM(c2s_pkts) AS sent_packets, SUM(s2c_pkts) AS received_packets FROM $table WHERE $intervals_and_filter GROUP BY app_name
 #end
+#sql("REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP")
+SELECT account AS SUBSCRIBER_ID, framed_ip AS IP, first_found_time AS FIRST_FOUND_TIME, last_update_time AS LAST_FOUND_TIME, vsys_id as VSYS_ID FROM $table WHERE $intervals_and_filter AND acct_status_type != 2 $limit
+#end
+#sql("REAL_TIME_DATA_ANALYTICS_MOBILE_IDENTITY_RELATE_TEID")
+SELECT uplink_teid AS teid, apn, phone_number, imsi, imei, last_update_time,vsys_id FROM $table WHERE $intervals_and_filter AND msg_type = 1 and uplink_teid !=0 order by last_update_time desc $limit
+#end

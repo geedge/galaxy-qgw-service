@@ -87,9 +87,28 @@ public interface DslService {
      */
     BaseResult applicationAndProtocolAppSummary(DSLProfile dslProfile);
 
+    /**
+     * Desc: Get Subscriber ID Relate Client IPs
+     *
+     * @param dslProfile
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2023/11/30 11:31
+     */
+    BaseResult realTimeDataAnalyticsSubscriberIdRelateIp(DSLProfile dslProfile);
+
+    /**
+     * Desc: GTP-C Mobile Identities AND APNs Relate TEID
+     *
+     * @param dslProfile
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2023/11/30 11:35
+     */
+    BaseResult realTimeDataAnalyticsMobileIdentityRelateTeid(DSLProfile dslProfile);
+
     List<ProtocolTree> buildFlatStructure(List<Map> protocolData);
 
     List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes);
-
 
 }
