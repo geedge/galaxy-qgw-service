@@ -1,12 +1,10 @@
 package com.mesalab.common.utils;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.service.impl.QueryServiceImpl;
@@ -37,15 +35,9 @@ public class SavedQueryResultUtils {
 
 
     public static BaseResult<Object> getByRowKey(List<String> rowKeys) {
-        BaseResult baseResult;
         List<Map<String, Object>> result = query(rowKeys);
-        if (CollectionUtil.isEmpty(result)) {
-            log.warn("The saved query job result [jobId:{}] is unavailable. It Has been deleted or does not exist.", rowKeys);
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "The saved query job result [jobId:" + rowKeys + "] is unavailable. It Has been deleted or does not exist.");
-        } else {
-            baseResult = BaseResultGenerator.success(result);
-        }
-        return baseResult;
+        log.info("The saved query job result [jobIds:{}] size is {}.", rowKeys, result.size());
+        return BaseResultGenerator.success(result);
     }
 
     private static List<Map<String, Object>> query(List<String> rowKeys) {
