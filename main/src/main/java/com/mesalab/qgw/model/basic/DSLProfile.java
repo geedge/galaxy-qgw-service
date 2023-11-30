@@ -1,5 +1,6 @@
 package com.mesalab.qgw.model.basic;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -37,13 +38,19 @@ public class DSLProfile implements Serializable {
 
         sql = StrUtil.isNotEmpty(table) ? sql.replace("$table", table) : sql;
 
-        sql = sql.replace("$intervals_and_filter", StrUtil.isNotEmpty(this.filter) ?
-                Objects.requireNonNull(parseIntervals(this.intervals, timeField, timeFieldType)).concat(" AND ").concat(this.filter)
-                : Objects.requireNonNull(parseIntervals(this.intervals, timeField, timeFieldType)));
+        if (StrUtil.isEmpty(this.filter) && CollectionUtils.isEmpty(this.intervals)) {
+            sql = sql.replace("$intervals_and_filter", " 1= 1 ");
+        } else if (StrUtil.isNotEmpty(this.filter) && !CollectionUtils.isEmpty(this.intervals)) {
+            sql = sql.replace("$intervals_and_filter", Objects.requireNonNull(parseIntervals(this.intervals, timeField, timeFieldType)).concat(" AND ").concat(this.filter));
+        } else if (StrUtil.isEmpty(this.filter)) {
+            sql = sql.replace("$intervals_and_filter", Objects.requireNonNull(parseIntervals(this.intervals, timeField, timeFieldType)));
+        } else {
+            sql = sql.replace("$intervals_and_filter", this.filter);
+        }
 
         sql = StrUtil.isNotEmpty(this.orderBy) ? sql.replace("$order_by", this.orderBy) : sql;
 
-        sql = StrUtil.isNotEmpty(this.limit) ? sql.replace("$limit", "LIMIT ".concat(this.limit)) : sql;
+        sql = StrUtil.isNotEmpty(this.limit) ? sql.replace("$limit", "LIMIT ".concat(this.limit)) : sql.replace("$limit", "");
         return sql;
     }
 
@@ -56,8 +63,8 @@ public class DSLProfile implements Serializable {
         String end = split[1];
         StringBuffer whereOfTime = new StringBuffer();
         if ("unix_timestamp".equalsIgnoreCase(timeFieldType)) {
-            return whereOfTime.append(timeField).append(">= UNIX_TIMESTAMP('").append(start).append("') AND ").append(timeField).append("< UNIX_TIMESTAMP('").append(end).append("')").toString();
-        } else {
+            return whereOfTime.append(timeField).append(">= ").append(DateUtil.parse(start).getTime() / 1000).append(" AND ").append(timeField).append("< ").append(DateUtil.parse(end).getTime() / 1000).toString();
+        } else{
             return whereOfTime.append(timeField).append(">= '").append(start).append("' AND ").append(timeField).append("< '").append(end).append("'").toString();
         }
     }

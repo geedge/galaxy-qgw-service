@@ -15,4 +15,6 @@ public class DslIdentifierNameConst {
     public static final String APPLICATION_AND_PROTOCOL_APP_RELATED_INTERNAL_IPS = "application-and-protocol-app-related-internal-ips";
     public static final String APPLICATION_AND_PROTOCOL_APP_THROUGHPUT = "application-and-protocol-app-throughput";
     public static final String APPLICATION_AND_PROTOCOL_APP_SUMMARY = "application-and-protocol-app-summary";
+    public static final String REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP = "real-time-data-analytics-subscriber-id-relate-ip";
+    public static final String REAL_TIME_DATA_ANALYTICS_MOBILE_IDENTITY_RELATE_TEID = "real-time-data-analytics-mobile-identity-relate-teid";
 }

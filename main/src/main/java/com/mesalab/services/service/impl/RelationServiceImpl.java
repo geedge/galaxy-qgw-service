@@ -156,7 +156,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             String fieldKey = filterBean.getFieldKey();
             List<String> fieldValues = filterBean.getFieldValues();
             String type = filterBean.getType();
-        //imei,imsi前缀匹配查询时，应使用Row Key进行筛选
+            //imei,imsi前缀匹配查询时，应使用Row Key进行筛选
             if (StringUtil.equals(type, MatchEnum.PREFIX.getType())
                     && (StringUtil.equals(fieldKey, "imei") || StringUtil.equals(fieldKey, "imsi"))) {
 

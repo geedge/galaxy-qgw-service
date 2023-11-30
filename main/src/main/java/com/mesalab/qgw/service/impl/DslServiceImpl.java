@@ -2,6 +2,7 @@ package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
@@ -13,6 +14,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.TreeUtils;
 import com.mesalab.network.common.Constants;
@@ -23,6 +25,14 @@ import com.mesalab.qgw.service.DslService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
+import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.expression.operators.relational.InExpression;
+import net.sf.jsqlparser.expression.operators.relational.ItemsList;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -55,6 +65,8 @@ public class DslServiceImpl implements DslService {
     private static final String TABLE_TRAFFIC_GENERAL_STAT = "traffic_general_stat";
     private static final String TABLE_APPLICATION_PROTOCOL_STAT = "application_protocol_stat";
     private static final String TABLE_SESSION_RECORD = "session_record";
+    private static final String TABLE_RELATION_ACCOUNT_FRAMEDIP = "relation_account_framedip";
+    private static final String TABLE_GTPC_KNOWLEDGE_BASE = "gtpc_knowledge_base";
     private static final String LOGICAL_TYPE_TIMESTAMP = "timestamp";
     private static final String LOGICAL_TYPE_UNIX_TIMESTAMP = "unix_timestamp";
 
@@ -259,6 +271,30 @@ public class DslServiceImpl implements DslService {
     }
 
     @Override
+    public BaseResult realTimeDataAnalyticsSubscriberIdRelateIp(DSLProfile dslProfile) {
+        String filter = dslProfile.getFilter();
+        if (StrUtil.isNotEmpty(filter) && filter.contains("subscriber_id")) {
+            try {
+                dslProfile.setFilter(inToLike(filter));
+            } catch (JSQLParserException e) {
+                log.error("InExpression to LikeExpression error: {}", e.getMessage());
+                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
+            }
+        }
+        String sql = dslProfile.toSql(environment.getProperty("REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP"), TABLE_RELATION_ACCOUNT_FRAMEDIP, "last_update_time", LOGICAL_TYPE_UNIX_TIMESTAMP);
+        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        if (!baseResult.isSuccess()) {
+            throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
+        }
+        return baseResult;
+    }
+
+    @Override
+    public BaseResult realTimeDataAnalyticsMobileIdentityRelateTeid(DSLProfile dslProfile) {
+        return BaseResultGenerator.failure();
+    }
+
+    @Override
     public List<ProtocolTree> buildFlatStructure(List<Map> protocolData) {
         List<ProtocolTree> nodes = Lists.newArrayList();
         for (Map protocolMap : protocolData) {
@@ -375,7 +411,36 @@ public class DslServiceImpl implements DslService {
 
         return protocolTreeList;
     }
+    private String inToLike(String filter) throws JSQLParserException {
+        List<String> params = Lists.newArrayList();
+        List<String> oldExpression = Lists.newArrayList();
+        ExpressionVisitorAdapter expressionVisitorAdapter = new ExpressionVisitorAdapter() {
+            @Override
+            public void visit(InExpression inExpression) {
+                if (inExpression.getLeftExpression() != null && "subscriber_id".equals(inExpression.getLeftExpression().toString())) {
+                    oldExpression.add(inExpression.toString());
+                    ItemsList rightItemsList = inExpression.getRightItemsList();
+                    if (rightItemsList instanceof ExpressionList) {
+                        ExpressionList items = (ExpressionList) rightItemsList;
+                        List<Expression> expressions = items.getExpressions();
+                        for (Expression expression : expressions) {
+                            if (expression instanceof StringValue) {
+                                params.add(DigestUtil.md5Hex(((StringValue) expression).getValue()).concat("|%"));
+                            }
 
+                        }
+                    }
+                }
+            }
+        };
+        Expression expression = CCJSqlParserUtil.parseExpression(filter);
+        String strExpr = expression.toString();
+        expression.accept(expressionVisitorAdapter);
+        if (params.size() > 0 && oldExpression.size() == 1) {
+            return strExpr.replace(oldExpression.get(0), "( ROWKEY LIKE '" + StrUtil.join("' OR ROWKEY LIKE '", params) + "')");
+        }
+        return filter;
+    }
     private ProtocolTree convertStringToObject(String protocolString) {
         ProtocolTree protocolTree = null;
         try {

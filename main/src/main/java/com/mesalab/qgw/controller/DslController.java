@@ -46,6 +46,10 @@ public class DslController {
             return dslService.applicationAndProtocolAppThroughput(dslProfile);
         } else if (DslIdentifierNameConst.APPLICATION_AND_PROTOCOL_APP_SUMMARY.equals(dslProfile.getName())) {
             return dslService.applicationAndProtocolAppSummary(dslProfile);
+        } else if (DslIdentifierNameConst.REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP.equals(dslProfile.getName())) {
+            return dslService.realTimeDataAnalyticsSubscriberIdRelateIp(dslProfile);
+        } else if (DslIdentifierNameConst.REAL_TIME_DATA_ANALYTICS_MOBILE_IDENTITY_RELATE_TEID.equals(dslProfile.getName())) {
+            return dslService.realTimeDataAnalyticsMobileIdentityRelateTeid(dslProfile);
         }
         throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dslProfile.getName()));
     }
