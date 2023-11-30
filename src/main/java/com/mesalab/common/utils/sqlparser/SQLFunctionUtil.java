@@ -122,9 +122,11 @@ public class SQLFunctionUtil {
     public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pFromUnixTimeMillis = Pattern.compile("\\WFROM_UNIXTIME_MILLIS\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateRelative = Pattern.compile("\\W(ADDDATE|DATE_ADD|DATE_SUB|SUBDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIntervalNumUnit = Pattern.compile("INTERVAL(.*?)(YEAR|QUARTER|MONTH|WEEK|DAY|HOUR|MINUTE|SECOND)$", Pattern.CASE_INSENSITIVE);
     public static final Pattern pUnixTime = Pattern.compile("\\WUNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pUnixTimeMillis = Pattern.compile("\\WUNIX_TIMESTAMP_MILLIS\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDate = Pattern.compile("\\W(DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateCalculateNum = Pattern.compile("\\(\\s*(DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pUnitFuncGetNum = Pattern.compile("\\W(YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|SECOND|DAYOFYEAR|DAYOFMONTH|DAYOFWEEK)\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -166,7 +168,9 @@ public class SQLFunctionUtil {
         sql = parseGroupByFormat(sql, dbType);
         sql = parseDateFormat(sql, dbType);
         sql = parseDateRelative(sql, dbType);
+        sql = parseFromUnixTimeMillis(sql, dbType);
         sql = parseUnixTime(sql, dbType);
+        sql = parseUnixTimeMillis(sql, dbType);
         sql = parseDate(sql, dbType);
         sql = parseUnitFuncGetNum(sql, dbType);
         sql = specialDisposeEnd(sql, dbType);
@@ -631,6 +635,24 @@ public class SQLFunctionUtil {
         }
     }
 
+
+    public static String parseFromUnixTimeMillis(String sql, String dbType) {
+        while (true) {
+            Matcher matcher = pFromUnixTimeMillis.matcher(sql);
+            if (!matcher.find()) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, null, false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseFromUnixTimeMillisByDB(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
     /**
      * 匹配 UNIX_TIMESTAMP(
      *
@@ -651,6 +673,30 @@ public class SQLFunctionUtil {
                 --bracketsMatch[0];
             }
             String str = parseUnixTimeReplaceByDB(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    /**
+     * Desc 匹配UNIX_TIMESTAMP_MILLIS(
+     * @param sql
+     * @param dbType
+     * @return
+     */
+
+    public static String parseUnixTimeMillis(String sql, String dbType){
+        while (true) {
+            Matcher matcher = pUnixTimeMillis.matcher(sql);
+            if (!matcher.find()) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, null, false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseUnixTimeMillisReplaceByDB(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -1482,6 +1528,32 @@ public class SQLFunctionUtil {
         return sb.toString();
     }
 
+
+    public static String parseFromUnixTimeMillisByDB(String sqlParse, int num, String dbType){
+        Pattern pFromUnixTimeMillisParse = Pattern.compile("(FROM_UNIXTIME_MILLIS)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
+        Matcher matcherParse = pFromUnixTimeMillisParse.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        String innerValue = null;
+        if (matcherParse.find()) {
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                    innerValue = "fromUnixTimestamp64Milli#[CAST#[toUnixTimestamp64Milli#[CAST#[now#[#] as DateTime64#]#], 'Int64'#]#]";
+                } else {
+                    innerValue = String.format("fromUnixTimestamp64Milli#[CAST#[%s, 'Int64'#]#]", matcherParse.group(2));
+                }
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                    innerValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]#],'yyyy-MM-dd HH:mm:ss.SSS'#]";
+                } else {
+                    innerValue = String.format("TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[%s#],'yyyy-MM-dd HH:mm:ss.SSS'#]",matcherParse.group(2));
+                }
+            }
+            matcherParse.appendReplacement(sb, innerValue);
+        }
+        matcherParse.appendTail(sb);
+        return sb.toString();
+    }
+
     /**
      * 实现替换：UNIX_TIMESTAMP()、UNIX_TIMESTAMP(expr)
      *
@@ -1510,6 +1582,35 @@ public class SQLFunctionUtil {
                         innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[TIME_FORMAT#[ TIMESTAMP " + matcherParse.group(2) + ", 'yyyy-MM-dd HH:mm:ss'#]#]#]/1000";
                     } else {
                         innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[ TIMESTAMP " + matcherParse.group(2) + "#]";
+                    }
+                }
+            }
+            matcherParse.appendReplacement(sb, innerValue);
+        }
+        matcherParse.appendTail(sb);
+        return sb.toString();
+    }
+
+    public static String parseUnixTimeMillisReplaceByDB(String sqlParse, int num, String dbType){
+        Pattern pUnixTimeMillisParse = Pattern.compile("(UNIX_TIMESTAMP_MILLIS)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
+        Matcher matcherParse = pUnixTimeMillisParse.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        String innerValue = null;
+        if (matcherParse.find()) {
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                    innerValue = "toUnixTimestamp64Milli#[CAST#[now#[#] as DateTime64#]#]";
+                } else {
+                    innerValue = "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#]#] as DateTime64#]#]";
+                }
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                    innerValue = "TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]";
+                } else {
+                    if (matcherParse.group(2).startsWith("'") && matcherParse.group(2).endsWith("'")) {
+                        innerValue = String.format("TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[%s#]#]",matcherParse.group(2));
+                    } else {
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ " + matcherParse.group(2) + "#]";
                     }
                 }
             }
