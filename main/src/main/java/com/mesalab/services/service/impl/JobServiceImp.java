@@ -199,8 +199,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
     private List<BaseResult> buildBaseResults(List<String> ids, List<Map<String, Object>> jobStatus) {
-        BaseResult<Object> resultBaseResult;
-        resultBaseResult = SavedQueryResultUtils.getByRowKey(ids);
+        BaseResult<Object> resultBaseResult = SavedQueryResultUtils.getByRowKey(ids);
         if (!resultBaseResult.isSuccess()) {
             throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
                     String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), "Get job result error: " + resultBaseResult.getMessage()));
@@ -253,12 +252,22 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         if (!statusList.isEmpty()) {
             List<BaseResult> dataList = buildBaseResults(Lists.newArrayList(ids), statusList);
             List<Map<String, Object>> resultList = Lists.newArrayList();
+            List<Map<String, Object>> statusListTmp = Lists.newArrayList(statusList);
             for (BaseResult item : dataList) {
                 Map<String, Object> result = Maps.newLinkedHashMap();
                 result.put(JobConfig.JOB, item.getJob());
+                statusListTmp.remove(item.getJob()); p
                 result.put(JobConfig.STATISTICS, item.getStatistics());
                 result.put("meta", item.getMeta());
                 result.put("data", item.getData());
+                resultList.add(result);
+            }
+            for (Map<String, Object> map : statusListTmp) {
+                Map<String, Object> result = Maps.newLinkedHashMap();
+                result.put(JobConfig.JOB, map);
+                result.put(JobConfig.STATISTICS, null);
+                result.put("meta", null);
+                result.put("data", null);
                 resultList.add(result);
             }
             return resultList;
