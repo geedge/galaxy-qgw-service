@@ -8,14 +8,14 @@
     "ttl": null,
     "default_ttl": 2592000,
     "index_key": {
-      "$ref": "public_schema_info_2311.json#/dos_event/index_key"
+      "$ref": "public_schema_info.json#/dos_event/index_key"
     },
     "functions": {
-      "$ref": "public_schema_info_2311.json#/functions"
+      "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
       "references": {
-        "$ref": "public_schema_info_2311.json#/schema_query/references"
+        "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "default_columns": [
@@ -54,6 +54,21 @@
     {
       "name": "end_time",
       "label": "End Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "recv_time",
+      "label": "Receive Time",
       "doc": {
         "constraints": {
           "type": "unix_timestamp"
