@@ -3,18 +3,18 @@
   "name": "assessment_event",
   "namespace": "tsg_galaxy_v3",
   "doc": {
-    "primary_key": "common_log_id",
-    "partition_key": "common_recv_time",
+    "primary_key": "log_id",
+    "partition_key": "recv_time",
     "index_key": {
-      "$ref": "public_schema_info_2311.json#/assessment_event/index_key"
+      "$ref": "public_schema_info.json#/assessment_event/index_key"
     },
     "functions": {
-      "$ref": "public_schema_info_2311.json#/functions"
+      "$ref": "public_schema_info.json#/functions"
     }
   },
   "fields": [
     {
-      "name": "common_recv_time",
+      "name": "recv_time",
       "label": "Receive Time",
       "doc": {
         "constraints": {
@@ -28,7 +28,7 @@
       }
     },
     {
-      "name": "common_log_id",
+      "name": "log_id",
       "label": "Log ID",
       "doc": {
         "format": [
