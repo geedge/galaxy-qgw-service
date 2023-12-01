@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "metric_application",
+  "name": "metric_subscriber_app",
   "namespace": "cyber_narrator_galaxy",
   "doc": {
     "partition_key": "stat_time",
