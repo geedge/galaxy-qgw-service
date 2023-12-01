@@ -15,6 +15,7 @@
         "metric_domain",
         "metric_protocol",
         "metric_link",
+        "metric_subscriber_app",
         "metric_dns_server_ip",
         "metric_dns_qname",
         "metric_dns_qtype",
