@@ -47,7 +47,7 @@ public class SQLSyntaxParserUtil {
             parseSQL(sql, resultList);
             //addTypeForSelectItems(sql, resultList);
         } catch (RuntimeException | JSQLParserException e) {
-            log.error("syntax-parse: sql-" + sql + ", error: ", e);
+            log.error("syntax_parse: sql-" + sql + ", error: ", e);
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }

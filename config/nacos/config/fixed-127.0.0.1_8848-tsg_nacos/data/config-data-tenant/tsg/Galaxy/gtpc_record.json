@@ -8,10 +8,10 @@
     "ttl": null,
     "default_ttl": 2592000,
     "index_key": {
-      "$ref": "public_schema_info.json#/gtpc_record/index_key"
+      "$ref": "public_schema_info_2311.json#/gtpc_record/index_key"
     },
     "functions": {
-      "$ref": "public_schema_info.json#/functions"
+      "$ref": "public_schema_info_2311.json#/functions"
     },
     "schema_query": {
       "dimensions": [
@@ -36,6 +36,7 @@
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
+        "common_client_os_name",
         "common_client_location",
         "common_client_asn",
         "common_in_src_mac",
@@ -43,6 +44,7 @@
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
+        "common_server_os_name",
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
@@ -82,6 +84,7 @@
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
+        "common_client_os_name",
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
@@ -90,6 +93,7 @@
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
+        "common_server_os_name",
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
@@ -139,6 +143,7 @@
         "common_client_ip",
         "common_internal_ip",
         "common_client_port",
+        "common_client_os_name",
         "common_client_location",
         "common_client_asn",
         "common_subscriber_id",
@@ -147,6 +152,7 @@
         "common_server_ip",
         "common_external_ip",
         "common_server_port",
+        "common_server_os_name",
         "common_server_location",
         "common_server_asn",
         "common_server_fqdn",
@@ -178,7 +184,7 @@
         "gtp_msg_type"
       ],
       "references": {
-        "$ref": "public_schema_info.json#/schema_query/references"
+        "$ref": "public_schema_info_2311.json#/schema_query/references"
       },
       "details": {
         "general": [
@@ -214,6 +220,7 @@
           "common_client_ip",
           "common_internal_ip",
           "common_client_port",
+          "common_client_os_name",
           "common_client_location",
           "common_client_asn",
           "common_subscriber_id",
@@ -227,6 +234,7 @@
           "common_server_ip",
           "common_external_ip",
           "common_server_port",
+          "common_server_os_name",
           "common_server_location",
           "common_server_asn",
           "common_server_fqdn",
@@ -297,7 +305,7 @@
     },
     "schema_type": {
       "GTP-C": {
-        "$ref": "public_schema_info.json#/schema_type/GTP-C"
+        "$ref": "public_schema_info_2311.json#/schema_type/GTP-C"
       }
     },
     "default_columns": [
@@ -322,7 +330,7 @@
       "common_tunnel_endpoint_b_desc"
     ],
     "tunnel_type": {
-      "$ref": "public_schema_info.json#/tunnel_type"
+      "$ref": "public_schema_info_2311.json#/tunnel_type"
     }
   },
   "fields": [
@@ -331,14 +339,14 @@
       "label": "Receive Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "visibility": "enabled",
         "ttl": null
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       }
     },
     {
@@ -464,6 +472,15 @@
       "type": "int"
     },
     {
+      "name": "common_client_os_name",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Client OS"
+    },
+    {
       "name": "common_l4_protocol",
       "label": "L4 Protocol",
       "doc": {
@@ -520,6 +537,15 @@
         "ttl": null
       },
       "type": "int"
+    },
+    {
+      "name": "common_server_os_name",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "label": "Server OS"
     },
     {
       "name": "common_external_ip",
@@ -856,7 +882,7 @@
           "operator_functions": "=,!=,bitAnd"
         },
         "data": {
-          "$ref": "public_schema_info.json#/fields/common_flags/data"
+          "$ref": "public_schema_info_2311.json#/fields/common_flags/data"
         },
         "allow_query": "false",
         "visibility": "hidden",
@@ -1057,7 +1083,7 @@
           "operator_functions": "=,!=,in,not in"
         },
         "data": {
-          "$ref": "public_schema_info.json#/fields/common_encapsulation/data"
+          "$ref": "public_schema_info_2311.json#/fields/common_encapsulation/data"
         },
         "visibility": "hidden",
         "ttl": null
@@ -1178,14 +1204,14 @@
       "label": "Start Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       }
     },
     {
@@ -1193,46 +1219,56 @@
       "label": "End Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       }
     },
     {
       "name": "common_start_timestamp_ms",
-      "label": "Start Time (ms)",
+      "label": "Start Time",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
       "type": {
-        "type": "long",
-        "logicalType": "datetime"
+        "type": "string",
+        "logicalType": "datetime64"
       }
     },
     {
       "name": "common_end_timestamp_ms",
-      "label": "End Time (ms)",
+      "label": "End Time",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
       "type": {
-        "type": "long",
-        "logicalType": "datetime"
+        "type": "string",
+        "logicalType": "datetime64"
       }
     },
     {
@@ -1302,7 +1338,7 @@
           "operator_functions": "=,!=,in,not in"
         },
         "data": {
-          "$ref": "public_schema_info.json#/fields/common_has_dup_traffic/data"
+          "$ref": "public_schema_info_2311.json#/fields/common_has_dup_traffic/data"
         },
         "visibility": "hidden",
         "ttl": null
@@ -1530,7 +1566,7 @@
       "label": "Processing Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "format": [
           {
@@ -1542,7 +1578,7 @@
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       }
     },
     {
@@ -1550,7 +1586,7 @@
       "label": "Ingestion Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "format": [
           {
@@ -1566,7 +1602,7 @@
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       }
     },
     {

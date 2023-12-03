@@ -7,6 +7,7 @@
         "session_record_cn",
         "cn_entity_relation",
         "cn_ip_dynamic_attribute",
+        "cn_security_event",
         "metric_ip",
         "metric_region",
         "metric_asn",
@@ -14,6 +15,7 @@
         "metric_domain",
         "metric_protocol",
         "metric_link",
+        "metric_subscriber_app",
         "metric_dns_server_ip",
         "metric_dns_qname",
         "metric_dns_qtype",
@@ -21,14 +23,6 @@
         "metric_dns_rr_a",
         "metric_dns_rr_aaaa",
         "metric_dns_rr_cname"
-      ]
-    },
-    {
-      "namespace": "elasticsearch",
-      "group": "ELASTICSEARCH_GROUP",
-      "tables": [
-        "security_event",
-        "performance_event"
       ]
     },
     {

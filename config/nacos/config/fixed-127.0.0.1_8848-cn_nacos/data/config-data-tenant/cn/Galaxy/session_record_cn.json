@@ -3,16 +3,582 @@
   "name": "session_record_cn",
   "namespace": "cyber_narrator_galaxy",
   "doc": {
-    "partition_key": "common_recv_time",
+    "partition_key": "recv_time",
 	"index_key": [
-		"common_recv_time"
+		"recv_time"
 	 ]
   },
   "fields": [
 	{
-		"name":"common_recv_time",
+		"name":"recv_time",
 		"label":"Receive Time",
 		"type":"long"
-	}
+	},
+    {
+      "name":"log_id",
+      "label":"Log ID",
+      "type":"long"
+    },
+    {
+      "name":"flags",
+      "label":"Flags",
+      "type":"long"
+    },
+    {
+      "name":"start_timestamp_ms",
+      "label":"Start Time",
+      "type":"long"
+    },
+    {
+      "name":"end_timestamp_ms",
+      "label":"End Time",
+      "type":"long"
+    },
+    {
+      "name":"duration_ms",
+      "label":"Duration (ms)",
+      "type":"long"
+    },
+    {
+      "name":"decoded_as",
+      "label":"Decoded AS",
+      "type":"string"
+    },
+    {
+      "name":"client_ip",
+      "label":"Client IP",
+      "type":"string"
+    },
+    {
+      "name":"server_ip",
+      "label":"Server IP",
+      "type":"string"
+    },
+    {
+      "name":"client_port",
+      "label":"Client Port",
+      "type":"int"
+    },
+    {
+      "name":"server_port",
+      "label":"Server Port",
+      "type":"int"
+    },
+    {
+      "name":"app",
+      "label":"Application Label",
+      "type":"string"
+    },
+    {
+      "name":"app_path",
+      "label":"Application Path",
+      "type":"string"
+    },
+    {
+      "name":"protocol_path",
+      "label":"Protocol Path",
+      "type":"string"
+    },
+    {
+      "name":"l7_protocol",
+      "label":"L7 Protocol",
+      "type":"string"
+    },
+    {
+      "name":"out_link_id",
+      "label":"Outgoing Link ID",
+      "type":"int"
+    },
+    {
+      "name":"in_link_id",
+      "label":"Incoming Link ID",
+      "type":"int"
+    },
+    {
+      "name":"subscriber_id",
+      "label":"Subscriber ID",
+      "type":"string"
+    },
+    {
+      "name":"imei",
+      "label":"IMEI",
+      "type":"string"
+    },
+    {
+      "name":"imsi",
+      "label":"IMSI",
+      "type":"string"
+    },
+    {
+      "name":"phone_number",
+      "label":"Phone Number",
+      "type":"string"
+    },
+    {
+      "name":"apn",
+      "label":"APN",
+      "type":"string"
+    },
+    {
+      "name":"sent_pkts",
+      "label":"Packets Sent",
+      "type":"long"
+    },
+    {
+      "name":"sent_bytes",
+      "label":"Bytes Sent",
+      "type":"long"
+    },
+    {
+      "name":"received_pkts",
+      "label":"Packets Received",
+      "type":"long"
+    },
+    {
+      "name":"received_bytes",
+      "label":"Bytes Received",
+      "type":"long"
+    },
+    {
+      "name":"sessions",
+      "label":"Sessions",
+      "type":"long"
+    },
+    {
+      "name":"tcp_c2s_lost_bytes",
+      "label":"Sequence Gap Loss (c2s)",
+      "type":"long"
+    },
+    {
+      "name":"tcp_s2c_lost_bytes",
+      "label":"Sequence Gap Loss (s2c)",
+      "type":"long"
+    },
+    {
+      "name":"tcp_c2s_o3_pkts",
+      "label":"Unordered Packets (c2s)",
+      "type":"long"
+    },
+    {
+      "name":"tcp_s2c_o3_pkts",
+      "label":"Unordered Packets (s2c)",
+      "type":"long"
+    },
+    {
+      "name":"tcp_c2s_rtx_bytes",
+      "label":"Byte Retransmission (c2s)",
+      "type":"long"
+    },
+    {
+      "name":"tcp_s2c_rtx_bytes",
+      "label":"Byte Retransmission (s2c)",
+      "type":"long"
+    },
+    {
+      "name":"tcp_c2s_rtx_pkts",
+      "label":"Packet Retransmission (c2s)",
+      "type":"long"
+    },
+    {
+      "name":"tcp_s2c_rtx_pkts",
+      "label":"Packet Retransmission (s2c)",
+      "type":"string"
+    },
+    {
+      "name":"tcp_rtt_ms",
+      "label":"TCP Handshake Latency (ms)",
+      "type":"long"
+    },
+    {
+      "name":"http_host",
+      "label":"HTTP.Host",
+      "type":"string"
+    },
+    {
+      "name":"http_url",
+      "label":"HTTP.URL",
+      "type":"string"
+    },
+    {
+      "name":"http_cookie",
+      "label":"HTTP.Cookie",
+      "type":"string"
+    },
+    {
+      "name":"http_referer",
+      "label":"HTTP.Referer",
+      "type":"string"
+    },
+    {
+      "name":"http_user_agent",
+      "label":"HTTP.User Agent",
+      "type":"string"
+    },
+    {
+      "name":"http_request_line",
+      "label":"HTTP.Request Line",
+      "type":"string"
+    },
+    {
+      "name":"http_response_line",
+      "label":"HTTP.Response Line",
+      "type":"string"
+    },
+    {
+      "name":"http_status_code",
+      "label":"HTTP.Status Code",
+      "type":"int"
+    },
+    {
+      "name":"ssl_version",
+      "label":"SSL.Version",
+      "type":"string"
+    },
+    {
+      "name":"ssl_sni",
+      "label":"SSL.SNI",
+      "type":"string"
+    },
+    {
+      "name":"ssl_san",
+      "label":"SSL.SAN",
+      "type":"string"
+    },
+    {
+      "name":"ssl_ja3_hash",
+      "label":"SSL.JA3 hash",
+      "type":"string"
+    },
+    {
+      "name":"ssl_ja3s_hash",
+      "label":"SSL.JA3S hash",
+      "type":"string"
+    },
+    {
+      "name":"ssl_cert_issuer",
+      "label":"SSL.Issuer",
+      "type":"string"
+    },
+    {
+      "name":"ssl_cert_subject",
+      "label":"SSL.Subject",
+      "type":"string"
+    },
+    {
+      "name":"dns_qr",
+      "label":"DNS.QR",
+      "type":"int"
+    },
+    {
+      "name":"dns_opcode",
+      "label":"DNS.OPCODE",
+      "type":"int"
+    },
+    {
+      "name":"dns_aa",
+      "label":"DNS.AA",
+      "type":"int"
+    },
+    {
+      "name":"dns_rcode",
+      "label":"DNS.RCODE",
+      "type":"int"
+    },
+    {
+      "name":"dns_qname",
+      "label":"DNS.QNAME",
+      "type":"string"
+    },
+    {
+      "name":"dns_qtype",
+      "label":"DNS.QTYPE",
+      "type":"int"
+    },
+    {
+      "name":"dns_qclass",
+      "label":"DNS.QCLASS",
+      "type":"int"
+    },
+    {
+      "name":"dns_sub",
+      "label":"DNS.SUB",
+      "type":"int"
+    },
+    {
+      "name":"dns_rr",
+      "label":"DNS.RR",
+      "type":"string"
+    },
+    {
+      "name":"ssh_version",
+      "label":"SSH.Version",
+      "type":"string"
+    },
+    {
+      "name":"ssh_auth_success",
+      "label":"SSH.Authentication Result",
+      "type":"string"
+    },
+    {
+      "name":"ssh_client_version",
+      "label":"SSH.Client Version",
+      "type":"string"
+    },
+    {
+      "name":"ssh_server_version",
+      "label":"SSH.Server Version",
+      "type":"string"
+    },
+    {
+      "name":"ssh_cipher_alg",
+      "label":"SSH.Encryption Algorithm",
+      "type":"string"
+    },
+    {
+      "name":"ssh_mac_alg",
+      "label":"SSH.Signing Algorithm",
+      "type":"string"
+    },
+    {
+      "name":"ssh_compression_alg",
+      "label":"SSH.Compression Algorithm",
+      "type":"string"
+    },
+    {
+      "name":"ssh_kex_alg",
+      "label":"SSH. Key Exchange Algorithm",
+      "type":"string"
+    },
+    {
+      "name":"ssh_host_key_alg",
+      "label":"SSH.Server Host Key Algorithm",
+      "type":"string"
+    },
+    {
+      "name":"ssh_host_key",
+      "label":"SSH.Server Key Fingerprint",
+      "type":"string"
+    },
+    {
+      "name":"ssh_hassh",
+      "label":"SSH.HASSH",
+      "type":"string"
+    },
+    {
+      "name":"stratum_cryptocurrency",
+      "label":"Stratum.Cryptocurrency",
+      "type":"string"
+    },
+    {
+      "name":"stratum_mining_pools",
+      "label":"Stratum.Mining Pools",
+      "type":"string"
+    },
+    {
+      "name":"stratum_mining_program",
+      "label":"Stratum.Mining Program",
+      "type":"string"
+    },
+    {
+      "name":"stratum_mining_subscribe",
+      "label":"Stratum.Mining Subscribe",
+      "type":"string"
+    },
+    {
+      "name":"out_link_direction",
+      "label":"Outgoing Link Direction",
+      "type":"string"
+    },
+    {
+      "name":"in_link_direction",
+      "label":"Incoming Link Direction",
+      "type":"string"
+    },
+    {
+      "name":"domain",
+      "label":"Domain",
+      "type":"string"
+    },
+    {
+      "name":"domain_sld",
+      "label":"Domain.Second Level",
+      "type":"string"
+    },
+    {
+      "name":"domain_category_name",
+      "label":"Domain.Category Name",
+      "type":"string"
+    },
+    {
+      "name":"domain_category_group",
+      "label":"Domain.Category Group",
+      "type":"string"
+    },
+    {
+      "name":"domain_reputation_level",
+      "label":"Domain.Reputation Level",
+      "type":"string"
+    },
+    {
+      "name":"domain_icp_company_name",
+      "label":"Domain.Icp Company Name",
+      "type":"string"
+    },
+    {
+      "name":"domain_whois_org",
+      "label":"Domain.Whois Org",
+      "type":"string"
+    },
+    {
+      "name":"domain_tags",
+      "label":"Domain.Tags",
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name":"client_zone",
+      "label":"Client Zone",
+      "type":"string"
+    },
+    {
+      "name":"client_country_region",
+      "label":"Client Country",
+      "type":"string"
+    },
+    {
+      "name":"client_super_admin_area",
+      "label":"Client Region",
+      "type":"string"
+    },
+    {
+      "name":"client_admin_area",
+      "label":"Client City",
+      "type":"string"
+    },
+    {
+      "name":"client_longitude",
+      "label":"Client Longitude",
+      "type":"double"
+    },
+    {
+      "name":"client_latitude",
+      "label":"Client Latitude",
+      "type":"double"
+    },
+    {
+      "name":"client_isp",
+      "label":"Client Isp",
+      "type":"string"
+    },
+    {
+      "name":"client_asn",
+      "label":"Client Asn",
+      "type":"string"
+    },
+    {
+      "name":"client_ip_tags",
+      "label":"Client IP Tags",
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name":"server_zone",
+      "label":"Server Zone",
+      "type":"string"
+    },
+    {
+      "name":"server_country_region",
+      "label":"Server Country",
+      "type":"string"
+    },
+    {
+      "name":"server_super_admin_area",
+      "label":"Server Region",
+      "type":"string"
+    },
+    {
+      "name":"server_admin_area",
+      "label":"Server City",
+      "type":"string"
+    },
+    {
+      "name":"server_longitude",
+      "label":"Server Longitude",
+      "type":"double"
+    },
+    {
+      "name":"server_latitude",
+      "label":"Server Latitude",
+      "type":"double"
+    },
+    {
+      "name":"server_isp",
+      "label":"Server Isp",
+      "type":"string"
+    },
+    {
+      "name":"server_asn",
+      "label":"Server Asn",
+      "type":"string"
+    },
+    {
+      "name":"server_ip_tags",
+      "label":"Server IP Tags",
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name":"app_category",
+      "label":"App.Category",
+      "type":"string"
+    },
+    {
+      "name":"app_subcategory",
+      "label":"App.Subcategory",
+      "type":"string"
+    },
+    {
+      "name":"app_company",
+      "label":"App.Company",
+      "type":"string"
+    },
+    {
+      "name":"app_company_category",
+      "label":"App.Company Category",
+      "type":"string"
+    },
+    {
+      "name":"app_tags",
+      "label":"App.Tags",
+      "type": {
+        "type": "array",
+        "items": "string",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name":"http_response_latency_ms",
+      "label":"HTTP.Response Latency (ms)",
+      "type":"int"
+    },
+    {
+      "name":"ssl_handshake_latency_ms",
+      "label":"SSL.Handshake Latency (ms)",
+      "type":"int"
+    },
+    {
+      "name":"dns_response_latency_ms",
+      "label":"DNS.Response Latency (ms)",
+      "type":"int"
+    }
   ]
 }

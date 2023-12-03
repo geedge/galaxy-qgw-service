@@ -6,14 +6,21 @@ import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.StringUtil;
 import com.mesalab.common.utils.TimeZoneUtil;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.DruidIoHttpSource;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import lombok.Data;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.CastExpression;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -41,6 +48,11 @@ public class SQLFunctionUtil {
     public static final String IP_TO_ASN_DETAIL = "IP_TO_ASN_DETAIL";
     public static final String IP_TO_ASN_ORG = "IP_TO_ASN_ORG";
     public static final String MAX_DURATION = "MAX_DURATION";
+    public static final String MEDIAN_HDR = "MEDIAN_HDR";
+    public static final String QUANTILE_HDR = "QUANTILE_HDR";
+    public static final String PERCENTILES_HDR = "PERCENTILES_HDR";
+    public static final String COUNT_DISTINCT = "COUNT_DISTINCT";
+    public static final String APPROX_COUNT_DISTINCT_HLLD = "APPROX_COUNT_DISTINCT_HLLD";
 
     public static final String CONCAT = "concat";
     public static final String NOT_EMPTY = "notEmpty";
@@ -65,6 +77,17 @@ public class SQLFunctionUtil {
     public static final Pattern pIpToAsnOrg = Pattern.compile("\\b" + IP_TO_ASN_ORG + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfPT = Pattern.compile("PT(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
     public static final Pattern periodOfP = Pattern.compile("P(\\d+)(\\w+)", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pMedianHdr = Pattern.compile("\\b" + MEDIAN_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pQuantileHdr = Pattern.compile("\\b" + QUANTILE_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pPercentilesHdr = Pattern.compile("\\b" + PERCENTILES_HDR + "\\(", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pCountDistinct = Pattern.compile("\\b" + COUNT_DISTINCT + "\\(", Pattern.CASE_INSENSITIVE);
+
+    public static final Pattern pApproxCountDistinctHlld = Pattern.compile("\\b" + APPROX_COUNT_DISTINCT_HLLD + "\\(", Pattern.CASE_INSENSITIVE);
+
     public static final HashMap<String, String> functions = Maps.newHashMap();
     private static final Map<String, String> distributedGroupByFunction = Maps.newHashMap();
 
@@ -99,9 +122,11 @@ public class SQLFunctionUtil {
     public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pFromUnixTimeMillis = Pattern.compile("\\WFROM_UNIXTIME_MILLIS\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateRelative = Pattern.compile("\\W(ADDDATE|DATE_ADD|DATE_SUB|SUBDATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIntervalNumUnit = Pattern.compile("INTERVAL(.*?)(YEAR|QUARTER|MONTH|WEEK|DAY|HOUR|MINUTE|SECOND)$", Pattern.CASE_INSENSITIVE);
     public static final Pattern pUnixTime = Pattern.compile("\\WUNIX_TIMESTAMP\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pUnixTimeMillis = Pattern.compile("\\WUNIX_TIMESTAMP_MILLIS\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDate = Pattern.compile("\\W(DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateCalculateNum = Pattern.compile("\\(\\s*(DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pUnitFuncGetNum = Pattern.compile("\\W(YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|SECOND|DAYOFYEAR|DAYOFMONTH|DAYOFWEEK)\\s*\\(", Pattern.CASE_INSENSITIVE);
@@ -143,7 +168,9 @@ public class SQLFunctionUtil {
         sql = parseGroupByFormat(sql, dbType);
         sql = parseDateFormat(sql, dbType);
         sql = parseDateRelative(sql, dbType);
+        sql = parseFromUnixTimeMillis(sql, dbType);
         sql = parseUnixTime(sql, dbType);
+        sql = parseUnixTimeMillis(sql, dbType);
         sql = parseDate(sql, dbType);
         sql = parseUnitFuncGetNum(sql, dbType);
         sql = specialDisposeEnd(sql, dbType);
@@ -213,8 +240,6 @@ public class SQLFunctionUtil {
                 } else {
                     replaceValue = "TO_CHAR#[" + func + "#[TO_TIMESTAMP#[" + params.get(0) + "#],'" + TimeZoneUtil.timeZoneTransition(oldTZString) + "','" + TimeZoneUtil.timeZoneTransition(startTZString) + "'#],'yyyy-MM-dd HH:mm:ss'#]";
                 }
-            } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-                replaceValue = "DATETIME_FORMAT#[DATE_ADD#['HOUR'," + timeDifference + ",#[DATETIME_PARSE#['" + params.get(0).replaceAll("'", "") + " " + oldTZString + "','yyyy-MM-dd HH:mm:ss VV'#]#]::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
             }
         }
         return replaceValue;
@@ -271,6 +296,11 @@ public class SQLFunctionUtil {
         resultSql = translateByPattern(resultSql, dbType, pIpToAsn);
         resultSql = translateByPattern(resultSql, dbType, pIpToAsnDetail);
         resultSql = translateByPattern(resultSql, dbType, pIpToAsnOrg);
+        resultSql = translateByPattern(resultSql, dbType, pMedianHdr);
+        resultSql = translateByPattern(resultSql, dbType, pQuantileHdr);
+        resultSql = translateByPattern(resultSql, dbType, pPercentilesHdr);
+        resultSql = translateByPattern(resultSql, dbType, pCountDistinct);
+        resultSql = translateByPattern(resultSql, dbType, pApproxCountDistinctHlld);
         return resultSql;
     }
 
@@ -454,8 +484,6 @@ public class SQLFunctionUtil {
         }
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
             replaceValue = "quantile#[" + params.get(1) + "#]#[" + params.get(0) + "#]";
-        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-            replaceValue = "PERCENTILE#[" + params.get(0) + "," + params.get(1) + "*100#]";
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             replaceValue = "APPROX_QUANTILE_DS#[" + params.get(0) + "," + params.get(1) + "#]";
         }
@@ -500,8 +528,6 @@ public class SQLFunctionUtil {
         String replaceValue = null;
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
             replaceValue = "median#[" + param + "#]";
-        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-            replaceValue = "PERCENTILE#[" + param + "," + 0.5 + "*100#]";
         } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             replaceValue = "APPROX_QUANTILE_DS#[" + param + "," + 0.5 + "#]";
         }
@@ -530,10 +556,10 @@ public class SQLFunctionUtil {
         Matcher matcher = pNumCast.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
         if (matcher.find()) {
-            String group2 = matcher.group(2);
-            String replaceValue = group2;
-            if (StringUtil.getBracketsMatch(group2, "(", false)[0] >= 0) {
-                replaceValue = castReplaceByDB(group2, dbType);
+            String group0 = matcher.group(0);
+            String replaceValue = group0;
+            if (StringUtil.getBracketsMatch(group0, "(", false)[0] >= 0) {
+                replaceValue = castReplaceByDB(group0, dbType);
             }
             matcher.appendReplacement(sb, replaceValue);
         }
@@ -543,12 +569,20 @@ public class SQLFunctionUtil {
 
 
     private static String castReplaceByDB(String param, String dbType) {
-        String replaceValue;
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
-            String[] expr = param.split(" ");
-            replaceValue = "CAST#[" + expr[0] + " " + expr[1] + " Nullable(" + expr[2] + ")#]";
-        } else {
-            replaceValue = "CAST#[" + param + "#]";
+        String replaceValue = "";
+        try {
+            Expression expression = CCJSqlParserUtil.parseExpression(param);
+            if (expression instanceof CastExpression) {
+                CastExpression castExpression = (CastExpression) expression;
+                if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                    String dataType = castExpression.getType().getDataType();
+                    castExpression.getType().setDataType("Nullable(" + dataType + ")");
+                }
+                replaceValue = String.valueOf(castExpression).replace("(", "#[").replace(")", "#]");
+            }
+        } catch (JSQLParserException e) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return replaceValue;
     }
@@ -601,6 +635,24 @@ public class SQLFunctionUtil {
         }
     }
 
+
+    public static String parseFromUnixTimeMillis(String sql, String dbType) {
+        while (true) {
+            Matcher matcher = pFromUnixTimeMillis.matcher(sql);
+            if (!matcher.find()) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, null, false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseFromUnixTimeMillisByDB(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
     /**
      * 匹配 UNIX_TIMESTAMP(
      *
@@ -621,6 +673,30 @@ public class SQLFunctionUtil {
                 --bracketsMatch[0];
             }
             String str = parseUnixTimeReplaceByDB(sqlParse, bracketsMatch[0], dbType);
+            sql = sql.substring(0, start) + str;
+        }
+    }
+
+    /**
+     * Desc 匹配UNIX_TIMESTAMP_MILLIS(
+     * @param sql
+     * @param dbType
+     * @return
+     */
+
+    public static String parseUnixTimeMillis(String sql, String dbType){
+        while (true) {
+            Matcher matcher = pUnixTimeMillis.matcher(sql);
+            if (!matcher.find()) {
+                return sql;
+            }
+            int start = matcher.start() + 1;
+            String sqlParse = sql.substring(start);
+            int[] bracketsMatch = StringUtil.getBracketsMatch(sqlParse, null, false);
+            if (bracketsMatch[0] >= 1) {
+                --bracketsMatch[0];
+            }
+            String str = parseUnixTimeMillisReplaceByDB(sqlParse, bracketsMatch[0], dbType);
             sql = sql.substring(0, start) + str;
         }
     }
@@ -912,8 +988,6 @@ public class SQLFunctionUtil {
                 replaceValue = "addDays#[addMonths#[toStartOfMonth#[toDateTime#[" + param + "#]#],1#],-1#]";
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
                 replaceValue = "TIME_SHIFT#[FLOOR#[TIME_SHIFT#[ TIMESTAMP " + param + ", 'P1M', 1#] to month#], 'P1D', -1#]";
-            } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-                replaceValue = "format#[DATE_ADD#['dd',-EXTRACT#[day from " + param + "::datetime#]," + param + "::datetime#]+interval '1'month,'yyyy-MM-dd 00:00:00'#]";
             }
         }
         return replaceValue;
@@ -1091,41 +1165,6 @@ public class SQLFunctionUtil {
                 default:
                     replaceValue = unit + "#[" + expr + "#]";
             }
-        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-            switch (unit) {
-                case "YEAR":
-                    replaceValue = "EXTRACT#[YEAR FROM " + expr + "::DATETIME#]";
-                    break;
-                case "QUARTER":
-                    replaceValue = "EXTRACT#[QUARTER FROM " + expr + "::DATETIME#]";
-                    break;
-                case "MONTH":
-                    replaceValue = "EXTRACT#[MONTH FROM " + expr + "::DATETIME#]";
-                    break;
-                case "DAY":
-                    replaceValue = "DayOFMonth#[" + expr + "::datetime#]";
-                    break;
-                case "HOUR":
-                    replaceValue = "HOUR_OF_DAY#[" + expr + "::datetime#]";
-                    break;
-                case "MINUTE":
-                    replaceValue = "MINUTE_OF_HOUR#[" + expr + "::datetime#]";
-                    break;
-                case "SECOND":
-                    replaceValue = "SECOND_OF_MINUTE#[" + expr + "::datetime#]";
-                    break;
-                case "DAYOFYEAR":
-                    replaceValue = "DAY_OF_YEAR#[" + expr + "::datetime#]";
-                    break;
-                case "DAYOFMONTH":
-                    replaceValue = "DAY_OF_MONTH#[" + expr + "::datetime#]";
-                    break;
-                case "DAYOFWEEK":
-                    replaceValue = "DAY_OF_WEEK#[" + expr + "::datetime#]";
-                    break;
-                default:
-                    replaceValue = unit + "#[" + expr + "#]";
-            }
         }
         return replaceValue;
     }
@@ -1209,36 +1248,6 @@ public class SQLFunctionUtil {
                             replaceValue = param1 + param2;
                             break;
                     }
-                } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-                    switch (StringUtils.upperCase(matcher.group(2))) {
-                        case "SECOND":
-                            replaceValue = "FORMAT#[DATE_ADD#['s'," + param2 + "," + param1 + "::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
-                            break;
-                        case "MINUTE":
-                            replaceValue = "FORMAT#[DATE_ADD#['mi'," + param2 + "," + param1 + "::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
-                            break;
-                        case "HOUR":
-                            replaceValue = "FORMAT#[DATE_ADD#['hh'," + param2 + "," + param1 + "::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
-                            break;
-                        case "DAY":
-                            replaceValue = "FORMAT#[DATE_ADD#['dd'," + param2 + "," + param1 + "::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
-                            break;
-                        case "WEEK":
-                            replaceValue = "FORMAT#[DATE_ADD#['ww'," + param2 + "," + param1 + "::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
-                            break;
-                        case "MONTH":
-                            replaceValue = "FORMAT#[DATE_ADD#['MM'," + param2 + "," + param1 + "::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
-                            break;
-                        case "QUARTER":
-                            replaceValue = "FORMAT#[DATE_ADD#['qq'," + param2 + "," + param1 + "::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
-                            break;
-                        case "YEAR":
-                            replaceValue = "FORMAT#[DATE_ADD#['yy'," + param2 + "," + param1 + "::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
-                            break;
-                        default:
-                            replaceValue = param1 + param2;
-                            break;
-                    }
                 }
                 return replaceValue;
             }
@@ -1252,8 +1261,6 @@ public class SQLFunctionUtil {
                 replaceValue = "addDays#[toDateTime#[" + param1 + "#]," + param2 + "#]";
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
                 replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'P1D'," + param2 + "#]";
-            } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-                replaceValue = "FORMAT#[DATE_ADD#['dd'," + param2 + "," + param1 + "::datetime#],'yyyy-MM-dd HH:mm:ss'#]";
             }
         } else if (params.size() == 3 && DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
             replaceValue = "DATE_ADD#[" + params.get(0) + "," + params.get(1) + "," + params.get(2) + "#]";
@@ -1281,8 +1288,6 @@ public class SQLFunctionUtil {
                 replaceValue = "MILLIS_TO_TIMESTAMP#[ 1000 * #[" + param + "#]#]";
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType) && bool) {
                 replaceValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[ 1000 * #[" + param + "#]#],'YYYY-MM-dd HH:mm:ss'#]";
-            } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-                replaceValue = "format#[#[" + param + "*1000::bigint#]::datetime,'yyyy-MM-dd HH:mm:ss'#]";
             }
         } else if (func.contains("FROM_UNIXTIME") && DBTypeEnum.DRUID.getValue().equals(dbType) && "%Y-%m-%d %H:%i:%s".equals(params.get(1).replaceAll("\\'|\\\"", "").trim())) {
             if (!bool) {
@@ -1290,8 +1295,6 @@ public class SQLFunctionUtil {
             } else if (bool) {
                 replaceValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[ 1000 * #[" + param + "#]#],'YYYY-MM-dd HH:mm:ss'#]";
             }
-        } else if (func.contains("FROM_UNIXTIME") && DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType) && "%Y-%m-%d %H:%i:%s".equals(params.get(1).replaceAll("\\'|\\\"", "").trim())) {
-            replaceValue = "format#[#[" + param1 + "*1000::bigint#]::datetime,'yyyy-MM-dd HH:mm:ss'#]";
         } else {
             String param2 = params.get(1).replaceAll("\\'|\\\"", "").trim();
             if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType) && bool) {
@@ -1423,38 +1426,6 @@ public class SQLFunctionUtil {
                         replaceValue = " TIMESTAMP " + param1;
                         break;
                 }
-            } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType) && bool) {
-                switch (param2) {
-                    case "%Y-%m-%d %H:%i:%s":
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-MM-dd HH:mm:ss'#]";
-                        break;
-                    case "%Y-%m-%d %H:%i:00":
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-MM-dd HH:mm:00'#]";
-                        break;
-                    case "%Y-%m-%d %H:00:00":
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-MM-dd HH:00:00'#]";
-                        break;
-                    case "%Y-%m-%d 00:00:00":
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-MM-dd 00:00:00'#]";
-                        break;
-                    case "%Y-%m-01 00:00:00":
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-MM-01 00:00:00'#]";
-                        break;
-                    case "%Y-01-01 00:00:00":
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-01-01 00:00:00'#]";
-                        break;
-                    case "%Y-%m-%d":
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-MM-dd'#]";
-                        break;
-                    case "%Y-%m-01":
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-MM-01'#]";
-                        break;
-                    case "%Y-01-01":
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-01-01'#]";
-                        break;
-                    default:
-                        replaceValue = "FORMAT#[#[" + param1 + "#]::datetime,'yyyy-MM-dd HH:mm:ss'#]";
-                }
             }
         }
         return replaceValue;
@@ -1557,6 +1528,32 @@ public class SQLFunctionUtil {
         return sb.toString();
     }
 
+
+    public static String parseFromUnixTimeMillisByDB(String sqlParse, int num, String dbType){
+        Pattern pFromUnixTimeMillisParse = Pattern.compile("(FROM_UNIXTIME_MILLIS)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
+        Matcher matcherParse = pFromUnixTimeMillisParse.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        String innerValue = null;
+        if (matcherParse.find()) {
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                    innerValue = "fromUnixTimestamp64Milli#[CAST#[toUnixTimestamp64Milli#[CAST#[now#[#] as DateTime64#]#], 'Int64'#]#]";
+                } else {
+                    innerValue = String.format("fromUnixTimestamp64Milli#[CAST#[%s, 'Int64'#]#]", matcherParse.group(2));
+                }
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                    innerValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]#],'yyyy-MM-dd HH:mm:ss.SSS'#]";
+                } else {
+                    innerValue = String.format("TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[%s#],'yyyy-MM-dd HH:mm:ss.SSS'#]",matcherParse.group(2));
+                }
+            }
+            matcherParse.appendReplacement(sb, innerValue);
+        }
+        matcherParse.appendTail(sb);
+        return sb.toString();
+    }
+
     /**
      * 实现替换：UNIX_TIMESTAMP()、UNIX_TIMESTAMP(expr)
      *
@@ -1582,13 +1579,40 @@ public class SQLFunctionUtil {
                     innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]";
                 } else {
                     if (matcherParse.group(2).startsWith("'") && matcherParse.group(2).endsWith("'")) {
-                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[ " + matcherParse.group(2) + "#]#]/1000";
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[TIME_FORMAT#[ TIMESTAMP " + matcherParse.group(2) + ", 'yyyy-MM-dd HH:mm:ss'#]#]#]/1000";
                     } else {
                         innerValue = "0.001 * TIMESTAMP_TO_MILLIS#[ TIMESTAMP " + matcherParse.group(2) + "#]";
                     }
                 }
-            } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-                innerValue = "" + matcherParse.group(2) + "::datetime::bigint/1000";
+            }
+            matcherParse.appendReplacement(sb, innerValue);
+        }
+        matcherParse.appendTail(sb);
+        return sb.toString();
+    }
+
+    public static String parseUnixTimeMillisReplaceByDB(String sqlParse, int num, String dbType){
+        Pattern pUnixTimeMillisParse = Pattern.compile("(UNIX_TIMESTAMP_MILLIS)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
+        Matcher matcherParse = pUnixTimeMillisParse.matcher(sqlParse);
+        StringBuffer sb = new StringBuffer();
+        String innerValue = null;
+        if (matcherParse.find()) {
+            if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                    innerValue = "toUnixTimestamp64Milli#[CAST#[now#[#] as DateTime64#]#]";
+                } else {
+                    innerValue = "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#]#] as DateTime64#]#]";
+                }
+            } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+                if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
+                    innerValue = "TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]";
+                } else {
+                    if (matcherParse.group(2).startsWith("'") && matcherParse.group(2).endsWith("'")) {
+                        innerValue = String.format("TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[%s#]#]",matcherParse.group(2));
+                    } else {
+                        innerValue = "TIMESTAMP_TO_MILLIS#[ " + matcherParse.group(2) + "#]";
+                    }
+                }
             }
             matcherParse.appendReplacement(sb, innerValue);
         }
@@ -1614,8 +1638,6 @@ public class SQLFunctionUtil {
                 innerValue = "toStartOfDay#[parseDateTimeBestEffort#[toString#[" + matcherParse.group(2) + "#]#]#]";
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
                 innerValue = "TIME_FLOOR#[ TIMESTAMP " + matcherParse.group(2) + ",'P1D'#]";
-            } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-                innerValue = "format#[" + matcherParse.group(2) + "::datetime,'yyyy-MM-dd 00:00:00'#]";
             }
             matcherParse.appendReplacement(sb, innerValue);
         }
@@ -1722,6 +1744,15 @@ public class SQLFunctionUtil {
             case EMPTY:
                 data = translateEmpty(fun, dbType);
                 break;
+            case MEDIAN_HDR:
+            case QUANTILE_HDR:
+            case PERCENTILES_HDR:
+            case APPROX_COUNT_DISTINCT_HLLD:
+                data = translateHdrHistogram(fun, dbType);
+                break;
+            case COUNT_DISTINCT:
+                data = translateCountDistinct(fun, dbType);
+                break;
             case IP_TO_GEO:
             case IP_TO_CITY:
             case IP_TO_COUNTRY:
@@ -1750,9 +1781,6 @@ public class SQLFunctionUtil {
         if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             String expr = fun.getParamsList().get(0);
             data = expr + " IS NOT NUll ";
-        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-            String expr = fun.getParamsList().get(0);
-            data = expr + " IS NOT NULL" + " AND " + expr + "!=''";
         } else {
             data = parseFunDefaultValue(fun);
         }
@@ -1779,9 +1807,6 @@ public class SQLFunctionUtil {
         if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
             String expr = fun.getParamsList().get(0);
             data = expr + " IS NUll ";
-        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-            String expr = fun.getParamsList().get(0);
-            data = expr + " IS NUll" + " AND " + expr + "=''";
         } else {
             data = parseFunDefaultValue(fun);
         }
@@ -1825,7 +1850,7 @@ public class SQLFunctionUtil {
                 }
                 return String.format(format, timestamp, num);
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                String format = "TIMESTAMP_TO_MILLIS(time_floor(%s * 1000,%s))/1000";
+                String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP(%s * 1000),%s))/1000";
                 return String.format(format, timestamp, period);
             }
         }
@@ -1847,7 +1872,7 @@ public class SQLFunctionUtil {
                 }
                 return String.format(format, timestamp, num);
             } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
-                String format = "TIMESTAMP_TO_MILLIS(time_floor(%s * 1000,%s))/1000";
+                String format = "TIMESTAMP_TO_MILLIS(time_floor(MILLIS_TO_TIMESTAMP(%s * 1000),%s))/1000";
                 return String.format(format, timestamp, period);
             }
         }
@@ -1875,6 +1900,46 @@ public class SQLFunctionUtil {
     }
 
     /**
+     * Desc: 转义自定义函数 MEDIAN_HDR/QUANTILE_HDR/PERCENTILES_HDR/APPROX_COUNT_DISTINCT_HLLD
+     *
+     * @param fun
+     * @param dbType
+     * @return
+     */
+
+    private static String translateHdrHistogram(Function fun, String dbType) {
+        String hdrSketchExpr = fun.getParamsList().get(0);
+        if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+            switch (fun.getName()) {
+                case MEDIAN_HDR:
+                    return String.format("APPROX_QUANTILE_HDR(%s,0.50)", hdrSketchExpr);
+                case QUANTILE_HDR:
+                    double probability = Double.parseDouble(fun.getParamsList().get(1));
+                    return String.format("APPROX_QUANTILE_HDR(%s,%s)", hdrSketchExpr, probability);
+                case PERCENTILES_HDR:
+                    return String.format("HDR_GET_PERCENTILES(HDR_HISTOGRAM(%s), 2)", hdrSketchExpr);
+                case APPROX_COUNT_DISTINCT_HLLD:
+                    return String.format("APPROX_COUNT_DISTINCT_HLLD#[%s#]", hdrSketchExpr);
+            }
+        }
+        return fun.toString();
+    }
+
+    /**
+     * Desc 转义 COUNT_DISTINCT
+     * @param fun
+     * @param dbType
+     * @return
+     */
+    private static String translateCountDistinct(Function fun, String dbType) {
+        String field = fun.getParamsList().get(0);
+        if (DBTypeEnum.DRUID.getValue().equals(dbType) || DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)){
+            return String.format("count(distinct %s)", field);
+        }
+        return fun.toString();
+    }
+
+    /**
      * Desc: 转义concat
      *
      * @param function
@@ -1886,11 +1951,6 @@ public class SQLFunctionUtil {
         if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
             for (String param : function.getParamsList()) {
                 sb.append("toString("+param+"), ");
-            }
-            return String.format("concat(%s'')", sb);
-        }else if (DBTypeEnum.ELASTICSEARCH.getValue().equals(dbType)) {
-            for (String param : function.getParamsList()) {
-                sb.append("CAST("+param+" AS VARCHAR), ");
             }
             return String.format("concat(%s'')", sb);
         }

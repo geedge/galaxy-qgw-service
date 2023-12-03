@@ -8,9 +8,36 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
-      "filters": [
+      "dimensions": [
+        "vsys_id",
+        "device_id",
+        "device_group",
         "data_center",
-        "device_group"
+        "client_ip"
+      ],
+      "metrics": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "client_ip",
+        "sessions",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts"
+      ],
+      "filters": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "client_ip",
+        "sessions",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -18,10 +45,7 @@
     },
     "measurements": {
       "granularity": 300,
-      "ingestion_delay": 15,
-      "units": {
-        "$ref": "public_schema_info.json#/units"
-      }
+      "ingestion_delay": 15
     }
   },
   "fields": [

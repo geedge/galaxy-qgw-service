@@ -40,7 +40,7 @@ public class QGWMessageConst {
 
     public static final String MAXDAYS_ERROR = "logType is not All: maxDays must be numeric and [0-2000]";
 
-    public static final String RESULTID_OR_QUERY_CANNOT_BE_EMPTY = "Param resultId or query cannot be empty.";
+    public static final String QUERY_CANNOT_BE_EMPTY = "Param query cannot be empty.";
 
     public static final String PASSWORD_OR_SALT_CANNOT_BE_EMPTY = "password or salt cannot be empty.";
 
@@ -52,9 +52,7 @@ public class QGWMessageConst {
 
     public static final String SQL_MUST_BE_EXISTS = "The SQL must be exists.";
 
-    public static final String OPTION_TYPE_ERROR = "The option must be real-time or long-term or syntax-validation.";
-
-    public static final String MUST_BE_REPORTID_OR_RESULTID = "The option=long-term, must be reportId or resultId.";
+    public static final String OPTION_TYPE_ERROR = "The option must be real_time or long_term or syntax_validation.";
 
     public static final String FORMAT_TYPE_ERROR = "The format must be json or csv.";
 

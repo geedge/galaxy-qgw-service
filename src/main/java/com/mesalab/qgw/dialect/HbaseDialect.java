@@ -195,7 +195,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         }
         Map<String, Object> statistics = Maps.newLinkedHashMap();
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-        statistics.put("result_size", dataList.toString().getBytes().length);
+        statistics.put("result_bytes", dataList.toString().getBytes().length);
         statistics.put("result_rows", dataList.size());
         result.put("status", ResultStatusEnum.SUCCESS.getCode());
         result.put("statistics", statistics);

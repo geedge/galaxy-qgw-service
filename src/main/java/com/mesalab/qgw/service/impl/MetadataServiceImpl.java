@@ -154,9 +154,6 @@ public class MetadataServiceImpl implements MetadataService {
             case "CLICKHOUSE_GROUP":
                 type = DBTypeEnum.CLICKHOUSE.getValue();
                 break;
-            case "ELASTICSEARCH_GROUP":
-                type = DBTypeEnum.ELASTICSEARCH.getValue();
-                break;
             case "HBASE_GROUP":
                 type = DBTypeEnum.HBASE.getValue();
                 break;
@@ -414,7 +411,8 @@ public class MetadataServiceImpl implements MetadataService {
                 Map mapValue = (Map) keyObj;
                 if (mapValue.containsKey(KEY_REF)) {
                     if (INDEX_KEY.equals(String.valueOf(mapKey))) {
-                        mapValue.put(KEY_REF, String.valueOf(mapValue.get(KEY_REF)).concat("/" + schemaVersion));
+                        String s = String.valueOf(mapValue.get(KEY_REF));
+                        mapValue.put(KEY_REF, s.contains("public_schema_info_2311.json") ? s.concat("/" + schemaVersion) : s);
                     }
                     Object refValue = getRefValue(cfgName, mapValue);
                     map.put(mapKey, regexValue(refValue, mapValue));

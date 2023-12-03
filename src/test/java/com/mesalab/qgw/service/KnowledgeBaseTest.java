@@ -7,11 +7,11 @@ import com.mesalab.services.common.entity.KnowledgeConstant;
 import com.mesalab.services.service.KnowledgeBaseService;
 import org.apache.http.entity.ContentType;
 import org.junit.Assert;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,15 +29,21 @@ public class KnowledgeBaseTest extends GalaxyQGWApplicationTests {
     private String id;
     @Test
     public void query() {
-
         BaseResult result = knowledgeService.queryKnowledge();
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }
 
-    @Test(priority = 1)
-    public void publish() throws Exception {
+    @Test
+    public void cycle() throws Exception {
+        publish();
+        update();
+        toggle();
+        delete();
+    }
+
+    private void publish() throws Exception {
         KnowledgeBase knowledgeBase = jsonToInParameter("parameters/knowledgeBase.json", "publishTest", KnowledgeBase.class);
-        File file = new File(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4 + KnowledgeConstant.MMDB);
+        File file = new File(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILTIN + KnowledgeConstant.MMDB);
         FileInputStream inputStream = new FileInputStream(file);
         MultipartFile multipartFile = new MockMultipartFile(file.getName(), file.getName(),
                 ContentType.APPLICATION_OCTET_STREAM.toString(), inputStream);
@@ -45,9 +51,9 @@ public class KnowledgeBaseTest extends GalaxyQGWApplicationTests {
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
         id = ((Map) result.getData()).get("id").toString();
     }
-    @Test(priority = 2)
-    public void update() throws Exception {
-        File file = new File(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILT_IN_V4 + KnowledgeConstant.MMDB);
+
+    private void update() throws Exception {
+        File file = new File(KnowledgeConstant.DAT + File.separator + KnowledgeConstant.IP_BUILTIN + KnowledgeConstant.MMDB);
         FileInputStream inputStream = new FileInputStream(file);
         MultipartFile multipartFile = new MockMultipartFile(file.getName(), file.getName(),
                 ContentType.APPLICATION_OCTET_STREAM.toString(), inputStream);
@@ -57,8 +63,7 @@ public class KnowledgeBaseTest extends GalaxyQGWApplicationTests {
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }
 
-    @Test(priority = 3)
-    public void toggle() throws Exception{
+    private void toggle() throws Exception{
         KnowledgeBase knowledgeBase = new KnowledgeBase();
         knowledgeBase.setId(id);
         knowledgeBase.setIsValid(KnowledgeConstant.VALID);
@@ -66,8 +71,7 @@ public class KnowledgeBaseTest extends GalaxyQGWApplicationTests {
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }
 
-    @Test(priority = 4)
-    public void delete() throws Exception {
+    private void delete() throws Exception {
         KnowledgeBase knowledgeBase = new KnowledgeBase();
         knowledgeBase.setId(id);
         BaseResult result = knowledgeService.deleteKnowledge(id);

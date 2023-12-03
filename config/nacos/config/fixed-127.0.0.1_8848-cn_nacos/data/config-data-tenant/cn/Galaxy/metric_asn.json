@@ -11,5 +11,165 @@
     ]
   },
   "fields": [
+    {
+      "name":"asn",
+      "label":"Asn",
+      "type":"string"
+    },
+    {
+      "name":"isp",
+      "label":"Isp",
+      "type":"string"
+    },
+    {
+      "name":"side",
+      "label":"Side",
+      "type":"string"
+    },
+    {
+      "name":"stat_time",
+      "label":"Stat Time",
+      "type":"long"
+    },
+    {
+      "name":"sent_pkts",
+      "label":"Packets Sent",
+      "type":"long"
+    },
+    {
+      "name":"sent_bytes",
+      "label":"Bytes Sent",
+      "type":"long"
+    },
+    {
+      "name":"received_pkts",
+      "label":"Packets Received",
+      "type":"long"
+    },
+    {
+      "name":"received_bytes",
+      "label":"Bytes Received",
+      "type":"long"
+    },
+    {
+      "name":"sessions",
+      "label":"Sessions",
+      "type":"long"
+    },
+    {
+      "name":"traffic_inbound_byte",
+      "label":"Traffic Inbound Bytes",
+      "type":"long"
+    },
+    {
+      "name":"traffic_inbound_pkt",
+      "label":"Traffic Inbound Packets",
+      "type":"long"
+    },
+    {
+      "name":"traffic_outbound_byte",
+      "label":"Traffic Outbound Bytes",
+      "type":"long"
+    },
+    {
+      "name":"traffic_outbound_pkt",
+      "label":"Traffic Outbound Packets",
+      "type":"long"
+    },
+    {
+      "name":"traffic_internal_byte",
+      "label":"Traffic Internal Bytes",
+      "type":"long"
+    },
+    {
+      "name":"traffic_internal_pkt",
+      "label":"Traffic Internal Packets",
+      "type":"long"
+    },
+    {
+      "name":"traffic_through_byte",
+      "label":"Traffic Through Bytes",
+      "type":"long"
+    },
+    {
+      "name":"traffic_through_pkt",
+      "label":"Traffic Through Packets",
+      "type":"long"
+    },
+    {
+      "name":"tcp_c2s_lost_bytes_ratio",
+      "label":"Sequence Gap Loss (c2s)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_s2c_lost_bytes_ratio",
+      "label":"Sequence Gap Loss (s2c)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_lost_bytes_ratio",
+      "label":"Sequence Gap Loss",
+      "type":"float"
+    },
+    {
+      "name":"tcp_c2s_o3_pkts_ratio",
+      "label":"Unordered Packets (c2s)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_s2c_o3_pkts_ratio",
+      "label":"Unordered Packets (s2c)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_o3_pkts_ratio",
+      "label":"Unordered Packets",
+      "type":"float"
+    },
+    {
+      "name":"tcp_c2s_rtx_bytes_ratio",
+      "label":"Byte Retransmission (c2s)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_s2c_rtx_bytes_ratio",
+      "label":"Byte Retransmission (s2c)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_rtx_bytes_ratio",
+      "label":"Byte Retransmission",
+      "type":"float"
+    },
+    {
+      "name":"tcp_c2s_rtx_pkts_ratio",
+      "label":"Packet Retransmission (c2s)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_s2c_rtx_pkts_ratio",
+      "label":"Packet Retransmission (s2c)",
+      "type":"float"
+    },
+    {
+      "name":"tcp_rtx_pkts_ratio",
+      "label":"Packet Retransmission",
+      "type":"float"
+    },
+    {
+      "name":"avg_tcp_rtt_ms",
+      "label":"AVG TCP Handshake Latency (ms)",
+      "type":"float"
+    },
+    {
+      "name":"avg_http_response_latency_ms",
+      "label":"AVG HTTP.Response Latency (ms)",
+      "type":"float"
+    },
+    {
+      "name":"avg_ssl_handshake_latency_ms",
+      "label":"AVG SSL.Handshake Latency (ms)",
+      "type":"float"
+    }
   ]
 }

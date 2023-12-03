@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/")
+@RequestMapping(value = "/sql")
 public class QueryController {
 
     @Autowired
     private QueryService queryService;
 
-    @GetMapping(value="/")
+    @GetMapping
     @AuditLog("QueryController.get")
     @CachedSubmitCheck
     public BaseResult get(QueryProfile queryProfile) {
@@ -30,8 +30,7 @@ public class QueryController {
         return queryService.executeQuery(queryProfile);
     }
 
-    @PostMapping(value = "/",
-            produces = "application/json;charset=utf-8")
+    @PostMapping(produces = "application/json;charset=utf-8")
     @AuditLog("QueryController.post")
     @CachedSubmitCheck
     public BaseResult post(@RequestBody QueryProfile queryProfile) {

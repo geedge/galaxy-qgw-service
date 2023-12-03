@@ -10,5 +10,45 @@
     ]
   },
   "fields": [
+    {
+      "name":"rr_a",
+      "label":"RR A",
+      "type":"string"
+    },
+    {
+      "name":"stat_time",
+      "label":"Stat Time",
+      "type":"long"
+    },
+    {
+      "name":"query_num",
+      "label":"Query Nums",
+      "type":"long"
+    },
+    {
+      "name":"traffic_inbound_byte",
+      "label":"Traffic Inbound Bytes",
+      "type":"long"
+    },
+    {
+      "name":"traffic_outbound_byte",
+      "label":"Traffic Outbound Bytes",
+      "type":"long"
+    },
+    {
+      "name":"internal_query_num",
+      "label":"Internal Query Nums",
+      "type":"long"
+    },
+    {
+      "name":"external_query_num",
+      "label":"External Query Nums",
+      "type":"long"
+    },
+    {
+      "name":"avg_response_latency_ms",
+      "label":"Avg Response Latency (ms)",
+      "type":"float"
+    }
   ]
 }

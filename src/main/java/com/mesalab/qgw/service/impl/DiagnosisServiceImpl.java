@@ -7,10 +7,15 @@ import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpStatus;
+import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
@@ -21,6 +26,7 @@ import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
+import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.constant.QGWMessageConst;
@@ -39,18 +45,24 @@ import lombok.Data;
 import org.apache.avro.Schema;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.math3.stat.StatUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,7 +77,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private static final String HBASE_DBNAME2 = "tsg_galaxy";
     private static final String EXECUTE_ENGINE= "execute_engine";
     private static final String IDENTIFIER_NAME = "identifier_name";
-    private static final String SQL_TEXT = "sql_text";
+    private static final String TEMPLATE = "template";
 
     @Autowired
     private QueryService queryService;
@@ -79,8 +91,6 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     @Autowired
     private HBaseAPISource hBaseAPISource;
     @Autowired
-    private ElasticsearchHttpSource elasticsearchHttpSource;
-    @Autowired
     private MetadataService metadataService;
     @Autowired
     private EntityConfigSource entityConfigSourceTemp;
@@ -89,6 +99,16 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     @Autowired
     private SQLDatasetService sqlDatasetService;
 
+    @Autowired
+    private NacosConfig nacosConfig;
+    @Autowired
+    private ConfigService systemConfigService;
+
+    @Autowired
+    private HttpClientService httpClientService;
+    @Autowired
+    HttpConfig httpConfig;
+
     @PostConstruct
     public void init() {
         entityConfigSource = this.entityConfigSourceTemp;
@@ -96,6 +116,24 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
 
     private Environment env;
     private static EntityConfigSource entityConfigSource;
+    private final static String DATA_ID = "version.json";
+
+    private static Pattern pTTL = Pattern.compile(".*toIntervalSecond\\((\\d+)\\)", Pattern.CASE_INSENSITIVE);
+    private static final String trafficPort = "8123";
+
+
+    @Override
+    public JSONObject getVersionInfo() {
+        JSONObject version = null;
+        try {
+            String content = systemConfigService.getConfig(DATA_ID, nacosConfig.getGroup(), 3000);
+            version = JSONObject.parseObject(content);
+        } catch (NacosException e) {
+            e.printStackTrace();
+        }
+        return version;
+    }
+
 
     /**
      * 验证Schema格式是否正确
@@ -113,13 +151,11 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbaseResult = parseSchemaByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbase2Result = parseSchemaByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
-            Map<String, Map<String, String>> elasticsearchResult = parseSchemaByDatasource(elasticsearchHttpSource.getDbname(), metadataService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            data.add(elasticsearchResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
@@ -152,13 +188,11 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
             Map<String, Map<String, String>> hbase2Result = checkMetadataByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
-            Map<String, Map<String, String>> elasticsearchResult = checkMetadataByDatasource(elasticsearchHttpSource.getDbname(), metadataService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            data.add(elasticsearchResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
@@ -182,39 +216,33 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Map<String, Map<String, String>> clickhouseResult;
         Map<String, Map<String, String>> druidResult;
         Map<String, Map<String, String>> hbaseResult;
-        Map<String, Map<String, String>> elasticsearchResult;
         try {
             Map<String, Object> datasetResult = generateDatasets(category);
             List<Map<String, String>> dataSetlist = (ArrayList<Map<String, String>>) datasetResult.get("list");
             List<String> druidIdList = Lists.newLinkedList();
             List<String> ckIdList = Lists.newLinkedList();
             List<String> engineIdList = Lists.newLinkedList();
-            List<String> esIdList = Lists.newLinkedList();
             List<String> hbaseIdList = Lists.newLinkedList();
 
             List<String> druidSqlList = Lists.newLinkedList();
             List<String> ckSqlList = Lists.newLinkedList();
             List<String> engineSqlList = Lists.newLinkedList();
-            List<String> esSqlList = Lists.newLinkedList();
             List<String> hbaseSqlList = Lists.newLinkedList();
             Stopwatch watch = Stopwatch.createStarted();
             if (CollectionUtil.isNotEmpty(dataSetlist)){
                 for (int i = 0; i < dataSetlist.size(); i++) {
                     if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
                         druidIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        druidSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                        druidSqlList.add(dataSetlist.get(i).get(TEMPLATE));
                     } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
                         ckIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        ckSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
-                    } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.ELASTICSEARCH.getValue())) {
-                        esIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        esSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                        ckSqlList.add(dataSetlist.get(i).get(TEMPLATE));
                     } else if (dataSetlist.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(DBTypeEnum.HBASE.getValue())) {
                         hbaseIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        hbaseSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                        hbaseSqlList.add(dataSetlist.get(i).get(TEMPLATE));
                     } else {
                         engineIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        engineSqlList.add(dataSetlist.get(i).get(SQL_TEXT));
+                        engineSqlList.add(dataSetlist.get(i).get(TEMPLATE));
                     }
                 }
             }
@@ -223,13 +251,11 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             Optional.of(new File(dialectWriter.buildPocSQL(ckSqlList, DBTypeEnum.CLICKHOUSE.getValue(), category)));
             Optional.of(new File(dialectWriter.buildPocSQL(hbaseSqlList, DBTypeEnum.HBASE.getValue(), category)));
             Optional.of(new File(dialectWriter.buildPocSQL(engineSqlList, DBTypeEnum.ENGINE.getValue(), category)));
-            Optional.of(new File(dialectWriter.buildPocSQL(esSqlList, DBTypeEnum.ELASTICSEARCH.getValue(), category)));
 
             clickhouseResult = buildResult(DBTypeEnum.CLICKHOUSE.getValue(), ckIdList, isSaved, option);
             druidResult = buildResult(DBTypeEnum.DRUID.getValue(), druidIdList, isSaved, option);
             engineResult = buildResult(DBTypeEnum.ENGINE.getValue(), engineIdList, isSaved, option);
             hbaseResult = buildResult(DBTypeEnum.HBASE.getValue(), hbaseIdList, isSaved, option);
-            elasticsearchResult = buildResult(DBTypeEnum.ELASTICSEARCH.getValue(), esIdList, isSaved, option);
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
@@ -237,8 +263,6 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), engineResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), hbaseResult.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            mergeResult = Stream.concat(mergeResult.entrySet().stream(), elasticsearchResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
@@ -288,6 +312,149 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         return result;
     }
 
+    @Override
+    public BaseResult consistencyCheck() {
+        List<Map<String, Object>> dataList = Lists.newArrayList();
+        Map<String, Object> logDiff = Maps.newHashMap();
+        Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
+        List<String> symbols = (List<String>) tables.get("symbols");
+        logDiff.put("logType", SystemServiceImpl.LogType.TRAFFIC_LOGS.getValue());
+        Map<String, Map<String, Object>> changeTTL = Maps.newHashMap();
+        List<String> ipPorts = getClusterAddressOfCK();
+        try {
+            for (String ipPort : ipPorts) {
+                if (!changeTTL.isEmpty()) {
+                    break;
+                }
+                if (ipPort.startsWith("127.0.0.1")) {
+                    String url = clickHouseHttpSource.getUrl();
+                    ipPort = url.substring(url.indexOf("//") + 2, url.lastIndexOf(":") + 1).concat(trafficPort);
+                }
+                for (String tableName : symbols) {
+                    Map schemaMap = metadataService.getSchemaInfo("fields", tableName, false);
+                    Object tableTTLInSchema = getTableTTLInSchema(schemaMap);
+                    Map<String, Object> tableDiff = getTableDiff(ipPort, tableName, tableTTLInSchema);
+                    List fieldDiff = getFieldDiff(ipPort, tableName, schemaMap);
+                    if (CollectionUtil.isNotEmpty(fieldDiff)) {
+                        tableDiff.put("fields", fieldDiff);
+
+                    }
+                    if (CollectionUtil.isNotEmpty(tableDiff)) {
+                        changeTTL.put(tableName, tableDiff);
+                        logDiff.put("tables", Lists.newArrayList(changeTTL));
+                        logDiff.put("address", Lists.newArrayList(ipPort));
+                    }
+                }
+            }
+        } catch (RuntimeException ex) {
+            log.error(" schema TTL check error: {}", ex);
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),ex.getMessage()));
+        }
+        if (changeTTL.isEmpty()) {
+            return BaseResultGenerator.success("ok", dataList);
+        }
+        dataList.add(logDiff);
+        return BaseResultGenerator.success("Log streaming setting task not executed or failed", dataList);
+    }
+
+    private Object getTableTTLInSchema(Map schemaMap) {
+        Object tableTTLInSchema = null;
+        if (StringUtil.isNotEmpty(schemaMap)) {
+            if (schemaMap.containsKey("doc")) {
+                Map<String, Object> schemaHasDoc = (Map<String, Object>) schemaMap.get("doc");
+                if (schemaHasDoc.containsKey("ttl")) {
+                    tableTTLInSchema = StringUtil.isEmpty(schemaHasDoc.get("ttl")) ? null : schemaHasDoc.get("ttl").toString();
+                }
+            }
+        }
+        return tableTTLInSchema;
+    }
+
+    private Map<String, Object> getTableDiff(String ipPort, String tableName, Object tableTTLInSchema) {
+        String sql = String.format(Objects.requireNonNull(env.getProperty("TABLE_TTL")), tableName, clickHouseHttpSource.getDbName());
+        Map<String, String> result = executeHttpGetOfCK(ipPort, sql, clickHouseHttpSource.getSystemDBName());
+        if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
+            log.error(" query table TTL error: {}", result.toString());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),result.toString()));
+        }
+        Object tableTTLInDB = null;
+        Map<String, Object> tableDiff = Maps.newHashMap();
+        Map o = (Map) JSON.parseObject(result.get("result"), Map.class);
+        Map<String, Object> resultMap = (Map<String, Object>) o;
+        for (Map<String, Object> datum : (List<Map<String, Object>>)resultMap.get("data")) {
+            Matcher matcher = pTTL.matcher(String.valueOf(datum.get("table_ttl")));
+            tableTTLInDB = matcher.find() ? matcher.group(1) : null;
+        }
+        if (!String.valueOf(tableTTLInDB).equals(String.valueOf(tableTTLInSchema))) {
+            tableDiff.put("last_ttl", StringUtil.isEmpty(tableTTLInSchema) ? null : tableTTLInSchema.toString());
+            tableDiff.put("used_ttl", StringUtil.isEmpty(tableTTLInDB) ? null : tableTTLInDB.toString());
+            log.warn("table ttl: {} not consistency.", tableName);
+        }
+        return tableDiff;
+    }
+
+    private List<Map<String, Object>> getFieldDiff(String ipPort, String tableName, Map<String, Object> schemaMap) {
+        List<Map<String, Object>> fieldDiff = Lists.newArrayList();
+        Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
+        if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
+            log.error(" query table field TTL error: {}", result.toString());
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(),result.toString()));
+        }
+        List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
+        for (Map<String, Object> field : fields) {
+            Object read = JsonPath.read(result, "$.result");
+            List<Object> fieldList = JsonPath.read(JSONUtil.toJsonStr(JSONUtil.parseObj(read)), "$.data[?(@.name == \"" + field.get("name") + "\")].ttl_expression");
+            Object fieldTTLInSchema = null;
+            Object fieldTTLInDB;
+            if (StringUtil.isNotEmpty(field.get("doc"))) {
+                Map<String, Object> doc = (Map<String, Object>) field.get("doc");
+                fieldTTLInSchema = StringUtil.isEmpty(doc.get("ttl")) ? null : doc.get("ttl");
+            }
+            Matcher matcher = pTTL.matcher(String.valueOf(fieldList.get(0)));
+            fieldTTLInDB = matcher.find() ? matcher.group(1) : null;
+            if (String.valueOf(fieldTTLInSchema).equals(String.valueOf(fieldTTLInDB))) {
+                continue;
+            }
+            log.warn("field ttl: address {} {}-{} not consistency.", ipPort, tableName, field.get("name"));
+            Map<String, Object> ttlDiff = Maps.newHashMap();
+            ttlDiff.put("last_ttl", StringUtil.isEmpty(fieldTTLInSchema) ? null : fieldTTLInSchema.toString());
+            ttlDiff.put("used_ttl", StringUtil.isEmpty(fieldTTLInDB) ? null : fieldTTLInDB.toString());
+            if (fieldDiff.stream().noneMatch(o -> o.containsKey(field.get("name").toString()))) {
+                Map<String, Object> item = Maps.newHashMap();
+                item.put(field.get("name").toString(), ttlDiff);
+                fieldDiff.add(item);
+            }
+        }
+        return fieldDiff;
+    }
+
+    private List<String> getClusterAddressOfCK() {
+        List<String> endpointList = new ArrayList<>();
+        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
+        if (baseResult.isSuccess()) {
+            List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+            for (Map<String, Object> datum : data) {
+                endpointList.add(String.valueOf(datum.get("endpoint")));
+            }
+        }
+        return endpointList;
+    }
+
+    private Map<String, String> executeHttpGetOfCK(String ipPort, String sql, String dbName) {
+        String queryURL = URLUtil.normalize("http://" + ipPort + "/?");
+        StringBuilder paramBuilder = new StringBuilder("user=")
+                .append(clickHouseHttpSource.getRealTimeAccountUserName()).append("&")
+                .append("password=").append(clickHouseHttpSource.getRealTimeAccountPin()).append("&")
+                .append("database=").append(dbName).append("&")
+                .append("query=").append(sql)
+                .append(" FORMAT JSON;");
+        List<NameValuePair> values = URLEncodedUtils.parse(paramBuilder.toString(), StandardCharsets.UTF_8);
+        int socketTimeOut = httpConfig.getCkRealTimeAccountSocketTimeOut();
+        return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
+    }
     /**
      *
      * @param param
@@ -416,7 +583,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         List<String> list = Lists.newArrayList(start.concat("/").concat(end));
         StringBuilder timeInterval = new StringBuilder();
         String[] intervals = getIntervals(list);
-        timeInterval.append("common_recv_time >= UNIX_TIMESTAMP('").append(intervals[0]).append("') AND common_recv_time< UNIX_TIMESTAMP('").append(intervals[1]).append("')");
+        timeInterval.append("recv_time >= UNIX_TIMESTAMP('").append(intervals[0]).append("') AND recv_time< UNIX_TIMESTAMP('").append(intervals[1]).append("')");
         return timeInterval.toString();
     }
 

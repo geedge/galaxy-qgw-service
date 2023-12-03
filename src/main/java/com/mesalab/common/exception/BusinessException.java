@@ -21,13 +21,11 @@ public class BusinessException extends RuntimeException {
     /**
      * 状态码
      */
-    @Builder.Default
     private int status = ResultStatusEnum.SERVER_ERROR.getCode();
 
     /**
      * 业务码
      */
-    @Builder.Default
     private String code = ResultCodeEnum.UNKNOWN_EXCEPTION.getCode();
 
 
@@ -35,6 +33,8 @@ public class BusinessException extends RuntimeException {
      * 异常信息
      */
     private String message;
+
+
 
     public BusinessException(String message) {
         super(message);

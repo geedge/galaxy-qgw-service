@@ -6,7 +6,7 @@
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
     "index_key": {
-      "$ref": "public_schema_info.json#/sys_packet_capture_event/index_key"
+      "$ref": "public_schema_info_2311.json#/sys_packet_capture_event/index_key"
     }
   },
   "fields": [
@@ -14,11 +14,11 @@
       "name": "common_recv_time",
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       },
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "format": [
           {
@@ -129,6 +129,14 @@
       "label": "Client Port"
     },
     {
+      "name": "common_client_os_name",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Client OS"
+    },
+    {
       "name": "common_l4_protocol",
       "type": "string",
       "doc": {
@@ -172,6 +180,14 @@
         "visibility": "enabled"
       },
       "label": "Server Port"
+    },
+    {
+      "name": "common_server_os_name",
+      "type": "string",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "label": "Server OS"
     },
     {
       "name": "common_external_ip",
@@ -489,7 +505,7 @@
           "operator_functions": "=,!=,bitAnd"
         },
         "data": {
-          "$ref": "public_schema_info.json#/fields/common_flags/data"
+          "$ref": "public_schema_info_2311.json#/fields/common_flags/data"
         },
         "allow_query": "false",
         "visibility": "hidden",
@@ -788,13 +804,13 @@
       "name": "common_start_time",
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       },
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "label": "Start Time"
     },
@@ -802,46 +818,54 @@
       "name": "common_end_time",
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       },
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "label": "End Time"
     },
     {
       "name": "common_start_timestamp_ms",
-      "label": "Start Time (ms)",
+      "label": "Start Time",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
+        "visibility": "enabled"
       },
       "type": {
-        "type": "long",
-        "logicalType": "datetime"
+        "type": "string",
+        "logicalType": "datetime64"
       }
     },
     {
       "name": "common_end_timestamp_ms",
-      "label": "End Time (ms)",
+      "label": "End Time",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,>,<,>=,<=",
-          "type": "datetime"
+          "type": "datetime64"
         },
-        "visibility": "enabled",
-        "ttl": null
+        "format": [
+          {
+            "function": "from_unix_timestamp_ms"
+          }
+        ],
+        "visibility": "enabled"
       },
       "type": {
-        "type": "long",
-        "logicalType": "datetime"
+        "type": "string",
+        "logicalType": "datetime64"
       }
     },
     {
@@ -1116,11 +1140,11 @@
       "name": "common_processing_time",
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       },
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "format": [
           {
@@ -1136,7 +1160,7 @@
       "label": "Ingestion Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "format": [
           {
@@ -1147,7 +1171,7 @@
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       }
     },
     {

@@ -41,14 +41,14 @@
       "label": "Start Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "visibility": "enabled",
         "ttl": null
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       }
     },
     {
@@ -56,14 +56,29 @@
       "label": "End Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "visibility": "enabled",
         "ttl": null
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
+      "name": "recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
       }
     },
     {

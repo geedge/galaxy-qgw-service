@@ -1,34 +1,19 @@
 package com.mesalab.knowledge.strategy;
 
-import cn.hutool.core.date.DateException;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.exception.BusinessException;
-import com.mesalab.knowledge.entity.DSLObject;
-import com.mesalab.knowledge.entity.Match;
-import com.mesalab.knowledge.entity.Parameters;
-import com.mesalab.knowledge.entity.Range;
-import com.mesalab.knowledge.enums.RangeEnum;
-import com.mesalab.qgw.constant.QGWMessageConst;
-import com.geedgenetworks.utils.DateUtils;
-import com.geedgenetworks.utils.StringUtil;
-import org.joda.time.format.ISODateTimeFormat;
+import com.mesalab.cn.enums.EngineTypeEnum;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.knowledge.entity.*;
+import com.mesalab.services.common.dsl.ComDSLObject;
+import com.mesalab.services.common.enums.EntityQueryType;
+import com.mesalab.services.service.RelationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @description:
@@ -39,90 +24,82 @@ import java.util.regex.Pattern;
 public class SubscriberIdProviderImpl implements QueryProvider {
 
     private static final Log log = LogFactory.get();
-    @Value("${arango.maxrows}")
-    private String limit;//查询最大条数
-
     @Autowired
-    BaseQueryProvider baseQueryProvider;
+    private RelationService relationService;
 
     @Override
     public Object query(DSLObject.DSLQuery dslQeruy) {
+        BaseResult realRelation = null;
+        try {
+            Parameters parameters = dslQeruy.getParameters();
 
-        //1.构建查询语句 match like
-        StringBuffer likeFilter = new StringBuffer();
-        StringBuffer intervalsb = new StringBuffer();
-        List<Range> ranges = null;
+            ComDSLObject.Query.QueryBean queryBean = new ComDSLObject.Query.QueryBean();
+            queryBean.setMatch(getComMatch(parameters));
+            queryBean.setRange(getComRange(parameters));
+            queryBean.setSort(getComSort(parameters));
+            queryBean.setIntervals(parameters.getIntervals());
 
-        Parameters parameters = dslQeruy.getParameters();
-        if(!ObjectUtils.isEmpty(parameters)){
-            //构建range范围条件
-            ranges = parameters.getRange();
+            ComDSLObject.Query query = new ComDSLObject.Query();
+            query.setDataSource(dslQeruy.getDataSource());
+            query.setDataEngine(EngineTypeEnum.ANALYSIS_ENGINE.getEngine());
+            query.setLimit(parameters.getLimit());
+            query.setParameters(queryBean);
 
-            likeFilter.append(Match.like(parameters.getMatch(), (m) -> m != null && "SUBSCRIBER_ID".equals(m.getFieldKey()) && !ObjectUtils.isEmpty(m.getFieldValues()), ranges));
-            limit = ObjectUtils.isEmpty(parameters.getLimit()) ? limit : parameters.getLimit();
+            ComDSLObject comDSLObject = new ComDSLObject();
+            comDSLObject.setQuery(query);
 
-            //构建查询语句 intervals 时间
-            try {
-                List<String> intervals = parameters.getIntervals();
-                if (!ObjectUtils.isEmpty(intervals)) {
-                    String[] times = intervals.get(0).split("/");
-                    long startTime = DateUtil.parse(times[0]).toTimestamp().getTime() / 1000;
-                    long endTime = DateUtil.parse(times[1]).toTimestamp().getTime() / 1000;
-                    intervalsb.append(" filter e.LAST_FOUND_TIME >= ").append(startTime).append(" and ").append("e.LAST_FOUND_TIME < ").append(endTime);
-                }
-            } catch (DateException e) {
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
-            }
-
+            realRelation = relationService.getRealRelation(EntityQueryType.SUBSCRIBERIDPOOL.getType(), comDSLObject);
+        } catch (Exception e) {
+            log.error(e);
         }
-
-        StringBuffer aqlsb = new StringBuffer("for doc in SUBSCRIBER ");
-        aqlsb.append(ObjectUtils.isEmpty(likeFilter) ? "" : likeFilter);
-        aqlsb.append(ObjectUtils.isEmpty(ranges)?"":" filter "+ Range.getRangExp(ranges,"doc"));
-        aqlsb.append(" let maxTime = (let times = (for v,e,p in 1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' ");
-        aqlsb.append(ObjectUtils.isEmpty(intervalsb) ? "" : intervalsb);
-        aqlsb.append(ObjectUtils.isEmpty(ranges)?"":" filter "+ Range.getRangExp(ranges,"e"));
-        aqlsb.append("return e.LAST_FOUND_TIME) return max(times)) ");
-
-        aqlsb.append(" for v,e,p in 1..1 outbound doc._id graph 'SUBSCRIBER_IP_GRAPH' ");
-        aqlsb.append(" filter e.LAST_FOUND_TIME == maxTime[0] ");
-        aqlsb.append(ObjectUtils.isEmpty(ranges)?"":" and "+ Range.getRangExp(ranges,"e"));
-        aqlsb.append(" limit ").append(limit);
-        aqlsb.append(" return distinct p ");
-        log.info("query knowledge subscriber id aql: {}", aqlsb);
-
-        //1.查询
-        Object result = baseQueryProvider.queryArango(aqlsb.toString());
-        //2.解析结果
-        List<Map> resultList = new ObjectMapper().convertValue(result, new TypeReference<List<Map>>() {
-        });
-        log.info("query knowledge subscriber id result size: {}", resultList.size());
-        return parseResult(resultList);
-
+        return realRelation.getData();
     }
 
-    private Object parseResult(List<Map> resultList) {
-        List<Object> list = Lists.newArrayList();
-        for (Map<String, List<Map>> map : resultList) {
-            Map<String, Object> newMap = Maps.newHashMap();
-            Map subIdVertice = map.get("vertices").get(0);
-            if (Objects.isNull(subIdVertice)) {
-                continue;
+    private List<ComDSLObject.Query.FilterBean> getComRange(Parameters parameters) throws Exception {
+        List<ComDSLObject.Query.FilterBean> range = new ArrayList<>();
+        if (parameters.getRange() != null) {
+            for (Range parametersRange : parameters.getRange()) {
+                ComDSLObject.Query.FilterBean filterBean = new ComDSLObject.Query.FilterBean();
+                filterBean.setType(parametersRange.getType());
+                filterBean.setFieldKey(parametersRange.getFieldKey());
+                filterBean.setFieldValues(parametersRange.getFieldValues().stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.toList()));
+                range.add(filterBean);
             }
-            newMap.put("VSYS_ID", subIdVertice.get("VSYS_ID"));
-            newMap.put("SUBSCRIBER_ID", String.valueOf(subIdVertice.get("SUBSCRIBER")));
-            newMap.put("FIRST_FOUND_TIME", DateUtils.convertTimestampToString(Long.valueOf(String.valueOf(subIdVertice.get("FIRST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
-            newMap.put("LAST_FOUND_TIME", DateUtils.convertTimestampToString(Long.valueOf(String.valueOf(subIdVertice.get("LAST_FOUND_TIME"))), DateUtils.YYYY_MM_DD_HH24_MM_SS));
-            Map ipEdges = map.get("edges").get(0);
-            if (Objects.isNull(ipEdges)||Objects.isNull(ipEdges.get("IP"))) {
-                newMap.put("IP", "");
-            } else {
-                newMap.put("IP", String.valueOf(ipEdges.get("IP")));
-            }
-            list.add(newMap);
         }
-        return list;
+
+        return range;
+    }
+
+    private List<ComDSLObject.Query.FilterBean> getComMatch(Parameters parameters) throws Exception {
+        List<ComDSLObject.Query.FilterBean> match = new ArrayList<>();
+        if (parameters.getMatch() != null) {
+            for (Match parametersMatch : parameters.getMatch()) {
+                ComDSLObject.Query.FilterBean filterBean = new ComDSLObject.Query.FilterBean();
+                filterBean.setType(parametersMatch.getType());
+                filterBean.setFieldKey(parametersMatch.getFieldKey());
+                filterBean.setFieldValues(parametersMatch.getFieldValues().stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.toList()));
+                match.add(filterBean);
+            }
+        }
+
+        return match;
+    }
+
+    private List<ComDSLObject.Query.SortBean> getComSort(Parameters parameters) throws Exception {
+        List<ComDSLObject.Query.SortBean> sort = new ArrayList<>();
+        if (parameters.getSort() != null) {
+            for (Sort parametersSort : parameters.getSort()) {
+                ComDSLObject.Query.SortBean sortBean = new ComDSLObject.Query.SortBean();
+                sortBean.setType(parametersSort.getType());
+                sortBean.setFieldKey(parametersSort.getFieldKey());
+                sort.add(sortBean);
+            }
+        }
+        return sort;
     }
 
 }

@@ -9,7 +9,7 @@
         "match": [
           {
             "type": "exactly",
-            "fieldKey": "common_app_label",
+            "fieldKey": "app",
             "fieldValues": [
               "Freegate"
             ]
@@ -18,7 +18,7 @@
         "range": [
           {
             "type": "eq",
-            "fieldKey": "common_vsys_id",
+            "fieldKey": "vsys_id",
             "fieldValues": [
               1
             ]
@@ -40,7 +40,7 @@
         "range": [
           {
             "type": "eq",
-            "fieldKey": "common_vsys_id",
+            "fieldKey": "vsys_id",
             "fieldValues": [
               1
             ]
@@ -62,7 +62,7 @@
         "range": [
           {
             "type": "eq",
-            "fieldKey": "common_vsys_id",
+            "fieldKey": "vsys_id",
             "fieldValues": [
               1
             ]

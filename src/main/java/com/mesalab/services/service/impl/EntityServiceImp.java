@@ -174,7 +174,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         Map statistics = baseResult.getStatistics();
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS) + (StringUtil.isEmpty(statistics.get("elapsed")) ? 0 : Long.parseLong(statistics.get("elapsed").toString())));
         statistics.put("result_rows", result.size());
-        statistics.put("result_size", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
+        statistics.put("result_bytes", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
         return baseResult;
     }
 
@@ -402,7 +402,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                 dataResult.add(clientIp);
             }
             baseResult.getStatistics().put("result_rows", dataResult.size());
-            baseResult.getStatistics().put("result_size", JSON.toJSONString(dataResult).getBytes().length);
+            baseResult.getStatistics().put("result_bytes", JSON.toJSONString(dataResult).getBytes().length);
             return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), dataResult, baseResult.getMeta(), baseResult.getStatistics(), QueryFormatEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.error(baseResult.getStatus(), baseResult.getMessage());
@@ -483,7 +483,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         Map udpClientIpResultMap = (Map) JSON.parseObject(udpClientIpsResult.get("result"), Map.class);
         Map udpClientIpStatistics = (Map) udpClientIpResultMap.get("statistics");
         for (Object key : tcpSessionStatistics.keySet()) {
-            if ("result_size".equals(key.toString())) {
+            if ("result_bytes".equals(key.toString())) {
                 statistics.put(key.toString(), JSON.toJSONString(data).getBytes().length);
             } else if ("result_rows".equals(key.toString())) {
                 statistics.put(key.toString(), data.size());
@@ -528,7 +528,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         }
         StringBuilder timeInterval = new StringBuilder();
         String[] intervals = getIntervals(parameters.getIntervals());
-        timeInterval.append("common_recv_time >= UNIX_TIMESTAMP('").append(intervals[0]).append("') AND common_recv_time< UNIX_TIMESTAMP('").append(intervals[1]).append("')");
+        timeInterval.append("recv_time >= UNIX_TIMESTAMP('").append(intervals[0]).append("') AND recv_time< UNIX_TIMESTAMP('").append(intervals[1]).append("')");
         return timeInterval.toString();
     }
 
@@ -569,7 +569,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             log.error("sql Encode error: ", e);
         }
 
-        String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/?option=long-term&resultId=" + DigestUtil.md5Hex(sql) + "&query=");
+        String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/sql/?option=long_term&resultId=" + DigestUtil.md5Hex(sql) + "&query=");
         int socketTimeOut = httpConfig.getCkLongTermAccountSocketTimeOut();
         return httpClientService.httpGet(queryURL + sql, socketTimeOut);
     }

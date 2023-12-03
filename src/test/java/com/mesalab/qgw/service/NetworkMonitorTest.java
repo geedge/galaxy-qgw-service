@@ -5,9 +5,9 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.network.dsl.DSLObject;
 import com.mesalab.network.service.NetworkMonitorService;
 import org.junit.Assert;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.testng.annotations.Test;
 
 /**
  * TODO

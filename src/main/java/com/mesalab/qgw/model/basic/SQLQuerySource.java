@@ -59,7 +59,8 @@ public class SQLQuerySource {
         for (Expression groupByExpression : groupByElement.getGroupByExpressions()) {
 
             String groupBy = groupByExpression.toString();
-            if (groupBy.startsWith("\"") && groupBy.endsWith("\"")) {
+            if ((groupBy.startsWith("\"") && groupBy.endsWith("\""))
+                    || ((groupBy.startsWith("`") && groupBy.endsWith("`")))) {
                 groupBy = groupBy.substring(1, groupBy.length() - 1);
             }
             if (StringUtil.isNotBlank(aliasFields.get(groupBy))) {

@@ -6,10 +6,6 @@
       "tables": [
         "radius_onff_log",
         "session_record",
-        "session_record_common_client_ip",
-        "session_record_common_server_ip",
-        "session_record_common_server_domain",
-        "interim_session_record",
         "transaction_record",
         "radius_record",
         "voip_record",
@@ -19,7 +15,8 @@
         "dos_event",
         "active_defence_event",
         "sys_packet_capture_event",
-        "assessment_event"
+        "assessment_event",
+        "monitor_event"
       ]
     },
     {

@@ -60,7 +60,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             baseResult = formatResult(queryService.executeQuery(queryBuild(comDSLObject.getQuery())));
         } else if (param.equals(EntityQueryType.GTPC.getType())) {
             String querySql = generateQuerySql(comDSLObject.getQuery());
-            QueryProfile queryProfile = QueryProfile.builder().option("real-time").query(querySql).build();
+            QueryProfile queryProfile = QueryProfile.builder().option("real_time").query(querySql).build();
             baseResult = deduplicationData(queryService.executeQuery(queryProfile),comDSLObject.getQuery());
         } else {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
@@ -80,7 +80,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
         String timeWhere = ComDSLParse.parseInterval(query, "last_update_time", true);
         String sql = String.format(Objects.requireNonNull(env.getProperty("RELATION_SUBSCRIBER_ID")), timeWhere.concat(range).concat(fieldWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
         log.info("real time relation subscribe id query sql: {}", sql);
-        return QueryProfile.builder().option("real-time").query(sql).build();
+        return QueryProfile.builder().option("real_time").query(sql).build();
     }
 
     private List<ComDSLObject.Query.FilterBean> getMatchAfterTranslation(List<ComDSLObject.Query.FilterBean> match) {
@@ -156,7 +156,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             String fieldKey = filterBean.getFieldKey();
             List<String> fieldValues = filterBean.getFieldValues();
             String type = filterBean.getType();
-        //imei,imsi前缀匹配查询时，应使用Row Key进行筛选
+            //imei,imsi前缀匹配查询时，应使用Row Key进行筛选
             if (StringUtil.equals(type, MatchEnum.PREFIX.getType())
                     && (StringUtil.equals(fieldKey, "imei") || StringUtil.equals(fieldKey, "imsi"))) {
 

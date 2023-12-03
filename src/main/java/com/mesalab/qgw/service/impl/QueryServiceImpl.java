@@ -14,7 +14,6 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.SchemaBase;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.utils.ReportCacheUtils;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.sqlparser.SQLSyntaxParserUtil;
@@ -128,12 +127,6 @@ public class QueryServiceImpl implements QueryService {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.OPTION_TYPE_ERROR));
         }
-        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(param.getOption())
-                && StringUtil.isBlank(param.getReportId())
-                && StringUtil.isBlank(param.getResultId())) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.MUST_BE_REPORTID_OR_RESULTID));
-        }
         if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.FORMAT_TYPE_ERROR));
@@ -199,14 +192,7 @@ public class QueryServiceImpl implements QueryService {
     }
 
     private BaseResult executeLongTermQuery(QueryProfile param) {
-        BaseResult baseResult = ReportCacheUtils.get(param.getResultId(), param.getQuery());
-        if (baseResult.isSuccess()) {
-            return baseResult;
-        } else {
-            log.info("Long-term Results not exist, execute real-time query: resultID-{}, sql-{}",
-                    param.getResultId(), StringUtil.strip(param.getQuery()));
-            return new FederationDialect(param, getDBDialect(param).executeQuery()).executeQuery();
-        }
+        return new FederationDialect(param, getDBDialect(param).executeQuery()).executeQuery();
     }
 
 
@@ -342,7 +328,8 @@ public class QueryServiceImpl implements QueryService {
                         SelectExpressionItem expressionItem = ((SelectExpressionItem) item);
                         if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
                             String aliasName = expressionItem.getAlias().getName();
-                            if (aliasName.startsWith("\"") && aliasName.endsWith("\"")) {
+                            if ((aliasName.startsWith("\"") && aliasName.endsWith("\""))
+                                    || ((aliasName.startsWith("`") && aliasName.endsWith("`")))) {
                                 aliasName = aliasName.substring(1, aliasName.length() - 1);
                             }
                             sqlQuerySource.getAliasFields().put(aliasName, expressionItem.getExpression().toString());
@@ -486,9 +473,6 @@ public class QueryServiceImpl implements QueryService {
             param.setDbType(DBTypeEnum.DRUID.getValue());
             param.setDialectDBType(DBTypeEnum.DRUID.getValue());
             param.setQuery("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
-        } else if (DBTypeEnum.ELASTICSEARCH.getValue().equalsIgnoreCase(dbType)) {
-            param.setDbType(DBTypeEnum.ELASTICSEARCH.getValue());
-            param.setDialectDBType(DBTypeEnum.ELASTICSEARCH.getValue());
         } else if (DBTypeEnum.HBASE.getValue().equalsIgnoreCase(dbType)) {
             param.setDbType(DBTypeEnum.HBASE.getValue());
             param.setDialectDBType(DBTypeEnum.HBASE.getValue());
@@ -601,7 +585,7 @@ public class QueryServiceImpl implements QueryService {
         List<Map> list = (List<Map>) result.getData();
         for (Map resultMap : list) {
             Map schemaMap = Maps.newHashMap();
-            schemaMap.put("name", DBTypeEnum.ELASTICSEARCH.getValue().equals(param.getDbType()) ? resultMap.get("column") : resultMap.get("name"));
+            schemaMap.put("name", resultMap.get("name"));
             schemaMap.put("type", resultMap.get("type"));
             fields.add(schemaMap);
         }

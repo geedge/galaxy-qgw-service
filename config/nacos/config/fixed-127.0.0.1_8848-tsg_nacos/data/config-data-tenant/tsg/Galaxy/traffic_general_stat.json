@@ -8,16 +8,57 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "dimensions": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center"
+      ],
+      "metrics": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "sessions",
+        "active_sessions",
+        "closed_sessions",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts",
+        "asymmetric_c2s_flows",
+        "asymmetric_s2c_flows",
+        "tcp_syn_pkts",
+        "tcp_ack_pkts",
+        "tcp_fin_pkts",
+        "tcp_rst_pkts"
+      ],
+      "filters": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "sessions",
+        "active_sessions",
+        "closed_sessions",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts",
+        "asymmetric_c2s_flows",
+        "asymmetric_s2c_flows",
+        "tcp_syn_pkts",
+        "tcp_ack_pkts",
+        "tcp_fin_pkts",
+        "tcp_rst_pkts"
+      ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
     },
     "measurements": {
       "granularity": 5,
-      "ingestion_delay": 15,
-      "units": {
-        "$ref": "public_schema_info.json#/units"
-      }
+      "ingestion_delay": 15
     }
   },
   "fields": [

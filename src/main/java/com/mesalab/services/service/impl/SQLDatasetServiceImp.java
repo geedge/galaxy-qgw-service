@@ -2,11 +2,13 @@ package com.mesalab.services.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.geedgenetworks.utils.Encodes;
 import com.geedgenetworks.utils.StringUtil;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -17,8 +19,10 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.dialect.HbaseDialect;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
@@ -36,9 +40,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.util.EntityUtils;
-import org.elasticsearch.client.Request;
-import org.elasticsearch.client.Response;
-import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -46,6 +47,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -67,8 +69,10 @@ public class SQLDatasetServiceImp
     private static final Log log = LogFactory.get();
     private static Pattern pFieldVariable = Pattern.compile("\\$\\{(metric|dimension)_(.*?)\\}", Pattern.CASE_INSENSITIVE);
     private static Pattern pLeftRightFlag = Pattern.compile("\\[\\[(.*?)\\]\\]", Pattern.CASE_INSENSITIVE);
-    private final static String SQL_TEXT = "sql_text";
+    private final static String TEMPLATE = "template";
     private final static String EXECUTE_ENGINE = "execute_engine";
+
+    public final static String queryIdSeparator = ":";
 
     @Autowired
     Environment env;
@@ -84,8 +88,25 @@ public class SQLDatasetServiceImp
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     private DruidIoHttpSource druidIoHttpSource;
-    @Autowired
-    private RestClient restClient;
+
+    @Override
+    public BaseResult getProcessesByQueryId(String queryId) {
+        Dialect dialect = buildAndGetDialect(queryId);
+        return dialect.getProcesses(queryId);
+    }
+
+    @Override
+    public BaseResult deleteQueryTask(String queryId) {
+        Dialect dialect = buildAndGetDialect(queryId);
+        return dialect.executeKillQuery(queryId);
+    }
+
+    @Override
+    public String getCustomQueryId(String resultId, String query) {
+        String tableName = SQLHelper.getTableName(query).get(0);
+        String dbType = metadataService.getDBTypeByTableName(tableName);
+        return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
+    }
 
     @Override
     public List<LinkedHashMap> getVariable()
@@ -130,22 +151,19 @@ public class SQLDatasetServiceImp
     @Override
     public BaseResult getPreview(String datasetId, String option) {
         Map<String, Object> dataset = getDataset(datasetId);
-        if (dataset.isEmpty() || StrUtil.isBlankIfStr(dataset.get(SQL_TEXT))) {
+        if (dataset.isEmpty() || StrUtil.isBlankIfStr(dataset.get(TEMPLATE))) {
             return BaseResultGenerator.success();
         }
-        String sqlTemplate = String.valueOf(dataset.get(SQL_TEXT));
+        String sqlTemplate = String.valueOf(dataset.get(TEMPLATE));
         String execute_engine = String.valueOf(dataset.get(EXECUTE_ENGINE));
         String sql = buildExecSQL(getVariable(), sqlTemplate);
         log.info("Dataset Preview, ID is: {}, Exec SQL is: {}", datasetId, sql);
-        if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option)) {
+        if (DiagnosisOptionEnum.EXECUTION.getValue().equalsIgnoreCase(option) || StrUtil.isBlank(option)) {
             if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(execute_engine)) {
                 return generateClickHouseBaseResult(sql);
             }
             if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(execute_engine)) {
                 return generateDruidBaseResult(sql);
-            }
-            if (DBTypeEnum.ELASTICSEARCH.getValue().equalsIgnoreCase(execute_engine)) {
-                return generateElasticSearchBaseResult(sql);
             }
             if (DBTypeEnum.HBASE.getValue().equalsIgnoreCase(execute_engine)) {
                 return generateHbaseBaseResult(sql);
@@ -181,6 +199,40 @@ public class SQLDatasetServiceImp
             sql = sql.replace(parameter, def);
         }
         return sql;
+    }
+
+    public Dialect buildAndGetDialect(String queryId) {
+        QueryProfile queryProfile = new QueryProfile();
+        queryProfile.setDbType(parseDBType(queryId));
+        return getDialect(queryProfile);
+    }
+
+    private String parseDBType(String queryId) {
+        for (DBTypeEnum dbTypeEnum : DBTypeEnum.values()) {
+            if (queryId.startsWith(DigestUtil.md5Hex(dbTypeEnum.getValue()).concat(queryIdSeparator))) {
+                return dbTypeEnum.getValue();
+            }
+        }
+        if (queryId.contains(queryIdSeparator)) {
+            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
+        }
+        return DBTypeEnum.CLICKHOUSE.getValue();
+    }
+
+    private Dialect getDialect(QueryProfile queryProfile) {
+        Dialect dialect;
+        try {
+            Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
+                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, queryProfile.getDbType()) + "Dialect");
+            Constructor constructor = dialectClazz.getConstructor(QueryProfile.class);
+            dialect = (Dialect) constructor.newInstance(queryProfile);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            log.error("Dialect conversion instance exception:{}", e);
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+        }
+        return dialect;
     }
 
     private String buildGetDatasetSQL(List<String> ids, String category, String title)
@@ -288,33 +340,6 @@ public class SQLDatasetServiceImp
         return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase()), clickHouseHttpQuery.getSocketTimeOut());
     }
 
-    private BaseResult generateElasticSearchBaseResult(String sql) {
-        BaseResult baseResult;
-        Object dataObject;
-        Stopwatch watch = Stopwatch.createUnstarted();
-        watch.start();
-        Request request = new Request("POST", "/_sql?format=json");
-        HashMap<String, Object> queryParam = Maps.newHashMap();
-        queryParam.put("query", sql);
-        request.setJsonEntity(JSON.toJSONString(queryParam));
-        Response response;
-        try {
-            response = restClient.performRequest(request);
-            ResponseEntity<String> respEntity = new ResponseEntity<>(EntityUtils.toString(response.getEntity()), org.springframework.http.HttpStatus.OK);
-            baseResult = BaseResultGenerator.generate(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    (Map<String, Object>) JSON.parseObject(respEntity.getBody(), Object.class), null, null, QueryFormatEnum.JSON.getValue());
-        } catch (IOException e) {
-            log.error("{} engine error: {}", DBTypeEnum.ELASTICSEARCH.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), e.getMessage());
-        }
-        dataObject = baseResult.getData();
-        Map<String, Object> resultMap = (Map<String, Object>) dataObject;
-        Map<String, Object> statistics = Maps.newLinkedHashMap();
-        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-        baseResult.setData(resultMap);
-        baseResult.setStatistics(statistics);
-        return baseResult;
-    }
 
 
     /**

@@ -6,7 +6,7 @@
     "primary_key": "common_log_id",
     "partition_key": "common_recv_time",
     "index_key": {
-      "$ref": "public_schema_info.json#/active_defence_event/index_key"
+      "$ref": "public_schema_info_2311.json#/active_defence_event/index_key"
     },
     "schema_query": {
       "dimensions": [
@@ -146,7 +146,7 @@
       "label": "Receive Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "format": [
           {
@@ -157,7 +157,7 @@
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       }
     },
     {
@@ -369,13 +369,13 @@
       "label": "Generate Time",
       "doc": {
         "constraints": {
-          "type": "timestamp"
+          "type": "unix_timestamp"
         },
         "visibility": "enabled"
       },
       "type": {
         "type": "long",
-        "logicalType": "timestamp"
+        "logicalType": "unix_timestamp"
       }
     }
   ]

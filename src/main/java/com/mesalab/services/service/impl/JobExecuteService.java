@@ -107,7 +107,7 @@ public class JobExecuteService implements EnvironmentAware {
                 Expression whereInner = plainSelectInner.getWhere();
                 FromItem fromItemInner = plainSelectInner.getFromItem();
 
-                executeStatisticsJob(jobInfo, param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), fromItemInner.toString(), whereOuter == null ? " 1=1 " : whereOuter.toString(), whereInner == null ? " 1=1 " : whereInner.toString(), false);
+                executeLongTerm(jobInfo, param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), fromItemInner.toString(), whereOuter == null ? " 1=1 " : whereOuter.toString(), whereInner == null ? " 1=1 " : whereInner.toString(), false);
             }
         } catch (Exception e) {
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
@@ -118,7 +118,7 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private void executeStatisticsJob(JobInfo jobInfo, String cusSql, String countDataSource, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
+    private void executeLongTerm(JobInfo jobInfo, String cusSql, String countDataSource, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
         if (isCancel(jobInfo.getId())) {
             return;
         }
@@ -140,7 +140,7 @@ public class JobExecuteService implements EnvironmentAware {
             LongValue longValue = new LongValue(Long.parseLong(limit.getRowCount().toString()) * 10);
             limit.setRowCount(longValue.getValue() > 10000 ? longValue : new LongValue(10000));
         }
-        List<Future<Boolean>> list = Lists.newArrayList(taskExecuteService.executeStatistics(jobInfo.getId(), parseSQL.toString()));
+        List<Future<Boolean>> list = Lists.newArrayList(taskExecuteService.executeLongTerm(jobInfo.getId(), parseSQL.toString()));
         waitAsyncResultAndUpdateProcess(jobInfo, list);
     }
 
@@ -200,7 +200,7 @@ public class JobExecuteService implements EnvironmentAware {
             String newFilter = String.format("(%s) AND ( %s >= %s AND %s < %s)",
                     plainSelect.getWhere(),
                     partitionKey, start, partitionKey, end);
-            executeStatisticsJob(jobInfo, param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), plainSelect.getFromItem().toString(), newFilter, newFilter, true);
+            executeLongTerm(jobInfo, param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), plainSelect.getFromItem().toString(), newFilter, newFilter, true);
             if (start <= interval.getStart()) {
                 break;
             }

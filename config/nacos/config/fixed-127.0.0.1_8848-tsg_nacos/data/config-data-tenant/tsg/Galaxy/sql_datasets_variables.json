@@ -88,10 +88,6 @@
     "default": ""
   },
   {
-    "key": "order",
-    "default": "DESC"
-  },
-  {
     "key": "timestampdiff_second",
     "default": 86400
   },
@@ -102,5 +98,41 @@
   {
     "key": "log_id",
     "default": 1153021139190754263
+  },
+  {
+    "key": "order_by",
+    "default": 1
+  },
+  {
+    "key": "separator",
+    "default": ","
+  },
+  {
+    "key": "policy_id",
+    "default": 1
+  },
+  {
+    "key": "task_id",
+    "default": 1
+  },
+  {
+    "key": "columns",
+    "default": 1
+  },
+  {
+    "key": "app_name",
+    "default": "wechat"
+  },
+  {
+    "key": "column_name",
+    "default": "client_ip"
+  },
+  {
+    "key": "source",
+    "default": "statistics_rule"
+  },
+  {
+    "key": "timestamp_column",
+    "default": "__time"
   }
 ]

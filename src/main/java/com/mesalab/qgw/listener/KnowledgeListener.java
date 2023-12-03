@@ -162,34 +162,22 @@ public class KnowledgeListener {
 
     private Map<String, KnowledgeBase> buildIPKnowledgeInfo(List<KnowledgeBase> knowledgeBaseList) {
         Map<String, KnowledgeBase> map = Maps.newHashMap();
-        String ipV4BuiltIn = knowledgeConfig.getIpV4BuiltIn();
-        String ipV4UserDefined = knowledgeConfig.getIpV4UserDefined();
-        String ipV4Asn = knowledgeConfig.getIpV4Asn();
-        String ipV6BuiltIn = knowledgeConfig.getIpV6BuiltIn();
-        String ipV6UserDefined = knowledgeConfig.getIpV6UserDefined();
-        String ipV6Asn = knowledgeConfig.getIpV6Asn();
+        String ipBuiltIn = knowledgeConfig.getIpBuiltIn();
+        String ipUserDefined = knowledgeConfig.getIpUserDefined();
+        String ipAsn = knowledgeConfig.getIpAsn();
         for (KnowledgeBase knowledgeBase : knowledgeBaseList) {
             String name = knowledgeBase.getName();
             String version = knowledgeBase.getVersion();
             String concat = name.concat(":").concat(version);
-            if (StringUtil.equals(concat, ipV4BuiltIn)
-                    || (StringUtil.equals(name, ipV4BuiltIn) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
-                map.put(KnowledgeConstant.IP_BUILT_IN_V4, knowledgeBase);
-            } else if (StringUtil.equals(concat, ipV4UserDefined)
-                    || (StringUtil.equals(name, ipV4UserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
-                map.put(KnowledgeConstant.IP_USER_DEFINED_V4, knowledgeBase);
-            } else if (StringUtil.equals(concat, ipV6BuiltIn)
-                    || (StringUtil.equals(name, ipV6BuiltIn) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
-                map.put(KnowledgeConstant.IP_BUILT_IN_V6, knowledgeBase);
-            } else if (StringUtil.equals(concat, ipV6UserDefined)
-                    || (StringUtil.equals(name, ipV6UserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
-                map.put(KnowledgeConstant.IP_USER_DEFINED_V6, knowledgeBase);
-            } else if (StringUtil.equals(concat, ipV4Asn)
-                    || (StringUtil.equals(name, ipV6UserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
-                map.put(KnowledgeConstant.ASN_V4, knowledgeBase);
-            } else if (StringUtil.equals(concat, ipV6Asn)
-                    || (StringUtil.equals(name, ipV6UserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
-                map.put(KnowledgeConstant.ASN_V6, knowledgeBase);
+            if (StringUtil.equals(concat, ipBuiltIn)
+                    || (StringUtil.equals(name, ipBuiltIn) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
+                map.put(KnowledgeConstant.IP_BUILTIN, knowledgeBase);
+            } else if (StringUtil.equals(concat, ipUserDefined)
+                    || (StringUtil.equals(name, ipUserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
+                map.put(KnowledgeConstant.IP_USER_DEFINED, knowledgeBase);
+            } else if (StringUtil.equals(concat, ipAsn)
+                    || (StringUtil.equals(name, ipUserDefined) && StringUtil.equals(version, KnowledgeConstant.LATEST))) {
+                map.put(KnowledgeConstant.ASN_BUILTIN, knowledgeBase);
             }
         }
         return map;

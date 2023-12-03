@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.0.2.RELEASE</version>
+        <version>2.3.12.RELEASE</version>
         <relativePath/>
     </parent>
 
@@ -39,7 +39,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <starter.druid.version>1.1.22</starter.druid.version>
         <mysql-connector-java.version>8.0.18</mysql-connector-java.version>
         <commons.lang3.version>3.5</commons.lang3.version>
@@ -297,26 +297,9 @@
             <version>2.1.1</version>
         </dependency>
         <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>7.13.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>5.2.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.10</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -507,7 +490,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.2.6.RELEASE</version>
+                <version>2.3.12.RELEASE</version>
             </plugin>
             <plugin>
                 <groupId>io.github.zlika</groupId>
@@ -601,7 +584,7 @@
                     <dockerHost>http://${docker.build}:${docker.build.port}</dockerHost>
                     <dockerDirectory>docker</dockerDirectory>
                     <buildArgs>
-                        <JDK_IMAGE>${docker.registry}:${docker.registry.port}/common/jdk:1.8.0_202</JDK_IMAGE>
+                        <JDK_IMAGE>${docker.registry}:${docker.registry.port}/common/amazon-corretto:11.0.21.9.1</JDK_IMAGE>
                         <GOLANG_IMAGE>${docker.registry}:${docker.registry.port}/common/golang:1.15.6</GOLANG_IMAGE>
                         <JAR_FILE>${project.build.finalName}.xjar</JAR_FILE>
                     </buildArgs>
@@ -632,6 +615,27 @@
             </plugin>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <toolchains>
+                        <jdk>
+                            <version>11</version>
+                            <vendor>amazon</vendor>
+                        </jdk>
+                    </toolchains>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <configuration>
                     <encoding>utf-8</encoding>
@@ -643,7 +647,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19.1</version>
                 <configuration>
-                   <skipTests>true</skipTests> <!-- 默认关掉单元测试-->
+                    <skipTests>true</skipTests> <!-- 默认关掉单元测试-->
                 </configuration>
             </plugin>
         </plugins>

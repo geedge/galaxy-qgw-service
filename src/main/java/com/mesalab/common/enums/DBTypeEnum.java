@@ -8,7 +8,6 @@ public enum DBTypeEnum {
     CLICKHOUSE("clickHouse"),
     DRUID("druid"),
     HBASE("hbase"),
-    ELASTICSEARCH("elasticsearch"),
     ARANGODB("arangoDB");
     private String value;
     DBTypeEnum(String value) {this.value = value;}

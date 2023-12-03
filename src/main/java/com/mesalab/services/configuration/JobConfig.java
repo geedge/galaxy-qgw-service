@@ -14,6 +14,11 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class JobConfig {
+
+    public static final String STATISTICS = "statistics";
+    public static final String JOB = "job";
+    public static final String JOB_RESOURCE_PATH = "resource_path";
+    public static final String JOB_ID = "job_id";
     public static final String COUNT = "count";
     public static final String IS_DONE = "is_done";
     public static final String DONE_PROGRESS = "done_progress";
@@ -21,7 +26,7 @@ public class JobConfig {
     public static final String IS_FAILED = "is_failed";
     public static final String DURATION_TIME = "duration_time";
     public static final String LAST_QUERY_TIME = "last_query_time";
-    public static final String STATISTICS_RESULT = "result";
+    public static final String LONG_TERM_RESULT = "result";
     public static final String JOB_PROPERTY = "job_property";
     public static final String JOB_PROPERTY_TYPE = "type";
     public static final String JOB_PROPERTY_K_RESULT_FIELD = "result_field";
@@ -37,9 +42,9 @@ public class JobConfig {
     public static final String DETAIL = "detail";
 
     public static final String QUERY_DATA_SOURCE = "query.data_source";
-    public static final String REPORT= "report";
+    public static final String SAVED_QUERY = "saved_query";
     public static final String FIELD_DISCOVERY= "field_discovery";
-    public static final String STATISTICS= "statistics";
+    public static final String LONG_TERM_COLUMN_FAMILY = "long_term";
 
     public static final String DELIMIT = "-";
 
@@ -48,8 +53,9 @@ public class JobConfig {
     public static final String KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN = "custom.field_discovery.metric.fn";
     public static final String KEY_CUSTOM_FIELD_DISCOVERY_FILTER = "custom.field_discovery.filter";
     public static final String KEY_CUSTOM_STATISTICS_SQL = "custom.statistics.sql";
-    public static final String KEY_CUSTOM_REPORT_SQL = "custom.report.sql";
+    public static final String KEY_CUSTOM_SAVED_QUERY_SQL = "custom.saved_query.sql";
     public static final String KEY_QUERY_TYPE = "query.type";
+    public static final String KEY_QUERY_JOB_IDS = "query.job_ids";
     public static final String KEY_QUERY_DATA_SOURCE = "query.data_source";
     public static final String KEY_QUERY_SAMPLE_RATIO = "query.sample_ratio";
 

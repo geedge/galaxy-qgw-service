@@ -4,3 +4,8 @@ Release 372 (TSG-23.10)
 * 扩展Schema，新增公共毫秒级别时间戳字段(TSG-17187)
 * 修改Schema，统计策略、对象统计Schema删除聚合信息描述
 * 新增公共函数，统一CAST公共函数(TSG-17216)
+* 修改Schema，公共Schema更新bitAnd函数描述(TSG-17342)
+* 扩展Schema，增加公共字段common_client_os_name, common_server_os_name(TSG-17398)
+* 修改SQL数据集，定义order_by变量，更新statistics-rule-table-or-bar-chart-template、object-statistics-list、object-statistics-item-list sql模板(TSG-17381)
+* 完善Schema，安全/会话日志schema_type 增加RTP和SIP协议(TSG-16616)
+* 修改SQL数据集，将pinning_status值由Integer转换为String类型(TSG-17106)
