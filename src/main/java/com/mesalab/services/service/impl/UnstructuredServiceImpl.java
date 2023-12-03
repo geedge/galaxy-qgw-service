@@ -43,11 +43,12 @@ import java.util.stream.Collectors;
 public class UnstructuredServiceImpl implements UnstructuredService, EnvironmentAware {
 
     private static final Log log = LogFactory.get();
-    private final static Map<String, String> fileType = Maps.newHashMap();
-    private static final String COMMONFILE = "common";
-    private static final String[] tables = new String[]{"session_record", "security_event", "transaction_record"};
+    public final static Map<String, String> fileType = Maps.newHashMap();
+    public static final String OTHER_FILE = "other";
+    public static final String[] tables = new String[]{"session_record", "security_event", "monitor_event", "transaction_record", "voip_record", "proxy_event", "dos_event", "assessment_event"};
     static {
         fileType.put("common_packet_capture_file", UnstructuredDataType.PCAP.getType());
+        fileType.put("packet_capture_file", UnstructuredDataType.PCAP.getType());
         fileType.put("rtp_pcap_path", UnstructuredDataType.PCAP.getType());
         fileType.put("packet_url", UnstructuredDataType.PCAP.getType());
         fileType.put("mail_eml_file", UnstructuredDataType.MAIL.getType());
@@ -89,7 +90,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
             Map<String, List<String>> fileTypeMap = Maps.newHashMap();
             if (fieldList.size() != 0) {
                 for (String field : fieldList) {
-                    String fileTypeStr = StringUtil.isNotEmpty(fileType.get(field)) ? fileType.get(field).toString() : COMMONFILE;
+                    String fileTypeStr = StringUtil.isNotEmpty(fileType.get(field)) ? fileType.get(field).toString() : OTHER_FILE;
                     if (fileTypeMap.containsKey(fileTypeStr)) {
                         List<String> preList = fileTypeMap.get(fileTypeStr);
                         preList.add(field);
@@ -179,6 +180,8 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
                 }
                 List<Map> datalist = (List<Map>) result.getData();
                 for (Map data : datalist) {
+                    String fileTypeStr = StringUtil.isNotEmpty(fileType.get(field)) ? fileType.get(field).toString() : OTHER_FILE;
+                    data.put("file_type", fileTypeStr);
                     data.put("log_type", dataSource);
                     dataResult.add(data);
                 }
