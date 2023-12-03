@@ -50,6 +50,12 @@ public class DslController {
             return dslService.realTimeDataAnalyticsSubscriberIdRelateIp(dslProfile);
         } else if (DslIdentifierNameConst.REAL_TIME_DATA_ANALYTICS_MOBILE_IDENTITY_RELATE_TEID.equals(dslProfile.getName())) {
             return dslService.realTimeDataAnalyticsMobileIdentityRelateTeid(dslProfile);
+        } else if (DslIdentifierNameConst.REAL_TIME_DATA_ANALYTICS_UNSTRUCTURED_DATA.equals(dslProfile.getName())) {
+            return dslService.realTimeDataAnalyticsUnstructuredData(dslProfile);
+        } else if (DslIdentifierNameConst.IP_LEARNING_FQDN_RELATE_IP.equals(dslProfile.getName())) {
+            return dslService.ipLearningFqdnRelateIp(dslProfile);
+        } else if (DslIdentifierNameConst.IP_LEARNING_ACTIVE_IP.equals(dslProfile.getName())) {
+            return dslService.ipLearningActiveIp(dslProfile);
         }
         throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dslProfile.getName()));
     }
