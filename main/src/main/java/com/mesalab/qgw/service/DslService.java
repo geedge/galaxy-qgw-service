@@ -107,6 +107,36 @@ public interface DslService {
      */
     BaseResult realTimeDataAnalyticsMobileIdentityRelateTeid(DSLProfile dslProfile);
 
+    /**
+     * Desc: Unstructured Data
+     *
+     * @param dslProfile
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2023/12/1 10:56
+     */
+    BaseResult realTimeDataAnalyticsUnstructuredData(DSLProfile dslProfile);
+
+    /**
+     * Desc: IP Learning （FQDN-IP）
+     *
+     * @param dslProfile
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2023/12/1 11:04
+     */
+    BaseResult ipLearningFqdnRelateIp(DSLProfile dslProfile);
+
+    /**
+     * Desc: IP Learning Active IP
+     *
+     * @param dslProfile
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2023/12/1 11:04
+     */
+    BaseResult ipLearningActiveIp(DSLProfile dslProfile);
+
     List<ProtocolTree> buildFlatStructure(List<Map> protocolData);
 
     List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes);

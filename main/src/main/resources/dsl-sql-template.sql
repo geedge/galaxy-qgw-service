@@ -37,3 +37,6 @@ SELECT account AS SUBSCRIBER_ID, framed_ip AS IP, first_found_time AS FIRST_FOUN
 #sql("REAL_TIME_DATA_ANALYTICS_MOBILE_IDENTITY_RELATE_TEID")
 SELECT uplink_teid AS teid, apn, phone_number, imsi, imei, last_update_time,vsys_id FROM $table WHERE $intervals_and_filter AND msg_type = 1 and uplink_teid !=0 order by last_update_time desc $limit
 #end
+#sql("REAL_TIME_DATA_ANALYTICS_UNSTRUCTURED_DATA")
+SELECT $primary_key AS log_id, $field AS file_path FROM $table where $intervals_and_filter AND notEmpty($field) ORDER BY $partition_key DESC $limit
+#end

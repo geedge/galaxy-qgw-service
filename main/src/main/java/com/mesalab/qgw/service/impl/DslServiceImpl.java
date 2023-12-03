@@ -9,26 +9,35 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.base.Splitter;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.enums.QueryFormatEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.TreeUtils;
 import com.mesalab.network.common.Constants;
 import com.mesalab.network.model.protocol.ProtocolTree;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.DSLProfile;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.service.DslService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.QueryService;
+import com.mesalab.services.common.enums.UnstructuredDataType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import com.mesalab.services.service.UnstructuredService;
+import com.mesalab.services.service.impl.UnstructuredServiceImpl;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
+import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import net.sf.jsqlparser.expression.operators.relational.ItemsList;
@@ -40,6 +49,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +74,10 @@ public class DslServiceImpl implements DslService {
     MetadataService metadataService;
     @Autowired
     QueryService queryService;
+    @Autowired
+    UnstructuredService unstructuredService;
+    @Autowired
+    private ClickHouseHttpSource clickHouseHttpSource;
 
     private static final String TABLE_TRAFFIC_GENERAL_STAT = "traffic_general_stat";
     private static final String TABLE_APPLICATION_PROTOCOL_STAT = "application_protocol_stat";
@@ -198,7 +215,7 @@ public class DslServiceImpl implements DslService {
     @Override
     public BaseResult appAndProtocolTreeComposition(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_TREE_COMPOSITION"), TABLE_APPLICATION_PROTOCOL_STAT, metadataService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -213,7 +230,7 @@ public class DslServiceImpl implements DslService {
     @Override
     public BaseResult applicationAndProtocolTreeThroughput(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_TREE_THROUGHPUT"), TABLE_APPLICATION_PROTOCOL_STAT, metadataService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -233,7 +250,7 @@ public class DslServiceImpl implements DslService {
             dslProfile.setGranularity("PT15S");
         }
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_TOP_APPS"), TABLE_APPLICATION_PROTOCOL_STAT, metadataService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -243,7 +260,7 @@ public class DslServiceImpl implements DslService {
     @Override
     public BaseResult applicationAndProtocolAppRelatedInternalIps(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_APP_RELATED_INTERNAL_IPS"), TABLE_SESSION_RECORD, metadataService.getPartitionKey(TABLE_SESSION_RECORD), LOGICAL_TYPE_UNIX_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -253,7 +270,7 @@ public class DslServiceImpl implements DslService {
     @Override
     public BaseResult applicationAndProtocolAppThroughput(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_APP_THROUGHPUT"), TABLE_APPLICATION_PROTOCOL_STAT, metadataService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -263,7 +280,7 @@ public class DslServiceImpl implements DslService {
     @Override
     public BaseResult applicationAndProtocolAppSummary(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_APP_SUMMARY"), TABLE_APPLICATION_PROTOCOL_STAT, metadataService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -282,7 +299,7 @@ public class DslServiceImpl implements DslService {
             }
         }
         String sql = dslProfile.toSql(environment.getProperty("REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP"), TABLE_RELATION_ACCOUNT_FRAMEDIP, "last_update_time", LOGICAL_TYPE_UNIX_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -291,7 +308,143 @@ public class DslServiceImpl implements DslService {
 
     @Override
     public BaseResult realTimeDataAnalyticsMobileIdentityRelateTeid(DSLProfile dslProfile) {
-        return BaseResultGenerator.failure();
+        //缺少查询优化逻辑，待补充
+        String sql = dslProfile.toSql(environment.getProperty("REAL_TIME_DATA_ANALYTICS_MOBILE_IDENTITY_RELATE_TEID"), TABLE_GTPC_KNOWLEDGE_BASE, "last_update_time", LOGICAL_TYPE_UNIX_TIMESTAMP);
+        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
+        if (!baseResult.isSuccess()) {
+            throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
+        }
+        return baseResult;
+    }
+
+    @Override
+    public BaseResult realTimeDataAnalyticsUnstructuredData(DSLProfile dslProfile) {
+        Stopwatch watch = Stopwatch.createStarted();
+        List<String> fileTypes = Lists.newArrayList();
+        List<String> dataSources = Lists.newArrayList();
+
+        ExpressionVisitorAdapter expressionVisitorAdapter = new ExpressionVisitorAdapter() {
+            @Override
+            public void visit(EqualsTo equalsTo) {
+                if (equalsTo.getLeftExpression() != null && "file_type".equals(equalsTo.getLeftExpression().toString())) {
+                    if (equalsTo.getRightExpression() instanceof StringValue) {
+                        fileTypes.add(((StringValue) equalsTo.getRightExpression()).getValue());
+                        equalsTo.setLeftExpression(new LongValue(1));
+                        equalsTo.setRightExpression(new LongValue(1));
+                    }
+                } else if (equalsTo.getLeftExpression() != null && "data_source".equals(equalsTo.getLeftExpression().toString())) {
+                    if (equalsTo.getRightExpression() instanceof StringValue) {
+                        dataSources.add(((StringValue) equalsTo.getRightExpression()).getValue());
+                        equalsTo.setLeftExpression(new LongValue(1));
+                        equalsTo.setRightExpression(new LongValue(1));
+                    }
+                }
+            }
+        };
+        String filter = dslProfile.getFilter();
+        Expression expression = null;
+        try {
+            expression = CCJSqlParserUtil.parseExpression(filter);
+        } catch (JSQLParserException e) {
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
+        }
+        expression.accept(expressionVisitorAdapter);
+        if (fileTypes.size() != 1 && dataSources.size() != 1) {
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), dslProfile.getFilter()));
+        }
+        dslProfile.setFilter(expression.toString());
+
+        String type = fileTypes.get(0);
+        String dataSource = dataSources.get(0);
+        Map<String, Object> fileTypeInSchema = unstructuredService.getUnstructuredFields();
+        List<Map> dataList = Lists.newArrayList();
+        if (!fileTypeInSchema.containsKey(dataSource) && !clickHouseHttpSource.getDbName().equals(dataSource)) {
+            return build(dataList, watch);
+        }
+        if (UnstructuredDataType.ALL.getType().equalsIgnoreCase(type)) {
+            if (clickHouseHttpSource.getDbName().equals(dataSource)) {
+                for (String tableName : fileTypeInSchema.keySet()) {
+                    Map<String, List<String>> typeFields = (Map<String, List<String>>) fileTypeInSchema.get(tableName);
+                    for (String typeTmp : typeFields.keySet()) {
+                        dataList.addAll(getData(typeFields.get(typeTmp), tableName, dslProfile, typeTmp));
+                    }
+                }
+            } else {
+                Map<String, List<String>> typeFields = (Map<String, List<String>>) fileTypeInSchema.get(dataSource);
+                for (String typeTmp : typeFields.keySet()) {
+                    dataList.addAll(getData(typeFields.get(typeTmp), dataSource, dslProfile, typeTmp));
+                }
+            }
+        } else {
+            if (clickHouseHttpSource.getDbName().equals(dataSource)) {
+                for (String tableName : fileTypeInSchema.keySet()) {
+                    Map<String, List<String>> typeFields = (Map<String, List<String>>) fileTypeInSchema.get(tableName);
+                    dataList.addAll(getData(typeFields.get(type), tableName, dslProfile, type));
+                }
+            } else {
+                Map<String, List<String>> typeFields = (Map<String, List<String>>) fileTypeInSchema.get(dataSource);
+                dataList = getData(typeFields.get(type), dataSource, dslProfile, type);
+            }
+        }
+        List<Map> distinctList = dataList.stream()
+                .filter(distinctByValue(x -> x.get("file_path")))
+                .collect(Collectors.toList());
+        if (StrUtil.isNotEmpty(dslProfile.getLimit())) {
+            distinctList = distinctList.size() > Long.parseLong(dslProfile.getLimit()) ? distinctList.subList(0, Integer.parseInt(dslProfile.getLimit())) : distinctList;
+        }
+        return build(distinctList, watch);
+    }
+
+    @Override
+    public BaseResult ipLearningFqdnRelateIp(DSLProfile dslProfile) {
+        return null;
+    }
+
+    @Override
+    public BaseResult ipLearningActiveIp(DSLProfile dslProfile) {
+        return null;
+    }
+
+    private static <T> Predicate<T> distinctByValue(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    private List<Map> getData(List<String> fields, String dataSource, DSLProfile dslProfile, String type) {
+        List<Map> dataResult = Lists.newArrayList();
+        for (String field : fields) {
+            String sql = dslProfile.toSql(environment.getProperty("REAL_TIME_DATA_ANALYTICS_UNSTRUCTURED_DATA"), dataSource, metadataService.getPartitionKey(dataSource), LOGICAL_TYPE_UNIX_TIMESTAMP);
+            sql = sql.replace("$field", field);
+            sql = sql.replace("$primary_key", metadataService.getValueByKeyInSchemaDoc(dataSource, "primary_key"));
+            sql = sql.replace("$partition_key", metadataService.getValueByKeyInSchemaDoc(dataSource, "partition_key"));
+            BaseResult result = queryService.executeQuery(queryBuild(sql));
+            if (!result.isSuccess()) {
+                log.error("Query unstructured data status error: {}", result.getMessage());
+                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), "Query unstructured data status error: " + result.getMessage());
+            }
+            List<Map> datalist = (List<Map>) result.getData();
+            for (Map data : datalist) {
+                String fileTypeStr = StringUtil.isNotEmpty(UnstructuredServiceImpl.fileType.get(field)) ? UnstructuredServiceImpl.fileType.get(field).toString() : UnstructuredServiceImpl.OTHER_FILE;
+                data.put("log_type", dataSource);
+                data.put("file_type", fileTypeStr);
+                dataResult.add(data);
+            }
+        }
+        return dataResult;
+    }
+
+    private QueryProfile queryBuild(String sql) {
+        return QueryProfile.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
+    }
+
+    private BaseResult build(List<Map> dataList, Stopwatch watch) {
+        BaseResult baseResult;
+        Map statistics = Maps.newHashMap();
+        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
+        statistics.put("result_rows", dataList.size());
+        statistics.put("result_bytes", dataList.toString().getBytes().length);
+        baseResult = BaseResultGenerator.success("ok", dataList, statistics);
+        return baseResult;
     }
 
     @Override
@@ -411,6 +564,7 @@ public class DslServiceImpl implements DslService {
 
         return protocolTreeList;
     }
+
     private String inToLike(String filter) throws JSQLParserException {
         List<String> params = Lists.newArrayList();
         List<String> oldExpression = Lists.newArrayList();
@@ -441,6 +595,7 @@ public class DslServiceImpl implements DslService {
         }
         return filter;
     }
+
     private ProtocolTree convertStringToObject(String protocolString) {
         ProtocolTree protocolTree = null;
         try {
