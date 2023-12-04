@@ -21,6 +21,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.mesalab.services.configuration.JobConfig.*;
 
@@ -155,7 +156,7 @@ public class JobController {
         String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         List<String> ids = (List<String>) reqBody.get(JobConfig.KEY_QUERY_JOB_IDS);
         if (SAVED_QUERY.equals(queryType)) {
-            List<Map<String, Object>> result = jobService.batchSavedQueryStatus(ids);
+            List<Map<String, Object>> result = jobService.batchSavedQueryStatus(ids.stream().distinct().collect(Collectors.toList()));
             return BaseResultGenerator.success(result);
         }
         throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -167,7 +168,7 @@ public class JobController {
         String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         List<String> ids = (List<String>) reqBody.get(JobConfig.KEY_QUERY_JOB_IDS);
         if (SAVED_QUERY.equals(queryType)) {
-            List<Map<String, Object>> result = jobService.batchSavedQueryResult(ids);
+            List<Map<String, Object>> result = jobService.batchSavedQueryResult(ids.stream().distinct().collect(Collectors.toList()));
             return BaseResultGenerator.success(result);
         }
         throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
