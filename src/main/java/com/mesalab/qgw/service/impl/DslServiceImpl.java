@@ -12,6 +12,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.QueryFormatEnum;
@@ -19,6 +20,10 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.TreeUtils;
+import com.mesalab.knowledge.entity.*;
+import com.mesalab.knowledge.enums.MatchEnum;
+import com.mesalab.knowledge.enums.SortEnum;
+import com.mesalab.knowledge.service.KnowledgeService;
 import com.mesalab.network.common.Constants;
 import com.mesalab.network.model.protocol.ProtocolTree;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -37,15 +42,15 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
-import net.sf.jsqlparser.expression.operators.relational.InExpression;
-import net.sf.jsqlparser.expression.operators.relational.ItemsList;
+import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -78,6 +83,8 @@ public class DslServiceImpl implements DslService {
     UnstructuredService unstructuredService;
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
+    @Autowired
+    KnowledgeService knowledgeService;
 
     private static final String TABLE_TRAFFIC_GENERAL_STAT = "traffic_general_stat";
     private static final String TABLE_APPLICATION_PROTOCOL_STAT = "application_protocol_stat";
@@ -344,7 +351,7 @@ public class DslServiceImpl implements DslService {
         String filter = dslProfile.getFilter();
         Expression expression = null;
         try {
-            expression = CCJSqlParserUtil.parseExpression(filter);
+            expression = CCJSqlParserUtil.parseExpression(filter, false);
         } catch (JSQLParserException e) {
             throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
         }
@@ -397,12 +404,241 @@ public class DslServiceImpl implements DslService {
 
     @Override
     public BaseResult ipLearningFqdnRelateIp(DSLProfile dslProfile) {
-        return null;
+        String queryType = "iplearning";
+        String dataSource = "IP_LEARNING_VIEW";
+        DSLObject dslObject = getDslObject(dslProfile, queryType, dataSource);
+        log.info("DSLProfile parse to DSLObject: {}", JSON.toJSONString(dslObject));
+        return knowledgeService.query(dslObject);
     }
 
     @Override
     public BaseResult ipLearningActiveIp(DSLProfile dslProfile) {
-        return null;
+        String queryType = "ippool";
+        String dataSource = "IP_VIEW";
+        DSLObject dslObject = getDslObject(dslProfile, queryType, dataSource);
+        log.info("DSLProfile parse to DSLObject: {}", JSON.toJSONString(dslObject));
+        return knowledgeService.query(dslObject);
+    }
+
+    private static DSLObject getDslObject(DSLProfile dslProfile, String queryType, String dataSource) {
+        Parameters parameters = new Parameters();
+        List<String> intervals = dslProfile.getIntervals();
+        if (!CollectionUtils.isEmpty(intervals)) {
+            parameters.setIntervals(intervals);
+        }
+        String limit = dslProfile.getLimit();
+        if (StrUtil.isNotEmpty(limit)) {
+            parameters.setLimit(limit);
+        }
+        List<Match> matches = Lists.newArrayList();
+        List<Range> ranges = Lists.newArrayList();
+        ExpressionVisitorAdapter expressionVisitorAdapter = getExpressionVisitorAdapter(matches, ranges);
+        String filter = dslProfile.getFilter();
+        Expression expression = null;
+        try {
+            expression = CCJSqlParserUtil.parseExpression(filter, false);
+        } catch (JSQLParserException e) {
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
+        }
+        expression.accept(expressionVisitorAdapter);
+        Iterator<Range> iterator = ranges.iterator();
+        while (iterator.hasNext()) {
+            Range next = iterator.next();
+            if (next.getFieldKey().equals("1") && next.getType().equals(RangeTypeEnum.EQ.getType())) {
+                iterator.remove();
+            }
+        }
+        parameters.setMatch(matches);
+        parameters.setRange(ranges);
+
+        List<Sort> sorts = Lists.newArrayList();
+        if (StrUtil.isNotEmpty(dslProfile.getOrderBy())) {
+            buildSorts(dslProfile.getOrderBy(), sorts);
+        }
+        parameters.setSort(sorts);
+        DSLObject dslObject = new DSLObject();
+        DSLObject.DSLQuery dslQuery = new DSLObject.DSLQuery();
+        dslQuery.setQueryType(queryType);
+        dslQuery.setDataSource(dataSource);
+        dslQuery.setParameters(parameters);
+        dslObject.setQuery(dslQuery);
+
+        return dslObject;
+    }
+
+    private static void buildSorts(String orderByStr, List<Sort> sorts) {
+        try {
+            Statement parse = CCJSqlParserUtil.parse("select 1 from table order by " + orderByStr);
+            if (parse instanceof Select && ((Select) parse).getSelectBody() instanceof PlainSelect) {
+                List<OrderByElement> orderByElements = ((PlainSelect) ((Select) parse).getSelectBody()).getOrderByElements();
+                for (int i = 0; i < orderByElements.size(); i++) {
+                    OrderByElement orderByElement = orderByElements.get(i);
+                    Sort sort = new Sort();
+                    sort.setFieldKey(orderByElement.getExpression().toString());
+                    sort.setType(orderByElement.isAsc() ? SortEnum.ASC.getType() : SortEnum.DESC.getType());
+                    sorts.add(sort);
+                }
+            }
+        } catch (JSQLParserException e) {
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
+        }
+    }
+
+    private static ExpressionVisitorAdapter getExpressionVisitorAdapter(List<Match> matches, List<Range> ranges) {
+        ExpressionVisitorAdapter expressionVisitorAdapter = new ExpressionVisitorAdapter() {
+            @Override
+            public void visit(LikeExpression expr) {
+                String left = String.valueOf(expr.getLeftExpression());
+                String right = ((StringValue) expr.getRightExpression()).getValue();
+                String type = "";
+                if (right.startsWith("%") && right.endsWith("%")) {
+                    type = MatchEnum.SUBSTRING.getType();
+                    right = right.substring(1, right.length() - 1);
+                } else if (right.startsWith("%")) {
+                    type = MatchEnum.SUFFIX.getType();
+                    right = right.substring(1);
+                } else if (right.endsWith("%")) {
+                    type = MatchEnum.PREFIX.getType();
+                    right = right.substring(0, right.length() - 1);
+                } else {
+                    type = MatchEnum.EXACTLY.getType();
+                }
+
+                String finalType = type;
+                if (matches.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(finalType))) {
+                    for (Match match : matches) {
+                        if (match.getFieldKey().equals(left) && match.getType().equals(type)) {
+                            match.getFieldValues().add(right);
+                        }
+                    }
+                } else {
+                    Match match = new Match();
+                    match.setFieldKey(left);
+                    match.setType(type);
+                    match.setFieldValues(Lists.newArrayList(right));
+                    matches.add(match);
+                }
+            }
+
+            @Override
+            public void visit(EqualsTo expr) {
+                String left = String.valueOf(expr.getLeftExpression());
+                Object right;
+                if (expr.getRightExpression() instanceof LongValue) {
+                    right = ((LongValue) expr.getRightExpression()).getValue();
+                } else {
+                    right = ((StringValue) expr.getRightExpression()).getValue();
+                }
+                if (ranges.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(RangeTypeEnum.EQ.getType()))) {
+                    for (Range range : ranges) {
+                        if (range.getFieldKey().equals(left) && range.getType().equals(RangeTypeEnum.EQ.getType())) {
+                            range.getFieldValues().add(right);
+                        }
+                    }
+                } else {
+                    Range range = new Range();
+                    range.setFieldKey(left);
+                    range.setType(RangeTypeEnum.EQ.getType());
+                    range.setFieldValues(Lists.newArrayList(right));
+                    ranges.add(range);
+                }
+            }
+
+            @Override
+            public void visit(InExpression expr) {
+                String left = String.valueOf(expr.getLeftExpression());
+                if (ranges.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(RangeTypeEnum.EQ.getType()))) {
+                    for (Range range : ranges) {
+                        if (range.getFieldKey().equals(left) && range.getType().equals(RangeTypeEnum.EQ.getType())) {
+                            ItemsList rightItemsList = expr.getRightItemsList();
+                            rightItemsList.accept(new ItemsListVisitorAdapter() {
+                                @Override
+                                public void visit(ExpressionList expressionList) {
+                                    for (Expression expression : expressionList.getExpressions()) {
+                                        if (expression instanceof StringValue) {
+                                            range.getFieldValues().add(((StringValue) expression).getValue());
+                                        } else if (expression instanceof LongValue) {
+                                            range.getFieldValues().add(((LongValue) expression).getValue());
+                                        }
+
+                                    }
+                                }
+
+                            });
+                        }
+                    }
+                } else {
+                    Range range = new Range();
+                    range.setFieldKey(left);
+                    range.setFieldValues(Lists.newArrayList());
+                    range.setType(RangeTypeEnum.EQ.getType());
+                    ItemsList rightItemsList = expr.getRightItemsList();
+                    rightItemsList.accept(new ItemsListVisitorAdapter() {
+                        @Override
+                        public void visit(ExpressionList expressionList) {
+                            for (Expression expression : expressionList.getExpressions()) {
+                                if (expression instanceof StringValue) {
+                                    range.getFieldValues().add(((StringValue) expression).getValue());
+                                } else if (expression instanceof LongValue) {
+                                    range.getFieldValues().add(((LongValue) expression).getValue());
+                                }
+
+                            }
+                        }
+                    });
+                    ranges.add(range);
+                }
+            }
+
+            @Override
+            public void visit(GreaterThan expr) {
+                String left = String.valueOf(expr.getLeftExpression());
+                Object right;
+                if (expr.getRightExpression() instanceof LongValue) {
+                    right = ((LongValue) expr.getRightExpression()).getValue();
+                } else {
+                    right = ((StringValue) expr.getRightExpression()).getValue();
+                }
+                if (ranges.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(RangeTypeEnum.GT.getType()))) {
+                    for (Range range : ranges) {
+                        if (range.getFieldKey().equals(left) && range.getType().equals(RangeTypeEnum.EQ.getType())) {
+                            range.getFieldValues().add(right);
+                        }
+                    }
+                } else {
+                    Range range = new Range();
+                    range.setFieldKey(left);
+                    range.setType(RangeTypeEnum.GT.getType());
+                    range.setFieldValues(Lists.newArrayList(right));
+                    ranges.add(range);
+                }
+            }
+
+            @Override
+            public void visit(GreaterThanEquals expr) {
+                String left = String.valueOf(expr.getLeftExpression());
+                Object right;
+                if (expr.getRightExpression() instanceof LongValue) {
+                    right = ((LongValue) expr.getRightExpression()).getValue();
+                } else {
+                    right = ((StringValue) expr.getRightExpression()).getValue();
+                }
+                if (ranges.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(RangeTypeEnum.EQ.getType()))) {
+                    for (Range range : ranges) {
+                        if (range.getFieldKey().equals(left) && range.getType().equals(RangeTypeEnum.EQ.getType())) {
+                            range.getFieldValues().add(right);
+                        }
+                    }
+                } else {
+                    Range range = new Range();
+                    range.setFieldKey(left);
+                    range.setType(RangeTypeEnum.EQ.getType());
+                    range.setFieldValues(Lists.newArrayList(right));
+                    ranges.add(range);
+                }
+            }
+        };
+        return expressionVisitorAdapter;
     }
 
     private static <T> Predicate<T> distinctByValue(Function<? super T, Object> keyExtractor) {
@@ -587,7 +823,7 @@ public class DslServiceImpl implements DslService {
                 }
             }
         };
-        Expression expression = CCJSqlParserUtil.parseExpression(filter);
+        Expression expression = CCJSqlParserUtil.parseExpression(filter, false);
         String strExpr = expression.toString();
         expression.accept(expressionVisitorAdapter);
         if (params.size() > 0 && oldExpression.size() == 1) {
