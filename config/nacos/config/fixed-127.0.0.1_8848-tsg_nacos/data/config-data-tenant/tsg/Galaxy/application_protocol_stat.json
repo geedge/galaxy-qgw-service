@@ -176,6 +176,9 @@
       "name": "client_ip_sketch",
       "label": "Client IP Sketch",
       "doc": {
+        "constraints": {
+          "aggregation_functions": "APPROX_COUNT_DISTINCT_DS_HLL"
+        },
         "visibility": "enabled"
       },
       "type": {
