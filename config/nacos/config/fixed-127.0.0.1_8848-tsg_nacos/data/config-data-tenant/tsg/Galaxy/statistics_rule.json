@@ -387,7 +387,8 @@
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
-          "metric_type": "gauge"
+          "metric_type": "gauge",
+          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD,HLLD"
         },
         "visibility": "enabled"
       },
@@ -399,7 +400,8 @@
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
-          "metric_type": "gauge"
+          "metric_type": "gauge",
+          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD,HLLD"
         },
         "visibility": "enabled"
       },
@@ -411,7 +413,8 @@
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
-          "metric_type": "gauge"
+          "metric_type": "gauge",
+          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD,HLLD"
         },
         "visibility": "enabled"
       },
@@ -423,7 +426,8 @@
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
-          "metric_type": "histogram"
+          "metric_type": "histogram",
+          "aggregation_functions": "QUANTILE_HDR,MEDIAN,HDR_HISTOGRAM,PERCENTILES_HDR"
         },
         "visibility": "enabled"
       },
@@ -435,7 +439,8 @@
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
-          "metric_type": "histogram"
+          "metric_type": "histogram",
+          "aggregation_functions": "QUANTILE_HDR,MEDIAN,HDR_HISTOGRAM.PERCENTILES_HDR"
         },
         "visibility": "enabled"
       },
@@ -447,7 +452,8 @@
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
-          "metric_type": "histogram"
+          "metric_type": "histogram",
+          "aggregation_functions": "QUANTILE_HDR,MEDIAN,HDR_HISTOGRAM,PERCENTILES_HDR"
         },
         "visibility": "enabled"
       },
