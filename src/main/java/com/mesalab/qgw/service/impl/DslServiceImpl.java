@@ -1,5 +1,6 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
@@ -33,8 +34,11 @@ import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.service.DslService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.qgw.service.QueryService;
+import com.mesalab.services.common.dsl.ComDSLObject;
+import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.enums.UnstructuredDataType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import com.mesalab.services.service.RelationService;
 import com.mesalab.services.service.UnstructuredService;
 import com.mesalab.services.service.impl.UnstructuredServiceImpl;
 import net.sf.jsqlparser.JSQLParserException;
@@ -85,6 +89,8 @@ public class DslServiceImpl implements DslService {
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
     KnowledgeService knowledgeService;
+    @Autowired
+    RelationService relationService;
 
     private static final String TABLE_TRAFFIC_GENERAL_STAT = "traffic_general_stat";
     private static final String TABLE_APPLICATION_PROTOCOL_STAT = "application_protocol_stat";
@@ -315,9 +321,15 @@ public class DslServiceImpl implements DslService {
 
     @Override
     public BaseResult realTimeDataAnalyticsMobileIdentityRelateTeid(DSLProfile dslProfile) {
-        //缺少查询优化逻辑，待补充
-        String sql = dslProfile.toSql(environment.getProperty("REAL_TIME_DATA_ANALYTICS_MOBILE_IDENTITY_RELATE_TEID"), TABLE_GTPC_KNOWLEDGE_BASE, "last_update_time", LOGICAL_TYPE_UNIX_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
+        String dataSource = "gtpc_knowledge_base";
+        DSLObject dslObject = getDslObject(dslProfile, null, dataSource);
+        ComDSLObject comDSLObject = BeanUtil.copyProperties(dslObject, ComDSLObject.class);
+        if (!StrUtil.isEmptyIfStr(dslObject.getQuery())
+                && !StrUtil.isEmptyIfStr(dslObject.getQuery().getParameters())
+                && !StrUtil.isEmptyIfStr(dslObject.getQuery().getParameters().getLimit())) {
+            comDSLObject.getQuery().setLimit(dslObject.getQuery().getParameters().getLimit());
+        }
+        BaseResult baseResult = relationService.getRealRelation(EntityQueryType.GTPC.getType(), comDSLObject);
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
