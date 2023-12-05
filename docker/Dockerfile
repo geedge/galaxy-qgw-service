@@ -4,7 +4,7 @@ ARG GOLANG_IMAGE
 FROM ${GOLANG_IMAGE} as builder
 WORKDIR /build
 COPY xjar.go /build/
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o xjar .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -a -installsuffix cgo -o xjar .
 
 FROM ${JDK_IMAGE}
 MAINTAINER Galaxy
