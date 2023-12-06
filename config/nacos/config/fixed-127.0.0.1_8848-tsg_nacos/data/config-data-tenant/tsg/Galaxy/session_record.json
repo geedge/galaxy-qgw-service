@@ -1820,6 +1820,11 @@
       "name": "packet_capture_file",
       "label": "Packet Capture File",
       "doc": {
+        "format": [
+          {
+            "function": "combine"
+          }
+        ],
         "allow_query": "false",
         "visibility": "enabled",
         "constraints": {
@@ -3551,6 +3556,11 @@
       "name": "rtp_pcap_path",
       "label": "RTP.PCAP",
       "doc": {
+        "format": [
+          {
+            "function": "combine"
+          }
+        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"
