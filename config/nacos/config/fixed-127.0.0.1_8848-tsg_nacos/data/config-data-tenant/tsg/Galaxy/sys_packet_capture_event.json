@@ -1224,6 +1224,11 @@
       "name": "packet_url",
       "type": "string",
       "doc": {
+        "format": [
+          {
+            "function": "combine"
+          }
+        ],
         "constraints": {
           "type": "file"
         },
