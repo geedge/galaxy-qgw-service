@@ -34,16 +34,10 @@
       ]
     },
     {
-      "namespace":"tsg",
-      "group":"HBASE_GROUP",
-      "tables":[
-        "report_result"
-      ]
-    },
-    {
       "namespace": "tsg_galaxy",
       "group": "HBASE_GROUP",
       "tables": [
+        "saved_query_result"
       ]
     }
   ]

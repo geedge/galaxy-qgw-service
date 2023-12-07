@@ -1,7 +1,7 @@
 {
   "type": "record",
-  "name": "report_result",
-  "namespace": "tsg",
+  "name": "saved_query_result",
+  "namespace": "tsg_galaxy",
   "fields": [
     {
       "name":"ROWKEY",

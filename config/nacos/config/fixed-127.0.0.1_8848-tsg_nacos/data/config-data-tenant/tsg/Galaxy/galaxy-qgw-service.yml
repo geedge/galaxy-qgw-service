@@ -50,7 +50,7 @@ hbase:
   rpcTimeout: 60000
   report:
     dbname: tsg
-    tableName: report_result
+    tableName: saved_query_result
     columnFamily: response
     columnName: result
 ##############动态参数配置(修改后不需要重启项目)##############
