@@ -45,43 +45,43 @@ select client_ip as client_ip, vsys_id as vsys_id from %s where %s %s AND notEmp
 #end
 
 #sql("ENTITY_UDP_SESSION")
-select server_ip as server_ip,vsys_id as vsys_id ,COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') and server_port in (53 , 443) group by server_ip,vsys_id order by sessions desc limit %s
+select server_ip as server_ip,vsys_id as vsys_id ,COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'UDP') and server_port in (53 , 443) group by server_ip,vsys_id order by sessions desc limit %s
 #end
 
 #sql("ENTITY_UDP_UNIQ_CLIENT_IPS")
-select server_ip as server_ip, vsys_id as vsys_id  from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') group by server_ip,vsys_id order by COUNT(DISTINCT(client_ip)) desc limit %s
+select server_ip as server_ip, vsys_id as vsys_id  from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'UDP') group by server_ip,vsys_id order by COUNT(DISTINCT(client_ip)) desc limit %s
 #end
 
 #sql("ENTITY_TCP_SESSION")
-select server_ip as server_ip,vsys_id as vsys_id ,COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') group by server_ip,vsys_id order by sessions desc limit %s
+select server_ip as server_ip,vsys_id as vsys_id ,COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'TCP') group by server_ip,vsys_id order by sessions desc limit %s
 #end
 
 #sql("ENTITY_TCP_UNIQ_CLIENT_IPS")
-select server_ip as server_ip, vsys_id as vsys_id from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') group by server_ip, vsys_id order by COUNT(DISTINCT(client_ip)) desc limit %s
+select server_ip as server_ip, vsys_id as vsys_id from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'TCP') group by server_ip, vsys_id order by COUNT(DISTINCT(client_ip)) desc limit %s
 #end
 
 #sql("TOP_ENTITY_TCP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(client_ip)) as client_ips from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') AND server_ip in (select server_ip from %s as cc where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') group by server_ip order by COUNT(DISTINCT(client_ip)) desc limit %s)
+select COUNT(DISTINCT(client_ip)) as client_ips from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'TCP') AND server_ip in (select server_ip from %s as cc where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'TCP') group by server_ip order by COUNT(DISTINCT(client_ip)) desc limit %s)
 #end
 
 #sql("TOP_ENTITY_UDP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(client_ip)) as client_ips from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') AND server_ip in (select server_ip from %s as cc where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') group by server_ip order by COUNT(DISTINCT(client_ip)) desc limit %s)
+select COUNT(DISTINCT(client_ip)) as client_ips from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'UDP') AND server_ip in (select server_ip from %s as cc where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'UDP') group by server_ip order by COUNT(DISTINCT(client_ip)) desc limit %s)
 #end
 
 #sql("TOTAL_ENTITY_UDP_SESSION")
-select COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') and server_port in (53 , 443) limit 1
+select COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'UDP') and server_port in (53 , 443) limit 1
 #end
 
 #sql("TOTAL_ENTITY_UDP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(client_ip)) as uniq_client_ips from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'UDP') limit 1
+select COUNT(DISTINCT(client_ip)) as uniq_client_ips from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'UDP') limit 1
 #end
 
 #sql("TOTAL_ENTITY_TCP_SESSION")
-select COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') limit 1
+select COUNT(1) as sessions from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'TCP') limit 1
 #end
 
 #sql("TOTAL_ENTITY_TCP_UNIQ_CLIENT_IPS")
-select COUNT(DISTINCT(client_ip)) as uniq_client_ips  from %s where %s AND (arrayElement(splitByString('.',protocol_path),length(splitByString('.',protocol_path))) = 'TCP') limit 1
+select COUNT(DISTINCT(client_ip)) as uniq_client_ips  from %s where %s AND (arrayElement(splitByString('.',decoded_path),length(splitByString('.',decoded_path))) = 'TCP') limit 1
 #end
 
 #sql("ENTITY_TOP_SNI")
