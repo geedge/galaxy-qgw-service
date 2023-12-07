@@ -66,7 +66,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
-        LOGICAL_FIELD.put("protocol_stack_id", "protocol_path");
+        LOGICAL_FIELD.put("protocol_stack_id", "decoded_path");
         LOGICAL_FIELD.put("app_name", "app");
     }
 
