@@ -61,16 +61,10 @@
       ]
     },
     {
-      "namespace":"tsg",
-      "group":"HBASE_GROUP",
-      "tables":[
-        "report_result"
-      ]
-    },
-    {
       "namespace": "tsg_galaxy",
       "group": "HBASE_GROUP",
       "tables": [
+        "saved_query_result",
         "relation_account_framedip",
         "recommendation_app_cip",
         "job_result",
