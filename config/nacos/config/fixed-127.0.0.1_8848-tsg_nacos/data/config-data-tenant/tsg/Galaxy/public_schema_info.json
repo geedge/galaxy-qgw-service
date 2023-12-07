@@ -57,11 +57,6 @@
         "function": "PERCENTILES_HDR(expr)"
       },
       {
-        "name": "TIME_FLOOR_WITH_FILL",
-        "label": "TIME_FLOOR_WITH_FILL",
-        "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
-      },
-      {
         "name": "HLLD",
         "label": "HLLD",
         "function": "HLLD(expr)"
@@ -102,6 +97,11 @@
         "name": "CONVERT_TZ",
         "label": "CONVERT_TZ",
         "function": "CONVERT_TZ(expr, from_tz, to_tz)"
+      },
+      {
+        "name": "TIME_FLOOR_WITH_FILL",
+        "label": "TIME_FLOOR_WITH_FILL",
+        "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
       }
     ],
     "operator": [
