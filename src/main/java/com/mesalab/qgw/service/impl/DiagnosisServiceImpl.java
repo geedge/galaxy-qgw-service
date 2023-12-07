@@ -1,7 +1,6 @@
 package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.util.IdUtil;
@@ -27,7 +26,6 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.nacos.NacosConfig;
-import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -43,7 +41,6 @@ import com.geedgenetworks.utils.*;
 import com.mesalab.services.service.SQLDatasetService;
 import lombok.Data;
 import org.apache.avro.Schema;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -53,7 +50,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -160,7 +156,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
             result = BaseResultGenerator.success("Avro Schema Validation Success.", data, statistics);
-            result.setFormatType(QueryFormatEnum.JSON.getValue());
+            result.setFormatType(OutputModeEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Avro Schema Validation Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
@@ -196,7 +192,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
-            result.setFormatType(QueryFormatEnum.JSON.getValue());
+            result.setFormatType(OutputModeEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Metadata Validation Fail: {}", e.getMessage());
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
@@ -267,7 +263,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
-            result.setFormatType(QueryFormatEnum.JSON.getValue());
+            result.setFormatType(OutputModeEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
@@ -302,7 +298,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             }
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
-            result.setFormatType(QueryFormatEnum.JSON.getValue());
+            result.setFormatType(OutputModeEnum.JSON.getValue());
         } catch (RuntimeException | IOException e) {
             log.error("Get Poc SQL Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
@@ -674,7 +670,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     }
 
     private QueryProfile queryBuild(String sql) {
-        return QueryProfile.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
+        return QueryProfile.builder().format(OutputModeEnum.JSON.getValue()).query(sql).build();
     }
 
     private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {

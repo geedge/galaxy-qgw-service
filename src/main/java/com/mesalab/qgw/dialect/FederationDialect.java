@@ -15,7 +15,7 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.OutputModeEnum;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
@@ -156,7 +156,7 @@ public class FederationDialect extends AbstractEngineDialect{
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
         extendMetaInfo(baseResult.getMeta());
-        if (param.getFormat().equalsIgnoreCase(QueryFormatEnum.CSV.getValue())) {
+        if (param.getFormat().equalsIgnoreCase(OutputModeEnum.CSV.getValue())) {
             convertJsonToCSV();
         }
         baseResult.setFormatType(param.getFormat());

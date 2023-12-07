@@ -3,9 +3,9 @@ package com.mesalab.common.enums;
 import lombok.Getter;
 
 @Getter
-public enum QueryFormatEnum {
+public enum OutputModeEnum {
     JSON("json"),
     CSV("csv"),;
     private String value;
-    QueryFormatEnum(String value) {this.value = value;}
+    OutputModeEnum(String value) {this.value = value;}
 }

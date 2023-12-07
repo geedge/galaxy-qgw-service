@@ -119,7 +119,7 @@ public class BaseResultGenerator {
      */
     public static <T> BaseResult<T> successCreate(final Map<String, Object> job) {
         return new BaseResult<>(ResultStatusEnum.CREATED.getCode(), ResultCodeEnum.SUCCESS.getCode(), null, true,
-                ResultCodeEnum.SUCCESS.getMessage(), null, job, null, null, null);
+                ResultStatusEnum.CREATED.getMessage(), null, job, null, null, null);
     }
 
 

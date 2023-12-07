@@ -17,8 +17,8 @@ public enum ResultStatusEnum {
      * SERVER_ERROR: 500 网络服务异常
      */
     SUCCESS(200, "Success"),
-    CREATED(201, "Create"),
-    ACCEPTED(202, "Accept"),
+    CREATED(201, "Created"),
+    ACCEPTED(202, "Accepted"),
     BAD_REQUEST(400, "Bad request"),
     NOT_FOUND(404, "Not found"),
     REQUEST_URI_TOO_LONG(414, "Request URI too long"),

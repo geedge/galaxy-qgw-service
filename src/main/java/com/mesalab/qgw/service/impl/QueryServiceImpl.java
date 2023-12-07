@@ -117,7 +117,7 @@ public class QueryServiceImpl implements QueryService {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
         }
         if (StringUtil.isBlank(param.getFormat())) {
-            param.setFormat(QueryFormatEnum.JSON.getValue());
+            param.setFormat(OutputModeEnum.JSON.getValue());
         }
         if (StringUtil.isBlank(param.getQuery())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -127,7 +127,7 @@ public class QueryServiceImpl implements QueryService {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.OPTION_TYPE_ERROR));
         }
-        if (Arrays.stream(QueryFormatEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
+        if (Arrays.stream(OutputModeEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),QGWMessageConst.FORMAT_TYPE_ERROR));
         }
@@ -483,7 +483,7 @@ public class QueryServiceImpl implements QueryService {
                             tableName + ":" + QGWMessageConst.TABLE_NOT_EXIST));
         }
 
-        param.setFormat(QueryFormatEnum.JSON.getValue());
+        param.setFormat(OutputModeEnum.JSON.getValue());
         SQLQuerySource dbQuerySource = new SQLQuerySource();
         dbQuerySource.setSqlBody(param.getQuery());
         param.setDbQuerySource(dbQuerySource);
@@ -533,7 +533,7 @@ public class QueryServiceImpl implements QueryService {
             } else {
                 return;
             }
-            dbParam.setFormat(QueryFormatEnum.JSON.getValue());
+            dbParam.setFormat(OutputModeEnum.JSON.getValue());
             Dialect dialect = getReflectiveDialectObject(dbParam);
             BaseResult queryResult = dialect.executeAdministrativeQuery();
             if (queryResult.getStatus() == null || queryResult.getStatus() != ResultStatusEnum.SUCCESS.getCode()) {
