@@ -9,40 +9,16 @@
     },
     "schema_query": {
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "rule_id",
-        "template_id",
-        "chart_id",
-        "version",
-        "client_ip_object",
-        "server_ip_object",
-        "fqdn_category",
         "client_ip",
         "server_ip",
         "server_fqdn",
         "server_domain",
-        "application"
+        "application",
+        "fqdn_category",
+        "client_ip_object",
+        "server_ip_object"
       ],
       "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "rule_id",
-        "template_id",
-        "chart_id",
-        "version",
-        "client_ip_object",
-        "server_ip_object",
-        "fqdn_category",
-        "client_ip",
-        "server_ip",
-        "server_fqdn",
-        "server_domain",
-        "application",
         "in_bytes",
         "out_bytes",
         "bytes",
@@ -60,40 +36,7 @@
         "out_latency_ms_sketch",
         "latency_ms_sketch"
       ],
-      "filters": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "rule_id",
-        "template_id",
-        "chart_id",
-        "version",
-        "client_ip_object",
-        "server_ip_object",
-        "fqdn_category",
-        "client_ip",
-        "server_ip",
-        "server_fqdn",
-        "server_domain",
-        "application",
-        "in_bytes",
-        "out_bytes",
-        "bytes",
-        "new_c2s_flows",
-        "new_s2c_flows",
-        "new_in_sessions",
-        "new_out_sessions",
-        "sessions",
-        "new_unestablished_sessions",
-        "syn_pkts",
-        "session_identifier_sketch",
-        "client_ip_sketch",
-        "server_ip_sketch",
-        "in_latency_ms_sketch",
-        "out_latency_ms_sketch",
-        "latency_ms_sketch"
-      ],
+      "filters": [],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
@@ -204,7 +147,7 @@
     },
     {
       "name": "client_ip_object",
-      "label": "Client IP Object",
+      "label": "Client IP Matched Objects",
       "doc": {
         "visibility": "enabled"
       },
@@ -212,7 +155,7 @@
     },
     {
       "name": "server_ip_object",
-      "label": "Server IP Object",
+      "label": "Server IP Matched Objects",
       "doc": {
         "visibility": "enabled"
       },
@@ -220,14 +163,9 @@
     },
     {
       "name": "fqdn_category",
-      "label": "FQDN Category",
+      "label": "WebSketch Categories",
       "doc": {
-        "visibility": "enabled",
-        "dict_location": {
-          "path": "/v1/category/dict",
-          "key": "categoryId",
-          "value": "categoryName"
-        }
+        "visibility": "enabled"
       },
       "type": "string"
     },
@@ -388,7 +326,7 @@
         "constraints": {
           "type": "HLLDSketchMerge",
           "metric_type": "gauge",
-          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD,HLLD"
+          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD"
         },
         "visibility": "enabled"
       },
@@ -401,7 +339,7 @@
         "constraints": {
           "type": "HLLDSketchMerge",
           "metric_type": "gauge",
-          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD,HLLD"
+          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD"
         },
         "visibility": "enabled"
       },
@@ -414,7 +352,7 @@
         "constraints": {
           "type": "HLLDSketchMerge",
           "metric_type": "gauge",
-          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD,HLLD"
+          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD"
         },
         "visibility": "enabled"
       },
@@ -427,7 +365,7 @@
         "constraints": {
           "type": "HdrHistogramSketchMerge",
           "metric_type": "histogram",
-          "aggregation_functions": "QUANTILE_HDR,MEDIAN,HDR_HISTOGRAM,PERCENTILES_HDR"
+          "aggregation_functions": "PERCENTILES_HDR"
         },
         "visibility": "enabled"
       },
@@ -440,7 +378,7 @@
         "constraints": {
           "type": "HdrHistogramSketchMerge",
           "metric_type": "histogram",
-          "aggregation_functions": "QUANTILE_HDR,MEDIAN,HDR_HISTOGRAM.PERCENTILES_HDR"
+          "aggregation_functions": "PERCENTILES_HDR"
         },
         "visibility": "enabled"
       },
@@ -453,7 +391,7 @@
         "constraints": {
           "type": "HdrHistogramSketchMerge",
           "metric_type": "histogram",
-          "aggregation_functions": "QUANTILE_HDR,MEDIAN,HDR_HISTOGRAM,PERCENTILES_HDR"
+          "aggregation_functions": "PERCENTILES_HDR"
         },
         "visibility": "enabled"
       },
