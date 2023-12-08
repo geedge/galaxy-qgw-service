@@ -1408,7 +1408,8 @@
       "doc": {
         "format": [
           {
-            "function": "combine"
+            "function": "combine",
+            "param": "pcap_file_bucket"
           }
         ],
         "allow_query": "false",
@@ -1893,7 +1894,8 @@
       "doc": {
         "format": [
           {
-            "function": "combine"
+            "function": "combine",
+            "param": "pcap_file_bucket"
           }
         ],
         "allow_query": "false",
