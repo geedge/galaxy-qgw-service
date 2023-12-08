@@ -16,7 +16,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.OutputModeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -682,7 +682,7 @@ public class DslServiceImpl implements DslService {
     }
 
     private QueryProfile queryBuild(String sql) {
-        return QueryProfile.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
+        return QueryProfile.builder().format(OutputModeEnum.JSON.getValue()).query(sql).build();
     }
 
     private BaseResult build(List<Map> dataList, Stopwatch watch) {

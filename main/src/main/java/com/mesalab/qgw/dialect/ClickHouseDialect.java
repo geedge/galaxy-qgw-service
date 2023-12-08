@@ -155,7 +155,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         StringBuilder queryParamBuilder = new StringBuilder(getLongTermAccount()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(killSql)
-                .append(" FORMAT ").append(QueryFormatEnum.JSON.getValue().toUpperCase()).append(" ;");
+                .append(" FORMAT ").append(OutputModeEnum.JSON.getValue().toUpperCase()).append(" ;");
         List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
 
         Map<String, String> map = httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), 0);
@@ -735,7 +735,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     JSON.parseObject(results.get("result"), Map.class),
                     null,
                     null,
-                    QueryFormatEnum.JSON.getValue());
+                    OutputModeEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")),
 
@@ -830,7 +830,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         log.info("DB engine is :{},execute http query is :{}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
                 Encodes.urlDecode(clickHouseHttpQuery.getQueryParameter()).replaceAll("password=(.*?)&", "password=XXX&") + ". body sql is:" + sql);
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
-        return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase())
+        return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(OutputModeEnum.JSON.getValue().toUpperCase())
                 , clickHouseHttpQuery.getSocketTimeOut());
     }
 

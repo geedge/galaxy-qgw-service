@@ -7,7 +7,7 @@ import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.OutputModeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.model.basic.QueryProfile;
@@ -49,7 +49,7 @@ public class ReportCacheUtils {
             baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "The saved query job result [jobId:" + rowKey + "] is unavailable. It Has been deleted or does not exist.");
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.SUCCESS.getCode(), String.valueOf(map.get("message")),
-                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), QueryFormatEnum.JSON.getValue());
+                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), OutputModeEnum.JSON.getValue());
         }
         return baseResult;
     }

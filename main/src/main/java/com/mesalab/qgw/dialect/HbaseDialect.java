@@ -8,7 +8,7 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryFormatEnum;
+import com.mesalab.common.enums.OutputModeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.SpringContextUtil;
@@ -142,7 +142,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         int status = Integer.parseInt(String.valueOf(results.get("status")));
         if (status == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SUCCESS.getCode(), message.get(),
-                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), QueryFormatEnum.JSON.getValue());
+                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), OutputModeEnum.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(status, QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), String.valueOf(results.get("message")),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), param.getFormat());

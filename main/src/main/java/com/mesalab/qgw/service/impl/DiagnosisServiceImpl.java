@@ -158,7 +158,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
             result = BaseResultGenerator.success("Avro Schema Validation Success.", data, statistics);
-            result.setFormatType(QueryFormatEnum.JSON.getValue());
+            result.setFormatType(OutputModeEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Avro Schema Validation Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
@@ -194,7 +194,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
-            result.setFormatType(QueryFormatEnum.JSON.getValue());
+            result.setFormatType(OutputModeEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Metadata Validation Fail: {}", e.getMessage());
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
@@ -265,7 +265,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
-            result.setFormatType(QueryFormatEnum.JSON.getValue());
+            result.setFormatType(OutputModeEnum.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
@@ -300,7 +300,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             }
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
-            result.setFormatType(QueryFormatEnum.JSON.getValue());
+            result.setFormatType(OutputModeEnum.JSON.getValue());
         } catch (RuntimeException | IOException e) {
             log.error("Get Poc SQL Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
@@ -672,7 +672,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     }
 
     private QueryProfile queryBuild(String sql) {
-        return QueryProfile.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
+        return QueryProfile.builder().format(OutputModeEnum.JSON.getValue()).query(sql).build();
     }
 
     private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {

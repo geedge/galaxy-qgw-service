@@ -40,14 +40,11 @@ import net.sf.jsqlparser.statement.select.Select;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -264,7 +261,7 @@ public class SQLDatasetServiceImp
         Map<String, String> results = druidExecuteHttpPost(sql);
         if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.valueOf(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    (List<Object>) JSON.parseObject(results.get("result"), Object.class), null, null, QueryFormatEnum.JSON.getValue());
+                    (List<Object>) JSON.parseObject(results.get("result"), Object.class), null, null, OutputModeEnum.JSON.getValue());
             dataObject = baseResult.getData();
             List<Object> allResults = (List<Object>) dataObject;
             Map<String, Object> statistics = Maps.newLinkedHashMap();
@@ -274,7 +271,7 @@ public class SQLDatasetServiceImp
             baseResult.setStatistics(statistics);
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), results.get("message"),
-                    results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
+                    results.get("result"), null, null, OutputModeEnum.JSON.getValue());
             dataObject = baseResult.getData();
             baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
         }
@@ -307,7 +304,7 @@ public class SQLDatasetServiceImp
         Map<String, String> results = clickHouseExecuteHttpPost(sql);
         if (Integer.parseInt(results.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), ResultCodeEnum.SUCCESS.getCode(), "ok",
-                    JSON.parseObject(results.get("result"), Map.class), null, null, QueryFormatEnum.JSON.getValue());
+                    JSON.parseObject(results.get("result"), Map.class), null, null, OutputModeEnum.JSON.getValue());
             dataObject = baseResult.getData();
             Map<String, Object> resultMap = (Map<String, Object>) dataObject;
             Map<String, Object> statisticMap = (Map<String, Object>) resultMap.get("statistics");
@@ -318,7 +315,7 @@ public class SQLDatasetServiceImp
             baseResult.setStatistics(statistics);
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(results.get("status")), QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), null,
-                    results.get("result"), null, null, QueryFormatEnum.JSON.getValue());
+                    results.get("result"), null, null, OutputModeEnum.JSON.getValue());
             dataObject = baseResult.getData();
             baseResult.setStatus((baseResult.getStatus() < 500) || (baseResult.getStatus() > 400) ? ResultStatusEnum.SERVER_ERROR.getCode() : baseResult.getStatus());
             baseResult.setMessage("SQL Execution Error: ".concat(JsonPath.read(dataObject.toString(), "$.errorMessage")));
@@ -338,7 +335,7 @@ public class SQLDatasetServiceImp
         clickHouseHttpQuery.setQueryParameter(queryParamBuilder.toString());
         log.info("DB Engine is :{}, Execute Http Query is: {}", DBTypeEnum.CLICKHOUSE.getValue(), JSON.toJSONString(clickHouseHttpQuery));
         List<NameValuePair> values = URLEncodedUtils.parse(clickHouseHttpQuery.getQueryParameter(), Charset.forName("UTF-8"));
-        return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(QueryFormatEnum.JSON.getValue().toUpperCase()), clickHouseHttpQuery.getSocketTimeOut());
+        return httpClientService.httpPost(queryURL + URLEncodedUtils.format(values, "utf-8"), sql.concat(" FORMAT ").concat(OutputModeEnum.JSON.getValue().toUpperCase()), clickHouseHttpQuery.getSocketTimeOut());
     }
 
 
@@ -370,7 +367,7 @@ public class SQLDatasetServiceImp
     }
 
     private QueryProfile queryBuild(String sql) {
-        return QueryProfile.builder().format(QueryFormatEnum.JSON.getValue()).query(sql).build();
+        return QueryProfile.builder().format(OutputModeEnum.JSON.getValue()).query(sql).build();
     }
 
 
