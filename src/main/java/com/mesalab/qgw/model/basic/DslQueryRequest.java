@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,7 +35,7 @@ public class DslQueryRequest extends QueryRequest implements Serializable {
     @JsonProperty("order_by")
     private String orderBy;
     @JsonProperty("intervals")
-    private String intervals;
+    private List<String> intervals;
     @JsonProperty("limit")
     private String limit;
     private Map<String, Object> customAttributes = Maps.newHashMap();
