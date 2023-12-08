@@ -1,5 +1,7 @@
 package com.mesalab.qgw.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
@@ -16,12 +18,10 @@ import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.HazelcastInstanceUtil;
+import com.mesalab.qgw.controller.DslController;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.basic.DslQueryRequest;
-import com.mesalab.qgw.model.basic.QueryCache;
-import com.mesalab.qgw.model.basic.QueryProfile;
-import com.mesalab.qgw.model.basic.SqlQueryRequest;
+import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.QueryJobService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -34,11 +34,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * TODO
@@ -55,6 +51,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private QueryService queryService;
     private JobService jobService;
     private JobExecuteService jobExecuteService;
+    private DslController dslController;
 
     @Override
     public BaseResult commitSqlSavedQuery(SqlQueryRequest request) {
@@ -122,11 +119,61 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Supported"));
     }
 
+    @Override
+    public BaseResult commitDslAdHoc(DslQueryRequest request) {
+        ExecModeEnum execMode = request.getExecMode();
+        if (ExecModeEnum.ONESHOT.equals(execMode)) {
+            DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
+            BaseResult baseResult = dslController.post(dslProfile);
+            request.getCustomAttributes().put("UUID", System.currentTimeMillis());
+            String id = DigestUtil.md5Hex16(String.valueOf(request.toString()));
+            Map<String, Object> jobStatus = Maps.newHashMap();
+            jobStatus.put(JobConfig.JOB_ID, id);
+            jobStatus.put(JobConfig.IS_DONE, true);
+            jobStatus.put(JobConfig.IS_FAILED, false);
+            jobStatus.put(JobConfig.DONE_PROGRESS, 1);
+            baseResult.setJob(jobStatus);
+            return baseResult;
+        } else if (ExecModeEnum.NORMAL.equals(execMode)) {
+            if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+                HashMap<String, Object> map = Maps.newHashMap();
+                map.put(JobConfig.KEY_QUERY_TYPE, JobConfig.FIELD_DISCOVERY);
+                map.put(JobConfig.QUERY_DATA_SOURCE, request.getDataSource());
+                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, request.getCustomAttributes().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS));
+                map.put("filter", request.getCustomAttributes().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER));
+                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC, request.getCustomAttributes().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC));
+                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN, request.getCustomAttributes().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN));
+                return jobService.commitAdHocQuery(map);
+            } else {
+                DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
+                BaseResult baseResult = dslController.post(dslProfile);
+                request.getCustomAttributes().put("UUID", System.currentTimeMillis());
+                String id = DigestUtil.md5Hex16(String.valueOf(request.toString()));
+                Map<String, Object> jobStatus = Maps.newHashMap();
+                jobStatus.put(JobConfig.JOB_ID, id);
+                jobStatus.put(JobConfig.IS_DONE, true);
+                jobStatus.put(JobConfig.IS_FAILED, false);
+                jobStatus.put(JobConfig.DONE_PROGRESS, 1);
+                baseResult.setJob(jobStatus);
+                QueryCache queryCache = new QueryCache();
+                queryCache.setBaseResult(baseResult);
+                HazelcastInstanceUtil.put(id, queryCache);
+                return BaseResultGenerator.successCreate(buildJobResource(id));
+            }
+        }
+
+        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
+                String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Supported"));
+    }
 
     @Override
     public BaseResult adHocResult(String id) {
         QueryCache queryCache = HazelcastInstanceUtil.get(id);
-        return queryCache.getBaseResult();
+        if (StrUtil.isEmptyIfStr(queryCache)) {
+            return jobService.getResultFieldDiscovery(id);
+        } else {
+            return queryCache.getBaseResult();
+        }
     }
 
     @Override
@@ -137,19 +184,17 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult adHocStatus(String id) {
         QueryCache queryCache = HazelcastInstanceUtil.get(id);
-        return queryCache.getBaseResult();
+        if (StrUtil.isEmptyIfStr(queryCache)) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Supported"));
+        } else {
+            return queryCache.getBaseResult();
+        }
     }
 
     @Override
     public BaseResult savedQueryStatus(String id) {
         return jobService.getSavedQueryStatus(id);
-    }
-
-
-    @Override
-    public BaseResult commitDslAdHoc(DslQueryRequest request) {
-
-        return null;
     }
 
     @Override
@@ -229,5 +274,10 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Autowired
     public void setQueryService(QueryService queryService) {
         this.queryService = queryService;
+    }
+
+    @Autowired
+    public void setDslController(DslController dslController) {
+        this.dslController = dslController;
     }
 }

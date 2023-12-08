@@ -109,7 +109,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (isExist(id)) {
             log.info("Hoc Job already exist, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
-            return BaseResultGenerator.successCreate(buildJobResource(id, queryType));
+            return BaseResultGenerator.successCreate(buildJobResource(id));
         }
         log.info("Add Hoc Job, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
         Map<String, Object> property = Maps.newLinkedHashMap();
@@ -120,7 +120,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
             initStatisticsJob(id, reqBody, property);
             jobExecuteService.addExecutorStatistics(id, reqBody, property);
         }
-        return BaseResultGenerator.successCreate(buildJobResource(id, queryType));
+        return BaseResultGenerator.successCreate(buildJobResource(id));
     }
 
     private void initStatisticsJob(String id, HashMap<String, Object> reqBody, Map<String, Object> property) {
@@ -153,7 +153,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         String id = getSameJob(sql);
         String queryType = String.valueOf(map.get(JobConfig.KEY_QUERY_TYPE));
         if (StringUtil.isNotBlank(id)) {
-            return BaseResultGenerator.successCreate(buildJobResource(id, queryType));
+            return BaseResultGenerator.successCreate(buildJobResource(id));
         }
         map.put("UUID", System.currentTimeMillis());
         id = DigestUtil.md5Hex16(JobConfig.SAVED_QUERY)
@@ -161,7 +161,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
                 .concat(DigestUtil.md5Hex16(String.valueOf(map)));
         long currentTime = System.currentTimeMillis() / 1000;
         Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
-        return BaseResultGenerator.successCreate(buildJobResource(id, queryType));
+        return BaseResultGenerator.successCreate(buildJobResource(id));
     }
 
     @Override
@@ -692,10 +692,9 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         return i == 1;
     }
 
-    private Map<String, Object> buildJobResource(String id, String queryType) {
+    private Map<String, Object> buildJobResource(String id) {
         Map<String, Object> result = Maps.newHashMap();
         result.put(JobConfig.JOB_ID, id);
-        result.put(JobConfig.JOB_RESOURCE_PATH, id.concat("/").concat(queryType));
         return result;
     }
 
