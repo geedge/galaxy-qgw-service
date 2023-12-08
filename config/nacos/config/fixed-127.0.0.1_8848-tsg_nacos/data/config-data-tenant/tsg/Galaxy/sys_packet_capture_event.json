@@ -1226,7 +1226,8 @@
       "doc": {
         "format": [
           {
-            "function": "combine"
+            "function": "combine",
+            "param": "pcap_file_bucket"
           }
         ],
         "constraints": {

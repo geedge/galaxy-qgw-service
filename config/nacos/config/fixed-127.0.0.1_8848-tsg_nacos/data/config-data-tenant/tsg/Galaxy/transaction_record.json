@@ -628,7 +628,8 @@
       "doc": {
         "format": [
           {
-            "function": "combine"
+            "function": "combine",
+            "param": "traffic_file_bucket"
           }
         ],
         "allow_query": "false",
@@ -646,7 +647,8 @@
       "doc": {
         "format": [
           {
-            "function": "combine"
+            "function": "combine",
+            "param": "traffic_file_bucket"
           }
         ],
         "allow_query": "false",
@@ -907,7 +909,8 @@
       "doc": {
         "format": [
           {
-            "function": "combine"
+            "function": "combine",
+            "param": "traffic_file_bucket"
           }
         ],
         "constraints": {
