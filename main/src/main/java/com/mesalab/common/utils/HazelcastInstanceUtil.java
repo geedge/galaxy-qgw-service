@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentMap;
  * @Date 2023/12/5 15:13
  * @Author wWei
  */
-@Component
 public class HazelcastInstanceUtil implements ApplicationContextAware {
     private static HazelcastInstance hazelcastInstance;
 
