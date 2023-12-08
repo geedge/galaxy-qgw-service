@@ -721,14 +721,7 @@
       "name": "common_tunnels",
       "type": "string",
       "doc": {
-        "visibility": "hidden",
-        "format": [
-          {
-            "function": "gtpc_match",
-            "appendTo": "common_imsi,common_imei,common_phone_number",
-            "param": "$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_b2a_teid"
-          }
-        ]
+        "visibility": "hidden"
       },
       "label": "Tunnels"
     },
