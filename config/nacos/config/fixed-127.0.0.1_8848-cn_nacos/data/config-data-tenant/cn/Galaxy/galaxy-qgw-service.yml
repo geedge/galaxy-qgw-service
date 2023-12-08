@@ -49,7 +49,7 @@ hbase:
   zookeeperZnodeParent: /hbase
   rpcTimeout: 60000
   report:
-    dbname: tsg
+    dbname: tsg_galaxy
     tableName: saved_query_result
     columnFamily: response
     columnName: result
