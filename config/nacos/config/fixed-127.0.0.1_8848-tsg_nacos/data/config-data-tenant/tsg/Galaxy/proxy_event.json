@@ -1115,10 +1115,6 @@
           {
             "function": "geo_asn",
             "appendTo": "client_asn"
-          },
-          {
-            "function": "radius_match",
-            "appendTo": "subscriber_id"
           }
         ],
         "visibility": "enabled",
@@ -1603,14 +1599,7 @@
       "label": "Tunnels",
       "doc": {
         "visibility": "enabled",
-        "ttl": null,
-        "format": [
-          {
-            "function": "gtpc_match",
-            "appendTo": "imsi,imei,phone_number",
-            "param": "$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_a2b_teid,$.[?(@.tunnels_schema_type=='GTP')][0].gtp_endpoint_b2a_teid"
-          }
-        ]
+        "ttl": null
       },
       "type": "string"
     },
