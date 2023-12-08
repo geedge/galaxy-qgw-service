@@ -1896,6 +1896,16 @@
       "name": "http_host",
       "label": "HTTP.Host",
       "doc": {
+        "format": [
+          {
+            "function": "sub_domain",
+            "appendTo": "server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "server_fqdn"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -2895,6 +2905,16 @@
       "name": "ssl_sni",
       "label": "SSL.SNI",
       "doc": {
+        "format": [
+          {
+            "function": "sub_domain",
+            "appendTo": "server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "server_fqdn"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -3012,6 +3032,16 @@
       "name": "dtls_sni",
       "label": "DTLS.SNI",
       "doc": {
+        "format": [
+          {
+            "function": "sub_domain",
+            "appendTo": "server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "server_fqdn"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -3096,6 +3126,16 @@
       "name": "quic_sni",
       "label": "Quic.SNI",
       "doc": {
+        "format": [
+          {
+            "function": "sub_domain",
+            "appendTo": "server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "server_fqdn"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
