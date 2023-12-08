@@ -11,10 +11,13 @@ import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
+import com.mesalab.common.utils.HazelcastInstanceUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.model.basic.QueryCache;
 import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.SqlQueryRequest;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.MetadataService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -117,6 +120,36 @@ public class JobExecuteService implements EnvironmentAware {
                     id, true, 1, System.currentTimeMillis() - jobInfo.getStartTime()));
         }
     }
+
+    @Async("jobExecutor")
+    public void addExecutorSql(String id, SqlQueryRequest request) {
+        Stopwatch watch = Stopwatch.createStarted();
+        try {
+            BaseResult baseResult = queryService.executeQuery(QueryProfile.builder()
+                    .query(request.getStatement())
+                    .format(request.getOutputMode().getValue())
+                    .build());
+            QueryCache queryCache = HazelcastInstanceUtil.get(id);
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            baseResult.setJob(job);
+            queryCache.setBaseResult(baseResult);
+            HazelcastInstanceUtil.put(id, queryCache);
+        } catch (Exception e) {
+            QueryCache queryCache = HazelcastInstanceUtil.get(id);
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            job.put(JobConfig.IS_FAILED, true);
+            HazelcastInstanceUtil.put(id, queryCache);
+            log.error(e, "execute job error: jobId-{}", id);
+        } finally {
+            QueryCache queryCache = HazelcastInstanceUtil.get(id);
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            job.put(JobConfig.IS_DONE, true);
+            job.put(JobConfig.DONE_PROGRESS, 1);
+            job.put(JobConfig.DURATION_TIME, watch.elapsed(TimeUnit.MILLISECONDS));
+            HazelcastInstanceUtil.put(id, queryCache);
+        }
+    }
+
 
     private void executeLongTerm(JobInfo jobInfo, String cusSql, String countDataSource, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
         if (isCancel(jobInfo.getId())) {
@@ -330,7 +363,7 @@ public class JobExecuteService implements EnvironmentAware {
 
     private PlainSelect getWhereOuter(String sql) throws JSQLParserException {
         Select parse = (Select) CCJSqlParserUtil.parse(sql);
-        return  (PlainSelect) parse.getSelectBody();
+        return (PlainSelect) parse.getSelectBody();
     }
 
     private Interval parseInterval(List<Expression> list, Interval interval, String partitionKey) {

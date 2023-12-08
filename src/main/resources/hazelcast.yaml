@@ -1,0 +1,9 @@
+hazelcast:
+  cluster-name: my-cluster
+  network:
+    join:
+      multicast:
+        enabled: true
+  map:
+    myCache:
+      time-to-live-seconds: 300
