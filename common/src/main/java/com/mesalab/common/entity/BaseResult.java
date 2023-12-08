@@ -63,4 +63,19 @@ public class BaseResult<T> implements Serializable {
         return this.status >= ResultStatusEnum.SUCCESS.getCode() && this.status < 300;
     }
 
+    @Override
+    public String toString() {
+        return "BaseResult{" +
+                "status=" + status +
+                ", code='" + code + '\'' +
+                ", queryKey='" + queryKey + '\'' +
+                ", success=" + success +
+                ", message='" + message + '\'' +
+                ", statistics=" + statistics +
+                ", job=" + job +
+                ", formatType='" + formatType + '\'' +
+                ", meta=" + meta +
+                ", data=" + data +
+                '}';
+    }
 }

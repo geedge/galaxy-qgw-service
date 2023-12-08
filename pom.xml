@@ -74,6 +74,7 @@
         <json.path.version>2.5.0</json.path.version>
         <nacos.config.version>0.2.7</nacos.config.version>
         <lombok.version>1.18.4</lombok.version>
+        <hazelcast-spring.version>4.2.1</hazelcast-spring.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -96,6 +97,11 @@
                 <groupId>com.mesalab</groupId>
                 <artifactId>galaxy-qgw-service</artifactId>
                 <version>${project.release}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast-spring</artifactId>
+                <version>${hazelcast-spring.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -18,6 +18,7 @@ public enum QGWErrorCode {
     SQL_SYNTAX_PARSE_EXCEPTION("40001300", "Syntax error in SQL statement: %s"),
     // 数据库引擎错误
     SQL_EXECUTION_BAD_REQUEST_EXCEPTION("40001301", "Invalid SQL statement error in database execution engine: %s"),
+    PARAM_SYNTAX_BAD_REQUEST_EXCEPTION("40001302", "Invalid request params: %s"),
     //Schema与DB不一致
     SCHEMA_WITCH_DB_INCONSISTENTY("50001010", "Schema inconsistent with DB: %s"),
     // SQL构建错误

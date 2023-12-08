@@ -27,6 +27,10 @@
             <groupId>com.mesalab</groupId>
             <artifactId>knowledge-base</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-spring</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <finalName>galaxy-qgw-service</finalName>
