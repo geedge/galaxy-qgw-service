@@ -4,12 +4,9 @@
       "namespace": "tsg_galaxy_v3",
       "group": "CLICKHOUSE_GROUP",
       "tables": [
-        "radius_onff_log",
         "session_record",
         "transaction_record",
-        "radius_record",
         "voip_record",
-        "gtpc_record",
         "security_event",
         "proxy_event",
         "dos_event",
