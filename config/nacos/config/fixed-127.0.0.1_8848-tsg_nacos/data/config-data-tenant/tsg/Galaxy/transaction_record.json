@@ -563,6 +563,16 @@
       "name": "http_host",
       "label": "HTTP.Host",
       "doc": {
+        "format": [
+          {
+            "function": "sub_domain",
+            "appendTo": "server_domain"
+          },
+          {
+            "function": "get_value",
+            "appendTo": "server_fqdn"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
