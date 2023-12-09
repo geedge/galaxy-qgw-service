@@ -72,7 +72,7 @@
         <docker.image.prefix>tsg/galaxy</docker.image.prefix>
         <nacos.config.version>0.2.7</nacos.config.version>
         <spotless.version>2.30.0</spotless.version>
-        <hazelcast-spring.version>4.2.1</hazelcast-spring.version>
+        <hazelcast-spring.version>5.3.6</hazelcast-spring.version>
     </properties>
 
     <dependencies>
@@ -304,7 +304,7 @@
         </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-spring</artifactId>
+            <artifactId>hazelcast</artifactId>
             <version>${hazelcast-spring.version}</version>
         </dependency>
     </dependencies>
@@ -527,10 +527,10 @@
                             <password>Geedge2020!</password>
                             <excludes>
                                 <exclude>
-                                    resources/**
+                                    META-INF/resources/**
                                 </exclude>
                                 <exclude>
-                                    META-INF/resources/**
+                                    resources/**
                                 </exclude>
                             </excludes>
                         </configuration>
@@ -642,7 +642,9 @@
             </plugin>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
                 <configuration>
                     <encoding>utf-8</encoding>
                     <useDefaultDelimiters>true</useDefaultDelimiters>
