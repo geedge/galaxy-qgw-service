@@ -36,7 +36,7 @@ public class NacosConst {
 
     public static final String META_DATA_ID = "meta_data.json";
 
-    public static final String SQL_DATASETS_VARIABLES = "sql_datasets_variables.json";
+    public static final String DATASETS_VARIABLES = "datasets_variables.json";
 
     public static final String CK_FILTER_DATA_ID = "ck-filter.json";
 
