@@ -74,7 +74,7 @@
         <json.path.version>2.5.0</json.path.version>
         <nacos.config.version>0.2.7</nacos.config.version>
         <lombok.version>1.18.4</lombok.version>
-        <hazelcast-spring.version>4.2.1</hazelcast-spring.version>
+        <hazelcast-spring.version>5.3.6</hazelcast-spring.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -325,6 +325,11 @@
             <artifactId>flyway-core</artifactId>
             <version>5.2.4</version>
         </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${hazelcast-spring.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -540,13 +545,14 @@
                             <password>Geedge2020!</password>
                             <excludes>
                                 <exclude>
-                                    resources/**
+                                    META-INF/resources/**
                                 </exclude>
                                 <exclude>
-                                    META-INF/resources/**
+                                    resources/**
                                 </exclude>
                             </excludes>
                         </configuration>
+
                     </execution>
                 </executions>
             </plugin>
@@ -594,7 +600,9 @@
             </plugin>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
                 <configuration>
                     <encoding>utf-8</encoding>
                     <useDefaultDelimiters>true</useDefaultDelimiters>
