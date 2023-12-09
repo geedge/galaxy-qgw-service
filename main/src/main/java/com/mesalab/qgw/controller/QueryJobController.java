@@ -76,10 +76,11 @@ public class QueryJobController {
         }
     }
 
-    @GetMapping(value = "/job/result", consumes = "application/json")
-    public BaseResult resultBatch(@RequestBody HashMap<String, Object> reqBody) {
-        boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(reqBody.get("is_saved_query")));
-        List<String> ids = Arrays.stream(String.valueOf(reqBody.get("job_ids")).split(",")).distinct().collect(Collectors.toList());
+    @GetMapping(value = "/job/result", consumes = "application/x-www-form-urlencoded")
+    public BaseResult resultBatch(@RequestParam(value = "job_ids") String jobIds
+            , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
+        boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
+        List<String> ids = Arrays.stream(jobIds.split(",")).distinct().collect(Collectors.toList());
         if (isSavedQuery) {
             return queryJobService.savedQueryResultBatch(ids);
         } else {
@@ -87,10 +88,11 @@ public class QueryJobController {
         }
     }
 
-    @GetMapping(value = "/job", consumes = "application/json")
-    public BaseResult statusBatch(@RequestBody HashMap<String, Object> reqBody) {
-        boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(reqBody.get("is_saved_query")));
-        List<String> ids = Arrays.stream(String.valueOf(reqBody.get("job_ids")).split(",")).distinct().collect(Collectors.toList());
+    @GetMapping(value = "/job", consumes = "application/x-www-form-urlencoded")
+    public BaseResult statusBatch(@RequestParam(value = "job_ids") String jobIds
+            , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
+        boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
+        List<String> ids = Arrays.stream(jobIds.split(",")).distinct().collect(Collectors.toList());
         if (isSavedQuery) {
             return queryJobService.savedQueryStatusBatch(ids);
         } else {
