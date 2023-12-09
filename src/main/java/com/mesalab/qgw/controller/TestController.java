@@ -31,6 +31,8 @@ public class TestController {
     @Autowired
     private DiagnosisService diagnosisService;
     @Autowired
+    TroubleshootingController troubleshootingController;
+    @Autowired
     private ProjectInfo projectProperties;
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
@@ -102,7 +104,7 @@ public class TestController {
     @GetMapping(value = "runSql")
     @Deprecated
     public BaseResult runSql() {
-        BaseResult result = diagnosisService.runPocSQL(false, "validation", null);
+        BaseResult result = troubleshootingController.benchmark("sql_validation", 0, null);
         return result;
     }
 

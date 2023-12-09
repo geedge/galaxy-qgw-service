@@ -14,8 +14,7 @@ import java.util.Map;
  * @Date 2023/8/10 13:54
  * @Author wWei
  */
-public interface SQLDatasetService
-{
+public interface SQLDatasetService {
 
     /**
      * Desc: 通过queryId查询SQL任务执行状态
@@ -29,6 +28,7 @@ public interface SQLDatasetService
 
     /**
      * 终止查询任务
+     *
      * @param queryId
      * @return
      */
@@ -44,54 +44,4 @@ public interface SQLDatasetService
      * @date 2021/1/7 6:48 下午
      */
     String getCustomQueryId(String resultId, String query);
-
-    /**
-     * Desc: 获取动态变量
-     *
-     * @param
-     * @return {@link List<LinkedHashMap>}
-     * @created by wWei
-     * @date 2023/8/16 19:39
-     */
-    List<LinkedHashMap> getVariable();
-
-    /**
-     * Desc: 获取单个SQL模版
-     *
-     * @param datasetId
-     * @return {@link Map<String, Object>}
-     * @created by wWei
-     * @date 2023/8/17 09:45
-     */
-    Map<String, Object> getDataset(String datasetId);
-
-    /**
-     * Desc: 批量获取SQL模版
-     *
-     * @param
-     * @return {@link Map<String, Object>}
-     * @created by wWei
-     * @date 2023/8/16 15:31
-     */
-    Map<String, Object> getDatasets(List<String> ids, String category, String title);
-
-    /**
-     * Desc: 结果预览
-     *
-     * @param datasetId
-     * @return {@link BaseResult}
-     * @created by wWei
-     * @date 2023/8/16 19:33
-     */
-    BaseResult getPreview(String datasetId,String option);
-
-    /**
-     * Desc: 获取执行SQL
-     *
-     * @param
-     * @return
-     * @created by wanghao
-     * @date 2023/9/16 19:33
-     */
-    String buildExecSQL(List<LinkedHashMap> variables, String sql);
 }

@@ -38,29 +38,10 @@ public class DiagnosisController {
         return diagnosisService.getVersionInfo();
     }
 
-    @RequestMapping(value = "ttl_consistency_check", method = RequestMethod.POST)
-    public BaseResult monitorCluster() {
-        log.info("consistency check interface.");
-        return diagnosisService.consistencyCheck();
-    }
 
     @RequestMapping(value = "/schema_check")
     public BaseResult validateSchema() {
         return diagnosisService.validateSchema();
-    }
-
-    @RequestMapping(value = "/metadata_check")
-    public BaseResult validateMetadata() {
-        return diagnosisService.validateMetadata();
-    }
-
-    @RequestMapping(value = "/sql_benchmark")
-    public BaseResult executePocSql(@RequestParam(value = "is_saved",required = false) @JsonProperty("isSaved") String isSaved, @RequestParam(defaultValue = "validation") String option, @RequestParam(required = false) String category) throws BusinessException {
-        if (Arrays.stream(DiagnosisOptionEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(option))) {
-            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIAGNOSIS_OPTION_ERROR));
-        }
-        return diagnosisService.runPocSQL(Boolean.parseBoolean(isSaved), option, category);
     }
 
     @RequestMapping({"/sql", "/sql/{dialect}/{queryNo}"})

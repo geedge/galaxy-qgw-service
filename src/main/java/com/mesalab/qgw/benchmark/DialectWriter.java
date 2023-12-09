@@ -5,11 +5,10 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Lists;
-import com.mesalab.common.nacos.NacosConfig;
 import com.geedgenetworks.utils.DateUtils;
-import com.mesalab.services.service.SQLDatasetService;
+import com.mesalab.services.service.DatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,16 +24,10 @@ import java.util.Map;
 public class DialectWriter extends Writer {
 
     private static final Log log = LogFactory.get();
-    private static final String EXECUTE_ENGINE= "execute_engine";
+    private static final String BACKEND_ENGINE= "backend_engine";
     private static final String TEMPLATE= "template";
-
     @Autowired
-    private NacosConfig nacosConfig;
-
-    @Autowired
-    private ConfigService systemConfigService;
-    @Autowired
-    private SQLDatasetService sqlDatasetService;
+    DatasetService datasetService;
 
     @Override
     public String buildPocSQL(List<String> dialectList, String dialect, String category) {
@@ -44,13 +37,14 @@ public class DialectWriter extends Writer {
                     + File.separator + "benchmark" + File.separator + dialect + "_queries" + "_"
                     + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql";
             if (CollectionUtil.isEmpty(dialectList) && !Files.exists(Paths.get(path))) {
-                Map<String, Object> datasetResult = sqlDatasetService.getDatasets(Lists.newArrayList(), category, null);
+                Map<String, Object> datasetResult = datasetService.getDatasets(Lists.newArrayList(), category, null);
                 ArrayList<Map<String, String>> datasetList = (ArrayList<Map<String, String>>) datasetResult.get("list");
                 dialectList = Lists.newLinkedList();
                 if (CollectionUtil.isNotEmpty(datasetList)) {
                     for (int i = 0; i < datasetList.size(); i++) {
-                        if (datasetList.get(i).get(EXECUTE_ENGINE).equalsIgnoreCase(dialect)) {
-                            dialectList.add(datasetList.get(i).get(TEMPLATE));
+                        if (datasetList.get(i).get(BACKEND_ENGINE).equalsIgnoreCase(dialect)) {
+                            Map map = JSON.parseObject(datasetList.get(i).get(TEMPLATE), Map.class);
+                            dialectList.add(String.valueOf(map.get("statement")));
                         }
                     }
                 }

@@ -72,31 +72,4 @@ public class SQLDatasetController
         log.info("查询SQL任务执行状态, 参数: queryId is {}", queryId);
         return sqlDatasetService.getProcessesByQueryId(queryId);
     }
-
-    @GetMapping(value = "/dataset")
-    public BaseResult getDatasets(@RequestParam(value = "identifier_names",required = false) String datasetIds, @RequestParam(required = false) String category, @RequestParam(required = false) String title)
-    {
-        log.info("Get Datasets. IDs is: {}, category is: {}, title is: {}", datasetIds, category, title);
-        return BaseResultGenerator.success(sqlDatasetService.getDatasets(Arrays.asList(StrUtil.split(datasetIds, ",")), category, title));
-    }
-
-    @GetMapping(value = "/dataset/{identifier_name}")
-    public BaseResult getDataset(@PathVariable("identifier_name") String identifierName)
-    {
-        log.info("Get Dataset, ID is: {}", identifierName);
-        return BaseResultGenerator.success(sqlDatasetService.getDataset(identifierName));
-    }
-
-
-    @GetMapping(value = "/dataset/{identifier_name}/preview")
-    public BaseResult getPreview(@PathVariable("identifier_name") String identifierName,@RequestParam(required = false) String option)
-    {
-        return sqlDatasetService.getPreview(identifierName,option);
-    }
-
-    @GetMapping(value = "/dataset/global_variable")
-    public BaseResult getVariable()
-    {
-        return BaseResultGenerator.success(sqlDatasetService.getVariable());
-    }
 }
