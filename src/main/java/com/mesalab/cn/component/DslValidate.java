@@ -3,12 +3,11 @@ package com.mesalab.cn.component;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.cn.entity.pojo.DSLObject;
 import com.mesalab.cn.enums.*;
-import com.mesalab.cn.exception.CNErrorCode;
 import com.mesalab.cn.exception.CNErrorMessage;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import org.apache.commons.lang3.EnumUtils;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -34,7 +33,7 @@ public class DslValidate {
     public static final Pattern strFormatDateTime = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", Pattern.CASE_INSENSITIVE);
 
     @Autowired
-    private MetadataService metadataService;
+    private DatabaseService databaseService;
 
     public void executeValidate(DSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
@@ -56,7 +55,7 @@ public class DslValidate {
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATASOURCE_IS_INVALID));
             }
         } else {
-            if (StringUtil.isBlank(metadataService.getDBTypeByTableName(query.getDataSource()))) {
+            if (StringUtil.isBlank(databaseService.getDBTypeByTableName(query.getDataSource()))) {
                 throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                         String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATASOURCE_IS_INVALID));
             }

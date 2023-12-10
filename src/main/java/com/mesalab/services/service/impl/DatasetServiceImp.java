@@ -17,7 +17,7 @@ import com.mesalab.qgw.controller.QueryJobController;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.DatasetService;
@@ -46,7 +46,7 @@ public class DatasetServiceImp
     @Autowired
     Environment env;
     @Autowired
-    MetadataService metadataService;
+    DatabaseService databaseService;
     @Autowired
     QueryService queryService;
     @Autowired
@@ -54,7 +54,7 @@ public class DatasetServiceImp
 
     @Override
     public List<LinkedHashMap> getVariable() {
-        Object codeInfo = metadataService.getCfg(NacosConst.DATASETS_VARIABLES);
+        Object codeInfo = databaseService.getCfg(NacosConst.DATASETS_VARIABLES);
         if (StringUtil.isNotEmpty(codeInfo)) {
             Object json = JSON.toJSON(codeInfo);
             return JSON.parseArray(json.toString(), LinkedHashMap.class);

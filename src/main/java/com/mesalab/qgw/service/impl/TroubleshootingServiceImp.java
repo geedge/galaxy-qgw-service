@@ -32,7 +32,7 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.TroubleshootingService;
 import com.mesalab.services.service.DatasetService;
@@ -68,7 +68,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private static final String DATASET_TYPE = "type";
 
     @Autowired
-    private MetadataService metadataService;
+    private DatabaseService databaseService;
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
@@ -112,7 +112,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     public BaseResult consistencyCheck() {
         List<Map<String, Object>> dataList = Lists.newArrayList();
         Map<String, Object> logDiff = Maps.newHashMap();
-        Map tables = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
+        Map tables = databaseService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
         List<String> symbols = (List<String>) tables.get("symbols");
         logDiff.put("logType", SystemServiceImpl.LogType.TRAFFIC_LOGS.getValue());
         Map<String, Map<String, Object>> changeTTL = Maps.newHashMap();
@@ -127,7 +127,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                     ipPort = url.substring(url.indexOf("//") + 2, url.lastIndexOf(":") + 1).concat(trafficPort);
                 }
                 for (String tableName : symbols) {
-                    Map schemaMap = metadataService.getSchemaInfo("fields", tableName, false);
+                    Map schemaMap = databaseService.getSchemaInfo("fields", tableName, false);
                     Object tableTTLInSchema = getTableTTLInSchema(schemaMap);
                     Map<String, Object> tableDiff = getTableDiff(ipPort, tableName, tableTTLInSchema);
                     List fieldDiff = getFieldDiff(ipPort, tableName, schemaMap);
@@ -161,11 +161,11 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
             List<Object> data = Lists.newArrayList();
-            checkCKIndexKey(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
-            Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
-            Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
-            Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
-            Map<String, Map<String, String>> hbase2Result = checkMetadataByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
+            checkCKIndexKey(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
+            Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
+            Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), databaseService.getAllTable());
+            Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), databaseService.getAllTable());
+            Map<String, Map<String, String>> hbase2Result = checkMetadataByDatasource(HBASE_DBNAME2, databaseService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -262,7 +262,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
 
     private void checkCKIndexKey(String dbName, List<String> tables) {
         for (String tableName : tables) {
-            Schema schema = metadataService.getSchemaByName(tableName);
+            Schema schema = databaseService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
             BaseResult indexKeyResult = getBaseResultByEngine(QueryProfile.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query(String.format(Objects.requireNonNull(env.getProperty("TABLE_INDEX_KEY")), tableName, clickHouseHttpSource.getDbName())).build());
             if (ResultStatusEnum.SUCCESS.getCode() != indexKeyResult.getStatus()) {
@@ -273,7 +273,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             }
             List<Map<String, Object>> dataList = (List<Map<String, Object>>) indexKeyResult.getData();
             List<String> dbIndexKey = StringUtil.isEmpty(dataList.get(0)) ? Lists.newArrayList() : (List<String>) dataList.get(0).get("index_key");
-            List<String> schemaIndexKey = metadataService.getIndexKey(tableName);
+            List<String> schemaIndexKey = databaseService.getIndexKey(tableName);
             if (schemaIndexKey.equals(dbIndexKey)) {
                 continue;
             }
@@ -301,7 +301,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : tables) {
-            Schema schema = metadataService.getSchemaByName(tableName);
+            Schema schema = databaseService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
             BaseResult baseResult = getBaseResultByEngine(QueryProfile.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
             if (ResultStatusEnum.SUCCESS.getCode() != baseResult.getStatus()) {

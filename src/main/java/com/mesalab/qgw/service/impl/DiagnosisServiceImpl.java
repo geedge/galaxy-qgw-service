@@ -22,12 +22,11 @@ import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.DiagnosisService;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
 import com.geedgenetworks.utils.*;
-import com.mesalab.services.service.SQLDatasetService;
 import lombok.Data;
 import org.apache.avro.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +64,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     @Autowired
     private HBaseAPISource hBaseAPISource;
     @Autowired
-    private MetadataService metadataService;
+    private DatabaseService databaseService;
     @Autowired
     private EntityConfigSource entityConfigSourceTemp;
     @Autowired
@@ -115,10 +114,10 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
             List<Object> data = Lists.newArrayList();
-            Map<String, Map<String, String>> clickhouseResult = parseSchemaByDatasource(clickHouseHttpSource.getDbName(), metadataService.getAllTable());
-            Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(druidIoHttpSource.getDbname(), metadataService.getAllTable());
-            Map<String, Map<String, String>> hbaseResult = parseSchemaByDatasource(hBaseAPISource.getDbName(), metadataService.getAllTable());
-            Map<String, Map<String, String>> hbase2Result = parseSchemaByDatasource(HBASE_DBNAME2, metadataService.getAllTable());
+            Map<String, Map<String, String>> clickhouseResult = parseSchemaByDatasource(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
+            Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(druidIoHttpSource.getDbname(), databaseService.getAllTable());
+            Map<String, Map<String, String>> hbaseResult = parseSchemaByDatasource(hBaseAPISource.getDbName(), databaseService.getAllTable());
+            Map<String, Map<String, String>> hbase2Result = parseSchemaByDatasource(HBASE_DBNAME2, databaseService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -316,7 +315,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     }
 
     private Map<String, List<String>> getCfgCDN() {
-        Object codeInfo = metadataService.getCfg("public_code_info.json");
+        Object codeInfo = databaseService.getCfg("public_code_info.json");
         if (StringUtil.isNotEmpty(codeInfo)) {
             Map<String, Map<String, List<String>>> data = JSON.parseObject(codeInfo.toString(), Map.class);
             return Maps.newHashMap(data.get("CDN"));
@@ -355,7 +354,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : tables) {
-            Schema schema = metadataService.getSchemaByName(tableName);
+            Schema schema = databaseService.getSchemaByName(tableName);
             Map schemaMap = JSON.parseObject(schema.toString(), Map.class);
             if (!dbName.equals(schema.getNamespace())) continue;
             List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");

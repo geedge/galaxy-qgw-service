@@ -19,7 +19,7 @@ import com.mesalab.qgw.model.basic.QueryCache;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.SqlQueryRequest;
 import com.mesalab.qgw.service.QueryService;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
 import com.geedgenetworks.utils.DateUtils;
@@ -68,7 +68,7 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     TaskExecuteService taskExecuteService;
     @Autowired
-    MetadataService metadataService;
+    DatabaseService databaseService;
     @Autowired
     JobConfig jobCfg;
 
@@ -77,7 +77,7 @@ public class JobExecuteService implements EnvironmentAware {
         Stopwatch watch = Stopwatch.createStarted();
         try {
             JobInfo jobInfo = new JobInfo(id);
-            String partitionKey = metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
+            String partitionKey = databaseService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
             Interval interval = getInterval("SELECT 1 FROM table WHERE " + param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString(), partitionKey);
             if (jobCfg.isTimeSlicingEnabled() && interval.isValid()) {
                 executeSlicingFieldDiscoveryJob(jobInfo, param, interval, partitionKey);
@@ -97,7 +97,7 @@ public class JobExecuteService implements EnvironmentAware {
     public void addExecutorStatistics(String id, HashMap<String, Object> param, Map<String, Object> property) {
         JobInfo jobInfo = new JobInfo(id);
         try {
-            Interval interval = getInterval(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString()));
+            Interval interval = getInterval(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), databaseService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString()));
             if (jobCfg.isTimeSlicingEnabled()
                     && interval.isValid()
                     && StringUtil.isNotEmpty(property.get(JobConfig.JOB_PROPERTY_K_OPTION))) {
@@ -204,7 +204,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     private void executeSlicingStatisticsJob(JobInfo jobInfo, Map<String, Object> param, Interval interval) throws JSQLParserException {
-        String partitionKey = metadataService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
+        String partitionKey = databaseService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
         List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
         String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
         String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBTypeEnum.CLICKHOUSE.getValue());
@@ -250,7 +250,7 @@ public class JobExecuteService implements EnvironmentAware {
         Object metric = param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
         if (StringUtil.isNotEmpty(metric)) {
             Object fn = param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN);
-            String measurements = metadataService.getValueByKeyInSchemaDoc(dataSource, "measurements");
+            String measurements = databaseService.getValueByKeyInSchemaDoc(dataSource, "measurements");
             List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
             if (!read.isEmpty()) {
                 String column = read.get(0).get("column");

@@ -1,7 +1,6 @@
 package com.mesalab.qgw.benchmark;
 
 import cn.hutool.core.io.IORuntimeException;
-import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -14,16 +13,14 @@ import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.geedgenetworks.utils.StringUtil;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.service.DatasetService;
-import com.mesalab.services.service.SQLDatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +31,7 @@ public abstract class Writer {
     @Autowired
     NacosConfig nacosConfig;
     @Autowired
-    MetadataService metadataService;
+    DatabaseService databaseService;
     @Autowired
     DatasetService datasetService;
 
@@ -74,7 +71,7 @@ public abstract class Writer {
                 writer.getFile().createNewFile();
             }
             List<LinkedHashMap> variables = Lists.newArrayList();
-            Object codeInfo = metadataService.getCfg(NacosConst.DATASETS_VARIABLES);
+            Object codeInfo = databaseService.getCfg(NacosConst.DATASETS_VARIABLES);
             if (StringUtil.isNotEmpty(codeInfo)) {
                 Object json = JSON.toJSON(codeInfo);
                 variables = (List<LinkedHashMap>) JSON.parseArray(json.toString(), LinkedHashMap.class);

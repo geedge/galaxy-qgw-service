@@ -25,7 +25,7 @@ import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.model.basic.udf.UDF;
 import com.mesalab.qgw.model.basic.udf.UDFElements;
 import com.mesalab.qgw.service.QueryService;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SystemService;
 import com.geedgenetworks.utils.StringUtil;
 import net.sf.jsqlparser.JSQLParserException;
@@ -53,16 +53,16 @@ import java.util.regex.Pattern;
 public class QueryServiceImpl implements QueryService {
     private static final Log log = LogFactory.get();
     @Autowired
-    private MetadataService metadataServiceTemp;
+    private DatabaseService databaseServiceTemp;
     @Autowired
     private SystemService systemServiceTemp;
 
-    private static MetadataService metadataService;
+    private static DatabaseService databaseService;
     private static SystemService systemService;
 
     @PostConstruct
     private void initMetadataService() {
-        metadataService = this.metadataServiceTemp;
+        databaseService = this.databaseServiceTemp;
         systemService = this.systemServiceTemp;
     }
 
@@ -108,7 +108,7 @@ public class QueryServiceImpl implements QueryService {
             return;
         }
         String tableName = SQLHelper.getTableName(param.getQuery()).get(0);
-        param.setDbType(metadataService.getDBTypeByTableName(tableName));
+        param.setDbType(databaseService.getDBTypeByTableName(tableName));
         param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
     }
 
@@ -305,7 +305,7 @@ public class QueryServiceImpl implements QueryService {
                 int i = o.lastIndexOf(".");
                 sqlQuerySource.getTableNames().add(i < 0 ? o : o.substring(i + 1));
             });
-            sqlQuerySource.setPartitionKey(metadataService.getPartitionKey(sqlQuerySource.getTableNames().get(0)));
+            sqlQuerySource.setPartitionKey(databaseService.getPartitionKey(sqlQuerySource.getTableNames().get(0)));
             SelectBody body = selectStatement.getSelectBody();
             if (body instanceof PlainSelect) { //单条查询
 

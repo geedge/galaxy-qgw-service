@@ -18,7 +18,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.service.QueryService;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
 import com.geedgenetworks.utils.StringUtil;
@@ -53,7 +53,7 @@ public class TaskExecuteService implements EnvironmentAware {
     @Autowired
     QueryService queryService;
     @Autowired
-    MetadataService metadataService;
+    DatabaseService databaseService;
     @Autowired
     EngineConfigSource engineConfigSource;
 
@@ -64,7 +64,7 @@ public class TaskExecuteService implements EnvironmentAware {
             String column = "*";
             String value = "count";
             if (StringUtil.isNotEmpty(metric)) {
-                String measurements = metadataService.getValueByKeyInSchemaDoc(logType, "measurements");
+                String measurements = databaseService.getValueByKeyInSchemaDoc(logType, "measurements");
                 List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
                 if (!read.isEmpty()) {
                     fnDefault = fn.toString();
@@ -267,7 +267,7 @@ public class TaskExecuteService implements EnvironmentAware {
     }
 
     private String buildTopSQL(String tableName, String filter, String fieldName, String fn, String column, String value) {
-        Schema.Field field = metadataService.getSchemaByName(tableName).getField(fieldName);
+        Schema.Field field = databaseService.getSchemaByName(tableName).getField(fieldName);
         if (StringUtil.isNotEmpty(field)) {
             Schema schema = field.schema();
             String type = schema.getType().getName();
