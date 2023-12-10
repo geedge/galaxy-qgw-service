@@ -59,13 +59,13 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         String sql = JSONUtil.quote(request.getStatement(), false).replace("'", "\\'");
         String id = getSameJob(sql);
         if (StringUtil.isNotBlank(id)) {
-            return BaseResultGenerator.successCreate(buildJobResource(id));
+            return BaseResultGenerator.successCreate(buildJobOfCreated(id));
         }
         request.getCustomAttributes().put("UUID", System.currentTimeMillis());
-        id = DigestUtil.md5Hex(request.toString());
+        id = buildJobId(request.toString());
         long currentTime = System.currentTimeMillis() / 1000;
         Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
-        return BaseResultGenerator.successCreate(buildJobResource(id));
+        return BaseResultGenerator.successCreate(buildJobOfCreated(id));
     }
 
     @Override
@@ -77,17 +77,12 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     .format(request.getOutputMode().getValue())
                     .build());
             request.getCustomAttributes().put("UUID", System.currentTimeMillis());
-            String id = DigestUtil.md5Hex16(String.valueOf(request.toString()));
-            Map<String, Object> jobStatus = Maps.newHashMap();
-            jobStatus.put(JobConfig.JOB_ID, id);
-            jobStatus.put(JobConfig.IS_DONE, true);
-            jobStatus.put(JobConfig.IS_FAILED, false);
-            jobStatus.put(JobConfig.DONE_PROGRESS, 1);
-            baseResult.setJob(jobStatus);
+            String id = buildJobId(request.toString());
+            baseResult.setJob(buildJobInfoOfExecSucceed(id));
             return baseResult;
         } else if (ExecModeEnum.NORMAL.equals(execMode)) {
             request.getCustomAttributes().put("UUID", System.currentTimeMillis());
-            String id = DigestUtil.md5Hex16(String.valueOf(request.toString()));
+            String id = buildJobId(request.toString());
             Map<String, Object> jobStatus = Maps.newHashMap();
             jobStatus.put(JobConfig.JOB_ID, id);
             QueryCache queryCache = new QueryCache();
@@ -96,24 +91,19 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             queryCache.setBaseResult(baseResult);
             HazelcastInstanceUtil.put(id, queryCache);
             jobExecuteService.addExecutorSql(id, request);
-            return BaseResultGenerator.successCreate(buildJobResource(id));
+            return BaseResultGenerator.successCreate(buildJobOfCreated(id));
         } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
             request.getCustomAttributes().put("UUID", System.currentTimeMillis());
-            String id = DigestUtil.md5Hex16(String.valueOf(request.toString()));
-            Map<String, Object> jobStatus = Maps.newHashMap();
-            jobStatus.put(JobConfig.JOB_ID, id);
-            jobStatus.put(JobConfig.IS_DONE, true);
-            jobStatus.put(JobConfig.IS_FAILED, false);
-            jobStatus.put(JobConfig.DONE_PROGRESS, 1);
+            String id = buildJobId(request.toString());
             BaseResult baseResult = queryService.executeQuery(QueryProfile.builder()
                     .query(request.getStatement())
                     .format(request.getOutputMode().getValue())
                     .build());
-            baseResult.setJob(jobStatus);
+            baseResult.setJob(buildJobInfoOfExecSucceed(id));
             QueryCache queryCache = new QueryCache();
             queryCache.setBaseResult(baseResult);
             HazelcastInstanceUtil.put(id, queryCache);
-            return BaseResultGenerator.successCreate(buildJobResource(id));
+            return BaseResultGenerator.successCreate(buildJobOfCreated(id));
         }
         throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
                 String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Supported"));
@@ -126,13 +116,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
             BaseResult baseResult = dslController.post(dslProfile);
             request.getCustomAttributes().put("UUID", System.currentTimeMillis());
-            String id = DigestUtil.md5Hex16(String.valueOf(request.toString()));
-            Map<String, Object> jobStatus = Maps.newHashMap();
-            jobStatus.put(JobConfig.JOB_ID, id);
-            jobStatus.put(JobConfig.IS_DONE, true);
-            jobStatus.put(JobConfig.IS_FAILED, false);
-            jobStatus.put(JobConfig.DONE_PROGRESS, 1);
-            baseResult.setJob(jobStatus);
+            String id = buildJobId(request.toString());
+            baseResult.setJob(buildJobInfoOfExecSucceed(id));
             return baseResult;
         } else if (ExecModeEnum.NORMAL.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
@@ -148,17 +133,12 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
                 BaseResult baseResult = dslController.post(dslProfile);
                 request.getCustomAttributes().put("UUID", System.currentTimeMillis());
-                String id = DigestUtil.md5Hex16(String.valueOf(request.toString()));
-                Map<String, Object> jobStatus = Maps.newHashMap();
-                jobStatus.put(JobConfig.JOB_ID, id);
-                jobStatus.put(JobConfig.IS_DONE, true);
-                jobStatus.put(JobConfig.IS_FAILED, false);
-                jobStatus.put(JobConfig.DONE_PROGRESS, 1);
-                baseResult.setJob(jobStatus);
+                String id = buildJobId(request.toString());
+                baseResult.setJob(buildJobInfoOfExecSucceed(id));
                 QueryCache queryCache = new QueryCache();
                 queryCache.setBaseResult(baseResult);
                 HazelcastInstanceUtil.put(id, queryCache);
-                return BaseResultGenerator.successCreate(buildJobResource(id));
+                return BaseResultGenerator.successCreate(buildJobOfCreated(id));
             }
         }
 
@@ -229,13 +209,6 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         return BaseResultGenerator.success(results);
     }
 
-
-    private Map<String, Object> buildJobResource(String id) {
-        Map<String, Object> result = Maps.newHashMap();
-        result.put(JobConfig.JOB_ID, id);
-        return result;
-    }
-
     private void syntaxParseSql(String sql) {
         QueryProfile queryProfile = QueryProfile.builder().query(sql)
                 .option(QueryOptionEnum.SYNTAX_PARSE.getValue())
@@ -253,6 +226,30 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             return StringUtil.EMPTY;
         }
         return jobs.get(0).get("id");
+    }
+
+    private static String buildJobId(String request) {
+        return DigestUtil.md5Hex(request);
+    }
+
+    private static Map<String, Object> buildJobOfCreated(String id) {
+        Map<String, Object> result = Maps.newHashMap();
+        result.put(JobConfig.JOB_ID, id);
+        return result;
+    }
+
+    private static Map<String, Object> buildJobInfoOfExecSucceed(String id) {
+        Map<String, Object> result = Maps.newLinkedHashMap();
+        result.put(JobConfig.JOB_ID, id);
+        result.put(JobConfig.IS_DONE, true);
+        result.put(JobConfig.DONE_PROGRESS, 1);
+        result.put(JobConfig.IS_CANCELED, false);
+        result.put(JobConfig.IS_FAILED, false);
+        Map<String, Object> links = Maps.newLinkedHashMap();
+        links.put(JobConfig.LINKS_STATUS, "/v1/query/job/" + id);
+        links.put(JobConfig.LINKS_RESULT, "/v1/query/job/" + id + "/result");
+        result.put(JobConfig.LINKS, links);
+        return result;
     }
 
     @Override
