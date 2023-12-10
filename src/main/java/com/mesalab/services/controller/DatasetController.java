@@ -5,6 +5,7 @@ import cn.hutool.http.HttpStatus;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.geedgenetworks.utils.StringUtil;
+import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 
 import com.mesalab.common.entity.BaseResultGenerator;
@@ -29,7 +30,8 @@ public class DatasetController {
     @GetMapping(value = "/{identifier_name}")
     public BaseResult getDataset(@PathVariable("identifier_name") String identifierName) {
         log.info("Get Dataset, ID is: {}", identifierName);
-        return BaseResultGenerator.success(datasetService.getDataset(identifierName));
+        Map<String, Object> dataset = datasetService.getDataset(identifierName);
+        return BaseResultGenerator.success(Lists.newArrayList(dataset));
     }
 
     @GetMapping
