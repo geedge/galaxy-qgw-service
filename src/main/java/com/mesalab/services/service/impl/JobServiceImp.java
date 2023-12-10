@@ -103,9 +103,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Override
     public BaseResult commitAdHocQuery(HashMap<String, Object> reqBody) {
         validateAdHocQuery(reqBody);
-        String id = DigestUtil.md5Hex16(String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE)).toLowerCase())
-                .concat(JobConfig.DELIMIT)
-                .concat(DigestUtil.md5Hex16(String.valueOf(reqBody)));
+        String id = DigestUtil.md5Hex(String.valueOf(reqBody));
         String queryType = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_TYPE));
         if (isExist(id)) {
             log.info("Hoc Job already exist, ID is {}, params is {}", id, JSON.toJSONString(reqBody));
@@ -151,14 +149,11 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         validateReport(map);
         String sql = JSONUtil.quote(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL).toString(), false).replace("'", "\\'");
         String id = getSameJob(sql);
-        String queryType = String.valueOf(map.get(JobConfig.KEY_QUERY_TYPE));
         if (StringUtil.isNotBlank(id)) {
             return BaseResultGenerator.successCreate(buildJobResource(id));
         }
         map.put("UUID", System.currentTimeMillis());
-        id = DigestUtil.md5Hex16(JobConfig.SAVED_QUERY)
-                .concat(JobConfig.DELIMIT)
-                .concat(DigestUtil.md5Hex16(String.valueOf(map)));
+        id = DigestUtil.md5Hex(String.valueOf(map));
         long currentTime = System.currentTimeMillis() / 1000;
         Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
         return BaseResultGenerator.successCreate(buildJobResource(id));
