@@ -34,9 +34,9 @@ public interface DatasetService
      * Desc: 批量获取SQL模版
      *
      * @param
-     * @return {@link Map<String, Object>}
+     * @return {@link List<Map<String, String>>}
      */
-    Map<String, Object> getDatasets(List<String> ids, String category, String backendEngine);
+    List<Map<String, Object>> getDatasets(List<String> ids, String category, String backendEngine);
 
     /**
      * Desc: 结果预览

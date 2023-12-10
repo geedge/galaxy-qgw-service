@@ -198,8 +198,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, Map<String, String>> druidResult;
         Map<String, Map<String, String>> hbaseResult;
         try {
-            Map<String, Object> datasetResult = generateDatasets(category);
-            List<Map<String, String>> dataSetlist = (ArrayList<Map<String, String>>) datasetResult.get("list");
+            List<Map<String, Object>> dataSetlist = generateDatasets(category);
             List<String> druidIdList = Lists.newLinkedList();
             List<String> ckIdList = Lists.newLinkedList();
             List<String> engineIdList = Lists.newLinkedList();
@@ -212,19 +211,22 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             Stopwatch watch = Stopwatch.createStarted();
             if (CollectionUtil.isNotEmpty(dataSetlist)) {
                 for (int i = 0; i < dataSetlist.size(); i++) {
-                    if (dataSetlist.get(i).get(DATASET_TYPE).equalsIgnoreCase("sql")) {
-                        if (dataSetlist.get(i).get(BACKEND_ENGINE).equalsIgnoreCase(DBTypeEnum.DRUID.getValue())) {
-                            druidIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                            druidSqlList.add(dataSetlist.get(i).get(TEMPLATE));
-                        } else if (dataSetlist.get(i).get(BACKEND_ENGINE).equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
-                            ckIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                            ckSqlList.add(dataSetlist.get(i).get(TEMPLATE));
-                        } else if (dataSetlist.get(i).get(BACKEND_ENGINE).equalsIgnoreCase(DBTypeEnum.HBASE.getValue())) {
-                            hbaseIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                            hbaseSqlList.add(dataSetlist.get(i).get(TEMPLATE));
+                    if (String.valueOf(dataSetlist.get(i).get(DATASET_TYPE)).equalsIgnoreCase("sql")) {
+                        String backendEngine = String.valueOf(dataSetlist.get(i).get(BACKEND_ENGINE));
+                        String identifierName = String.valueOf(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                        String template = String.valueOf(dataSetlist.get(i).get(TEMPLATE));
+                        if (DBTypeEnum.DRUID.getValue().equalsIgnoreCase(backendEngine)) {
+                            druidIdList.add(identifierName);
+                            druidSqlList.add(template);
+                        } else if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(backendEngine)) {
+                            druidIdList.add(identifierName);
+                            druidSqlList.add(template);
+                        } else if (DBTypeEnum.HBASE.getValue().equalsIgnoreCase(backendEngine)) {
+                            druidIdList.add(identifierName);
+                            druidSqlList.add(template);
                         } else {
-                            engineIdList.add(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                            engineSqlList.add(dataSetlist.get(i).get(TEMPLATE));
+                            druidIdList.add(identifierName);
+                            druidSqlList.add(template);
                         }
                     }
                 }
@@ -382,7 +384,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         return tableDiff;
     }
 
-    private List<Map<String, Object>> getFieldDiff(String ipPort, String tableName, Map<String, Object> schemaMap) {
+    private List<Map<String, Object>> getFieldDiff(String ipPort, String
+            tableName, Map<String, Object> schemaMap) {
         List<Map<String, Object>> fieldDiff = Lists.newArrayList();
         Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
         if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
@@ -444,7 +447,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
     }
 
-    private Map<String, Object> generateDatasets(String category) {
+    private List<Map<String, Object>> generateDatasets(String category) {
         List<String> categorylist = Lists.newLinkedList();
         List<Record> list = Db.find(String.format(Objects.requireNonNull(env.getProperty("SQL_DATASETS_CATEGORY"))));
         list.forEach(record -> categorylist.add(String.valueOf(record.getColumns().get("category"))));
@@ -455,7 +458,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         return datasetService.getDatasets(Lists.newArrayList(), category, null);
     }
 
-    private Map<String, Map<String, String>> buildResult(String executeEngine, List<String> list, boolean isSaved, String test) {
+    private Map<String, Map<String, String>> buildResult(String executeEngine, List<String> list,
+                                                         boolean isSaved, String test) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newLinkedHashMap();
         FileWriter writer = null;
@@ -493,7 +497,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         return infoMap;
     }
 
-    private void processQueryResult(String name, Map<String, String> infoMap, FileWriter writer, int index, BaseResult queryResult) {
+    private void processQueryResult(String name, Map<String, String> infoMap, FileWriter writer,
+                                    int index, BaseResult queryResult) {
         int statusCode = Integer.parseInt(queryResult.getStatus().toString());
         if (statusCode == ResultStatusEnum.SUCCESS.getCode()) {
             if (writer != null) {

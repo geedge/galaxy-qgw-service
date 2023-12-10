@@ -76,17 +76,15 @@ public class DatasetServiceImp
     }
 
     @Override
-    public Map<String, Object> getDatasets(List<String> ids, String category, String backendEngine) {
+    public List<Map<String, Object>> getDatasets(List<String> ids, String category, String backendEngine) {
         String sql = buildGetDatasetSQL(ids, category, backendEngine);
         List<Map<String, Object>> data = new ArrayList<>();
         List<Record> list = Db.find(sql);
         if (CollectionUtils.isEmpty(list)) {
-            return Maps.newHashMap();
+            return Lists.newArrayList();
         }
         list.forEach(record -> data.add(record.getColumns()));
-        Map<String, Object> result = Maps.newHashMap();
-        result.put("list", data);
-        return result;
+        return data;
     }
 
     @Override

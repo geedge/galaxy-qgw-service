@@ -37,13 +37,12 @@ public class DialectWriter extends Writer {
                     + File.separator + "benchmark" + File.separator + dialect + "_queries" + "_"
                     + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql";
             if (CollectionUtil.isEmpty(dialectList) && !Files.exists(Paths.get(path))) {
-                Map<String, Object> datasetResult = datasetService.getDatasets(Lists.newArrayList(), category, null);
-                ArrayList<Map<String, String>> datasetList = (ArrayList<Map<String, String>>) datasetResult.get("list");
+                List<Map<String, Object>> datasetList = datasetService.getDatasets(Lists.newArrayList(), category, null);
                 dialectList = Lists.newLinkedList();
                 if (CollectionUtil.isNotEmpty(datasetList)) {
                     for (int i = 0; i < datasetList.size(); i++) {
-                        if (datasetList.get(i).get(BACKEND_ENGINE).equalsIgnoreCase(dialect)) {
-                            Map map = JSON.parseObject(datasetList.get(i).get(TEMPLATE), Map.class);
+                        if (String.valueOf(datasetList.get(i).get(BACKEND_ENGINE)).equalsIgnoreCase(dialect)) {
+                            Map map = JSON.parseObject(String.valueOf(datasetList.get(i).get(TEMPLATE)), Map.class);
                             dialectList.add(String.valueOf(map.get("statement")));
                         }
                     }

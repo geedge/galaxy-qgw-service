@@ -41,7 +41,7 @@ public class DatasetController {
             }
         }
         log.info("Get Datasets. IDs is: {}, category is: {}, backendEngine is: {}", datasetIds, category, backendEngine);
-        return BaseResultGenerator.success(datasetService.getDatasets(Arrays.asList(StrUtil.split(StringUtil.removeAll(datasetIds,"\'"), ",")), category, backendEngine));
+        return BaseResultGenerator.success(datasetService.getDatasets(Arrays.asList(StrUtil.split(datasetIds, ",")), category, backendEngine));
     }
 
     @GetMapping(value = "/{identifier_name}/result_preview")
