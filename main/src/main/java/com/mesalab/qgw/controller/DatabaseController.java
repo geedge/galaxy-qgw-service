@@ -3,6 +3,7 @@ package com.mesalab.qgw.controller;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson2.JSON;
+import com.clearspring.analytics.util.Lists;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
@@ -11,6 +12,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.service.DatabaseService;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +65,52 @@ public class DatabaseController {
             return BaseResultGenerator.success4Message("ok");
         }
         return BaseResultGenerator.success(databaseService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), dbName, true));
+    }
+
+    @GetMapping(value = "/storage/quota", consumes = "application/x-www-form-urlencoded")
+    public BaseResult storageQuota() {
+        return databaseService.getStorageQuota();
+    }
+
+    @PutMapping(value = "/storage/quota", consumes = "application/json")
+    public BaseResult storageSetting(@RequestBody List<StorageDeletionInfo> list) {
+        log.warn("数据配额设置, 参数: params is {}", list);
+        if (StringUtil.isEmpty(list)) {
+            return BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.PARAMETER_NOT_OBTAINED));
+        }
+        for (StorageDeletionInfo info : list) {
+            if (StringUtil.isBlank(info.getType()) || StringUtil.isBlank(String.valueOf(info.getMaxDays()))) {
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.LOGTYPE_AND_MAXDAYS_NOT_NULL));
+            }
+            if ("ALL".equalsIgnoreCase(info.getType()) && list.size() != 1) {
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.CANNOT_COEXIST_OTHER_TYPES));
+            }
+            if (!(info.getMaxDays() >= 0 && info.getMaxDays() <= 2000)) {
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.MAXDAYS_ERROR));
+            }
+        }
+        return databaseService.deleteStorage(list);
+    }
+
+    @RequestMapping(value = "/storage/quota", method = RequestMethod.DELETE, consumes = "application/x-www-form-urlencoded")
+    public BaseResult storageDeletion(@RequestParam String type) {
+        List<StorageDeletionInfo> deletionInfoList = Lists.newArrayList();
+        StorageDeletionInfo deletionInfo = new StorageDeletionInfo();
+        deletionInfo.setType(type);
+        deletionInfo.setMaxDays(0);
+        deletionInfoList.add(deletionInfo);
+        return databaseService.deleteStorage(deletionInfoList);
+    }
+
+    @RequestMapping(value = "/storage/quota/daily_usage", consumes = "application/x-www-form-urlencoded")
+    public BaseResult dailyTrendOfStorage(@RequestParam Map<String, Object> param) {
+        String searchStartTime = StringUtil.stripToEmpty((String) param.get("start_time"));
+        String searchEndTime = StringUtil.stripToEmpty((String) param.get("end_time"));
+        return databaseService.dailyTrendOfStorage(searchStartTime, searchEndTime);
     }
 
     private void validationParam(String name, Map<String, Object> obj) {

@@ -2,6 +2,8 @@ package com.mesalab.qgw.service;
 
 
 import com.mesalab.common.entity.BaseResult;
+import com.mesalab.qgw.model.job.EncryptionInfo;
+import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import org.apache.avro.Schema;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +98,48 @@ public interface DatabaseService {
      * @return
      */
     BaseResult updateSchema(String name, Map<String, Object> schemaMap);
+
+    /**
+     * 系统存储配额
+     * @return
+     */
+    BaseResult getStorageQuota();
+
+    /**
+     * 获取每天日志存储变化
+     * @param searchStartTime
+     * @param searchEndTime
+     * @return
+     */
+    BaseResult dailyTrendOfStorage(String searchStartTime, String searchEndTime);
+
+    /**
+     * 数据配额设置：
+     *  1. 调度任务
+     *  2. schema TTL设置
+     * @param list
+     * @return
+     */
+    BaseResult deleteStorage(List<StorageDeletionInfo> list);
+
+    /**
+     * 数据配额设置状态
+     * @param logType
+     * @return
+     */
+    BaseResult getDeleteStorageStatus(String logType);
+
+
+    /**
+     * 自定义查询ID: 由 Catalog（数据库类型): resultID+query 组成。
+     *
+     * @param resultId
+     * @param query
+     * @return {@link String}
+     * @created by wWei
+     * @date 2021/1/7 6:48 下午
+     */
+    String getCustomQueryId(String resultId, String query);
 
 
 }
