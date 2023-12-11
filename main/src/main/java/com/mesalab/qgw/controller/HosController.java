@@ -7,6 +7,7 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.service.HosService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,13 +23,14 @@ public class HosController {
     @Autowired
     private HosService hosService;
 
-    @GetMapping("/{bucket_name}")
+    @GetMapping(value = "/{bucket_name}", consumes = "application/x-www-form-urlencoded")
     public BaseResult getFileList(@PathVariable("bucket_name") String bucketName, String prefix) {
-        if (StrUtil.isNotBlank(bucketName) && StrUtil.isNotBlank(prefix)){
-            log.info("请求参数为:{},{}",bucketName,prefix);
+        if (StrUtil.isNotBlank(bucketName) && StrUtil.isNotBlank(prefix)) {
+            log.info("Get File List interface,param:bucket_name is {},prefix is {}", bucketName, prefix);
             return hosService.getFileList(bucketName, prefix);
-        }else {
-            throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),"message");
+        } else {
+            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.BUCKET_AND_PREFIX_ERROR));
         }
     }
 }

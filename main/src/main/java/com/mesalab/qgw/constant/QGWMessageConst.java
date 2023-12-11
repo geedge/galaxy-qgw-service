@@ -116,4 +116,6 @@ public class QGWMessageConst {
 
     public static final String DATASET_BACKEND_ENGINE_ERROR = "The backend_engine is not supported, backend_engine value must be :[ qgw| clickhouse| druid| hbase]";
 
+    public static final String BUCKET_AND_PREFIX_ERROR = "The bucket_name or prefix cannot be empty.";
+
 }
