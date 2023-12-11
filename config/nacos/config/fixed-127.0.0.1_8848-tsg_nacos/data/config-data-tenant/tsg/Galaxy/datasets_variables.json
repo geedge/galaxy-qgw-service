@@ -125,14 +125,26 @@
   },
   {
     "key": "column_name",
-    "default": 1
+    "default": "client_ip"
+  },
+  {
+    "key": "column_name_long",
+    "default": "flags"
+  },
+  {
+    "key": "column_name_string",
+    "default": "flags_identify_info"
+  },
+  {
+    "key": "column_name_array",
+    "default": "fqdn_category_list"
   },
   {
     "key": "source",
-    "default": "statistics_rule"
+    "default": "session_record"
   },
   {
-    "key": "timestamp_column",
-    "default": "__time"
+    "key": "unix_timestamp_column",
+    "default": "recv_time"
   }
 ]
