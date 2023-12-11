@@ -17,12 +17,15 @@ public class JobConfig {
 
     public static final String STATISTICS = "statistics";
     public static final String JOB = "job";
+    public static final String META = "meta";
+    public static final String DATA = "data";
     public static final String JOB_RESOURCE_PATH = "resource_path";
     public static final String JOB_ID = "job_id";
     public static final String COUNT = "count";
     public static final String IS_DONE = "is_done";
     public static final String START_TIME = "start_time";
     public static final String END_TIME = "end_time";
+    public static final String OUTPUT_MODE = "output_mode";
     public static final String DONE_PROGRESS = "done_progress";
     public static final String IS_CANCELED = "is_canceled";
     public static final String IS_FAILED = "is_failed";
@@ -46,6 +49,7 @@ public class JobConfig {
 
     public static final String DETAIL = "detail";
 
+    public static final String FILTER = "filter";
     public static final String QUERY_DATA_SOURCE = "query.data_source";
     public static final String SAVED_QUERY = "saved_query";
     public static final String FIELD_DISCOVERY= "field_discovery";

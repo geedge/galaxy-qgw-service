@@ -27,6 +27,7 @@ import com.mesalab.knowledge.enums.SortEnum;
 import com.mesalab.knowledge.service.KnowledgeService;
 import com.mesalab.network.common.Constants;
 import com.mesalab.network.model.protocol.ProtocolTree;
+import com.mesalab.qgw.constant.DslIdentifierNameConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.DSLProfile;
@@ -55,6 +56,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -100,6 +102,36 @@ public class DslServiceImpl implements DslService {
     private static final String LOGICAL_TYPE_TIMESTAMP = "timestamp";
     private static final String LOGICAL_TYPE_UNIX_TIMESTAMP = "unix_timestamp";
 
+    @Override
+    public BaseResult execDsl(@RequestBody DSLProfile dslProfile) {
+        log.info("HTTP REST DSL, params is: {}", dslProfile);
+        if (DslIdentifierNameConst.APPLICATION_AND_PROTOCOL_SUMMARY.equals(dslProfile.getName())) {
+            return appAndProtocolSummary(dslProfile);
+        } else if (DslIdentifierNameConst.APPLICATION_AND_PROTOCOL_TREE_COMPOSITION.equals(dslProfile.getName())) {
+            return appAndProtocolTreeComposition(dslProfile);
+        } else if (DslIdentifierNameConst.APPLICATION_AND_PROTOCOL_TREE_THROUGHPUT.equals(dslProfile.getName())) {
+            return applicationAndProtocolTreeThroughput(dslProfile);
+        } else if (DslIdentifierNameConst.APPLICATION_AND_PROTOCOL_TOP_APPS.equals(dslProfile.getName())) {
+            return applicationAndProtocolTopApp(dslProfile);
+        } else if (DslIdentifierNameConst.APPLICATION_AND_PROTOCOL_APP_RELATED_INTERNAL_IPS.equals(dslProfile.getName())) {
+            return applicationAndProtocolAppRelatedInternalIps(dslProfile);
+        } else if (DslIdentifierNameConst.APPLICATION_AND_PROTOCOL_APP_THROUGHPUT.equals(dslProfile.getName())) {
+            return applicationAndProtocolAppThroughput(dslProfile);
+        } else if (DslIdentifierNameConst.APPLICATION_AND_PROTOCOL_APP_SUMMARY.equals(dslProfile.getName())) {
+            return applicationAndProtocolAppSummary(dslProfile);
+        } else if (DslIdentifierNameConst.REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP.equals(dslProfile.getName())) {
+            return realTimeDataAnalyticsSubscriberIdRelateIp(dslProfile);
+        } else if (DslIdentifierNameConst.REAL_TIME_DATA_ANALYTICS_MOBILE_IDENTITY_RELATE_TEID.equals(dslProfile.getName())) {
+            return realTimeDataAnalyticsMobileIdentityRelateTeid(dslProfile);
+        } else if (DslIdentifierNameConst.REAL_TIME_DATA_ANALYTICS_UNSTRUCTURED_DATA.equals(dslProfile.getName())) {
+            return realTimeDataAnalyticsUnstructuredData(dslProfile);
+        } else if (DslIdentifierNameConst.IP_LEARNING_FQDN_RELATE_IP.equals(dslProfile.getName())) {
+            return ipLearningFqdnRelateIp(dslProfile);
+        } else if (DslIdentifierNameConst.IP_LEARNING_ACTIVE_IP.equals(dslProfile.getName())) {
+            return ipLearningActiveIp(dslProfile);
+        }
+        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), dslProfile.getName()));
+    }
 
     @Override
     public BaseResult appAndProtocolSummary(DSLProfile dslProfile) {

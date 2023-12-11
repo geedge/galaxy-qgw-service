@@ -10,7 +10,7 @@ import java.io.Serializable;
 /**
  * TODO
  *
- * @Classname QueryJob
+ * @Classname QueryRequest
  * @Date 2023/12/6 15:30
  * @Author wWei
  */

@@ -15,25 +15,41 @@ import java.util.List;
  */
 public interface QueryJobService {
 
+    /**
+     * Desc: Commit a SQL Saved Query Job
+     *
+     * @param request
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2023/12/11 11:02
+     */
     BaseResult commitSqlSavedQuery(SqlQueryRequest request);
 
+    /**
+     * Desc: Commit a SQL AdHoc Query Job
+     *
+     * @param request
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2023/12/11 11:28
+     */
     BaseResult commitSqlAdHoc(SqlQueryRequest request);
 
-    BaseResult adHocResult(String id);
+    BaseResult getAdHocResult(String id);
 
-    BaseResult savedQueryResult(String id);
+    BaseResult getSavedQueryResult(String id);
 
-    BaseResult adHocStatus(String id);
+    BaseResult getAdHocStatus(String id);
 
-    BaseResult savedQueryStatus(String id);
+    BaseResult getSavedQueryStatus(String id);
 
     BaseResult commitDslAdHoc(DslQueryRequest request);
 
-    BaseResult savedQueryResultBatch(List<String> ids);
+    BaseResult getSavedQueryResultBatch(List<String> ids);
 
-    BaseResult adHocResultBatch(List<String> ids);
+    BaseResult getAdHocResultBatch(List<String> ids);
 
-    BaseResult savedQueryStatusBatch(List<String> ids);
+    BaseResult getSavedQueryStatusBatch(List<String> ids);
 
-    BaseResult adHocStatusBatch(List<String> ids);
+    BaseResult getAdHocStatusBatch(List<String> ids);
 }
