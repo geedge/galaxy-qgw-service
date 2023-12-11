@@ -613,7 +613,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         TRAFFIC_LOGS("Traffic Logs", "Traffic Logs"),
         REPORT_AND_METRICS("Report and Metrics", "Metrics"),
         FILES("Files", "Files"),
-        ALL("ALL", "ALL");
+        ALL("All", "All");
         private final String value;
         private final String label;
 
