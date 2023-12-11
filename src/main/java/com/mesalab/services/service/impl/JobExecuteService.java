@@ -1,6 +1,7 @@
 package com.mesalab.services.service.impl;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -11,19 +12,21 @@ import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
+import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.HazelcastInstanceUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.model.basic.QueryCache;
-import com.mesalab.qgw.model.basic.QueryProfile;
-import com.mesalab.qgw.model.basic.SqlQueryRequest;
+import com.mesalab.qgw.model.basic.*;
+import com.mesalab.qgw.service.DslService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
 import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
+import com.mesalab.services.service.JobService;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.*;
@@ -70,7 +73,11 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     DatabaseService databaseService;
     @Autowired
+    DslService dslService;
+    @Autowired
     JobConfig jobCfg;
+    @Autowired
+    JobService jobService;
 
     @Async("jobExecutor")
     public void addExecutorFieldDiscovery(String id, HashMap<String, Object> param) {
@@ -123,31 +130,68 @@ public class JobExecuteService implements EnvironmentAware {
 
     @Async("jobExecutor")
     public void addExecutorSql(String id, SqlQueryRequest request) {
-        Stopwatch watch = Stopwatch.createStarted();
+        signJobInfoToStartOnQueryCache(id);
         try {
             BaseResult baseResult = queryService.executeQuery(QueryProfile.builder()
                     .query(request.getStatement())
                     .format(request.getOutputMode().getValue())
                     .build());
-            QueryCache queryCache = HazelcastInstanceUtil.get(id);
-            Map<String, Object> job = queryCache.getBaseResult().getJob();
-            baseResult.setJob(job);
-            queryCache.setBaseResult(baseResult);
-            HazelcastInstanceUtil.put(id, queryCache);
-        } catch (Exception e) {
-            QueryCache queryCache = HazelcastInstanceUtil.get(id);
-            Map<String, Object> job = queryCache.getBaseResult().getJob();
-            job.put(JobConfig.IS_FAILED, true);
-            HazelcastInstanceUtil.put(id, queryCache);
-            log.error(e, "execute job error: jobId-{}", id);
+            updateJobResultOnQueryCache(id, baseResult);
+        } catch (RuntimeException e) {
+            signJobInfoToFailedOnQueryCache(id);
+            log.info("Exec SQL Query Job Error, message is: {}", e.getMessage());
         } finally {
-            QueryCache queryCache = HazelcastInstanceUtil.get(id);
-            Map<String, Object> job = queryCache.getBaseResult().getJob();
-            job.put(JobConfig.IS_DONE, true);
-            job.put(JobConfig.DONE_PROGRESS, 1);
-            job.put(JobConfig.DURATION_TIME, watch.elapsed(TimeUnit.MILLISECONDS));
-            HazelcastInstanceUtil.put(id, queryCache);
+            signJobInfoToDoneOnQueryCache(id);
         }
+    }
+
+    @Async("jobExecutor")
+    public void addExecutorDsl(String id, DslQueryRequest request) {
+        signJobInfoToStartOnQueryCache(id);
+        try {
+            DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
+            BaseResult baseResult = dslService.execDsl(dslProfile);
+            updateJobResultOnQueryCache(id, baseResult);
+        } catch (RuntimeException e) {
+            signJobInfoToFailedOnQueryCache(id);
+            log.info("Exec SQL Query Job Error, message is: {}", e.getMessage());
+        } finally {
+            signJobInfoToDoneOnQueryCache(id);
+        }
+    }
+
+    private static void updateJobResultOnQueryCache(String id, BaseResult baseResult) {
+        if (!baseResult.isSuccess()) {
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
+        }
+        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        Map<String, Object> job = queryCache.getBaseResult().getJob();
+        baseResult.setJob(job);
+        queryCache.setBaseResult(baseResult);
+        HazelcastInstanceUtil.put(id, queryCache);
+    }
+
+    private static void signJobInfoToStartOnQueryCache(String id) {
+        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        queryCache.getBaseResult().getJob().put(JobConfig.START_TIME, System.currentTimeMillis() / 1000);
+        HazelcastInstanceUtil.put(id, queryCache);
+    }
+
+    private static void signJobInfoToDoneOnQueryCache(String id) {
+        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        Map<String, Object> job = queryCache.getBaseResult().getJob();
+        job.put(JobConfig.IS_DONE, true);
+        job.put(JobConfig.DONE_PROGRESS, 1);
+        job.put(JobConfig.END_TIME, System.currentTimeMillis() / 1000);
+        HazelcastInstanceUtil.put(id, queryCache);
+    }
+
+    private static void signJobInfoToFailedOnQueryCache(String id) {
+        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        Map<String, Object> job = queryCache.getBaseResult().getJob();
+        job.put(JobConfig.IS_FAILED, true);
+        HazelcastInstanceUtil.put(id, queryCache);
     }
 
 

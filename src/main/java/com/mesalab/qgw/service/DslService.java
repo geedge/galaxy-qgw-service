@@ -18,6 +18,16 @@ import java.util.Map;
 public interface DslService {
 
     /**
+     * Desc: exec DSL
+     *
+     * @param dslProfile
+     * @return {@link BaseResult}
+     * @created by wWei
+     * @date 2023/12/11 15:54
+     */
+    BaseResult execDsl(DSLProfile dslProfile);
+
+    /**
      * Desc: Application and Protocol Summary
      *
      * @param dslProfile

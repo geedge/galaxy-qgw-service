@@ -1,6 +1,9 @@
 package com.mesalab.qgw.controller;
 
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
+import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.ExecModeEnum;
 import com.mesalab.common.enums.OutputModeEnum;
@@ -14,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,14 +31,17 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(value = "/v1/query")
 public class QueryJobController {
+    private static final Log log = LogFactory.get();
     private QueryJobService queryJobService;
 
     @PostMapping(value = "/sql", consumes = "application/json", produces = "application/json")
     public BaseResult commitSql(@RequestBody SqlQueryRequest request) {
+        log.info("Create a SQL Query Job, params is: {}", JSON.toJSONString(request));
         if (request.isSavedQuery()) {
             if (request.isDryRun() || !request.getExecMode().equals(ExecModeEnum.NORMAL) || !request.getOutputMode().equals(OutputModeEnum.JSON)) {
                 throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Support"));
+                        String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(),
+                                "for the Saved Query Job, is_dry_run must be 0, exec_mode must be normal, and output_mode must be JSON"));
             }
             return queryJobService.commitSqlSavedQuery(request);
         } else {
@@ -46,6 +51,7 @@ public class QueryJobController {
 
     @PostMapping(value = "/dsl", consumes = "application/json", produces = "application/json")
     public BaseResult commitDsl(@RequestBody DslQueryRequest request) {
+        log.info("Create a DSL Query Job, params is: {}", JSON.toJSONString(request));
         if (request.isSavedQuery()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Support"));
@@ -59,44 +65,44 @@ public class QueryJobController {
     }
 
     @GetMapping(value = "/job/{id}/result", consumes = "application/x-www-form-urlencoded")
-    public BaseResult result(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
+    public BaseResult getResult(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
         if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
-            return queryJobService.savedQueryResult(id);
+            return queryJobService.getSavedQueryResult(id);
         } else {
-            return queryJobService.adHocResult(id);
+            return queryJobService.getAdHocResult(id);
         }
     }
 
     @GetMapping(value = "/job/{id}", consumes = "application/x-www-form-urlencoded")
-    public BaseResult status(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
+    public BaseResult getStatus(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
         if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
-            return queryJobService.savedQueryStatus(id);
+            return queryJobService.getSavedQueryStatus(id);
         } else {
-            return queryJobService.adHocStatus(id);
+            return queryJobService.getAdHocStatus(id);
         }
     }
 
     @GetMapping(value = "/job/result", consumes = "application/x-www-form-urlencoded")
-    public BaseResult resultBatch(@RequestParam(value = "job_ids") String jobIds
+    public BaseResult getResultBatch(@RequestParam(value = "job_ids") String jobIds
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
         List<String> ids = Arrays.stream(jobIds.split(",")).distinct().collect(Collectors.toList());
         if (isSavedQuery) {
-            return queryJobService.savedQueryResultBatch(ids);
+            return queryJobService.getSavedQueryResultBatch(ids);
         } else {
-            return queryJobService.adHocResultBatch(ids);
+            return queryJobService.getAdHocResultBatch(ids);
         }
     }
 
     @GetMapping(value = "/job", consumes = "application/x-www-form-urlencoded")
-    public BaseResult statusBatch(@RequestParam(value = "job_ids") String jobIds
+    public BaseResult getStatusBatch(@RequestParam(value = "job_ids") String jobIds
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
         List<String> ids = Arrays.stream(jobIds.split(",")).distinct().collect(Collectors.toList());
         if (isSavedQuery) {
-            return queryJobService.savedQueryStatusBatch(ids);
+            return queryJobService.getSavedQueryStatusBatch(ids);
         } else {
-            return queryJobService.adHocStatusBatch(ids);
+            return queryJobService.getAdHocStatusBatch(ids);
         }
     }
 

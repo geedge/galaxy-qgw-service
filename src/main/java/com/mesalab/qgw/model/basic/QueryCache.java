@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -22,30 +23,22 @@ public class QueryCache implements Serializable {
     private String type;
     private BaseResult<Object> baseResult;
 
-    public QueryCache() {
+    public QueryCache(String jobId, String outputMode) {
         this.baseResult = new BaseResult<>();
-        Map<String, Object> job = Maps.newHashMap();
-        job.put("job_proper", Maps.newLinkedHashMap());
+        Map<String, Object> job = Maps.newLinkedHashMap();
+        job.put(JobConfig.JOB_ID, jobId);
         job.put(JobConfig.IS_DONE, false);
         job.put(JobConfig.DONE_PROGRESS, 0.0);
         job.put(JobConfig.IS_CANCELED, false);
         job.put(JobConfig.IS_FAILED, false);
+        job.put(JobConfig.START_TIME, null);
+        job.put(JobConfig.END_TIME, null);
+        job.put(JobConfig.OUTPUT_MODE, outputMode);
+        Map<String, Object> links = Maps.newLinkedHashMap();
+        links.put(JobConfig.LINKS_STATUS, "/v1/query/job/" + jobId);
+        links.put(JobConfig.LINKS_RESULT, "/v1/query/job/" + jobId + "/result");
+        job.put(JobConfig.LINKS, links);
         job.put(JobConfig.LAST_QUERY_TIME, System.currentTimeMillis() / 1000);
         this.baseResult.setJob(job);
     }
-
-    /*@Data
-    private static class Job {
-        private Long lastQueryTime;
-        private Long startTime;
-        private Long endTime;
-    }*/
-    /*private Long count;
-
-    private String outputMode;
-
-    private Links links;
-    private Map<String, Object> customAttributes = Maps.newHashMap();
-
-    */
 }

@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * TODO
  *
- * @Classname SqlQueryJob
+ * @Classname SqlQueryRequest
  * @Date 2023/12/6 15:32
  * @Author wWei
  */
