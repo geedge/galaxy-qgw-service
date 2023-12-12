@@ -68,11 +68,12 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult commitSqlAdHoc(SqlQueryRequest request) {
+        String option = request.isDryRun() ? QueryOptionEnum.SYNTAX_VALIDATION.getValue() : QueryOptionEnum.REAL_TIME.getValue();
         request.getCustomAttributes().put("UUID", System.currentTimeMillis());
         long start = System.currentTimeMillis();
         ExecModeEnum execMode = request.getExecMode();
         if (ExecModeEnum.ONESHOT.equals(execMode)) {
-            return queryService.executeQuery(QueryProfile.builder().query(request.getStatement()).format(request.getOutputMode().getValue()).build());
+            return queryService.executeQuery(QueryProfile.builder().query(request.getStatement()).option(option).format(request.getOutputMode().getValue()).build());
         } else if (ExecModeEnum.NORMAL.equals(execMode)) {
             String id = buildJobId(request.toString());
             HazelcastInstanceUtil.put(id, new QueryCache(id, request.getOutputMode().getValue()));
@@ -80,7 +81,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
             String id = buildJobId(request.toString());
-            BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(request.getStatement()).format(request.getOutputMode().getValue()).build());
+            BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(request.getStatement()).option(option).format(request.getOutputMode().getValue()).build());
             QueryCache queryCache = buildQueryCacheOfDone(id, start, request.getOutputMode().getValue(), baseResult);
             HazelcastInstanceUtil.put(id, queryCache);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));

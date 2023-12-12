@@ -132,6 +132,7 @@ public class JobExecuteService implements EnvironmentAware {
         try {
             BaseResult baseResult = queryService.executeQuery(QueryProfile.builder()
                     .query(request.getStatement())
+                    .option(request.isDryRun() ? QueryOptionEnum.SYNTAX_VALIDATION.getValue() : QueryOptionEnum.REAL_TIME.getValue())
                     .format(request.getOutputMode().getValue())
                     .build());
             updateJobResultOnQueryCache(id, baseResult);
