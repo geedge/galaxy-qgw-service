@@ -237,6 +237,11 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         return BaseResultGenerator.success(results);
     }
 
+    @Override
+    public BaseResult cancelSavedQuery(String id) {
+        return jobService.cancelSavedQuery(id);
+    }
+
     private void syntaxParseSql(String sql) {
         BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).option(QueryOptionEnum.SYNTAX_PARSE.getValue()).build());
         if (!baseResult.isSuccess()) {

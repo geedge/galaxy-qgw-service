@@ -52,4 +52,6 @@ public interface QueryJobService {
     BaseResult getSavedQueryStatusBatch(List<String> ids);
 
     BaseResult getAdHocStatusBatch(List<String> ids);
+
+    BaseResult cancelSavedQuery(String id);
 }
