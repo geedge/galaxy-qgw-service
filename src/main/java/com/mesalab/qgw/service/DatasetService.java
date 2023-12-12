@@ -1,4 +1,4 @@
-package com.mesalab.services.service;
+package com.mesalab.qgw.service;
 
 import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;

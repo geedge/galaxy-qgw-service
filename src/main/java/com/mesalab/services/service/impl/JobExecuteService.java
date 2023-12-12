@@ -14,7 +14,7 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.utils.HazelcastInstanceUtil;
+import com.mesalab.common.utils.HazelcastInstanceMapUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -26,7 +26,6 @@ import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
 import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
-import com.mesalab.services.service.JobService;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.*;
@@ -164,33 +163,33 @@ public class JobExecuteService implements EnvironmentAware {
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
                     String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
-        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         Map<String, Object> job = queryCache.getBaseResult().getJob();
         baseResult.setJob(job);
         queryCache.setBaseResult(baseResult);
-        HazelcastInstanceUtil.put(id, queryCache);
+        HazelcastInstanceMapUtil.put(id, queryCache);
     }
 
     private static void signJobInfoToStartOnQueryCache(String id) {
-        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         queryCache.getBaseResult().getJob().put(JobConfig.START_TIME, System.currentTimeMillis() / 1000);
-        HazelcastInstanceUtil.put(id, queryCache);
+        HazelcastInstanceMapUtil.put(id, queryCache);
     }
 
     private static void signJobInfoToDoneOnQueryCache(String id) {
-        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         Map<String, Object> job = queryCache.getBaseResult().getJob();
         job.put(JobConfig.IS_DONE, true);
         job.put(JobConfig.DONE_PROGRESS, 1);
         job.put(JobConfig.END_TIME, System.currentTimeMillis() / 1000);
-        HazelcastInstanceUtil.put(id, queryCache);
+        HazelcastInstanceMapUtil.put(id, queryCache);
     }
 
     private static void signJobInfoToFailedOnQueryCache(String id) {
-        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         Map<String, Object> job = queryCache.getBaseResult().getJob();
         job.put(JobConfig.IS_FAILED, true);
-        HazelcastInstanceUtil.put(id, queryCache);
+        HazelcastInstanceMapUtil.put(id, queryCache);
     }
 
 

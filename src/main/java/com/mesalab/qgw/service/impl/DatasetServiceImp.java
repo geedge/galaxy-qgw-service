@@ -1,4 +1,4 @@
-package com.mesalab.services.service.impl;
+package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
@@ -13,14 +13,14 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.nacos.NacosConst;
-import com.mesalab.qgw.controller.QueryJobController;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DatabaseService;
+import com.mesalab.qgw.service.QueryJobService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.mesalab.services.service.DatasetService;
+import com.mesalab.qgw.service.DatasetService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
@@ -51,7 +51,7 @@ public class DatasetServiceImp
     @Autowired
     QueryService queryService;
     @Autowired
-    private QueryJobController queryJobController;
+    private QueryJobService queryJobService;
 
     @Override
     public List<LinkedHashMap> getVariable() {
@@ -109,12 +109,12 @@ public class DatasetServiceImp
             SqlQueryRequest sqlQueryRequest = JSON.parseObject(template, SqlQueryRequest.class);
             sqlQueryRequest.setExecMode(ExecModeEnum.ONESHOT.getValue());
             log.info("Dataset Preview, ID is: {}, Type is: {}, Exec SQL is: {}", datasetId, "sql", sqlQueryRequest.getStatement());
-            return queryJobController.commitSql(sqlQueryRequest);
+            return queryJobService.commitSqlAdHoc(sqlQueryRequest);
         } else if (datasetType.equalsIgnoreCase("dsl")) {
             DslQueryRequest dslQueryRequest = JSON.parseObject(template, DslQueryRequest.class);
             dslQueryRequest.setExecMode(ExecModeEnum.ONESHOT.getValue());
             log.info("Dataset Preview, ID is: {}, Type is: {}, DSL is: {}", datasetId, "dsl", template);
-            return queryJobController.commitDsl(dslQueryRequest);
+            return queryJobService.commitDslAdHoc(dslQueryRequest);
         } else {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Supported"));
