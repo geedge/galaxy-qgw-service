@@ -33,6 +33,7 @@ public class HosServiceImp implements HosService {
     private static final String CHUNK_COUNT = "ChunkCount";
     private static final String REQUEST_ID = "RequestId";
     private static final String MESSAGE = "Message";
+    private static final String KEY_COUNT= "KeyCount";
 
     @Override
     public BaseResult getFileList(String bucketName, String prefix) {
@@ -48,27 +49,55 @@ public class HosServiceImp implements HosService {
 
     private List<Map<String, Object>> parseXmlData(String bucketName, Map<String, Object> map) {
         List<Map<String, Object>> dataList = Lists.newArrayList();
-        List<Map<String, String>> contentMap = (List<Map<String, String>>) map.get(CONTENTS);
-        if (CollectionUtil.isNotEmpty(contentMap)) {
-            for (Map contents : contentMap) {
-                Map<String, Object> dataMap = Maps.newHashMap();
-                String key = String.valueOf(contents.get(KEY));
-                dataMap.put("size", Integer.parseInt(String.valueOf(contents.get(SIZE))));
-                dataMap.put("fileUrl", hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(key));
-                if (MapUtil.isNotEmpty((Map<?, ?>) contents.get(USER_DEFINED_META))) {
-                    Map<String, String> udfMeta = (Map<String, String>) contents.get(USER_DEFINED_META);
-                    String fileType = StrUtil.isBlankIfStr(udfMeta.get("FileType")) ? "" : udfMeta.get("FileType");
-                    Integer chunkCount = StrUtil.isBlankIfStr(udfMeta.get(CHUNK_COUNT)) ? 0 : Integer.parseInt(udfMeta.get(CHUNK_COUNT));
-                    dataMap.put("fileName", key.concat(".").concat(fileType));
-                    dataMap.put("chunkCount", chunkCount);
-                } else {
-                    dataMap.put("fileName", key);
-                    dataMap.put("chunkCount", 0);
-                }
+        int keyCount = Integer.parseInt(String.valueOf(map.get(KEY_COUNT)));
+        switch (keyCount) {
+            case 0:
+                return dataList;
+            case 1:
+                dataList = parseSingleValue(bucketName, map);
+                break;
+            default:
+                dataList = parseMultipleValue(bucketName, map);
+        }
+        return dataList;
+    }
+
+    private List<Map<String, Object>> parseMultipleValue(String bucketName, Map<String, Object> map) {
+        List<Map<String, Object>> dataList = Lists.newArrayList();
+        List<Map<String, String>> contentList = (List<Map<String, String>>) map.get(CONTENTS);
+        if (CollectionUtil.isNotEmpty(contentList)) {
+            for (Map contents : contentList) {
+                Map<String, Object> dataMap = buildData(bucketName, contents);
                 dataList.add(dataMap);
             }
         }
         return dataList;
+    }
+
+    private List<Map<String, Object>> parseSingleValue(String bucketName, Map<String, Object> map) {
+        List<Map<String, Object>> dataList = Lists.newArrayList();
+        Map<String, String> contentMap = (Map<String, String>) map.get(CONTENTS);
+        Map<String, Object> stringObjectMap = buildData(bucketName, contentMap);
+        dataList.add(stringObjectMap);
+        return dataList;
+    }
+
+    private Map<String, Object> buildData(String bucketName, Map contents) {
+        Map<String, Object> dataMap = Maps.newHashMap();
+        String key = String.valueOf(contents.get(KEY));
+        dataMap.put("size", Integer.parseInt(String.valueOf(contents.get(SIZE))));
+        dataMap.put("fileUrl", hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(key));
+        if (MapUtil.isNotEmpty((Map<?, ?>) contents.get(USER_DEFINED_META))) {
+            Map<String, String> udfMeta = (Map<String, String>) contents.get(USER_DEFINED_META);
+            String fileType = StrUtil.isBlankIfStr(udfMeta.get("FileType")) ? "" : udfMeta.get("FileType");
+            Integer chunkCount = StrUtil.isBlankIfStr(udfMeta.get(CHUNK_COUNT)) ? 0 : Integer.parseInt(udfMeta.get(CHUNK_COUNT));
+            dataMap.put("fileName", key.concat(".").concat(fileType));
+            dataMap.put("chunkCount", chunkCount);
+        } else {
+            dataMap.put("fileName", key);
+            dataMap.put("chunkCount", 0);
+        }
+        return dataMap;
     }
 
     private Map<String, String> getDataByHos(String bucketName, String prefix) {
