@@ -161,16 +161,12 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     @Override
     public BaseResult getSavedQueryStatus(String jobId) {
-        Map<String, Object> job = buildJobStatus(jobId);
-        return BaseResultGenerator.success("ok", Lists.newArrayList(job));
-    }
-
-    private Map<String, Object> buildJobStatus(String jobId) {
-        List<Object> query = Db.query(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), jobId, 1));
+        List<Record> query = Db.find(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), jobId, 1));
         if (CollectionUtil.isEmpty(query)) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No job found with the given ID");
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "Not Find Matching Job.");
         }
-        return buildJobStatus(Arrays.asList((Object[]) query.get(0)));
+        Map<String, Object> job = buildJobStatus(query.get(0).getColumns());
+        return BaseResultGenerator.success("ok", Lists.newArrayList(job));
     }
 
     @Override
@@ -225,10 +221,10 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     @Override
     public List<Map<String, Object>> batchSavedQueryStatus(List<String> ids) {
-        List<Object> data = Db.query(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), StrUtil.join("', '", ids), ids.size()));
+        List<Record> data = Db.find(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), StrUtil.join("', '", ids), ids.size()));
         List<Map<String, Object>> result = Lists.newArrayList();
         data.forEach(x -> {
-            Map<String, Object> job = buildJobStatus(Arrays.asList((Object[]) x));
+            Map<String, Object> job = buildJobStatus(data.get(0).getColumns());
             result.add(job);
         });
         if (result.size() != ids.size()) {
@@ -282,16 +278,19 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     }
 
 
-    private Map<String, Object> buildJobStatus(List<Object> list) {
+    private Map<String, Object> buildJobStatus(Map<String, Object> data) {
         Map<String, Object> job = Maps.newLinkedHashMap();
-        job.put(JobConfig.JOB_ID, list.get(8));
-        job.put("is_done", "DONE".equalsIgnoreCase(String.valueOf(list.get(0))));
-        job.put("done_progress", Math.min(Double.parseDouble(String.valueOf(list.get(1))), 1));
-        job.put("is_canceled", !BooleanUtil.toBoolean(String.valueOf(list.get(3))));
-        job.put("is_failed", BooleanUtil.toBoolean(String.valueOf(list.get(2))));
-        job.put("start_time", list.get(4));
-        job.put("end_time", list.get(5));
-        job.put("count", list.get(6));
+        job.put(JobConfig.JOB_ID, data.get("job_id"));
+        job.put(JobConfig.IS_DONE, "DONE".equalsIgnoreCase(String.valueOf(data.get("state"))));
+        job.put(JobConfig.DONE_PROGRESS, Math.min(Double.parseDouble(String.valueOf(data.get("done_progress"))), 1.0));
+        job.put(JobConfig.IS_CANCELED, !BooleanUtil.toBoolean(String.valueOf(data.get("is_valid"))));
+        job.put(JobConfig.IS_FAILED, BooleanUtil.toBoolean(String.valueOf(data.get("is_failed"))));
+        job.put(JobConfig.START_TIME, data.get("start_time"));
+        job.put(JobConfig.END_TIME, data.get("end_time"));
+        Map<String, Object> links = Maps.newLinkedHashMap();
+        links.put(JobConfig.LINKS_STATUS, "/v1/query/job/" + job.get(JobConfig.JOB_ID));
+        links.put(JobConfig.LINKS_RESULT, "/v1/query/job/" + job.get(JobConfig.JOB_ID) + "/result");
+        job.put(JobConfig.LINKS, links);
         return job;
     }
 

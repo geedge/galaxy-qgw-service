@@ -76,8 +76,6 @@ public class JobExecuteService implements EnvironmentAware {
     DslService dslService;
     @Autowired
     JobConfig jobCfg;
-    @Autowired
-    JobService jobService;
 
     @Async("jobExecutor")
     public void addExecutorFieldDiscovery(String id, HashMap<String, Object> param) {
