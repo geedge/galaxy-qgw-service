@@ -27,6 +27,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,12 +65,11 @@ public class DatasetServiceImp
 
     @Override
     public Map<String, Object> getDataset(String datasetId) {
-        List<Map<String, Object>> results = new ArrayList<>();
         List<Record> list = Db.find(buildGetDatasetSQL(Lists.newArrayList(datasetId), null, null));
         if (CollectionUtils.isEmpty(list)) {
             return Maps.newHashMap();
         }
-        list.forEach(record -> results.add(record.getColumns()));
+        List<Map<String, Object>> results = formatResultData(list);
         Map<String, Object> result = results.get(0);
         log.info("ID is: {}, Dataset is: {}", datasetId, result);
         return result;
@@ -78,13 +78,22 @@ public class DatasetServiceImp
     @Override
     public List<Map<String, Object>> getDatasets(List<String> ids, String category, String backendEngine) {
         String sql = buildGetDatasetSQL(ids, category, backendEngine);
-        List<Map<String, Object>> data = new ArrayList<>();
         List<Record> list = Db.find(sql);
         if (CollectionUtils.isEmpty(list)) {
             return Lists.newArrayList();
         }
-        list.forEach(record -> data.add(record.getColumns()));
-        return data;
+        return formatResultData(list);
+    }
+
+    private static List<Map<String, Object>> formatResultData(List<Record> list) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        list.forEach(record -> {
+            Map<String, Object> columns = record.getColumns();
+            columns.put("generated_time", Instant.ofEpochSecond(Long.parseLong(String.valueOf(columns.get("generated_time")))));
+            columns.put("last_update_time", Instant.ofEpochSecond(Long.parseLong(String.valueOf(columns.get("last_update_time")))));
+            results.add(record.getColumns());
+        });
+        return results;
     }
 
     @Override
