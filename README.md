@@ -94,8 +94,8 @@
 
 - GIT 提交规范
   - [purpose][module name] Description (JIRA Issue ID)
-  - purpose : Fix, Feature, Improve, Docs
-  - module name : engine, cn, network, sql-dataset
+  - purpose : Fix, Feature, Improve, Refactor, Docs
+  - module name : query, dataset, database, util, troubleshooting, hos, admin, knowledge base file
 
 - 部署前提
 
