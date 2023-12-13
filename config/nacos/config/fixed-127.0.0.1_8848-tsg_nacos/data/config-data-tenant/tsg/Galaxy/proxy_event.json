@@ -353,28 +353,29 @@
       },
       "DoH": {
         "$ref": "public_schema_info.json#/decoded_as/DoH"
-      },
-      "default_columns": [
-        "recv_time",
-        "subscriber_id",
-        "client_ip",
-        "client_port",
-        "server_ip",
-        "server_port",
-        "decoded_as",
-        "server_fqdn"
-      ],
-      "internal_columns": [
-        "recv_time",
-        "log_id",
-        "flags_identify_info",
-        "tunnels",
-        "app_debug_info",
-        "app_content",
-        "packet_capture_file",
-        "tunnel_endpoint_a_desc",
-        "tunnel_endpoint_b_desc"
-      ],
+      }
+    },
+    "default_columns": [
+      "recv_time",
+      "subscriber_id",
+      "client_ip",
+      "client_port",
+      "server_ip",
+      "server_port",
+      "decoded_as",
+      "server_fqdn"
+    ],
+    "internal_columns": [
+      "recv_time",
+      "log_id",
+      "flags_identify_info",
+      "tunnels",
+      "app_debug_info",
+      "app_content",
+      "packet_capture_file",
+      "tunnel_endpoint_a_desc",
+      "tunnel_endpoint_b_desc"
+    ],
     "action_columns": {
       "intercept": [
         "proxy_pinning_status",
@@ -388,48 +389,47 @@
         "proxy_intercept_error"
       ]
     },
-      "tunnel_type": {
-        "$ref": "public_schema_info.json#/tunnel_type"
-      },
-      "measurements": {
-        "aggregates": {
-          "sessions": [
-            {
-              "fn": "count",
-              "column": "log_id",
-              "value": "sessions",
-              "label": "Sessions",
-              "unit": "sessions"
-            }
-          ],
-          "bytes": [
-            {
-              "fn": "sum",
-              "column": "sent_bytes + received_bytes",
-              "value": "bytes",
-              "label": "Bytes",
-              "unit": "bytes"
-            }
-          ],
-          "incoming_bytes": [
-            {
-              "fn": "sum",
-              "column": "if(bitAnd(flags, 8) = 8, received_bytes, sent_bytes)",
-              "value": "incoming_bytes",
-              "label": "Incoming Bytes",
-              "unit": "bytes"
-            }
-          ],
-          "outgoing_bytes": [
-            {
-              "fn": "sum",
-              "column": "if(bitAnd(flags, 8) = 8, sent_bytes, received_bytes)",
-              "value": "outgoing_bytes",
-              "label": "Outgoing Bytes",
-              "unit": "bytes"
-            }
-          ]
-        }
+    "tunnel_type": {
+      "$ref": "public_schema_info.json#/tunnel_type"
+    },
+    "measurements": {
+      "aggregates": {
+        "sessions": [
+          {
+            "fn": "count",
+            "column": "log_id",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          }
+        ],
+        "bytes": [
+          {
+            "fn": "sum",
+            "column": "sent_bytes + received_bytes",
+            "value": "bytes",
+            "label": "Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "incoming_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(flags, 8) = 8, received_bytes, sent_bytes)",
+            "value": "incoming_bytes",
+            "label": "Incoming Bytes",
+            "unit": "bytes"
+          }
+        ],
+        "outgoing_bytes": [
+          {
+            "fn": "sum",
+            "column": "if(bitAnd(flags, 8) = 8, sent_bytes, received_bytes)",
+            "value": "outgoing_bytes",
+            "label": "Outgoing Bytes",
+            "unit": "bytes"
+          }
+        ]
       }
     }
   },
