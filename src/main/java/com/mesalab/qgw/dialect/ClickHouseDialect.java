@@ -1,7 +1,6 @@
 package com.mesalab.qgw.dialect;
 
 
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
@@ -812,10 +811,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
-        boolean isSampled = BooleanUtil.isTrue(param.getSampled());
-        String dataSet = StrUtil.format("SELECT * FROM {}",
-                isSampled ? " {} WHERE rand() % 100 = 0 LIMIT 1000 " : " {} LIMIT 0 ");
-        return new ClickhouseSampleSQLHelper(sql, dataSet, isSampled).build();
+        String dataSet = StrUtil.format("SELECT * FROM {} WHERE rand() % 100 = 0 LIMIT 1000");
+        return new SampleSQLHelper(sql, dataSet, true).build();
     }
 
     /**
