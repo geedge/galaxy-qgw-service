@@ -406,7 +406,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             } catch (JSQLParserException | RuntimeException e) {
                 log.error("SQL Rewrite add tableName and Alias Error: ", e);
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.SQL_BUILDER_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_BUILDER_EXCEPTION.getMessage(), e.getMessage()));
+                        QGWErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getMessage(), e.getMessage()));
             }
             return this;
         }
@@ -763,11 +763,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setStatistics(statistics);
         } else {
             if (baseResult.getStatus() >= ResultStatusEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < ResultStatusEnum.SERVER_ERROR.getCode()) {
-                throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_EXECUTION_BAD_REQUEST_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+                throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
             }
-            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
         }
         return baseResult;
     }

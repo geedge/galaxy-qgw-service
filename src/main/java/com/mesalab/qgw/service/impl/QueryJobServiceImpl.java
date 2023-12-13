@@ -86,8 +86,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             HazelcastInstanceMapUtil.put(id, queryCache);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         }
-        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Supported"));
+        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
     }
 
     @Override
@@ -116,8 +116,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             }
         } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecModeEnum.NORMAL.getValue()));
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecModeEnum.NORMAL.getValue()));
             } else {
                 DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
                 BaseResult baseResult = dslService.execDsl(dslProfile);
@@ -127,8 +127,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             }
         }
-        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Supported"));
+        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
     }
 
     private QueryCache buildQueryCacheOfDone(String id, long start, String outputMode, BaseResult baseResult) {
@@ -168,8 +168,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         if (StrUtil.isEmptyIfStr(queryCache)) {
             BaseResult resultFieldDiscovery = jobService.getResultFieldDiscovery(id);
             if (StrUtil.isEmptyIfStr(resultFieldDiscovery)) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "Does not exist or result expired."));
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Does not exist or result expired."));
             }
             return BaseResultGenerator.success(null, resultFieldDiscovery.getJob(), null, null);
         } else {
@@ -197,8 +197,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             if (StrUtil.isEmptyIfStr(queryCache)) {
                 baseResult = jobService.getResultFieldDiscovery(id);
                 if (StrUtil.isEmptyIfStr(baseResult)) {
-                    throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                            String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "Does not exist or result expired."));
+                    throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                            String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Does not exist or result expired."));
                 }
             } else {
                 baseResult = queryCache.getBaseResult();
@@ -227,8 +227,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             if (StrUtil.isEmptyIfStr(queryCache)) {
                 BaseResult resultFieldDiscovery = jobService.getResultFieldDiscovery(id);
                 if (StrUtil.isEmptyIfStr(resultFieldDiscovery)) {
-                    throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                            String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "Does not exist or result expired."));
+                    throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                            String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Does not exist or result expired."));
                 }
                 results.add(resultFieldDiscovery.getJob());
             } else {

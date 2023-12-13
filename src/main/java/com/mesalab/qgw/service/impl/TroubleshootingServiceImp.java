@@ -254,8 +254,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
-                    QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), e.getMessage()));
+                    QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), e.getMessage()));
         }
         return result;
     }
@@ -268,8 +268,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             if (ResultStatusEnum.SUCCESS.getCode() != indexKeyResult.getStatus()) {
                 log.error("The Table[" + tableName + "] index key query failed" + indexKeyResult.getMessage());
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), " The Table[" + tableName + "] index key query failed"));
+                        QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), " The Table[" + tableName + "] index key query failed"));
             }
             List<Map<String, Object>> dataList = (List<Map<String, Object>>) indexKeyResult.getData();
             List<String> dbIndexKey = StringUtil.isEmpty(dataList.get(0)) ? Lists.newArrayList() : (List<String>) dataList.get(0).get("index_key");
@@ -279,8 +279,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             }
             log.error("{} schema index key inconsistent with DB, schema: {}, db: {}", tableName, schemaIndexKey, dbIndexKey);
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.SCHEMA_WITCH_DB_INCONSISTENTY.getCode(),
-                    String.format(QGWErrorCode.SCHEMA_WITCH_DB_INCONSISTENTY.getMessage(),
+                    QGWErrorCode.SCHEMA_AND_TABLE_NOT_CONSISTENCY.getCode(),
+                    String.format(QGWErrorCode.SCHEMA_AND_TABLE_NOT_CONSISTENCY.getMessage(),
                             String.format("%s schema index key is: %s, db index key is: %s", tableName, schemaIndexKey, dbIndexKey)));
         }
     }
@@ -307,8 +307,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             if (ResultStatusEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), " The Table[" + tableName + "] Structure query failed"));
+                        QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), " The Table[" + tableName + "] Structure query failed"));
             }
             List<Map<String, Object>> dbFields = JsonPath.read(JSON.toJSONString(baseResult.getData()), "$.fields.*");
 
@@ -329,8 +329,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             if (entriesOnlyOnLeft.size() > 0) {
                 log.error("Schema Fields greater than Table Fields,Schema " + tableName + " exist fields :" + entriesOnlyOnLeft);
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),
+                        QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),
                                 " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft));
 
             }
@@ -363,8 +363,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, String> result = executeHttpGetOfCK(ipPort, sql, clickHouseHttpSource.getSystemDBName());
         if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table TTL error: {}", result.toString());
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), result.toString()));
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), result.toString()));
         }
         Object tableTTLInDB = null;
         Map<String, Object> tableDiff = Maps.newHashMap();
@@ -388,8 +388,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, String> result = executeHttpGetOfCK(ipPort, "describe " + tableName + "_local", clickHouseHttpSource.getDbName());
         if (Integer.parseInt(result.get("status")) != ResultStatusEnum.SUCCESS.getCode()) {
             log.error(" query table field TTL error: {}", result.toString());
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), result.toString()));
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), result.toString()));
         }
         List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
         for (Map<String, Object> field : fields) {
@@ -509,8 +509,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             infoMap.put("Query" + index, "status:" + queryResult.getStatus() + ",message:" + queryResult.getMessage());
 
         } else {
-            throw new QGWBusinessException(statusCode, QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_SERVER_EXCEPTION.getMessage(), name
+            throw new QGWBusinessException(statusCode, QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), name
                             + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage()));
         }
     }

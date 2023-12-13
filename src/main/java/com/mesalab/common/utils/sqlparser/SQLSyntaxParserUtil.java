@@ -48,8 +48,8 @@ public class SQLSyntaxParserUtil {
             //addTypeForSelectItems(sql, resultList);
         } catch (RuntimeException | JSQLParserException e) {
             log.error("syntax_parse: sql-" + sql + ", error: ", e);
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
         return resultList;
     }

@@ -55,8 +55,8 @@ public class QueryController {
         log.info("Create a SQL Query Job, params is: {}", JSON.toJSONString(request));
         if (request.isSavedQuery()) {
             if (request.isDryRun() || !request.getExecMode().equals(ExecModeEnum.NORMAL) || !request.getOutputMode().equals(OutputModeEnum.JSON)) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(),
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(),
                                 "for the Saved Query Job, is_dry_run must be 0(default), exec_mode must be normal(default), and output_mode must be JSON(default)"));
             }
             return queryJobService.commitSqlSavedQuery(request);
@@ -69,12 +69,12 @@ public class QueryController {
     public BaseResult commitDsl(@RequestBody DslQueryRequest request) {
         log.info("Create a DSL Query Job, params is: {}", JSON.toJSONString(request));
         if (request.isSavedQuery()) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "The Saved Query Job does not yet support DSL."));
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The Saved Query Job does not yet support DSL."));
         } else {
             if (request.isDryRun() || !request.getOutputMode().equals(OutputModeEnum.JSON)) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "The DSL AdHoc Query Job is_dry_run must be 0(default), output_mode must be JSON(default)"));
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The DSL AdHoc Query Job is_dry_run must be 0(default), output_mode must be JSON(default)"));
             }
             return queryJobService.commitDslAdHoc(request);
         }
@@ -128,8 +128,8 @@ public class QueryController {
         if (isSavedQuery) {
             return queryJobService.cancelSavedQuery(id);
         }
-        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "The AdHoc Query Job does not yet support deletion."));
+        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The AdHoc Query Job does not yet support deletion."));
     }
 
     @Autowired

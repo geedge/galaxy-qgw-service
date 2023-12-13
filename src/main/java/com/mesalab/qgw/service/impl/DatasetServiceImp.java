@@ -116,8 +116,8 @@ public class DatasetServiceImp
             log.info("Dataset Preview, ID is: {}, Type is: {}, DSL is: {}", datasetId, "dsl", template);
             return queryJobService.commitDslAdHoc(dslQueryRequest);
         } else {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getMessage(), "not Supported"));
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
         }
     }
 
