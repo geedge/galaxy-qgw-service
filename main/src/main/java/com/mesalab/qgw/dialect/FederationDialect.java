@@ -135,8 +135,8 @@ public class FederationDialect extends AbstractEngineDialect{
         } catch (RuntimeException ex) {
             log.error("Engine execute memory-query error:{}", ex);
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),ex.getMessage()));
+                    QGWErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getMessage(),ex.getMessage()));
         }
         return build();
     }

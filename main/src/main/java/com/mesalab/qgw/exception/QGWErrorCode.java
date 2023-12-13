@@ -14,19 +14,15 @@ public enum QGWErrorCode {
      * 3-4位：模块 01
      * 5-7：自然排序
      */
-    // SQL解析错误
-    SQL_SYNTAX_PARSE_EXCEPTION("40001300", "Syntax error in SQL statement: %s"),
-    // 数据库引擎错误
-    SQL_EXECUTION_BAD_REQUEST_EXCEPTION("40001301", "Invalid SQL statement error in database execution engine: %s"),
-    PARAM_SYNTAX_BAD_REQUEST_EXCEPTION("40001302", "Invalid request params: %s"),
-    //Schema与DB不一致
-    SCHEMA_WITCH_DB_INCONSISTENTY("50001010", "Schema inconsistent with DB: %s"),
-    // SQL构建错误
-    SQL_BUILDER_EXCEPTION("50001100", "Error in SQL query builder and optimizer: %s"),
-    // SQL在数据库查询中执行错误
-    SQL_EXECUTION_SERVER_EXCEPTION("50001300", "Error in database execution engine: %s"),
-    // SQL在联邦查询中执行错误
-    SQL_QUERY_FEDERATION_EXCEPTION("50001500", "Error in query federation: %s"),
+    BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION("40001300", "Error in SQL syntax parsing: %s"),
+    BAD_REQUEST_SQL_EXECUTION_EXCEPTION("40001301", "Error in database execution engine: %s"),
+    BAD_REQUEST_PARAM_SYNTAX_EXCEPTION("40001302", " Invalid Request Parameter: %s"),
+
+    SCHEMA_AND_TABLE_NOT_CONSISTENCY("50001010", "Schema and table structure are not consistent: %s"),
+    SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION("50001100", "Error in SQL rewrite and transformation: %s"),
+    SQL_EXECUTION_EXCEPTION("50001300", "Error in SQL execution: %s"),
+
+    SQL_FEDERATION_QUERY_EXCEPTION("50001500", "Error in SQL federation query: %s"),
     ;
     private String code;
     private String message;

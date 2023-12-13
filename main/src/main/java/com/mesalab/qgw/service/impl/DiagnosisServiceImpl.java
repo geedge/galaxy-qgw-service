@@ -132,8 +132,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         } catch (RuntimeException e) {
             log.error("Avro Schema Validation Fail:{}", e);
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_QUERY_FEDERATION_EXCEPTION.getMessage(),e.getMessage()));
+                    QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),e.getMessage()));
 
         }
         return result;
