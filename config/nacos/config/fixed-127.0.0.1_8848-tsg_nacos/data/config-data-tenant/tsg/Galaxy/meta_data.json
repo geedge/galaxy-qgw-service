@@ -54,7 +54,8 @@
         "proxy_rule_hits",
         "statistics_rule",
         "object_statistics",
-        "statistics_rule_hits"
+        "statistics_rule_hits",
+        "monitor_rule_hits"
       ]
     },
     {
