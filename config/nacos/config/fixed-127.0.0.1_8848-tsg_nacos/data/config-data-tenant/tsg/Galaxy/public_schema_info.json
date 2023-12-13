@@ -57,11 +57,6 @@
         "function": "PERCENTILES_HDR(expr)"
       },
       {
-        "name": "HLLD",
-        "label": "HLLD",
-        "function": "HLLD(expr)"
-      },
-      {
         "name": "APPROX_COUNT_DISTINCT_HLLD",
         "label": "APPROX_COUNT_DISTINCT_HLLD",
         "function": "APPROX_COUNT_DISTINCT_HLLD(expr)"
@@ -70,11 +65,6 @@
         "name": "APPROX_COUNT_DISTINCT_DS_HLL",
         "label": "APPROX_COUNT_DISTINCT_DS_HLL",
         "function": "APPROX_COUNT_DISTINCT_DS_HLL(expr)"
-      },
-      {
-        "name": "HDR_HISTOGRAM",
-        "label": "HDR_HISTOGRAM",
-        "function": "HDR_HISTOGRAM(expr)"
       }
     ],
     "date": [
@@ -84,9 +74,19 @@
         "function": "UNIX_TIMESTAMP(expr)"
       },
       {
+        "name": "UNIX_TIMESTAMP_MILLIS",
+        "label": "UNIX_TIMESTAMP_MILLIS",
+        "function": "UNIX_TIMESTAMP_MILLIS(expr)"
+      },
+      {
         "name": "FROM_UNIXTIME",
         "label": "FROM_UNIXTIME",
         "function": "FROM_UNIXTIME(expr)"
+      },
+      {
+        "name": "FROM_UNIXTIME_MILLIS",
+        "label": "FROM_UNIXTIME_MILLIS",
+        "function": "FROM_UNIXTIME_MILLIS(expr)"
       },
       {
         "name": "DATE_FORMAT",
