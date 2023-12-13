@@ -443,7 +443,7 @@ public class DslServiceImpl implements DslService {
         if (StrUtil.isNotEmpty(dslProfile.getLimit())) {
             distinctList = distinctList.size() > Long.parseLong(dslProfile.getLimit()) ? distinctList.subList(0, Integer.parseInt(dslProfile.getLimit())) : distinctList;
         }
-        return build(distinctList, watch);
+        return build(Lists.newArrayList(distinctList), watch);
     }
 
     @Override

@@ -149,7 +149,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
                 .collect(Collectors.toList());
 
         distinctList = distinctList.size() > limit ? distinctList.subList(0, Integer.parseInt(dslObject.getQuery().getLimit())) : distinctList;
-        return build(distinctList, watch);
+        return build(Lists.newArrayList(distinctList), watch);
     }
 
     private BaseResult build(List<Map> dataList, Stopwatch watch) {
