@@ -1,0 +1,199 @@
+{
+  "type": "record",
+  "name": "monitor_rule_hits",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "dimensions": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id",
+        "action"
+      ],
+      "metrics": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id",
+        "action",
+        "hit_count",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts"
+      ],
+      "filters": [
+        "vsys_id",
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id",
+        "action",
+        "hit_count",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "granularity": 1,
+      "ingestion_delay": 15
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "rule_id",
+      "label": "Rule",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "action",
+      "label": "Action",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": [
+          {
+            "code": "1",
+            "value": "Monitor"
+          },
+          {
+            "code": "16",
+            "value": "Deny"
+          },
+          {
+            "code": "96",
+            "value": "Allow"
+          },
+          {
+            "code": "128",
+            "value": "Shunt"
+          }
+        ],
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "hit_count",
+      "label": "Hit Count",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}

@@ -15,7 +15,6 @@
           "device_group",
           "data_center",
           "rule_id",
-          "pinning_status",
           "action"
         ],
         "metrics": [
@@ -24,7 +23,6 @@
           "device_group",
           "data_center",
           "rule_id",
-          "pinning_status",
           "action",
           "hit_count",
           "in_bytes",
@@ -38,7 +36,6 @@
           "device_group",
           "data_center",
           "rule_id",
-          "pinning_status",
           "action",
           "hit_count",
           "in_bytes",
@@ -127,14 +124,6 @@
           "constraints": {
             "operator_functions": "=,in"
           },
-          "visibility": "enabled"
-        }
-      },
-      {
-        "name": "pinning_status",
-        "label": "Pinning Status",
-        "type": "long",
-        "doc": {
           "visibility": "enabled"
         }
       },
