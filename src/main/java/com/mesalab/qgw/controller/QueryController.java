@@ -122,7 +122,7 @@ public class QueryController {
         }
     }
 
-    @DeleteMapping(value = "/job/{id}", consumes = "application/x-www-form-urlencoded")
+    @DeleteMapping(value = "/v1/query/job/{id}", consumes = "application/x-www-form-urlencoded")
     public BaseResult cancelJob(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
         if (isSavedQuery) {
