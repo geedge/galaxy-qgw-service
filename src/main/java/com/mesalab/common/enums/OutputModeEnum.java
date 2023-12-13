@@ -6,6 +6,6 @@ import lombok.Getter;
 public enum OutputModeEnum {
     JSON("json"),
     CSV("csv"),;
-    private String value;
+    private final String value;
     OutputModeEnum(String value) {this.value = value;}
 }

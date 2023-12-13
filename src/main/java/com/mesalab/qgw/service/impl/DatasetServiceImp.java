@@ -106,15 +106,15 @@ public class DatasetServiceImp
         String backendEngine = String.valueOf(dataset.get(BACKEND_ENGINE));
         String datasetType = String.valueOf(dataset.get(DATASET_TYPE));
         if (datasetType.equalsIgnoreCase("sql")) {
-            SqlQueryRequest sqlQueryRequest = JSON.parseObject(template, SqlQueryRequest.class);
+            SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(template, SqlQueryRequestParam.class);
             sqlQueryRequest.setExecMode(ExecModeEnum.ONESHOT.getValue());
             log.info("Dataset Preview, ID is: {}, Type is: {}, Exec SQL is: {}", datasetId, "sql", sqlQueryRequest.getStatement());
-            return queryJobService.commitSqlAdHoc(sqlQueryRequest);
+            return queryJobService.createSQLAdHocQuery(sqlQueryRequest);
         } else if (datasetType.equalsIgnoreCase("dsl")) {
-            DslQueryRequest dslQueryRequest = JSON.parseObject(template, DslQueryRequest.class);
+            DslQueryRequestParam dslQueryRequest = JSON.parseObject(template, DslQueryRequestParam.class);
             dslQueryRequest.setExecMode(ExecModeEnum.ONESHOT.getValue());
             log.info("Dataset Preview, ID is: {}, Type is: {}, DSL is: {}", datasetId, "dsl", template);
-            return queryJobService.commitDslAdHoc(dslQueryRequest);
+            return queryJobService.createDSLAdHocQuery(dslQueryRequest);
         } else {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
