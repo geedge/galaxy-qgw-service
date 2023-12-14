@@ -33,7 +33,20 @@
     "internal_columns": [
       "start_time",
       "log_id"
-    ]
+    ],
+    "measurements": {
+      "aggregates": {
+        "sessions": [
+          {
+            "fn": "count",
+            "column": "log_id",
+            "value": "sessions",
+            "label": "Sessions",
+            "unit": "sessions"
+          }
+        ]
+      }
+    }
   },
   "fields": [
     {
