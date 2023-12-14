@@ -24,7 +24,6 @@ public class HosServiceImp implements HosService {
     private HosConfig hosConfig;
     @Autowired
     private HttpClientService httpClientService;
-    private static final String PREFIX = "prefix";
     private static final String TOKEN = "token";
     private static final String CONTENTS = "Contents";
     private static final String USER_DEFINED_META = "UserDefinedMeta";
@@ -33,11 +32,14 @@ public class HosServiceImp implements HosService {
     private static final String CHUNK_COUNT = "ChunkCount";
     private static final String REQUEST_ID = "RequestId";
     private static final String MESSAGE = "Message";
-    private static final String KEY_COUNT= "KeyCount";
+    private static final String KEY_COUNT = "KeyCount";
+    private static final String FILE_TYPE = "FileType";
+    private static final String TASK_ID = "TaskId";
+    private static final String RULE_ID = "RuleId";
 
     @Override
-    public BaseResult getFileList(String bucketName, String prefix) {
-        Map<String, String> map = getDataByHos(bucketName, prefix);
+    public BaseResult getFileList(String bucketName, String prefix, Map<String, String> udfMetaParam) {
+        Map<String, String> map = getDataByHos(bucketName, prefix, udfMetaParam);
         Map<String, Object> stringObjectMap = XmlUtil.xmlToMap(String.valueOf(map.get("result")));
         if (Integer.parseInt(map.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
             List<Map<String, Object>> dataList = parseXmlData(bucketName, stringObjectMap);
@@ -85,26 +87,54 @@ public class HosServiceImp implements HosService {
     private Map<String, Object> buildData(String bucketName, Map contents) {
         Map<String, Object> dataMap = Maps.newHashMap();
         String key = String.valueOf(contents.get(KEY));
-        dataMap.put("size", Integer.parseInt(String.valueOf(contents.get(SIZE))));
+        dataMap.put("size", StrUtil.isBlankIfStr(contents.get(SIZE)) ? 0 : Integer.parseInt(String.valueOf(contents.get(SIZE))));
         dataMap.put("fileUrl", hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(key));
         if (MapUtil.isNotEmpty((Map<?, ?>) contents.get(USER_DEFINED_META))) {
             Map<String, String> udfMeta = (Map<String, String>) contents.get(USER_DEFINED_META);
-            String fileType = StrUtil.isBlankIfStr(udfMeta.get("FileType")) ? "" : udfMeta.get("FileType");
+            String fileType = StrUtil.isBlankIfStr(udfMeta.get(FILE_TYPE)) ? "" : udfMeta.get(FILE_TYPE);
             Integer chunkCount = StrUtil.isBlankIfStr(udfMeta.get(CHUNK_COUNT)) ? 0 : Integer.parseInt(udfMeta.get(CHUNK_COUNT));
+            String taskId = StrUtil.isBlankIfStr(udfMeta.get(TASK_ID)) ? "" : udfMeta.get(TASK_ID);
+            String ruleId = StrUtil.isBlankIfStr(udfMeta.get(RULE_ID)) ? "" : udfMeta.get(RULE_ID);
+            dataMap.put("taskId", taskId);
+            dataMap.put("ruleId", ruleId);
             dataMap.put("fileName", key.concat(".").concat(fileType));
             dataMap.put("chunkCount", chunkCount);
         } else {
+            dataMap.put("taskId", "");
+            dataMap.put("ruleId", "");
             dataMap.put("fileName", key);
             dataMap.put("chunkCount", 0);
         }
         return dataMap;
     }
 
-    private Map<String, String> getDataByHos(String bucketName, String prefix) {
-        String url = hosConfig.getUri().concat("/").concat(bucketName).concat("/?").concat(PREFIX).concat("=").concat(prefix);
+    private Map<String, String> getDataByHos(String bucketName, String prefix, Map<String, String> udfMetaParam) {
+        String url;
+        if (StrUtil.isNotBlank(prefix) || MapUtil.isNotEmpty(udfMetaParam)) {
+            url = urlBuilder(bucketName, prefix, udfMetaParam);
+        } else {
+            url = hosConfig.getUri().concat("/").concat(bucketName);
+        }
         Map<String, String> headers = new HashMap<>();
         headers.put(TOKEN, hosConfig.getToken());
         Map<String, String> result = httpClientService.httpGet(url, headers, 60000);
         return result;
+    }
+
+    private String urlBuilder(String bucketName, String prefix, Map<String, String> udfMetaParam) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(hosConfig.getUri().concat("/").concat(bucketName)).append("?");
+        if (StrUtil.isNotBlank(prefix)) {
+            sb.append("prefix=").append(prefix).append("&");
+        }
+        if (MapUtil.isNotEmpty(udfMetaParam)) {
+            for (Map.Entry<String, String> entry : udfMetaParam.entrySet()) {
+                String paramKey = StrUtil.toSymbolCase(entry.getKey(), '-');
+                String paramValue = StrUtil.toSymbolCase(entry.getValue(), '-');
+                sb.append(paramKey).append("=").append(paramValue).append("&");
+            }
+        }
+        sb.setLength(sb.length() - 1);
+        return sb.toString();
     }
 }
