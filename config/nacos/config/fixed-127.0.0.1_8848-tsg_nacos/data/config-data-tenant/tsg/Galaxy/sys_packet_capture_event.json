@@ -1220,7 +1220,7 @@
         "format": [
           {
             "function": "combine",
-            "param": "pcap_file_bucket"
+            "param": "troubleshooting_file_bucket"
           }
         ],
         "constraints": {
