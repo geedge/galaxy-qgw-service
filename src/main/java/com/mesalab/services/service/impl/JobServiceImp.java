@@ -224,7 +224,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         List<Record> data = Db.find(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_STATUS")), StrUtil.join("', '", ids), ids.size()));
         List<Map<String, Object>> result = Lists.newArrayList();
         data.forEach(x -> {
-            Map<String, Object> job = buildJobStatus(data.get(0).getColumns());
+            Map<String, Object> job = buildJobStatus(x.getColumns());
             result.add(job);
         });
         if (result.size() != ids.size()) {
