@@ -1793,7 +1793,7 @@
         "format": [
           {
             "function": "combine",
-            "param": "pcap_file_bucket"
+            "param": "traffic_file_bucket"
           }
         ],
         "allow_query": "false",
@@ -3566,7 +3566,7 @@
         "format": [
           {
             "function": "combine",
-            "param": "pcap_file_bucket"
+            "param": "traffic_file_bucket"
           }
         ],
         "allow_query": "false",
