@@ -103,7 +103,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 HashMap<String, Object> map = Maps.newHashMap();
                 map.put(JobConfig.KEY_QUERY_TYPE, JobConfig.FIELD_DISCOVERY);
                 map.put(JobConfig.QUERY_DATA_SOURCE, dslQueryRequestParam.getDataSource());
-                map.put(JobConfig.FILTER, dslQueryRequestParam.getFilter());
+                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER, dslQueryRequestParam.getFilter());
                 map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, dslQueryRequestParam.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS));
                 map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC, dslQueryRequestParam.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC));
                 map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN, dslQueryRequestParam.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN));
