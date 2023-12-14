@@ -1,11 +1,10 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.common.entity.BaseResult;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
+import java.util.Map;
 
 
 public interface HosService {
 
-    BaseResult getFileList(String bucketName, String prefix);
+    BaseResult getFileList(String bucketName, String prefix, Map<String, String> udfMetaParam);
 }
