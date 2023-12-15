@@ -9,18 +9,9 @@
     },
     "schema_query": {
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "external_ip"
       ],
       "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "external_ip",
         "sessions",
         "in_bytes",
         "out_bytes",
@@ -28,16 +19,8 @@
         "out_pkts"
       ],
       "filters": [
-        "vsys_id",
-        "device_id",
         "device_group",
-        "data_center",
-        "external_ip",
-        "sessions",
-        "in_bytes",
-        "out_bytes",
-        "in_pkts",
-        "out_pkts"
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
