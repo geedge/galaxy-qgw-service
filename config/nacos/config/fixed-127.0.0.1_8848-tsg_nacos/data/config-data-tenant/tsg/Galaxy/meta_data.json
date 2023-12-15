@@ -62,10 +62,7 @@
       "group": "HBASE_GROUP",
       "tables": [
         "saved_query_result",
-        "relation_account_framedip",
-        "recommendation_app_cip",
-        "job_result",
-        "gtpc_knowledge_base"
+        "job_result"
       ]
     }
   ]
