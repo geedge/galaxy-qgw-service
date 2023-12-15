@@ -10,15 +10,9 @@
     "schema_query": {
       "dimensions": [
         "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center"
+        "device_id"
       ],
       "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "sessions",
         "active_sessions",
         "closed_sessions",
@@ -34,23 +28,8 @@
         "tcp_rst_pkts"
       ],
       "filters": [
-        "vsys_id",
-        "device_id",
         "device_group",
-        "data_center",
-        "sessions",
-        "active_sessions",
-        "closed_sessions",
-        "in_bytes",
-        "out_bytes",
-        "in_pkts",
-        "out_pkts",
-        "asymmetric_c2s_flows",
-        "asymmetric_s2c_flows",
-        "tcp_syn_pkts",
-        "tcp_ack_pkts",
-        "tcp_fin_pkts",
-        "tcp_rst_pkts"
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

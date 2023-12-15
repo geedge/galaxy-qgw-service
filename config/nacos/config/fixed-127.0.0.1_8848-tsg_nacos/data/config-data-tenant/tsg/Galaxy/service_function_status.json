@@ -9,29 +9,13 @@
     },
     "schema_query": {
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "sf_profile_id"
+        "sf_profile_id",
+        "sf_status"
       ],
       "metrics": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "sf_profile_id",
-        "sf_status",
         "sf_latency_us"
       ],
       "filters": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "sf_profile_id",
-        "sf_status",
-        "sf_latency_us"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
