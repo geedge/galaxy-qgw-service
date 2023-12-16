@@ -1187,7 +1187,7 @@
           "operator_functions": "has,notEmpty,empty"
         },
         "dict_location": {
-          "path": "/v1/policy/object/schema?type=fqdn_category",
+          "path": "/v1/policy/object?type=fqdn_category",
           "key": "category_id",
           "value": "category_name"
         },
