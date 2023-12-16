@@ -15,7 +15,7 @@ import java.util.Map;
  * @Date 2023/11/27 10:36
  * @Author wWei
  */
-public interface DslService {
+public interface DSLService {
 
     /**
      * Desc: exec DSL

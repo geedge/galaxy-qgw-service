@@ -1,7 +1,7 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.qgw.model.basic.DslQueryRequestParam;
+import com.mesalab.qgw.model.basic.DSLQueryRequestParam;
 import com.mesalab.qgw.model.basic.SqlQueryRequestParam;
 
 import java.util.List;
@@ -43,7 +43,7 @@ public interface QueryJobService {
      * @return {@link BaseResult}
      * @return
      */
-    BaseResult createDSLAdHocQuery(DslQueryRequestParam dslQueryRequestParam);
+    BaseResult createDSLAdHocQuery(DSLQueryRequestParam dslQueryRequestParam);
 
     BaseResult getAdHocQueryResultById(String id);
 

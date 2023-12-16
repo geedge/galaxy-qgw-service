@@ -19,7 +19,7 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.entity.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.service.DslService;
+import com.mesalab.qgw.service.DSLService;
 import com.mesalab.qgw.service.QueryJobService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.services.common.enums.MetricFunction;
@@ -52,7 +52,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private QueryService queryService;
     private JobService jobService;
     private JobExecuteService jobExecuteService;
-    private DslService dslService;
+    private DSLService dslService;
 
     @Override
     public BaseResult createSQLSavedQuery(SqlQueryRequestParam request) {
@@ -95,7 +95,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult createDSLAdHocQuery(DslQueryRequestParam request) {
+    public BaseResult createDSLAdHocQuery(DSLQueryRequestParam request) {
         request.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         String id = buildJobId(request.toString());
         long start = System.currentTimeMillis();
@@ -224,7 +224,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         return jobService.cancelSavedQuery(id);
     }
 
-    private void validFieldDiscovery(DslQueryRequestParam request) {
+    private void validFieldDiscovery(DSLQueryRequestParam request) {
         Object filter = request.getFilter();
         if (StrUtil.isEmptyIfStr(filter)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -330,7 +330,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Autowired
-    public void setDslService(DslService dslService) {
+    public void setDslService(DSLService dslService) {
         this.dslService = dslService;
     }
 }
