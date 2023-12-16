@@ -113,7 +113,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         Map<String, Object> property = Maps.newLinkedHashMap();
         if (JobConfig.FIELD_DISCOVERY.equals(queryType)) {
             initFieldDiscoveryJob(id, reqBody, property);
-            jobExecuteService.addExecutorFieldDiscovery(id, reqBody);
+            //jobExecuteService.addExecutorFieldDiscovery(id, reqBody);
         } else if (JobConfig.STATISTICS.equals(queryType)) {
             initStatisticsJob(id, reqBody, property);
             jobExecuteService.addExecutorStatistics(id, reqBody, property);
@@ -600,27 +600,15 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     private void validateAdHocQuery(HashMap<String, Object> body) {
         Object type = body.get(JobConfig.KEY_QUERY_TYPE);
         if (JobConfig.FIELD_DISCOVERY.equals(type)) {
-            validCustomParamsOfFieldDiscovery(body);
-            List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
-            body.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));
+            //validCustomParamsOfFieldDiscovery(body);
+            //List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
+            //body.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fields.stream().distinct().collect(Collectors.toList()));
             syntaxValidationFieldDiscovery(body);
         } else if (JobConfig.STATISTICS.equals(type)) {
             syntaxValidationStatistics(body);
         }
     }
 
-    private void validCustomParamsOfFieldDiscovery(HashMap<String, Object> body) {
-        Object metric = body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
-        if (StringUtil.isEmpty(metric)) {
-            return;
-        }
-        boolean validMetric = MetricType.isValid(String.valueOf(metric));
-        boolean validFn = MetricFunction.isValid(String.valueOf(body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN)));
-        if (!validMetric || !validFn) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
-        }
-    }
 
     private void validateReport(HashMap<String, Object> map) {
         QueryProfile queryProfile = QueryProfile.builder().query(String.valueOf(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL)))

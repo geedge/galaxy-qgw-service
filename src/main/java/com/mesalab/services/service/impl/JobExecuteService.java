@@ -2,18 +2,21 @@ package com.mesalab.services.service.impl;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
@@ -43,11 +46,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.mesalab.services.service.impl.JobServiceImp.execute;
 import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
@@ -74,26 +79,27 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     DslService dslService;
     @Autowired
+    EngineConfigSource engineConfigSource;
+    @Autowired
     JobConfig jobCfg;
 
     @Async("jobExecutor")
-    public void addExecutorFieldDiscovery(String id, HashMap<String, Object> param) {
-        Stopwatch watch = Stopwatch.createStarted();
+    public void addExecutorFieldDiscovery(String id, DslQueryRequestParam request) {
+        signJobInfoToStartOnQueryCache(id);
         try {
             JobInfo jobInfo = new JobInfo(id);
-            String partitionKey = databaseService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
-            Interval interval = getInterval("SELECT 1 FROM table WHERE " + param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString(), partitionKey);
+            String partitionKey = databaseService.getPartitionKey(request.getDataSource());
+            Interval interval = getInterval("SELECT 1 FROM table WHERE " + request.getFilter(), partitionKey);
             if (jobCfg.isTimeSlicingEnabled() && interval.isValid()) {
-                executeSlicingFieldDiscoveryJob(jobInfo, param, interval, partitionKey);
+                executeSlicingFieldDiscoveryJob(id, jobInfo, request, interval, partitionKey);
             } else {
-                executeFieldDiscoveryJob(jobInfo, param, param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER).toString());
+                executeFieldDiscoveryJob(id, jobInfo, request, request.getFilter());
             }
         } catch (Exception e) {
-            executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
-            log.error(e, "execute job error: jobId-{}", id);
+            signJobInfoToFailedOnQueryCache(id);
+            log.info("Exec SQL Query Job Error, message is: {}", e.getMessage());
         } finally {
-            execute(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_PROGRESS")),
-                    id, true, 1, watch.elapsed(TimeUnit.MILLISECONDS)));
+            signJobInfoToDoneOnQueryCache(id);
         }
     }
 
@@ -185,7 +191,7 @@ public class JobExecuteService implements EnvironmentAware {
         HazelcastInstanceMapUtil.put(id, queryCache);
     }
 
-    private static void signJobInfoToFailedOnQueryCache(String id) {
+    public static void signJobInfoToFailedOnQueryCache(String id) {
         QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         Map<String, Object> job = queryCache.getBaseResult().getJob();
         job.put(JobConfig.IS_FAILED, true);
@@ -194,7 +200,7 @@ public class JobExecuteService implements EnvironmentAware {
 
 
     private void executeLongTerm(JobInfo jobInfo, String cusSql, String countDataSource, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
-        if (isCancel(jobInfo.getId())) {
+        if (isCancelLongTerm(jobInfo.getId())) {
             return;
         }
 
@@ -216,30 +222,30 @@ public class JobExecuteService implements EnvironmentAware {
             limit.setRowCount(longValue.getValue() > 10000 ? longValue : new LongValue(10000));
         }
         List<Future<Boolean>> list = Lists.newArrayList(taskExecuteService.executeLongTerm(jobInfo.getId(), parseSQL.toString()));
-        waitAsyncResultAndUpdateProcess(jobInfo, list);
+        waitAsyncResultAndUpdateProcessLongTerm(jobInfo, list);
     }
 
-    private void executeSlicingFieldDiscoveryJob(JobInfo jobInfo, Map<String, Object> param, Interval interval, String partitionKey) throws JSQLParserException {
+    private void executeSlicingFieldDiscoveryJob(String id, JobInfo jobInfo, DslQueryRequestParam request, Interval interval, String partitionKey) throws ExecutionException, InterruptedException {
         jobInfo.setTotalTimes((int) ((interval.getEnd() - interval.getStart()) / jobCfg.getTimeSlicingInterval() + 1));
         while (true) {
             jobInfo.setCurrentTimes(jobInfo.getCurrentTimes() + 1);
             if (jobInfo.isTimeout()) {
                 log.error("execute job timeout: job-{}", jobInfo);
-                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, jobInfo.getId(), true));
+                signJobInfoToFailedOnQueryCache(id);
                 break;
             }
             long start = interval.getEnd() - jobCfg.getTimeSlicingInterval();
             if (start > interval.getStart()) {
                 interval.setEnd(start);
                 String newFilter = String.format("(%s) AND ( %s > %s AND %s <= %s)",
-                        param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER),
+                        request.getFilter(),
                         partitionKey, interval.getEnd(), partitionKey, interval.getEnd() + jobCfg.getTimeSlicingInterval());
-                executeFieldDiscoveryJob(jobInfo, param, newFilter);
+                executeFieldDiscoveryJob(id, jobInfo, request, newFilter);
             } else {
                 String where = String.format("(%s) AND (%s >= %s AND %s <= %s)",
-                        param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER),
+                        request.getFilter(),
                         partitionKey, interval.getStart(), partitionKey, interval.getEnd());
-                executeFieldDiscoveryJob(jobInfo, param, where);
+                executeFieldDiscoveryJob(id, jobInfo, request, where);
                 break;
             }
         }
@@ -283,15 +289,15 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private void executeFieldDiscoveryJob(JobInfo jobInfo, Map<String, Object> param, String newFilter) throws JSQLParserException {
+    private void executeFieldDiscoveryJob(String id, JobInfo jobInfo, DslQueryRequestParam request, String segmentFilter) throws ExecutionException, InterruptedException {
         if (isCancel(jobInfo.getId())) {
             return;
         }
-        String dataSource = param.get(JobConfig.QUERY_DATA_SOURCE).toString();
+        String dataSource = request.getDataSource();
         String totalMetric = "count(*)";
-        Object metric = param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
+        Object metric = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
         if (StringUtil.isNotEmpty(metric)) {
-            Object fn = param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN);
+            Object fn = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN);
             String measurements = databaseService.getValueByKeyInSchemaDoc(dataSource, "measurements");
             List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
             if (!read.isEmpty()) {
@@ -300,24 +306,239 @@ public class JobExecuteService implements EnvironmentAware {
             }
         }
 
-        Map<String, Long> map = getCount(dataSource, newFilter, totalMetric);
+        Map<String, Long> map = getCount(dataSource, segmentFilter, totalMetric);
         long currentCount = map.get("logCount");
         if (currentCount == 0) {
             return;
         }
-        long count = jobInfo.getCount() + currentCount;
-        executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.COUNT, jobInfo.getId(), count));
-        jobInfo.setCount(count);
-        List<Future<Boolean>> list = Lists.newArrayList();
-        List<String> fields = (List<String>) param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
+        Map<String, Future<List<Map<String, Object>>>> taskCallbackList = Maps.newHashMap();
+        List<String> fields = (List<String>) request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
+
         for (String field : fields) {
-            list.add(taskExecuteService.executeFieldDiscovery(jobInfo.getId(), param.get(JobConfig.QUERY_DATA_SOURCE).toString(), newFilter, field,
-                    param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC), param.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN), map.get("totalMetric")));
+            taskCallbackList.put(field, taskExecuteService.executeFieldDiscovery(id, request.getDataSource(), field
+                    , request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC)
+                    , request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN)
+                    , segmentFilter));
         }
-        waitAsyncResultAndUpdateProcess(jobInfo, list);
+        waitAsyncResultAndUpdateProcess(id, jobInfo, taskCallbackList, request, map);
     }
 
-    private void waitAsyncResultAndUpdateProcess(JobInfo jobInfo, List<Future<Boolean>> taskList) {
+    private void waitAsyncResultAndUpdateProcess(String id, JobInfo jobInfo, Map<String, Future<List<Map<String, Object>>>> taskCallbackList, DslQueryRequestParam request, Map<String, Long> mapCurrent) throws ExecutionException, InterruptedException {
+        List<String> updatedResult = Lists.newArrayList();
+        while (true) {
+            if (jobInfo.isTimeout()) {
+                log.error("execute job timeout, job id is: {}", id);
+                signJobInfoToFailedOnQueryCache(id);
+                taskCallbackList.keySet().forEach(o -> taskCallbackList.get(o).cancel(true));
+                break;
+            }
+            if (updatedResult.size() >= taskCallbackList.size()) {
+                break;
+            }
+            long completedTaskCount = taskCallbackList.keySet().stream().filter(o -> taskCallbackList.get(o).isDone()).count();
+            DecimalFormat format = getDecimalFormat();
+            double jobCompletedProcess = Double.parseDouble(format.format(jobInfo.getCurrentTimes() * 1.0 / jobInfo.getTotalTimes() - ((1 - completedTaskCount * 1.0 / taskCallbackList.size()) / jobInfo.getTotalTimes())));
+            List<String> queryDoneField = taskCallbackList.keySet().stream().filter(o -> taskCallbackList.get(o).isDone()).collect(Collectors.toList());
+
+            for (String field : queryDoneField) {
+                if (updatedResult.contains(field)) {
+                    continue;
+                }
+                updatedResult.add(field);
+                Long currentTotalMetric = mapCurrent.get("totalMetric");
+                String fnDefault = "count";
+                String value = "count";
+                Object metric = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
+                Object fn = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN);
+                if (StringUtil.isNotEmpty(metric)) {
+                    String measurements = databaseService.getValueByKeyInSchemaDoc(request.getDataSource(), "measurements");
+                    List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
+                    if (!read.isEmpty()) {
+                        fnDefault = fn.toString();
+                        value = read.get(0).get("value");
+                    }
+                }
+                Future<List<Map<String, Object>>> listFuture = taskCallbackList.get(field);
+                List<Map<String, Object>> data = listFuture.get();
+                QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+                if (StrUtil.isEmptyIfStr(queryCache)) {
+                    signJobInfoToFailedOnQueryCache(id);
+                    log.error("field_discovery task query lastTopK Error: Cache expiration.");
+                    return;
+                }
+                Object lastTotalMetric = 0;
+                if (StringUtil.isNotEmpty(queryCache.getBaseResult().getData())) {
+                    List<Map> map = (List<Map>) queryCache.getBaseResult().getData();
+                    for (Map map1 : map) {
+                        if (CollectionUtil.isNotEmpty(map1) && map1.containsKey(field) && !StrUtil.isEmptyIfStr(map1.get(field))) {
+                            Map item = (Map) map1.get(field);
+                            List<Map<String, Object>> topk = (List<Map<String, Object>>) item.get("topk");
+                            lastTotalMetric = item.get(value);
+                            Map<String, String> metrics = Maps.newHashMap();
+                            metrics.put(value, "count".equalsIgnoreCase(fnDefault) ? "sum" : fnDefault);
+                            data = mergeData(data, topk, Lists.newArrayList("value"), metrics);
+                        }
+
+                    }
+                }
+                data = sortDataAndSetMaxSize(data, value, DataTypeMapping.LONG, false);
+                updateResult(id, field, currentTotalMetric, lastTotalMetric, value, data, jobCompletedProcess);
+
+            }
+            if (completedTaskCount >= taskCallbackList.size()) {
+                break;
+            }
+        }
+    }
+
+    private void updateResult(String id, String field, long currentTotalMetric, Object lastTotalMetric, String value, List<Map<String, Object>> topList, double jobCompletedProcess) {
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("topk", topList);
+        map.put("distinct_count", Math.min(topList.size(), 100));
+        map.put(value, currentTotalMetric + Long.parseLong(lastTotalMetric.toString()));
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+        BaseResult<Object> baseResult = queryCache.getBaseResult();
+        if (jobCompletedProcess < 1) {
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            job.put(JobConfig.DONE_PROGRESS, jobCompletedProcess);
+        }
+
+        Object data1 = baseResult.getData();
+        if (StrUtil.isEmptyIfStr(data1)) {
+            List<Object> list = Lists.newArrayList();
+            Map<Object, Object> item = Maps.newLinkedHashMap();
+            item.put(field, map);
+            list.add(item);
+            baseResult.setData(list);
+            HazelcastInstanceMapUtil.put(id, queryCache);
+            return;
+        }
+        List<Map<String, Object>> list = (List<Map<String, Object>>) data1;
+        for (int i = 0; i < list.size(); i++) {
+            Map<String, Object> map1 = list.get(i);
+            if (map1.containsKey(field)) {
+                map1.put(field, map);
+                break;
+            }
+        }
+        if (list.stream().noneMatch(o -> o.containsKey(field))) {
+            Map<String, Object> objectObjectHashMap = Maps.newHashMap();
+            objectObjectHashMap.put(field, map);
+            list.add(objectObjectHashMap);
+        }
+        HazelcastInstanceMapUtil.put(id, queryCache);
+    }
+
+    private List<Map<String, Object>> sortDataAndSetMaxSize(List<Map<String, Object>> data, String sortElement, String sortType, boolean isAsc) {
+        if (DataTypeMapping.INT.equalsIgnoreCase(sortType) || DataTypeMapping.LONG.equalsIgnoreCase(sortType)) {
+            data.sort(Comparator.comparing(o -> Long.valueOf(StringUtil.isEmpty(o.get(sortElement)) ? Long.MIN_VALUE + "" : o.get(sortElement).toString())));
+        } else if (DataTypeMapping.FLOAT.equalsIgnoreCase(sortType) || DataTypeMapping.DOUBLE.equalsIgnoreCase(sortType)) {
+            data.sort(Comparator.comparing(o -> Double.valueOf(StringUtil.isEmpty(o.get(sortElement)) ? Long.MIN_VALUE + "" : o.get(sortElement).toString())));
+        } else {
+            data.sort(Comparator.comparing(o -> String.valueOf(o.get(sortElement))));
+        }
+        if (!isAsc) {
+            Collections.reverse(data);
+        }
+        return data.size() > engineConfigSource.getMaxCacheNum() ? data.subList(0, engineConfigSource.getMaxCacheNum()) : data;
+    }
+
+    private List<Map<String, Object>> mergeData(List<Map<String, Object>> data1, List<Map<String, Object>> date2, List<String> dimensions, Map<String, String> metrics) {
+        Collection<Map<String, Object>> data = CollectionUtil.addAll(data1, date2);
+        Map<String, Map<String, Object>> result = Maps.newHashMap();
+        for (Map<String, Object> datum : data) {
+            StringBuilder key = new StringBuilder();
+            dimensions.forEach(k -> key.append(datum.get(k)));
+            if (!result.containsKey(key.toString())) {
+                result.put(key.toString(), datum);
+                continue;
+            }
+            Map<String, Object> item = result.get(key.toString());
+            for (String k : metrics.keySet()) {
+                String action = metrics.get(k);
+                Object o1 = item.get(k);
+                Object o2 = datum.get(k);
+                if (StringUtil.isEmpty(o1) || StringUtil.isEmpty(o2)) {
+                    item.put(k, (StringUtil.isEmpty(o1) && StringUtil.isEmpty(o2)) ? null : StringUtil.isEmpty(o1) ? o2 : o1);
+                    continue;
+                }
+                Number number1 = NumberUtil.parseNumber(o1.toString());
+                Number number2 = NumberUtil.parseNumber(o2.toString());
+                if (action.equals("sum")) {
+                    item.put(k, NumberUtil.add(number1, number2));
+                    continue;
+                }
+                if (NumberUtil.isDouble(o1.toString()) || NumberUtil.isDouble(o2.toString())) {
+                    double v1 = Double.parseDouble(number1.toString());
+                    double v2 = Double.parseDouble(number2.toString());
+                    switch (action) {
+                        case "max":
+                            item.put(k, NumberUtil.max(v1, v2));
+                            break;
+                        case "min":
+                            item.put(k, NumberUtil.min(v1, v2));
+                            break;
+                        case "avg":
+                            item.put(k, NumberUtil.div(NumberUtil.add(v1, v2), 2));
+                            break;
+                    }
+                } else if (NumberUtil.isLong(o1.toString()) || NumberUtil.isLong(o2.toString())) {
+                    long v1 = Long.parseLong(number1.toString());
+                    long v2 = Long.parseLong(number2.toString());
+                    switch (action) {
+                        case "max":
+                            item.put(k, NumberUtil.max(v1, v2));
+                            break;
+                        case "min":
+                            item.put(k, NumberUtil.min(v1, v2));
+                            break;
+                        case "avg":
+                            item.put(k, NumberUtil.div(NumberUtil.add(v1, v2), 2));
+                            break;
+                    }
+                } else {
+                    log.error("task merge data error, data is: {}, {}", data1, date2);
+                    throw new BusinessException("task merge data error.");
+                }
+            }
+        }
+        return new ArrayList<>(result.values());
+    }
+
+    private boolean isCancel(String id) {
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+        if (queryCache == null) {
+            log.info("Can't find the cache, job id is: {}", id);
+            return true;
+        }
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - queryCache.getLatestQueryTimeMs() > jobCfg.getInteractiveTimeout()) {
+            queryCache.getBaseResult().getJob().put(JobConfig.IS_CANCELED, true);
+            HazelcastInstanceMapUtil.put(id, queryCache);
+            log.info("Interactive timeout, job id is: {}", id);
+            return true;
+        }
+        return false;
+    }
+
+    @Deprecated
+    private boolean isCancelLongTerm(String id) {
+        QueryProfile build = QueryProfile.builder().query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id)).
+                option(QueryOptionEnum.REAL_TIME.getValue()).build();
+        BaseResult baseResult = queryService.executeQuery(build);
+        if (baseResult.isSuccess() && (StringUtil.isNotEmpty(baseResult.getData()))) {
+            List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
+            long statTime = Long.parseLong(list.get(0).get("value").toString());
+            if ((System.currentTimeMillis() - statTime) > jobCfg.getInteractiveTimeout()) {
+                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_CANCELED, id, true));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Deprecated
+    private void waitAsyncResultAndUpdateProcessLongTerm(JobInfo jobInfo, List<Future<Boolean>> taskList) {
         double taskCompletedProcess = 0;
         while (true) {
             if (jobInfo.isTimeout()) {
@@ -341,20 +562,6 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private boolean isCancel(String id) {
-        QueryProfile build = QueryProfile.builder().query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id)).
-                option(QueryOptionEnum.REAL_TIME.getValue()).build();
-        BaseResult baseResult = queryService.executeQuery(build);
-        if (baseResult.isSuccess() && (StringUtil.isNotEmpty(baseResult.getData()))) {
-            List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
-            long statTime = Long.parseLong(list.get(0).get("value").toString());
-            if ((System.currentTimeMillis() - statTime) > jobCfg.getInteractiveTimeout()) {
-                executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_CANCELED, id, true));
-                return true;
-            }
-        }
-        return false;
-    }
 
     private Map<String, Long> getCount(String logType, String filter, String totalMetric) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_LOG_COUNT")),
@@ -473,7 +680,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     @Data
-    class JobInfo {
+    class JobInfo implements Serializable {
         private String id;
         private long startTime = System.currentTimeMillis();
         private long count = 0;

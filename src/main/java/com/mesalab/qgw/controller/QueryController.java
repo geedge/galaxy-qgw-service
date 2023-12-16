@@ -100,7 +100,7 @@ public class QueryController {
     }
 
     @GetMapping(value = "/v1/query/job/result", consumes = "application/x-www-form-urlencoded")
-    public BaseResult getJobResult (@RequestParam(value = "job_ids") String jobIds
+    public BaseResult getJobResult(@RequestParam(value = "job_ids") String jobIds
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
         List<String> ids = Arrays.stream(jobIds.split(",")).distinct().collect(Collectors.toList());
