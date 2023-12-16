@@ -4,7 +4,6 @@ package com.mesalab.common.entity;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
 
 import java.util.Map;
 
