@@ -15,12 +15,15 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DslService;
 import com.mesalab.qgw.service.QueryJobService;
 import com.mesalab.qgw.service.QueryService;
+import com.mesalab.services.common.enums.MetricFunction;
+import com.mesalab.services.common.enums.MetricType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
@@ -32,6 +35,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * TODO
@@ -91,38 +95,38 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult createDSLAdHocQuery(DslQueryRequestParam dslQueryRequestParam) {
-        dslQueryRequestParam.getCustomRequestParam().put("UUID", System.currentTimeMillis());
+    public BaseResult createDSLAdHocQuery(DslQueryRequestParam request) {
+        request.getCustomRequestParam().put("UUID", System.currentTimeMillis());
+        String id = buildJobId(request.toString());
         long start = System.currentTimeMillis();
-        ExecModeEnum execMode = dslQueryRequestParam.getExecMode();
+        ExecModeEnum execMode = request.getExecMode();
         if (ExecModeEnum.ONESHOT.equals(execMode)) {
-            DSLProfile dslProfile = BeanUtil.copyProperties(dslQueryRequestParam, DSLProfile.class);
-            return dslService.execDsl(dslProfile);
-        } else if (ExecModeEnum.NORMAL.equals(execMode)) {
-            if (JobConfig.FIELD_DISCOVERY.equals(dslQueryRequestParam.getName())) {
-                HashMap<String, Object> map = Maps.newHashMap();
-                map.put(JobConfig.KEY_QUERY_TYPE, JobConfig.FIELD_DISCOVERY);
-                map.put(JobConfig.QUERY_DATA_SOURCE, dslQueryRequestParam.getDataSource());
-                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FILTER, dslQueryRequestParam.getFilter());
-                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, dslQueryRequestParam.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS));
-                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC, dslQueryRequestParam.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC));
-                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN, dslQueryRequestParam.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN));
-                return jobService.commitAdHocQuery(map);
-            } else {
-                String id = buildJobId(dslQueryRequestParam.toString());
-                HazelcastInstanceMapUtil.put(id, new QueryCache(id, dslQueryRequestParam.getOutputMode().getValue()));
-                jobExecuteService.addExecutorDsl(id, dslQueryRequestParam);
-                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
-            }
-        } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
-            if (JobConfig.FIELD_DISCOVERY.equals(dslQueryRequestParam.getName())) {
+            if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                         String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecModeEnum.NORMAL.getValue()));
             } else {
-                DSLProfile dslProfile = BeanUtil.copyProperties(dslQueryRequestParam, DSLProfile.class);
+                DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
+                return dslService.execDsl(dslProfile);
+            }
+        } else if (ExecModeEnum.NORMAL.equals(execMode)) {
+            QueryCache queryCache = new QueryCache(id, request.getOutputMode().getValue());
+            queryCache.setType(JobConfig.FIELD_DISCOVERY);
+            HazelcastInstanceMapUtil.put(id, queryCache);
+            if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+                validFieldDiscovery(request);
+                jobExecuteService.addExecutorFieldDiscovery(id, request);
+            } else {
+                jobExecuteService.addExecutorDsl(id, request);
+            }
+            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
+        } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
+            if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecModeEnum.NORMAL.getValue()));
+            } else {
+                DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
                 BaseResult baseResult = dslService.execDsl(dslProfile);
-                String id = buildJobId(dslQueryRequestParam.toString());
-                QueryCache queryCache = buildQueryCacheOfDone(id, start, dslQueryRequestParam.getOutputMode().getValue(), baseResult);
+                QueryCache queryCache = buildQueryCacheOfDone(id, start, request.getOutputMode().getValue(), baseResult);
                 HazelcastInstanceMapUtil.put(id, queryCache);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             }
@@ -149,12 +153,12 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult getAdHocQueryResultById(String id) {
         QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        if (StrUtil.isEmptyIfStr(queryCache)) {
-            return jobService.getResultFieldDiscovery(id);
-        } else {
-            BaseResult<Object> baseResult = queryCache.getBaseResult();
-            return BaseResultGenerator.success(baseResult.getStatistics(), baseResult.getJob(), baseResult.getMeta(), baseResult.getData());
+        updateLastQueryTime(queryCache, id);
+        if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
+            queryCache = buildFieldDiscoveryBaseResultData(id);
         }
+        BaseResult<Object> baseResult = queryCache.getBaseResult();
+        return BaseResultGenerator.success(baseResult.getStatistics(), baseResult.getJob(), baseResult.getMeta(), baseResult.getData());
     }
 
     @Override
@@ -165,16 +169,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult getAdHocQueryStatusById(String id) {
         QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        if (StrUtil.isEmptyIfStr(queryCache)) {
-            BaseResult resultFieldDiscovery = jobService.getResultFieldDiscovery(id);
-            if (StrUtil.isEmptyIfStr(resultFieldDiscovery)) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Does not exist or result expired."));
-            }
-            return BaseResultGenerator.success(null, resultFieldDiscovery.getJob(), null, null);
-        } else {
-            return BaseResultGenerator.success(null, queryCache.getBaseResult().getJob(), null, null);
-        }
+        updateLastQueryTime(queryCache, id);
+        return BaseResultGenerator.success(null, queryCache.getBaseResult().getJob(), null, null);
     }
 
     @Override
@@ -194,15 +190,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         for (String id : ids) {
             BaseResult<Object> baseResult;
             QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-            if (StrUtil.isEmptyIfStr(queryCache)) {
-                baseResult = jobService.getResultFieldDiscovery(id);
-                if (StrUtil.isEmptyIfStr(baseResult)) {
-                    throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                            String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Does not exist or result expired."));
-                }
-            } else {
-                baseResult = queryCache.getBaseResult();
-            }
+            updateLastQueryTime(queryCache, id);
+            baseResult = queryCache.getBaseResult();
             Map<String, Object> resultItem = Maps.newLinkedHashMap();
             resultItem.put(JobConfig.STATISTICS, baseResult.getStatistics());
             resultItem.put(JobConfig.JOB, baseResult.getJob());
@@ -224,16 +213,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
             QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-            if (StrUtil.isEmptyIfStr(queryCache)) {
-                BaseResult resultFieldDiscovery = jobService.getResultFieldDiscovery(id);
-                if (StrUtil.isEmptyIfStr(resultFieldDiscovery)) {
-                    throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                            String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Does not exist or result expired."));
-                }
-                results.add(resultFieldDiscovery.getJob());
-            } else {
-                results.add(queryCache.getBaseResult().getJob());
-            }
+            updateLastQueryTime(queryCache, id);
+            results.add(queryCache.getBaseResult().getJob());
         }
         return BaseResultGenerator.success(results);
     }
@@ -241,6 +222,32 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult deleteSavedQueryById(String id) {
         return jobService.cancelSavedQuery(id);
+    }
+
+    private void validFieldDiscovery(DslQueryRequestParam request) {
+        Object filter = request.getFilter();
+        if (StrUtil.isEmptyIfStr(filter)) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
+        }
+
+        Object metric = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
+        if (StringUtil.isEmpty(metric)) {
+            return;
+        }
+        boolean validMetric = MetricType.isValid(String.valueOf(metric));
+        boolean validFn = MetricFunction.isValid(String.valueOf(request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN)));
+        if (!validMetric || !validFn) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
+        }
+        Object fields = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
+        if (StrUtil.isEmptyIfStr(fields)) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
+                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
+        }
+        List<String> fieldList = (List<String>) request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
+        request.getCustomRequestParam().put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fieldList.stream().distinct().collect(Collectors.toList()));
     }
 
     private void syntaxParseSql(String sql) {
@@ -268,6 +275,38 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         result.put(JobConfig.JOB_ID, id);
         return result;
     }
+
+    private static void updateLastQueryTime(QueryCache queryCache, String id) {
+        if (queryCache == null) {
+            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), id + ", Does not exist or result expired."));
+        }
+        queryCache.setLatestQueryTimeMs(System.currentTimeMillis());
+        HazelcastInstanceMapUtil.put(id, queryCache);
+    }
+
+    private static QueryCache buildFieldDiscoveryBaseResultData(String id) {
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+        BaseResult<Object> baseResult = queryCache.getBaseResult();
+        Object dataObj = baseResult.getData();
+        if (!StrUtil.isEmptyIfStr(dataObj)) {
+            List<Map> dataList = (List<Map>) dataObj;
+            for (Map map : dataList) {
+                for (Object itemObj : map.keySet()) {
+                    Map<String, Object> itemMap = (Map) map.get(itemObj);
+                    Object topkObj = itemMap.get("topk");
+                    if (!StrUtil.isEmptyIfStr(topkObj)) {
+                        List<Map<String, Object>> topkList = (List<Map<String, Object>>) topkObj;
+                        List<Map<String, Object>> list = topkList.subList(0, Math.min(10, topkList.size()));
+                        itemMap.put("topk", Lists.newArrayList(list));
+                    }
+                }
+            }
+            return queryCache;
+        }
+        return queryCache;
+    }
+
 
     @Override
     public void setEnvironment(Environment environment) {

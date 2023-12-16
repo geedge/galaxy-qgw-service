@@ -4,11 +4,8 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.services.configuration.JobConfig;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -21,8 +18,8 @@ import java.util.Map;
 @Data
 public class QueryCache implements Serializable {
     private String type;
+    private Long latestQueryTimeMs = System.currentTimeMillis();
     private BaseResult<Object> baseResult;
-
     public QueryCache(String jobId, String outputMode) {
         this.baseResult = new BaseResult<>();
         Map<String, Object> job = Maps.newLinkedHashMap();
@@ -38,7 +35,6 @@ public class QueryCache implements Serializable {
         links.put(JobConfig.LINKS_STATUS, "/v1/query/job/" + jobId);
         links.put(JobConfig.LINKS_RESULT, "/v1/query/job/" + jobId + "/result");
         job.put(JobConfig.LINKS, links);
-        job.put(JobConfig.LAST_QUERY_TIME, System.currentTimeMillis() / 1000);
         this.baseResult.setJob(job);
     }
 }

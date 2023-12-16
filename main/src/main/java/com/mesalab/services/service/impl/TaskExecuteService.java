@@ -7,7 +7,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -35,6 +34,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.Future;
 
+import static com.mesalab.services.service.impl.JobExecuteService.signJobInfoToFailedOnQueryCache;
 import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
 
 /**
@@ -58,62 +58,36 @@ public class TaskExecuteService implements EnvironmentAware {
     EngineConfigSource engineConfigSource;
 
     @Async("taskExecutor")
-    public Future<Boolean> executeFieldDiscovery(String id, String logType, String filter, String field, Object metric, Object fn, long currentTotalMetric) {
-        try {
-            String fnDefault = "count";
-            String column = "*";
-            String value = "count";
-            if (StringUtil.isNotEmpty(metric)) {
-                String measurements = databaseService.getValueByKeyInSchemaDoc(logType, "measurements");
-                List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
-                if (!read.isEmpty()) {
-                    fnDefault = fn.toString();
-                    column = read.get(0).get("column");
-                    value = read.get(0).get("value");
-                }
+    public Future<List<Map<String, Object>>> executeFieldDiscovery(String id, String dataSource, String field, Object metric, Object fn, String filter) {
+        String fnDefault = "count";
+        String column = "*";
+        String value = "count";
+        if (StringUtil.isNotEmpty(metric)) {
+            String measurements = databaseService.getValueByKeyInSchemaDoc(dataSource, "measurements");
+            List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
+            if (!read.isEmpty()) {
+                fnDefault = fn.toString();
+                column = read.get(0).get("column");
+                value = read.get(0).get("value");
             }
-
+        }
+        try {
             BaseResult currentTop = queryService.executeQuery(QueryProfile.builder()
                     .option(QueryOptionEnum.REAL_TIME.getValue())
-                    .query(buildTopSQL(logType, filter, field, fnDefault, column, value))
+                    .query(buildTopSQL(dataSource, filter, field, fnDefault, column, value))
                     .build());
             if (!currentTop.isSuccess()) {
                 setJobFailed(id);
-                log.error("Field-Discovery task query currentTopK Error: ", currentTop.getMessage());
-                return new AsyncResult<>(false);
+                log.error("field_discovery task of Job id is: {}, query currentTopK Error: {}", id, currentTop.getMessage());
+                return new AsyncResult<>(Lists.newArrayList());
             }
             List<Map<String, Object>> data = (List<Map<String, Object>>) currentTop.getData();
-
-            BaseResult lastTop = queryService.executeQuery(QueryProfile.builder()
-                    .option(QueryOptionEnum.REAL_TIME.getValue())
-                    .query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.FIELD_DISCOVERY, field, id))
-                    .build());
-            if (!lastTop.isSuccess()) {
-                setJobFailed(id);
-                log.error("Field-Discovery task query lastTopK Error: ", lastTop.getMessage());
-                return new AsyncResult<>(false);
-            }
-            Object lastTotalMetric = 0;
-            if (StringUtil.isNotEmpty(lastTop.getData())) {
-                List<Map> map = (List<Map>) lastTop.getData();
-                if (StringUtil.isNotEmpty(map.get(0).get("value"))) {
-                    Map item = JSONUtil.toBean(String.valueOf(map.get(0).get("value")), Map.class);
-                    if (StringUtil.isNotEmpty(item)) {
-                        List<Map<String, Object>> topk = (List<Map<String, Object>>) item.get("topk");
-                        lastTotalMetric = item.get(value);
-                        Map<String, String> metrics = Maps.newHashMap();
-                        metrics.put(value, "count".equalsIgnoreCase(fnDefault) ? "sum" : fnDefault);
-                        data = mergeData((List<Map<String, Object>>) JSONArray.parse(JSONUtil.toJsonStr(data)), topk, Lists.newArrayList("value"), metrics);
-                    }
-                }
-            }
-            data = sortDataAndSetMaxSize(data, value, DataTypeMapping.LONG, false);
-            updateResult(id, field, currentTotalMetric, lastTotalMetric, value, data);
+            return new AsyncResult<>(Lists.newArrayList(data));
         } catch (RuntimeException ex) {
-            log.error("Field-Discovery task execute error, message is: {}", ex.getMessage());
+            log.error("field_discovery task of Job id is: {}, execute error, message is: {}", id, ex.getMessage());
             setJobFailed(id);
         }
-        return new AsyncResult<>(true);
+        return new AsyncResult<>(Lists.newArrayList());
     }
 
     @Async("taskExecutor")
@@ -138,14 +112,20 @@ public class TaskExecuteService implements EnvironmentAware {
             executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.LONG_TERM_COLUMN_FAMILY, JobConfig.LONG_TERM_RESULT, id, JSONUtil.quote(JSONUtil.toJsonStr(result), false).replace("'", "\\'")));
         } catch (RuntimeException ex) {
             log.error("Statistics task execute error, message is: {}", ex.getMessage());
-            setJobFailed(id);
+            setJobFailedLongTerm(id);
         }
         return new AsyncResult<>(true);
     }
 
     private void setJobFailed(String id) {
+        signJobInfoToFailedOnQueryCache(id);
+    }
+
+    @Deprecated
+    private void setJobFailedLongTerm(String id) {
         executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE")), JobConfig.DETAIL, JobConfig.IS_FAILED, id, true));
     }
+
 
     private void topOrRareData(List<Map<String, Object>> lastData, List<Map<String, Object>> lastMeta, Map preDataFirst, Map<String, Object> valueMap) {
         List<Map<String, Object>> preData;
@@ -286,15 +266,6 @@ public class TaskExecuteService implements EnvironmentAware {
         }
         return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_DEFAULT")),
                 fieldName, fn, column, value, tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value);
-    }
-
-    private void updateResult(String id, String field, long currentTotalMetric, Object lastTotalMetric, String value, List<Map<String, Object>> topList) {
-        Map<String, Object> map = Maps.newHashMap();
-        map.put("topk", topList);
-        map.put("distinct_count", Math.min(topList.size(), 100));
-        map.put(value, currentTotalMetric + Long.parseLong(lastTotalMetric.toString()));
-        String result = JSONUtil.quote(JSONUtil.toJsonStr(map), false).replace("'", "\\'");
-        executeUpdate(String.format(Objects.requireNonNull(env.getProperty("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")), JobConfig.FIELD_DISCOVERY, field, id, result));
     }
 
     @Override
