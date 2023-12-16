@@ -31,7 +31,6 @@ public class QueryController {
 
     @GetMapping("/sql")
     @AuditLog("QueryController.get")
-    @CachedSubmitCheck
     public BaseResult get(QueryContext queryProfile) {
         if (queryProfile.queryParamIsNull())
             return BaseResultGenerator.success4Message("ok");
@@ -41,7 +40,6 @@ public class QueryController {
 
     @PostMapping(value = "/sql", produces = "application/json;charset=utf-8")
     @AuditLog("QueryController.post")
-    @CachedSubmitCheck
     public BaseResult post(@RequestBody QueryContext queryProfile) {
         if (queryProfile.queryParamIsNull()) {
             return BaseResultGenerator.success4Message("ok");
@@ -52,6 +50,7 @@ public class QueryController {
     }
 
     @PostMapping(value = "/v1/query/sql", consumes = "application/json", produces = "application/json")
+    @AuditLog("QueryController.createSQLQuery")
     public BaseResult createSQLQuery(@RequestBody SqlQueryRequestParam sqlQueryRequestParam) {
         log.info("Create an SQL Query {}", JSON.toJSONString(sqlQueryRequestParam));
         if (sqlQueryRequestParam.isSavedQuery()) {
@@ -67,6 +66,7 @@ public class QueryController {
     }
 
     @PostMapping(value = "/v1/query/dsl", consumes = "application/json", produces = "application/json")
+    @AuditLog("QueryController.createDSLQuery")
     public BaseResult createDSLQuery(@RequestBody DslQueryRequestParam dslQueryRequestParam) {
         log.info("Create a DSL query {}", JSON.toJSONString(dslQueryRequestParam));
         if (dslQueryRequestParam.isSavedQuery()) {
@@ -82,6 +82,7 @@ public class QueryController {
     }
 
     @GetMapping(value = "/v1/query/job/{id}/result", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobResultById")
     public BaseResult getJobResultById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
         if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
             return queryJobService.getSavedQueryResultById(id);
@@ -91,6 +92,7 @@ public class QueryController {
     }
 
     @GetMapping(value = "/v1/query/job/{id}", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobStatusById")
     public BaseResult getJobStatusById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
         if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
             return queryJobService.getSavedQueryStatusById(id);
@@ -100,6 +102,7 @@ public class QueryController {
     }
 
     @GetMapping(value = "/v1/query/job/result", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobResult")
     public BaseResult getJobResult(@RequestParam(value = "job_ids") String jobIds
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
@@ -112,6 +115,7 @@ public class QueryController {
     }
 
     @GetMapping(value = "/v1/query/job", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobStatus")
     public BaseResult getJobStatus(@RequestParam(value = "job_ids") String jobIds
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
@@ -124,6 +128,7 @@ public class QueryController {
     }
 
     @DeleteMapping(value = "/v1/query/job/{id}", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.deleteJobById")
     public BaseResult deleteJobById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
         if (isSavedQuery) {
