@@ -74,7 +74,7 @@ public class QueryServiceImpl implements QueryService {
 
 
     @Override
-    public BaseResult executeQuery(QueryProfile queryProfile) {
+    public BaseResult executeQuery(QueryContext queryProfile) {
         validateAndSetDefaultValue(queryProfile);
         init(queryProfile);
         Statement statement;
@@ -104,7 +104,7 @@ public class QueryServiceImpl implements QueryService {
         return baseResult;
     }
 
-    private void init(QueryProfile param) {
+    private void init(QueryContext param) {
         if(SQLHelper.getTableName(param.getQuery()).isEmpty()){
             return;
         }
@@ -113,7 +113,7 @@ public class QueryServiceImpl implements QueryService {
         param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
     }
 
-    private void validateAndSetDefaultValue(QueryProfile param) {
+    private void validateAndSetDefaultValue(QueryContext param) {
         if (StringUtil.isBlank(param.getOption())) {
             param.setOption(QueryOptionEnum.REAL_TIME.getValue());
         }
@@ -170,7 +170,7 @@ public class QueryServiceImpl implements QueryService {
      * @param param 请求参数
      * @return BaseResult 执行结果
      */
-    private BaseResult executeSelectStatement(QueryProfile param) {
+    private BaseResult executeSelectStatement(QueryContext param) {
         if (QueryOptionEnum.SYNTAX_PARSE.getValue().equalsIgnoreCase(param.getOption())) {
             return executeSyntaxParse(param);
         } else if (QueryOptionEnum.SYNTAX_VALIDATION.getValue().equalsIgnoreCase(param.getOption())) {
@@ -184,20 +184,20 @@ public class QueryServiceImpl implements QueryService {
 
     }
 
-    private BaseResult executeSyntaxParse(QueryProfile param) {
+    private BaseResult executeSyntaxParse(QueryContext param) {
        return BaseResultGenerator.success(SQLSyntaxParserUtil.syntaxParse(param.getQuery()));
     }
 
-    private BaseResult executeSyntaxValidation(QueryProfile param) {
+    private BaseResult executeSyntaxValidation(QueryContext param) {
         return new FederationDialect(param, getDBDialect(param).executeSyntaxCheck()).executeSyntaxCheck();
     }
 
-    private BaseResult executeLongTermQuery(QueryProfile param) {
+    private BaseResult executeLongTermQuery(QueryContext param) {
         return new FederationDialect(param, getDBDialect(param).executeQuery()).executeQuery();
     }
 
 
-    private BaseResult executeRealTimeQuery(QueryProfile param) {
+    private BaseResult executeRealTimeQuery(QueryContext param) {
         if (BooleanUtil.isTrue(param.getSampled())) {
             return new FederationDialect(param, getDBDialect(param).executeSampleQuery()).executeSampleQuery();
         } else {
@@ -206,18 +206,18 @@ public class QueryServiceImpl implements QueryService {
     }
 
 
-    private Dialect getDBDialect(QueryProfile param) {
+    private Dialect getDBDialect(QueryContext param) {
         convertQueryRecursive(param, parserSQLByAst(param.getQuery()));
         return getReflectiveDialectObject(param);
     }
 
 
-    private Dialect getReflectiveDialectObject(QueryProfile param) {
+    private Dialect getReflectiveDialectObject(QueryContext param) {
         Dialect dialect;
         try {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
                     CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.getDbType()) + "Dialect");
-            Constructor constructor = dialectClazz.getConstructor(QueryProfile.class);
+            Constructor constructor = dialectClazz.getConstructor(QueryContext.class);
             dialect = (Dialect) constructor.newInstance(param);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}",e);
@@ -236,7 +236,7 @@ public class QueryServiceImpl implements QueryService {
      *
      * @param sqlQuerySource SQL解析对象
      */
-    public static void convertQueryRecursive(QueryProfile param, SQLQuerySource sqlQuerySource) {
+    public static void convertQueryRecursive(QueryContext param, SQLQuerySource sqlQuerySource) {
         SQLQuerySource engineQuerySource = null;
         SQLQuerySource dbQuerySource = null;
 
@@ -464,7 +464,7 @@ public class QueryServiceImpl implements QueryService {
      * @param statement
      * @return
      */
-    private BaseResult executeDescStatement(QueryProfile param, DescribeStatement statement) {
+    private BaseResult executeDescStatement(QueryContext param, DescribeStatement statement) {
         String tableName = statement.getTable().getName();
         String dbType = param.getDbType();
         if (DBTypeEnum.CLICKHOUSE.getValue().equalsIgnoreCase(dbType)) {
@@ -498,7 +498,7 @@ public class QueryServiceImpl implements QueryService {
         return baseResult;
     }
 
-    private BaseResult executeExplainStatement(QueryProfile param) {
+    private BaseResult executeExplainStatement(QueryContext param) {
         return getDBDialect(param).executeExplainPlan();
     }
 
@@ -508,7 +508,7 @@ public class QueryServiceImpl implements QueryService {
      * @param param
      * @return
      */
-    private BaseResult executeShowStatement(QueryProfile param) {
+    private BaseResult executeShowStatement(QueryContext param) {
         return getAllDatabaseTables(param);
     }
 
@@ -518,11 +518,11 @@ public class QueryServiceImpl implements QueryService {
      *
      * @return
      */
-    private BaseResult getAllDatabaseTables(QueryProfile queryProfile) {
+    private BaseResult getAllDatabaseTables(QueryContext queryProfile) {
         Map<String, Object> dataMap = new LinkedHashMap<>();
         dataMap.put("type", "enum");
         Arrays.stream(DBTypeEnum.values()).forEach(dbTypeEnum -> {
-            QueryProfile dbParam = new QueryProfile();
+            QueryContext dbParam = new QueryContext();
             if (dbTypeEnum.getValue().equalsIgnoreCase(DBTypeEnum.CLICKHOUSE.getValue())) {
                 dbParam.setQuery("show tables");
                 dbParam.setDbType(DBTypeEnum.CLICKHOUSE.getValue());
@@ -579,7 +579,7 @@ public class QueryServiceImpl implements QueryService {
      * @param param
      * @return
      */
-    public BaseResult dataEncapsulationOfSchema(BaseResult result, QueryProfile param) {
+    public BaseResult dataEncapsulationOfSchema(BaseResult result, QueryContext param) {
         SchemaBase schema = new SchemaBase();
         schema.setName(SQLHelper.getTableName(param.getQuery()).get(0));
         List<Map> fields = new ArrayList<>();

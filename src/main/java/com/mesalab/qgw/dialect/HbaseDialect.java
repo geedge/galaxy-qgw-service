@@ -17,7 +17,7 @@ import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class HbaseDialect extends AbstractDataSourceDialect {
-    public QueryProfile param;
+    public QueryContext param;
     public BaseResult baseResult;
     private Stopwatch watch = Stopwatch.createUnstarted();
     private static final String URL_PREFIX = "jdbc:phoenix:";
@@ -75,7 +75,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         metaMap.put("VARCHAR", DataTypeMapping.STRING);
     }
 
-    public HbaseDialect(QueryProfile param) {
+    public HbaseDialect(QueryContext param) {
         this.param = param;
     }
 

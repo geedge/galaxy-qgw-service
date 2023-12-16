@@ -5,7 +5,7 @@ import cn.hutool.log.LogFactory;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.cn.entity.pojo.*;
 import com.mesalab.cn.service.CNService;
-import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.ua.analyser.UaAnalyser;
 import com.mesalab.ua.analyser.enums.UserInfo;
@@ -42,7 +42,7 @@ public class CNServiceImpl implements CNService {
     public BaseResult shareNetQuery(DSLObject dslObject) throws BusinessException {
         dslObject.getQuery().getParameters().setGranularity("user_id,ip");
         String executeSql = cnParser.buildShareNetSQL(dslObject);
-        QueryProfile queryProfile = new QueryProfile();
+        QueryContext queryProfile = new QueryContext();
         queryProfile.setQuery(executeSql);
         BaseResult baseResult = queryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
@@ -68,7 +68,7 @@ public class CNServiceImpl implements CNService {
     public BaseResult bannedAppQuery(DSLObject dslObject) throws BusinessException {
         dslObject.getQuery().getParameters().setGranularity("user_id,ip");
         String executeSql = cnParser.bannedAppSQL(dslObject);
-        QueryProfile queryProfile = new QueryProfile();
+        QueryContext queryProfile = new QueryContext();
         queryProfile.setQuery(executeSql);
         BaseResult baseResult = queryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {

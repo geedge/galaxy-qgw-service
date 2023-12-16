@@ -77,7 +77,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         long start = System.currentTimeMillis();
         ExecModeEnum execMode = sqlQueryRequestParam.getExecMode();
         if (ExecModeEnum.ONESHOT.equals(execMode)) {
-            return queryService.executeQuery(QueryProfile.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
+            return queryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
         } else if (ExecModeEnum.NORMAL.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
             HazelcastInstanceMapUtil.put(id, new QueryCache(id, sqlQueryRequestParam.getOutputMode().getValue()));
@@ -85,7 +85,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
-            BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
+            BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
             QueryCache queryCache = buildQueryCacheOfDone(id, start, sqlQueryRequestParam.getOutputMode().getValue(), baseResult);
             HazelcastInstanceMapUtil.put(id, queryCache);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
@@ -251,7 +251,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     private void syntaxParseSql(String sql) {
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).option(QueryOptionEnum.SYNTAX_PARSE.getValue()).build());
+        BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(sql).option(QueryOptionEnum.SYNTAX_PARSE.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));

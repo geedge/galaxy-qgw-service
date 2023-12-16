@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -18,11 +19,14 @@ import java.util.Map;
 import java.util.Objects;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {GalaxyQGWApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(classes = {GalaxyQGWApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration
 @ActiveProfiles("test")
 public class GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
+
+    @LocalServerPort
+    protected int testPort;
 
     static {
         System.setProperty("jasypt.encryptor.password", "galaxy");

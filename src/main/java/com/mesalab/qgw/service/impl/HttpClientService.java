@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@Deprecated
 public class HttpClientService {
 
     private static final Log log = LogFactory.get();

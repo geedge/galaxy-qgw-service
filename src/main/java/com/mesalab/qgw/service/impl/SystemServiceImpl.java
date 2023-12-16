@@ -16,7 +16,7 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.HttpConfig;
-import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.JobAdminHttpSource;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.ExecutorParam;
@@ -73,7 +73,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult getStorageQuota() {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
-        QueryProfile param = new QueryProfile();
+        QueryContext param = new QueryContext();
         param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         BaseResult result = queryService.executeQuery(param);
         return resetBaseResult(result, "type");
@@ -90,7 +90,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         }
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
-            QueryProfile param = new QueryProfile();
+            QueryContext param = new QueryContext();
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
             param.setQuery(sql);
             BaseResult result = queryService.executeQuery(param);

@@ -19,7 +19,7 @@ import com.mesalab.common.enums.OutputModeEnum;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
 import com.mesalab.qgw.model.basic.udf.UDF;
 import com.geedgenetworks.utils.StringUtil;
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class FederationDialect extends AbstractEngineDialect{
     private Stopwatch watch = Stopwatch.createUnstarted();
     private static final Map<String, String> metaMap = Maps.newHashMap();
-    public QueryProfile param;
+    public QueryContext param;
     public BaseResult baseResult;
 
     static {
@@ -51,7 +51,7 @@ public class FederationDialect extends AbstractEngineDialect{
         metaMap.put("VARCHAR", DataTypeMapping.STRING);
     }
 
-    public FederationDialect(QueryProfile param, BaseResult result) {
+    public FederationDialect(QueryContext param, BaseResult result) {
         this.param = param;
         this.baseResult = result;
     }
