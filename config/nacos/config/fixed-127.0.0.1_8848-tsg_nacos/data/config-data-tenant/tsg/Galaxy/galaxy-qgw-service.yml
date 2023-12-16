@@ -152,11 +152,11 @@ http:
 job:
   timeSlicing:
     enabled: true
-    interval: 1800 #单位: Second
+    interval: 24480 #单位: Second
   longPolling:
     enabled: true
   interactive:
-    timeout: 10000
+    timeout: 10000000
   response:
     timeout: 3000
   execution:

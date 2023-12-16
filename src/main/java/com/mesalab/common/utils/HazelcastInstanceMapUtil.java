@@ -27,7 +27,7 @@ public class HazelcastInstanceMapUtil {
 
 
     private static ConcurrentMap<String, QueryCache> retrieveMap() {
-        return hazelcastInstance.getMap("myCache");
+        return hazelcastInstance.getMap("adHocCache");
     }
 
     public static Object put(String key, QueryCache value) {
