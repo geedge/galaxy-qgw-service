@@ -29,7 +29,7 @@ public class BaseResult<T> implements Serializable {
 
     private String code;
 
-    @JsonProperty("requset_id")
+    @JsonProperty("request_id")
     private String requestId;
 
     private boolean success;
