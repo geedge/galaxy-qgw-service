@@ -23,7 +23,7 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DslQueryRequestParam extends CommonRequestParam implements Serializable {
+public class DSLQueryRequestParam extends CommonRequestParam implements Serializable {
     @JsonProperty("name")
     private String name;
     @JsonProperty("data_source")

@@ -22,7 +22,7 @@ import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.service.DslService;
+import com.mesalab.qgw.service.DSLService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -77,14 +77,14 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     DatabaseService databaseService;
     @Autowired
-    DslService dslService;
+    DSLService dslService;
     @Autowired
     EngineConfigSource engineConfigSource;
     @Autowired
     JobConfig jobCfg;
 
     @Async("jobExecutor")
-    public void addExecutorFieldDiscovery(String id, DslQueryRequestParam request) {
+    public void addExecutorFieldDiscovery(String id, DSLQueryRequestParam request) {
         signJobInfoToStartOnQueryCache(id);
         try {
             JobInfo jobInfo = new JobInfo(id);
@@ -150,7 +150,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     @Async("jobExecutor")
-    public void addExecutorDsl(String id, DslQueryRequestParam request) {
+    public void addExecutorDsl(String id, DSLQueryRequestParam request) {
         signJobInfoToStartOnQueryCache(id);
         try {
             DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
@@ -225,7 +225,7 @@ public class JobExecuteService implements EnvironmentAware {
         waitAsyncResultAndUpdateProcessLongTerm(jobInfo, list);
     }
 
-    private void executeSlicingFieldDiscoveryJob(String id, JobInfo jobInfo, DslQueryRequestParam request, Interval interval, String partitionKey) throws ExecutionException, InterruptedException {
+    private void executeSlicingFieldDiscoveryJob(String id, JobInfo jobInfo, DSLQueryRequestParam request, Interval interval, String partitionKey) throws ExecutionException, InterruptedException {
         jobInfo.setTotalTimes((int) ((interval.getEnd() - interval.getStart()) / jobCfg.getTimeSlicingInterval() + 1));
         while (true) {
             jobInfo.setCurrentTimes(jobInfo.getCurrentTimes() + 1);
@@ -289,7 +289,7 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private void executeFieldDiscoveryJob(String id, JobInfo jobInfo, DslQueryRequestParam request, String segmentFilter) throws ExecutionException, InterruptedException {
+    private void executeFieldDiscoveryJob(String id, JobInfo jobInfo, DSLQueryRequestParam request, String segmentFilter) throws ExecutionException, InterruptedException {
         if (isCancel(jobInfo.getId())) {
             return;
         }
@@ -323,7 +323,7 @@ public class JobExecuteService implements EnvironmentAware {
         waitAsyncResultAndUpdateProcess(id, jobInfo, taskCallbackList, request, map);
     }
 
-    private void waitAsyncResultAndUpdateProcess(String id, JobInfo jobInfo, Map<String, Future<List<Map<String, Object>>>> taskCallbackList, DslQueryRequestParam request, Map<String, Long> mapCurrent) throws ExecutionException, InterruptedException {
+    private void waitAsyncResultAndUpdateProcess(String id, JobInfo jobInfo, Map<String, Future<List<Map<String, Object>>>> taskCallbackList, DSLQueryRequestParam request, Map<String, Long> mapCurrent) throws ExecutionException, InterruptedException {
         List<String> updatedResult = Lists.newArrayList();
         while (true) {
             if (jobInfo.isTimeout()) {

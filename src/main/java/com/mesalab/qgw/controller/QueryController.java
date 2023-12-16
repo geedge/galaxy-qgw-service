@@ -67,7 +67,7 @@ public class QueryController {
 
     @PostMapping(value = "/v1/query/dsl", consumes = "application/json", produces = "application/json")
     @AuditLog("QueryController.createDSLQuery")
-    public BaseResult createDSLQuery(@RequestBody DslQueryRequestParam dslQueryRequestParam) {
+    public BaseResult createDSLQuery(@RequestBody DSLQueryRequestParam dslQueryRequestParam) {
         log.info("Create a DSL query {}", JSON.toJSONString(dslQueryRequestParam));
         if (dslQueryRequestParam.isSavedQuery()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),

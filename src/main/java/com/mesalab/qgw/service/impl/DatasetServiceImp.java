@@ -111,7 +111,7 @@ public class DatasetServiceImp
             log.info("Dataset Preview, ID is: {}, Type is: {}, Exec SQL is: {}", datasetId, "sql", sqlQueryRequest.getStatement());
             return queryJobService.createSQLAdHocQuery(sqlQueryRequest);
         } else if (datasetType.equalsIgnoreCase("dsl")) {
-            DslQueryRequestParam dslQueryRequest = JSON.parseObject(template, DslQueryRequestParam.class);
+            DSLQueryRequestParam dslQueryRequest = JSON.parseObject(template, DSLQueryRequestParam.class);
             dslQueryRequest.setExecMode(ExecModeEnum.ONESHOT.getValue());
             log.info("Dataset Preview, ID is: {}, Type is: {}, DSL is: {}", datasetId, "dsl", template);
             return queryJobService.createDSLAdHocQuery(dslQueryRequest);

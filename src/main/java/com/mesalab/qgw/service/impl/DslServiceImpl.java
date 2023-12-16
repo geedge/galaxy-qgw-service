@@ -32,7 +32,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.DSLProfile;
 import com.mesalab.qgw.model.basic.QueryContext;
-import com.mesalab.qgw.service.DslService;
+import com.mesalab.qgw.service.DSLService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.services.common.dsl.ComDSLObject;
@@ -75,7 +75,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @PropertySource(value = "classpath:dsl-sql-template.sql", factory = SqlPropertySourceFactory.class)
-public class DslServiceImpl implements DslService {
+public class DslServiceImpl implements DSLService {
 
     private static final Log log = LogFactory.get();
 
