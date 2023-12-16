@@ -17,7 +17,7 @@ import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.service.RewriteTable;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.model.basic.*;
@@ -154,12 +154,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         StringBuilder queryParamBuilder = new StringBuilder(getLongTermAccount()).append("&")
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(killSql)
-                .append(" FORMAT ").append(OutputModeEnum.JSON.getValue().toUpperCase()).append(" ;");
+                .append(" FORMAT ").append(OutputMode.JSON.getValue().toUpperCase()).append(" ;");
         List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
 
        HttpResponseResult responseResult = httpClientService.get(queryURL + URLEncodedUtils.format(values, "utf-8"));
-        if (responseResult.getStatusCode() == ResultStatusEnum.SUCCESS.getCode()) {
-            return BaseResultGenerator.generate(ResultStatusEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
+        if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
+            return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(responseResult.getStatusCode(), responseResult.getErrorMessage());
         }
@@ -284,7 +284,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         public Converter generateDateFunction() {
-            sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.CLICKHOUSE.getValue());
+            sql = SQLFunctionUtil.generateDateFunction(sql, DBType.CLICKHOUSE.getValue());
             return this;
         }
 
@@ -404,8 +404,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 sql = buffer.toString();
             } catch (JSQLParserException | RuntimeException e) {
                 log.error("SQL Rewrite add tableName and Alias Error: ", e);
-                throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                        QGWErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), String.format(QGWErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getMessage(), e.getMessage()));
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                        CommonErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), String.format(CommonErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getMessage(), e.getMessage()));
             }
             return this;
         }
@@ -724,7 +724,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     public BaseResult generateBaseResult(String sql, Optional<String> message) {
 
         HttpResponseResult responseResult = executeHttpPost(sql);
-        if (responseResult.getStatusCode() == ResultStatusEnum.SUCCESS.getCode()) {
+        if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
 
             baseResult = BaseResultGenerator.generate(
                     responseResult.getStatusCode(),
@@ -733,11 +733,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     JSON.parseObject(responseResult.getResponseBody(), Map.class),
                     null,
                     null,
-                    OutputModeEnum.JSON.getValue());
+                    OutputMode.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(),
-                    ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), message.get()),
+                    CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
                     responseResult.getErrorMessage(),
                null,
             null,
@@ -763,12 +763,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else {
-            if (baseResult.getStatus() >= ResultStatusEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < ResultStatusEnum.SERVER_ERROR.getCode()) {
-                throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            if (baseResult.getStatus() >= HttpStatusCodeEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < HttpStatusCodeEnum.SERVER_ERROR.getCode()) {
+                throw new QGWBusinessException(baseResult.getStatus(), CommonErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
             }
-            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            throw new QGWBusinessException(baseResult.getStatus(), CommonErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
         }
         return baseResult;
     }
@@ -828,13 +828,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         String queryParameter = enrichContextAndBuildQueryParameter();
         log.info("Query ID: {}, SQL: {}", queryContext.getQueryId(), sql);
         if (log.isDebugEnabled()) {
-            log.debug("DB engine is: {}, : {}", DBTypeEnum.CLICKHOUSE.getValue(), queryURL +
+            log.debug("DB engine is: {}, : {}", DBType.CLICKHOUSE.getValue(), queryURL +
                     Encodes.urlDecode(queryParameter).replaceAll("password=(.*?)&", "password=XXX&") + ". body sql is:" + sql);
         }
         List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, Charset.forName("UTF-8"));
         return httpClientService.post(queryURL + URLEncodedUtils.format(values, "utf-8"),
                                     queryContext.getTimeout(),
-                                    sql.concat(" FORMAT ").concat(OutputModeEnum.JSON.getValue().toUpperCase()));
+                                    sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()));
     }
 
     private String enrichContextAndBuildQueryParameter() {
@@ -844,10 +844,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 ? databaseService.getDBNameByTableName(queryContext.getDbQuerySource().getTableNames().get(0)) : clickHouseHttpSource.getDbName();
 
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
-            queryContext.setOption(QueryOptionEnum.LONG_TERM.getValue());
+            queryContext.setOption(QueryOption.LONG_TERM.getValue());
         }
 
-        int timeout = (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(queryContext.getOption())) ?
+        int timeout = (QueryOption.LONG_TERM.getValue().equalsIgnoreCase(queryContext.getOption())) ?
                     httpConfig.getCkLongTermAccountSocketTimeOut() : httpConfig.getCkRealTimeAccountSocketTimeOut();
         queryContext.setTimeout(timeout);
 
@@ -856,7 +856,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         //QueryContext set queryParameter
-        if (QueryOptionEnum.LONG_TERM.getValue().equalsIgnoreCase(queryContext.getOption())) {
+        if (QueryOption.LONG_TERM.getValue().equalsIgnoreCase(queryContext.getOption())) {
             queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName);
         } else {

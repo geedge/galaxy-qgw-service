@@ -10,7 +10,7 @@ import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.QueryService;
@@ -72,16 +72,16 @@ public class SQLDatasetServiceImp
     }
 
     private String parseDBType(String queryId) {
-        for (DBTypeEnum dbTypeEnum : DBTypeEnum.values()) {
+        for (DBType dbTypeEnum : DBType.values()) {
             if (queryId.startsWith(DigestUtil.md5Hex(dbTypeEnum.getValue()).concat(queryIdSeparator))) {
                 return dbTypeEnum.getValue();
             }
         }
         if (queryId.contains(queryIdSeparator)) {
-            throw new QGWBusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
+            throw new QGWBusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
         }
-        return DBTypeEnum.CLICKHOUSE.getValue();
+        return DBType.CLICKHOUSE.getValue();
     }
 
     private Dialect getDialect(QueryContext queryProfile) {
@@ -93,8 +93,8 @@ public class SQLDatasetServiceImp
             dialect = (Dialect) constructor.newInstance(queryProfile);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}", e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return dialect;
     }

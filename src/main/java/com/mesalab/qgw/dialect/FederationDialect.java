@@ -9,16 +9,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteMemoryUtils;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.DBType;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
-import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.enums.OutputModeEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
+import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
 import com.mesalab.qgw.model.basic.udf.UDF;
@@ -122,7 +121,7 @@ public class FederationDialect extends AbstractEngineDialect{
         try {
             watch.start();
             if (isExecute()) {
-                log.info("DB engine is :{},execute query is: {}", DBTypeEnum.ENGINE.getValue(), JSON.toJSONString(sql));
+                log.info("DB engine is :{},execute query is: {}", DBType.ENGINE.getValue(), JSON.toJSONString(sql));
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
                 Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableNames().get(0),
                         (List<Map<String, String>>) baseResult.getMeta(),
@@ -134,9 +133,9 @@ public class FederationDialect extends AbstractEngineDialect{
 
         } catch (RuntimeException ex) {
             log.error("Engine execute memory-query error:{}", ex);
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getMessage(),ex.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                    CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getMessage(),ex.getMessage()));
         }
         return build();
     }
@@ -156,7 +155,7 @@ public class FederationDialect extends AbstractEngineDialect{
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
         extendMetaInfo(baseResult.getMeta());
-        if (param.getFormat().equalsIgnoreCase(OutputModeEnum.CSV.getValue())) {
+        if (param.getFormat().equalsIgnoreCase(OutputMode.CSV.getValue())) {
             convertJsonToCSV();
         }
         baseResult.setFormatType(param.getFormat());
@@ -264,12 +263,12 @@ public class FederationDialect extends AbstractEngineDialect{
                 }
                 return setOperationList;
             } else {
-                throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+                throw new QGWBusinessException(CommonErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
             }
         }
-        throw new QGWBusinessException(ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
+        throw new QGWBusinessException(CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
     }
 
     private Expression generateDatasetWhereSql(String where) throws JSQLParserException {

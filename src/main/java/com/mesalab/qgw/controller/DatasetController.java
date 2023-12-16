@@ -6,10 +6,10 @@ import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
+import com.mesalab.common.enums.DBType;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.service.DatasetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +35,9 @@ public class DatasetController {
     @GetMapping
     public BaseResult getDatasets(@RequestParam(value = "identifier_names", required = false) String datasetIds, @RequestParam(required = false) String category, @RequestParam(value = "backend_engine", required = false) String backendEngine) {
         if (StrUtil.isNotBlank(backendEngine)) {
-            if (Arrays.stream(DBTypeEnum.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(backendEngine))) {
-                throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DATASET_BACKEND_ENGINE_ERROR));
+            if (Arrays.stream(DBType.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(backendEngine))) {
+                throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.DATASET_BACKEND_ENGINE_ERROR));
             }
         }
         log.info("Get Datasets. IDs is: {}, category is: {}, backendEngine is: {}", datasetIds, category, backendEngine);

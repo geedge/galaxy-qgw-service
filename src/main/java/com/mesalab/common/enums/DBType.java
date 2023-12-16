@@ -3,12 +3,12 @@ package com.mesalab.common.enums;
 import lombok.Getter;
 
 @Getter
-public enum DBTypeEnum {
+public enum DBType {
     ENGINE("qgw"),
     CLICKHOUSE("clickHouse"),
     DRUID("druid"),
     HBASE("hbase"),
     ARANGODB("arangoDB");
     private String value;
-    DBTypeEnum(String value) {this.value = value;}
+    DBType(String value) {this.value = value;}
 }

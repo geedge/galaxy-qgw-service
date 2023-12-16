@@ -4,11 +4,11 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.service.DeferredResultHolder;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.configuration.JobConfig;
@@ -57,8 +57,8 @@ public class JobController {
         } else if (JobConfig.SAVED_QUERY.equals(type)) {
             return jobService.commitSavedQuery(reqBody);
         }
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Support"));
+        throw new BusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Not Support"));
     }
 
     @GetMapping(value = "/{jobId}/field_discovery/result")
@@ -115,15 +115,15 @@ public class JobController {
     //未实现
     @GetMapping(value = "/{jobId}/field_discovery")
     public BaseResult fieldDiscoveryStatus(@PathVariable String jobId) {
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Support"));
+        throw new BusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Not Support"));
     }
 
     //未实现
     @GetMapping(value = "/{jobId}/statistics")
     public BaseResult statisticsStatus(@PathVariable String jobId) {
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Support"));
+        throw new BusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Not Support"));
     }
 
     @GetMapping(value = "/{jobId}/saved_query")
@@ -134,15 +134,15 @@ public class JobController {
     //未实现
     @DeleteMapping(value = "/{jobId}/field_discovery")
     public BaseResult cancelFieldDiscovery(@PathVariable String jobId) {
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Support"));
+        throw new BusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Not Support"));
     }
 
     //未实现
     @DeleteMapping(value = "/{jobId}/statistics")
     public BaseResult cancelStatistics(@PathVariable String jobId) {
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Support"));
+        throw new BusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Not Support"));
     }
 
     @DeleteMapping(value = "/{jobId}/saved_query")
@@ -159,8 +159,8 @@ public class JobController {
             List<Map<String, Object>> result = jobService.batchSavedQueryStatus(ids.stream().distinct().collect(Collectors.toList()));
             return BaseResultGenerator.success(result);
         }
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Support"));
+        throw new BusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Not Support"));
     }
 
     @GetMapping(value = "/result", consumes = "application/json")
@@ -171,23 +171,23 @@ public class JobController {
             List<Map<String, Object>> result = jobService.batchSavedQueryResult(ids.stream().distinct().collect(Collectors.toList()));
             return BaseResultGenerator.success(result);
         }
-        throw new BusinessException(ResultStatusEnum.NOT_FOUND.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Support"));
+        throw new BusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Not Support"));
     }
 
     private void validateJobParams(HashMap<String, Object> reqBody) {
         if (!reqBody.containsKey(JobConfig.KEY_QUERY_TYPE)) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_TYPE_NOT_NULL));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_TYPE_NOT_NULL));
         }
         if (!reqBody.containsKey(JobConfig.KEY_QUERY_DATA_SOURCE)) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_DATA_SOURCE_NOT_NULL));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_DATA_SOURCE_NOT_NULL));
         }
         String dataSource = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_DATA_SOURCE));
         if (!databaseService.getAllTable().contains(dataSource)) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_DATA_SOURCE_ERROR));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_DATA_SOURCE_ERROR));
         }
     }
 }

@@ -17,7 +17,7 @@ import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DSLService;
 import com.mesalab.qgw.service.QueryJobService;
@@ -72,26 +72,26 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult createSQLAdHocQuery(SqlQueryRequestParam sqlQueryRequestParam) {
-        String option = sqlQueryRequestParam.isDryRun() ? QueryOptionEnum.SYNTAX_VALIDATION.getValue() : QueryOptionEnum.REAL_TIME.getValue();
+        String option = sqlQueryRequestParam.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
         sqlQueryRequestParam.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         long start = System.currentTimeMillis();
-        ExecModeEnum execMode = sqlQueryRequestParam.getExecMode();
-        if (ExecModeEnum.ONESHOT.equals(execMode)) {
+        ExecMode execMode = sqlQueryRequestParam.getExecMode();
+        if (ExecMode.ONESHOT.equals(execMode)) {
             return queryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
-        } else if (ExecModeEnum.NORMAL.equals(execMode)) {
+        } else if (ExecMode.NORMAL.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
             HazelcastInstanceMapUtil.put(id, new QueryCache(id, sqlQueryRequestParam.getOutputMode().getValue()));
             jobExecuteService.addExecutorSql(id, sqlQueryRequestParam);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
-        } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
+        } else if (ExecMode.BLOCKING.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
             BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
             QueryCache queryCache = buildQueryCacheOfDone(id, start, sqlQueryRequestParam.getOutputMode().getValue(), baseResult);
             HazelcastInstanceMapUtil.put(id, queryCache);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         }
-        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
+        throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
     }
 
     @Override
@@ -99,16 +99,16 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         request.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         String id = buildJobId(request.toString());
         long start = System.currentTimeMillis();
-        ExecModeEnum execMode = request.getExecMode();
-        if (ExecModeEnum.ONESHOT.equals(execMode)) {
+        ExecMode execMode = request.getExecMode();
+        if (ExecMode.ONESHOT.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecModeEnum.NORMAL.getValue()));
+                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecMode.NORMAL.getValue()));
             } else {
                 DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
                 return dslService.execDsl(dslProfile);
             }
-        } else if (ExecModeEnum.NORMAL.equals(execMode)) {
+        } else if (ExecMode.NORMAL.equals(execMode)) {
             QueryCache queryCache = new QueryCache(id, request.getOutputMode().getValue());
             queryCache.setType(JobConfig.FIELD_DISCOVERY);
             HazelcastInstanceMapUtil.put(id, queryCache);
@@ -119,10 +119,10 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 jobExecuteService.addExecutorDsl(id, request);
             }
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
-        } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
+        } else if (ExecMode.BLOCKING.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecModeEnum.NORMAL.getValue()));
+                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecMode.NORMAL.getValue()));
             } else {
                 DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
                 BaseResult baseResult = dslService.execDsl(dslProfile);
@@ -131,8 +131,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             }
         }
-        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
+        throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
     }
 
     private QueryCache buildQueryCacheOfDone(String id, long start, String outputMode, BaseResult baseResult) {
@@ -227,8 +227,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private void validFieldDiscovery(DSLQueryRequestParam request) {
         Object filter = request.getFilter();
         if (StrUtil.isEmptyIfStr(filter)) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
         }
 
         Object metric = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC);
@@ -238,23 +238,23 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         boolean validMetric = MetricType.isValid(String.valueOf(metric));
         boolean validFn = MetricFunction.isValid(String.valueOf(request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN)));
         if (!validMetric || !validFn) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
         }
         Object fields = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         if (StrUtil.isEmptyIfStr(fields)) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CUSTOM_FIELD_DISCOVERY_ERROR));
         }
         List<String> fieldList = (List<String>) request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         request.getCustomRequestParam().put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, fieldList.stream().distinct().collect(Collectors.toList()));
     }
 
     private void syntaxParseSql(String sql) {
-        BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(sql).option(QueryOptionEnum.SYNTAX_PARSE.getValue()).build());
+        BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(sql).option(QueryOption.SYNTAX_PARSE.getValue()).build());
         if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));
         }
     }
 
@@ -278,8 +278,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     private static void updateLastQueryTime(QueryCache queryCache, String id) {
         if (queryCache == null) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), id + ", Does not exist or result expired."));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), id + ", Does not exist or result expired."));
         }
         queryCache.setLatestQueryTimeMs(System.currentTimeMillis());
         HazelcastInstanceMapUtil.put(id, queryCache);

@@ -12,15 +12,15 @@ import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.QueryOptionEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.DBType;
+import com.mesalab.common.enums.QueryOption;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DSLService;
 import com.mesalab.qgw.service.QueryService;
@@ -137,7 +137,7 @@ public class JobExecuteService implements EnvironmentAware {
         try {
             BaseResult baseResult = queryService.executeQuery(QueryContext.builder()
                     .query(request.getStatement())
-                    .option(request.isDryRun() ? QueryOptionEnum.SYNTAX_VALIDATION.getValue() : QueryOptionEnum.REAL_TIME.getValue())
+                    .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
                     .format(request.getOutputMode().getValue())
                     .build());
             updateJobResultOnQueryCache(id, baseResult);
@@ -166,8 +166,8 @@ public class JobExecuteService implements EnvironmentAware {
 
     private static void updateJobResultOnQueryCache(String id, BaseResult baseResult) {
         if (!baseResult.isSuccess()) {
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
-                    String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
         QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         Map<String, Object> job = queryCache.getBaseResult().getJob();
@@ -255,7 +255,7 @@ public class JobExecuteService implements EnvironmentAware {
         String partitionKey = databaseService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
         List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
         String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
-        String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBTypeEnum.CLICKHOUSE.getValue());
+        String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBType.CLICKHOUSE.getValue());
         BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1", function, param.get(JobConfig.QUERY_DATA_SOURCE))).build());
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         long statTime = Long.parseLong(data.get(0).get("stat_time").toString()) * 1000;
@@ -524,7 +524,7 @@ public class JobExecuteService implements EnvironmentAware {
     @Deprecated
     private boolean isCancelLongTerm(String id) {
         QueryContext build = QueryContext.builder().query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id)).
-                option(QueryOptionEnum.REAL_TIME.getValue()).build();
+                option(QueryOption.REAL_TIME.getValue()).build();
         BaseResult baseResult = queryService.executeQuery(build);
         if (baseResult.isSuccess() && (StringUtil.isNotEmpty(baseResult.getData()))) {
             List<Map<String, Object>> list = (List<Map<String, Object>>) baseResult.getData();
@@ -664,7 +664,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     private long getCriticalValue(String str) {
-        return Long.parseLong(SQLFunctionUtil.getQueryValue("toUnixTimestamp(" + str + ")", DBTypeEnum.CLICKHOUSE.getValue()));
+        return Long.parseLong(SQLFunctionUtil.getQueryValue("toUnixTimestamp(" + str + ")", DBType.CLICKHOUSE.getValue()));
     }
 
     @Data

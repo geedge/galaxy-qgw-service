@@ -15,10 +15,10 @@ import com.google.common.collect.Maps;
 import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.TreeUtils;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.network.common.Constants;
@@ -75,7 +75,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         BaseResult baseResult;
         String sql = generateProtocolTreeSql(dslObject.getQuery(), environment.getProperty("PROTOCOL_TREE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
+        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> resultList = (List<Map>) resultMap.get("data");
             if (StringUtil.isEmpty(resultList)) {
@@ -92,20 +92,20 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
     @Override
     public BaseResult buildNetworkOverviewResult(DSLObject dslObject) {
         Map<String, String> asymmetricFlowsRsp = executeQuery(generateNetworkStatSummarySql(dslObject.getQuery(), environment.getProperty("NETWORK_OVERVIEW_ASYMMETRIC_FLOWS_STAT")));
-        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(asymmetricFlowsRsp.get("status"))) {
-            throw new BusinessException(Integer.parseInt(asymmetricFlowsRsp.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
+        if (!String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(asymmetricFlowsRsp.get("status"))) {
+            throw new BusinessException(Integer.parseInt(asymmetricFlowsRsp.get("status")), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
         }
         Map<String, String> statRsp = executeQuery(generateDynamicStatSql(dslObject.getQuery(), environment.getProperty("NETWORK_OVERVIEW_STAT")));
-        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(statRsp.get("status"))) {
-            throw new BusinessException(Integer.parseInt(statRsp.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
+        if (!String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(statRsp.get("status"))) {
+            throw new BusinessException(Integer.parseInt(statRsp.get("status")), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
         }
         Map<String, String> tcpRsp = executeQuery(generateTCPStatSql(dslObject.getQuery(), environment.getProperty("NETWORK_OVERVIEW_TCP_STAT")));
-        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(statRsp.get("status"))) {
-            throw new BusinessException(Integer.parseInt(statRsp.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
+        if (!String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(statRsp.get("status"))) {
+            throw new BusinessException(Integer.parseInt(statRsp.get("status")), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
         }
         Map<String, String> appRsp = executeQuery(generateAppStatisticsSql(dslObject.getQuery(), environment.getProperty("NETWORK_OVERVIEW_APP_STAT")));
-        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(appRsp.get("status"))) {
-            throw new BusinessException(Integer.parseInt(appRsp.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
+        if (!String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(appRsp.get("status"))) {
+            throw new BusinessException(Integer.parseInt(appRsp.get("status")), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsRsp.get("message")));
         }
 
         Map statResult = JSON.parseObject(statRsp.get("result"), Map.class);
@@ -207,7 +207,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         BaseResult baseResult;
         String sql = generateProtocolDataRateSql(dslObject.getQuery(), environment.getProperty("PROTOCOL_DATA_RATE_SUMMARY"));
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
+        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             data.forEach(o -> {
@@ -487,7 +487,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String sql = String.format(Objects.requireNonNull(environment.getProperty("APP_DATA_SUMMARY")),
                 period.toStandardSeconds().getSeconds(), dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
         Map<String, String> dataResult = executeQuery(sql);
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
+        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
             return JSON.parseObject(dataResult.get("result"), BaseResult.class);
         } else {
             throw new BusinessException(dataResult.get("result"));
@@ -504,7 +504,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         String sql = String.format(Objects.requireNonNull(environment.getProperty("APP_INTERNAL_IP_SUMMARY")),
                 dslObject.getQuery().getDataSource(), whereOfTime, whereOfExactly, StringUtil.isEmpty(limit) ? "" : " LIMIT " + ((StringUtil.isEmpty(offset)) ? "" : offset + " ,") + limit);
         Map<String, String> dataResult = executeQuery(sql);
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
+        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(dataResult.get("status"))) {
             return JSON.parseObject(dataResult.get("result"), BaseResult.class);
         } else {
             throw new BusinessException(dataResult.get("result"));
@@ -525,7 +525,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                 parameters.getGranularity()
         );
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
+        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));
@@ -547,7 +547,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                 whereOfExactly
         );
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
+        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));

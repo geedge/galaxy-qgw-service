@@ -9,7 +9,7 @@ import lombok.Getter;
  * @date 2018/5/10
  */
 @Getter
-public enum SessionEnum {
+public enum SessionOption {
 
     /**
      * CURRENT_USER: session中存储的当前用户
@@ -18,7 +18,7 @@ public enum SessionEnum {
 
     private String value;
 
-    SessionEnum(String value) {
+    SessionOption(String value) {
         this.value = value;
     }
 }

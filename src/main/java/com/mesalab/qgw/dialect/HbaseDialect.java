@@ -7,16 +7,16 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.OutputModeEnum;
+import com.mesalab.common.enums.DBType;
+import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
@@ -93,15 +93,15 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     String convertQuery(String sql) {
-        sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.HBASE.getValue());
+        sql = SQLFunctionUtil.generateDateFunction(sql, DBType.HBASE.getValue());
         try {
             Select select = (Select) CCJSqlParserUtil.parse(sql);
             select.getSelectBody().accept(SQLVisitorUtil.getVisitorOfEscapeMetadataWithDoubleQuote());
             return select.toString();
         } catch (JSQLParserException | RuntimeException e) {
             log.error("SQL Syntax Error: Converter SQL Syntax Error, SQL is:{}, Error is:{}", sql, e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
     }
 
@@ -122,8 +122,8 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     String getExplainQuery() {
-        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.HBASE_DIALECT_UNSUPPORTED_EXPLAIN_SYNTAX));
+        throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.HBASE_DIALECT_UNSUPPORTED_EXPLAIN_SYNTAX));
     }
 
     @Override
@@ -140,11 +140,11 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         watch.start();
         Map<String, Object> results = executeQuery(sql);
         int status = Integer.parseInt(String.valueOf(results.get("status")));
-        if (status == ResultStatusEnum.SUCCESS.getCode()) {
+        if (status == HttpStatusCodeEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SUCCESS.getCode(), message.get(),
-                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), OutputModeEnum.JSON.getValue());
+                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), OutputMode.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(status, QGWErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), String.valueOf(results.get("message")),
+            baseResult = BaseResultGenerator.generate(status, CommonErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), String.valueOf(results.get("message")),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), param.getFormat());
         }
         return baseResult;
@@ -155,7 +155,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         java.sql.Statement statement = null;
         ResultSet resultSet = null;
         try {
-            log.info("{} engine execute query: {}", DBTypeEnum.HBASE.getValue(), sql);
+            log.info("{} engine execute query: {}", DBType.HBASE.getValue(), sql);
             PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
@@ -165,9 +165,9 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             resultSet = statement.executeQuery(sql);
             return buildResult(resultSet);
         } catch (RuntimeException | SQLException e) {
-            log.error("{} engine error: {}", DBTypeEnum.HBASE.getValue(), e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
+            log.error("{} engine error: {}", DBType.HBASE.getValue(), e);
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
         } finally {
             close(resultSet, statement, conn);
         }
@@ -197,7 +197,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
         statistics.put("result_bytes", dataList.toString().getBytes().length);
         statistics.put("result_rows", dataList.size());
-        result.put("status", ResultStatusEnum.SUCCESS.getCode());
+        result.put("status", HttpStatusCodeEnum.SUCCESS.getCode());
         result.put("statistics", statistics);
         result.put("meta", metaDataList);
         result.put("data", dataList);
@@ -211,12 +211,12 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     public BaseResult executeKillQuery(String queryId) {
-        return BaseResultGenerator.failure(ResultCodeEnum.PARAMETER_ERROR.getCode(), String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"not support"));
+        return BaseResultGenerator.failure(CommonErrorCode.PARAMETER_ERROR.getCode(), String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),"not support"));
     }
 
     @Override
     public BaseResult getProcesses(String queryId) {
-        return BaseResultGenerator.failure(ResultCodeEnum.PARAMETER_ERROR.getCode(), String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"not support"));
+        return BaseResultGenerator.failure(CommonErrorCode.PARAMETER_ERROR.getCode(), String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),"not support"));
     }
 
     class Optimizer {

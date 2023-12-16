@@ -6,7 +6,6 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
-import com.geedgenetworks.utils.Encodes;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -20,10 +19,9 @@ import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.model.basic.QueryContext;
-import com.mesalab.qgw.service.impl.HttpClientService;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.qgw.service.impl.HttpClientServiceV2;
 import lombok.Data;
@@ -114,9 +112,9 @@ public class DruidDialect extends AbstractDataSourceDialect {
         url = url.substring(0, url.indexOf("/"));
         String deleteUrl = URLUtil.normalize(url).concat("/druid/v2/").concat(queryId);
         HttpResponseResult httpResponseResult = httpClientService.delete(deleteUrl);
-        if (httpResponseResult.getStatusCode() == ResultStatusEnum.SUCCESS.getCode()
-                || httpResponseResult.getStatusCode() == ResultStatusEnum.ACCEPTED.getCode()) {
-            return BaseResultGenerator.generate(ResultStatusEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
+        if (httpResponseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()
+                || httpResponseResult.getStatusCode() == HttpStatusCodeEnum.ACCEPTED.getCode()) {
+            return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(httpResponseResult.getStatusCode(), httpResponseResult.getErrorMessage());
         }
@@ -138,7 +136,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         DruidQueryParam druidQueryParam = enrichContextAndBuildQueryParameter(sql);
         log.info("Query ID: {}, SQL: {}", queryContext.getQueryId(), sql);
         if (log.isDebugEnabled()) {
-            log.debug("DB engine is: {}, : {}", DBTypeEnum.DRUID.getValue(), JSON.toJSONString(druidQueryParam)
+            log.debug("DB engine is: {}, : {}", DBType.DRUID.getValue(), JSON.toJSONString(druidQueryParam)
                      + ". body sql is:" + sql);
         }
         return httpClientService.post(queryURL, queryContext.getTimeout(), JSON.toJSONString(druidQueryParam));
@@ -163,12 +161,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
         HttpResponseResult responseResult = executeHttpPost(sql);
 
-        if (responseResult.getStatusCode() == ResultStatusEnum.SUCCESS.getCode()) {
+        if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
             baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(), ResultCodeEnum.SUCCESS.getCode(), message.get(),
-                    (List<Object>) JSON.parseObject(responseResult.getResponseBody(), Object.class), null, null, OutputModeEnum.JSON.getValue());
+                    (List<Object>) JSON.parseObject(responseResult.getResponseBody(), Object.class), null, null, OutputMode.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(),
-                    ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), message.get()),
+                    CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
                     responseResult.getErrorMessage(), null, null, queryContext.getFormat());
         }
         return build();
@@ -198,12 +196,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(allResults));
             baseResult.setStatistics(statistics);
         } else {
-            if (baseResult.getStatus() >= ResultStatusEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < ResultStatusEnum.SERVER_ERROR.getCode()) {
-                throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            if (baseResult.getStatus() >= HttpStatusCodeEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < HttpStatusCodeEnum.SERVER_ERROR.getCode()) {
+                throw new QGWBusinessException(baseResult.getStatus(), CommonErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
             }
-            throw new QGWBusinessException(baseResult.getStatus(), QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
+            throw new QGWBusinessException(baseResult.getStatus(), CommonErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
         }
         return baseResult;
     }
@@ -290,7 +288,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
 
         public Converter generateDateFunction() {
-            sql = SQLFunctionUtil.generateDateFunction(sql, DBTypeEnum.DRUID.getValue());
+            sql = SQLFunctionUtil.generateDateFunction(sql, DBType.DRUID.getValue());
             return this;
         }
 

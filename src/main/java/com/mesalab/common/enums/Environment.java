@@ -9,7 +9,7 @@ import lombok.Getter;
  * @date 2018/5/26
  */
 @Getter
-public enum EnvironmentEnum {
+public enum Environment {
 
     /**
      * 开发环境
@@ -22,7 +22,7 @@ public enum EnvironmentEnum {
 
     private String name;
 
-    EnvironmentEnum(String name) {
+    Environment(String name) {
         this.name = name;
     }
     

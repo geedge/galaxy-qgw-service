@@ -4,19 +4,16 @@ import cn.hutool.core.date.DateException;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.mesalab.cn.constant.ErrorMessage;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
-import com.mesalab.network.exception.NWErrorCode;
 import com.mesalab.network.exception.NWErrorMessage;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.geedgenetworks.utils.StringUtil;
+import com.mesalab.common.exception.CommonErrorCode;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.EnumUtils;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -37,40 +34,40 @@ public class DSLValidate {
 
     public void executeValidate(DSLObject dslObject) throws BusinessException {
         if (StringUtil.isEmpty(dslObject)) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.DSL_OBJECT_IS_INVALID));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.DSL_OBJECT_IS_INVALID));
         }
         if (StringUtil.isEmpty(dslObject.getQuery())) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.QUERY_IS_INVALID));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.QUERY_IS_INVALID));
         }
         if (StringUtil.isNotEmpty(dslObject.getQuery().getLimit()) && !NumberUtil.isNumber(dslObject.getQuery().getLimit().toString())) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.QUERY_LIMIT_IS_INVALID));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.QUERY_LIMIT_IS_INVALID));
         }
         if (StringUtil.isNotEmpty(dslObject.getQuery().getOffset()) && !NumberUtil.isNumber(dslObject.getQuery().getOffset().toString())) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.QUERY_OFFSET_IS_INVALID));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.QUERY_OFFSET_IS_INVALID));
         }
         DSLObject.QueryBean.Parameters parameters = dslObject.getQuery().getParameters();
         if (StringUtil.isEmpty(parameters)) {
             return;
         }
         if (!isValidGranularity(parameters.getGranularity())) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.GRANULARITY_VALUE_IS_INVALID));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.GRANULARITY_VALUE_IS_INVALID));
         }
         if (!isValidMatch(parameters.getMatch())) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.MATCH_IS_INVALID));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.MATCH_IS_INVALID));
         }
         if (!isValidRange(parameters.getRange())) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.RANGE_TYPE_IS_INVALID));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.RANGE_TYPE_IS_INVALID));
         }
         if (!isValidIntervals(parameters.getIntervals())) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.INTERVALS_TYPE_IS_INVALID));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.INTERVALS_TYPE_IS_INVALID));
         }
     }
 
@@ -121,8 +118,8 @@ public class DSLValidate {
         }
         for (DSLObject.QueryBean.Parameters.FilterBean range : filterBeanList) {
             if (!EnumUtils.isValidEnum(RangeEnum.class, StringUtil.upperCase(range.getType()))){
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),NWErrorMessage.RANGE_TYPE_ERROR));
+                throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),NWErrorMessage.RANGE_TYPE_ERROR));
             }
         }
         return true;
@@ -141,21 +138,21 @@ public class DSLValidate {
                 return true;
             }
             if (intervals.size() != 1) {
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), NWErrorMessage.INTERVALS_PARAM_ERROR));
+                throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), NWErrorMessage.INTERVALS_PARAM_ERROR));
             }
             String[] split = intervals.get(0).split("/");
             if (split.length != 2) {
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), NWErrorMessage.INTERVALS_PARAM_ERROR));
+                throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), NWErrorMessage.INTERVALS_PARAM_ERROR));
             }
             for (String dateTimeStr : split) {
                 DateUtil.parse(dateTimeStr);
             }
             return true;
         } catch (DateException e) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), NWErrorMessage.TIME_FORMAT_ERROR));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), NWErrorMessage.TIME_FORMAT_ERROR));
         }
     }
 

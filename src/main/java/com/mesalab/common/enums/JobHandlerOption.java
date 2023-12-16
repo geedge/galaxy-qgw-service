@@ -4,7 +4,7 @@ import lombok.Getter;
 
 
 @Getter
-public enum JobHandlerEnum {
+public enum JobHandlerOption {
 
     DELETE_TRAFFIC_DATA_JOB_HANDLER("deleteTrafficDataJobHandler"),
     DELETE_REPORT_AND_METRICS_DATA_JOB_HANDLER("deleteReportAndMetricsDataJobHandler"),
@@ -15,7 +15,7 @@ public enum JobHandlerEnum {
     ;
     private String value;
 
-    JobHandlerEnum(String value) {
+    JobHandlerOption(String value) {
         this.value = value;
     }
 }

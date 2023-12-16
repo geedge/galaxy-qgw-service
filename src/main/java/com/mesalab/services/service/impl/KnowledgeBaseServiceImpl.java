@@ -15,10 +15,10 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.entity.KnowledgeBase;
@@ -235,7 +235,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             }
         } catch (NacosException e) {
             log.error("get knowledge meta error: {}", e.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         return knowledgeBaseList;
     }
@@ -349,11 +349,11 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         try {
             boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JSON.toJSONString(knowledgeBaseList));
             if (!b) {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),"update knowledge meta error.");
+                throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),"update knowledge meta error.");
             }
         } catch (RuntimeException | NacosException e) {
             log.error("update knowledge meta error: {}", e.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         while (true) {
             Thread.sleep(100);
@@ -377,9 +377,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             if (file.getBytes().length < hosConfig.getMultiUploadStartSize()) {
                 InputStream in = new ByteArrayInputStream(file.getBytes());
                 HttpResponse httpResponse = httpClientService.httpPutStream(url, in, httpConfig.getServerResponseTimeOut(), header);
-                if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != ResultStatusEnum.SUCCESS.getCode()) {
+                if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != HttpStatusCodeEnum.SUCCESS.getCode()) {
                     log.error("execute upload file failed.");
-                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),"upload file failed.");
+                    throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),"upload file failed.");
                 }
             } else {
                 File fileTemp = null;
@@ -406,7 +406,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     completeMultipartUpload(url, uploadId, completeBody, header);
                 } catch (IOException | RuntimeException ex) {
                     log.error("execute upload part file failed.");
-                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),ex.getMessage());
+                    throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),ex.getMessage());
                 } finally {
                     if (fileTemp != null && fileTemp.exists()) {
                         FileUtil.del(fileTemp);
@@ -414,7 +414,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 }
             }
         } catch (IOException e) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         return url;
     }
@@ -430,7 +430,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private HttpResponse uploadPart(String url, Object uploadId, int times, InputStream inputStream, Header header) throws RuntimeException {
         String urlParams = StrFormatter.format("?partNumber={}&uploadId={}", times, uploadId);
         HttpResponse httpResponse = httpClientService.httpPutStream(url.concat(urlParams), inputStream, httpConfig.getServerResponseTimeOut(), header);
-        if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != ResultStatusEnum.SUCCESS.getCode()) {
+        if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != HttpStatusCodeEnum.SUCCESS.getCode()) {
             log.error("upload part file failed.");
             throw new BusinessException("upload part file failed.");
         }

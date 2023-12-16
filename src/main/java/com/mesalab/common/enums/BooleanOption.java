@@ -9,7 +9,7 @@ import lombok.Getter;
  * @date 2018/5/7
  */
 @Getter
-public enum BooleanEnum {
+public enum BooleanOption {
 
     /**
      * YES: 1
@@ -23,7 +23,7 @@ public enum BooleanEnum {
 
     private int value;
 
-    BooleanEnum(int value) {
+    BooleanOption(int value) {
         this.value = value;
     }
 

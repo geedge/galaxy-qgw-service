@@ -17,11 +17,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.InternetDomainName;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.OutputModeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.OutputMode;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.model.basic.EntityConfigSource;
@@ -111,7 +111,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             int limit = StringUtil.isBlank(comDSLObject.getQuery().getLimit()) ? entityConfigSource.getTopSNIDefaultSize() : Integer.parseInt(comDSLObject.getQuery().getLimit());
             baseResult = build(limit, baseResult, baseResultTotal);
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
+            baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
             BaseResult result = JSON.parseObject(baseResult.getMessage(), BaseResult.class);
@@ -343,8 +343,8 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
         if (MatchEnum.EXACTLY.getType().equalsIgnoreCase(String.valueOf(filterBean.getType()))) {
             return query(generateActiveClientIP(query, env.getProperty("ENTITY_ACTIVE_CLIENT_IP"), query.getLimit()));
         } else {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.MATCH_TYPE));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.MATCH_TYPE));
         }
     }
 
@@ -376,7 +376,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     }
 
     private BaseResult formatResult(BaseResult baseResult, String limit) {
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(String.valueOf(baseResult.getStatus()))) {
+        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(String.valueOf(baseResult.getStatus()))) {
             List<Object> alterationResultList = new ArrayList<>();
             List<Map> resultList = new ObjectMapper().convertValue(baseResult.getData(), new TypeReference<List<Map>>() {
             });
@@ -403,7 +403,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
             }
             baseResult.getStatistics().put("result_rows", dataResult.size());
             baseResult.getStatistics().put("result_bytes", JSON.toJSONString(dataResult).getBytes().length);
-            return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), dataResult, baseResult.getMeta(), baseResult.getStatistics(), OutputModeEnum.JSON.getValue());
+            return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), dataResult, baseResult.getMeta(), baseResult.getStatistics(), OutputMode.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.error(baseResult.getStatus(), baseResult.getMessage());
         }
@@ -444,10 +444,10 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
                 StringUtil.isBlank(query.getLimit()) ? entityConfigSource.getTopServerIPByUDPUniqClientIP() : query.getLimit());
         Map<String, String> udpClientIpsResult = executeQuery(udpClientIpsSql);
 
-        if (!String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(tcpSessionResult.get("status"))
-                || !String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(tcpClientIpResult.get("status"))
-                || !String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(udpSessionResult.get("status"))
-                || !String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(udpClientIpsResult.get("status"))) {
+        if (!String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(tcpSessionResult.get("status"))
+                || !String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(tcpClientIpResult.get("status"))
+                || !String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(udpSessionResult.get("status"))
+                || !String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(udpClientIpsResult.get("status"))) {
             return BaseResultGenerator.error(
                     "tcp by session result:" + tcpSessionResult
                             + "tcp by client ips result:" + tcpClientIpResult
@@ -539,7 +539,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     public BaseResult query(String sql) {
         BaseResult baseResult;
         Map<String, String> result = executeQuery(sql);
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(result.get("status"))) {
+        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(result.get("status"))) {
             Map resultMap = JSON.parseObject(result.get("result"), Map.class);
             List<Map> data = (List<Map>) resultMap.get("data");
             baseResult = BaseResultGenerator.success("ok", data, (Map) resultMap.get("statistics"));

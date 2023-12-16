@@ -1,20 +1,15 @@
 package com.mesalab.services.controller;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.geedgenetworks.utils.StringUtil;
-import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.services.service.SQLDatasetService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,8 +46,8 @@ public class SQLDatasetController
     public BaseResult getQueryId(@RequestParam String query, @RequestParam(value = "result_id", required = false) Integer resultId) {
         log.info("获取当前SQL Query ID, 参数: query ={}，result_id ={}", query, resultId);
         if (StringUtil.isEmpty(query)) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CANNOT_BE_EMPTY));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_CANNOT_BE_EMPTY));
         }
         String queryId;
         if (resultId != null) {

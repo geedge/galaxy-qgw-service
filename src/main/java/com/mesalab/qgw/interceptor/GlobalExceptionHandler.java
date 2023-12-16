@@ -6,7 +6,7 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.geedgenetworks.utils.StringUtil;
@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public BaseResult handleException(Exception e, HttpServletRequest request, HttpServletResponse response) {
-        response.setStatus(ResultStatusEnum.BAD_REQUEST.getCode());
+        response.setStatus(HttpStatusCodeEnum.BAD_REQUEST.getCode());
         String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
         log.error("requestId:{}, message:{}, stackTrace:{}", queryKey, ExceptionUtil.getRootCauseMessage(e), getStackTrace(e));
         return BaseResultGenerator.failure(e.getMessage(), queryKey);

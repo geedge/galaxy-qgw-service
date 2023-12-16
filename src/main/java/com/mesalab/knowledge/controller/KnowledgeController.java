@@ -3,14 +3,13 @@ package com.mesalab.knowledge.controller;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.knowledge.enums.QueryTypeEnum;
-import com.mesalab.knowledge.exception.KnowLedgeErrorCode;
 import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.mesalab.knowledge.service.KnowledgeService;
 import com.geedgenetworks.utils.StringUtil;
+import com.mesalab.common.exception.CommonErrorCode;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -44,14 +43,14 @@ public class KnowledgeController {
             log.debug("服务推荐接口, 参数: queryString is {},params is {}", param, object);
             if (!EnumUtils.isValidEnum(QueryTypeEnum.class, StringUtil.upperCase(param))
                     || StringUtil.isNotEmpty(request.getParameter(param))) {
-                throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
-                        ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
+                throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(),
+                        CommonErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
             }
             return knowledgeService.query(object);
         }
-        throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
-                ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
+        throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(),
+                CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), KnowLedgeErrorMessage.NOT_SUPPORT));
     }
 }

@@ -10,13 +10,7 @@ import lombok.Getter;
  */
 @Getter
 public enum ResultCodeEnum {
-
-
-    SUCCESS("20000666", "Success"),
-
-    PARAMETER_ERROR("40000100", "Bad request - Invalid query parameters :%s"),
-
-    UNKNOWN_EXCEPTION("50000999", "An unknown error occurred: %s");
+    SUCCESS("20000666", "Success");
 
     private String code;
     private String message;

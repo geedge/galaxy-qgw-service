@@ -3,12 +3,11 @@ package com.mesalab.common.utils.sqlparser;
 import com.alibaba.druid.util.JdbcConstants;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
-import com.mesalab.common.enums.DBTypeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.DBType;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -93,11 +92,11 @@ public class SQLHelper {
      * @return
      */
     public static String getDialectDBType(String dbType) {
-        if (DBTypeEnum.CLICKHOUSE.getValue().equals(dbType)) {
+        if (DBType.CLICKHOUSE.getValue().equals(dbType)) {
             return JdbcConstants.MYSQL;
-        } else if (DBTypeEnum.DRUID.getValue().equals(dbType)) {
+        } else if (DBType.DRUID.getValue().equals(dbType)) {
             return JdbcConstants.HIVE;
-        } else if (DBTypeEnum.HBASE.getValue().equals(dbType)) {
+        } else if (DBType.HBASE.getValue().equals(dbType)) {
             return JdbcConstants.MYSQL;
         } else {
             return null;
@@ -125,8 +124,8 @@ public class SQLHelper {
             });
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return result;
     }
@@ -164,13 +163,13 @@ public class SQLHelper {
                 // selectStatement = ((ExplainStatement) statement).getStatement();
             } else {
                 log.error("Not support DML Parser");
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.NOT_SUPPORT_DML_PARSER));
+                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.NOT_SUPPORT_DML_PARSER));
             }
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: Get Table Name Error, SQL is:{}, Error is:{}", sql, e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
         }
         return Lists.newArrayList();
     }
@@ -216,8 +215,8 @@ public class SQLHelper {
             }
             return plainSelect;
         }catch (JSQLParserException | RuntimeException e) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"statistics job init error: ".concat(e.getMessage())));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),"statistics job init error: ".concat(e.getMessage())));
         }
     }
 

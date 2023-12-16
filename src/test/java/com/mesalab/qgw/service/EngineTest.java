@@ -4,7 +4,6 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.GalaxyQGWApplicationTests;
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.common.enums.DiagnosisOptionEnum;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

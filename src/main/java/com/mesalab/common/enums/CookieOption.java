@@ -9,7 +9,7 @@ import lombok.Getter;
  * @date 2018/5/26
  */
 @Getter
-public enum CookieEnum {
+public enum CookieOption {
     /**
      * REMEMBER_ME： Cookie中存储的REMEMBER_ME
      */
@@ -17,7 +17,7 @@ public enum CookieEnum {
 
     private String value;
 
-    CookieEnum(String value) {
+    CookieOption(String value) {
         this.value = value;
     }
 }

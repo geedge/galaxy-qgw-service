@@ -3,12 +3,11 @@ package com.mesalab.services.controller;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.dsl.ComDSLValidate;
-import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.enums.UnstructuredDataType;
 import com.mesalab.services.service.UnstructuredService;
 import com.geedgenetworks.utils.StringUtil;
@@ -41,14 +40,14 @@ public class UnstructuredController {
             log.debug("非结构化数据-文件路径列表获取接口, 参数: queryString is {},params is {}", param, dslObject);
             if (!EnumUtils.isValidEnum(UnstructuredDataType.class, StringUtil.upperCase(param))
                     || StringUtil.isNotEmpty(request.getParameter(param))) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                        String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), "Not Support"));
+                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "Not Support"));
             }
             comDSLValidate.validation(dslObject);
             return unstructuredService.getUnstructuredData(param, dslObject);
         }
-        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),"Not Support"));
+        throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),"Not Support"));
     }
 
 }

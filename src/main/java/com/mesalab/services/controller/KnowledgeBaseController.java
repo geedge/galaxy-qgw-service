@@ -4,9 +4,9 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.services.common.entity.KnowledgeBase;
 import com.mesalab.services.service.KnowledgeBaseService;
 import com.geedgenetworks.utils.StringUtil;
@@ -28,7 +28,7 @@ public class KnowledgeBaseController {
             return knowledgeService.queryKnowledge();
         } catch (BusinessException e) {
             log.error("get knowledge meta error:{}", e.getMessage());
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "get knowledge meta error: " + e.getMessage());
+            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), "get knowledge meta error: " + e.getMessage());
         }
     }
 
@@ -40,7 +40,7 @@ public class KnowledgeBaseController {
             return knowledgeService.publishKnowledge(file, knowledgeBase);
         } catch (Exception e) {
             log.error("publish knowledge error: {}", e.getMessage());
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "publish knowledge error: " + e.getMessage());
+            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), "publish knowledge error: " + e.getMessage());
         }
     }
 
@@ -53,7 +53,7 @@ public class KnowledgeBaseController {
             return knowledgeService.updateKnowledge(file, knowledge);
         } catch (Exception e) {
             log.error("update knowledge error: {}", e);
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "update knowledge error: " + e.getMessage());
+            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), "update knowledge error: " + e.getMessage());
         }
     }
 
@@ -63,7 +63,7 @@ public class KnowledgeBaseController {
             return knowledgeService.deleteKnowledge(StringUtil.isNotBlank(id) ? id : knowledgeBase.getId());
         } catch (Exception e) {
             log.error("delete knowledge error: {}", e.getMessage());
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "delete knowledge error:" + e.getMessage());
+            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), "delete knowledge error:" + e.getMessage());
         }
     }
 
@@ -76,22 +76,22 @@ public class KnowledgeBaseController {
             return knowledgeService.toggleKnowledge(knowledgeBase);
         } catch (Exception e) {
             log.error("toggle knowledge error: {}", e.getMessage());
-            return BaseResultGenerator.failure(ResultStatusEnum.SERVER_ERROR.getCode(), "toggle knowledge error:" + e.getMessage());
+            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), "toggle knowledge error:" + e.getMessage());
         }
     }
 
     private KnowledgeBase validateKnowledge(KnowledgeBase knowledge) {
         if (StringUtil.isEmpty(knowledge.getName())) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),"Name is required");
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),"Name is required");
         }
         if (knowledge.getName().contains(":")) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"Name cannot contain ':'");
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),"Name cannot contain ':'");
         }
         if (knowledge.getName().contains(".")) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"Name cannot contain '.'");
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),"Name cannot contain '.'");
         }
         if (StringUtil.isEmpty(knowledge.getFormat())) {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),ResultCodeEnum.PARAMETER_ERROR.getCode(),"Format is required");
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),"Format is required");
         }
         return knowledge;
     }
