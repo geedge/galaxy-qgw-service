@@ -12,6 +12,7 @@
         "__time"
       ],
       "dimensions": [
+        "vsys_id",
         "device_id",
         "device_group",
         "data_center"
@@ -113,6 +114,9 @@
       "name": "sessions",
       "label": "Sessions",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -121,6 +125,9 @@
       "name": "active_sessions",
       "label": "Active Sessions",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -129,6 +136,9 @@
       "name": "closed_sessions",
       "label": "Closed Sessions",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -138,6 +148,9 @@
       "label": "Incoming Bytes",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -146,6 +159,9 @@
       "label": "Incoming Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -154,6 +170,9 @@
       "label": "Outgoing Bytes",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -162,6 +181,9 @@
       "label": "Outgoing Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -170,6 +192,9 @@
       "label": "Asymmetric Flows (c2s)",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -178,6 +203,9 @@
       "label": "Asymmetric Flows (s2c)",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -186,14 +214,9 @@
       "label": "TCP SYN Packets",
       "type": "long",
       "doc": {
-        "visibility": "enabled"
-      }
-    },
-    {
-      "name": "tcp_syn_ack_pkts",
-      "label": "TCP SYN/ACK Packets",
-      "type": "long",
-      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -202,6 +225,31 @@
       "label": "TCP ACK Packets",
       "type": "long",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_fin_pkts",
+      "label": "TCP FIN Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "tcp_rst_pkts",
+      "label": "TCP RST Packets",
+      "type": "long",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     }

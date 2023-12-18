@@ -12,6 +12,7 @@
         "__time"
       ],
       "dimensions": [
+        "vsys_id",
         "device_id",
         "device_group",
         "data_center",
@@ -137,6 +138,9 @@
       "name": "recv_bytes",
       "label": "Bytes Received",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -145,6 +149,9 @@
       "name": "sent_bytes",
       "label": "Bytes Sent",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -153,6 +160,9 @@
       "name": "recv_pkts",
       "label": "Packets Received",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -161,6 +171,9 @@
       "name": "sent_pkts",
       "label": "Packets Sent",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"

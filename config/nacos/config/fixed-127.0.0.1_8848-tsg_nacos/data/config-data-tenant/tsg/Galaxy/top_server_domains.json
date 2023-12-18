@@ -12,6 +12,7 @@
         "__time"
       ],
       "dimensions": [
+        "vsys_id",
         "device_id",
         "device_group",
         "data_center",
@@ -141,6 +142,9 @@
       "name": "sessions",
       "label": "Sessions",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -149,6 +153,9 @@
       "name": "in_bytes",
       "label": "Incoming Bytes",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -157,6 +164,9 @@
       "name": "in_pkts",
       "label": "Incoming Packets",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -165,6 +175,9 @@
       "name": "out_bytes",
       "label": "Outgoing Bytes",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -173,6 +186,9 @@
       "name": "out_pkts",
       "label": "Outgoing Packets",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"

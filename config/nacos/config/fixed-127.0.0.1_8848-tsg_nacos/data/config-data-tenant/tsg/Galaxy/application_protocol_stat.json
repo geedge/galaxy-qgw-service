@@ -12,6 +12,7 @@
         "__time"
       ],
       "dimensions": [
+        "vsys_id",
         "device_id",
         "device_group",
         "data_center",
@@ -143,6 +144,207 @@
       "name": "sessions",
       "label": "Sessions",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_pkts",
+      "label": "Packets Sent",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_pkts",
+      "label": "Packets Received",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_bytes",
+      "label": "Bytes Sent",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_bytes",
+      "label": "Bytes Received",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_fragments",
+      "label": "Fragmentation Packets (c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_fragments",
+      "label": "Fragmentation Packets (s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_lost_bytes",
+      "label": "Sequence Gap Loss (c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_lost_bytes",
+      "label": "Sequence Gap Loss (s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_ooorder_pkts",
+      "label": "TCP out-of-order Packets (c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_ooorder_pkts",
+      "label": "TCP out-of-order Packets (s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_retransmitted_pkts",
+      "label": "TCP Retransmission Packets (c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_retransmitted_pkts",
+      "label": "TCP Retransmission Packets (s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_tcp_retransmitted_bytes",
+      "label": "TCP Retransmission Bytes (c2s)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_tcp_retransmitted_bytes",
+      "label": "TCP Retransmission Bytes (s2c)",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       },
       "type": "long"
@@ -152,159 +354,13 @@
       "label": "Client IP Sketch",
       "doc": {
         "constraints": {
-          "aggregation_functions": "APPROX_COUNT_DISTINCT_DS_HLL"
+          "type": "HLLDSketchMerge",
+          "metric_type": "gauge",
+          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD"
         },
         "visibility": "enabled"
       },
-      "type": {
-        "type": "array",
-        "items": "string",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "c2s_pkts",
-      "label": "Packets Sent",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "s2c_pkts",
-      "label": "Packets Received",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "c2s_bytes",
-      "label": "Bytes Sent",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "s2c_bytes",
-      "label": "Bytes Received",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "c2s_fragments",
-      "label": "Fragmentation Packets (c2s)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "s2c_fragments",
-      "label": "Fragmentation Packets (s2c)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "c2s_tcp_lost_bytes",
-      "label": "Sequence Gap Loss (c2s)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "s2c_tcp_lost_bytes",
-      "label": "Sequence Gap Loss (s2c)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "c2s_tcp_ooorder_pkts",
-      "label": "TCP out-of-order Packets (c2s)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "s2c_tcp_ooorder_pkts",
-      "label": "TCP out-of-order Packets (s2c)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "c2s_tcp_retransmitted_pkts",
-      "label": "TCP Retransmission Packets (c2s)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "s2c_tcp_retransmitted_pkts",
-      "label": "TCP Retransmission Packets (s2c)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "c2s_tcp_retransmitted_bytes",
-      "label": "TCP Retransmission Bytes (c2s)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "s2c_tcp_retransmitted_bytes",
-      "label": "TCP Retransmission Bytes (s2c)",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "in_bytes",
-      "label": "Incoming Bytes",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "in_pkts",
-      "label": "Incoming Packets",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "out_bytes",
-      "label": "Outgoing Bytes",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
-    },
-    {
-      "name": "out_pkts",
-      "label": "Outgoing Packets",
-      "doc": {
-        "visibility": "enabled"
-      },
-      "type": "long"
+      "type": "string"
     }
   ]
 }
