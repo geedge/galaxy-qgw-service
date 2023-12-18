@@ -23,7 +23,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DSLService;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
@@ -54,8 +54,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static com.mesalab.services.service.impl.JobServiceImp.execute;
-import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
+import static com.mesalab.services.service.impl.JobServiceImpl.execute;
+import static com.mesalab.services.service.impl.JobServiceImpl.executeUpdate;
 
 /**
  * TODO
@@ -71,7 +71,7 @@ public class JobExecuteService implements EnvironmentAware {
     @Autowired
     Environment env;
     @Autowired
-    QueryService queryService;
+    SQLSyncQueryService queryService;
     @Autowired
     TaskExecuteService taskExecuteService;
     @Autowired

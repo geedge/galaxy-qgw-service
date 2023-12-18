@@ -23,7 +23,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
@@ -57,11 +57,11 @@ import java.util.stream.Collectors;
  */
 @Service("jobService")
 @PropertySource(value = "classpath:job-sql-template.sql", factory = SqlPropertySourceFactory.class)
-public class JobServiceImp implements JobService, EnvironmentAware {
+public class JobServiceImpl implements JobService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private static final String URL_PREFIX = "jdbc:phoenix:";
     @Autowired
-    QueryService queryService;
+    SQLSyncQueryService queryService;
     @Autowired
     DatabaseService databaseService;
     @Autowired

@@ -6,7 +6,7 @@ import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.cn.entity.pojo.*;
 import com.mesalab.cn.service.CNService;
 import com.mesalab.qgw.model.basic.QueryContext;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.ua.analyser.UaAnalyser;
 import com.mesalab.ua.analyser.enums.UserInfo;
 import com.mesalab.ua.analyser.impl.UaAnalyserImpl;
@@ -36,7 +36,7 @@ public class CNServiceImpl implements CNService {
     private CNParser cnParser;
 
     @Autowired
-    private QueryService queryService;
+    private SQLSyncQueryService queryService;
 
     @Override
     public BaseResult shareNetQuery(DSLObject dslObject) throws BusinessException {

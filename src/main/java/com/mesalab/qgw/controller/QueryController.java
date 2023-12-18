@@ -11,7 +11,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.QueryJobService;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RestController
 public class QueryController {
 
-    private QueryService queryService;
+    private SQLSyncQueryService queryService;
     private QueryJobService queryJobService;
 
     @GetMapping("/sql")
@@ -144,7 +144,7 @@ public class QueryController {
     }
 
     @Autowired
-    public void setQueryService(QueryService queryService) {
+    public void setQueryService(SQLSyncQueryService queryService) {
         this.queryService = queryService;
     }
 }

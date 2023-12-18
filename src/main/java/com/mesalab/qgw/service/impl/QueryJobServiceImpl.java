@@ -21,7 +21,7 @@ import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DSLService;
 import com.mesalab.qgw.service.QueryJobService;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.services.common.enums.MetricFunction;
 import com.mesalab.services.common.enums.MetricType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private Environment env;
-    private QueryService queryService;
+    private SQLSyncQueryService queryService;
     private JobService jobService;
     private JobExecuteService jobExecuteService;
     private DSLService dslService;
@@ -325,7 +325,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
 
     @Autowired
-    public void setQueryService(QueryService queryService) {
+    public void setQueryService(SQLSyncQueryService queryService) {
         this.queryService = queryService;
     }
 
