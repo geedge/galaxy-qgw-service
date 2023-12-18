@@ -48,22 +48,14 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 @Service("sqlSyncQueryService")
 public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     private static final Log log = LogFactory.get();
     @Autowired
-    private DatabaseService databaseServiceTemp;
+    private DatabaseService databaseService;
     @Autowired
-    private SystemService systemServiceTemp;
-
-    private static DatabaseService databaseService;
-    private static SystemService systemService;
-
-    @PostConstruct
-    private void initMetadataService() {
-        databaseService = this.databaseServiceTemp;
-        systemService = this.systemServiceTemp;
-    }
+    private SystemService systemService;
 
     private final int MAX_PARSER_LEVEL = 5;
     private final String PARSER_EXCEPTION_CLASS_NAME = "net.sf.jsqlparser.parser.ParseException:";
@@ -82,7 +74,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
             log.error("SQL Syntax Error: {}", e);
             String message = getJSQLParserSimpleErrorMessage(e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),message));
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), message));
         }
         BaseResult baseResult;
         log.debug("Request option ：{}, SQL ：{}", queryContext.getOption(), queryContext.getQuery());
@@ -97,13 +89,13 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
             baseResult = executeExplainStatement(queryContext);
         } else {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.ONLY_SUPPORT_STATEMENT_OPERATIONS_FOR_SELECT));
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.ONLY_SUPPORT_STATEMENT_OPERATIONS_FOR_SELECT));
         }
         return baseResult;
     }
 
     private void init(QueryContext queryContext) {
-        if(SQLHelper.getTableName(queryContext.getQuery()).isEmpty()){
+        if (SQLHelper.getTableName(queryContext.getQuery()).isEmpty()) {
             return;
         }
         String tableName = SQLHelper.getTableName(queryContext.getQuery()).get(0);
@@ -120,15 +112,15 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         }
         if (StringUtil.isBlank(param.getQuery())) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.SQL_MUST_BE_EXISTS));
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_MUST_BE_EXISTS));
         }
         if (Arrays.stream(QueryOption.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getOption()))) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.OPTION_TYPE_ERROR));
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.OPTION_TYPE_ERROR));
         }
         if (Arrays.stream(OutputMode.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(param.getFormat()))) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.FORMAT_TYPE_ERROR));
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.FORMAT_TYPE_ERROR));
         }
     }
 
@@ -165,6 +157,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     /**
      * 1.设置默认queryID
      * 2.为Select操作选择不同的执行动作，包含SQL解析(Syntax-parse)、SQL验证（Syntax-validation）、实时查询(Real-time)、长查询(Long-term)
+     *
      * @param param 请求参数
      * @return BaseResult 执行结果
      */
@@ -183,7 +176,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     }
 
     private BaseResult executeSyntaxParse(QueryContext param) {
-       return BaseResultGenerator.success(SQLSyntaxParserUtil.syntaxParse(param.getQuery()));
+        return BaseResultGenerator.success(SQLSyntaxParserUtil.syntaxParse(param.getQuery()));
     }
 
     private BaseResult executeSyntaxValidation(QueryContext param) {
@@ -218,15 +211,12 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
             Constructor constructor = dialectClazz.getConstructor(QueryContext.class);
             dialect = (Dialect) constructor.newInstance(param);
         } catch (ReflectiveOperationException | RuntimeException e) {
-            log.error("Dialect conversion instance exception:{}",e);
+            log.error("Dialect conversion instance exception:{}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return dialect;
     }
-
-
-
 
 
     /**
@@ -264,7 +254,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
             String tableName = StringUtil.isEmpty(indexUpSqlQuerySource.getSubSelect().getAlias()) ? indexUpSqlQuerySource.getTableNames().get(0) : indexUpSqlQuerySource.getSubSelect().getAlias().getName();
             String replace = sqlQuerySource.getSqlBody().replace(indexUpSqlQuerySource.getSubSelect().toString(), tableName);
             engineQuerySource.setSqlBody(replace);
-            engineQuerySource.getTableNames().add(0,tableName);
+            engineQuerySource.getTableNames().add(0, tableName);
             engineQuerySource.setLimit(sqlQuerySource.getLimit());
         }
 
@@ -279,7 +269,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
      * @param sql
      * @return
      */
-    public static SQLQuerySource parserSQLByAst(String sql) {
+    private SQLQuerySource parserSQLByAst(String sql) {
 
 
         SQLQuerySource sqlQuerySource = new SQLQuerySource();
@@ -389,7 +379,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         } catch (JSQLParserException | RuntimeException e) {
             log.error("sqlParser error: {}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),e.getMessage()));
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
 
         }
 
@@ -446,13 +436,12 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
             UDFElements udfElements = new UDFElements(funName, expressions);
             udf = (UDF) constructor.newInstance(udfElements);
         } catch (ReflectiveOperationException | RuntimeException e) {
-            log.error("Custom function conversion instance exception:{}",e);
+            log.error("Custom function conversion instance exception:{}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.CUSTOM_FUNCTION_CONVERSION_INSTANCE_EXCEPTION));
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), QGWMessageConst.CUSTOM_FUNCTION_CONVERSION_INSTANCE_EXCEPTION));
         }
         return udf;
     }
-
 
 
     /**
@@ -491,7 +480,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
 
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),QGWMessageConst.CHECK_TABLE));
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.CHECK_TABLE));
         }
         return baseResult;
     }
@@ -536,7 +525,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
             Dialect dialect = getReflectiveDialectObject(dbParam);
             BaseResult queryResult = dialect.executeAdministrativeQuery();
             if (queryResult.getStatus() == null || queryResult.getStatus() != HttpStatusCodeEnum.SUCCESS.getCode()) {
-                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode() , queryResult.getMessage());
+                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), queryResult.getMessage());
             }
             List tables = (ArrayList) queryResult.getData();
             List<String> list = new ArrayList<>();
@@ -553,13 +542,13 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                 if (StringUtil.isEmpty(dataMap.get("name"))) {
                     dataMap.put("name", dbResultMap.get("name"));
                 } else {
-                    dataMap.put("name", Joiner.on(",").join(dataMap.get("name"),dbResultMap.get("name")));
+                    dataMap.put("name", Joiner.on(",").join(dataMap.get("name"), dbResultMap.get("name")));
                 }
 
                 if (StringUtil.isEmpty(dataMap.get("symbols"))) {
                     dataMap.put("symbols", dbResultMap.get("symbols"));
                 } else {
-                    dataMap.put("symbols",  Lists.newArrayList(dataMap.get("symbols"), dbResultMap.get("symbols")));
+                    dataMap.put("symbols", Lists.newArrayList(dataMap.get("symbols"), dbResultMap.get("symbols")));
                 }
             }
 
