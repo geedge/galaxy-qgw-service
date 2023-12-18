@@ -862,7 +862,7 @@
     },
     {
       "name": "sc_rsp_raw",
-      "label": "Service Chaining Rendered Service Path (Raw)",
+      "label": "SC RSP Raw",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -878,7 +878,7 @@
     },
     {
       "name": "sc_rsp_decrypted",
-      "label": "Service Chaining Rendered Service Path (Decrypted)",
+      "label": "SC RSP Decrypted",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1466,7 +1466,7 @@
     },
     {
       "name": "tcp_c2s_rtx_pkts",
-      "label": "TCP C2S Retransmission Packets",
+      "label": "TCP C2S RTX Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -1478,7 +1478,7 @@
     },
     {
       "name": "tcp_s2c_rtx_pkts",
-      "label": "TCP S2C Retransmission Packets",
+      "label": "TCP S2C RTX Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -1490,7 +1490,7 @@
     },
     {
       "name": "tcp_c2s_rtx_bytes",
-      "label": "TCP C2S Retransmission Bytes ",
+      "label": "TCP C2S RTX Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"
@@ -1502,7 +1502,7 @@
     },
     {
       "name": "tcp_s2c_rtx_bytes",
-      "label": "TCP S2C Retransmission Bytes",
+      "label": "TCP S2C RTX Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"

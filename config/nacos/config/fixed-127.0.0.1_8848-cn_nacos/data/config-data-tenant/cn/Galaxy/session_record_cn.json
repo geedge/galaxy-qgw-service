@@ -346,7 +346,7 @@
     },
     {
       "name":"ssh_kex_alg",
-      "label":"SSH. Key Exchange Algorithm",
+      "label":"SSH.Key Exchange Algorithm",
       "type":"string"
     },
     {
