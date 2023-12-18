@@ -373,7 +373,7 @@
         "constraints": {
           "type": "HdrHistogramSketchMerge",
           "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR"
+          "aggregation_functions": "PERCENTILES_HDR,MEDIAN_HDR"
         },
         "visibility": "enabled"
       },
@@ -386,7 +386,7 @@
         "constraints": {
           "type": "HdrHistogramSketchMerge",
           "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR"
+          "aggregation_functions": "PERCENTILES_HDR,MEDIAN_HDR"
         },
         "visibility": "enabled"
       },
@@ -399,7 +399,7 @@
         "constraints": {
           "type": "HdrHistogramSketchMerge",
           "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR"
+          "aggregation_functions": "PERCENTILES_HDR,MEDIAN_HDR"
         },
         "visibility": "enabled"
       },
