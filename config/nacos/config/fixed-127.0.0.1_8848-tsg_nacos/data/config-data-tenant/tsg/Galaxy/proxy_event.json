@@ -14,6 +14,9 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "time": [
+        "recv_time"
+      ],
       "dimensions": [
         "session_id",
         "start_timestamp_ms",
