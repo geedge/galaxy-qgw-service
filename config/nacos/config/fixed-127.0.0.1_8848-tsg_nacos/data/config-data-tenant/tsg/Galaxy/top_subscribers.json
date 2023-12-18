@@ -116,6 +116,15 @@
       "name": "metric",
       "label": "Metric",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "BASE",
+            "value": "BASE"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "string"

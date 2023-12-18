@@ -4,7 +4,7 @@
   "namespace": "tsg_galaxy_v3",
   "doc": {
     "primary_key": "log_id",
-    "partition_key": "start_time",
+    "partition_key": "recv_time",
     "ttl": null,
     "default_ttl": 2592000,
     "index_key": {
@@ -14,6 +14,9 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "time": [
+        "recv_time"
+      ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
@@ -31,7 +34,7 @@
       "session_rate"
     ],
     "internal_columns": [
-      "start_time",
+      "recv_time",
       "log_id"
     ],
     "measurements": {
@@ -50,6 +53,21 @@
   },
   "fields": [
     {
+      "name": "recv_time",
+      "label": "Receive Time",
+      "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
+    },
+    {
       "name": "start_time",
       "label": "Start Time",
       "doc": {
@@ -67,21 +85,6 @@
     {
       "name": "end_time",
       "label": "End Time",
-      "doc": {
-        "constraints": {
-          "type": "unix_timestamp"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": {
-        "type": "long",
-        "logicalType": "unix_timestamp"
-      }
-    },
-    {
-      "name": "recv_time",
-      "label": "Receive Time",
       "doc": {
         "constraints": {
           "type": "unix_timestamp"
