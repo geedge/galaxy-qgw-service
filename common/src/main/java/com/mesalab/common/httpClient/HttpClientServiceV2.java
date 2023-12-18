@@ -33,6 +33,7 @@ import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.net.ssl.*;
@@ -50,7 +51,6 @@ import java.util.Map;
 @Service
 @Slf4j
 public class HttpClientServiceV2 {
-    @Autowired
     private HttpConfig httpConfig;
     private PoolingHttpClientConnectionManager connectionManager;
     private static final String CONTENT_TYPE = "Content-Type";
@@ -95,6 +95,11 @@ public class HttpClientServiceV2 {
             log.error("NoSuchAlgorithmException", e);
             throw new BusinessException(e.getMessage());
         }
+    }
+
+    @Autowired
+    public void setHttpConfig(@Qualifier("httpConfig") HttpConfig httpConfig) {
+        this.httpConfig = httpConfig;
     }
 
 

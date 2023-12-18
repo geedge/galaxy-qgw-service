@@ -4,8 +4,6 @@ import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.text.StrFormatter;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.log.Log;
-import cn.hutool.log.LogFactory;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
@@ -28,6 +26,7 @@ import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SystemService;
 import com.geedgenetworks.utils.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
@@ -42,20 +41,22 @@ import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.hbase.thirdparty.com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service("sqlSyncQueryService")
+@Slf4j
 public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
-    private static final Log log = LogFactory.get();
-    @Autowired
     private DatabaseService databaseService;
-    @Autowired
     private SystemService systemService;
+
+    @Autowired
+    public void SQLSyncQueryServiceImpl(DatabaseService databaseService, SystemService systemService) {
+        this.databaseService = databaseService;
+        this.systemService = systemService;
+    }
 
     private final int MAX_PARSER_LEVEL = 5;
     private final String PARSER_EXCEPTION_CLASS_NAME = "net.sf.jsqlparser.parser.ParseException:";
