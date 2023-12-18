@@ -9,8 +9,9 @@
     },
     "schema_query": {
       "dimensions": [
-        "vsys_id",
-        "device_id"
+        "device_id",
+        "device_group",
+        "data_center"
       ],
       "metrics": [
         "sessions",
@@ -28,6 +29,7 @@
         "tcp_rst_pkts"
       ],
       "filters": [
+        "device_id",
         "device_group",
         "data_center"
       ],

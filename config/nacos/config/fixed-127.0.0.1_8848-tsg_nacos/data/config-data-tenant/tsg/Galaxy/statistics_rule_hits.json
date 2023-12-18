@@ -9,6 +9,9 @@
     },
     "schema_query": {
       "dimensions": [
+        "device_id",
+        "device_group",
+        "data_center",
         "rule_id"
       ],
       "metrics": [
@@ -19,6 +22,10 @@
         "out_pkts"
       ],
       "filters": [
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

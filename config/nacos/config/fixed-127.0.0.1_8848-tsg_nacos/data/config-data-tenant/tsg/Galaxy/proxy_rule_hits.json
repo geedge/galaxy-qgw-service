@@ -9,6 +9,9 @@
     },
     "schema_query": {
       "dimensions": [
+        "device_id",
+        "device_group",
+        "data_center",
         "rule_id",
         "pinning_status",
         "action",
@@ -22,8 +25,11 @@
         "out_pkts"
       ],
       "filters": [
+        "device_id",
         "device_group",
         "data_center",
+        "rule_id",
+        "pinning_status",
         "action",
         "sub_action"
       ],
