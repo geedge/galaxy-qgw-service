@@ -24,7 +24,7 @@ import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.model.basic.udf.UDF;
 import com.mesalab.qgw.model.basic.udf.UDFElements;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SystemService;
 import com.geedgenetworks.utils.StringUtil;
@@ -48,10 +48,8 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-@Deprecated
-@Service("queryService")
-public class QueryServiceImpl implements QueryService {
+@Service("sqlSyncQueryService")
+public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     private static final Log log = LogFactory.get();
     @Autowired
     private DatabaseService databaseServiceTemp;
@@ -67,19 +65,19 @@ public class QueryServiceImpl implements QueryService {
         systemService = this.systemServiceTemp;
     }
 
-    public static final int MAX_PARSER_LEVEL = 5;
-    public static final String PARSER_EXCEPTION_CLASS_NAME = "net.sf.jsqlparser.parser.ParseException:";
-    public static final String PARSER_EXCEPTION_IDENTIFICATION = "Was expecting one of:";
-    public static final Pattern PATTERN_ANGLE_BRACKET = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE);
+    private final int MAX_PARSER_LEVEL = 5;
+    private final String PARSER_EXCEPTION_CLASS_NAME = "net.sf.jsqlparser.parser.ParseException:";
+    private final String PARSER_EXCEPTION_IDENTIFICATION = "Was expecting one of:";
+    private final Pattern PATTERN_ANGLE_BRACKET = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE);
 
 
     @Override
-    public BaseResult executeQuery(QueryContext queryProfile) {
-        validateAndSetDefaultValue(queryProfile);
-        init(queryProfile);
+    public BaseResult executeQuery(QueryContext queryContext) {
+        validateAndSetDefaultValue(queryContext);
+        init(queryContext);
         Statement statement;
         try {
-            statement = CCJSqlParserUtil.parse(queryProfile.getQuery());
+            statement = CCJSqlParserUtil.parse(queryContext.getQuery());
         } catch (JSQLParserException e) {
             log.error("SQL Syntax Error: {}", e);
             String message = getJSQLParserSimpleErrorMessage(e);
@@ -87,16 +85,16 @@ public class QueryServiceImpl implements QueryService {
                     String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),message));
         }
         BaseResult baseResult;
-        log.debug("Request option ：{}, SQL ：{}", queryProfile.getOption(), queryProfile.getQuery());
+        log.debug("Request option ：{}, SQL ：{}", queryContext.getOption(), queryContext.getQuery());
         if (statement instanceof Select) {
-            baseResult = executeSelectStatement(queryProfile);
+            baseResult = executeSelectStatement(queryContext);
         } else if (statement instanceof DescribeStatement) {
             DescribeStatement describeStatement = (DescribeStatement) statement;
-            baseResult = executeDescStatement(queryProfile, describeStatement);
+            baseResult = executeDescStatement(queryContext, describeStatement);
         } else if (statement instanceof ShowStatement) {
-            baseResult = executeShowStatement(queryProfile);
+            baseResult = executeShowStatement(queryContext);
         } else if (statement instanceof ExplainStatement) {
-            baseResult = executeExplainStatement(queryProfile);
+            baseResult = executeExplainStatement(queryContext);
         } else {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),QGWMessageConst.ONLY_SUPPORT_STATEMENT_OPERATIONS_FOR_SELECT));
@@ -104,13 +102,13 @@ public class QueryServiceImpl implements QueryService {
         return baseResult;
     }
 
-    private void init(QueryContext param) {
-        if(SQLHelper.getTableName(param.getQuery()).isEmpty()){
+    private void init(QueryContext queryContext) {
+        if(SQLHelper.getTableName(queryContext.getQuery()).isEmpty()){
             return;
         }
-        String tableName = SQLHelper.getTableName(param.getQuery()).get(0);
-        param.setDbType(databaseService.getDBTypeByTableName(tableName));
-        param.setDialectDBType(SQLHelper.getDialectDBType(param.getDbType()));
+        String tableName = SQLHelper.getTableName(queryContext.getQuery()).get(0);
+        queryContext.setDbType(databaseService.getDBTypeByTableName(tableName));
+        queryContext.setDialectDBType(SQLHelper.getDialectDBType(queryContext.getDbType()));
     }
 
     private void validateAndSetDefaultValue(QueryContext param) {
@@ -236,7 +234,7 @@ public class QueryServiceImpl implements QueryService {
      *
      * @param sqlQuerySource SQL解析对象
      */
-    public static void convertQueryRecursive(QueryContext param, SQLQuerySource sqlQuerySource) {
+    public void convertQueryRecursive(QueryContext param, SQLQuerySource sqlQuerySource) {
         SQLQuerySource engineQuerySource = null;
         SQLQuerySource dbQuerySource = null;
 

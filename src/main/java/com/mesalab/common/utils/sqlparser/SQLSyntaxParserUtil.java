@@ -9,7 +9,7 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.sf.jsqlparser.JSQLParserException;
@@ -39,7 +39,7 @@ public class SQLSyntaxParserUtil {
 
     private static final Log log = LogFactory.get();
 
-    private static QueryService queryService = (QueryService) SpringContextUtil.getBean("queryService");
+    private static SQLSyncQueryService queryService = (SQLSyncQueryService) SpringContextUtil.getBean("queryService");
 
     public static List syntaxParse(String sql) {
         List resultList = Lists.newArrayList();

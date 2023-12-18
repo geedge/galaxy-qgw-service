@@ -52,11 +52,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Pattern pDistinct = Pattern.compile("\\b(DISTINCT)(\\(|\\s+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pAggregateFunSpecificOfCK = Pattern.compile("\\b(anyHeavy|anyLast|argMin|argMax|avgWeighted|topK|topKWeighted|groupArray|groupUniqArray|groupArrayInsertAt|groupArrayMovingAvg|groupArrayMovingSum|groupBitAnd|groupBitOr|groupBitXor|groupBitmap|groupBitmapAnd|groupBitmapOr|groupBitmapXor|sumWithOverflow|sumMap|minMap|maxMap|skewSamp|skewPop|kurtSamp|kurtPop|uniq|uniqExact|uniqCombined|uniqCombined64|uniqHLL12|quantile|quantiles|quantileExact|quantileExactLow|quantileExactHigh|quantileExactWeighted|quantileTiming|quantileTimingWeighted|quantileDeterministic|quantileTDigest|quantileTDigestWeighted|quantileBFloat16|quantileBFloat16Weighted|simpleLinearRegression|stochasticLinearRegression|stochasticLogisticRegression|categoricalInformationValue)\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
-    private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
-    private HttpClientServiceV2 httpClientService = (HttpClientServiceV2) SpringContextUtil.getBean("httpClientServiceV2");
-    private DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
-    private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
-    private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
+    private final ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
+    private final HttpClientServiceV2 httpClientService = (HttpClientServiceV2) SpringContextUtil.getBean("httpClientServiceV2");
+    private final DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
+    private final EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
+    private final HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     public QueryContext queryContext;
     public BaseResult baseResult;
 
@@ -236,8 +236,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
          * 1.不支持 count(1) 需转为count(*)
          * 2.针对非聚合SQL，非分组sql in/not in 替换为 Global in/not
-         *
-         * @return
+         * @return Converter
          */
         public Converter generateStandard() {
             sql = generateCount(sql);
@@ -417,7 +416,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          */
         public Optimizer generateUniq() {
             Matcher m = pUniq.matcher(sql);
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             while (m.find()) {
                 if (m.groupCount() == 1) {
                     String replaceValue = m.group(1);

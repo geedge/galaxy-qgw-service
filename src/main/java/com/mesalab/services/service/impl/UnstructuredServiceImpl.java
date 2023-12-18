@@ -16,7 +16,7 @@ import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.UnstructuredDataType;
@@ -63,7 +63,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     @Autowired
     private EngineConfigSource engineConfigSource;
     @Autowired
-    private QueryService queryService;
+    private SQLSyncQueryService queryService;
     private Environment env;
 
     @Override
