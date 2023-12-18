@@ -9,6 +9,9 @@
     },
     "schema_query": {
       "dimensions": [
+        "device_id",
+        "device_group",
+        "data_center",
         "subscriber_id"
       ],
       "metrics": [
@@ -19,8 +22,11 @@
         "out_pkts"
       ],
       "filters": [
+        "metric",
+        "device_id",
         "device_group",
-        "data_center"
+        "data_center",
+        "subscriber_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

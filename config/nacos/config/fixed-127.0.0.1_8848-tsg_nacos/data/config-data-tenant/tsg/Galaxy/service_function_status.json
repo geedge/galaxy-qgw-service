@@ -9,13 +9,20 @@
     },
     "schema_query": {
       "dimensions": [
-        "sf_profile_id",
-        "sf_status"
+        "device_id",
+        "device_group",
+        "data_center",
+        "sf_profile_id"
       ],
       "metrics": [
+        "sf_status",
         "sf_latency_us"
       ],
       "filters": [
+        "device_id",
+        "device_group",
+        "data_center",
+        "sf_profile_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
