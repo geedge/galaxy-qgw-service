@@ -8,6 +8,9 @@
       "$ref": "public_schema_info.json#/functions"
     },
     "schema_query": {
+      "time": [
+        "__time"
+      ],
       "dimensions": [
         "client_ip",
         "server_ip",
