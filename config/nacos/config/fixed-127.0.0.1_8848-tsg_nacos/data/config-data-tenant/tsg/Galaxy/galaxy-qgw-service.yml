@@ -87,7 +87,7 @@ clickhouse:
     socketTimeOut: 21700000
 ## Druid configuration
 druid:
-  url: 192.168.44.12:8089/druid/v2/sql
+  url: 192.168.44.67:8089/druid/v2/sql
   dbname: druid
   socketTimeOut: 120000
 ## xxl-job-admin configuration

@@ -117,6 +117,23 @@
       "name": "metric",
       "label": "Metric",
       "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": "Bytes",
+            "value": "bytes"
+          },
+          {
+            "code": "Sessions",
+            "value": "sessions"
+          },
+          {
+            "code": "Packets",
+            "value": "packets"
+          }
+        ],
         "visibility": "enabled"
       },
       "type": "string"
