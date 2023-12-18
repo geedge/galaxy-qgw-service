@@ -9,6 +9,12 @@
     },
     "schema_query": {
       "dimensions": [
+        "device_id",
+        "device_group",
+        "data_center",
+        "template_id",
+        "chart_id",
+        "version",
         "object_id",
         "item_id"
       ],
@@ -21,6 +27,14 @@
         "sessions"
       ],
       "filters": [
+        "device_id",
+        "device_group",
+        "data_center",
+        "template_id",
+        "chart_id",
+        "version",
+        "object_id",
+        "item_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

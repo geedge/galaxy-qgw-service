@@ -9,6 +9,9 @@
     },
     "schema_query": {
       "dimensions": [
+        "device_id",
+        "device_group",
+        "data_center",
         "rule_id",
         "sff_profile_id",
         "sf_profile_id"
@@ -20,8 +23,12 @@
         "recv_bytes"
       ],
       "filters": [
+        "device_id",
         "device_group",
-        "data_center"
+        "data_center",
+        "rule_id",
+        "sff_profile_id",
+        "sf_profile_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

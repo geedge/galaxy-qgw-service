@@ -9,8 +9,11 @@
     },
     "schema_query": {
       "dimensions": [
-        "protocol_label",
-        "app_full_path"
+        "device_id",
+        "device_group",
+        "data_center",
+        "protocol_stack_id",
+        "app_name"
       ],
       "metrics": [
         "sessions",
@@ -31,11 +34,15 @@
         "c2s_tcp_retransmitted_pkts",
         "s2c_tcp_retransmitted_pkts",
         "c2s_tcp_retransmitted_bytes",
-        "s2c_tcp_retransmitted_bytes"
+        "s2c_tcp_retransmitted_bytes",
+        "client_ip_sketch"
       ],
       "filters": [
+        "device_id",
         "device_group",
-        "data_center"
+        "data_center",
+        "protocol_stack_id",
+        "app_name"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

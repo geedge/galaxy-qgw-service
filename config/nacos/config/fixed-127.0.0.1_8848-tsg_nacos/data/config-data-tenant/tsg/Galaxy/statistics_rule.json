@@ -36,7 +36,15 @@
         "out_latency_ms_sketch",
         "latency_ms_sketch"
       ],
-      "filters": [],
+      "filters": [
+        "device_id",
+        "device_group",
+        "data_center",
+        "rule_id",
+        "template_id",
+        "chart_id",
+        "version"
+      ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
       }
