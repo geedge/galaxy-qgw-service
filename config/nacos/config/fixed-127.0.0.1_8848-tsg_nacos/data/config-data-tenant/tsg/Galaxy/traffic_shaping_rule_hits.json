@@ -12,6 +12,7 @@
         "__time"
       ],
       "dimensions": [
+        "vsys_id",
         "device_id",
         "device_group",
         "data_center",
@@ -144,6 +145,9 @@
       "label": "Incoming Bytes",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -152,6 +156,9 @@
       "label": "Incoming Packets",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -160,6 +167,9 @@
       "label": "Outgoing Bytes",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -168,6 +178,9 @@
       "label": "Outgoing Packets",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -176,6 +189,9 @@
       "label": "Incoming Drop Packets",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -184,6 +200,9 @@
       "label": "Outgoing Drop Packets",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "counter"
+        },
         "visibility": "enabled"
       }
     },
@@ -192,6 +211,9 @@
       "label": "Incoming Max Latency (us)",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       }
     },
@@ -200,6 +222,9 @@
       "label": "Outgoing Max Latency (us)",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       }
     },
@@ -208,6 +233,9 @@
       "label": "Incoming Queue Length",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       }
     },
@@ -216,6 +244,9 @@
       "label": "Outgoing Queue Length",
       "type": "int",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       }
     }

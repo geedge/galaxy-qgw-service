@@ -12,6 +12,7 @@
         "__time"
       ],
       "dimensions": [
+        "vsys_id",
         "device_id",
         "device_group",
         "data_center",
@@ -111,6 +112,9 @@
       "name": "sf_profile_id",
       "label": "Service Function Profile ID",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       },
       "type": "int"
@@ -119,6 +123,9 @@
       "name": "sf_status",
       "label": "Service Function Status",
       "doc": {
+        "constraints": {
+          "metric_type": "gauge"
+        },
         "visibility": "enabled"
       },
       "type": "int"

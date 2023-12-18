@@ -12,6 +12,7 @@
         "__time"
       ],
       "dimensions": [
+        "vsys_id",
         "client_ip",
         "server_ip",
         "server_fqdn",
