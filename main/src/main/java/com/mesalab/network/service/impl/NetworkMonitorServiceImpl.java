@@ -140,8 +140,6 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
         long totalSessionUseOnAsymmetricFlows = Long.parseLong(String.valueOf(
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS)));
 
-        long uniqClientIp = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP)));
         long totalSessions = Long.parseLong(String.valueOf(
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS)));
         long totalBytes = Long.parseLong(String.valueOf(
@@ -174,7 +172,6 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
 
         List result = new ArrayList<>();
         Map resultMap = new LinkedHashMap<>();
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNIQ_CLIENT_IP, uniqClientIp);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, totalSessions);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE, dataRate);
         resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, totalBytes);

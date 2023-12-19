@@ -38,8 +38,7 @@
         "c2s_tcp_retransmitted_pkts",
         "s2c_tcp_retransmitted_pkts",
         "c2s_tcp_retransmitted_bytes",
-        "s2c_tcp_retransmitted_bytes",
-        "client_ip_sketch"
+        "s2c_tcp_retransmitted_bytes"
       ],
       "filters": [
         "device_id",
@@ -348,19 +347,6 @@
         "visibility": "enabled"
       },
       "type": "long"
-    },
-    {
-      "name": "client_ip_sketch",
-      "label": "Client IP Sketch",
-      "doc": {
-        "constraints": {
-          "type": "HLLDSketchMerge",
-          "metric_type": "gauge",
-          "aggregation_functions": "APPROX_COUNT_DISTINCT_HLLD"
-        },
-        "visibility": "enabled"
-      },
-      "type": "string"
     }
   ]
 }
