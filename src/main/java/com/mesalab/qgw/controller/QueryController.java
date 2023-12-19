@@ -73,9 +73,9 @@ public class QueryController {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));
         } else {
-            if (dslQueryRequestParam.isDryRun() || !dslQueryRequestParam.getOutputMode().equals(OutputMode.JSON)) {
+            if (!dslQueryRequestParam.getOutputMode().equals(OutputMode.JSON)) {
                 throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Query not support is_dry_run and output_mode must be 0(default) and JSON(default)"));
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Query not support output_mode must be JSON(default)"));
             }
             return queryJobService.createDSLAdHocQuery(dslQueryRequestParam);
         }

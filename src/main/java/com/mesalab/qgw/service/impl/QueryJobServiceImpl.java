@@ -1,6 +1,7 @@
 package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
@@ -35,6 +36,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -102,11 +104,20 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         ExecMode execMode = request.getExecMode();
         if (ExecMode.ONESHOT.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecMode.NORMAL.getValue()));
+                execAdnWaitFieldDiscoveryDone(id, request);
+                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(getAdhocQueryCache(id));
+                HazelcastInstanceMapUtil.remove(id);
+                BaseResult<Object> baseResult = queryCache.getBaseResult();
+                Map<String, Object> job = baseResult.getJob();
+                if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
+                        && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
+                        && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
+                    return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getMeta(), baseResult.getData());
+                }
+                return BaseResultGenerator.error(baseResult.getMessage());
             } else {
                 DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
-                return dslService.execDsl(dslProfile);
+                return dslService.execDsl(dslProfile, request.isDryRun());
             }
         } else if (ExecMode.NORMAL.equals(execMode)) {
             QueryCache queryCache = new QueryCache(id, request.getOutputMode().getValue());
@@ -122,11 +133,11 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         } else if (ExecMode.BLOCKING.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecMode.NORMAL.getValue()));
+                execAdnWaitFieldDiscoveryDone(id, request);
+                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             } else {
                 DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
-                BaseResult baseResult = dslService.execDsl(dslProfile);
+                BaseResult baseResult = dslService.execDsl(dslProfile, request.isDryRun());
                 QueryCache queryCache = buildQueryCacheOfDone(id, start, request.getOutputMode().getValue(), baseResult);
                 HazelcastInstanceMapUtil.put(id, queryCache);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
@@ -134,6 +145,20 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         }
         throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                 String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
+    }
+
+    private void execAdnWaitFieldDiscoveryDone(String id, DSLQueryRequestParam request) {
+        QueryCache queryCacheStart = new QueryCache(id, request.getOutputMode().getValue());
+        queryCacheStart.setType(JobConfig.FIELD_DISCOVERY);
+        validFieldDiscovery(request);
+        HazelcastInstanceMapUtil.put(id, queryCacheStart);
+        Future<Boolean> booleanFuture = jobExecuteService.addExecutorFieldDiscovery(id, request);
+        while (true) {
+            if (!booleanFuture.isDone()) {
+                continue;
+            }
+            break;
+        }
     }
 
     private QueryCache buildQueryCacheOfDone(String id, long start, String outputMode, BaseResult baseResult) {
