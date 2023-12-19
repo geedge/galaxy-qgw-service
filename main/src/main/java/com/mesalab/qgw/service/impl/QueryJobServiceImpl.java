@@ -153,10 +153,9 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult getAdHocQueryResultById(String id) {
-        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        updateLastQueryTime(queryCache, id);
+        QueryCache queryCache = getAdhocQueryCache(id);
         if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
-            queryCache = buildFieldDiscoveryBaseResultData(id);
+            queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
         }
         BaseResult<Object> baseResult = queryCache.getBaseResult();
         return BaseResultGenerator.success(baseResult.getStatistics(), baseResult.getJob(), baseResult.getMeta(), baseResult.getData());
@@ -169,8 +168,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult getAdHocQueryStatusById(String id) {
-        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        updateLastQueryTime(queryCache, id);
+        QueryCache queryCache = getAdhocQueryCache(id);
         return BaseResultGenerator.success(null, queryCache.getBaseResult().getJob(), null, null);
     }
 
@@ -190,8 +188,10 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
             BaseResult<Object> baseResult;
-            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-            updateLastQueryTime(queryCache, id);
+            QueryCache queryCache = getAdhocQueryCache(id);
+            if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
+                queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
+            }
             baseResult = queryCache.getBaseResult();
             Map<String, Object> resultItem = Maps.newLinkedHashMap();
             resultItem.put(JobConfig.STATISTICS, baseResult.getStatistics());
@@ -213,8 +213,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     public BaseResult getAdHocQueryStatus(List<String> ids) {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
-            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-            updateLastQueryTime(queryCache, id);
+            QueryCache queryCache = getAdhocQueryCache(id);
             results.add(queryCache.getBaseResult().getJob());
         }
         return BaseResultGenerator.success(results);
@@ -277,17 +276,18 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         return result;
     }
 
-    private static void updateLastQueryTime(QueryCache queryCache, String id) {
+    private static QueryCache getAdhocQueryCache(String id) {
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         if (queryCache == null) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), id + ", Does not exist or result expired."));
         }
         queryCache.setLatestQueryTimeMs(System.currentTimeMillis());
         HazelcastInstanceMapUtil.put(id, queryCache);
+        return queryCache;
     }
 
-    private static QueryCache buildFieldDiscoveryBaseResultData(String id) {
-        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+    private static QueryCache rebuildFieldDiscoveryQueryCache(QueryCache queryCache) {
         BaseResult<Object> baseResult = queryCache.getBaseResult();
         Object dataObj = baseResult.getData();
         if (!StrUtil.isEmptyIfStr(dataObj)) {
