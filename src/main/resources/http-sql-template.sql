@@ -3,7 +3,7 @@ SELECT SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows, SUM
 #end
 
 #sql("NETWORK_OVERVIEW_STAT")
-SELECT	APPROX_COUNT_DISTINCT_DS_HLL(client_ip_sketch) AS uniq_client_ip, SUM(c2s_fragments + s2c_fragments) AS fragmentation_packets, SUM(c2s_bytes + s2c_bytes) AS total_bytes, SUM(c2s_pkts + s2c_pkts) AS total_packets, SUM(sessions) AS total_sessions, (SUM(c2s_bytes + s2c_bytes) * 8)/(%s -%s) AS data_rate  FROM %s  WHERE %s %s AND protocol_stack_id = '%s' LIMIT 1
+SELECT SUM(c2s_fragments + s2c_fragments) AS fragmentation_packets, SUM(c2s_bytes + s2c_bytes) AS total_bytes, SUM(c2s_pkts + s2c_pkts) AS total_packets, SUM(sessions) AS total_sessions, (SUM(c2s_bytes + s2c_bytes) * 8)/(%s -%s) AS data_rate  FROM %s  WHERE %s %s AND protocol_stack_id = '%s' LIMIT 1
 #end
 
 #sql("NETWORK_OVERVIEW_TCP_STAT")
