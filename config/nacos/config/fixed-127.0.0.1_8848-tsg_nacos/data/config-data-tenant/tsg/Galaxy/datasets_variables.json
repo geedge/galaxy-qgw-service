@@ -28,6 +28,10 @@
     "default": 1
   },
   {
+    "key": "object_type",
+    "default": "ip"
+  },
+  {
     "key": "object_id",
     "default": 1
   },
