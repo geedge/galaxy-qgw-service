@@ -26,7 +26,6 @@ import com.mesalab.services.service.KBService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +57,8 @@ public class KBServiceImp implements KBService {
     private static final String KEY = "Key";
     private static final String SIZE = "Size";
     private static final String USER_DEFINED_META = "UserDefinedMeta";
+    private static final String KEY_COUNT = "KeyCount";
+    private static final String CONTENTS = "Contents";
 
     @Override
     public BaseResult publishKnowledge(MultipartFile file, KnowledgeBaseRequest request) {
@@ -72,7 +73,6 @@ public class KBServiceImp implements KBService {
         }
         publishFile(file, request);
         generateLatestFile(file, request);
-
         String getFileListUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket()).concat("?").concat("prefix").concat("=").concat(request.getKbId());
         dataList = generateResult(getContentList(getFileListUrl));
         return BaseResultGenerator.success(dataList);
@@ -159,11 +159,21 @@ public class KBServiceImp implements KBService {
     }
 
     private List<Map<String, String>> getContentList(String getLatestFileUrl) {
+        List<Map<String, String>> contentList = Lists.newArrayList();
         Map<String, String> headers = new HashMap<>();
         headers.put(KnowledgeConstant.TOKEN, hosConfig.getToken());
         HttpResponseResult httpResponseResult = httpClientServiceV2.get(getLatestFileUrl, 60000, headers);
-        Map<String, Object> stringObjectMap = XmlUtil.xmlToMap(String.valueOf(httpResponseResult.getResponseBody()));
-        List<Map<String, String>> contentList = (List<Map<String, String>>) stringObjectMap.get("Contents");
+        Map<String, Object> resultMap = XmlUtil.xmlToMap(String.valueOf(httpResponseResult.getResponseBody()));
+        int count = Integer.parseInt(String.valueOf(resultMap.get(KEY_COUNT)));
+        switch (count) {
+            case 0:
+                return contentList;
+            case 1:
+                contentList.add((Map<String, String>) resultMap.get(CONTENTS));
+                break;
+            default:
+                contentList = (List<Map<String, String>>) resultMap.get(CONTENTS);
+        }
         return contentList;
     }
 
