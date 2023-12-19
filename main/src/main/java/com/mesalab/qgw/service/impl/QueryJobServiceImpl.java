@@ -110,12 +110,13 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             }
         } else if (ExecMode.NORMAL.equals(execMode)) {
             QueryCache queryCache = new QueryCache(id, request.getOutputMode().getValue());
-            HazelcastInstanceMapUtil.put(id, queryCache);
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 queryCache.setType(JobConfig.FIELD_DISCOVERY);
                 validFieldDiscovery(request);
+                HazelcastInstanceMapUtil.put(id, queryCache);
                 jobExecuteService.addExecutorFieldDiscovery(id, request);
             } else {
+                HazelcastInstanceMapUtil.put(id, queryCache);
                 jobExecuteService.addExecutorDsl(id, request);
             }
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
