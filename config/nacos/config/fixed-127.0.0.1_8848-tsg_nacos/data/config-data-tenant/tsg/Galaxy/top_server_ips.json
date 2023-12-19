@@ -122,16 +122,16 @@
         },
         "data": [
           {
-            "code": "Bytes",
-            "value": "bytes"
+            "code": "bytes",
+            "value": "Bytes"
           },
           {
-            "code": "Sessions",
-            "value": "sessions"
+            "code": "sessions",
+            "value": "Sessions"
           },
           {
-            "code": "Packets",
-            "value": "packets"
+            "code": "packets",
+            "value": "Packets"
           }
         ],
         "visibility": "enabled"
