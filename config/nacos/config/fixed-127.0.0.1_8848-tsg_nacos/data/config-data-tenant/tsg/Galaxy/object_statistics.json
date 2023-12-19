@@ -19,6 +19,7 @@
         "template_id",
         "chart_id",
         "version",
+        "object_type",
         "object_id",
         "item_id"
       ],
@@ -37,6 +38,7 @@
         "template_id",
         "chart_id",
         "version",
+        "object_type",
         "object_id",
         "item_id"
       ],
@@ -138,8 +140,70 @@
       "type": "long"
     },
     {
+      "name": "object_type",
+      "label": "Object Type",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "data": [
+        {
+          "code": "ip",
+          "value": "IP"
+        },
+        {
+          "code": "url",
+          "value": "URL"
+        },
+        {
+          "code": "fqdn",
+          "value": "FQDN"
+        },
+        {
+          "code": "account",
+          "value": "Account"
+        },
+        {
+          "code": "subscriberid",
+          "value": "Subscriber ID"
+        },
+        {
+          "code": "keywords",
+          "value": "Keywords"
+        },
+        {
+          "code": "http_signature",
+          "value": "HTTP Signature"
+        },
+        {
+          "code": "mobile_identity",
+          "value": "Mobile Identity"
+        },
+        {
+          "code": "apn",
+          "value": "APN"
+        },
+        {
+          "code": "flag",
+          "value": "Flag"
+        },
+        {
+          "code": "application",
+          "value": "Application"
+        },
+        {
+          "code": "tunnel",
+          "value": "Tunnel"
+        },
+        {
+          "code": "fqdn_category",
+          "value": "FQDN Category"
+        }
+      ],
+      "type": "string"
+    },
+    {
       "name": "object_id",
-      "label": "Object",
+      "label": "Object ID",
       "doc": {
         "visibility": "enabled"
       },
