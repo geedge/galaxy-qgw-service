@@ -39,13 +39,10 @@ public class SQLSyntaxParserUtil {
 
     private static final Log log = LogFactory.get();
 
-    private static SQLSyncQueryService queryService = (SQLSyncQueryService) SpringContextUtil.getBean("queryService");
-
     public static List syntaxParse(String sql) {
         List resultList = Lists.newArrayList();
         try {
             parseSQL(sql, resultList);
-            //addTypeForSelectItems(sql, resultList);
         } catch (RuntimeException | JSQLParserException e) {
             log.error("syntax_parse: sql-" + sql + ", error: ", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),

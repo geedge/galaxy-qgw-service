@@ -51,7 +51,7 @@ public class TaskExecuteService implements EnvironmentAware {
     @Autowired
     private Environment env;
     @Autowired
-    SQLSyncQueryService queryService;
+    SQLSyncQueryService sqlSyncQueryService;
     @Autowired
     DatabaseService databaseService;
     @Autowired
@@ -72,7 +72,7 @@ public class TaskExecuteService implements EnvironmentAware {
             }
         }
         try {
-            BaseResult currentTop = queryService.executeQuery(QueryContext.builder()
+            BaseResult currentTop = sqlSyncQueryService.executeQuery(QueryContext.builder()
                     .option(QueryOption.REAL_TIME.getValue())
                     .query(buildTopSQL(dataSource, filter, field, fnDefault, column, value))
                     .build());
@@ -93,8 +93,8 @@ public class TaskExecuteService implements EnvironmentAware {
     @Async("taskExecutor")
     public Future<Boolean> executeLongTerm(String id, String sql) {
         try {
-            BaseResult lastResult = queryService.executeQuery(QueryContext.builder().query(sql).build());
-            BaseResult preResult = queryService.executeQuery(QueryContext.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
+            BaseResult lastResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(sql).build());
+            BaseResult preResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
             List<Map<String, Object>> lastData = (List<Map<String, Object>>) lastResult.getData();
             List<Map<String, Object>> lastMeta = (List<Map<String, Object>>) lastResult.getMeta();
             Map preDataFirst = ((List<Map>) preResult.getData()).get(0);

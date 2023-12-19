@@ -78,7 +78,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
-    private SQLSyncQueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
     @Autowired
     public MetadataConfig metadataConfig;
     @Autowired
@@ -268,7 +268,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         QueryContext param = new QueryContext();
         param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
-        BaseResult result = queryService.executeQuery(param);
+        BaseResult result = sqlSyncQueryService.executeQuery(param);
         return resetBaseResult(result, "type");
     }
 
@@ -285,7 +285,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             QueryContext param = new QueryContext();
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
             param.setQuery(sql);
-            BaseResult result = queryService.executeQuery(param);
+            BaseResult result = sqlSyncQueryService.executeQuery(param);
             List<Map> data = (List<Map>) result.getData();
             data.forEach(o -> o.put("type", LogType.getLabelByValue(String.valueOf(o.get("type")))));
             return result;
@@ -498,7 +498,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             if (symbols.contains(name)) {
                 sql = String.format(Objects.requireNonNull(environment.getProperty("SCHEMA_STORAGE_SIZE")), name, clickHouseHttpSource.getDbName());
             }
-            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : queryService.executeQuery(QueryContext.builder().query(sql).build());
+            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : sqlSyncQueryService.executeQuery(QueryContext.builder().query(sql).build());
             if (baseResult.isSuccess()) {
                 return (List<Map>) baseResult.getData();
             } else {

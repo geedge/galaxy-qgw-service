@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private Environment env;
-    private SQLSyncQueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
     private JobService jobService;
     private JobExecuteService jobExecuteService;
     private DSLService dslService;
@@ -77,7 +77,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         long start = System.currentTimeMillis();
         ExecMode execMode = sqlQueryRequestParam.getExecMode();
         if (ExecMode.ONESHOT.equals(execMode)) {
-            return queryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
+            return sqlSyncQueryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
         } else if (ExecMode.NORMAL.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
             HazelcastInstanceMapUtil.put(id, new QueryCache(id, sqlQueryRequestParam.getOutputMode().getValue()));
@@ -85,7 +85,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         } else if (ExecMode.BLOCKING.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
-            BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
+            BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
             QueryCache queryCache = buildQueryCacheOfDone(id, start, sqlQueryRequestParam.getOutputMode().getValue(), baseResult);
             HazelcastInstanceMapUtil.put(id, queryCache);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
@@ -251,7 +251,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     private void syntaxParseSql(String sql) {
-        BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(sql).option(QueryOption.SYNTAX_PARSE.getValue()).build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(sql).option(QueryOption.SYNTAX_PARSE.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));
@@ -325,8 +325,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
 
     @Autowired
-    public void setQueryService(SQLSyncQueryService queryService) {
-        this.queryService = queryService;
+    public void setSqlSyncQueryService(SQLSyncQueryService sqlSyncQueryService) {
+        this.sqlSyncQueryService = sqlSyncQueryService;
     }
 
     @Autowired

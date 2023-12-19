@@ -13,7 +13,6 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.SQLDatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +38,8 @@ public class SQLDatasetServiceImpl
     public final static String queryIdSeparator = ":";
 
     @Autowired
-    private Environment env;
-    @Autowired
     private DatabaseService databaseService;
-    @Autowired
-    private SQLSyncQueryService queryService;
+
 
     @Override
     public BaseResult getProcessesByQueryId(String queryId) {

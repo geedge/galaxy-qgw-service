@@ -26,7 +26,6 @@ import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.model.basic.EntityConfigSource;
 import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.qgw.service.impl.SQLSyncQueryServiceImpl;
 import com.mesalab.qgw.service.impl.HttpClientService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.dsl.ComDSLParse;
@@ -60,8 +59,7 @@ import java.util.stream.Collectors;
 public class EntityServiceImpl implements EntityService, EnvironmentAware {
     private static final Log log = LogFactory.get();
 
-    @Autowired
-    private SQLSyncQueryServiceImpl queryService;
+
     @Autowired
     private HttpClientService httpClientServiceTemp;
     @Autowired

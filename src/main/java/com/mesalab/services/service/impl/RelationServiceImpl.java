@@ -46,7 +46,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     @Value("${arango.maxrows}")
     private String defLimit;//查询最大条数
     @Autowired
-    private SQLSyncQueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
     @Autowired
     private EntityConfigSource entityConfigSource;
 
@@ -57,11 +57,11 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     public BaseResult getRealRelation(String param, ComDSLObject comDSLObject) {
         BaseResult baseResult;
         if (param.equals(EntityQueryType.SUBSCRIBERIDPOOL.getType())) {
-            baseResult = formatResult(queryService.executeQuery(queryBuild(comDSLObject.getQuery())));
+            baseResult = formatResult(sqlSyncQueryService.executeQuery(queryBuild(comDSLObject.getQuery())));
         } else if (param.equals(EntityQueryType.GTPC.getType())) {
             String querySql = generateQuerySql(comDSLObject.getQuery());
             QueryContext queryProfile = QueryContext.builder().option("real_time").query(querySql).build();
-            baseResult = deduplicationData(queryService.executeQuery(queryProfile),comDSLObject.getQuery());
+            baseResult = deduplicationData(sqlSyncQueryService.executeQuery(queryProfile),comDSLObject.getQuery());
         } else {
             baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(), "No match queryType");
         }

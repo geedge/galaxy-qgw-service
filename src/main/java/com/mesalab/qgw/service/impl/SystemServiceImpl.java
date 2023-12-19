@@ -51,10 +51,9 @@ import java.util.regex.Pattern;
 public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private static Pattern pTTL = Pattern.compile(".*toIntervalSecond\\((\\d+)\\)", Pattern.CASE_INSENSITIVE);
-    private static final String trafficPort = "8123";
     private Environment env;
     @Autowired
-    private SQLSyncQueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
@@ -76,7 +75,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         QueryContext param = new QueryContext();
         param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
-        BaseResult result = queryService.executeQuery(param);
+        BaseResult result = sqlSyncQueryService.executeQuery(param);
         return resetBaseResult(result, "type");
     }
 
@@ -94,7 +93,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             QueryContext param = new QueryContext();
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
             param.setQuery(sql);
-            BaseResult result = queryService.executeQuery(param);
+            BaseResult result = sqlSyncQueryService.executeQuery(param);
             List<Map> data = (List<Map>) result.getData();
             data.forEach(o -> o.put("type", LogType.getLabelByValue(String.valueOf(o.get("type")))));
             return result;

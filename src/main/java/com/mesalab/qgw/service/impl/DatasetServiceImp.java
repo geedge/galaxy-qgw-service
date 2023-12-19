@@ -49,7 +49,7 @@ public class DatasetServiceImp
     @Autowired
     DatabaseService databaseService;
     @Autowired
-    SQLSyncQueryService queryService;
+    SQLSyncQueryService sqlSyncQueryService;
     @Autowired
     private QueryJobService queryJobService;
 

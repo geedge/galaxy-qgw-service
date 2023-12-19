@@ -84,7 +84,7 @@ public class DslServiceImpl implements DSLService {
     @Autowired
     DatabaseService databaseService;
     @Autowired
-    SQLSyncQueryService queryService;
+    SQLSyncQueryService sqlSyncQueryService;
     @Autowired
     UnstructuredService unstructuredService;
     @Autowired
@@ -135,31 +135,31 @@ public class DslServiceImpl implements DSLService {
 
     @Override
     public BaseResult appAndProtocolSummary(DSLProfile dslProfile) {
-        BaseResult asymmetricFlowsResult = queryService.executeQuery(
+        BaseResult asymmetricFlowsResult = sqlSyncQueryService.executeQuery(
                 QueryContext.builder().query(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_ASYMMETRIC_FLOWS_STAT"), TABLE_TRAFFIC_GENERAL_STAT, databaseService.getPartitionKey(TABLE_TRAFFIC_GENERAL_STAT), LOGICAL_TYPE_TIMESTAMP)).build());
         if (!asymmetricFlowsResult.isSuccess()) {
             throw new BusinessException(asymmetricFlowsResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsResult.getMessage()));
         }
 
-        BaseResult networkTrafficStatResult = queryService.executeQuery(
+        BaseResult networkTrafficStatResult = sqlSyncQueryService.executeQuery(
                 QueryContext.builder().query(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_TRAFFIC_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).build());
         if (!networkTrafficStatResult.isSuccess()) {
             throw new BusinessException(networkTrafficStatResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), networkTrafficStatResult.getMessage()));
         }
 
-        BaseResult networkUniqueClientIpStatResult = queryService.executeQuery(
+        BaseResult networkUniqueClientIpStatResult = sqlSyncQueryService.executeQuery(
                 QueryContext.builder().query(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_UNIQUE_CLIENT_IP_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).build());
         if (!networkUniqueClientIpStatResult.isSuccess()) {
             throw new BusinessException(networkUniqueClientIpStatResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), networkUniqueClientIpStatResult.getMessage()));
         }
 
-        BaseResult networkTcpStatResult = queryService.executeQuery(
+        BaseResult networkTcpStatResult = sqlSyncQueryService.executeQuery(
                 QueryContext.builder().query(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_TCP_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).build());
         if (!networkTcpStatResult.isSuccess()) {
             throw new BusinessException(networkTcpStatResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), networkTcpStatResult.getMessage()));
         }
 
-        BaseResult networkAppStatResult = queryService.executeQuery(
+        BaseResult networkAppStatResult = sqlSyncQueryService.executeQuery(
                 QueryContext.builder().query(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_APP_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).build());
         if (!networkAppStatResult.isSuccess()) {
             throw new BusinessException(networkAppStatResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), networkAppStatResult.getMessage()));
@@ -257,7 +257,7 @@ public class DslServiceImpl implements DSLService {
     @Override
     public BaseResult appAndProtocolTreeComposition(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_TREE_COMPOSITION"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -272,7 +272,7 @@ public class DslServiceImpl implements DSLService {
     @Override
     public BaseResult applicationAndProtocolTreeThroughput(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_TREE_THROUGHPUT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -292,7 +292,7 @@ public class DslServiceImpl implements DSLService {
             dslProfile.setGranularity("PT15S");
         }
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_TOP_APPS"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -302,7 +302,7 @@ public class DslServiceImpl implements DSLService {
     @Override
     public BaseResult applicationAndProtocolAppRelatedInternalIps(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_APP_RELATED_INTERNAL_IPS"), TABLE_SESSION_RECORD, databaseService.getPartitionKey(TABLE_SESSION_RECORD), LOGICAL_TYPE_UNIX_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -312,7 +312,7 @@ public class DslServiceImpl implements DSLService {
     @Override
     public BaseResult applicationAndProtocolAppThroughput(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_APP_THROUGHPUT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -322,7 +322,7 @@ public class DslServiceImpl implements DSLService {
     @Override
     public BaseResult applicationAndProtocolAppSummary(DSLProfile dslProfile) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_APP_SUMMARY"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -341,7 +341,7 @@ public class DslServiceImpl implements DSLService {
             }
         }
         String sql = dslProfile.toSql(environment.getProperty("REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP"), TABLE_RELATION_ACCOUNT_FRAMEDIP, "last_update_time", LOGICAL_TYPE_UNIX_TIMESTAMP);
-        BaseResult baseResult = queryService.executeQuery(queryBuild(sql));
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryBuild(sql));
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
@@ -694,7 +694,7 @@ public class DslServiceImpl implements DSLService {
             sql = sql.replace("$field", field);
             sql = sql.replace("$primary_key", databaseService.getValueByKeyInSchemaDoc(dataSource, "primary_key"));
             sql = sql.replace("$partition_key", databaseService.getValueByKeyInSchemaDoc(dataSource, "partition_key"));
-            BaseResult result = queryService.executeQuery(queryBuild(sql));
+            BaseResult result = sqlSyncQueryService.executeQuery(queryBuild(sql));
             if (!result.isSuccess()) {
                 log.error("Query unstructured data status error: {}", result.getMessage());
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Query unstructured data status error: " + result.getMessage());
