@@ -25,7 +25,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/12/11 15:54
      */
-    BaseResult execDsl(DSLProfile dslProfile);
+    BaseResult execDsl(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: Application and Protocol Summary
@@ -35,7 +35,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/11/27 10:40
      */
-    BaseResult appAndProtocolSummary(DSLProfile dslProfile);
+    BaseResult appAndProtocolSummary(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: application and protocol tree composition
@@ -45,7 +45,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/11/28 10:38
      */
-    BaseResult appAndProtocolTreeComposition(DSLProfile dslProfile);
+    BaseResult appAndProtocolTreeComposition(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: application and protocol tree throughput
@@ -55,7 +55,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/11/28 10:38
      */
-    BaseResult applicationAndProtocolTreeThroughput(DSLProfile dslProfile);
+    BaseResult applicationAndProtocolTreeThroughput(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: top apps
@@ -65,7 +65,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/11/28 10:39
      */
-    BaseResult applicationAndProtocolTopApp(DSLProfile dslProfile);
+    BaseResult applicationAndProtocolTopApp(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: app-related internal ips
@@ -75,7 +75,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/11/28 10:40
      */
-    BaseResult applicationAndProtocolAppRelatedInternalIps(DSLProfile dslProfile);
+    BaseResult applicationAndProtocolAppRelatedInternalIps(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: app-throughput
@@ -85,7 +85,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/11/28 10:40
      */
-    BaseResult applicationAndProtocolAppThroughput(DSLProfile dslProfile);
+    BaseResult applicationAndProtocolAppThroughput(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: app summary
@@ -95,7 +95,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/11/28 10:41
      */
-    BaseResult applicationAndProtocolAppSummary(DSLProfile dslProfile);
+    BaseResult applicationAndProtocolAppSummary(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: Get Subscriber ID Relate Client IPs
@@ -125,7 +125,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/12/1 10:56
      */
-    BaseResult realTimeDataAnalyticsUnstructuredData(DSLProfile dslProfile);
+    BaseResult realTimeDataAnalyticsUnstructuredData(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: IP Learning （FQDN-IP）
@@ -135,7 +135,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/12/1 11:04
      */
-    BaseResult ipLearningFqdnRelateIp(DSLProfile dslProfile);
+    BaseResult ipLearningFqdnRelateIp(DSLProfile dslProfile, boolean isDryRun);
 
     /**
      * Desc: IP Learning Active IP
@@ -145,7 +145,7 @@ public interface DSLService {
      * @created by wWei
      * @date 2023/12/1 11:04
      */
-    BaseResult ipLearningActiveIp(DSLProfile dslProfile);
+    BaseResult ipLearningActiveIp(DSLProfile dslProfile, boolean isDryRun);
 
     List<ProtocolTree> buildFlatStructure(List<Map> protocolData);
 

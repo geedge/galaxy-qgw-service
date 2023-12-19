@@ -44,6 +44,7 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -84,9 +85,9 @@ public class JobExecuteService implements EnvironmentAware {
     JobConfig jobCfg;
 
     @Async("jobExecutor")
-    public void addExecutorFieldDiscovery(String id, DSLQueryRequestParam request) {
-        signJobInfoToStartOnQueryCache(id);
+    public Future<Boolean> addExecutorFieldDiscovery(String id, DSLQueryRequestParam request) {
         try {
+            signJobInfoToStartOnQueryCache(id);
             JobInfo jobInfo = new JobInfo(id);
             String partitionKey = databaseService.getPartitionKey(request.getDataSource());
             Interval interval = getInterval("SELECT 1 FROM table WHERE " + request.getFilter(), partitionKey);
@@ -101,6 +102,7 @@ public class JobExecuteService implements EnvironmentAware {
         } finally {
             signJobInfoToDoneOnQueryCache(id);
         }
+        return new AsyncResult<>(true);
     }
 
     @Async("jobExecutor")
@@ -154,7 +156,7 @@ public class JobExecuteService implements EnvironmentAware {
         signJobInfoToStartOnQueryCache(id);
         try {
             DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
-            BaseResult baseResult = dslService.execDsl(dslProfile);
+            BaseResult baseResult = dslService.execDsl(dslProfile, request.isDryRun());
             updateJobResultOnQueryCache(id, baseResult);
         } catch (RuntimeException e) {
             signJobInfoToFailedOnQueryCache(id);
