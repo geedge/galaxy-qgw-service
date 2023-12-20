@@ -30,9 +30,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service("kbService")
 public class KBServiceImp implements KBService {
@@ -72,10 +71,13 @@ public class KBServiceImp implements KBService {
                 request.setVersion(generateLatestVersion(request));
             }
         }
+        List<String> modifiedVersionList = Lists.newArrayList();
         publishFile(file, request);
+        modifiedVersionList.add(request.getVersion());
         generateLatestFile(file, request);
+        modifiedVersionList.add(KnowledgeConstant.LATEST);
         String getFileListUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket()).concat("?").concat("prefix").concat("=").concat(request.getKbId());
-        dataList = generateResult(getContentList(getFileListUrl));
+        dataList = filterResult("version", modifiedVersionList, generateResult(getContentList(getFileListUrl)));
         return BaseResultGenerator.success(dataList);
     }
 
@@ -120,14 +122,16 @@ public class KBServiceImp implements KBService {
 
     @Override
     public BaseResult getList(String kbId) {
+        List<Map<String, Object>> dataList;
         String getListUrl;
         if (StrUtil.isNotBlank(kbId)) {
             getListUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket()).concat("?").concat("prefix=").concat(kbId).concat("_");
+            dataList = filterResult("kb_id", Arrays.asList(kbId), generateFileListResult(getContentList(getListUrl)));
         } else {
             getListUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket());
+            dataList = generateFileListResult(getContentList(getListUrl));
         }
-        List<Map<String, String>> contentList = getContentList(getListUrl);
-        return BaseResultGenerator.success(generateFileListResult(contentList));
+        return BaseResultGenerator.success(dataList);
     }
 
     private void generateLatestFile(MultipartFile file, KnowledgeBaseRequest request) {
@@ -142,21 +146,23 @@ public class KBServiceImp implements KBService {
     private String generateLatestVersion(KnowledgeBaseRequest request) {
         String getLatestFileUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket()).concat("?").concat("prefix").concat("=").concat(request.getKbId());
         List<Map<String, String>> contentList = getContentList(getLatestFileUrl);
-        double max = 1.0;
-        double now;
+        int majorMax = 1;
+        int minorMax = 0;
         if (CollectionUtil.isNotEmpty(contentList)) {
             for (Map contents : contentList) {
                 Map<String, String> udfMeta = (Map<String, String>) contents.get(USER_DEFINED_META);
                 if (MapUtil.isNotEmpty(udfMeta)) {
                     if (!String.valueOf(udfMeta.get(VERSION)).equals(KnowledgeConstant.LATEST)) {
-                        now = Double.parseDouble(String.valueOf(udfMeta.get(VERSION)));
-                        max = now > max ? now : max;
+                        String[] versionParts = udfMeta.get(VERSION).split("\\.");
+                        int major = Integer.parseInt(versionParts[0]);
+                        int minor = Integer.parseInt(versionParts[1]);
+                        majorMax = Math.max(majorMax, major);
+                        minorMax = Math.max(minorMax, minor);
                     }
                 }
             }
         }
-        String version = incrementVersion(Double.toString(max));
-        return version;
+        return incrementVersion(majorMax + "." + minorMax);
     }
 
     private List<Map<String, String>> getContentList(String getLatestFileUrl) {
@@ -321,6 +327,12 @@ public class KBServiceImp implements KBService {
             }
         }
         return dataList;
+    }
+
+    private List<Map<String, Object>> filterResult(String filterKey, List<String> filterValues, List<Map<String, Object>> list) {
+        return list.stream()
+                .filter(map -> filterValues.contains(map.get(filterKey)))
+                .collect(Collectors.toList());
     }
 
     private String incrementVersion(String version) {
