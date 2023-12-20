@@ -6,7 +6,6 @@ import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.FileCategory;
 import com.mesalab.common.enums.FileFormat;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -109,10 +108,10 @@ public class KBController {
     }
 
     @GetMapping(produces = "application/json")
-    public BaseResult getList(@RequestParam(required = false) String prefix) {
+    public BaseResult getList(@RequestParam(required = false, value = "kb_id") String kbId) {
         try {
-            log.info("Knowledge Base File get list interface,param is: prefix= {}", prefix);
-            return kbService.getList(prefix);
+            log.info("Knowledge Base File get list interface,param is: kb_id= {}", kbId);
+            return kbService.getList(kbId);
         } catch (BusinessException e) {
             log.error("Knowledge Base File get list error:{}", e.getMessage());
             return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), "Knowledge Base File get list error: " + e.getMessage());
@@ -142,12 +141,6 @@ public class KBController {
             if (Arrays.stream(FileFormat.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(request.getFormat()))){
                 throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.KB_FILE_FORMAT_NOT_SUPPORT));
-            }
-        }
-        if (StrUtil.isNotBlank(request.getCategory())){
-            if (Arrays.stream(FileCategory.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(request.getCategory()))){
-                throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.KB_FILE_CATEGORY_NOT_SUPPORT));
             }
         }
         if (StrUtil.isBlankIfStr(String.valueOf(request.getIsValid()))){

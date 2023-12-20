@@ -59,6 +59,7 @@ public class KBServiceImp implements KBService {
     private static final String USER_DEFINED_META = "UserDefinedMeta";
     private static final String KEY_COUNT = "KeyCount";
     private static final String CONTENTS = "Contents";
+    private static final String KB_ID = "KbId";
 
     @Override
     public BaseResult publishKnowledge(MultipartFile file, KnowledgeBaseRequest request) {
@@ -118,10 +119,10 @@ public class KBServiceImp implements KBService {
 
 
     @Override
-    public BaseResult getList(String prefix) {
+    public BaseResult getList(String kbId) {
         String getListUrl;
-        if (StrUtil.isNotBlank(prefix)) {
-            getListUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket()).concat("?").concat("prefix=").concat(prefix);
+        if (StrUtil.isNotBlank(kbId)) {
+            getListUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket()).concat("?").concat("prefix=").concat(kbId).concat("_");
         } else {
             getListUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket());
         }
@@ -268,7 +269,7 @@ public class KBServiceImp implements KBService {
                 map1.put("url", String.valueOf(udfMeta.get(ORIGIN_URL)));
                 map1.put("generated_time", String.valueOf(udfMeta.get(GENERATED_TIME)));
                 map1.put("last_update_time", String.valueOf(udfMeta.get(LAST_UPDATE_TIME)));
-                map1.put("kb_id", StrUtil.subBefore(String.valueOf(contents.get(KEY)), "_", false));
+                map1.put("kb_id", String.valueOf(udfMeta.get(KB_ID)));
                 dataList.add(map1);
             }
         }
@@ -293,6 +294,7 @@ public class KBServiceImp implements KBService {
                 Map<String, Object> map1 = Maps.newHashMap();
                 if (MapUtil.isNotEmpty((Map<?, ?>) contents.get(USER_DEFINED_META))) {
                     Map<String, String> udfMeta = (Map<String, String>) contents.get(USER_DEFINED_META);
+                    map1.put("kb_id", StrUtil.isBlankIfStr(udfMeta.get(KB_ID)) ? "" : udfMeta.get(KB_ID));
                     map1.put("name", StrUtil.isBlankIfStr(udfMeta.get(NAME)) ? "" : udfMeta.get(NAME));
                     map1.put("category", StrUtil.isBlankIfStr(udfMeta.get(CATEGORY)) ? "" : udfMeta.get(CATEGORY));
                     map1.put("path", StrUtil.isBlankIfStr(udfMeta.get(ORIGIN_URL)) ? "" : udfMeta.get(ORIGIN_URL));
@@ -312,8 +314,8 @@ public class KBServiceImp implements KBService {
                     map1.put("sha256", "");
                     map1.put("version", "");
                     map1.put("is_valid", 1);
+                    map1.put("kb_id", StrUtil.subBefore(String.valueOf(contents.get(KEY)), "_", true));
                 }
-                map1.put("kb_id", StrUtil.subBefore(String.valueOf(contents.get(KEY)), "_", false));
                 map1.put("size", StrUtil.isBlankIfStr(contents.get(SIZE)) ? 0 : Integer.parseInt(String.valueOf(contents.get(SIZE))));
                 dataList.add(map1);
             }
@@ -330,10 +332,6 @@ public class KBServiceImp implements KBService {
 
         int idx = nums.length - 1;
         nums[idx]++;
-        while (nums[idx] == 10 && idx > 0) {
-            nums[idx] = 0;
-            nums[--idx]++;
-        }
 
         StringBuilder sb = new StringBuilder();
         for (int num : nums) {
@@ -343,5 +341,4 @@ public class KBServiceImp implements KBService {
         sb.setLength(sb.length() - 1);
         return sb.toString();
     }
-
 }

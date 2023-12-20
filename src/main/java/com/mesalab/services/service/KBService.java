@@ -13,5 +13,5 @@ public interface KBService {
 
     BaseResult updateStatus(KnowledgeBaseRequest request);
 
-    BaseResult getList(String prefix);
+    BaseResult getList(String kbId);
 }
