@@ -34,10 +34,7 @@ import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.qgw.service.SQLSyncQueryService;
-import com.mesalab.qgw.service.TroubleshootingService;
-import com.mesalab.qgw.service.DatasetService;
+import com.mesalab.qgw.service.*;
 import org.apache.avro.Schema;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.NameValuePair;
@@ -92,6 +89,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private ConfigService systemConfigService;
     @Autowired
     private NacosConfig nacosConfig;
+    @Autowired
+    private QueryJobService queryJobService;
 
     private Environment env;
     private static Pattern pTTL = Pattern.compile(".*toIntervalSecond\\((\\d+)\\)", Pattern.CASE_INSENSITIVE);
@@ -186,6 +185,53 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         return result;
     }
 
+
+    @Override
+    public BaseResult datesetVerification() {
+        List<Record> datasetList = Db.find(String.format(Objects.requireNonNull(env.getProperty("SQL_DATASETS")), ""));
+        List<Map<String, String>> sqlList = Lists.newArrayList();
+        List<Map<String, String>> dslList = Lists.newArrayList();
+        datasetList.forEach(record -> {
+            Map<String, String> map = Maps.newHashMap();
+            map.put(IDENTIFIER_NAME, String.valueOf(record.getColumns().get(IDENTIFIER_NAME)));
+            map.put(TEMPLATE, String.valueOf(datasetService.buildExecSQL(datasetService.getVariable(), String.valueOf(record.getColumns().get(TEMPLATE)))));
+            if (record.getColumns().get(DATASET_TYPE).equals("sql")) {
+                sqlList.add(map);
+            } else if (record.getColumns().get(DATASET_TYPE).equals("dsl")) {
+                dslList.add(map);
+            }
+        });
+
+        SqlQueryRequestParam sqlQueryRequest;
+        for (Map map : sqlList) {
+            sqlQueryRequest = JSON.parseObject(String.valueOf(map.get(TEMPLATE)), SqlQueryRequestParam.class);
+            sqlQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
+            sqlQueryRequest.setIsDryRun(1);
+            sqlQueryRequest.setOutputMode(OutputMode.JSON.getValue());
+            log.info("SQL Dataset Verification, identifier_name is: {}", map.get(IDENTIFIER_NAME));
+            BaseResult result = queryJobService.createSQLAdHocQuery(sqlQueryRequest);
+            if (!result.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), result.getMessage()));
+            }
+        }
+
+        DSLQueryRequestParam dslQueryRequest;
+        for (Map map : dslList) {
+            dslQueryRequest = JSON.parseObject(String.valueOf(map.get(TEMPLATE)), DSLQueryRequestParam.class);
+            dslQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
+            dslQueryRequest.setIsDryRun(1);
+            dslQueryRequest.setOutputMode(OutputMode.JSON.getValue());
+            log.info("DSL Dataset Verification, identifier_name is {}", map.get(IDENTIFIER_NAME));
+            BaseResult result = queryJobService.createDSLAdHocQuery(dslQueryRequest);
+            if (!result.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), result.getMessage()));
+            }
+        }
+
+        return BaseResultGenerator.success("The dataset verification passed", Collections.emptyList());
+    }
 
     @Override
     public BaseResult benchmarkTest(String test, boolean isSaved, String category) {
