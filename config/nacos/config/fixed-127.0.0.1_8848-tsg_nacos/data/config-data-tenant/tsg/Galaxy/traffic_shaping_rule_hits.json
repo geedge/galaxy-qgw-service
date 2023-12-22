@@ -12,13 +12,8 @@
         "__time"
       ],
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
-        "profile_id",
-        "priority"
+        "profile_id"
       ],
       "metrics": [
         "in_bytes",
@@ -26,11 +21,7 @@
         "in_pkts",
         "out_pkts",
         "in_drop_pkt",
-        "out_drop_pkts",
-        "in_max_latency_us",
-        "out_max_latency_us",
-        "in_queue_len",
-        "out_queue_len"
+        "out_drop_pkts"
       ],
       "filters": [
         "device_id",
