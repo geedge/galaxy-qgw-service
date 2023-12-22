@@ -47,6 +47,7 @@ public class SQLFunctionUtil {
     public static final String IP_TO_ASN = "IP_TO_ASN";
     public static final String IP_TO_ASN_DETAIL = "IP_TO_ASN_DETAIL";
     public static final String IP_TO_ASN_ORG = "IP_TO_ASN_ORG";
+    public static final String RATE = "RATE";
     public static final String MAX_DURATION = "MAX_DURATION";
     public static final String MEDIAN_HDR = "MEDIAN_HDR";
     public static final String QUANTILE_HDR = "QUANTILE_HDR";
@@ -68,6 +69,7 @@ public class SQLFunctionUtil {
      */
     public static final Pattern pTimeFloorWithFill = Pattern.compile("\\b" + TIME_FLOOR_WITH_FILL + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pMaxDuration = Pattern.compile("\\b" + MAX_DURATION + "\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pRate = Pattern.compile("\\b" + RATE + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToGeo = Pattern.compile("\\b" + IP_TO_GEO + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCity = Pattern.compile("\\b" + IP_TO_CITY + "\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pIpToCountry = Pattern.compile("\\b" + IP_TO_COUNTRY + "\\(", Pattern.CASE_INSENSITIVE);
@@ -102,17 +104,17 @@ public class SQLFunctionUtil {
         functions.put(IP_TO_ASN, null);
         functions.put(IP_TO_ASN_DETAIL, null);
         functions.put(IP_TO_ASN_ORG, null);
-        distributedGroupByFunction.put("count","sum");
-        distributedGroupByFunction.put("sum","sum");
-        distributedGroupByFunction.put("avg","avg");
-        distributedGroupByFunction.put("min","min");
-        distributedGroupByFunction.put("max","max");
-        distributedGroupByFunction.put("median","median");
-        timeSlicingFunction.put("count","sum");
-        timeSlicingFunction.put("sum","sum");
-        timeSlicingFunction.put("avg","avg");
-        timeSlicingFunction.put("min","min");
-        timeSlicingFunction.put("max","max");
+        distributedGroupByFunction.put("count", "sum");
+        distributedGroupByFunction.put("sum", "sum");
+        distributedGroupByFunction.put("avg", "avg");
+        distributedGroupByFunction.put("min", "min");
+        distributedGroupByFunction.put("max", "max");
+        distributedGroupByFunction.put("median", "median");
+        timeSlicingFunction.put("count", "sum");
+        timeSlicingFunction.put("sum", "sum");
+        timeSlicingFunction.put("avg", "avg");
+        timeSlicingFunction.put("min", "min");
+        timeSlicingFunction.put("max", "max");
     }
 
     /**
@@ -248,6 +250,7 @@ public class SQLFunctionUtil {
     public static String getDistributedGroupByFunction(String sourceAggregateFunctionName) {
         return distributedGroupByFunction.get(sourceAggregateFunctionName);
     }
+
     /**
      * 公共函数转义
      *
@@ -289,6 +292,7 @@ public class SQLFunctionUtil {
     private static String translateUDF(String dbType, String resultSql) {
         resultSql = translateByPattern(resultSql, dbType, pTimeFloorWithFill);
         resultSql = translateByPattern(resultSql, dbType, pMaxDuration);
+        resultSql = translateByPattern(resultSql, dbType, pRate);
         resultSql = translateByPattern(resultSql, dbType, pIpToGeo);
         resultSql = translateByPattern(resultSql, dbType, pIpToCity);
         resultSql = translateByPattern(resultSql, dbType, pIpToCountry);
@@ -490,10 +494,10 @@ public class SQLFunctionUtil {
         return replaceValue;
     }
 
-    public static String parseMedian(String sql, String dbType){
+    public static String parseMedian(String sql, String dbType) {
         while (true) {
             Matcher matcher = pMedian.matcher(sql);
-            if (!matcher.find()){
+            if (!matcher.find()) {
                 return sql;
             }
             int start = matcher.start() + 1;
@@ -507,7 +511,7 @@ public class SQLFunctionUtil {
         }
     }
 
-    public static String parseMedianReplace(String sqlParse, int num, String dbType){
+    public static String parseMedianReplace(String sqlParse, int num, String dbType) {
         Pattern pNumMedian = Pattern.compile("(MEDIAN)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)");
         Matcher matcher = pNumMedian.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -524,7 +528,7 @@ public class SQLFunctionUtil {
     }
 
 
-    private static String medianReplaceByDB(String param, String dbType){
+    private static String medianReplaceByDB(String param, String dbType) {
         String replaceValue = null;
         if (DBType.CLICKHOUSE.getValue().equals(dbType)) {
             replaceValue = "median#[" + param + "#]";
@@ -679,12 +683,13 @@ public class SQLFunctionUtil {
 
     /**
      * Desc 匹配UNIX_TIMESTAMP_MILLIS(
+     *
      * @param sql
      * @param dbType
      * @return
      */
 
-    public static String parseUnixTimeMillis(String sql, String dbType){
+    public static String parseUnixTimeMillis(String sql, String dbType) {
         while (true) {
             Matcher matcher = pUnixTimeMillis.matcher(sql);
             if (!matcher.find()) {
@@ -1529,7 +1534,7 @@ public class SQLFunctionUtil {
     }
 
 
-    public static String parseFromUnixTimeMillisByDB(String sqlParse, int num, String dbType){
+    public static String parseFromUnixTimeMillisByDB(String sqlParse, int num, String dbType) {
         Pattern pFromUnixTimeMillisParse = Pattern.compile("(FROM_UNIXTIME_MILLIS)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pFromUnixTimeMillisParse.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -1545,7 +1550,7 @@ public class SQLFunctionUtil {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]#],'yyyy-MM-dd HH:mm:ss.SSS'#]";
                 } else {
-                    innerValue = String.format("TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[%s#],'yyyy-MM-dd HH:mm:ss.SSS'#]",matcherParse.group(2));
+                    innerValue = String.format("TIME_FORMAT#[MILLIS_TO_TIMESTAMP#[%s#],'yyyy-MM-dd HH:mm:ss.SSS'#]", matcherParse.group(2));
                 }
             }
             matcherParse.appendReplacement(sb, innerValue);
@@ -1591,7 +1596,7 @@ public class SQLFunctionUtil {
         return sb.toString();
     }
 
-    public static String parseUnixTimeMillisReplaceByDB(String sqlParse, int num, String dbType){
+    public static String parseUnixTimeMillisReplaceByDB(String sqlParse, int num, String dbType) {
         Pattern pUnixTimeMillisParse = Pattern.compile("(UNIX_TIMESTAMP_MILLIS)\\s*\\((.*?(.*?\\).*?){" + num + "})\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcherParse = pUnixTimeMillisParse.matcher(sqlParse);
         StringBuffer sb = new StringBuffer();
@@ -1608,7 +1613,7 @@ public class SQLFunctionUtil {
                     innerValue = "TIMESTAMP_TO_MILLIS#[CURRENT_TIMESTAMP#]";
                 } else {
                     if (matcherParse.group(2).startsWith("'") && matcherParse.group(2).endsWith("'")) {
-                        innerValue = String.format("TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[%s#]#]",matcherParse.group(2));
+                        innerValue = String.format("TIMESTAMP_TO_MILLIS#[ TIME_PARSE#[%s#]#]", matcherParse.group(2));
                     } else {
                         innerValue = "TIMESTAMP_TO_MILLIS#[ " + matcherParse.group(2) + "#]";
                     }
@@ -1731,12 +1736,15 @@ public class SQLFunctionUtil {
 
     private static String translateCaseInsensitive(Function fun, String dbType) {
         String data;
-        switch (fun.getName()){
+        switch (fun.getName()) {
             case TIME_FLOOR_WITH_FILL:
                 data = translateTimeFloorWithFill(fun, dbType);
                 break;
             case MAX_DURATION:
                 data = translateDuration(fun, dbType);
+                break;
+            case RATE:
+                data = translateRate(fun, dbType);
                 break;
             case NOT_EMPTY:
                 data = translateNotEmpty(fun, dbType);
@@ -1767,6 +1775,7 @@ public class SQLFunctionUtil {
         }
         return data;
     }
+
     /**
      * Desc: 转义notEmpty
      *
@@ -1900,6 +1909,25 @@ public class SQLFunctionUtil {
     }
 
     /**
+     * Desc: 转义RATE
+     *
+     * @param fun
+     * @param dbType
+     * @return {@link String}
+     * @created by wWei
+     * @date 2023/12/22 4:47 下午
+     */
+    private static String translateRate(Function fun, String dbType) {
+        List<String> paramsList = fun.paramsList;
+        if (DBType.DRUID.getValue().equals(dbType)) {
+            return String.format("SUM(%s) / %s", paramsList.get(0), paramsList.get(1));
+        } else if (DBType.CLICKHOUSE.getValue().equals(dbType)) {
+            return String.format("SUM(%s) / %s", paramsList.get(0), paramsList.get(1));
+        }
+        return fun.toString();
+    }
+
+    /**
      * Desc: 转义自定义函数 MEDIAN_HDR/QUANTILE_HDR/PERCENTILES_HDR/APPROX_COUNT_DISTINCT_HLLD
      *
      * @param fun
@@ -1927,13 +1955,14 @@ public class SQLFunctionUtil {
 
     /**
      * Desc 转义 COUNT_DISTINCT
+     *
      * @param fun
      * @param dbType
      * @return
      */
     private static String translateCountDistinct(Function fun, String dbType) {
         String field = fun.getParamsList().get(0);
-        if (DBType.DRUID.getValue().equals(dbType) || DBType.CLICKHOUSE.getValue().equals(dbType)){
+        if (DBType.DRUID.getValue().equals(dbType) || DBType.CLICKHOUSE.getValue().equals(dbType)) {
             return String.format("count(distinct %s)", field);
         }
         return fun.toString();
@@ -1950,7 +1979,7 @@ public class SQLFunctionUtil {
         StringBuffer sb = new StringBuffer();
         if (DBType.CLICKHOUSE.getValue().equals(dbType)) {
             for (String param : function.getParamsList()) {
-                sb.append("toString("+param+"), ");
+                sb.append("toString(" + param + "), ");
             }
             return String.format("concat(%s'')", sb);
         }
