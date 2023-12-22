@@ -42,6 +42,9 @@ public class TroubleshootingController {
         if (ConsistencyOption.TTL_CONSISTENCY.getValue().equalsIgnoreCase(test)) {
             log.info("ttl consistency check interface.");
             return troubleshootingService.consistencyCheck();
+        } else if (ConsistencyOption.DATASET_VERIFICATION.getValue().equalsIgnoreCase(test)) {
+            log.info("dataset verification interface. ");
+            return troubleshootingService.datesetVerification();
         } else {
             log.info("schema consistency check interface.");
             return troubleshootingService.validateMetadata();
