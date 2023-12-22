@@ -12,12 +12,7 @@
         "__time"
       ],
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
-        "pinning_status",
         "action",
         "sub_action"
       ],

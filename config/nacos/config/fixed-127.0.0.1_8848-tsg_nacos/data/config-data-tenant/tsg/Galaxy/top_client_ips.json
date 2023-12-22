@@ -12,11 +12,6 @@
         "__time"
       ],
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
-        "client_ip",
         "client_ip"
       ],
       "metrics": [
@@ -30,8 +25,7 @@
         "metric",
         "device_id",
         "device_group",
-        "data_center",
-        "client_ip"
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
