@@ -251,13 +251,6 @@
       "log_id"
     ]
   },
-  "active_defence_event": {
-    "index_key": [
-      "common_log_id",
-      "common_policy_id",
-      "common_recv_time"
-    ]
-  },
   "schema_query": {
     "references": {
       "aggregation": [

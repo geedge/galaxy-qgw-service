@@ -10,7 +10,6 @@
         "security_event",
         "proxy_event",
         "dos_event",
-        "active_defence_event",
         "assessment_event",
         "monitor_event"
       ]
