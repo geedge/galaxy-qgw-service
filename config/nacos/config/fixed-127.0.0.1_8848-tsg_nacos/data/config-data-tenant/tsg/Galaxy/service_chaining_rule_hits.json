@@ -12,10 +12,6 @@
         "__time"
       ],
       "dimensions": [
-        "vsys_id",
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
         "sff_profile_id",
         "sf_profile_id"
