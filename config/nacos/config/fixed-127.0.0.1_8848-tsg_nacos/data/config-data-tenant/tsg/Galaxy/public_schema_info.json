@@ -58,12 +58,12 @@
       },
       {
         "name": "APPROX_COUNT_DISTINCT_HLLD",
-        "label": "APPROX_COUNT_DISTINCT_HLLD",
+        "label": "COUNT_DISTINCT_HLLD",
         "function": "APPROX_COUNT_DISTINCT_HLLD(expr)"
       },
       {
         "name": "APPROX_COUNT_DISTINCT_DS_HLL",
-        "label": "APPROX_COUNT_DISTINCT_DS_HLL",
+        "label": "COUNT_DISTINCT_DS_HLL",
         "function": "APPROX_COUNT_DISTINCT_DS_HLL(expr)"
       }
     ],
