@@ -145,12 +145,6 @@ public class DslServiceImpl implements DSLService {
             throw new BusinessException(networkTrafficStatResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), networkTrafficStatResult.getMessage()));
         }
 
-        BaseResult networkUniqueClientIpStatResult = sqlSyncQueryService.executeQuery(
-                QueryContext.builder().query(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_UNIQUE_CLIENT_IP_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
-        if (!networkUniqueClientIpStatResult.isSuccess()) {
-            throw new BusinessException(networkUniqueClientIpStatResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), networkUniqueClientIpStatResult.getMessage()));
-        }
-
         BaseResult networkTcpStatResult = sqlSyncQueryService.executeQuery(
                 QueryContext.builder().query(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_TCP_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
         if (!networkTcpStatResult.isSuccess()) {
@@ -165,7 +159,6 @@ public class DslServiceImpl implements DSLService {
 
         List<Map> asymmetricFlowsData = (List<Map>) asymmetricFlowsResult.getData();
         List<Map> trafficStatData = (List<Map>) networkTrafficStatResult.getData();
-        List<Map> uniqueClientIpStatData = (List<Map>) networkUniqueClientIpStatResult.getData();
         List<Map> tcpData = (List<Map>) networkTcpStatResult.getData();
         List<Map> appData = (List<Map>) networkAppStatResult.getData();
 
@@ -176,9 +169,6 @@ public class DslServiceImpl implements DSLService {
         }
         if (!trafficStatData.isEmpty()) {
             data.putAll(trafficStatData.get(0));
-        }
-        if (!uniqueClientIpStatData.isEmpty()) {
-            data.putAll(uniqueClientIpStatData.get(0));
         }
         if (!tcpData.isEmpty()) {
             data.putAll(tcpData.get(0));
@@ -239,14 +229,13 @@ public class DslServiceImpl implements DSLService {
 
         Map statistics = asymmetricFlowsResult.getStatistics();
         Map networkTrafficStatistics = networkTrafficStatResult.getStatistics();
-        Map networkUniqueClientIpStatistics = networkUniqueClientIpStatResult.getStatistics();
         Map networkTcpStatistics = networkTcpStatResult.getStatistics();
         Map networkAppStatistics = networkAppStatResult.getStatistics();
         for (Object key : statistics.keySet()) {
             if ("result_rows".equals(key.toString())) {
                 continue;
             }
-            statistics.put(key, Long.parseLong(networkTrafficStatistics.get(key).toString()) + Long.parseLong(networkUniqueClientIpStatistics.get(key).toString()) + Long.parseLong(networkTcpStatistics.get(key).toString()) + Long.parseLong(networkAppStatistics.get(key).toString()));
+            statistics.put(key, Long.parseLong(networkTrafficStatistics.get(key).toString()) + Long.parseLong(networkTcpStatistics.get(key).toString()) + Long.parseLong(networkAppStatistics.get(key).toString()));
         }
 
         return BaseResultGenerator.success("ok", result, statistics);

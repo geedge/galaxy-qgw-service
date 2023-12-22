@@ -4,9 +4,6 @@ SELECT SUM(asymmetric_c2s_flows + asymmetric_s2c_flows) AS asymmetric_flows, SUM
 #sql("APPLICATION_AND_PROTOCOL_SUMMARY_TRAFFIC_STAT")
 SELECT SUM(fragmentation_packets) AS fragmentation_packets, SUM(total_bytes) AS total_bytes, SUM(total_packets) AS total_packets, SUM(total_sessions) AS total_sessions, AVG(total_bytes) * 8 / $granularity_seconds AS data_rate FROM ( SELECT SUM(c2s_fragments + s2c_fragments) AS fragmentation_packets, SUM(c2s_bytes + s2c_bytes) AS total_bytes, SUM(c2s_pkts + s2c_pkts) AS total_packets, SUM(sessions) AS total_sessions FROM  $table WHERE $intervals_and_filter AND protocol_stack_id = 'ETHERNET' GROUP BY TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time), '$granularity')) LIMIT 1
 #end
-#sql("APPLICATION_AND_PROTOCOL_SUMMARY_UNIQUE_CLIENT_IP_STAT")
-SELECT APPROX_COUNT_DISTINCT_DS_HLL(client_ip_sketch) AS uniq_client_ip FROM $table WHERE $intervals_and_filter AND protocol_stack_id = 'ETHERNET' LIMIT 1
-#end
 #sql("APPLICATION_AND_PROTOCOL_SUMMARY_TCP_STAT")
 SELECT SUM(c2s_tcp_retransmitted_pkts + s2c_tcp_retransmitted_pkts) AS tcp_retransmissions_packets, SUM(c2s_pkts + s2c_pkts) AS tcp_total_packets FROM $table WHERE $intervals_and_filter AND RIGHT(protocol_stack_id, 4) = '.TCP' LIMIT 1
 #end
