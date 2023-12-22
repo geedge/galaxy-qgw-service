@@ -18,4 +18,13 @@ Release 374 (TSG-23.12)
 * 修改Schema，logicalType、constraints.type区分timestamp、unix_timestamp
 * 删除过期Schema：radius_record、gtpc_record、radius_onff_log、sys_packet_capture_event(TSG-17239)
 * 删除ES组件应用及相关代码(GAL-439)
+* 修改Schema,修改 metrics schema dimensions、metrics、filters自定义报告约束
+* 扩展Schema，histogram支持MEDIAN_HDR函数
+* 扩展Schema，schema doc 增加time分类(TSG-17875)
+* 修改Schema，更新流量Top类统计schema metric字典
+* 修改liveChart，移除liveChart summary uniq_client_ip指标
+* 扩展Schema，object_statistics 新增object_type字段及字典数据(TSG-17960)
+* 重构Knowledge Base API,对知识库文件管理接口进行重构(TSG-17843)
+* 扩展DSL Query 接口，支持is_dry_run:1 and exec_mode:blocking/oneshot(TSG-17843)
+* 修改datasets，数据集monitor-event-timeline 只提供会话指标趋势(TSG-17952)
 
