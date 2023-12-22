@@ -574,6 +574,15 @@ public class DslServiceImpl implements DSLService {
 
             @Override
             public void visit(InExpression expr) {
+                ItemsList rightItemsList = expr.getRightItemsList();
+                if (rightItemsList instanceof ExpressionList && ((ExpressionList) rightItemsList).getExpressions().get(0) instanceof LongValue) {
+                    intParseIn(expr);
+                } else {
+                    strParseIn(expr);
+                }
+            }
+
+            private void intParseIn(InExpression expr) {
                 String left = String.valueOf(expr.getLeftExpression());
                 if (ranges.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(RangeTypeEnum.EQ.getType()))) {
                     for (Range range : ranges) {
@@ -615,6 +624,51 @@ public class DslServiceImpl implements DSLService {
                         }
                     });
                     ranges.add(range);
+                }
+            }
+
+            private void strParseIn(InExpression expr) {
+                String left = String.valueOf(expr.getLeftExpression());
+                if (matches.stream().anyMatch(o -> o.getFieldKey().equals(left) && o.getType().equals(MatchEnum.EXACTLY.getType()))) {
+                    for (Match match : matches) {
+                        if (match.getFieldKey().equals(left) && match.getType().equals(MatchEnum.EXACTLY.getType())) {
+                            ItemsList rightItemsList = expr.getRightItemsList();
+                            rightItemsList.accept(new ItemsListVisitorAdapter() {
+                                @Override
+                                public void visit(ExpressionList expressionList) {
+                                    for (Expression expression : expressionList.getExpressions()) {
+                                        if (expression instanceof StringValue) {
+                                            match.getFieldValues().add(((StringValue) expression).getValue());
+                                        } else if (expression instanceof LongValue) {
+                                            match.getFieldValues().add(((LongValue) expression).getValue());
+                                        }
+
+                                    }
+                                }
+
+                            });
+                        }
+                    }
+                } else {
+                    Match match = new Match();
+                    match.setFieldKey(left);
+                    match.setFieldValues(Lists.newArrayList());
+                    match.setType(MatchEnum.EXACTLY.getType());
+                    ItemsList rightItemsList = expr.getRightItemsList();
+                    rightItemsList.accept(new ItemsListVisitorAdapter() {
+                        @Override
+                        public void visit(ExpressionList expressionList) {
+                            for (Expression expression : expressionList.getExpressions()) {
+                                if (expression instanceof StringValue) {
+                                    match.getFieldValues().add(((StringValue) expression).getValue());
+                                } else if (expression instanceof LongValue) {
+                                    match.getFieldValues().add(((LongValue) expression).getValue());
+                                }
+
+                            }
+                        }
+                    });
+                    matches.add(match);
                 }
             }
 
