@@ -8,8 +8,8 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.calcite.CalciteMemoryUtils;
-import com.mesalab.common.enums.DBType;
+import com.mesalab.calcite.CalciteConnectionProcessor;
+import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -121,18 +121,17 @@ public class FederationDialect extends AbstractEngineDialect{
         try {
             watch.start();
             if (isExecute()) {
-                log.info("DB engine is :{},execute query is: {}", DBType.ENGINE.getValue(), JSON.toJSONString(sql));
+                log.info("DB engine is :{}, execute query is: {}", DBEngineType.QGW.getValue(), JSON.toJSONString(sql));
                 SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
-                Map resultMap = CalciteMemoryUtils.executeMemoryQuery(sqlQuerySource.getTableNames().get(0),
+                Map resultMap = CalciteConnectionProcessor.getInstance().executeMemoryQuery(sqlQuerySource.getTableNames().get(0),
                         (List<Map<String, String>>) baseResult.getMeta(),
                         (List<Map<String, Object>>) baseResult.getData(), sql);
                 baseResult.setData(resultMap.get("data"));
                 baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             }
-            log.debug("Calcite execute time :" + watch.elapsed().toMillis() / 1000 + "s");
-
+            log.debug("Federation query elapsed time : {} ms", watch.elapsed(TimeUnit.MILLISECONDS));
         } catch (RuntimeException ex) {
-            log.error("Engine execute memory-query error:{}", ex);
+            log.error("Federation query error:{}", ex);
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                     CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getMessage(),ex.getMessage()));
@@ -159,7 +158,7 @@ public class FederationDialect extends AbstractEngineDialect{
             convertJsonToCSV();
         }
         baseResult.setFormatType(param.getFormat());
-        log.debug("Execute build Time : {}",  watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
+        log.debug("Federation execute and build result time : {} ms",  watch.elapsed(TimeUnit.MILLISECONDS));
         return baseResult;
     }
 

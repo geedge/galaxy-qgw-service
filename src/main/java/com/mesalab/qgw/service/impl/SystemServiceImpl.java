@@ -175,7 +175,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     @Override
     public String getCustomQueryId(String resultId, String query) {
         String tableName = SQLHelper.getTableName(query).get(0);
-        String dbType = databaseService.getDBTypeByTableName(tableName);
+        String dbType = databaseService.getDBEngineByTableName(tableName);
         return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }
 

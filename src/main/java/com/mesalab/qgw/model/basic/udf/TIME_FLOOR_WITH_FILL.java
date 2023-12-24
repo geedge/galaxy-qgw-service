@@ -303,7 +303,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
      * @return
      */
     private WhereTimeRange getWhereTimeRange(SQLQuerySource sqlQuerySource) {
-        String dbType = databaseService.getDBTypeByTableName(sqlQuerySource.getTableNames().get(0));
+        String dbType = databaseService.getDBEngineByTableName(sqlQuerySource.getTableNames().get(0));
         WhereTimeRange whereTimeRange = new WhereTimeRange();
         List<FillParam> outToInnerList = getFillParams(sqlQuerySource);
         for (FillParam fillParam : outToInnerList) {

@@ -1,7 +1,5 @@
 package com.mesalab.calcite;
 
-import cn.hutool.log.Log;
-import cn.hutool.log.LogFactory;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -9,6 +7,7 @@ import com.mesalab.calcite.storage.DataTypeMapping;
 import com.mesalab.calcite.storage.Storage;
 import com.mesalab.common.exception.BusinessException;
 import com.zdjizhi.calcite.jdbc.CalciteConnection;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,12 +17,13 @@ import java.util.*;
 import static com.geedgenetworks.utils.StringUtil.setDefaultIfEmpty;
 
 
-public class CalciteMemoryUtils {
-    private static final Log log = LogFactory.get();
+@Slf4j
+public class CalciteConnectionProcessor {
     private static final String URL_PREFIX  = "jdbc:calcite:model=";
     private static final String URL_SUFFIX  = "config" + File.separator + "memorySchema.json";
 
-
+    private CalciteConnectionProcessor() {
+    }
     static {
         try {
             Class.forName("com.zdjizhi.calcite.jdbc.Driver");
@@ -32,8 +32,22 @@ public class CalciteMemoryUtils {
         }
     }
 
-    public static Map<String, Object> executeMemoryQuery(String tableName, List<Map<String, String>> meta,
+    private static class CalciteQueryHolder {
+        private static final CalciteConnectionProcessor INSTANCE = new CalciteConnectionProcessor();
+    }
+
+    public static CalciteConnectionProcessor getInstance() {
+        return CalciteQueryHolder.INSTANCE;
+    }
+
+
+
+    public Map<String, Object> executeMemoryQuery(String tableName, List<Map<String, String>> meta,
                                                                             List<Map<String, Object>> data, String sql) {
+        CalciteConnection connection = null;
+        ResultSet resultSet = null;
+        PreparedStatement statement = null;
+
         Map<String, Object> result = Maps.newHashMap();
         if (meta.isEmpty() || data.isEmpty()) {
             data.clear();
@@ -42,9 +56,8 @@ public class CalciteMemoryUtils {
             result.put("data", data);
             return result;
         }
-        ResultSet resultSet = null;
-        PreparedStatement statement = null;
-        CalciteConnection connection = null;
+
+
         try {
            connection = getConnection().unwrap(CalciteConnection.class);
            Storage.DummyTable table = buildDummyTable(meta, tableName);
@@ -89,7 +102,7 @@ public class CalciteMemoryUtils {
     }
 
 
-    private static  Connection getConnection() throws IOException, SQLException {
+    private  Connection getConnection() throws IOException, SQLException {
         String url = URL_PREFIX + new File("").getCanonicalPath() + File.separator + URL_SUFFIX;
         Properties info = new Properties();
         info.setProperty("lex", "MYSQL_ANSI");
@@ -101,7 +114,7 @@ public class CalciteMemoryUtils {
 
 
 
-    private static void close(ResultSet rs, PreparedStatement pst, Connection conn) {
+    private void close(ResultSet rs, PreparedStatement pst, Connection conn) {
         if (rs != null) {
             try {
                 rs.close();
@@ -136,7 +149,7 @@ public class CalciteMemoryUtils {
      * @param data 原始结果集合
      * @return
      */
-    private static Storage.DummyTable loadData(Storage.DummyTable table, List<Map<String, Object>> data) {
+    private Storage.DummyTable loadData(Storage.DummyTable table, List<Map<String, Object>> data) {
         List<Storage.DummyColumn> columns = table.getColumns();
         data.stream().forEach(item -> {
             List list = Lists.newArrayList();
@@ -164,7 +177,7 @@ public class CalciteMemoryUtils {
      * @param tableName 表名
      * @return
      */
-    private static Storage.DummyTable buildDummyTable(List<Map<String, String>> meta, String tableName) {
+    private Storage.DummyTable buildDummyTable(List<Map<String, String>> meta, String tableName) {
         Storage.DummyTable dummyTable = new Storage.DummyTable(tableName);
         for (Map<String, String> column : meta) {
             String fieldName = column.get("name");
@@ -183,7 +196,7 @@ public class CalciteMemoryUtils {
         return dummyTable;
     }
 
-    private static final String intUnits = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint,int,long";
-    private static final String doubleUnits = "Float32,Float64,float,double";
+    private final String intUnits = "Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64,bigint,int,long";
+    private final String doubleUnits = "Float32,Float64,float,double";
 
 }

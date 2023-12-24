@@ -17,7 +17,6 @@ import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.SQLDatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Constructor;
@@ -56,19 +55,19 @@ public class SQLDatasetServiceImpl
     @Override
     public String getCustomQueryId(String resultId, String query) {
         String tableName = SQLHelper.getTableName(query).get(0);
-        String dbType = databaseService.getDBTypeByTableName(tableName);
+        String dbType = databaseService.getDBEngineByTableName(tableName);
         return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }
 
 
     public Dialect buildAndGetDialect(String queryId) {
-        QueryContext queryProfile = new QueryContext();
-        queryProfile.setDbType(parseDBType(queryId));
-        return getDialect(queryProfile);
+        QueryContext queryContext = new QueryContext();
+        queryContext.setDbEngine(parseDBEngineType(queryId));
+        return getDialect(queryContext);
     }
 
-    private String parseDBType(String queryId) {
-        for (DBType dbTypeEnum : DBType.values()) {
+    private String parseDBEngineType(String queryId) {
+        for (DBEngineType dbTypeEnum : DBEngineType.values()) {
             if (queryId.startsWith(DigestUtil.md5Hex(dbTypeEnum.getValue()).concat(queryIdSeparator))) {
                 return dbTypeEnum.getValue();
             }
@@ -77,16 +76,16 @@ public class SQLDatasetServiceImpl
             throw new QGWBusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_ID_IS_NOT_SUPPORTED));
         }
-        return DBType.CLICKHOUSE.getValue();
+        return DBEngineType.CLICKHOUSE.getValue();
     }
 
-    private Dialect getDialect(QueryContext queryProfile) {
+    private Dialect getDialect(QueryContext queryContext) {
         Dialect dialect;
         try {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
-                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, queryProfile.getDbType()) + "Dialect");
+                    CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, queryContext.getDbEngine()) + "Dialect");
             Constructor constructor = dialectClazz.getConstructor(QueryContext.class);
-            dialect = (Dialect) constructor.newInstance(queryProfile);
+            dialect = (Dialect) constructor.newInstance(queryContext);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),

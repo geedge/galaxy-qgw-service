@@ -18,7 +18,7 @@ public class AuditServiceLog {
 
     private long exeTime;
 
-    private String dbType;
+    private String dbEngine;
 
     private String param;
 

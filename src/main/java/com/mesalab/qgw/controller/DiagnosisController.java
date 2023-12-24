@@ -3,7 +3,7 @@ package com.mesalab.qgw.controller;
 import cn.hutool.http.HttpStatus;
 import com.alibaba.fastjson.JSONObject;
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.common.enums.DBType;
+import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
@@ -39,7 +39,7 @@ public class DiagnosisController {
 
     @RequestMapping({"/sql", "/sql/{dialect}/{queryNo}"})
     public BaseResult getPocSql(@PathVariable  String dialect, @PathVariable(required = false) Integer queryNo) {
-        if (Arrays.stream(DBType.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(dialect))){
+        if (Arrays.stream(DBEngineType.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(dialect))){
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIALECT_VALUE_ERROR));
         }

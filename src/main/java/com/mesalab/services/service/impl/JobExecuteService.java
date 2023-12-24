@@ -12,7 +12,7 @@ import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
-import com.mesalab.common.enums.DBType;
+import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.enums.QueryOption;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
@@ -257,7 +257,7 @@ public class JobExecuteService implements EnvironmentAware {
         String partitionKey = databaseService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
         List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
         String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
-        String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBType.CLICKHOUSE.getValue());
+        String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBEngineType.CLICKHOUSE.getValue());
         BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1", function, param.get(JobConfig.QUERY_DATA_SOURCE))).build());
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         long statTime = Long.parseLong(data.get(0).get("stat_time").toString()) * 1000;
@@ -666,7 +666,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     private long getCriticalValue(String str) {
-        return Long.parseLong(SQLFunctionUtil.getQueryValue("toUnixTimestamp(" + str + ")", DBType.CLICKHOUSE.getValue()));
+        return Long.parseLong(SQLFunctionUtil.getQueryValue("toUnixTimestamp(" + str + ")", DBEngineType.CLICKHOUSE.getValue()));
     }
 
     @Data
