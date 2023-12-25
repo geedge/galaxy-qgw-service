@@ -816,7 +816,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
-        String dataSet = StrUtil.format("SELECT * FROM {} WHERE rand() % 100 = 0 LIMIT 1000");
+        String dataSet = StrUtil.format("SELECT * FROM {} LIMIT 1000");
         return new SampleSQLHelper(sql, dataSet, true).build();
     }
 
