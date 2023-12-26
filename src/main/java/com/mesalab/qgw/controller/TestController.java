@@ -104,7 +104,7 @@ public class TestController {
     @GetMapping(value = "runSql")
     @Deprecated
     public BaseResult runSql() {
-        BaseResult result = troubleshootingController.benchmark("sql_validation", 0, null);
+        BaseResult result = troubleshootingController.benchmark("olap_sql_dataset", 0);
         return result;
     }
 

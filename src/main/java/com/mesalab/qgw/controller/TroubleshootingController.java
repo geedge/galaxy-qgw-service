@@ -1,8 +1,9 @@
 package com.mesalab.qgw.controller;
 
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.*;
@@ -27,6 +28,7 @@ public class TroubleshootingController {
 
     @Autowired
     private TroubleshootingService troubleshootingService;
+    private static final String TEST_PARAM = "olap_sql_dataset";
 
     @RequestMapping("/component/status")
     public JSONObject ComponentStatus() {
@@ -52,12 +54,12 @@ public class TroubleshootingController {
     }
 
     @RequestMapping(value = "/benchmark", method = RequestMethod.GET)
-    public BaseResult benchmark(@RequestParam(defaultValue = "validation") String test, @RequestParam(value = "is_saved", required = false, defaultValue = "0") @JsonProperty("isSaved") Integer isSaved, @RequestParam(required = false) String category) throws BusinessException {
-        if (Arrays.stream(BenchmarkOption.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(test))) {
+    public BaseResult benchmark(@RequestParam String test, @RequestParam(value = "is_saved", required = false, defaultValue = "0") @JsonProperty("isSaved") Integer isSaved) throws BusinessException {
+        if (!TEST_PARAM.equals(test) || StrUtil.isBlankIfStr(test)) {
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.BENCHMARK_OPTION_ERROR));
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.BENCHMARK_TEST_PARAM_ERROR));
         }
-        return troubleshootingService.benchmarkTest(test, BooleanUtil.toBoolean(String.valueOf(isSaved)), category);
+        return troubleshootingService.benchmarkTest(BooleanUtil.toBoolean(String.valueOf(isSaved)));
     }
 
 }

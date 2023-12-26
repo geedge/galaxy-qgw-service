@@ -58,7 +58,7 @@ public class DruidHealthIndicator extends AbstractHealthIndicator {
                         .withDetail("url", druidIoHttpSource.getUrl())
                         .withDetail("message", "ok")
                         .withDetail("timeZone", timeZone)
-                        .withDetail("curTimestamp", curDatetime);
+                        .withDetail("timestamp", curDatetime);
             } else {
                 builder.down()
                         .withDetail("app", APP)

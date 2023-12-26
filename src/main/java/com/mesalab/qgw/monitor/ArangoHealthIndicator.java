@@ -64,7 +64,8 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
                 builder.up()
                         .withDetail("app", APP)
                         .withDetail("url", arangoConfig.getServer())
-                        .withDetail("message", "ok");
+                        .withDetail("message", "ok")
+                        .withDetail("version", map.get("version"));
             }
         } catch (RuntimeException e) {
             builder.down()

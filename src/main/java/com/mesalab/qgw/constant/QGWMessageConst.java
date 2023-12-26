@@ -24,11 +24,9 @@ public class QGWMessageConst {
 
     public static final String CONSISTENCY_OPTION_ERROR = "not support consistency option value.";
 
-    public static final String BENCHMARK_OPTION_ERROR = "not support benchmark option value.";
+    public static final String BENCHMARK_TEST_PARAM_ERROR = "not support benchmark test param value.";
 
     public static final String DIAGNOSIS_OPTION_ERROR = "not support option value.";
-
-    public static final String DATASET_CATEGORY_ERROR = "not support category value.";
 
     public static final String NOT_SUPPORT_DML_PARSER = "not support DML Parser.";
 

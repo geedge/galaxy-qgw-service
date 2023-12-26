@@ -1,6 +1,6 @@
 package com.mesalab.qgw.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.mesalab.common.entity.BaseResult;
 
 public interface TroubleshootingService {
@@ -10,7 +10,7 @@ public interface TroubleshootingService {
 
     BaseResult validateMetadata();
 
-    BaseResult benchmarkTest(String test, boolean isSaved, String category);
+    BaseResult benchmarkTest(boolean isSaved);
 
     BaseResult datesetVerification();
 }
