@@ -21,6 +21,6 @@ public class JVMHealthIndicator extends AbstractHealthIndicator {
         builder.up()
                 .withDetail("app", "JVM")
                 .withDetail("timeZone", TimeZone.getDefault().getID())
-                .withDetail("curTimestamp", DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ss:SSS'Z'"));
+                .withDetail("timestamp", DateUtils.getCurrentDate("yyyy-MM-dd'T'HH:mm:ss:SSS'Z'"));
     }
 }

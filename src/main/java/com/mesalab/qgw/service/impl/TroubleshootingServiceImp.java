@@ -2,6 +2,7 @@ package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.file.FileWriter;
+import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
@@ -9,8 +10,8 @@ import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.geedgenetworks.utils.CommonUtil;
@@ -38,6 +39,7 @@ import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -78,6 +80,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     @Autowired
     private HttpClientService httpClientService;
     @Autowired
+    private HttpClientServiceV2 httpClientServiceV2;
+    @Autowired
     HttpConfig httpConfig;
     @Autowired
     private DatasetService datasetService;
@@ -89,22 +93,55 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private NacosConfig nacosConfig;
     @Autowired
     private QueryJobService queryJobService;
+    @Value("${server.port}")
+    private int serverPort;
+    @Value("${management.endpoints.web.base-path}")
+    private String basePath;
+    @Value("${management.endpoints.web.path-mapping.health}")
+    private String healthPath;
 
     private Environment env;
     private static Pattern pTTL = Pattern.compile(".*toIntervalSecond\\((\\d+)\\)", Pattern.CASE_INSENSITIVE);
     private static final String trafficPort = "8123";
     private final static String DATA_ID = "version.json";
+    private static final String BUILD_IN_BENCHMARK = "built_in_benchmark";
+    private static String localHostAddress;
+
+    static {
+        localHostAddress = NetUtil.getLocalhostStr();
+    }
 
     @Override
     public JSONObject getComponentStatus() {
-        JSONObject version = null;
+        Map<String, Object> jsonMap = Maps.newLinkedHashMap();
         try {
             String content = systemConfigService.getConfig(DATA_ID, nacosConfig.getGroup(), 3000);
-            version = JSONObject.parseObject(content);
+            jsonMap = JSON.parseObject(content, Map.class);
+
+            List<Map<String, Object>> componentList = (List<Map<String, Object>>) jsonMap.get("components");
+            Map<String, Object> componentHealthResult = getComponentHealth();
+            Set<String> componentNameSet = componentHealthResult.keySet();
+            for (Map component : componentList) {
+                String componentName = String.valueOf(component.get("name"));
+                if (componentNameSet.contains(componentName)) {
+                    Map<String, String> healthMap = buildHealth(componentName, componentHealthResult);
+                    if (healthMap.get("status").equals("DOWN")) {
+                        jsonMap.put("status", "DOWN");
+                    } else {
+                        jsonMap.put("status", "UP");
+                    }
+                    if (StringUtil.isNotEmpty(healthMap.get("version"))) {
+                        component.put("version", healthMap.get("version"));
+                        healthMap.remove("version");
+                    }
+                    component.put("health", healthMap);
+                }
+            }
+            jsonMap.put("components", componentList);
         } catch (NacosException e) {
             e.printStackTrace();
         }
-        return version;
+        return new JSONObject(jsonMap);
     }
 
     @Override
@@ -232,7 +269,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     }
 
     @Override
-    public BaseResult benchmarkTest(String test, boolean isSaved, String category) {
+    public BaseResult benchmarkTest(boolean isSaved) {
 
         BaseResult result = null;
         Map<String, Object> statistics = Maps.newLinkedHashMap();
@@ -242,7 +279,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, Map<String, String>> druidResult;
         Map<String, Map<String, String>> hbaseResult;
         try {
-            List<Map<String, Object>> dataSetlist = generateDatasets(category);
+            List<Map<String, Object>> dataSetlist = datasetService.getDatasets(Lists.newArrayList(), BUILD_IN_BENCHMARK, null);
             List<String> druidIdList = Lists.newLinkedList();
             List<String> ckIdList = Lists.newLinkedList();
             List<String> engineIdList = Lists.newLinkedList();
@@ -276,15 +313,15 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                 }
             }
 
-            Optional.of(new File(dialectWriter.buildPocSQL(druidSqlList, DBEngineType.DRUID.getValue(), category)));
-            Optional.of(new File(dialectWriter.buildPocSQL(ckSqlList, DBEngineType.CLICKHOUSE.getValue(), category)));
-            Optional.of(new File(dialectWriter.buildPocSQL(hbaseSqlList, DBEngineType.HBASE.getValue(), category)));
-            Optional.of(new File(dialectWriter.buildPocSQL(engineSqlList, DBEngineType.QGW.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(druidSqlList, DBEngineType.DRUID.getValue(), BUILD_IN_BENCHMARK)));
+            Optional.of(new File(dialectWriter.buildPocSQL(ckSqlList, DBEngineType.CLICKHOUSE.getValue(), BUILD_IN_BENCHMARK)));
+            Optional.of(new File(dialectWriter.buildPocSQL(hbaseSqlList, DBEngineType.HBASE.getValue(), BUILD_IN_BENCHMARK)));
+            Optional.of(new File(dialectWriter.buildPocSQL(engineSqlList, DBEngineType.QGW.getValue(), BUILD_IN_BENCHMARK)));
 
-            clickhouseResult = buildResult(DBEngineType.CLICKHOUSE.getValue(), ckIdList, isSaved, test);
-            druidResult = buildResult(DBEngineType.DRUID.getValue(), druidIdList, isSaved, test);
-            engineResult = buildResult(DBEngineType.QGW.getValue(), engineIdList, isSaved, test);
-            hbaseResult = buildResult(DBEngineType.HBASE.getValue(), hbaseIdList, isSaved, test);
+            clickhouseResult = buildResult(DBEngineType.CLICKHOUSE.getValue(), ckIdList, isSaved);
+            druidResult = buildResult(DBEngineType.DRUID.getValue(), druidIdList, isSaved);
+            engineResult = buildResult(DBEngineType.QGW.getValue(), engineIdList, isSaved);
+            hbaseResult = buildResult(DBEngineType.HBASE.getValue(), hbaseIdList, isSaved);
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
@@ -304,6 +341,23 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                     String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), e.getMessage()));
         }
         return result;
+    }
+
+    private Map<String, Object> getComponentHealth() {
+        String healthCheckUrl = URLUtil.normalize(localHostAddress + ":" + serverPort + basePath + healthPath);
+        HttpResponseResult result = httpClientServiceV2.get(healthCheckUrl, httpConfig.getServerRequestTimeOut());
+        Map<String, Object> componentsHealthResult = JSON.parseObject(result.getResponseBody(), Map.class);
+        Map<String, Object> componentMap = (Map<String, Object>) componentsHealthResult.get("components");
+        return componentMap;
+    }
+
+
+    private Map<String, String> buildHealth(String componentName, Map<String, Object> map) {
+        Map<String, Object> componentMap = (Map<String, Object>) map.get(componentName);
+        Map<String, String> healthMap = (Map<String, String>) componentMap.get("details");
+        healthMap.put("status", String.valueOf(componentMap.get("status")));
+        healthMap.remove("app");
+        return healthMap;
     }
 
     private void checkCKIndexKey(String dbName, List<String> tables) {
@@ -495,20 +549,19 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         List<String> categorylist = Lists.newLinkedList();
         List<Record> list = Db.find(String.format(Objects.requireNonNull(env.getProperty("SQL_DATASETS_CATEGORY"))));
         list.forEach(record -> categorylist.add(String.valueOf(record.getColumns().get("category"))));
-        if (CollectionUtil.isNotEmpty(categorylist) && StrUtil.isNotBlank(category) && !categorylist.contains(category)) {
+        /*if (CollectionUtil.isNotEmpty(categorylist) && StrUtil.isNotBlank(category) && !categorylist.contains(category)) {
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.DATASET_CATEGORY_ERROR));
-        }
+        }*/
         return datasetService.getDatasets(Lists.newArrayList(), category, null);
     }
 
-    private Map<String, Map<String, String>> buildResult(String executeEngine, List<String> list,
-                                                         boolean isSaved, String test) {
+    private Map<String, Map<String, String>> buildResult(String executeEngine, List<String> list, boolean isSaved) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newLinkedHashMap();
         FileWriter writer = null;
         String benchFileName = executeEngine + "_queries_" + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql";
-        if (isSaved && BenchmarkOption.SQL_EXECUTION.getValue().equalsIgnoreCase(test)) {
+        if (isSaved) {
             File file = new File("benchmark" + File.separator + benchFileName + "." + IdUtil.simpleUUID() + ".dat");
             writer = FileWriter.create(file);
         }
