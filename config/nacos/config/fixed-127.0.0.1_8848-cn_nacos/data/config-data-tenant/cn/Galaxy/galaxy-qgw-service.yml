@@ -131,10 +131,11 @@ hos:
   multiUploadPartSize: 10485760
 ## knowledge value 格式 name:版本
 knowledge:
+  corn: 0 0 */1 * * ?
   ipLocation:
-      userDefined: ip_user_defined:latest
-      builtIn: ip_builtin:latest
-      asn: asn_builtin:latest
+    userDefined: 004390bc-3135-4a6f-a492-3662ecb9e289_latest
+    builtIn: 64af7077-eb9b-4b8f-80cf-2ceebc89bea9_latest
+    asn: f9f6bc91-2142-4673-8249-e097c00fe1ea_latest
 ## http pool config
 http:
   pool:
