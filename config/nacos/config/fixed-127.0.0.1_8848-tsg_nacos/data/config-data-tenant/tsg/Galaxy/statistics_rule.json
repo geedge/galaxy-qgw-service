@@ -12,7 +12,6 @@
         "__time"
       ],
       "dimensions": [
-        "vsys_id",
         "client_ip",
         "server_ip",
         "server_fqdn",
@@ -55,7 +54,63 @@
     },
     "measurements": {
       "granularity": 15,
-      "ingestion_delay": 15
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "bytes": "bytes",
+          "new_c2s_flows": "flows",
+          "new_s2c_flows": "flows",
+          "new_in_sessions": "sessions",
+          "new_out_sessions": "sessions",
+          "sessions": "sessions",
+          "new_unestablished_sessions": "sessions",
+          "syn_pkts": "packets"
+        },
+        "RATE": {
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "bytes": "Bps",
+          "new_c2s_flows": "fps",
+          "new_s2c_flows": "fps",
+          "new_in_sessions": "sps",
+          "new_out_sessions": "sps",
+          "sessions": "sps",
+          "new_unestablished_sessions": "sps",
+          "syn_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps",
+          "bytes": "bps"
+        },
+        "APPROX_COUNT_DISTINCT_HLLD": {
+          "session_identifier_sketch": "sessions",
+          "client_ip_sketch": "short",
+          "server_ip_sketch": "short"
+        },
+        "MEDIAN_HDR": {
+          "in_latency_ms_sketch": "ms",
+          "out_latency_ms_sketch": "ms",
+          "latency_ms_sketch": "ms"
+        },
+        "P95_PERCENTILE_HDR": {
+          "in_latency_ms_sketch": "ms",
+          "out_latency_ms_sketch": "ms",
+          "latency_ms_sketch": "ms"
+        },
+        "P99_PERCENTILE_HDR": {
+          "in_latency_ms_sketch": "ms",
+          "out_latency_ms_sketch": "ms",
+          "latency_ms_sketch": "ms"
+        },
+        "PERCENTILES_HDR": {
+          "in_latency_ms_sketch": "ms",
+          "out_latency_ms_sketch": "ms",
+          "latency_ms_sketch": "ms"
+        }
+      }
     }
   },
   "fields": [
@@ -226,7 +281,8 @@
       "label": "Incoming Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -237,7 +293,8 @@
       "label": "Outgoing Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -248,7 +305,8 @@
       "label": "Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -259,7 +317,8 @@
       "label": "New C2S Flows",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -270,7 +329,8 @@
       "label": "New S2C Flows",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -281,7 +341,8 @@
       "label": "New Incoming Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -292,7 +353,8 @@
       "label": "New Outgoing Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -303,7 +365,8 @@
       "label": "Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -314,7 +377,8 @@
       "label": "New Unestablished Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -325,7 +389,8 @@
       "label": "SYN Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -333,7 +398,7 @@
     },
     {
       "name": "session_identifier_sketch",
-      "label": "Session Identifier Sketch",
+      "label": "Session IDs",
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
@@ -346,7 +411,7 @@
     },
     {
       "name": "client_ip_sketch",
-      "label": "Client IP Sketch",
+      "label": "Client IPs",
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
@@ -359,7 +424,7 @@
     },
     {
       "name": "server_ip_sketch",
-      "label": "Server IP Sketch",
+      "label": "Server IPs",
       "doc": {
         "constraints": {
           "type": "HLLDSketchMerge",
@@ -372,12 +437,12 @@
     },
     {
       "name": "in_latency_ms_sketch",
-      "label": "Incoming Latency(ms) Sketch",
+      "label": "Incoming Latency",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
           "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR,MEDIAN_HDR"
+          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR"
         },
         "visibility": "enabled"
       },
@@ -385,12 +450,12 @@
     },
     {
       "name": "out_latency_ms_sketch",
-      "label": "Outgoing Latency(ms) Sketch",
+      "label": "Outgoing Latency",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
           "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR,MEDIAN_HDR"
+          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR"
         },
         "visibility": "enabled"
       },
@@ -398,12 +463,12 @@
     },
     {
       "name": "latency_ms_sketch",
-      "label": "Latency(ms) Sketch",
+      "label": "Latency",
       "doc": {
         "constraints": {
           "type": "HdrHistogramSketchMerge",
           "metric_type": "histogram",
-          "aggregation_functions": "PERCENTILES_HDR,MEDIAN_HDR"
+          "aggregation_functions": "PERCENTILES_HDR, MEDIAN_HDR, P95_PERCENTILE_HDR,P99_PERCENTILE_HDR "
         },
         "visibility": "enabled"
       },

@@ -17,10 +17,10 @@
         "sf_profile_id"
       ],
       "metrics": [
-        "sent_pkts",
         "sent_bytes",
-        "recv_pkts",
-        "recv_bytes"
+        "recv_bytes",
+        "sent_pkts",
+        "recv_pkts"
       ],
       "filters": [
         "device_id",
@@ -36,7 +36,25 @@
     },
     "measurements": {
       "granularity": 1,
-      "ingestion_delay": 5
+      "ingestion_delay": 5,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sent_bytes": "bytes",
+          "recv_bytes": "bytes",
+          "sent_pkts": "packets",
+          "recv_pkts": "packets"
+        },
+        "RATE": {
+          "sent_bytes": "Bps",
+          "recv_bytes": "Bps",
+          "sent_pkts": "pps",
+          "recv_pkts": "pps"
+        },
+        "BITRATE": {
+          "sent_bytes": "bps",
+          "recv_bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -135,7 +153,8 @@
       "label": "Bytes Received",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -146,7 +165,8 @@
       "label": "Bytes Sent",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -157,7 +177,8 @@
       "label": "Packets Received",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -168,7 +189,8 @@
       "label": "Packets Sent",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },

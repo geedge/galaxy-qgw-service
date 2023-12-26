@@ -38,7 +38,27 @@
     },
     "measurements": {
       "granularity": 1,
-      "ingestion_delay": 15
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "hit_count": "sessions",
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "in_pkts": "packets",
+          "out_pkts": "packets"
+        },
+        "RATE": {
+          "hit_count": "sps",
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "in_pkts": "pps",
+          "out_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -220,7 +240,8 @@
       "label": "Hit Count",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -231,7 +252,8 @@
       "label": "Incoming Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -242,7 +264,8 @@
       "label": "Outgoing Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -253,7 +276,8 @@
       "label": "Incoming Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -264,7 +288,8 @@
       "label": "Outgoing Packets",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },

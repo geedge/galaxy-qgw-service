@@ -118,20 +118,8 @@
         "doh_rr"
       ],
       "metrics": [
-        "start_timestamp_ms",
-        "end_timestamp_ms",
-        "device_id",
-        "data_center",
-        "sled_ip",
-        "device_group",
-        "address_type",
-        "decoded_as",
-        "vsys_id",
-        "proxy_rule_list",
-        "proxy_action",
         "client_ip",
         "client_port",
-        "client_os_desc",
         "client_geolocation",
         "client_asn",
         "subscriber_id",
@@ -139,22 +127,17 @@
         "imsi",
         "apn",
         "phone_number",
-        "packet_capture_file",
         "in_src_mac",
         "out_src_mac",
         "server_ip",
         "server_port",
-        "server_os_desc",
         "server_geolocation",
         "server_asn",
         "server_fqdn",
         "server_domain",
         "in_dest_mac",
         "out_dest_mac",
-        "app_transition",
-        "app_debug_info",
         "app",
-        "app_content",
         "decoded_path",
         "sent_pkts",
         "received_pkts",
@@ -162,67 +145,21 @@
         "received_bytes",
         "duration_ms",
         "tcp_handshake_latency_ms",
-        "tcp_c2s_ip_fragments",
-        "tcp_s2c_ip_fragments",
-        "tcp_c2s_lost_bytes",
-        "tcp_s2c_lost_bytes",
-        "tcp_c2s_o3_pkts",
-        "tcp_s2c_o3_pkts",
-        "tcp_c2s_rtx_pkts",
-        "tcp_s2c_rtx_pkts",
-        "tcp_c2s_rtx_bytes",
-        "tcp_s2c_rtx_bytes",
         "tcp_rtt_ms",
         "http_url",
         "http_host",
-        "http_request_line",
-        "http_response_line",
-        "http_proxy_flag",
-        "http_sequence",
-        "http_cookie",
-        "http_referer",
         "http_user_agent",
         "http_request_content_length",
-        "http_request_content_type",
         "http_response_content_length",
-        "http_response_content_type",
-        "http_set_cookie",
-        "http_version",
         "http_status_code",
         "http_response_latency_ms",
         "http_session_duration_ms",
-        "http_action_file_size",
         "doh_url",
         "doh_host",
-        "doh_url",
-        "doh_host",
-        "doh_request_line",
-        "doh_response_line",
-        "doh_cookie",
-        "doh_referer",
         "doh_user_agent",
         "doh_content_length",
-        "doh_content_type",
-        "doh_set_cookie",
-        "doh_version",
         "doh_message_id",
-        "doh_qr",
-        "doh_opcode",
-        "doh_aa",
-        "doh_tc",
-        "doh_rd",
-        "doh_ra",
-        "doh_rcode",
-        "doh_qdcount",
-        "doh_ancount",
-        "doh_nscount",
-        "doh_arcount",
-        "doh_qname",
-        "doh_qtype",
-        "doh_qclass",
-        "doh_cname",
-        "doh_sub",
-        "doh_rr"
+        "doh_qname"
       ],
       "filters": [
         "session_id",
@@ -277,17 +214,6 @@
         "received_pkts",
         "sent_bytes",
         "received_bytes",
-        "tcp_c2s_ip_fragments",
-        "tcp_s2c_ip_fragments",
-        "tcp_c2s_lost_bytes",
-        "tcp_s2c_lost_bytes",
-        "tcp_c2s_o3_pkts",
-        "tcp_s2c_o3_pkts",
-        "tcp_c2s_rtx_pkts",
-        "tcp_s2c_rtx_pkts",
-        "tcp_c2s_rtx_bytes",
-        "tcp_s2c_rtx_bytes",
-        "tcp_rtt_ms",
         "tcp_rtt_ms",
         "http_url",
         "http_host",
@@ -396,43 +322,214 @@
       "$ref": "public_schema_info.json#/tunnel_type"
     },
     "measurements": {
-      "aggregates": {
-        "sessions": [
-          {
-            "fn": "count",
-            "column": "log_id",
-            "value": "sessions",
-            "label": "Sessions",
-            "unit": "sessions"
-          }
-        ],
-        "bytes": [
-          {
-            "fn": "sum",
-            "column": "sent_bytes + received_bytes",
-            "value": "bytes",
-            "label": "Bytes",
-            "unit": "bytes"
-          }
-        ],
-        "incoming_bytes": [
-          {
-            "fn": "sum",
-            "column": "if(bitAnd(flags, 8) = 8, received_bytes, sent_bytes)",
-            "value": "incoming_bytes",
-            "label": "Incoming Bytes",
-            "unit": "bytes"
-          }
-        ],
-        "outgoing_bytes": [
-          {
-            "fn": "sum",
-            "column": "if(bitAnd(flags, 8) = 8, sent_bytes, received_bytes)",
-            "value": "outgoing_bytes",
-            "label": "Outgoing Bytes",
-            "unit": "bytes"
-          }
-        ]
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes"
+        },
+        "RATE": {
+          "sent_pkts": "pps",
+          "received_pkts": "pps",
+          "sent_bytes": "Bps",
+          "received_bytes": "Bps",
+          "tcp_c2s_lost_bytes": "Bps",
+          "tcp_s2c_lost_bytes": "Bps",
+          "tcp_c2s_o3_pkts": "pps",
+          "tcp_s2c_o3_pkts": "pps",
+          "tcp_c2s_rtx_pkts": "pps",
+          "tcp_s2c_rtx_pkts": "pps",
+          "tcp_c2s_rtx_bytes": "Bps",
+          "tcp_s2c_rtx_bytes": "Bps",
+          "http_request_content_length": "Bps",
+          "http_response_content_length": "Bps"
+        },
+        "BITRATE": {
+          "sent_bytes": "bps",
+          "received_bytes": "bps",
+          "tcp_c2s_lost_bytes": "bps",
+          "tcp_s2c_lost_bytes": "bps",
+          "tcp_c2s_rtx_bytes": "bps",
+          "tcp_s2c_rtx_bytes": "bps",
+          "http_request_content_length": "bps",
+          "http_response_content_length": "bps"
+        },
+        "MAX": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms",
+          "dtls_handshake_latency_ms": "ms"
+        },
+        "MIN": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms"
+        },
+        "AVG": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms"
+        },
+        "MEDIAN": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms"
+        },
+        "P95_PERCENTILE": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms"
+        },
+        "P99_PERCENTILE": {
+          "sent_pkts": "packets",
+          "received_pkts": "packets",
+          "sent_bytes": "bytes",
+          "received_bytes": "bytes",
+          "duration_ms": "ms",
+          "tcp_handshake_latency_ms": "ms",
+          "tcp_c2s_lost_bytes": "bytes",
+          "tcp_s2c_lost_bytes": "bytes",
+          "tcp_c2s_o3_pkts": "packets",
+          "tcp_s2c_o3_pkts": "packets",
+          "tcp_c2s_rtx_pkts": "packets",
+          "tcp_s2c_rtx_pkts": "packets",
+          "tcp_c2s_rtx_bytes": "bytes",
+          "tcp_s2c_rtx_bytes": "bytes",
+          "tcp_rtt_ms": "ms",
+          "http_request_content_length": "bytes",
+          "http_response_content_length": "bytes",
+          "http_response_latency_ms": "ms",
+          "http_session_duration_ms": "ms"
+        },
+        "field_discovery_metric": {
+          "sessions": [
+            {
+              "fn": "count",
+              "column": "log_id",
+              "value": "sessions",
+              "label": "Sessions",
+              "unit": "sessions"
+            }
+          ],
+          "bytes": [
+            {
+              "fn": "sum",
+              "column": "sent_bytes + received_bytes",
+              "value": "bytes",
+              "label": "Bytes",
+              "unit": "bytes"
+            }
+          ],
+          "incoming_bytes": [
+            {
+              "fn": "sum",
+              "column": "if(bitAnd(flags, 8) = 8, received_bytes, sent_bytes)",
+              "value": "incoming_bytes",
+              "label": "Incoming Bytes",
+              "unit": "bytes"
+            }
+          ],
+          "outgoing_bytes": [
+            {
+              "fn": "sum",
+              "column": "if(bitAnd(flags, 8) = 8, sent_bytes, received_bytes)",
+              "value": "outgoing_bytes",
+              "label": "Outgoing Bytes",
+              "unit": "bytes"
+            }
+          ]
+        }
       }
     }
   },
@@ -548,7 +645,8 @@
       "label": "Duration (ms)",
       "doc": {
         "constraints": {
-          "type": "decimal"
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
         "visibility": "enabled",
         "ttl": null
@@ -560,7 +658,8 @@
       "label": "TCP Handshake Latency (ms)",
       "doc": {
         "constraints": {
-          "type": "decimal"
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
         "visibility": "enabled",
         "ttl": null
@@ -1130,6 +1229,9 @@
       "label": "Client Port",
       "doc": {
         "visibility": "enabled",
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
         "ttl": null
       },
       "type": "int"
@@ -1157,6 +1259,9 @@
       "label": "Client ASN",
       "doc": {
         "visibility": "enabled",
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
         "ttl": null
       },
       "type": "long"
@@ -1229,6 +1334,9 @@
       "label": "Server Port",
       "doc": {
         "visibility": "enabled",
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
         "ttl": null
       },
       "type": "int"
@@ -1256,6 +1364,9 @@
       "label": "Server ASN",
       "doc": {
         "visibility": "enabled",
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
         "ttl": null
       },
       "type": "long"
@@ -1517,7 +1628,8 @@
       "label": "Round-trip Time",
       "doc": {
         "constraints": {
-          "type": "decimal"
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
         "visibility": "enabled",
         "ttl": null
@@ -1827,6 +1939,9 @@
       "label": "HTTP.Status Code",
       "doc": {
         "visibility": "enabled",
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
         "ttl": null
       },
       "type": "int"
@@ -1836,7 +1951,8 @@
       "label": "HTTP.Response Latency (ms)",
       "doc": {
         "constraints": {
-          "type": "decimal"
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
         "visibility": "enabled",
         "ttl": null
@@ -1860,7 +1976,8 @@
       "label": "HTTP.Session Duration (ms)",
       "doc": {
         "constraints": {
-          "type": "decimal"
+          "type": "decimal",
+          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
         "visibility": "enabled",
         "ttl": null
