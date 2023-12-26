@@ -33,7 +33,27 @@
     },
     "measurements": {
       "granularity": 300,
-      "ingestion_delay": 15
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "sessions": "sessions",
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "in_pkts": "packets",
+          "out_pkts": "packets"
+        },
+        "RATE": {
+          "sessions": "sps",
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "in_pkts": "pps",
+          "out_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -137,7 +157,11 @@
       "name": "sessions",
       "label": "Sessions",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        }
       },
       "type": "long"
     },
@@ -145,7 +169,11 @@
       "name": "in_bytes",
       "label": "Incoming Bytes",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
       },
       "type": "long"
     },
@@ -153,7 +181,11 @@
       "name": "in_pkts",
       "label": "Incoming Packets",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        }
       },
       "type": "long"
     },
@@ -161,7 +193,11 @@
       "name": "out_bytes",
       "label": "Outgoing Bytes",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
       },
       "type": "long"
     },
@@ -169,7 +205,11 @@
       "name": "out_pkts",
       "label": "Outgoing Packets",
       "doc": {
-        "visibility": "enabled"
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        }
       },
       "type": "long"
     }

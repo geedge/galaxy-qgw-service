@@ -301,7 +301,7 @@ public class JobExecuteService implements EnvironmentAware {
         if (StringUtil.isNotEmpty(metric)) {
             Object fn = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN);
             String measurements = databaseService.getValueByKeyInSchemaDoc(dataSource, "measurements");
-            List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
+            List<Map<String, String>> read = JsonPath.read(measurements, "$.field_discovery_metric['" + metric + "'][?(@.fn == '" + fn + "')]");
             if (!read.isEmpty()) {
                 String column = read.get(0).get("column");
                 totalMetric = read.get(0).get("fn") + "(" + column + ")";
@@ -354,7 +354,7 @@ public class JobExecuteService implements EnvironmentAware {
                 Object fn = request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN);
                 if (StringUtil.isNotEmpty(metric)) {
                     String measurements = databaseService.getValueByKeyInSchemaDoc(request.getDataSource(), "measurements");
-                    List<Map<String, String>> read = JsonPath.read(measurements, "$.aggregates['" + metric + "'][?(@.fn == '" + fn + "')]");
+                    List<Map<String, String>> read = JsonPath.read(measurements, "$.field_discovery_metric['" + metric + "'][?(@.fn == '" + fn + "')]");
                     if (!read.isEmpty()) {
                         fnDefault = fn.toString();
                         value = read.get(0).get("value");

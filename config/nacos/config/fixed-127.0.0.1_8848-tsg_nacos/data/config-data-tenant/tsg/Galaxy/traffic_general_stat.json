@@ -37,7 +37,33 @@
     },
     "measurements": {
       "granularity": 5,
-      "ingestion_delay": 15
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "asymmetric_c2s_flows": "flows",
+          "asymmetric_s2c_flows": "flows",
+          "sessions": "sessions",
+          "closed_sessions": "sessions",
+          "in_pkts": "packets",
+          "out_pkts": "packets"
+        },
+        "RATE": {
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "asymmetric_c2s_flows": "fps",
+          "asymmetric_s2c_flows": "fps",
+          "sessions": "sps",
+          "closed_sessions": "sps",
+          "in_pkts": "pps",
+          "out_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -109,7 +135,8 @@
       "label": "Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -131,7 +158,8 @@
       "label": "Closed Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -143,7 +171,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       }
@@ -154,7 +183,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       }
@@ -165,7 +195,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       }
@@ -176,7 +207,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       }
@@ -187,7 +219,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       }
@@ -198,7 +231,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       }
@@ -209,7 +243,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       }
@@ -220,7 +255,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       }
@@ -231,7 +267,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       }
@@ -242,7 +279,8 @@
       "type": "long",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       }

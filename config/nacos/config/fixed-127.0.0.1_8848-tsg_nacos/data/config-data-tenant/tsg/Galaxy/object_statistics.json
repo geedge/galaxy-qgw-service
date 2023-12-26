@@ -12,7 +12,6 @@
         "__time"
       ],
       "dimensions": [
-        "vsys_id",
         "device_id",
         "device_group",
         "data_center",
@@ -48,7 +47,30 @@
     },
     "measurements": {
       "granularity": 15,
-      "ingestion_delay": 15
+      "ingestion_delay": 15,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "bytes": "bytes",
+          "new_in_sessions": "sessions",
+          "new_out_sessions": "sessions",
+          "sessions": "sessions"
+        },
+        "RATE": {
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "bytes": "Bps",
+          "new_in_sessions": "sps",
+          "new_out_sessions": "sps",
+          "sessions": "sps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps",
+          "bytes": "bps"
+        }
+      }
     }
   },
   "fields": [
@@ -222,7 +244,8 @@
       "label": "Incoming Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -233,7 +256,8 @@
       "label": "Outgoing Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -244,7 +268,8 @@
       "label": "Bytes",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
         },
         "visibility": "enabled"
       },
@@ -255,7 +280,8 @@
       "label": "New Incoming Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -266,7 +292,8 @@
       "label": "New Outgoing Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },
@@ -277,7 +304,8 @@
       "label": "Sessions",
       "doc": {
         "constraints": {
-          "metric_type": "counter"
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
         },
         "visibility": "enabled"
       },

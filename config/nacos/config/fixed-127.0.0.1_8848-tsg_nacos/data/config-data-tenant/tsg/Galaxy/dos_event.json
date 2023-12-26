@@ -38,7 +38,7 @@
       "log_id"
     ],
     "measurements": {
-      "aggregates": {
+      "field_discovery_metric": {
         "sessions": [
           {
             "fn": "count",
