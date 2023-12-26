@@ -18,7 +18,7 @@ import java.util.Objects;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DSLProfile implements Serializable {
+public class DSLQueryContext implements Serializable {
 
     private String name;
     private String granularity;

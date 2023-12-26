@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.geedgenetworks.utils.Encodes;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import lombok.Data;
 
 import java.util.Map;
@@ -11,26 +12,25 @@ import java.util.Optional;
 
 @Data
 public abstract class AbstractDataSourceDialect implements Dialect {
-    abstract  void init();
+    protected SQLQueryContext sqlQueryContext;
+    public AbstractDataSourceDialect(SQLQueryContext sqlQueryContext) {
+        this.sqlQueryContext = sqlQueryContext;
+    }
+
+    abstract void init();
 
     /**
-     * SQL查询语句转换为方言所认知的查询语句。
+     * Query SQL statement to be converted the SQL that can be executed by the data source.
      * @param sql
      * @return
      */
     abstract  String convertQuery(String sql);
 
     /**
-     * 基于RBO(rule-base optimizer)获取最优化的SQL
+     *  Generate the best query statement by RBO(Rule Based Optimization)
      * @return
      */
-    abstract  String getBestQuery();
-
-    /**
-     * 获取原始SQL语句，不做规则转换，直接下推
-     * @return
-     */
-    abstract  String getOriginalQuery();
+    abstract  String generateRuleBaseOptimizedQuery();
 
     /**
      * 获取样例SQL，目标生成无Filter语句。
@@ -55,7 +55,7 @@ public abstract class AbstractDataSourceDialect implements Dialect {
     @Override
     final public BaseResult executeQuery() {
         init();
-        String transformedSQL = convertQuery(getBestQuery());
+        String transformedSQL = convertQuery(generateRuleBaseOptimizedQuery());
         return generateBaseResult(transformedSQL, Optional.of("OK"));
     }
 
@@ -63,7 +63,6 @@ public abstract class AbstractDataSourceDialect implements Dialect {
     final public BaseResult executeSampleQuery() {
         init();
         String transformedSQL = getSampleQuery();
-
         return generateBaseResult(transformedSQL, Optional.of("OK"));
     }
 
@@ -84,8 +83,8 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         init();
         String transformedSQL = getExplainQuery();
         Map sqlMap = Maps.newHashMap();
-        sqlMap.put("OriginalSQL", Encodes.encodeBase64(getOriginalQuery().getBytes()));
-        sqlMap.put("transformedSQL", Encodes.encodeBase64(transformedSQL.getBytes()));
+        sqlMap.put("RawSQL", Encodes.encodeBase64(sqlQueryContext.getRawSQL().getBytes()));
+        sqlMap.put("TransformedSQL", Encodes.encodeBase64(transformedSQL.getBytes()));
         return generateBaseResult(transformedSQL, Optional.of(JSON.toJSONString(sqlMap)));
     }
 
@@ -94,14 +93,13 @@ public abstract class AbstractDataSourceDialect implements Dialect {
     final public BaseResult executeSyntaxCheck() {
         init();
         String transformedSQL = getSampleQuery();
-        return generateBaseResult(transformedSQL, Optional.of(getOriginalQuery()));
+        return generateBaseResult(transformedSQL, Optional.of(sqlQueryContext.getRawSQL()));
     }
 
     @Override
     final public BaseResult executeAdministrativeQuery() {
         init();
-        String sql = getOriginalQuery();
-        return generateBaseResult(sql, Optional.of("OK"));
+        return generateBaseResult(sqlQueryContext.getRawSQL(), Optional.of("OK"));
     }
 
 }

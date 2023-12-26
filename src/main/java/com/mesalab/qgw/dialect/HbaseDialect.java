@@ -17,7 +17,7 @@ import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class HbaseDialect extends AbstractDataSourceDialect {
-    public QueryContext param;
     public BaseResult baseResult;
     private Stopwatch watch = Stopwatch.createUnstarted();
     private static final String URL_PREFIX = "jdbc:phoenix:";
@@ -48,6 +47,10 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private final static Map<String, String> metaMap = Maps.newHashMap();
     public static Properties PROPERTIES = new Properties();
+
+    public HbaseDialect(SQLQueryContext sqlQueryContext) {
+        super(sqlQueryContext);
+    }
 
     static {
         try {
@@ -75,18 +78,16 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         metaMap.put("VARCHAR", DataTypeMapping.STRING);
     }
 
-    public HbaseDialect(QueryContext param) {
-        this.param = param;
-    }
+
 
     @Override
     void init() {
-        if (StringUtil.isNotEmpty(param.getDbQuerySource())) {
-            param.getDbQuerySource().setExecSQL(param.getDbQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getDbQuerySource())) {
+            sqlQueryContext.getDbQuerySource().setExecSQL(sqlQueryContext.getDbQuerySource().getSqlBody());
         } else {
             SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(param.getQuery());
-            param.setDbQuerySource(sqlQuerySource);
+            sqlQuerySource.setExecSQL(sqlQueryContext.getRawSQL());
+            sqlQueryContext.setDbQuerySource(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
     }
@@ -106,18 +107,13 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    String getBestQuery() {
+    String generateRuleBaseOptimizedQuery() {
         return new Optimizer().generateQueryLimit().generateSQL().build();
     }
 
     @Override
-    String getOriginalQuery() {
-        return param.getQuery();
-    }
-
-    @Override
     String getSampleQuery() {
-        return convertQuery(param.getQuery());
+        return convertQuery(sqlQueryContext.getRawSQL());
     }
 
     @Override
@@ -145,7 +141,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), OutputMode.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(status, CommonErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), String.valueOf(results.get("message")),
-                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), param.getFormat());
+                    results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), sqlQueryContext.getFormat());
         }
         return baseResult;
     }
@@ -229,7 +225,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
          */
         public Optimizer generateQueryLimit() {
 
-            setDefaultResultRows(StringUtil.isEmpty(param.getEngineQuerySource()) ? param.getDbQuerySource() : param.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
+            setDefaultResultRows(StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) ? sqlQueryContext.getDbQuerySource() : sqlQueryContext.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
             return this;
         }
 
@@ -242,7 +238,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         }
 
         public Optimizer generateSQL() {
-            SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+            SQLQuerySource sqlQuerySource = sqlQueryContext.getDbQuerySource();
             sql = sqlQuerySource.getSqlBody();
             return this;
         }

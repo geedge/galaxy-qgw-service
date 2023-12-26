@@ -8,9 +8,9 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QueryContext implements Serializable {
+public class SQLQueryContext implements Serializable {
 
-    private String query;
+    private String rawSQL;
     private String option;
     private Boolean sampled;
     private String format;
@@ -27,8 +27,8 @@ public class QueryContext implements Serializable {
         return resultId;
     }
 
-    public boolean queryParamIsNull() {
-        return StringUtil.isBlank(query);
+    public boolean rawSQLIsNull() {
+        return StringUtil.isBlank(rawSQL);
     }
 
     public void setResultId(String resultId) {

@@ -310,7 +310,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         for (String tableName : tables) {
             Schema schema = databaseService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
-            BaseResult indexKeyResult = getBaseResultByEngine(QueryContext.builder().option(QueryOption.REAL_TIME.getValue()).query(String.format(Objects.requireNonNull(env.getProperty("TABLE_INDEX_KEY")), tableName, clickHouseHttpSource.getDbName())).build());
+            BaseResult indexKeyResult = getBaseResultByEngine(SQLQueryContext.builder().option(QueryOption.REAL_TIME.getValue()).rawSQL(String.format(Objects.requireNonNull(env.getProperty("TABLE_INDEX_KEY")), tableName, clickHouseHttpSource.getDbName())).build());
             if (HttpStatusCodeEnum.SUCCESS.getCode() != indexKeyResult.getStatus()) {
                 log.error("The Table[" + tableName + "] index key query failed" + indexKeyResult.getMessage());
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
@@ -331,7 +331,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         }
     }
 
-    private BaseResult getBaseResultByEngine(QueryContext queryProfile) {
+    private BaseResult getBaseResultByEngine(SQLQueryContext queryProfile) {
         return sqlSyncQueryService.executeQuery(queryProfile);
     }
 
@@ -349,7 +349,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         for (String tableName : tables) {
             Schema schema = databaseService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
-            BaseResult baseResult = getBaseResultByEngine(QueryContext.builder().option(QueryOption.REAL_TIME.getValue()).query("describe " + tableName).build());
+            BaseResult baseResult = getBaseResultByEngine(SQLQueryContext.builder().option(QueryOption.REAL_TIME.getValue()).rawSQL("describe " + tableName).build());
             if (HttpStatusCodeEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
@@ -468,7 +468,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
 
     private List<String> getClusterAddressOfCK() {
         List<String> endpointList = new ArrayList<>();
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
         if (baseResult.isSuccess()) {
             List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
             for (Map<String, Object> datum : data) {

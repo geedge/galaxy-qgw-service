@@ -57,9 +57,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private final DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
     private final EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private final HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
-    public QueryContext queryContext;
     public BaseResult baseResult;
-
     private final static double PERCENT_UP_LINE = 0.98;
     private final static double PERCENT_DOWN_LINE = 0.01;
     private final static String DB_EXCEPTION_START = "e.displayText() = DB::Exception: ";
@@ -85,19 +83,19 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         metaMap.put("DateTime", DataTypeMapping.TIMESTAMP);
     }
 
-    public ClickHouseDialect(QueryContext queryContext) {
-        this.queryContext = queryContext;
+    public ClickHouseDialect(SQLQueryContext queryContext) {
+        super(queryContext);
     }
 
 
     @Override
     public void init() {
-        if (StringUtil.isNotEmpty(queryContext.getDbQuerySource())) {
-            queryContext.getDbQuerySource().setExecSQL(queryContext.getDbQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getDbQuerySource())) {
+            sqlQueryContext.getDbQuerySource().setExecSQL(sqlQueryContext.getDbQuerySource().getSqlBody());
         } else {
             SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(queryContext.getQuery());
-            queryContext.setDbQuerySource(sqlQuerySource);
+            sqlQuerySource.setExecSQL(sqlQueryContext.getRawSQL());
+            sqlQueryContext.setDbQuerySource(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
     }
@@ -115,14 +113,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public String getBestQuery() {
+    public String generateRuleBaseOptimizedQuery() {
         return new Optimizer().generateQueryLimit().
                 generateSQL().generateSubQuery().generateTableAlias().generateApproximation().build();
-    }
-
-    @Override
-    public String getOriginalQuery() {
-        return queryContext.getQuery();
     }
 
     /**
@@ -132,19 +125,19 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      */
     @Override
     public String getSampleQuery() {
-        String sampleSQL = queryContext.getDbQuerySource().getSqlBody();
+        String sampleSQL = sqlQueryContext.getDbQuerySource().getSqlBody();
         try {
             sampleSQL = convertQuery(convertSampleSql(sampleSQL));
         } catch (JSQLParserException e) {
             log.error("Sample sql error {}, execute original sql: {}, error is: {} ",
-                    sampleSQL, sampleSQL = queryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+                    sampleSQL, sampleSQL = sqlQueryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sampleSQL;
     }
 
     @Override
     String getExplainQuery() {
-        return "explain " + convertQuery(getBestQuery());
+        return "explain " + convertQuery(generateRuleBaseOptimizedQuery());
     }
 
     @Override
@@ -172,10 +165,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         String tableName = "processes";
         tableNames.add(tableName);
         String sql = StrUtil.format("select elapsed,total_rows_approx,read_rows from system.{} where query_id='{}'", tableName, queryId);
-        queryContext.setQuery(sql);
-        sqlQuerySource.setExecSQL(queryContext.getQuery());
+        sqlQueryContext.setRawSQL(sql);
+        sqlQuerySource.setExecSQL(sqlQueryContext.getRawSQL());
         sqlQuerySource.setTableNames(tableNames);
-        queryContext.setDbQuerySource(sqlQuerySource);
+        sqlQueryContext.setDbQuerySource(sqlQuerySource);
         BaseResult baseResult = generateBaseResult(sql, Optional.of("ok"));
         Map<String, Object> result = new HashMap<>(16);
         if (!baseResult.isSuccess()) {
@@ -329,13 +322,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         public Optimizer generateQueryLimit() {
-            if (StringUtil.isEmpty(queryContext.getEngineQuerySource())) {
-                setDefaultResultRows(queryContext.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
-                setMaxCacheResultRows(queryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+            if (StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource())) {
+                setDefaultResultRows(sqlQueryContext.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(sqlQueryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
             } else {
-                setDefaultResultRows(queryContext.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
-                setMaxCacheResultRows(queryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
-                setMaxCacheResultRows(queryContext.getEngineQuerySource(), engineConfigSource.getMaxCacheNum());
+                setDefaultResultRows(sqlQueryContext.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(sqlQueryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+                setMaxCacheResultRows(sqlQueryContext.getEngineQuerySource(), engineConfigSource.getMaxCacheNum());
             }
             return this;
         }
@@ -380,7 +373,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         public Optimizer generateSQL() {
-            SQLQuerySource sqlQuerySource = queryContext.getDbQuerySource();
+            SQLQuerySource sqlQuerySource = sqlQueryContext.getDbQuerySource();
             sql = sqlQuerySource.getSqlBody();
             return this;
         }
@@ -484,10 +477,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          */
         public Optimizer generateSubQuery() {
 
-            if (StringUtil.isNotEmpty(queryContext.getDbQuerySource().getJoins()) || queryContext.getDbQuerySource().getTableNames().size() > 1) {
+            if (StringUtil.isNotEmpty(sqlQueryContext.getDbQuerySource().getJoins()) || sqlQueryContext.getDbQuerySource().getTableNames().size() > 1) {
                 return this;
             }
-            if (StringUtil.isEmpty(queryContext.getDbQuerySource().getWhereExpression())) {
+            if (StringUtil.isEmpty(sqlQueryContext.getDbQuerySource().getWhereExpression())) {
                 return this;
             }
             if (containAggregateFunction(sql) || containGroupBy(sql) || containDistinct(sql)) {
@@ -530,12 +523,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private String getAvailableIndexTable() throws JSQLParserException {
-            String str = databaseService.getValueByKeyInSchemaDoc(queryContext.getDbQuerySource().getTableNames().get(0), "index_table");
+            String str = databaseService.getValueByKeyInSchemaDoc(sqlQueryContext.getDbQuerySource().getTableNames().get(0), "index_table");
             String[] indexTables = StringUtil.split(str, ",");
-            if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(databaseService.getIndexKey(queryContext.getDbQuerySource().getTableNames().get(0)))) {
+            if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(databaseService.getIndexKey(sqlQueryContext.getDbQuerySource().getTableNames().get(0)))) {
                 return StringUtil.EMPTY;
             }
-            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(queryContext.getDbQuerySource().getWhereExpression().toString(), queryContext.getDbQuerySource().getAliasFields(), false, null);
+            Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(sqlQueryContext.getDbQuerySource().getWhereExpression().toString(), sqlQueryContext.getDbQuerySource().getAliasFields(), false, null);
             List<String> actualFieldOfWhere = CondExpressionHelper.getDistinctFields(expression.toString());
             table:
             for (String tempIndexTable : indexTables) {
@@ -568,25 +561,25 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          */
         private String getSubQueryByIndexTable(String indexTable) throws JSQLParserException {
 
-            String primaryKey = databaseService.getValueByKeyInSchemaDoc(queryContext.getDbQuerySource().getTableNames().get(0), "primary_key");
-            List<String> indexKey = databaseService.getIndexKey(queryContext.getDbQuerySource().getTableNames().get(0));
+            String primaryKey = databaseService.getValueByKeyInSchemaDoc(sqlQueryContext.getDbQuerySource().getTableNames().get(0), "primary_key");
+            List<String> indexKey = databaseService.getIndexKey(sqlQueryContext.getDbQuerySource().getTableNames().get(0));
             indexKey = indexKey.subList(0, indexKey.contains(primaryKey) ? indexKey.indexOf(primaryKey) + 1 : indexKey.size());
 
             List<String> indexKeyMaster = Lists.newArrayList();
-            String nameMaster = databaseService.getSchemaByName(queryContext.getDbQuerySource().getTableNames().get(0)).getName();
+            String nameMaster = databaseService.getSchemaByName(sqlQueryContext.getDbQuerySource().getTableNames().get(0)).getName();
             indexKey.forEach(o -> indexKeyMaster.add(nameMaster.concat(".").concat(o)));
 
             String subQuery = getSubquerySql(String.join(",", indexKey), indexTable);
             StringBuffer sb = new StringBuffer();
-            sb.append("select ").append(queryContext.getDbQuerySource().getSelect()).append(" from ").append(queryContext.getDbQuerySource().getTableNames().get(0)).append(" where ( ").append(String.join(",", indexKeyMaster)).append(" ) in ( ").append(subQuery).append(")");
-            if (StringUtil.isNotEmpty(queryContext.getDbQuerySource().getWhereExpression())) {
-                sb.append(" and (").append(queryContext.getDbQuerySource().getWhereExpression().toString()).append(")");
+            sb.append("select ").append(sqlQueryContext.getDbQuerySource().getSelect()).append(" from ").append(sqlQueryContext.getDbQuerySource().getTableNames().get(0)).append(" where ( ").append(String.join(",", indexKeyMaster)).append(" ) in ( ").append(subQuery).append(")");
+            if (StringUtil.isNotEmpty(sqlQueryContext.getDbQuerySource().getWhereExpression())) {
+                sb.append(" and (").append(sqlQueryContext.getDbQuerySource().getWhereExpression().toString()).append(")");
             }
-            if (!queryContext.getDbQuerySource().getOrderByElements().isEmpty()) {
-                sb.append(" order by ").append(queryContext.getDbQuerySource().getOrderBy());
+            if (!sqlQueryContext.getDbQuerySource().getOrderByElements().isEmpty()) {
+                sb.append(" order by ").append(sqlQueryContext.getDbQuerySource().getOrderBy());
             }
-            if (StringUtil.isNotBlank(queryContext.getDbQuerySource().getLimit())) {
-                sb.append(" limit ").append(queryContext.getDbQuerySource().getLimit());
+            if (StringUtil.isNotBlank(sqlQueryContext.getDbQuerySource().getLimit())) {
+                sb.append(" limit ").append(sqlQueryContext.getDbQuerySource().getLimit());
             }
             return sb.toString();
         }
@@ -598,18 +591,18 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private String getSubQueryByPartitionKey(String sql) throws JSQLParserException {
-            String partitionKey = databaseService.getPartitionKey(queryContext.getDbQuerySource().getTableNames().get(0));
+            String partitionKey = databaseService.getPartitionKey(sqlQueryContext.getDbQuerySource().getTableNames().get(0));
             if (StringUtil.isBlank(partitionKey)) {
-                log.warn("Partition Key is Empty. Focus in tableName {} schema", queryContext.getDbQuerySource().getTableNames().get(0));
+                log.warn("Partition Key is Empty. Focus in tableName {} schema", sqlQueryContext.getDbQuerySource().getTableNames().get(0));
                 return sql;
             }
-            String subQuery = getSubquerySql(partitionKey, queryContext.getDbQuerySource().getTableNames().get(0));
+            String subQuery = getSubquerySql(partitionKey, sqlQueryContext.getDbQuerySource().getTableNames().get(0));
             subQuery = subQuery.replaceAll("\\\\", "$0$0");
             subQuery = subQuery.replaceAll("\\$", "\\\\\\$");
             Matcher m = pWhere.matcher(sql);
             StringBuffer sb = new StringBuffer();
             while (m.find()) {
-                m.appendReplacement(sb, "where  " + databaseService.getSchemaByName(queryContext.getDbQuerySource().getTableNames().get(0)).getName().concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
+                m.appendReplacement(sb, "where  " + databaseService.getSchemaByName(sqlQueryContext.getDbQuerySource().getTableNames().get(0)).getName().concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
             }
             m.appendTail(sb);
             return sb.toString();
@@ -626,19 +619,19 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             StringBuilder subQuery = new StringBuilder();
 
             subQuery.append("select " + columnName + " from ").append(tableName)
-                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(queryContext.getDbQuerySource().getWhereExpression().toString(), queryContext.getDbQuerySource().getAliasFields(), true, tableName));
+                    .append(" where ").append(CondExpressionHelper.rewireCondExprBaseOnCK(sqlQueryContext.getDbQuerySource().getWhereExpression().toString(), sqlQueryContext.getDbQuerySource().getAliasFields(), true, tableName));
 
             //order by中元素存在别名时做替换处理
-            List<OrderByElement> listOrderElement = queryContext.getDbQuerySource().getOrderByElements();
+            List<OrderByElement> listOrderElement = sqlQueryContext.getDbQuerySource().getOrderByElements();
             if (StringUtil.isNotEmpty(listOrderElement)) {
-                String orderBy = queryContext.getDbQuerySource().getOrderBy();
+                String orderBy = sqlQueryContext.getDbQuerySource().getOrderBy();
                 for (OrderByElement order : listOrderElement) {
                     String orderField = order.getExpression().toString();
                     if ((orderField.startsWith("\"") && orderField.endsWith("\""))
                             || (orderField.startsWith("`") && orderField.endsWith("`"))) {
                         orderField = orderField.substring(1, orderField.length() - 1);
                     }
-                    String originalField = queryContext.getDbQuerySource().getAliasFields().get(orderField);
+                    String originalField = sqlQueryContext.getDbQuerySource().getAliasFields().get(orderField);
                     if (StringUtil.isNotBlank(originalField)) {
                         orderBy = orderBy.replaceAll("(\"" + orderField + "\")|(\\b" + orderField + "\\b)", originalField);
                     }
@@ -648,13 +641,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             }
 
 
-            if (StringUtil.isNotBlank(queryContext.getDbQuerySource().getLimit())) {
-                String[] limits = queryContext.getDbQuerySource().getLimit().split(",");
+            if (StringUtil.isNotBlank(sqlQueryContext.getDbQuerySource().getLimit())) {
+                String[] limits = sqlQueryContext.getDbQuerySource().getLimit().split(",");
                 if (limits.length == 2) {
                     int rows = Integer.valueOf(limits[0].trim()) + Integer.valueOf(limits[1].trim());
                     subQuery.append(" limit ").append(rows);
                 } else {
-                    subQuery.append(" limit ").append(queryContext.getDbQuerySource().getLimit());
+                    subQuery.append(" limit ").append(sqlQueryContext.getDbQuerySource().getLimit());
                 }
 
             } else {
@@ -670,13 +663,13 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private boolean isValidOfOrderElementsInSchema(Schema schema) throws JSQLParserException {
-            List<OrderByElement> listOrderElement = queryContext.getDbQuerySource().getOrderByElements();
+            List<OrderByElement> listOrderElement = sqlQueryContext.getDbQuerySource().getOrderByElements();
             if (StringUtil.isEmpty(listOrderElement)) {
                 return true;
             }
             for (OrderByElement order : listOrderElement) {
                 OrderByElement orderByElement = new OrderByElement();
-                Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(String.valueOf(order.getExpression()), queryContext.getDbQuerySource().getAliasFields(), false, null);
+                Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(String.valueOf(order.getExpression()), sqlQueryContext.getDbQuerySource().getAliasFields(), false, null);
                 orderByElement.setExpression(expression);
                 List<String> fields = CondExpressionHelper.getDistinctFieldsOfOrderBy(orderByElement);
                 for (String field : fields) {
@@ -740,7 +733,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     responseResult.getErrorMessage(),
                null,
             null,
-                    queryContext.getFormat());
+                    sqlQueryContext.getFormat());
         }
         return build();
     }
@@ -762,7 +755,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
             baseResult.setStatistics(statistics);
         } else {
-            if (baseResult.getStatus() >= HttpStatusCodeEnum.BAD_REQUEST.getCode() && baseResult.getStatus() < HttpStatusCodeEnum.SERVER_ERROR.getCode()) {
+            if (baseResult.getStatus() >= HttpStatusCodeEnum.BAD_REQUEST.getCode()
+                    && baseResult.getStatus() < HttpStatusCodeEnum.SERVER_ERROR.getCode()) {
                 throw new QGWBusinessException(baseResult.getStatus(), CommonErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getCode(),
                         String.format(CommonErrorCode.BAD_REQUEST_SQL_EXECUTION_EXCEPTION.getMessage(), simplyErrorMessage(dataObject)));
             }
@@ -825,44 +819,44 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private HttpResponseResult executeHttpPost(String sql) {
         String queryURL = URLUtil.normalize(clickHouseHttpSource.getUrl() + "/?");
         String queryParameter = enrichContextAndBuildQueryParameter();
-        log.info("Query ID: {}, SQL: {}", queryContext.getQueryId(), sql);
+        log.info("Query ID: {}, SQL: {}", sqlQueryContext.getQueryId(), sql);
         if (log.isDebugEnabled()) {
             log.debug("DB engine is: {}, : {}", DBEngineType.CLICKHOUSE.getValue(), queryURL +
                     Encodes.urlDecode(queryParameter).replaceAll("password=(.*?)&", "password=XXX&") + ". body sql is:" + sql);
         }
         List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, Charset.forName("UTF-8"));
         return httpClientService.post(queryURL + URLEncodedUtils.format(values, "utf-8"),
-                                    queryContext.getTimeout(),
+                sqlQueryContext.getTimeout(),
                                     sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()));
     }
 
     private String enrichContextAndBuildQueryParameter() {
         StringBuilder queryParameterBuilder = new StringBuilder(1024);
 
-        String dbName = StringUtil.isNotEmpty(queryContext.getDbQuerySource().getTableNames())
-                ? databaseService.getDBNameByTableName(queryContext.getDbQuerySource().getTableNames().get(0)) : clickHouseHttpSource.getDbName();
+        String dbName = StringUtil.isNotEmpty(sqlQueryContext.getDbQuerySource().getTableNames())
+                ? databaseService.getDBNameByTableName(sqlQueryContext.getDbQuerySource().getTableNames().get(0)) : clickHouseHttpSource.getDbName();
 
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
-            queryContext.setOption(QueryOption.LONG_TERM.getValue());
+            sqlQueryContext.setOption(QueryOption.LONG_TERM.getValue());
         }
 
-        int timeout = (QueryOption.LONG_TERM.getValue().equalsIgnoreCase(queryContext.getOption())) ?
+        int timeout = (QueryOption.LONG_TERM.getValue().equalsIgnoreCase(sqlQueryContext.getOption())) ?
                     httpConfig.getCkLongTermAccountSocketTimeOut() : httpConfig.getCkRealTimeAccountSocketTimeOut();
-        queryContext.setTimeout(timeout);
+        sqlQueryContext.setTimeout(timeout);
 
-        if (StringUtil.isBlank(queryContext.getQueryId())) {
-            queryContext.setQueryId(DigestUtil.md5Hex(StringUtil.createUUID()));
+        if (StringUtil.isBlank(sqlQueryContext.getQueryId())) {
+            sqlQueryContext.setQueryId(DigestUtil.md5Hex(StringUtil.createUUID()));
         }
 
         //QueryContext set queryParameter
-        if (QueryOption.LONG_TERM.getValue().equalsIgnoreCase(queryContext.getOption())) {
+        if (QueryOption.LONG_TERM.getValue().equalsIgnoreCase(sqlQueryContext.getOption())) {
             queryParameterBuilder.append(getLongTermAccount()).append("&")
                     .append("database=").append(dbName);
         } else {
             queryParameterBuilder.append(getRealTimeAccount()).append("&")
                     .append("database=").append(dbName);
         }
-        queryParameterBuilder.append("&").append("query_id=").append(queryContext.getQueryId());
+        queryParameterBuilder.append("&").append("query_id=").append(sqlQueryContext.getQueryId());
 
         return queryParameterBuilder.toString();
     }

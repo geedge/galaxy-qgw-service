@@ -17,7 +17,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.HttpConfig;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.JobAdminHttpSource;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.ExecutorParam;
@@ -73,8 +73,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     public BaseResult getStorageQuota() {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
-        QueryContext param = new QueryContext();
-        param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
+        SQLQueryContext param = new SQLQueryContext();
+        param.setRawSQL(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         BaseResult result = sqlSyncQueryService.executeQuery(param);
         return resetBaseResult(result, "type");
     }
@@ -90,9 +90,9 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         }
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
-            QueryContext param = new QueryContext();
+            SQLQueryContext param = new SQLQueryContext();
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
-            param.setQuery(sql);
+            param.setRawSQL(sql);
             BaseResult result = sqlSyncQueryService.executeQuery(param);
             List<Map> data = (List<Map>) result.getData();
             data.forEach(o -> o.put("type", LogType.getLabelByValue(String.valueOf(o.get("type")))));

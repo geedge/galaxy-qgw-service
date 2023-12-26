@@ -18,7 +18,7 @@ import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
 import com.mesalab.qgw.model.basic.udf.UDF;
 import com.geedgenetworks.utils.StringUtil;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 public class FederationDialect extends AbstractEngineDialect{
     private Stopwatch watch = Stopwatch.createUnstarted();
     private static final Map<String, String> metaMap = Maps.newHashMap();
-    public QueryContext param;
+    public SQLQueryContext sqlQueryContext;
     public BaseResult baseResult;
 
     static {
@@ -50,30 +50,30 @@ public class FederationDialect extends AbstractEngineDialect{
         metaMap.put("VARCHAR", DataTypeMapping.STRING);
     }
 
-    public FederationDialect(QueryContext param, BaseResult result) {
-        this.param = param;
+    public FederationDialect(SQLQueryContext sqlQueryContext, BaseResult result) {
+        this.sqlQueryContext = sqlQueryContext;
         this.baseResult = result;
     }
 
     @Override
     public void init() {
-        if (StringUtil.isNotEmpty(param.getEngineQuerySource())) {
-            param.getEngineQuerySource().setExecSQL(param.getEngineQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getEngineQuerySource())) {
+            sqlQueryContext.getEngineQuerySource().setExecSQL(sqlQueryContext.getEngineQuerySource().getSqlBody());
         } else {
             SQLQuerySource sqlQuerySource = new SQLQuerySource();
             sqlQuerySource.setExecSQL(null);
-            param.setEngineQuerySource(sqlQuerySource);
+            sqlQueryContext.setEngineQuerySource(sqlQuerySource);
         }
     }
 
     @Override
     public String getFederateQuery() {
-        return  param.getEngineQuerySource().getExecSQL();
+        return  sqlQueryContext.getEngineQuerySource().getExecSQL();
     }
 
     @Override
     public String getSampleQuery() {
-        String sql = param.getEngineQuerySource().getExecSQL();
+        String sql = sqlQueryContext.getEngineQuerySource().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
@@ -81,14 +81,14 @@ public class FederationDialect extends AbstractEngineDialect{
             sql = String.valueOf(convertSampleSql(sql));
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sql, sql = param.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+                    sql, sql = sqlQueryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sql;
     }
 
     @Override
     public String getSyntaxCheckQuery() {
-        String sql = param.getEngineQuerySource().getExecSQL();
+        String sql = sqlQueryContext.getEngineQuerySource().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
@@ -112,7 +112,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public boolean isExecute() {
-        return StringUtil.isNotEmpty(param.getEngineQuerySource().getExecSQL());
+        return StringUtil.isNotEmpty(sqlQueryContext.getEngineQuerySource().getExecSQL());
     }
 
 
@@ -122,7 +122,7 @@ public class FederationDialect extends AbstractEngineDialect{
             watch.start();
             if (isExecute()) {
                 log.info("DB engine is :{}, execute query is: {}", DBEngineType.QGW.getValue(), JSON.toJSONString(sql));
-                SQLQuerySource sqlQuerySource = param.getEngineQuerySource();
+                SQLQuerySource sqlQuerySource = sqlQueryContext.getEngineQuerySource();
                 Map resultMap = CalciteConnectionProcessor.getInstance().executeMemoryQuery(sqlQuerySource.getTableNames().get(0),
                         (List<Map<String, String>>) baseResult.getMeta(),
                         (List<Map<String, Object>>) baseResult.getData(), sql);
@@ -154,10 +154,10 @@ public class FederationDialect extends AbstractEngineDialect{
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
         extendMetaInfo(baseResult.getMeta());
-        if (param.getFormat().equalsIgnoreCase(OutputMode.CSV.getValue())) {
+        if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.CSV.getValue())) {
             convertJsonToCSV();
         }
-        baseResult.setFormatType(param.getFormat());
+        baseResult.setFormatType(sqlQueryContext.getFormat());
         log.debug("Federation execute and build result time : {} ms",  watch.elapsed(TimeUnit.MILLISECONDS));
         return baseResult;
     }
@@ -167,7 +167,7 @@ public class FederationDialect extends AbstractEngineDialect{
             return;
         }
         List<Map<String, Object>> data = JsonPath.read(meta, "$");
-        SQLQuerySource querySource = StringUtil.isEmpty(param.getEngineQuerySource()) || StringUtil.isEmpty(param.getEngineQuerySource().getExecSQL()) ? param.getDbQuerySource() : param.getEngineQuerySource();
+        SQLQuerySource querySource = StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) || StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource().getExecSQL()) ? sqlQueryContext.getDbQuerySource() : sqlQueryContext.getEngineQuerySource();
         Map<String, String> groupDimension = querySource.getGroupDimension();
         for (Map<String, Object> map : data) {
             String field = String.valueOf(map.get("name"));
@@ -195,7 +195,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public void executeUDF() {
-        SQLQuerySource sqlQuerySource = param.getDbQuerySource();
+        SQLQuerySource sqlQuerySource = sqlQueryContext.getDbQuerySource();
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
             List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,

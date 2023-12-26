@@ -16,7 +16,7 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.EntityConfigSource;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.services.common.dsl.ComDSLObject;
@@ -60,7 +60,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             baseResult = formatResult(sqlSyncQueryService.executeQuery(queryBuild(comDSLObject.getQuery())));
         } else if (param.equals(EntityQueryType.GTPC.getType())) {
             String querySql = generateQuerySql(comDSLObject.getQuery());
-            QueryContext queryProfile = QueryContext.builder().option("real_time").query(querySql).build();
+            SQLQueryContext queryProfile = SQLQueryContext.builder().option("real_time").rawSQL(querySql).build();
             baseResult = deduplicationData(sqlSyncQueryService.executeQuery(queryProfile),comDSLObject.getQuery());
         } else {
             baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(), "No match queryType");
@@ -73,14 +73,14 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     }
 
 
-    private QueryContext queryBuild(ComDSLObject.Query query) {
+    private SQLQueryContext queryBuild(ComDSLObject.Query query) {
         String range = ComDSLParse.parseRange(query.getParameters().getRange());
         List<ComDSLObject.Query.FilterBean> match = getMatchAfterTranslation(query.getParameters().getMatch());
         String fieldWhere = ComDSLParse.parseMath(match);
         String timeWhere = ComDSLParse.parseInterval(query, "last_update_time", true);
         String sql = String.format(Objects.requireNonNull(env.getProperty("RELATION_SUBSCRIBER_ID")), timeWhere.concat(range).concat(fieldWhere), ObjectUtil.isEmpty(query.getLimit()) ? defLimit : query.getLimit());
         log.info("real time relation subscribe id query sql: {}", sql);
-        return QueryContext.builder().option("real_time").query(sql).build();
+        return SQLQueryContext.builder().option("real_time").rawSQL(sql).build();
     }
 
     private List<ComDSLObject.Query.FilterBean> getMatchAfterTranslation(List<ComDSLObject.Query.FilterBean> match) {

@@ -21,7 +21,7 @@ import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.qgw.service.impl.HttpClientServiceV2;
 import lombok.Data;
@@ -40,21 +40,21 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private int pageOffset;
     private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "com.zdjizhi.calcite.runtime.CalciteContextException: ";
     private Stopwatch watch = Stopwatch.createUnstarted();
-    public QueryContext queryContext;
+
     public BaseResult baseResult;
 
-    public DruidDialect(QueryContext queryContext) {
-        this.queryContext = queryContext;
+    public DruidDialect(SQLQueryContext queryContext) {
+        super(queryContext);
     }
 
     @Override
     void init() {
-        if (StringUtil.isNotEmpty(queryContext.getDbQuerySource())) {
-            queryContext.getDbQuerySource().setExecSQL(queryContext.getDbQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getDbQuerySource())) {
+            sqlQueryContext.getDbQuerySource().setExecSQL(sqlQueryContext.getDbQuerySource().getSqlBody());
         } else {
             SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(queryContext.getQuery());
-            queryContext.setDbQuerySource(sqlQuerySource);
+            sqlQuerySource.setExecSQL(sqlQueryContext.getRawSQL());
+            sqlQueryContext.setDbQuerySource(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
     }
@@ -73,15 +73,10 @@ public class DruidDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    public String getBestQuery() {
+    public String generateRuleBaseOptimizedQuery() {
 
         return new Optimizer().generateQueryLimit().generateSQL().build();
 
-    }
-
-    @Override
-    public String getOriginalQuery() {
-        return queryContext.getQuery();
     }
 
     /**
@@ -91,19 +86,19 @@ public class DruidDialect extends AbstractDataSourceDialect {
      */
     @Override
     public String getSampleQuery() {
-        String sampleSQL = queryContext.getDbQuerySource().getSqlBody();
+        String sampleSQL = sqlQueryContext.getDbQuerySource().getSqlBody();
         try {
             sampleSQL = convertQuery(convertSampleSql(sampleSQL));
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sampleSQL, sampleSQL = queryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+                    sampleSQL, sampleSQL = sqlQueryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sampleSQL;
     }
 
     @Override
     String getExplainQuery() {
-        return "EXPLAIN PLAN FOR " + convertQuery(getBestQuery());
+        return "EXPLAIN PLAN FOR " + convertQuery(generateRuleBaseOptimizedQuery());
     }
 
     @Override
@@ -134,23 +129,23 @@ public class DruidDialect extends AbstractDataSourceDialect {
     private HttpResponseResult executeHttpPost(String sql) {
         String queryURL = URLUtil.normalize(druidIoHttpSource.getUrl());
         DruidQueryParam druidQueryParam = enrichContextAndBuildQueryParameter(sql);
-        log.info("Query ID: {}, SQL: {}", queryContext.getQueryId(), sql);
+        log.info("Query ID: {}, SQL: {}", sqlQueryContext.getQueryId(), sql);
         if (log.isDebugEnabled()) {
             log.debug("DB engine is: {}, : {}", DBEngineType.DRUID.getValue(), JSON.toJSONString(druidQueryParam)
                      + ". body sql is:" + sql);
         }
-        return httpClientService.post(queryURL, queryContext.getTimeout(), JSON.toJSONString(druidQueryParam));
+        return httpClientService.post(queryURL, sqlQueryContext.getTimeout(), JSON.toJSONString(druidQueryParam));
     }
 
     private DruidQueryParam enrichContextAndBuildQueryParameter(String sql) {
-        queryContext.setTimeout(httpConfig.getDruidSocketTimeOut());
-        if (StringUtil.isBlank(queryContext.getQueryId())) {
-            queryContext.setQueryId(DigestUtil.md5Hex(StringUtil.createUUID()));
+        sqlQueryContext.setTimeout(httpConfig.getDruidSocketTimeOut());
+        if (StringUtil.isBlank(sqlQueryContext.getQueryId())) {
+            sqlQueryContext.setQueryId(DigestUtil.md5Hex(StringUtil.createUUID()));
         }
         DruidQueryParam druidQueryParam = new DruidQueryParam();
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
-        druidQueryParam.getContext().put("sqlQueryId", queryContext.getQueryId());
+        druidQueryParam.getContext().put("sqlQueryId", sqlQueryContext.getQueryId());
         druidQueryParam.setResultFormat("object");
         return druidQueryParam;
     }
@@ -167,7 +162,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         } else {
             baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(),
                     CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
-                    responseResult.getErrorMessage(), null, null, queryContext.getFormat());
+                    responseResult.getErrorMessage(), null, null, sqlQueryContext.getFormat());
         }
         return build();
     }
@@ -229,7 +224,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
         String filterExpr = String.format("%s >= CURRENT_TIMESTAMP - INTERVAL %s AND %s < CURRENT_TIMESTAMP",
-                queryContext.getDbQuerySource().getPartitionKey(), "'1' MINUTE", queryContext.getDbQuerySource().getPartitionKey());
+                sqlQueryContext.getDbQuerySource().getPartitionKey(), "'1' MINUTE", sqlQueryContext.getDbQuerySource().getPartitionKey());
         return new DruidSampleSQLHelper(sql, filterExpr, true).build();
     }
 
@@ -273,7 +268,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
          * @return
          */
         public Converter generateStandard() {
-            SQLQuerySource dbQuerySource = queryContext.getDbQuerySource();
+            SQLQuerySource dbQuerySource = sqlQueryContext.getDbQuerySource();
             if (StringUtil.isNotBlank(dbQuerySource.getLimit()) &&
                     dbQuerySource.getLimit().split(",").length >= 2) {
 
@@ -309,13 +304,13 @@ public class DruidDialect extends AbstractDataSourceDialect {
          * @return
          */
         public Optimizer generateQueryLimit() {
-            if (StringUtil.isEmpty(queryContext.getEngineQuerySource())) {
-                setDefaultResultRows(queryContext.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
-                setMaxCacheResultRows(queryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+            if (StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource())) {
+                setDefaultResultRows(sqlQueryContext.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(sqlQueryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
             } else {
-                setDefaultResultRows(queryContext.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
-                setMaxCacheResultRows(queryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
-                setMaxCacheResultRows(queryContext.getEngineQuerySource(), engineConfigSource.getMaxCacheNum());
+                setDefaultResultRows(sqlQueryContext.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(sqlQueryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+                setMaxCacheResultRows(sqlQueryContext.getEngineQuerySource(), engineConfigSource.getMaxCacheNum());
             }
             return this;
         }
@@ -360,7 +355,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         }
 
         public Optimizer generateSQL() {
-            SQLQuerySource sqlQuerySource = queryContext.getDbQuerySource();
+            SQLQuerySource sqlQuerySource = sqlQueryContext.getDbQuerySource();
             sql = sqlQuerySource.getSqlBody();
             return this;
         }
