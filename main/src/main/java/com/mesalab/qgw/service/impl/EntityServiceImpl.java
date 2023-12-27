@@ -567,7 +567,7 @@ public class EntityServiceImpl implements EntityService, EnvironmentAware {
             log.error("sql Encode error: ", e);
         }
 
-        String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/sql/?option=long_term&resultId=" + DigestUtil.md5Hex(sql) + "&query=");
+        String queryURL = URLUtil.normalize(localHostAddress + ":" + serverPort + "/sql/?option=long_term&resultId=" + DigestUtil.md5Hex(sql) + "&rawSQL=");
         int socketTimeOut = httpConfig.getCkLongTermAccountSocketTimeOut();
         return httpClientService.httpGet(queryURL + sql, socketTimeOut);
     }
