@@ -1183,7 +1183,7 @@
       "type": "string"
     },
     {
-      "name": "security_mirrored_pkts",
+      "name": "monitor_mirrored_pkts",
       "label": "Security Mirrored Packets",
       "type": "int",
       "doc": {
@@ -1195,7 +1195,7 @@
       }
     },
     {
-      "name": "security_mirrored_bytes",
+      "name": "monitor_mirrored_bytes",
       "label": "Security Mirrored Bytes",
       "type": "int",
       "doc": {
