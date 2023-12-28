@@ -70,13 +70,18 @@
       "type":"string"
     },
     {
-      "name":"app_path",
+      "name":"app_transition",
       "label":"Application Path",
       "type":"string"
     },
     {
-      "name":"protocol_path",
+      "name":"decoded_path",
       "label":"Protocol Path",
+      "type":"string"
+    },
+    {
+      "name":"ip_protocol",
+      "label":"IP Protocol",
       "type":"string"
     },
     {
