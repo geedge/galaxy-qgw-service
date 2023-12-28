@@ -1862,7 +1862,7 @@
     },
     {
       "name": "tcp_rtt_ms",
-      "label": "Round-trip Time",
+      "label": "Round-trip Time (ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
