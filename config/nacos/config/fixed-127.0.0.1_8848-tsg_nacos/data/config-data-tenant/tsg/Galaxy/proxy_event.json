@@ -1186,7 +1186,7 @@
     },
     {
       "name": "monitor_mirrored_pkts",
-      "label": "Security Mirrored Packets",
+      "label": "Monitor Mirrored Packets",
       "type": "int",
       "doc": {
         "constraints": {
@@ -1198,7 +1198,7 @@
     },
     {
       "name": "monitor_mirrored_bytes",
-      "label": "Security Mirrored Bytes",
+      "label": "Monitor Mirrored Bytes",
       "type": "int",
       "doc": {
         "constraints": {
