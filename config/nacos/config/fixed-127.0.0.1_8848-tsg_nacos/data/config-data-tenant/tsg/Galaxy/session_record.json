@@ -69,6 +69,7 @@
         "app",
         "app_debug_info",
         "app_content",
+        "ip_protocol",
         "decoded_path",
         "dup_traffic_flag",
         "tunnel_endpoint_a_desc",
@@ -340,6 +341,7 @@
         "dup_traffic_flag",
         "tunnel_endpoint_a_desc",
         "tunnel_endpoint_b_desc",
+        "ip_protocol",
         "decoded_path",
         "fqdn_category_list",
         "sent_pkts",
@@ -1676,6 +1678,25 @@
       "name": "app_content",
       "label": "Application Content",
       "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "ip_protocol",
+      "label": "IP Protocol",
+      "doc": {
+        "data": [
+          {
+            "code": "tcp",
+            "value": "tcp"
+          },
+          {
+            "code": "udp",
+            "value": "udp"
+          }
+        ],
         "visibility": "enabled",
         "ttl": null
       },
