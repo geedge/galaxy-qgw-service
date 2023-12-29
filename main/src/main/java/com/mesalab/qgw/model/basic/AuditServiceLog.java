@@ -8,7 +8,7 @@ public class AuditServiceLog {
 
     private String annotation;
 
-    private String queryKey;
+    private String requestId;
 
     private String cacheKey;
 

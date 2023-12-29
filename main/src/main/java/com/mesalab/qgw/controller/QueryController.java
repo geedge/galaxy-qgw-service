@@ -4,11 +4,11 @@ import cn.hutool.core.util.BooleanUtil;
 import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.entity.QGWErrorCode;
 import com.mesalab.common.enums.ExecModeEnum;
 import com.mesalab.common.enums.OutputModeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.common.entity.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.QueryJobService;
 import com.mesalab.qgw.service.QueryService;
@@ -31,29 +31,28 @@ public class QueryController {
 
     @GetMapping("/sql")
     @AuditLog("QueryController.get")
-    @CachedSubmitCheck
-    public BaseResult get(QueryContext queryProfile) {
-        if (queryProfile.queryParamIsNull())
+    public BaseResult get(QueryContext queryContext) {
+        if (queryContext.queryParamIsNull())
             return BaseResultGenerator.success4Message("ok");
-        log.debug("Quest Params:{}", JSON.toJSONString(queryProfile));
-        return queryService.executeQuery(queryProfile);
+        log.debug("Quest Params:{}", JSON.toJSONString(queryContext));
+        return queryService.executeQuery(queryContext);
     }
 
     @PostMapping(value = "/sql", produces = "application/json;charset=utf-8")
     @AuditLog("QueryController.post")
-    @CachedSubmitCheck
-    public BaseResult post(@RequestBody QueryContext queryProfile) {
-        if (queryProfile.queryParamIsNull()) {
+    public BaseResult post(@RequestBody QueryContext queryContext) {
+        if (queryContext.queryParamIsNull()) {
             return BaseResultGenerator.success4Message("ok");
         }
-        log.debug("Quest Params:{}", JSON.toJSONString(queryProfile));
-        return queryService.executeQuery(queryProfile);
+        log.debug("Quest Params:{}", JSON.toJSONString(queryContext));
+        return queryService.executeQuery(queryContext);
 
     }
 
     @PostMapping(value = "/v1/query/sql", consumes = "application/json", produces = "application/json")
+    @AuditLog("QueryController.createSQLQuery")
     public BaseResult createSQLQuery(@RequestBody SqlQueryRequestParam sqlQueryRequestParam) {
-        log.info("Create an SQL Query {}", JSON.toJSONString(sqlQueryRequestParam));
+        log.info("Create an SQL Query,request params is:\n {}", JSON.toJSONString(sqlQueryRequestParam));
         if (sqlQueryRequestParam.isSavedQuery()) {
             if (sqlQueryRequestParam.isDryRun() || !sqlQueryRequestParam.getExecMode().equals(ExecModeEnum.NORMAL) || !sqlQueryRequestParam.getOutputMode().equals(OutputModeEnum.JSON)) {
                 throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
@@ -67,8 +66,9 @@ public class QueryController {
     }
 
     @PostMapping(value = "/v1/query/dsl", consumes = "application/json", produces = "application/json")
+    @AuditLog("QueryController.createDSLQuery")
     public BaseResult createDSLQuery(@RequestBody DslQueryRequestParam dslQueryRequestParam) {
-        log.info("Create a DSL query {}", JSON.toJSONString(dslQueryRequestParam));
+        log.info("Create a DSL query,request params is:\n {}", JSON.toJSONString(dslQueryRequestParam));
         if (dslQueryRequestParam.isSavedQuery()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));
@@ -82,6 +82,7 @@ public class QueryController {
     }
 
     @GetMapping(value = "/v1/query/job/{id}/result", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobResultById")
     public BaseResult getJobResultById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
         if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
             return queryJobService.getSavedQueryResultById(id);
@@ -91,6 +92,7 @@ public class QueryController {
     }
 
     @GetMapping(value = "/v1/query/job/{id}", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobStatusById")
     public BaseResult getJobStatusById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
         if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
             return queryJobService.getSavedQueryStatusById(id);
@@ -100,6 +102,7 @@ public class QueryController {
     }
 
     @GetMapping(value = "/v1/query/job/result", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobResult")
     public BaseResult getJobResult(@RequestParam(value = "job_ids") String jobIds
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
@@ -112,6 +115,7 @@ public class QueryController {
     }
 
     @GetMapping(value = "/v1/query/job", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.getJobStatus")
     public BaseResult getJobStatus(@RequestParam(value = "job_ids") String jobIds
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
@@ -124,6 +128,7 @@ public class QueryController {
     }
 
     @DeleteMapping(value = "/v1/query/job/{id}", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("QueryController.deleteJobById")
     public BaseResult deleteJobById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
         if (isSavedQuery) {

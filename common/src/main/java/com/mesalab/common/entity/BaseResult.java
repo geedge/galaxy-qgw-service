@@ -1,5 +1,7 @@
 package com.mesalab.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.mesalab.common.enums.ResultStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,13 +22,15 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonPropertyOrder({"status", "message", "requestId", "success", "code", "job", "formatType", "statistics", "meta", "data"})
 public class BaseResult<T> implements Serializable {
 
     private Integer status;
 
     private String code;
 
-    private String queryKey;
+    @JsonProperty("requset_id")
+    private String requestId;
 
     private boolean success;
 
@@ -42,10 +46,10 @@ public class BaseResult<T> implements Serializable {
 
     private T data;
 
-    public BaseResult(Integer status, String code, String queryKey, boolean success, String message, Map<String, Object> statistics, String formatType, T meta, T data) {
+    public BaseResult(Integer status, String code, String requestId, boolean success, String message, Map<String, Object> statistics, String formatType, T meta, T data) {
         this.status = status;
         this.code = code;
-        this.queryKey = queryKey;
+        this.requestId = requestId;
         this.success = success;
         this.message = message;
         this.statistics = statistics;
@@ -53,6 +57,7 @@ public class BaseResult<T> implements Serializable {
         this.meta = meta;
         this.data = data;
     }
+
     /**
      * 判断是否是成功结果
      * JsonIgnore使之不在json序列化结果当中
@@ -68,7 +73,7 @@ public class BaseResult<T> implements Serializable {
         return "BaseResult{" +
                 "status=" + status +
                 ", code='" + code + '\'' +
-                ", queryKey='" + queryKey + '\'' +
+                ", requestId='" + requestId + '\'' +
                 ", success=" + success +
                 ", message='" + message + '\'' +
                 ", statistics=" + statistics +

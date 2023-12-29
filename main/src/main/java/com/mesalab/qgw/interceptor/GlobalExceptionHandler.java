@@ -13,6 +13,7 @@ import com.geedgenetworks.utils.StringUtil;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -23,6 +24,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 捕获特定异常
+     *
      * @param e
      * @param request
      */
@@ -36,10 +38,9 @@ public class GlobalExceptionHandler {
     public BaseResult handleException(Exception e, HttpServletRequest request, HttpServletResponse response) {
         response.setStatus(ResultStatusEnum.BAD_REQUEST.getCode());
         String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
-        log.error("queryKey:{}, message:{}, stackTrace:{}", queryKey, ExceptionUtil.getRootCauseMessage(e), getStackTrace(e));
+        log.error("requestId:{}, message:{}, stackTrace:{}", queryKey, ExceptionUtil.getRootCauseMessage(e), getStackTrace(e));
         return BaseResultGenerator.failure(e.getMessage(), queryKey);
     }
-
 
 
     @ExceptionHandler({QGWBusinessException.class})
@@ -47,8 +48,8 @@ public class GlobalExceptionHandler {
         response.setStatus(e.getStatus());
         String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
         String message = (null != e.getMessage()) ? e.getMessage() : ExceptionUtil.getRootCauseMessage(e);
-        log.error("queryKey: {}. message: {}. stackTrace: {}", queryKey, message, getStackTrace(e));
-       return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
+        log.error("requestId:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
+        return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
     }
 
     @ExceptionHandler({BusinessException.class})
@@ -56,7 +57,7 @@ public class GlobalExceptionHandler {
         response.setStatus(e.getStatus());
         String queryKey = DigestUtil.md5Hex(StringUtil.createUUID());
         String message = (null != e.getMessage()) ? e.getMessage() : ExceptionUtil.getRootCauseMessage(e);
-        log.error("queryKey:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
+        log.error("requestId:{}.message:{}.stackTrace:{}", queryKey, message, getStackTrace(e));
         return BaseResultGenerator.failure(e.getStatus(), e.getCode(), queryKey, message);
     }
 
@@ -65,5 +66,4 @@ public class GlobalExceptionHandler {
     }
 
 
-
- }
+}
