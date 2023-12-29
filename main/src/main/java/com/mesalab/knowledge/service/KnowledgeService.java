@@ -23,7 +23,7 @@ import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
 import com.mesalab.knowledge.strategy.QueryProvider;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.common.exception.CommonErrorCode;

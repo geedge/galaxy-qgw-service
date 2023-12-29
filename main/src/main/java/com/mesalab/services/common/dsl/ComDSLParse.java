@@ -11,7 +11,7 @@ import com.mesalab.cn.entity.pojo.DSLParser;
 import com.mesalab.cn.enums.RangeTypeEnum;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.common.exception.CommonErrorCode;
 

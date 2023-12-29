@@ -14,7 +14,7 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.QueryContext;

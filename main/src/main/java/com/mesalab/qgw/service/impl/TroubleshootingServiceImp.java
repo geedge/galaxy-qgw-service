@@ -30,7 +30,7 @@ import com.mesalab.common.enums.*;
 import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.qgw.benchmark.DialectWriter;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;

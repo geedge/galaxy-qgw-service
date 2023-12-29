@@ -7,7 +7,7 @@ import com.google.common.base.CaseFormat;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.qgw.dialect.Dialect;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;

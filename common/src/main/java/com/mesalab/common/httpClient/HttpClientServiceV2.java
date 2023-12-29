@@ -241,7 +241,9 @@ public class HttpClientServiceV2 {
         if(headers.get(CONTENT_TYPE) == null) {
             headers.put(CONTENT_TYPE, APPLICATION_JSON);
         }
-        httpPut.setEntity(new InputStreamEntity(in));
+        if (in != null) {
+            httpPut.setEntity(new InputStreamEntity(in));
+        }
         return executeHttpRequest(httpPut, socketTimeout, headers);
     }
 

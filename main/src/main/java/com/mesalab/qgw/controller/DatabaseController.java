@@ -8,7 +8,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.MetadataType;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;

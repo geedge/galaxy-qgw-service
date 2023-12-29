@@ -13,9 +13,7 @@ import java.util.Set;
 @Component
 @WebFilter(urlPatterns = "/*")
 public class ControllerFilter implements  Filter {
-
-    private static final Set<String> NOT_FILTER_PATHS = Collections.unmodifiableSet(new HashSet<>(
-            Collections.singletonList("/knowledge_base/v1")));
+    private static final String NOT_FILTER_PATHS = "/v1/knowledge_base";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -26,7 +24,7 @@ public class ControllerFilter implements  Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
         String servletPath = httpServletRequest.getServletPath();
-        if (NOT_FILTER_PATHS.contains(servletPath)) {
+        if (String.valueOf(servletPath).contains(NOT_FILTER_PATHS)) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             filterChain.doFilter(new RequestParamWrapper(httpServletRequest), servletResponse);

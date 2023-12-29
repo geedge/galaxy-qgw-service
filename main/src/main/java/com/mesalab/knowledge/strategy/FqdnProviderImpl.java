@@ -19,7 +19,7 @@ import com.mesalab.knowledge.entity.Range;
 import com.mesalab.knowledge.entity.arango.IpLearningPath;
 import com.mesalab.knowledge.enums.RangeEnum;
 import com.mesalab.knowledge.exception.KnowLedgeErrorMessage;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.common.exception.CommonErrorCode;

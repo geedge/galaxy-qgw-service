@@ -6,7 +6,7 @@ import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.service.HosService;
 import org.springframework.beans.factory.annotation.Autowired;

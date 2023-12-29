@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteMemoryUtils;
 import com.mesalab.common.enums.DBType;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.HttpStatusCodeEnum;

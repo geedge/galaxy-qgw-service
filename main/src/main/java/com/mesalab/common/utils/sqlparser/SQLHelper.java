@@ -5,7 +5,7 @@ import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.mesalab.common.enums.DBType;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;

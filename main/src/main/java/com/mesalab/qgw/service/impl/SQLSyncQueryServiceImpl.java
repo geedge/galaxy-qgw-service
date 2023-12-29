@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.SchemaBase;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;

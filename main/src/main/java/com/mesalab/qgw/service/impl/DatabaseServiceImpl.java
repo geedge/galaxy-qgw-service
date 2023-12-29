@@ -26,7 +26,7 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
