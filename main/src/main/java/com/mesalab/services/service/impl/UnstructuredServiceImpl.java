@@ -63,7 +63,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     @Autowired
     private EngineConfigSource engineConfigSource;
     @Autowired
-    private SQLSyncQueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
     private Environment env;
 
     @Override
@@ -173,7 +173,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
                         , field, dataSource
                         , generateWhereOfTime(Arrays.asList(tables).contains(dataSource) ? "recv_time" : "common_recv_time", dslObject.getQuery())
                         , field, limit);
-                BaseResult result = queryService.executeQuery(queryBuild(sql));
+                BaseResult result = sqlSyncQueryService.executeQuery(queryBuild(sql));
                 if (!result.isSuccess()) {
                     log.error("Query unstructured data status error: {}", result.getMessage());
                     throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Query unstructured data status error: " + result.getMessage());

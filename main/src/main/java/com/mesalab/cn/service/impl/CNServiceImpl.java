@@ -36,7 +36,7 @@ public class CNServiceImpl implements CNService {
     private CNParser cnParser;
 
     @Autowired
-    private SQLSyncQueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
 
     @Override
     public BaseResult shareNetQuery(DSLObject dslObject) throws BusinessException {
@@ -44,7 +44,7 @@ public class CNServiceImpl implements CNService {
         String executeSql = cnParser.buildShareNetSQL(dslObject);
         QueryContext queryProfile = new QueryContext();
         queryProfile.setQuery(executeSql);
-        BaseResult baseResult = queryService.executeQuery(queryProfile);
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             return baseResult;
         }
@@ -70,7 +70,7 @@ public class CNServiceImpl implements CNService {
         String executeSql = cnParser.bannedAppSQL(dslObject);
         QueryContext queryProfile = new QueryContext();
         queryProfile.setQuery(executeSql);
-        BaseResult baseResult = queryService.executeQuery(queryProfile);
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             return baseResult;
         }

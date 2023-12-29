@@ -1,4 +1,4 @@
-package com.mesalab.qgw.service.impl;
+package com.mesalab.services.service.impl;
 
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.*;
@@ -20,8 +20,8 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
-import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.common.exception.QGWMessageConst;
+import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.knowledge.enums.MatchEnum;
@@ -59,8 +59,7 @@ import java.util.stream.Collectors;
 public class EntityServiceImpl implements EntityService, EnvironmentAware {
     private static final Log log = LogFactory.get();
 
-    @Autowired
-    private SQLSyncQueryServiceImpl queryService;
+
     @Autowired
     private HttpClientService httpClientServiceTemp;
     @Autowired

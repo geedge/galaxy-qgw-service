@@ -79,7 +79,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private HBaseAPISource hBaseAPISource;
 
     @Autowired
-    private SQLSyncQueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
     @Autowired
     private HttpClientService httpClientService;
     @Autowired
@@ -288,7 +288,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     }
 
     private BaseResult getBaseResultByEngine(QueryContext queryProfile) {
-        return queryService.executeQuery(queryProfile);
+        return sqlSyncQueryService.executeQuery(queryProfile);
     }
 
     /**
@@ -424,7 +424,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
 
     private List<String> getClusterAddressOfCK() {
         List<String> endpointList = new ArrayList<>();
-        BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
         if (baseResult.isSuccess()) {
             List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
             for (Map<String, Object> datum : data) {

@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RestController
 public class QueryController {
 
-    private SQLSyncQueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
     private QueryJobService queryJobService;
 
     @GetMapping("/sql")
@@ -35,7 +35,7 @@ public class QueryController {
         if (queryProfile.queryParamIsNull())
             return BaseResultGenerator.success4Message("ok");
         log.debug("Quest Params:{}", JSON.toJSONString(queryProfile));
-        return queryService.executeQuery(queryProfile);
+        return sqlSyncQueryService.executeQuery(queryProfile);
     }
 
     @PostMapping(value = "/sql", produces = "application/json;charset=utf-8")
@@ -45,7 +45,7 @@ public class QueryController {
             return BaseResultGenerator.success4Message("ok");
         }
         log.debug("Quest Params:{}", JSON.toJSONString(queryProfile));
-        return queryService.executeQuery(queryProfile);
+        return sqlSyncQueryService.executeQuery(queryProfile);
 
     }
 
@@ -144,7 +144,7 @@ public class QueryController {
     }
 
     @Autowired
-    public void setQueryService(SQLSyncQueryService queryService) {
-        this.queryService = queryService;
+    public void setSqlSyncQueryService(SQLSyncQueryService sqlSyncQueryService) {
+        this.sqlSyncQueryService = sqlSyncQueryService;
     }
 }

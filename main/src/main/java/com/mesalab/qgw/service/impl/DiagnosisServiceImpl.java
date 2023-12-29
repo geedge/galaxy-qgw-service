@@ -54,7 +54,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private static final String HBASE_DBNAME2 = "tsg_galaxy";
 
     @Autowired
-    private SQLSyncQueryService queryService;
+    private SQLSyncQueryService sqlSyncQueryService;
 
     @Autowired
     private DialectWriter dialectWriter;
@@ -204,31 +204,31 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private String getTopServerIpMessage(String timeInterval, String datasource) {
         String tcpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TCP_SESSION")), datasource, timeInterval,
                 entityConfigSource.getTopServerIPByTCPSession());
-        List<Map> tcpSessionResult = getData(queryService.executeQuery(queryBuild(tcpSessionSql)));
+        List<Map> tcpSessionResult = getData(sqlSyncQueryService.executeQuery(queryBuild(tcpSessionSql)));
 
         String tcpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOP_ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
                 datasource, timeInterval, entityConfigSource.getTopServerIPByTCPUniqClientIP());
-        List<Map> tcpClientIpsResult = getData(queryService.executeQuery(queryBuild(tcpClientIpsSql)));
+        List<Map> tcpClientIpsResult = getData(sqlSyncQueryService.executeQuery(queryBuild(tcpClientIpsSql)));
 
         String udpSessionSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_UDP_SESSION")), datasource, timeInterval,
                 entityConfigSource.getTopServerIPByUDPBySession());
-        List<Map> udpSessionResult = getData(queryService.executeQuery(queryBuild(udpSessionSql)));
+        List<Map> udpSessionResult = getData(sqlSyncQueryService.executeQuery(queryBuild(udpSessionSql)));
 
         String udpClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOP_ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval,
                 datasource, timeInterval, entityConfigSource.getTopServerIPByUDPUniqClientIP());
-        List<Map> udpClientIpsResult = getData(queryService.executeQuery(queryBuild(udpClientIpsSql)));
+        List<Map> udpClientIpsResult = getData(sqlSyncQueryService.executeQuery(queryBuild(udpClientIpsSql)));
 
         String tcpTotalSessionSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_TCP_SESSION")), datasource, timeInterval);
-        List<Map> tcpTotalSessionResult = getData(queryService.executeQuery(queryBuild(tcpTotalSessionSql)));
+        List<Map> tcpTotalSessionResult = getData(sqlSyncQueryService.executeQuery(queryBuild(tcpTotalSessionSql)));
 
         String tcpTotalClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_TCP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
-        List<Map> tcpTotalClientIpResult = getData(queryService.executeQuery(queryBuild(tcpTotalClientIpsSql)));
+        List<Map> tcpTotalClientIpResult = getData(sqlSyncQueryService.executeQuery(queryBuild(tcpTotalClientIpsSql)));
 
         String udpTotalSessionSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_UDP_SESSION")), datasource, timeInterval);
-        List<Map> udpTotalSessionResult = getData(queryService.executeQuery(queryBuild(udpTotalSessionSql)));
+        List<Map> udpTotalSessionResult = getData(sqlSyncQueryService.executeQuery(queryBuild(udpTotalSessionSql)));
 
         String udpTotalClientIpsSql = String.format(Objects.requireNonNull(env.getProperty("TOTAL_ENTITY_UDP_UNIQ_CLIENT_IPS")), datasource, timeInterval);
-        List<Map> udpTotalClientIpsResult = getData(queryService.executeQuery(queryBuild(udpTotalClientIpsSql)));
+        List<Map> udpTotalClientIpsResult = getData(sqlSyncQueryService.executeQuery(queryBuild(udpTotalClientIpsSql)));
 
         long tcpSessions = 0;
         long tcpClientIps = 0;
@@ -265,10 +265,10 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private String getTopSniMessage(String timeInterval, String datasource) {
         String topSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_TOP_SNI")), datasource, timeInterval,
                 entityConfigSource.getTopSNIDefaultSize());
-        List<Map> topSniResult = getData(queryService.executeQuery(queryBuild(topSniSql)));
+        List<Map> topSniResult = getData(sqlSyncQueryService.executeQuery(queryBuild(topSniSql)));
 
         String totalSniSql = String.format(Objects.requireNonNull(env.getProperty("ENTITY_SNI_TOTAL")), datasource, timeInterval);
-        List<Map> totalSniResult = getData(queryService.executeQuery(queryBuild(totalSniSql)));
+        List<Map> totalSniResult = getData(sqlSyncQueryService.executeQuery(queryBuild(totalSniSql)));
 
         int cdnCount = 0;
         long topSniBytes = 0;
