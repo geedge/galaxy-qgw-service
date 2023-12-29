@@ -49,6 +49,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Deprecated
 @Service("queryService")
 public class QueryServiceImpl implements QueryService {
     private static final Log log = LogFactory.get();

@@ -126,7 +126,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     @Async("jobExecutor")
-    public void addExecutorSql(String id, SqlQueryRequest request) {
+    public void addExecutorSql(String id, SqlQueryRequestParam request) {
         signJobInfoToStartOnQueryCache(id);
         try {
             BaseResult baseResult = queryService.executeQuery(QueryProfile.builder()
@@ -144,7 +144,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     @Async("jobExecutor")
-    public void addExecutorDsl(String id, DslQueryRequest request) {
+    public void addExecutorDsl(String id, DslQueryRequestParam request) {
         signJobInfoToStartOnQueryCache(id);
         try {
             DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);

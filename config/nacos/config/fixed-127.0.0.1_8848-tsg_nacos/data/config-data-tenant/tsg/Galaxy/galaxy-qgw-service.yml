@@ -145,7 +145,7 @@ http:
       per:
         route: 200
     request:
-      timeout: 10000
+      timeout: 30000
     response:
       timeout: 120000
 ## job cfg

@@ -51,14 +51,14 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private DslService dslService;
 
     @Override
-    public BaseResult commitSqlSavedQuery(SqlQueryRequest request) {
+    public BaseResult createSQLSavedQuery(SqlQueryRequestParam request) {
         syntaxParseSql(request.getStatement());
         String sql = JSONUtil.quote(request.getStatement(), false).replace("'", "\\'");
         String id = getSameJob(sql);
         if (StringUtil.isNotBlank(id)) {
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         }
-        request.getCustomAttributes().put("UUID", System.currentTimeMillis());
+        request.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         id = buildJobId(request.toString());
         long currentTime = System.currentTimeMillis() / 1000;
         Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
@@ -67,22 +67,22 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult commitSqlAdHoc(SqlQueryRequest request) {
-        String option = request.isDryRun() ? QueryOptionEnum.SYNTAX_VALIDATION.getValue() : QueryOptionEnum.REAL_TIME.getValue();
-        request.getCustomAttributes().put("UUID", System.currentTimeMillis());
+    public BaseResult createSQLAdHocQuery(SqlQueryRequestParam sqlQueryRequestParam) {
+        String option = sqlQueryRequestParam.isDryRun() ? QueryOptionEnum.SYNTAX_VALIDATION.getValue() : QueryOptionEnum.REAL_TIME.getValue();
+        sqlQueryRequestParam.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         long start = System.currentTimeMillis();
-        ExecModeEnum execMode = request.getExecMode();
+        ExecModeEnum execMode = sqlQueryRequestParam.getExecMode();
         if (ExecModeEnum.ONESHOT.equals(execMode)) {
-            return queryService.executeQuery(QueryProfile.builder().query(request.getStatement()).option(option).format(request.getOutputMode().getValue()).build());
+            return queryService.executeQuery(QueryProfile.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
         } else if (ExecModeEnum.NORMAL.equals(execMode)) {
-            String id = buildJobId(request.toString());
-            HazelcastInstanceMapUtil.put(id, new QueryCache(id, request.getOutputMode().getValue()));
-            jobExecuteService.addExecutorSql(id, request);
+            String id = buildJobId(sqlQueryRequestParam.toString());
+            HazelcastInstanceMapUtil.put(id, new QueryCache(id, sqlQueryRequestParam.getOutputMode().getValue()));
+            jobExecuteService.addExecutorSql(id, sqlQueryRequestParam);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
-            String id = buildJobId(request.toString());
-            BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(request.getStatement()).option(option).format(request.getOutputMode().getValue()).build());
-            QueryCache queryCache = buildQueryCacheOfDone(id, start, request.getOutputMode().getValue(), baseResult);
+            String id = buildJobId(sqlQueryRequestParam.toString());
+            BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
+            QueryCache queryCache = buildQueryCacheOfDone(id, start, sqlQueryRequestParam.getOutputMode().getValue(), baseResult);
             HazelcastInstanceMapUtil.put(id, queryCache);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         }
@@ -91,38 +91,38 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult commitDslAdHoc(DslQueryRequest request) {
-        request.getCustomAttributes().put("UUID", System.currentTimeMillis());
+    public BaseResult createDSLAdHocQuery(DslQueryRequestParam dslQueryRequestParam) {
+        dslQueryRequestParam.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         long start = System.currentTimeMillis();
-        ExecModeEnum execMode = request.getExecMode();
+        ExecModeEnum execMode = dslQueryRequestParam.getExecMode();
         if (ExecModeEnum.ONESHOT.equals(execMode)) {
-            DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
+            DSLProfile dslProfile = BeanUtil.copyProperties(dslQueryRequestParam, DSLProfile.class);
             return dslService.execDsl(dslProfile);
         } else if (ExecModeEnum.NORMAL.equals(execMode)) {
-            if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+            if (JobConfig.FIELD_DISCOVERY.equals(dslQueryRequestParam.getName())) {
                 HashMap<String, Object> map = Maps.newHashMap();
                 map.put(JobConfig.KEY_QUERY_TYPE, JobConfig.FIELD_DISCOVERY);
-                map.put(JobConfig.QUERY_DATA_SOURCE, request.getDataSource());
-                map.put(JobConfig.FILTER, request.getFilter());
-                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, request.getCustomAttributes().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS));
-                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC, request.getCustomAttributes().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC));
-                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN, request.getCustomAttributes().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN));
+                map.put(JobConfig.QUERY_DATA_SOURCE, dslQueryRequestParam.getDataSource());
+                map.put(JobConfig.FILTER, dslQueryRequestParam.getFilter());
+                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS, dslQueryRequestParam.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS));
+                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC, dslQueryRequestParam.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC));
+                map.put(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN, dslQueryRequestParam.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN));
                 return jobService.commitAdHocQuery(map);
             } else {
-                String id = buildJobId(request.toString());
-                HazelcastInstanceMapUtil.put(id, new QueryCache(id, request.getOutputMode().getValue()));
-                jobExecuteService.addExecutorDsl(id, request);
+                String id = buildJobId(dslQueryRequestParam.toString());
+                HazelcastInstanceMapUtil.put(id, new QueryCache(id, dslQueryRequestParam.getOutputMode().getValue()));
+                jobExecuteService.addExecutorDsl(id, dslQueryRequestParam);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             }
         } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
-            if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
+            if (JobConfig.FIELD_DISCOVERY.equals(dslQueryRequestParam.getName())) {
                 throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                         String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), JobConfig.FIELD_DISCOVERY + " only Supported exec_mode is" + ExecModeEnum.NORMAL.getValue()));
             } else {
-                DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
+                DSLProfile dslProfile = BeanUtil.copyProperties(dslQueryRequestParam, DSLProfile.class);
                 BaseResult baseResult = dslService.execDsl(dslProfile);
-                String id = buildJobId(request.toString());
-                QueryCache queryCache = buildQueryCacheOfDone(id, start, request.getOutputMode().getValue(), baseResult);
+                String id = buildJobId(dslQueryRequestParam.toString());
+                QueryCache queryCache = buildQueryCacheOfDone(id, start, dslQueryRequestParam.getOutputMode().getValue(), baseResult);
                 HazelcastInstanceMapUtil.put(id, queryCache);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             }
@@ -147,7 +147,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult getAdHocResult(String id) {
+    public BaseResult getAdHocQueryResultById(String id) {
         QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         if (StrUtil.isEmptyIfStr(queryCache)) {
             return jobService.getResultFieldDiscovery(id);
@@ -158,12 +158,12 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult getSavedQueryResult(String id) {
+    public BaseResult getSavedQueryResultById(String id) {
         return jobService.getSavedQueryResult(id);
     }
 
     @Override
-    public BaseResult getAdHocStatus(String id) {
+    public BaseResult getAdHocQueryStatusById(String id) {
         QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         if (StrUtil.isEmptyIfStr(queryCache)) {
             BaseResult resultFieldDiscovery = jobService.getResultFieldDiscovery(id);
@@ -178,18 +178,18 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult getSavedQueryStatus(String id) {
+    public BaseResult getSavedQueryStatusById(String id) {
         return jobService.getSavedQueryStatus(id);
     }
 
     @Override
-    public BaseResult getSavedQueryResultBatch(List<String> ids) {
+    public BaseResult getSavedQueryResult(List<String> ids) {
         List<Map<String, Object>> result = jobService.batchSavedQueryResult(ids);
         return BaseResultGenerator.success(result);
     }
 
     @Override
-    public BaseResult getAdHocResultBatch(List<String> ids) {
+    public BaseResult getAdHocQueryResult(List<String> ids) {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
             BaseResult<Object> baseResult;
@@ -214,13 +214,13 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult getSavedQueryStatusBatch(List<String> ids) {
+    public BaseResult getSavedQueryStatus(List<String> ids) {
         List<Map<String, Object>> result = jobService.batchSavedQueryStatus(ids);
         return BaseResultGenerator.success(result);
     }
 
     @Override
-    public BaseResult getAdHocStatusBatch(List<String> ids) {
+    public BaseResult getAdHocQueryStatus(List<String> ids) {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
             QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
@@ -239,7 +239,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     @Override
-    public BaseResult cancelSavedQuery(String id) {
+    public BaseResult deleteSavedQueryById(String id) {
         return jobService.cancelSavedQuery(id);
     }
 

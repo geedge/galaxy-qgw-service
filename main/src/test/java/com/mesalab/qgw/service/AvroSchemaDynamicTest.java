@@ -20,8 +20,8 @@ public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
     public DiagnosisService diagnosisService;
     @Test
     public void testValidateMetadata(){
-        BaseResult  baseResult = diagnosisService.validateMetadata();
-        assertEquals("Validate metadata failure.", String.valueOf(baseResult.getStatus()), String.valueOf(HttpStatus.SC_OK));
+        BaseResult  baseResult = diagnosisService.validateSchema();
+        assertEquals("Validate schema failure.", String.valueOf(baseResult.getStatus()), String.valueOf(HttpStatus.SC_OK));
     }
 
 

@@ -23,7 +23,7 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DslQueryRequest extends QueryRequest implements Serializable {
+public class DslQueryRequestParam extends CommonRequestParam implements Serializable {
     @JsonProperty("name")
     private String name;
     @JsonProperty("data_source")
@@ -38,10 +38,10 @@ public class DslQueryRequest extends QueryRequest implements Serializable {
     private List<String> intervals;
     @JsonProperty("limit")
     private String limit;
-    private Map<String, Object> customAttributes = Maps.newHashMap();
+    private Map<String, Object> customRequestParam = Maps.newHashMap();
 
     @JsonAnySetter
     public void setCustomAttributes(String key, Object value) {
-        customAttributes.put(key, value);
+        customRequestParam.put(key, value);
     }
 }

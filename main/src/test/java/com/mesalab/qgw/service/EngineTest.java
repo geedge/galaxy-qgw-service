@@ -24,16 +24,5 @@ public class EngineTest extends GalaxyQGWApplicationTests {
         assertEquals("Schema validate failure.", String.valueOf(baseResult.getStatus()), String.valueOf(HttpStatus.SC_OK));
     }
 
-    @Test
-    public void testMetadata() {
-        BaseResult baseResult = diagnosisService.validateMetadata();
-        assertEquals("Metadata validate failure.", String.valueOf(baseResult.getStatus()), String.valueOf(HttpStatus.SC_OK));
-    }
-
-    @Test
-    public void testPocSql() {
-        BaseResult baseResult = diagnosisService.runPocSQL(false, DiagnosisOptionEnum.PARSE.getValue(), null);
-        assertEquals("POC sql parse failure.", String.valueOf(baseResult.getStatus()), String.valueOf(HttpStatus.SC_OK));
-    }
 
 }

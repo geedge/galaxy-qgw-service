@@ -8,14 +8,12 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * TODO
- *
- * @Classname QueryRequest
+ * Common request parameters for all query types, including: SQL and DSL.
  * @Date 2023/12/6 15:30
  * @Author wWei
  */
 @Data
-public class QueryRequest implements Serializable {
+public class CommonRequestParam implements Serializable {
     @JsonProperty("output_mode")
     private OutputModeEnum outputMode = OutputModeEnum.JSON;
     @JsonProperty("exec_mode")

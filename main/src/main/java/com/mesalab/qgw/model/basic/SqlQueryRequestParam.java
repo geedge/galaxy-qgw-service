@@ -11,9 +11,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * TODO
  *
- * @Classname SqlQueryRequest
+ * HTTP Rest API request parameters for SQL query.
  * @Date 2023/12/6 15:32
  * @Author wWei
  */
@@ -21,12 +20,12 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SqlQueryRequest extends QueryRequest implements Serializable {
+public class SqlQueryRequestParam extends CommonRequestParam implements Serializable {
     private String statement;
-    private Map<String, Object> customAttributes = Maps.newHashMap();
+    private Map<String, Object> customRequestParam = Maps.newHashMap();
 
     @JsonAnySetter
     public void setCustomAttributes(String key, Object value) {
-        customAttributes.put(key, value);
+        customRequestParam.put(key, value);
     }
 }
