@@ -11,12 +11,11 @@ import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.model.basic.QueryContext;
-import com.mesalab.qgw.service.impl.QueryServiceImpl;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.geedgenetworks.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 
@@ -28,21 +27,13 @@ import java.util.Map;
 @Component
 public class ReportCacheUtils {
     private static final Log log = LogFactory.get();
-    @Autowired
-    private HBaseAPISource hBaseAPISourceCache;
-
     private static HBaseAPISource hBaseAPISource;
-
-    @PostConstruct
-    public void init() {
-        hBaseAPISource = this.hBaseAPISourceCache;
-    }
-
+    private static SQLSyncQueryService sqlSyncQueryService;
 
     public static BaseResult<Object> getByRowKey(String rowKey) {
         BaseResult baseResult;
         Map<String, Object> result = query(rowKey);
-        Map map = JSON.parseObject((String)result.get("result"), Map.class);
+        Map map = JSON.parseObject((String) result.get("result"), Map.class);
         if (StringUtil.isEmpty(map)) {
             log.warn("The saved query job result [jobId:{}] is unavailable. It Has been deleted or does not exist.", rowKey);
             baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.NOT_FOUND.getCode(), "The saved query job result [jobId:" + rowKey + "] is unavailable. It Has been deleted or does not exist.");
@@ -54,14 +45,13 @@ public class ReportCacheUtils {
     }
 
     private static Map<String, Object> query(String rowKey) {
-        QueryServiceImpl queryService = new QueryServiceImpl();
         QueryContext param = new QueryContext();
         StringBuffer sb = new StringBuffer();
         sb.append("select ").append(hBaseAPISource.getColumnName());
         sb.append(" from ").append(hBaseAPISource.getDbName()).append(".").append(hBaseAPISource.getTableName());
         sb.append(" where ").append("ROWKEY=").append("\'" + rowKey + "\'");
         param.setQuery(sb.toString());
-        BaseResult result = queryService.executeQuery(param);
+        BaseResult result = sqlSyncQueryService.executeQuery(param);
         Map<String, Object> resultMap = Maps.newHashMap();
         if (StringUtil.isNotEmpty(result.getData())) {
             List<Map<String, Object>> dataList = (List<Map<String, Object>>) result.getData();
@@ -73,4 +63,15 @@ public class ReportCacheUtils {
         }
         return resultMap;
     }
+
+    @Autowired
+    public void setJobExecuteService(HBaseAPISource hBaseAPISource) {
+        ReportCacheUtils.hBaseAPISource = hBaseAPISource;
+    }
+
+    @Autowired
+    public void sqlSyncQueryService(SQLSyncQueryService sqlSyncQueryService) {
+        ReportCacheUtils.sqlSyncQueryService = sqlSyncQueryService;
+    }
+
 }

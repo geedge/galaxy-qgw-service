@@ -16,7 +16,7 @@ import com.mesalab.common.enums.QueryOption;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.mesalab.services.service.impl.JobExecuteService.signJobInfoToFailedOnQueryCache;
-import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
+import static com.mesalab.qgw.service.impl.JobServiceImpl.executeUpdate;
 
 /**
  * TODO
@@ -49,9 +49,9 @@ import static com.mesalab.services.service.impl.JobServiceImp.executeUpdate;
 public class TaskExecuteService implements EnvironmentAware {
     private static final Log log = LogFactory.get();
     @Autowired
-    Environment env;
+    private Environment env;
     @Autowired
-    QueryService queryService;
+    SQLSyncQueryService queryService;
     @Autowired
     DatabaseService databaseService;
     @Autowired

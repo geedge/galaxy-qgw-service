@@ -7,7 +7,7 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
-import com.mesalab.qgw.service.impl.QueryServiceImpl;
+import com.mesalab.qgw.service.impl.SQLSyncQueryServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +41,7 @@ public class SavedQueryResultUtils {
     }
 
     private static List<Map<String, Object>> query(List<String> rowKeys) {
-        QueryServiceImpl queryService = new QueryServiceImpl();
+        SQLSyncQueryServiceImpl queryService = new SQLSyncQueryServiceImpl();
         QueryContext param = new QueryContext();
         StringBuffer sb = new StringBuffer();
         sb.append("select ROWKEY, ").append(hBaseAPISource.getColumnName());

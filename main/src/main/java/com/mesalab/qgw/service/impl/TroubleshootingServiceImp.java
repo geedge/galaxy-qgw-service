@@ -35,7 +35,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.TroubleshootingService;
 import com.mesalab.qgw.service.DatasetService;
 import org.apache.avro.Schema;
@@ -79,7 +79,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private HBaseAPISource hBaseAPISource;
 
     @Autowired
-    private QueryService queryService;
+    private SQLSyncQueryService queryService;
     @Autowired
     private HttpClientService httpClientService;
     @Autowired

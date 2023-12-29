@@ -1,4 +1,4 @@
-package com.mesalab.services.service.impl;
+package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.*;
@@ -27,7 +27,6 @@ import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.model.basic.EntityConfigSource;
 import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.qgw.service.impl.QueryServiceImpl;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.dsl.ComDSLParse;
 import com.mesalab.services.common.enums.EntityQueryType;
@@ -57,11 +56,11 @@ import java.util.stream.Collectors;
  */
 @Service("entityService")
 @PropertySource(value = "classpath:http-sql-template.sql", factory = SqlPropertySourceFactory.class)
-public class EntityServiceImp implements EntityService, EnvironmentAware {
+public class EntityServiceImpl implements EntityService, EnvironmentAware {
     private static final Log log = LogFactory.get();
 
     @Autowired
-    private QueryServiceImpl queryService;
+    private SQLSyncQueryServiceImpl queryService;
     @Autowired
     private HttpClientService httpClientServiceTemp;
     @Autowired

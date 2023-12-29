@@ -40,7 +40,7 @@ import com.mesalab.qgw.model.job.XxlJobInfo;
 import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
 import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import lombok.AllArgsConstructor;
@@ -79,7 +79,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
-    private QueryService queryService;
+    private SQLSyncQueryService queryService;
     @Autowired
     public MetadataConfig metadataConfig;
     @Autowired

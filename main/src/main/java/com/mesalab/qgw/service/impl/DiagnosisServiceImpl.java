@@ -21,7 +21,7 @@ import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.enums.EntityQueryType;
@@ -54,7 +54,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private static final String HBASE_DBNAME2 = "tsg_galaxy";
 
     @Autowired
-    private QueryService queryService;
+    private SQLSyncQueryService queryService;
 
     @Autowired
     private DialectWriter dialectWriter;

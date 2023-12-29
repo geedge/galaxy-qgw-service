@@ -24,7 +24,7 @@ import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SystemService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -55,7 +55,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private static final String trafficPort = "8123";
     private Environment env;
     @Autowired
-    private QueryService queryService;
+    private SQLSyncQueryService queryService;
     @Autowired
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired

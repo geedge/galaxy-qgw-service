@@ -34,7 +34,7 @@ import com.mesalab.qgw.model.basic.DSLProfile;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.service.DSLService;
 import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.enums.UnstructuredDataType;
@@ -84,7 +84,7 @@ public class DslServiceImpl implements DSLService {
     @Autowired
     DatabaseService databaseService;
     @Autowired
-    QueryService queryService;
+    SQLSyncQueryService queryService;
     @Autowired
     UnstructuredService unstructuredService;
     @Autowired

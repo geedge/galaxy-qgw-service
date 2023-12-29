@@ -18,7 +18,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.EntityConfigSource;
-import com.mesalab.qgw.service.QueryService;
+import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.dsl.ComDSLParse;
 import com.mesalab.services.common.enums.EntityQueryType;
@@ -46,7 +46,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
     @Value("${arango.maxrows}")
     private String defLimit;//查询最大条数
     @Autowired
-    private QueryService queryService;
+    private SQLSyncQueryService queryService;
     @Autowired
     private EntityConfigSource entityConfigSource;
 
