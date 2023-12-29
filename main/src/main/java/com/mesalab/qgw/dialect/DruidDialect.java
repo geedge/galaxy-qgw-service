@@ -12,7 +12,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.configuration.HttpConfig;
 import com.mesalab.common.httpClient.HttpClientService;
-import com.mesalab.common.utils.sqlparser.SampleSQLHelper;
+import com.mesalab.common.utils.sqlparser.DruidSampleSQLHelper;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -224,8 +224,9 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
-        String dataSet = StrUtil.format("SELECT * FROM {} LIMIT 1000");
-        return new SampleSQLHelper(sql, dataSet, true).build();
+        String filterExpr = String.format("%s >= CURRENT_TIMESTAMP - INTERVAL %s AND %s < CURRENT_TIMESTAMP",
+                param.getDbQuerySource().getPartitionKey(), "'10' MINUTE", param.getDbQuerySource().getPartitionKey());
+        return new DruidSampleSQLHelper(sql, filterExpr, true).build();
     }
 
     private List<Map<String, String>> unifyMeta(List<Object> list) {
