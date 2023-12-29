@@ -11,10 +11,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.service.UtilService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/v1/util")
@@ -29,8 +26,8 @@ public class UtilController {
         return utilService.getSQLSyntaxTree(sql);
     }
 
-    @PostMapping(value = "/password_generator")
-    public BaseResult getCiphertext(EncryptionInfo param) {
+    @PostMapping(value = "/password_generator", consumes = "application/json")
+    public BaseResult getCiphertext(@RequestBody EncryptionInfo param) {
         log.info("Plaintext encrypted,The plaintext argument is : {}", param);
         if (StringUtil.isEmpty(param.getPassword()) || StringUtil.isEmpty(param.getSalt())) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
