@@ -28,6 +28,7 @@ public class HosServiceImp implements HosService {
     private static final String CONTENTS = "Contents";
     private static final String USER_DEFINED_META = "UserDefinedMeta";
     private static final String KEY = "Key";
+    private static final String LAST_MODIFIED = "LastModified";
     private static final String SIZE = "Size";
     private static final String CHUNK_COUNT = "ChunkCount";
     private static final String REQUEST_ID = "RequestId";
@@ -89,6 +90,7 @@ public class HosServiceImp implements HosService {
         String key = String.valueOf(contents.get(KEY));
         dataMap.put("size", StrUtil.isBlankIfStr(contents.get(SIZE)) ? 0 : Integer.parseInt(String.valueOf(contents.get(SIZE))));
         dataMap.put("fileUrl", hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(key));
+        dataMap.put("lastModified", String.valueOf(contents.get(LAST_MODIFIED)));
         if (MapUtil.isNotEmpty((Map<?, ?>) contents.get(USER_DEFINED_META))) {
             Map<String, String> udfMeta = (Map<String, String>) contents.get(USER_DEFINED_META);
             String fileType = StrUtil.isBlankIfStr(udfMeta.get(FILE_TYPE)) ? "" : udfMeta.get(FILE_TYPE);
