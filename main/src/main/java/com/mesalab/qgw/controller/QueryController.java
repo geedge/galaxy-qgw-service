@@ -40,7 +40,7 @@ public class QueryController {
 
     @PostMapping(value = "/sql", produces = "application/json;charset=utf-8")
     @AuditLog("QueryController.post")
-    public BaseResult post(@RequestBody QueryContext queryContext) {
+    public BaseResult post(@RequestBody QueryContext queryContext ) {
         if (queryContext.queryParamIsNull()) {
             return BaseResultGenerator.success4Message("ok");
         }
@@ -52,7 +52,7 @@ public class QueryController {
     @PostMapping(value = "/v1/query/sql", consumes = "application/json", produces = "application/json")
     @AuditLog("QueryController.createSQLQuery")
     public BaseResult createSQLQuery(@RequestBody SqlQueryRequestParam sqlQueryRequestParam) {
-        log.info("Create an SQL Query,request params is:\n {}", JSON.toJSONString(sqlQueryRequestParam));
+        log.info("Create an SQL Query {}", JSON.toJSONString(sqlQueryRequestParam));
         if (sqlQueryRequestParam.isSavedQuery()) {
             if (sqlQueryRequestParam.isDryRun() || !sqlQueryRequestParam.getExecMode().equals(ExecModeEnum.NORMAL) || !sqlQueryRequestParam.getOutputMode().equals(OutputModeEnum.JSON)) {
                 throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
@@ -68,7 +68,7 @@ public class QueryController {
     @PostMapping(value = "/v1/query/dsl", consumes = "application/json", produces = "application/json")
     @AuditLog("QueryController.createDSLQuery")
     public BaseResult createDSLQuery(@RequestBody DslQueryRequestParam dslQueryRequestParam) {
-        log.info("Create a DSL query,request params is:\n {}", JSON.toJSONString(dslQueryRequestParam));
+        log.info("Create a DSL query {}", JSON.toJSONString(dslQueryRequestParam));
         if (dslQueryRequestParam.isSavedQuery()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));
