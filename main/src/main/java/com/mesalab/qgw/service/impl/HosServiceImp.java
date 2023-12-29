@@ -10,7 +10,10 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.httpClient.HttpClientService;
+import com.mesalab.knowledge.configuration.HosConfig;
 import com.mesalab.qgw.service.HosService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

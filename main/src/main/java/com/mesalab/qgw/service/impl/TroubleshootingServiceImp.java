@@ -37,7 +37,7 @@ import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.TroubleshootingService;
-import com.mesalab.services.service.DatasetService;
+import com.mesalab.qgw.service.DatasetService;
 import org.apache.avro.Schema;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.NameValuePair;

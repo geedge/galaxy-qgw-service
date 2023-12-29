@@ -1,10 +1,7 @@
-package com.mesalab.services.controller;
+package com.mesalab.qgw.controller;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
-import cn.hutool.log.Log;
-import cn.hutool.log.LogFactory;
-import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 
@@ -13,19 +10,20 @@ import com.mesalab.common.enums.DBTypeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.services.service.DatasetService;
+import com.mesalab.qgw.service.DatasetService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping(value = "/v1/dataset")
 public class DatasetController {
-    private static final Log log = LogFactory.get();
+
     @Autowired
     private DatasetService datasetService;
-
 
     @GetMapping(value = "/{identifier_name}")
     public BaseResult getDataset(@PathVariable("identifier_name") String identifierName) {

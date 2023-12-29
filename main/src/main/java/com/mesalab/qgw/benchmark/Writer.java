@@ -14,7 +14,7 @@ import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.services.service.DatasetService;
+import com.mesalab.qgw.service.DatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

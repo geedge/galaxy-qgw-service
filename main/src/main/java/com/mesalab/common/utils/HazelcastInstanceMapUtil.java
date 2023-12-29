@@ -11,18 +11,18 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * TODO
  *
- * @Classname HazelcastInstanceUtil
+ * @Classname HazelcastInstanceMapUtil
  * @Date 2023/12/5 15:13
  * @Author wWei
  */
 @Component
-public class HazelcastInstanceUtil {
+public class HazelcastInstanceMapUtil {
 
     private static HazelcastInstance hazelcastInstance;
 
     @Autowired
-    public HazelcastInstanceUtil(@Qualifier("hazelcastInstance") HazelcastInstance hazelcastInstance) {
-        HazelcastInstanceUtil.hazelcastInstance = hazelcastInstance;
+    public HazelcastInstanceMapUtil(@Qualifier("hazelcastInstance") HazelcastInstance hazelcastInstance) {
+        HazelcastInstanceMapUtil.hazelcastInstance = hazelcastInstance;
     }
 
 

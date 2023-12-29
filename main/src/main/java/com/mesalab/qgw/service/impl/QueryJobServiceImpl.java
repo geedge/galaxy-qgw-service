@@ -14,7 +14,7 @@ import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.utils.HazelcastInstanceUtil;
+import com.mesalab.common.utils.HazelcastInstanceMapUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
@@ -76,14 +76,14 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             return queryService.executeQuery(QueryProfile.builder().query(request.getStatement()).option(option).format(request.getOutputMode().getValue()).build());
         } else if (ExecModeEnum.NORMAL.equals(execMode)) {
             String id = buildJobId(request.toString());
-            HazelcastInstanceUtil.put(id, new QueryCache(id, request.getOutputMode().getValue()));
+            HazelcastInstanceMapUtil.put(id, new QueryCache(id, request.getOutputMode().getValue()));
             jobExecuteService.addExecutorSql(id, request);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         } else if (ExecModeEnum.BLOCKING.equals(execMode)) {
             String id = buildJobId(request.toString());
             BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(request.getStatement()).option(option).format(request.getOutputMode().getValue()).build());
             QueryCache queryCache = buildQueryCacheOfDone(id, start, request.getOutputMode().getValue(), baseResult);
-            HazelcastInstanceUtil.put(id, queryCache);
+            HazelcastInstanceMapUtil.put(id, queryCache);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         }
         throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.PARAM_SYNTAX_BAD_REQUEST_EXCEPTION.getCode(),
@@ -110,7 +110,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 return jobService.commitAdHocQuery(map);
             } else {
                 String id = buildJobId(request.toString());
-                HazelcastInstanceUtil.put(id, new QueryCache(id, request.getOutputMode().getValue()));
+                HazelcastInstanceMapUtil.put(id, new QueryCache(id, request.getOutputMode().getValue()));
                 jobExecuteService.addExecutorDsl(id, request);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             }
@@ -123,7 +123,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 BaseResult baseResult = dslService.execDsl(dslProfile);
                 String id = buildJobId(request.toString());
                 QueryCache queryCache = buildQueryCacheOfDone(id, start, request.getOutputMode().getValue(), baseResult);
-                HazelcastInstanceUtil.put(id, queryCache);
+                HazelcastInstanceMapUtil.put(id, queryCache);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             }
         }
@@ -148,7 +148,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult getAdHocResult(String id) {
-        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         if (StrUtil.isEmptyIfStr(queryCache)) {
             return jobService.getResultFieldDiscovery(id);
         } else {
@@ -164,7 +164,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult getAdHocStatus(String id) {
-        QueryCache queryCache = HazelcastInstanceUtil.get(id);
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
         if (StrUtil.isEmptyIfStr(queryCache)) {
             BaseResult resultFieldDiscovery = jobService.getResultFieldDiscovery(id);
             if (StrUtil.isEmptyIfStr(resultFieldDiscovery)) {
@@ -193,7 +193,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
             BaseResult<Object> baseResult;
-            QueryCache queryCache = HazelcastInstanceUtil.get(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
             if (StrUtil.isEmptyIfStr(queryCache)) {
                 baseResult = jobService.getResultFieldDiscovery(id);
                 if (StrUtil.isEmptyIfStr(baseResult)) {
@@ -223,7 +223,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     public BaseResult getAdHocStatusBatch(List<String> ids) {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
-            QueryCache queryCache = HazelcastInstanceUtil.get(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
             if (StrUtil.isEmptyIfStr(queryCache)) {
                 BaseResult resultFieldDiscovery = jobService.getResultFieldDiscovery(id);
                 if (StrUtil.isEmptyIfStr(resultFieldDiscovery)) {
