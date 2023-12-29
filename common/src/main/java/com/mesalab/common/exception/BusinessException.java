@@ -1,7 +1,6 @@
 package com.mesalab.common.exception;
 
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import lombok.*;
 
 /**
@@ -20,12 +19,12 @@ public class BusinessException extends RuntimeException {
     /**
      * 状态码
      */
-    private int status = ResultStatusEnum.SERVER_ERROR.getCode();
+    private int status = HttpStatusCodeEnum.SERVER_ERROR.getCode();
 
     /**
      * 业务码
      */
-    private String code = ResultCodeEnum.UNKNOWN_EXCEPTION.getCode();
+    private String code = CommonErrorCode.UNKNOWN_EXCEPTION.getCode();
 
 
     /**

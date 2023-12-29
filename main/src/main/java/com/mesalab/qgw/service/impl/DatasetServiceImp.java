@@ -14,7 +14,7 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.common.entity.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.QueryJobService;
@@ -107,17 +107,17 @@ public class DatasetServiceImp
         String datasetType = String.valueOf(dataset.get(DATASET_TYPE));
         if (datasetType.equalsIgnoreCase("sql")) {
             SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(template, SqlQueryRequestParam.class);
-            sqlQueryRequest.setExecMode(ExecModeEnum.ONESHOT.getValue());
+            sqlQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
             log.info("Dataset Preview, ID is: {}, Type is: {}, Exec SQL is: {}", datasetId, "sql", sqlQueryRequest.getStatement());
             return queryJobService.createSQLAdHocQuery(sqlQueryRequest);
         } else if (datasetType.equalsIgnoreCase("dsl")) {
             DSLQueryRequestParam dslQueryRequest = JSON.parseObject(template, DSLQueryRequestParam.class);
-            dslQueryRequest.setExecMode(ExecModeEnum.ONESHOT.getValue());
+            dslQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
             log.info("Dataset Preview, ID is: {}, Type is: {}, DSL is: {}", datasetId, "dsl", template);
             return queryJobService.createDSLAdHocQuery(dslQueryRequest);
         } else {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
         }
     }
 

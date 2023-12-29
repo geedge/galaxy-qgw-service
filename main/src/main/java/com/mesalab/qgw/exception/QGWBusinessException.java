@@ -1,8 +1,7 @@
 package com.mesalab.qgw.exception;
 
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.common.entity.QGWErrorCode;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
+import com.mesalab.common.exception.CommonErrorCode;
 import lombok.*;
 
 /**
@@ -21,12 +20,12 @@ public class QGWBusinessException extends RuntimeException {
     /**
      * 状态码
      */
-    private int status = ResultStatusEnum.SERVER_ERROR.getCode();
+    private int status = HttpStatusCodeEnum.SERVER_ERROR.getCode();
 
     /**
      * 业务码
      */
-    private String code = ResultCodeEnum.UNKNOWN_EXCEPTION.getCode();
+    private String code = CommonErrorCode.UNKNOWN_EXCEPTION.getCode();
 
 
     /**
@@ -34,14 +33,14 @@ public class QGWBusinessException extends RuntimeException {
      */
     private String message;
 
-    public QGWBusinessException(int status, QGWErrorCode errorCode) {
+    public QGWBusinessException(int status, CommonErrorCode errorCode) {
         super(errorCode.getMessage());
         this.status = status;
         this.code = errorCode.getCode();
         this.message = errorCode.getMessage();
     }
 
-    public QGWBusinessException(QGWErrorCode errorCode) {
+    public QGWBusinessException(CommonErrorCode errorCode) {
         super(errorCode.getMessage());
         this.code = errorCode.getCode();
         this.message = errorCode.getMessage();

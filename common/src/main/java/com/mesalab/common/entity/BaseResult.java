@@ -2,7 +2,7 @@ package com.mesalab.common.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -65,7 +65,7 @@ public class BaseResult<T> implements Serializable {
      * @return 是否为成功结果
      */
     public boolean isSuccess() {
-        return this.status >= ResultStatusEnum.SUCCESS.getCode() && this.status < 300;
+        return this.status >= HttpStatusCodeEnum.SUCCESS.getCode() && this.status < 300;
     }
 
     @Override

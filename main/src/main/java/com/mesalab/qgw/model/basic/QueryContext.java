@@ -1,7 +1,7 @@
 package com.mesalab.qgw.model.basic;
 
 import com.geedgenetworks.utils.StringUtil;
-import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.enums.DBType;
 import lombok.*;
 import java.io.Serializable;
 @Data
@@ -18,7 +18,7 @@ public class QueryContext implements Serializable {
     private String resultId;
     private Integer timeout;
     /**
-     * @see DBTypeEnum
+     * @see DBType
      */
     private String dbType;
     /**

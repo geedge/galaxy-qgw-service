@@ -4,15 +4,15 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.ImmutableMap;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.entity.HttpResponseResult;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.common.httpClient.HttpClientServiceV2;
 import com.mesalab.knowledge.common.config.ArangoConfig;
 import com.mesalab.knowledge.common.utils.Constant;
 import com.mesalab.knowledge.common.utils.JwtCache;
-import com.mesalab.common.entity.HttpResponseResult;
+import com.mesalab.common.exception.CommonErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -84,8 +84,8 @@ public class BaseQueryProvider {
                 responseResult = httpClientServiceV2.post(arangoConfig.getQueryurl(), JSON.toJSONString(queryMap), headers);
             } else {
                 log.error(e.getMessage());
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(),e.getMessage()));
+                throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),e.getMessage()));
             }
         }
         Map jsonMap = JSON.parseObject(responseResult.getResponseBody(), Map.class);

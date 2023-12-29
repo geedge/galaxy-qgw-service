@@ -8,7 +8,7 @@ import cn.hutool.log.LogFactory;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.enums.DBTypeEnum;
+import com.mesalab.common.enums.DBType;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +34,7 @@ public class DruidTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void testSqlParser() {
-        String pocFile = dialectWriter.buildPocSQL(Lists.newLinkedList(), DBTypeEnum.DRUID.getValue(), null);
+        String pocFile = dialectWriter.buildPocSQL(Lists.newLinkedList(), DBType.DRUID.getValue(), null);
         Optional<File> ckTestFile =  Optional.of(new File(pocFile));
         if (ckTestFile.isPresent()) {
             if (!ckTestFile.get().isFile()) {

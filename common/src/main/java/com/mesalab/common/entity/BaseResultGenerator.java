@@ -2,8 +2,9 @@ package com.mesalab.common.entity;
 
 
 import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public class BaseResultGenerator {
      * @return 操作成功的默认响应结果
      */
     public static <T> BaseResult<T> success() {
-        return new BaseResult<>(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(),
+        return new BaseResult<>(HttpStatusCodeEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(),
                 null, true, ResultCodeEnum.SUCCESS.getMessage(), null, null, null, null);
     }
 
@@ -49,7 +50,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> success(final String message, final T data) {
-        return new BaseResult<>(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(),
+        return new BaseResult<>(HttpStatusCodeEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(),
                 null, true, message, null, null, null, data);
     }
 
@@ -77,7 +78,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> success(final String message, final T data, final Map<String, Object> statistics) {
-        return new BaseResult<>(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(),
+        return new BaseResult<>(HttpStatusCodeEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(),
                 null, true, message, statistics, null, null, data);
     }
 
@@ -89,7 +90,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> success(final T data) {
-        return new BaseResult<>(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), null, true,
+        return new BaseResult<>(HttpStatusCodeEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), null, true,
                 ResultCodeEnum.SUCCESS.getMessage(), null, null, null, data);
     }
 
@@ -104,7 +105,7 @@ public class BaseResultGenerator {
      * @date 2021/11/26 11:46 上午
      */
     public static <T> BaseResult<T> success(final Map<String, Object> statistics, final Map<String, Object> job, final T meta, final T data) {
-        return new BaseResult<>(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), null, true,
+        return new BaseResult<>(HttpStatusCodeEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), null, true,
                 ResultCodeEnum.SUCCESS.getMessage(), statistics, job, null, meta, data);
     }
 
@@ -117,8 +118,8 @@ public class BaseResultGenerator {
      * @date 2023/11/29 11:46 上午
      */
     public static <T> BaseResult<T> successCreate(final Map<String, Object> job) {
-        return new BaseResult<>(ResultStatusEnum.CREATED.getCode(), ResultCodeEnum.SUCCESS.getCode(), null, true,
-                ResultStatusEnum.CREATED.getMessage(), null, job, null, null, null);
+        return new BaseResult<>(HttpStatusCodeEnum.CREATED.getCode(), ResultCodeEnum.SUCCESS.getCode(), null, true,
+                HttpStatusCodeEnum.CREATED.getMessage(), null, job, null, null, null);
     }
 
 
@@ -129,7 +130,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> success4Message(final String message) {
-        return new BaseResult<>(ResultStatusEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(),
+        return new BaseResult<>(HttpStatusCodeEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(),
                 null, true, message, null, null, null, null);
     }
 
@@ -139,8 +140,8 @@ public class BaseResultGenerator {
      * @return 操作成功的默认响应结果
      */
     public static <T> BaseResult<T> failure() {
-        return new BaseResult<>(ResultStatusEnum.BAD_REQUEST.getCode(),
-                ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, ResultCodeEnum.UNKNOWN_EXCEPTION.getMessage(), null, null, null, null);
+        return new BaseResult<>(HttpStatusCodeEnum.BAD_REQUEST.getCode(),
+                CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), null, null, null, null);
     }
 
     /**
@@ -151,7 +152,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> failure(final int status, final String message) {
-        return new BaseResult<>(status, ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, null);
+        return new BaseResult<>(status, CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, null);
     }
 
     /**
@@ -186,7 +187,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> failure(final int status, final String message, T data) {
-        return new BaseResult<>(status, ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, data);
+        return new BaseResult<>(status, CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, data);
     }
 
     /**
@@ -195,8 +196,8 @@ public class BaseResultGenerator {
      * @param resultStatusEnum 自定义错误编码枚举
      * @return 响应结果
      */
-    public static <T> BaseResult<T> failure(final ResultStatusEnum resultStatusEnum) {
-        return new BaseResult<>(resultStatusEnum.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, resultStatusEnum.getMessage(), null, null, null, null);
+    public static <T> BaseResult<T> failure(final HttpStatusCodeEnum resultStatusEnum) {
+        return new BaseResult<>(resultStatusEnum.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, resultStatusEnum.getMessage(), null, null, null, null);
     }
 
 
@@ -209,7 +210,7 @@ public class BaseResultGenerator {
      */
     public static <T> BaseResult<T> failure(final String message, final String queryKey) {
 
-        return new BaseResult<>(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), queryKey, false, message, null, null, null, null);
+        return new BaseResult<>(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), queryKey, false, message, null, null, null, null);
     }
 
 
@@ -219,7 +220,7 @@ public class BaseResultGenerator {
      * @return 操作成功的默认响应结果
      */
     public static <T> BaseResult<T> error() {
-        return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, ResultStatusEnum.SERVER_ERROR.getMessage(), null, null, null, null);
+        return new BaseResult<>(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, HttpStatusCodeEnum.SERVER_ERROR.getMessage(), null, null, null, null);
     }
 
     /**
@@ -230,7 +231,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> error(final int code, final String message) {
-        return new BaseResult<>(code, ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, null);
+        return new BaseResult<>(code, CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, null);
     }
 
     /**
@@ -250,8 +251,8 @@ public class BaseResultGenerator {
      * @param resultStatusEnum 自定义错误编码枚举
      * @return 响应结果
      */
-    public static <T> BaseResult<T> error(final ResultStatusEnum resultStatusEnum) {
-        return new BaseResult<>(resultStatusEnum.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, resultStatusEnum.getMessage(), null, null, null, null);
+    public static <T> BaseResult<T> error(final HttpStatusCodeEnum resultStatusEnum) {
+        return new BaseResult<>(resultStatusEnum.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, resultStatusEnum.getMessage(), null, null, null, null);
     }
 
     /**
@@ -261,7 +262,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> error(final BusinessException be) {
-        return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, be.getMessage(), null, null, null, null);
+        return new BaseResult<>(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, be.getMessage(), null, null, null, null);
     }
 
     /**
@@ -271,7 +272,7 @@ public class BaseResultGenerator {
      * @return 响应结果
      */
     public static <T> BaseResult<T> error(final String message) {
-        return new BaseResult<>(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, null);
+        return new BaseResult<>(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), null, false, message, null, null, null, null);
     }
 
 }

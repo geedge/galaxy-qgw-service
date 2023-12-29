@@ -3,9 +3,9 @@ package com.mesalab.common.enums;
 import lombok.Getter;
 
 @Getter
-public enum OutputModeEnum {
+public enum OutputMode {
     JSON("json"),
     CSV("csv"),;
     private final String value;
-    OutputModeEnum(String value) {this.value = value;}
+    OutputMode(String value) {this.value = value;}
 }

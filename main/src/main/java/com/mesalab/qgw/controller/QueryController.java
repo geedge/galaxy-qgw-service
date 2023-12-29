@@ -4,11 +4,11 @@ import cn.hutool.core.util.BooleanUtil;
 import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.entity.QGWErrorCode;
-import com.mesalab.common.enums.ExecModeEnum;
-import com.mesalab.common.enums.OutputModeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.ExecMode;
+import com.mesalab.common.enums.OutputMode;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.QueryJobService;
 import com.mesalab.qgw.service.QueryService;
@@ -31,21 +31,21 @@ public class QueryController {
 
     @GetMapping("/sql")
     @AuditLog("QueryController.get")
-    public BaseResult get(QueryContext queryContext) {
-        if (queryContext.queryParamIsNull())
+    public BaseResult get(QueryContext queryProfile) {
+        if (queryProfile.queryParamIsNull())
             return BaseResultGenerator.success4Message("ok");
-        log.debug("Quest Params:{}", JSON.toJSONString(queryContext));
-        return queryService.executeQuery(queryContext);
+        log.debug("Quest Params:{}", JSON.toJSONString(queryProfile));
+        return queryService.executeQuery(queryProfile);
     }
 
     @PostMapping(value = "/sql", produces = "application/json;charset=utf-8")
     @AuditLog("QueryController.post")
-    public BaseResult post(@RequestBody QueryContext queryContext ) {
-        if (queryContext.queryParamIsNull()) {
+    public BaseResult post(@RequestBody QueryContext queryProfile) {
+        if (queryProfile.queryParamIsNull()) {
             return BaseResultGenerator.success4Message("ok");
         }
-        log.debug("Quest Params:{}", JSON.toJSONString(queryContext));
-        return queryService.executeQuery(queryContext);
+        log.debug("Quest Params:{}", JSON.toJSONString(queryProfile));
+        return queryService.executeQuery(queryProfile);
 
     }
 
@@ -54,9 +54,9 @@ public class QueryController {
     public BaseResult createSQLQuery(@RequestBody SqlQueryRequestParam sqlQueryRequestParam) {
         log.info("Create an SQL Query {}", JSON.toJSONString(sqlQueryRequestParam));
         if (sqlQueryRequestParam.isSavedQuery()) {
-            if (sqlQueryRequestParam.isDryRun() || !sqlQueryRequestParam.getExecMode().equals(ExecModeEnum.NORMAL) || !sqlQueryRequestParam.getOutputMode().equals(OutputModeEnum.JSON)) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(),
+            if (sqlQueryRequestParam.isDryRun() || !sqlQueryRequestParam.getExecMode().equals(ExecMode.NORMAL) || !sqlQueryRequestParam.getOutputMode().equals(OutputMode.JSON)) {
+                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(),
                                 "for the Saved Query Job, is_dry_run must be 0(default), exec_mode must be normal(default), and output_mode must be JSON(default)"));
             }
             return queryJobService.createSQLSavedQuery(sqlQueryRequestParam);
@@ -70,12 +70,12 @@ public class QueryController {
     public BaseResult createDSLQuery(@RequestBody DSLQueryRequestParam dslQueryRequestParam) {
         log.info("Create a DSL query {}", JSON.toJSONString(dslQueryRequestParam));
         if (dslQueryRequestParam.isSavedQuery()) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));
         } else {
-            if (dslQueryRequestParam.isDryRun() || !dslQueryRequestParam.getOutputMode().equals(OutputModeEnum.JSON)) {
-                throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Query not support is_dry_run and output_mode must be 0(default) and JSON(default)"));
+            if (dslQueryRequestParam.isDryRun() || !dslQueryRequestParam.getOutputMode().equals(OutputMode.JSON)) {
+                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Query not support is_dry_run and output_mode must be 0(default) and JSON(default)"));
             }
             return queryJobService.createDSLAdHocQuery(dslQueryRequestParam);
         }
@@ -134,8 +134,8 @@ public class QueryController {
         if (isSavedQuery) {
             return queryJobService.deleteSavedQueryById(id);
         }
-        throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The AdHoc Query Job does not yet support deletion."));
+        throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The AdHoc Query Job does not yet support deletion."));
     }
 
     @Autowired

@@ -4,10 +4,10 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.service.HosService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -41,8 +41,8 @@ public class HosController {
             log.info("Get File List interface,param:bucket_name is {},prefix is {},x-hos-meta-* is {}", bucketName, prefix, udfMetaParam.toString());
             return hosService.getFileList(bucketName, prefix, udfMetaParam);
         } else {
-            throw new BusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.BUCKET_NAME_ERROR));
+            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.BUCKET_NAME_ERROR));
         }
     }
 }

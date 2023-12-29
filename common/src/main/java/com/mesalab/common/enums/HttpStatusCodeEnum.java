@@ -9,7 +9,7 @@ import lombok.Getter;
  * @date 2018/3/21
  */
 @Getter
-public enum ResultStatusEnum {
+public enum HttpStatusCodeEnum {
     /**
      * SUCCESS: 200 成功
      * BAD_REQUEST: 400 服务端无法理解该请求
@@ -33,7 +33,7 @@ public enum ResultStatusEnum {
 
     private String message;
 
-    ResultStatusEnum(int code, String message) {
+    HttpStatusCodeEnum(int code, String message) {
         this.code = code;
     }
 

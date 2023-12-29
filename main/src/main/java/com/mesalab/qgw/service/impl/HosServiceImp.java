@@ -8,8 +8,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.knowledge.configuration.HosConfig;
 import com.mesalab.qgw.service.HosService;
@@ -42,11 +42,11 @@ public class HosServiceImp implements HosService {
     public BaseResult getFileList(String bucketName, String prefix, Map<String, String> udfMetaParam) {
         Map<String, String> map = getDataByHos(bucketName, prefix, udfMetaParam);
         Map<String, Object> stringObjectMap = XmlUtil.xmlToMap(String.valueOf(map.get("result")));
-        if (Integer.parseInt(map.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
+        if (Integer.parseInt(map.get("status")) == HttpStatusCodeEnum.SUCCESS.getCode()) {
             List<Map<String, Object>> dataList = parseXmlData(bucketName, stringObjectMap);
             return BaseResultGenerator.success(dataList);
         } else {
-            return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), String.valueOf(stringObjectMap.get(REQUEST_ID)), String.valueOf(stringObjectMap.get(MESSAGE)));
+            return BaseResultGenerator.failure(Integer.parseInt(map.get("status")), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.valueOf(stringObjectMap.get(REQUEST_ID)), String.valueOf(stringObjectMap.get(MESSAGE)));
         }
     }
 

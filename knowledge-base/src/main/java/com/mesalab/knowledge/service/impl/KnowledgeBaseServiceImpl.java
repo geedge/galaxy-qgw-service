@@ -13,20 +13,20 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
+import com.mesalab.common.configuration.HttpConfig;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.knowledge.configuration.KnowledgeBaseConst;
+import com.mesalab.common.exception.CommonErrorCode;
+import com.geedgenetworks.utils.DateUtils;
+import com.geedgenetworks.utils.StringUtil;
+import com.mesalab.common.httpClient.HttpClientService;
+import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.knowledge.configuration.HosConfig;
 import com.mesalab.knowledge.entity.KnowledgeBase;
 import com.mesalab.knowledge.entity.KnowledgeConstant;
 import com.mesalab.knowledge.service.KnowledgeBaseService;
-import com.mesalab.common.configuration.HttpConfig;
-import com.mesalab.common.httpClient.HttpClientService;
-import com.mesalab.knowledge.configuration.HosConfig;
-import com.geedgenetworks.utils.DateUtils;
-import com.geedgenetworks.utils.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -208,7 +208,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     KnowledgeBase knowledgeBaseRep = knowledgeBaseList.get(i);
                     if (StringUtil.equals(knowledgeBase.getId(), knowledgeBaseRep.getId())) {
                         knowledgeBaseRep.setIsValid(knowledgeBase.getIsValid());
-                        knowledgeBaseList.set(i, knowledgeBaseRep);
+                        knowledgeBaseList.set(i,knowledgeBaseRep);
                     }
                 }
                 saveKnowledgeBaseList(knowledgeBaseList);
@@ -228,14 +228,14 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     public List<KnowledgeBase> queryKnowledgeBaseList() {
         List<KnowledgeBase> knowledgeBaseList = new ArrayList<>();
         try {
-            String config = pubConfigService.getConfig(KnowledgeBaseConst.KNOWLEDGE_BASE_DATA_ID, KnowledgeBaseConst.DEFAULT_GROUP, httpConfig.getServerRequestTimeOut());
+            String config = pubConfigService.getConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, httpConfig.getServerRequestTimeOut());
             if (StringUtil.isNotEmpty(config)) {
                 knowledgeBaseList = JSON.parseArray(config, KnowledgeBase.class);
                 knowledgeBaseList = knowledgeBaseList.stream().sorted(Comparator.comparing(KnowledgeBase::getUpdateTime).reversed()).collect(Collectors.toList());
             }
         } catch (NacosException e) {
             log.error("get knowledge meta error: {}", e.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), e.getMessage());
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         return knowledgeBaseList;
     }
@@ -347,13 +347,13 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private void saveKnowledgeBaseList(List<KnowledgeBase> knowledgeBaseList) throws BusinessException, InterruptedException {
 
         try {
-            boolean b = pubConfigService.publishConfig(KnowledgeBaseConst.KNOWLEDGE_BASE_DATA_ID, KnowledgeBaseConst.DEFAULT_GROUP, JSON.toJSONString(knowledgeBaseList));
+            boolean b = pubConfigService.publishConfig(NacosConst.KNOWLEDGE_BASE_DATA_ID, NacosConst.DEFAULT_GROUP, JSON.toJSONString(knowledgeBaseList));
             if (!b) {
-                throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), "update knowledge meta error.");
+                throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),"update knowledge meta error.");
             }
         } catch (RuntimeException | NacosException e) {
             log.error("update knowledge meta error: {}", e.getMessage());
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), e.getMessage());
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         while (true) {
             Thread.sleep(100);
@@ -377,9 +377,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             if (file.getBytes().length < hosConfig.getMultiUploadStartSize()) {
                 InputStream in = new ByteArrayInputStream(file.getBytes());
                 HttpResponse httpResponse = httpClientService.httpPutStream(url, in, httpConfig.getServerResponseTimeOut(), header);
-                if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != ResultStatusEnum.SUCCESS.getCode()) {
+                if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != HttpStatusCodeEnum.SUCCESS.getCode()) {
                     log.error("execute upload file failed.");
-                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), "upload file failed.");
+                    throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),"upload file failed.");
                 }
             } else {
                 File fileTemp = null;
@@ -406,7 +406,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     completeMultipartUpload(url, uploadId, completeBody, header);
                 } catch (IOException | RuntimeException ex) {
                     log.error("execute upload part file failed.");
-                    throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), ex.getMessage());
+                    throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),ex.getMessage());
                 } finally {
                     if (fileTemp != null && fileTemp.exists()) {
                         FileUtil.del(fileTemp);
@@ -414,7 +414,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 }
             }
         } catch (IOException e) {
-            throw new BusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), e.getMessage());
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),e.getMessage());
         }
         return url;
     }
@@ -430,7 +430,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private HttpResponse uploadPart(String url, Object uploadId, int times, InputStream inputStream, Header header) throws RuntimeException {
         String urlParams = StrFormatter.format("?partNumber={}&uploadId={}", times, uploadId);
         HttpResponse httpResponse = httpClientService.httpPutStream(url.concat(urlParams), inputStream, httpConfig.getServerResponseTimeOut(), header);
-        if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != ResultStatusEnum.SUCCESS.getCode()) {
+        if (StringUtil.isEmpty(httpResponse) || httpResponse.getStatusLine().getStatusCode() != HttpStatusCodeEnum.SUCCESS.getCode()) {
             log.error("upload part file failed.");
             throw new BusinessException("upload part file failed.");
         }

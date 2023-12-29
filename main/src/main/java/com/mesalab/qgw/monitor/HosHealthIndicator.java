@@ -1,7 +1,7 @@
 package com.mesalab.qgw.monitor;
 
 import cn.hutool.core.util.StrUtil;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.knowledge.configuration.HosConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class HosHealthIndicator extends AbstractHealthIndicator {
         Map<String, String> headers = new HashMap<>();
         headers.put("token", hosConfig.getToken());
         Map<String, String> resultMap = httpClientService.httpGet(url, headers, 3000);
-        if (Integer.parseInt(resultMap.get("status")) == ResultStatusEnum.SUCCESS.getCode()) {
+        if (Integer.parseInt(resultMap.get("status")) == HttpStatusCodeEnum.SUCCESS.getCode()) {
             builder.up()
                     .withDetail("app", APP)
                     .withDetail("url", url)

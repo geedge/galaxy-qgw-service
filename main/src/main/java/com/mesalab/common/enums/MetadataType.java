@@ -9,7 +9,7 @@ import lombok.Getter;
  * @Description : 元数据类型枚举
  */
 @Getter
-public enum MetadataTypeEnum {
+public enum MetadataType {
 
     TABLES("tables"),
 
@@ -18,7 +18,7 @@ public enum MetadataTypeEnum {
 
     private String value;
 
-    MetadataTypeEnum(String value) {
+    MetadataType(String value) {
         this.value = value;
     }
 }

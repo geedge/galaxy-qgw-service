@@ -12,7 +12,7 @@ import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
-import com.mesalab.common.enums.QueryOptionEnum;
+import com.mesalab.common.enums.QueryOption;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
@@ -73,7 +73,7 @@ public class TaskExecuteService implements EnvironmentAware {
         }
         try {
             BaseResult currentTop = queryService.executeQuery(QueryContext.builder()
-                    .option(QueryOptionEnum.REAL_TIME.getValue())
+                    .option(QueryOption.REAL_TIME.getValue())
                     .query(buildTopSQL(dataSource, filter, field, fnDefault, column, value))
                     .build());
             if (!currentTop.isSuccess()) {

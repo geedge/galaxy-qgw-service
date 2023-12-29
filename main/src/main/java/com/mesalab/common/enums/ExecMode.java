@@ -7,7 +7,7 @@ package com.mesalab.common.enums;
  * @Date 2023/12/6 17:06
  * @Author wWei
  */
-public enum ExecModeEnum {
+public enum ExecMode {
     /**
      * Desc:  run an asynchronous query
      */
@@ -22,7 +22,7 @@ public enum ExecModeEnum {
     ONESHOT("oneshot");
     private final String value;
 
-    ExecModeEnum(String value) {
+    ExecMode(String value) {
         this.value = value.toLowerCase();
     }
 

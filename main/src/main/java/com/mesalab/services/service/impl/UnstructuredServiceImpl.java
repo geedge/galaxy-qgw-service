@@ -8,11 +8,11 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.OutputModeEnum;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.OutputMode;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
@@ -176,7 +176,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
                 BaseResult result = queryService.executeQuery(queryBuild(sql));
                 if (!result.isSuccess()) {
                     log.error("Query unstructured data status error: {}", result.getMessage());
-                    throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), "Query unstructured data status error: " + result.getMessage());
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Query unstructured data status error: " + result.getMessage());
                 }
                 List<Map> datalist = (List<Map>) result.getData();
                 for (Map data : datalist) {
@@ -207,14 +207,14 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
 
 
     private QueryContext queryBuild(String sql) {
-        return QueryContext.builder().format(OutputModeEnum.JSON.getValue()).query(sql).build();
+        return QueryContext.builder().format(OutputMode.JSON.getValue()).query(sql).build();
     }
 
     private void validationDataSource(String dataSource) {
         List<String> allTable = databaseService.getAllTable();
         if (!allTable.contains(dataSource) && !dataSource.equals(clickHouseHttpSource.getDbName())) {
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DATASOURCE_NOT_EXIST));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.DATASOURCE_NOT_EXIST));
         }
     }
 

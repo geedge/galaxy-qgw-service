@@ -12,10 +12,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.EntityConfigSource;
 import com.mesalab.qgw.service.QueryService;
@@ -63,7 +63,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
             QueryContext queryProfile = QueryContext.builder().option("real_time").query(querySql).build();
             baseResult = deduplicationData(queryService.executeQuery(queryProfile),comDSLObject.getQuery());
         } else {
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(), "No match queryType");
+            baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(), "No match queryType");
         }
         if (!baseResult.isSuccess()) {
             BaseResult result = JSON.parseObject(baseResult.getMessage(), BaseResult.class);
@@ -259,7 +259,7 @@ public class RelationServiceImpl implements RelationService , EnvironmentAware {
 
     private BaseResult formatResult(BaseResult baseResult) {
 
-        if (String.valueOf(ResultStatusEnum.SUCCESS.getCode()).equals(String.valueOf(baseResult.getStatus()))) {
+        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(String.valueOf(baseResult.getStatus()))) {
             baseResult.setMeta(null);
             List<Map<String,Object>> resultList = new ObjectMapper().convertValue(baseResult.getData(), new TypeReference<List<Map<String,Object>>>() {
             });

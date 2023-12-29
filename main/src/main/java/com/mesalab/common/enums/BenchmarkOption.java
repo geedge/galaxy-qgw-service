@@ -3,7 +3,7 @@ package com.mesalab.common.enums;
 import lombok.Getter;
 
 @Getter
-public enum BenchmarkOptionEnum {
+public enum BenchmarkOption {
     /**
      * 验证SQL数据集
      */
@@ -15,7 +15,7 @@ public enum BenchmarkOptionEnum {
 
     private String value;
 
-    BenchmarkOptionEnum(String value) {
+    BenchmarkOption(String value) {
         this.value = value;
     }
 

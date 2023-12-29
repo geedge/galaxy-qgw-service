@@ -5,9 +5,9 @@ import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Maps;
 import com.mesalab.common.configuration.HttpConfig;
 import com.mesalab.common.entity.HttpResponseResult;
-import com.mesalab.common.entity.QGWErrorCode;
-import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.exception.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
@@ -252,7 +252,7 @@ public class HttpClientServiceV2 {
                 map.put(h.getName().toUpperCase(), h.getValue());
             }
         } catch (Exception e) {
-           throw new BusinessException(handleException(e), QGWErrorCode.HTTP_REQUEST_EXCEPTION.getCode(), e.getMessage());
+           throw new BusinessException(handleException(e), CommonErrorCode.HTTP_REQUEST_EXCEPTION.getCode(), e.getMessage());
         } finally {
             closeResponse(response);
         }
@@ -270,7 +270,7 @@ public class HttpClientServiceV2 {
             response = getHttpClient(socketTimeout).execute(httpGet);
             result = IOUtils.toBufferedInputStream(response.getEntity().getContent());
         } catch (Exception e) {
-            throw new BusinessException(handleException(e), QGWErrorCode.HTTP_REQUEST_EXCEPTION.getCode(), e.getMessage());
+            throw new BusinessException(handleException(e), CommonErrorCode.HTTP_REQUEST_EXCEPTION.getCode(), e.getMessage());
         } finally {
             closeResponse(response);
         }
@@ -306,25 +306,25 @@ public class HttpClientServiceV2 {
     private int handleException(Exception e) {
         if (e instanceof ClientProtocolException || e instanceof ParseException) {
             log.error("Protocol or Parsing error:{}", e.getMessage());
-            return ResultStatusEnum.SERVICE_UNAVAILABLE.getCode();
+            return HttpStatusCodeEnum.SERVICE_UNAVAILABLE.getCode();
         } else if (e instanceof SocketTimeoutException) {
             log.error("Socket timeout error:{}", e.getMessage());
-            return ResultStatusEnum.GATEWAY_TIMEOUT.getCode();
+            return HttpStatusCodeEnum.GATEWAY_TIMEOUT.getCode();
         } else if (e instanceof ConnectTimeoutException) {
             log.error("Connect timeout error:{}", e.getMessage());
-            return ResultStatusEnum.GATEWAY_TIMEOUT.getCode();
+            return HttpStatusCodeEnum.GATEWAY_TIMEOUT.getCode();
         } else if (e instanceof UnknownHostException) {
             log.error("Unknown host error:{}", e.getMessage());
-            return ResultStatusEnum.BAD_GATEWAY.getCode();
+            return HttpStatusCodeEnum.BAD_GATEWAY.getCode();
         } else if (e instanceof InterruptedIOException) {
             log.error("Interrupted error:{}", e.getMessage());
-            return ResultStatusEnum.BAD_GATEWAY.getCode();
+            return HttpStatusCodeEnum.BAD_GATEWAY.getCode();
         } else if (e instanceof IOException) {
             log.error("IO error:{}", e.getMessage());
-            return ResultStatusEnum.BAD_GATEWAY.getCode();
+            return HttpStatusCodeEnum.BAD_GATEWAY.getCode();
         } else {
             log.error("Other error:{}", e.getMessage());
-            return ResultStatusEnum.SERVER_ERROR.getCode();
+            return HttpStatusCodeEnum.SERVER_ERROR.getCode();
         }
     }
 

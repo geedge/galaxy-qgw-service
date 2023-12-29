@@ -10,7 +10,7 @@ import lombok.Getter;
  * @Author wWei
  */
 @Getter
-public enum DiagnosisOptionEnum {
+public enum DiagnosisOption {
     /**
      * 解析SQL测试集，用于SQL语法解析
      */
@@ -26,7 +26,7 @@ public enum DiagnosisOptionEnum {
 
     private String value;
 
-    DiagnosisOptionEnum(String value) {
+    DiagnosisOption(String value) {
         this.value = value;
     }
 

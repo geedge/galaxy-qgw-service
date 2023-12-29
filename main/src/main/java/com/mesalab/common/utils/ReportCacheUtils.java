@@ -1,15 +1,14 @@
 package com.mesalab.common.utils;
 
-import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.OutputModeEnum;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
+import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.ResultCodeEnum;
-import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.service.impl.QueryServiceImpl;
@@ -46,10 +45,10 @@ public class ReportCacheUtils {
         Map map = JSON.parseObject((String)result.get("result"), Map.class);
         if (StringUtil.isEmpty(map)) {
             log.warn("The saved query job result [jobId:{}] is unavailable. It Has been deleted or does not exist.", rowKey);
-            baseResult = BaseResultGenerator.failure(ResultStatusEnum.NOT_FOUND.getCode(), "The saved query job result [jobId:" + rowKey + "] is unavailable. It Has been deleted or does not exist.");
+            baseResult = BaseResultGenerator.failure(HttpStatusCodeEnum.NOT_FOUND.getCode(), "The saved query job result [jobId:" + rowKey + "] is unavailable. It Has been deleted or does not exist.");
         } else {
             baseResult = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.SUCCESS.getCode(), String.valueOf(map.get("message")),
-                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), OutputModeEnum.JSON.getValue());
+                    map.get("data"), map.get("meta"), (Map<String, Object>) (map.get("statistics")), OutputMode.JSON.getValue());
         }
         return baseResult;
     }

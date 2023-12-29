@@ -19,7 +19,7 @@ import com.mesalab.common.enums.*;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.common.entity.QGWErrorCode;
+import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.DiagnosisService;
@@ -128,12 +128,12 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
             result = BaseResultGenerator.success("Avro Schema Validation Success.", data, statistics);
-            result.setFormatType(OutputModeEnum.JSON.getValue());
+            result.setFormatType(OutputMode.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Avro Schema Validation Fail:{}", e);
-            throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
-                    QGWErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
-                    String.format(QGWErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                    CommonErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),e.getMessage()));
 
         }
         return result;
@@ -164,12 +164,12 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             }
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
-            result.setFormatType(OutputModeEnum.JSON.getValue());
+            result.setFormatType(OutputMode.JSON.getValue());
         } catch (RuntimeException | IOException e) {
             log.error("Get Poc SQL Fail:{}", e);
-            throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(),
-                    ResultCodeEnum.PARAMETER_ERROR.getCode(),
-                    String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(),e.getMessage()));
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(),
+                    CommonErrorCode.PARAMETER_ERROR.getCode(),
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),e.getMessage()));
         }
         return result;
     }
@@ -325,7 +325,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     }
 
     private QueryContext queryBuild(String sql) {
-        return QueryContext.builder().format(OutputModeEnum.JSON.getValue()).query(sql).build();
+        return QueryContext.builder().format(OutputMode.JSON.getValue()).query(sql).build();
     }
 
     private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {
