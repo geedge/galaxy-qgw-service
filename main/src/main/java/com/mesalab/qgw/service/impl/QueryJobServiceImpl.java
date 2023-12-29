@@ -74,12 +74,17 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult createSQLAdHocQuery(SqlQueryRequestParam sqlQueryRequestParam) {
-        String option = sqlQueryRequestParam.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
+        String option = sqlQueryRequestParam.isDryRun()
+                    ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
         sqlQueryRequestParam.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         long start = System.currentTimeMillis();
         ExecMode execMode = sqlQueryRequestParam.getExecMode();
         if (ExecMode.ONESHOT.equals(execMode)) {
-            return sqlSyncQueryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
+            return sqlSyncQueryService.executeQuery(QueryContext.builder()
+                    .query(sqlQueryRequestParam.getStatement())
+                    .option(option)
+                    .format(sqlQueryRequestParam.getOutputMode().getValue())
+                    .build());
         } else if (ExecMode.NORMAL.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
             HazelcastInstanceMapUtil.put(id, new QueryCache(id, sqlQueryRequestParam.getOutputMode().getValue()));

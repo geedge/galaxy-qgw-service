@@ -5,6 +5,7 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.hazelcast.cp.internal.raftop.metadata.CompleteDestroyRaftGroupsOp;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.HttpHelper;
 import com.mesalab.qgw.model.basic.QueryContext;
@@ -79,12 +80,10 @@ public class AuditLogAspect {
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
        if (joinPoint.getArgs()[0] instanceof QueryContext) {
-           QueryContext param = (QueryContext) joinPoint.getArgs()[0];
-           auditLog.get().setDbType(param.getDbType());
+           QueryContext queryContext = (QueryContext) joinPoint.getArgs()[0];
+           auditLog.get().setDbEngine(queryContext.getDbEngine());
        }
     }
-
-
 
     @AfterReturning(returning = "result", pointcut = "annotationPointCut()")
     public void doAfterReturning(Object result) {
@@ -95,9 +94,7 @@ public class AuditLogAspect {
         }
         Long exeTime = System.currentTimeMillis() - startTime.get();
         logAfter.setExeTime(exeTime);
-
-        log.info("Audit Log [completed]:{}", JSON.toJSONString(logAfter));
-
+        log.info("Audit Log [success]: {}", JSON.toJSONString(logAfter));
     }
 
 

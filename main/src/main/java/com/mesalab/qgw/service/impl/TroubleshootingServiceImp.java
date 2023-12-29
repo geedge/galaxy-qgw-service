@@ -261,13 +261,13 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                         String backendEngine = String.valueOf(dataSetlist.get(i).get(BACKEND_ENGINE));
                         String identifierName = String.valueOf(dataSetlist.get(i).get(IDENTIFIER_NAME));
                         String template = String.valueOf(dataSetlist.get(i).get(TEMPLATE));
-                        if (DBType.DRUID.getValue().equalsIgnoreCase(backendEngine)) {
+                        if (DBEngineType.DRUID.getValue().equalsIgnoreCase(backendEngine)) {
                             druidIdList.add(identifierName);
                             druidSqlList.add(template);
-                        } else if (DBType.CLICKHOUSE.getValue().equalsIgnoreCase(backendEngine)) {
+                        } else if (DBEngineType.CLICKHOUSE.getValue().equalsIgnoreCase(backendEngine)) {
                             druidIdList.add(identifierName);
                             druidSqlList.add(template);
-                        } else if (DBType.HBASE.getValue().equalsIgnoreCase(backendEngine)) {
+                        } else if (DBEngineType.HBASE.getValue().equalsIgnoreCase(backendEngine)) {
                             druidIdList.add(identifierName);
                             druidSqlList.add(template);
                         } else {
@@ -278,15 +278,15 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                 }
             }
 
-            Optional.of(new File(dialectWriter.buildPocSQL(druidSqlList, DBType.DRUID.getValue(), category)));
-            Optional.of(new File(dialectWriter.buildPocSQL(ckSqlList, DBType.CLICKHOUSE.getValue(), category)));
-            Optional.of(new File(dialectWriter.buildPocSQL(hbaseSqlList, DBType.HBASE.getValue(), category)));
-            Optional.of(new File(dialectWriter.buildPocSQL(engineSqlList, DBType.ENGINE.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(druidSqlList, DBEngineType.DRUID.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(ckSqlList, DBEngineType.CLICKHOUSE.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(hbaseSqlList, DBEngineType.HBASE.getValue(), category)));
+            Optional.of(new File(dialectWriter.buildPocSQL(engineSqlList, DBEngineType.QGW.getValue(), category)));
 
-            clickhouseResult = buildResult(DBType.CLICKHOUSE.getValue(), ckIdList, isSaved, test);
-            druidResult = buildResult(DBType.DRUID.getValue(), druidIdList, isSaved, test);
-            engineResult = buildResult(DBType.ENGINE.getValue(), engineIdList, isSaved, test);
-            hbaseResult = buildResult(DBType.HBASE.getValue(), hbaseIdList, isSaved, test);
+            clickhouseResult = buildResult(DBEngineType.CLICKHOUSE.getValue(), ckIdList, isSaved, test);
+            druidResult = buildResult(DBEngineType.DRUID.getValue(), druidIdList, isSaved, test);
+            engineResult = buildResult(DBEngineType.QGW.getValue(), engineIdList, isSaved, test);
+            hbaseResult = buildResult(DBEngineType.HBASE.getValue(), hbaseIdList, isSaved, test);
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())

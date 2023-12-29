@@ -1,8 +1,8 @@
 package com.mesalab.qgw.model.basic;
 
 import com.geedgenetworks.utils.StringUtil;
-import com.mesalab.common.enums.DBType;
 import lombok.*;
+
 import java.io.Serializable;
 @Data
 @Builder
@@ -17,14 +17,9 @@ public class QueryContext implements Serializable {
     private String queryId;
     private String resultId;
     private Integer timeout;
-    /**
-     * @see DBType
-     */
-    private String dbType;
-    /**
-     * 方言数据库类型，用于SQL格式解析校验
-     */
-    private String dialectDBType;
+    private String dbEngine;
+    // SQL Dialect,such as: Mysql,Hive, etc. It used syntax and semantic rules to transform SQL query.
+    private String sqlDialect;
     private SQLQuerySource engineQuerySource;
     private SQLQuerySource dbQuerySource;
 
@@ -36,7 +31,7 @@ public class QueryContext implements Serializable {
         return StringUtil.isBlank(query);
     }
 
-    public void setResult_id(String resultId) {
+    public void setResultId(String resultId) {
         this.resultId = resultId;
     }
 }

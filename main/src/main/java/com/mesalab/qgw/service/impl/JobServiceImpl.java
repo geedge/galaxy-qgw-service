@@ -654,7 +654,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         java.sql.Statement statement = null;
         int i;
         try {
-            log.info("{} engine execute update: {}", DBType.HBASE.getValue(), sql);
+            log.info("{} engine execute update: {}", DBEngineType.HBASE.getValue(), sql);
             PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
@@ -664,7 +664,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
             i = statement.executeUpdate(sql);
             conn.commit();
         } catch (RuntimeException | SQLException e) {
-            log.error("{} engine error: {}", DBType.HBASE.getValue(), e);
+            log.error("{} engine error: {}", DBEngineType.HBASE.getValue(), e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(), e.getMessage());
         } finally {
             close(statement, conn);
@@ -682,7 +682,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         Connection conn = null;
         java.sql.Statement statement = null;
         try {
-            log.info("DB Engine is :{}, Execute is: {}", DBType.HBASE.getValue(), sql);
+            log.info("DB Engine is :{}, Execute is: {}", DBEngineType.HBASE.getValue(), sql);
             PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
@@ -692,7 +692,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
             statement.execute(sql);
             conn.commit();
         } catch (RuntimeException | SQLException e) {
-            log.error("DB Engine is :{}, Query is error: {}", DBType.HBASE.getValue(), e);
+            log.error("DB Engine is :{}, Query is error: {}", DBEngineType.HBASE.getValue(), e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
 

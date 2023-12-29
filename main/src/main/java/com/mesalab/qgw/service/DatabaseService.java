@@ -59,7 +59,7 @@ public interface DatabaseService {
      * @param tableName
      * @return
      */
-    String getDBTypeByTableName(String tableName);
+    String getDBEngineByTableName(String tableName);
 
 
     /**

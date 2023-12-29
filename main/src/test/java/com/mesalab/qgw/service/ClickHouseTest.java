@@ -8,7 +8,7 @@ import cn.hutool.log.LogFactory;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.mesalab.GalaxyQGWApplicationTests;
-import com.mesalab.common.enums.DBType;
+import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -37,7 +37,7 @@ public class ClickHouseTest extends GalaxyQGWApplicationTests {
 
     @Test
     public void testSqlParser() {
-        String pocFile = dialectWriter.buildPocSQL(Lists.newLinkedList(), DBType.CLICKHOUSE.getValue(), null);
+        String pocFile = dialectWriter.buildPocSQL(Lists.newLinkedList(), DBEngineType.CLICKHOUSE.getValue(), null);
         Optional<File> ckTestFile =  Optional.of(new File(pocFile));
         if (ckTestFile.isPresent()) {
             if (!ckTestFile.get().isFile()) {

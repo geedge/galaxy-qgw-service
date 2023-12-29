@@ -161,7 +161,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     @Override
-    public String getDBTypeByTableName(String tableName) {
+    public String getDBEngineByTableName(String tableName) {
         Schema schema = getSchemaByName(tableName);
         String data = StringUtil.EMPTY;
         if (StringUtil.isEmpty(schema)) {
@@ -179,13 +179,13 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         String type;
         switch (group) {
             case "CLICKHOUSE_GROUP":
-                type = DBType.CLICKHOUSE.getValue();
+                type = DBEngineType.CLICKHOUSE.getValue();
                 break;
             case "HBASE_GROUP":
-                type = DBType.HBASE.getValue();
+                type = DBEngineType.HBASE.getValue();
                 break;
             case "DRUID_GROUP":
-                type = DBType.DRUID.getValue();
+                type = DBEngineType.DRUID.getValue();
                 break;
             default:
                 type = StringUtil.EMPTY;
@@ -349,7 +349,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Override
     public String getCustomQueryId(String resultId, String query) {
         String tableName = SQLHelper.getTableName(query).get(0);
-        String dbType = getDBTypeByTableName(tableName);
+        String dbType = getDBEngineByTableName(tableName);
         return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }
 

@@ -287,7 +287,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         public Converter generateDateFunction() {
-            sql = SQLFunctionUtil.generateDateFunction(sql, DBType.CLICKHOUSE.getValue());
+            sql = SQLFunctionUtil.generateDateFunction(sql, DBEngineType.CLICKHOUSE.getValue());
             return this;
         }
 
@@ -831,7 +831,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         String queryParameter = enrichContextAndBuildQueryParameter();
         log.info("Query ID: {}, SQL: {}", queryContext.getQueryId(), sql);
         if (log.isDebugEnabled()) {
-            log.debug("DB engine is: {}, : {}", DBType.CLICKHOUSE.getValue(), queryURL +
+            log.debug("DB engine is: {}, : {}", DBEngineType.CLICKHOUSE.getValue(), queryURL +
                     Encodes.urlDecode(queryParameter).replaceAll("password=(.*?)&", "password=XXX&") + ". body sql is:" + sql);
         }
         List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, Charset.forName("UTF-8"));

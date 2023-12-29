@@ -55,7 +55,7 @@ public class DslValidate {
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATASOURCE_IS_INVALID));
             }
         } else {
-            if (StringUtil.isBlank(databaseService.getDBTypeByTableName(query.getDataSource()))) {
+            if (StringUtil.isBlank(databaseService.getDBEngineByTableName(query.getDataSource()))) {
                 throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),CNErrorMessage.DATASOURCE_IS_INVALID));
             }

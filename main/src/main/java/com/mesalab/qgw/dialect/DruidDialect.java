@@ -138,7 +138,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         DruidQueryParam druidQueryParam = enrichContextAndBuildQueryParameter(sql);
         log.info("Query ID: {}, SQL: {}", queryContext.getQueryId(), sql);
         if (log.isDebugEnabled()) {
-            log.debug("DB engine is: {}, : {}", DBType.DRUID.getValue(), JSON.toJSONString(druidQueryParam)
+            log.debug("DB engine is: {}, : {}", DBEngineType.DRUID.getValue(), JSON.toJSONString(druidQueryParam)
                      + ". body sql is:" + sql);
         }
         return httpClientService.post(queryURL, queryContext.getTimeout(), JSON.toJSONString(druidQueryParam));
@@ -290,7 +290,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
 
         public Converter generateDateFunction() {
-            sql = SQLFunctionUtil.generateDateFunction(sql, DBType.DRUID.getValue());
+            sql = SQLFunctionUtil.generateDateFunction(sql, DBEngineType.DRUID.getValue());
             return this;
         }
 

@@ -3,7 +3,7 @@ package com.mesalab.common.utils.sqlparser;
 import com.alibaba.druid.util.JdbcConstants;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
-import com.mesalab.common.enums.DBType;
+import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -88,15 +88,15 @@ public class SQLHelper {
     /**
      * 获取当前数据库预定义的方言
      *
-     * @param dbType
+     * @param dbEngine
      * @return
      */
-    public static String getDialectDBType(String dbType) {
-        if (DBType.CLICKHOUSE.getValue().equals(dbType)) {
+    public static String getDialectType(String dbEngine) {
+        if (DBEngineType.CLICKHOUSE.getValue().equals(dbEngine)) {
             return JdbcConstants.MYSQL;
-        } else if (DBType.DRUID.getValue().equals(dbType)) {
+        } else if (DBEngineType.DRUID.getValue().equals(dbEngine)) {
             return JdbcConstants.HIVE;
-        } else if (DBType.HBASE.getValue().equals(dbType)) {
+        } else if (DBEngineType.HBASE.getValue().equals(dbEngine)) {
             return JdbcConstants.MYSQL;
         } else {
             return null;

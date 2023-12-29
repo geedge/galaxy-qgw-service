@@ -7,7 +7,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
-import com.mesalab.common.enums.DBType;
+import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
@@ -93,7 +93,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     String convertQuery(String sql) {
-        sql = SQLFunctionUtil.generateDateFunction(sql, DBType.HBASE.getValue());
+        sql = SQLFunctionUtil.generateDateFunction(sql, DBEngineType.HBASE.getValue());
         try {
             Select select = (Select) CCJSqlParserUtil.parse(sql);
             select.getSelectBody().accept(SQLVisitorUtil.getVisitorOfEscapeMetadataWithDoubleQuote());
@@ -155,7 +155,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         java.sql.Statement statement = null;
         ResultSet resultSet = null;
         try {
-            log.info("{} engine execute query: {}", DBType.HBASE.getValue(), sql);
+            log.info("{} engine execute query: {}", DBEngineType.HBASE.getValue(), sql);
             PROPERTIES.setProperty("hbase.rpc.timeout", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("hbase.client.scanner.timeout.period", hBaseAPISource.getRpcTimeout());
             PROPERTIES.setProperty("phoenix.query.timeoutMs", hBaseAPISource.getRpcTimeout());
@@ -165,7 +165,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             resultSet = statement.executeQuery(sql);
             return buildResult(resultSet);
         } catch (RuntimeException | SQLException e) {
-            log.error("{} engine error: {}", DBType.HBASE.getValue(), e);
+            log.error("{} engine error: {}", DBEngineType.HBASE.getValue(), e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
         } finally {
