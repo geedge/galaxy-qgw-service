@@ -31,7 +31,7 @@ import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.basic.JobAdminHttpSource;
-import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
@@ -266,7 +266,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Override
     public BaseResult getStorageQuota() {
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
-        QueryProfile param = new QueryProfile();
+        QueryContext param = new QueryContext();
         param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         BaseResult result = queryService.executeQuery(param);
         return resetBaseResult(result, "type");
@@ -282,7 +282,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         }
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
-            QueryProfile param = new QueryProfile();
+            QueryContext param = new QueryContext();
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
             param.setQuery(sql);
             BaseResult result = queryService.executeQuery(param);
@@ -498,7 +498,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             if (symbols.contains(name)) {
                 sql = String.format(Objects.requireNonNull(environment.getProperty("SCHEMA_STORAGE_SIZE")), name, clickHouseHttpSource.getDbName());
             }
-            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : queryService.executeQuery(QueryProfile.builder().query(sql).build());
+            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : queryService.executeQuery(QueryContext.builder().query(sql).build());
             if (baseResult.isSuccess()) {
                 return (List<Map>) baseResult.getData();
             } else {

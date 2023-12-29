@@ -1,22 +1,16 @@
 package com.mesalab.qgw.controller;
 
 import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.*;
-import com.mesalab.common.utils.StringUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.service.DiagnosisService;
 import com.mesalab.qgw.service.TroubleshootingService;
-import com.mesalab.services.common.enums.EntityQueryType;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.StringValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

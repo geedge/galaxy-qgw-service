@@ -1,4 +1,4 @@
-package com.mesalab.qgw.exception;
+package com.mesalab.common.entity;
 
 import lombok.Getter;
 
@@ -19,9 +19,9 @@ public enum QGWErrorCode {
     BAD_REQUEST_PARAM_SYNTAX_EXCEPTION("40001302", " Invalid Request Parameter: %s"),
 
     SCHEMA_AND_TABLE_NOT_CONSISTENCY("50001010", "Schema and table structure are not consistent: %s"),
+    HTTP_REQUEST_EXCEPTION("50001011", "Error in HTTP request : %s"),
     SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION("50001100", "Error in SQL rewrite and transformation: %s"),
     SQL_EXECUTION_EXCEPTION("50001300", "Error in SQL execution: %s"),
-
     SQL_FEDERATION_QUERY_EXCEPTION("50001500", "Error in SQL federation query: %s"),
     ;
     private String code;

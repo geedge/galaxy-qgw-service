@@ -8,7 +8,7 @@ import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.QueryCacheUtils;
 import com.mesalab.common.utils.HttpHelper;
-import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.model.basic.AuditServiceLog;
 import com.geedgenetworks.utils.IPUtil;
@@ -80,8 +80,8 @@ public class AuditLogAspect {
 
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
-       if (joinPoint.getArgs()[0] instanceof QueryProfile) {
-           QueryProfile param = (QueryProfile) joinPoint.getArgs()[0];
+       if (joinPoint.getArgs()[0] instanceof QueryContext) {
+           QueryContext param = (QueryContext) joinPoint.getArgs()[0];
            auditLog.get().setDbType(param.getDbType());
        }
     }

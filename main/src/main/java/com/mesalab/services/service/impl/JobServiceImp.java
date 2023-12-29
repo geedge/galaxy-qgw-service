@@ -19,15 +19,12 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.SavedQueryResultUtils;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
-import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
-import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.common.entity.QGWErrorCode;
+import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.DatabaseService;
-import com.mesalab.services.common.enums.MetricFunction;
-import com.mesalab.services.common.enums.MetricType;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -374,7 +371,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     private boolean isExist(String id) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_DETAIL")), id);
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
+        BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(sql).build());
         if (!baseResult.isSuccess()) {
             log.error("Query job status error: {}", baseResult.getMessage());
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(), "Query job status error: " + baseResult.getMessage());
@@ -397,7 +394,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY);
         List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         List<String> interim = Lists.newArrayList(fields);
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build());
+        BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOptionEnum.REAL_TIME.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(), ResultCodeEnum.UNKNOWN_EXCEPTION.getCode(),
                     "Init job error: get field_discovery all column error: ".concat(baseResult.getMessage()));
@@ -578,7 +575,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     private List<Map<String, Object>> validationData(String id) {
         BaseResult baseResult = queryService.executeQuery(
-                QueryProfile.builder().option(QueryOptionEnum.REAL_TIME.getValue())
+                QueryContext.builder().option(QueryOptionEnum.REAL_TIME.getValue())
                         .query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id))
                         .build());
         if (!baseResult.isSuccess()) {
@@ -611,7 +608,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
 
     private void validateReport(HashMap<String, Object> map) {
-        QueryProfile queryProfile = QueryProfile.builder().query(String.valueOf(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL)))
+        QueryContext queryProfile = QueryContext.builder().query(String.valueOf(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL)))
                 .option(QueryOptionEnum.SYNTAX_PARSE.getValue())
                 .build();
         BaseResult baseResult = queryService.executeQuery(queryProfile);
@@ -634,7 +631,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
         List field = (List) map.get("custom.field_discovery.fields");
         Object filter = map.get("custom.field_discovery.filter");
         String validationSql = String.format(syntaxValidation, String.join(",", field), map.get("query.data_source"), StringUtil.isEmpty(filter) ? " 1 = 1" : filter);
-        QueryProfile queryProfile = QueryProfile.builder().query(validationSql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build();
+        QueryContext queryProfile = QueryContext.builder().query(validationSql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build();
         BaseResult baseResult = queryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
@@ -644,7 +641,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
 
     private void syntaxValidationStatistics(HashMap<String, Object> body) {
         String sql = String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL));
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query(sql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build());
+        BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query(sql).option(QueryOptionEnum.SYNTAX_VALIDATION.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));

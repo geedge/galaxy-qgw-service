@@ -19,7 +19,7 @@ import com.mesalab.common.enums.*;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.entity.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.DiagnosisService;
@@ -324,8 +324,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         return Maps.newHashMap();
     }
 
-    private QueryProfile queryBuild(String sql) {
-        return QueryProfile.builder().format(OutputModeEnum.JSON.getValue()).query(sql).build();
+    private QueryContext queryBuild(String sql) {
+        return QueryContext.builder().format(OutputModeEnum.JSON.getValue()).query(sql).build();
     }
 
     private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {

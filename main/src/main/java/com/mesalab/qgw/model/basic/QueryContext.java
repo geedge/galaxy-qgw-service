@@ -1,6 +1,5 @@
 package com.mesalab.qgw.model.basic;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.common.enums.DBTypeEnum;
 import lombok.*;
@@ -9,7 +8,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QueryProfile implements Serializable {
+public class QueryContext implements Serializable {
 
     private String query;
     private String option;
@@ -17,6 +16,7 @@ public class QueryProfile implements Serializable {
     private String format;
     private String queryId;
     private String resultId;
+    private Integer timeout;
     /**
      * @see DBTypeEnum
      */

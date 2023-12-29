@@ -14,7 +14,7 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.QueryOptionEnum;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.model.basic.QueryProfile;
+import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.service.QueryService;
 import com.mesalab.qgw.service.DatabaseService;
@@ -72,7 +72,7 @@ public class TaskExecuteService implements EnvironmentAware {
             }
         }
         try {
-            BaseResult currentTop = queryService.executeQuery(QueryProfile.builder()
+            BaseResult currentTop = queryService.executeQuery(QueryContext.builder()
                     .option(QueryOptionEnum.REAL_TIME.getValue())
                     .query(buildTopSQL(dataSource, filter, field, fnDefault, column, value))
                     .build());
@@ -93,8 +93,8 @@ public class TaskExecuteService implements EnvironmentAware {
     @Async("taskExecutor")
     public Future<Boolean> executeLongTerm(String id, String sql) {
         try {
-            BaseResult lastResult = queryService.executeQuery(QueryProfile.builder().query(sql).build());
-            BaseResult preResult = queryService.executeQuery(QueryProfile.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
+            BaseResult lastResult = queryService.executeQuery(QueryContext.builder().query(sql).build());
+            BaseResult preResult = queryService.executeQuery(QueryContext.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
             List<Map<String, Object>> lastData = (List<Map<String, Object>>) lastResult.getData();
             List<Map<String, Object>> lastMeta = (List<Map<String, Object>>) lastResult.getMeta();
             Map preDataFirst = ((List<Map>) preResult.getData()).get(0);

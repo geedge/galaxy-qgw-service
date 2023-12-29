@@ -32,7 +32,7 @@ import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.entity.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.QueryService;
@@ -266,7 +266,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         for (String tableName : tables) {
             Schema schema = databaseService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
-            BaseResult indexKeyResult = getBaseResultByEngine(QueryProfile.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query(String.format(Objects.requireNonNull(env.getProperty("TABLE_INDEX_KEY")), tableName, clickHouseHttpSource.getDbName())).build());
+            BaseResult indexKeyResult = getBaseResultByEngine(QueryContext.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query(String.format(Objects.requireNonNull(env.getProperty("TABLE_INDEX_KEY")), tableName, clickHouseHttpSource.getDbName())).build());
             if (ResultStatusEnum.SUCCESS.getCode() != indexKeyResult.getStatus()) {
                 log.error("The Table[" + tableName + "] index key query failed" + indexKeyResult.getMessage());
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
@@ -287,7 +287,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         }
     }
 
-    private BaseResult getBaseResultByEngine(QueryProfile queryProfile) {
+    private BaseResult getBaseResultByEngine(QueryContext queryProfile) {
         return queryService.executeQuery(queryProfile);
     }
 
@@ -305,7 +305,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         for (String tableName : tables) {
             Schema schema = databaseService.getSchemaByName(tableName);
             if (!dbName.equals(schema.getNamespace())) continue;
-            BaseResult baseResult = getBaseResultByEngine(QueryProfile.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
+            BaseResult baseResult = getBaseResultByEngine(QueryContext.builder().option(QueryOptionEnum.REAL_TIME.getValue()).query("describe " + tableName).build());
             if (ResultStatusEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
                 throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),
@@ -424,7 +424,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
 
     private List<String> getClusterAddressOfCK() {
         List<String> endpointList = new ArrayList<>();
-        BaseResult baseResult = queryService.executeQuery(QueryProfile.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
+        BaseResult baseResult = queryService.executeQuery(QueryContext.builder().query("SELECT DISTINCT concat(host_address,':','" + trafficPort + "') as endpoint FROM clusters where cluster = 'ck_cluster'").build());
         if (baseResult.isSuccess()) {
             List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
             for (Map<String, Object> datum : data) {

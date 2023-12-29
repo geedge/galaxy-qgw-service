@@ -9,8 +9,9 @@ import lombok.Data;
  * @Description : ClickHouseHttpQuery
  */
 @Data
-public class ClickHouseHttpQuery {
-    //查询参数
+@Deprecated
+public class ClickHouseQueryParam {
+    @Deprecated
     private String queryParameter;
     //响应超时时间
     private int socketTimeOut;

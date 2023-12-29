@@ -2,6 +2,7 @@ package com.mesalab.qgw.exception;
 
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
+import com.mesalab.common.entity.QGWErrorCode;
 import lombok.*;
 
 /**

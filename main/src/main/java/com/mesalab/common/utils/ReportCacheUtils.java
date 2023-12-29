@@ -10,8 +10,8 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.OutputModeEnum;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
-import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
+import com.mesalab.qgw.model.basic.QueryContext;
 import com.mesalab.qgw.service.impl.QueryServiceImpl;
 import com.geedgenetworks.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public class ReportCacheUtils {
 
     private static Map<String, Object> query(String rowKey) {
         QueryServiceImpl queryService = new QueryServiceImpl();
-        QueryProfile param = new QueryProfile();
+        QueryContext param = new QueryContext();
         StringBuffer sb = new StringBuffer();
         sb.append("select ").append(hBaseAPISource.getColumnName());
         sb.append(" from ").append(hBaseAPISource.getDbName()).append(".").append(hBaseAPISource.getTableName());

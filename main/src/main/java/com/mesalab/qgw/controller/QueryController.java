@@ -8,7 +8,7 @@ import com.mesalab.common.enums.ExecModeEnum;
 import com.mesalab.common.enums.OutputModeEnum;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.entity.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.QueryJobService;
 import com.mesalab.qgw.service.QueryService;
@@ -32,7 +32,7 @@ public class QueryController {
     @GetMapping("/sql")
     @AuditLog("QueryController.get")
     @CachedSubmitCheck
-    public BaseResult get(QueryProfile queryProfile) {
+    public BaseResult get(QueryContext queryProfile) {
         if (queryProfile.queryParamIsNull())
             return BaseResultGenerator.success4Message("ok");
         log.debug("Quest Params:{}", JSON.toJSONString(queryProfile));
@@ -42,7 +42,7 @@ public class QueryController {
     @PostMapping(value = "/sql", produces = "application/json;charset=utf-8")
     @AuditLog("QueryController.post")
     @CachedSubmitCheck
-    public BaseResult post(@RequestBody QueryProfile queryProfile) {
+    public BaseResult post(@RequestBody QueryContext queryProfile) {
         if (queryProfile.queryParamIsNull()) {
             return BaseResultGenerator.success4Message("ok");
         }
@@ -53,7 +53,7 @@ public class QueryController {
 
     @PostMapping(value = "/v1/query/sql", consumes = "application/json", produces = "application/json")
     public BaseResult createSQLQuery(@RequestBody SqlQueryRequestParam sqlQueryRequestParam) {
-        log.info("Create an SQL Query,request params is:\n {}", JSON.toJSONString(sqlQueryRequestParam));
+        log.info("Create an SQL Query {}", JSON.toJSONString(sqlQueryRequestParam));
         if (sqlQueryRequestParam.isSavedQuery()) {
             if (sqlQueryRequestParam.isDryRun() || !sqlQueryRequestParam.getExecMode().equals(ExecModeEnum.NORMAL) || !sqlQueryRequestParam.getOutputMode().equals(OutputModeEnum.JSON)) {
                 throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
@@ -68,7 +68,7 @@ public class QueryController {
 
     @PostMapping(value = "/v1/query/dsl", consumes = "application/json", produces = "application/json")
     public BaseResult createDSLQuery(@RequestBody DslQueryRequestParam dslQueryRequestParam) {
-        log.info("Create a DSL query,request params is:\n {}", JSON.toJSONString(dslQueryRequestParam));
+        log.info("Create a DSL query {}", JSON.toJSONString(dslQueryRequestParam));
         if (dslQueryRequestParam.isSavedQuery()) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                     String.format(QGWErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Currently, the DSL Saved Query is not supported."));

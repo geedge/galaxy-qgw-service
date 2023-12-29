@@ -8,7 +8,7 @@ import com.google.common.collect.Maps;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.exception.QGWErrorCode;
+import com.mesalab.common.entity.QGWErrorCode;
 import com.mesalab.qgw.service.QueryService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
