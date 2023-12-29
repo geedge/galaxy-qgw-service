@@ -125,7 +125,7 @@
   },
   {
     "key": "column_name",
-    "default": "client_ip"
+    "default": 1
   },
   {
     "key": "source",

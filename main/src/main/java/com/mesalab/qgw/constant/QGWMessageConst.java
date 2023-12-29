@@ -22,9 +22,13 @@ public class QGWMessageConst {
 
     public static final String SQL_PARSE_ERROR_NOT_FOUNT_TABLE = "unable to parse table name.";
 
+    public static final String CONSISTENCY_OPTION_ERROR = "not support consistency option value.";
+
+    public static final String BENCHMARK_OPTION_ERROR = "not support benchmark option value.";
+
     public static final String DIAGNOSIS_OPTION_ERROR = "not support option value.";
 
-    public static final String DIAGNOSIS_CATEGORY_ERROR = "not support category value.";
+    public static final String DATASET_CATEGORY_ERROR = "not support category value.";
 
     public static final String NOT_SUPPORT_DML_PARSER = "not support DML Parser.";
 
@@ -110,5 +114,6 @@ public class QGWMessageConst {
 
     public static final String QUERY_CUSTOM_FIELD_DISCOVERY_ERROR = "The param custom.field_discovery.* illegal.";
 
+    public static final String DATASET_BACKEND_ENGINE_ERROR = "The backend_engine is not supported, backend_engine value must be :[ qgw| clickhouse| druid| hbase]";
 
 }

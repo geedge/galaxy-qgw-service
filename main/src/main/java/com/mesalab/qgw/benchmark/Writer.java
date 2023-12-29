@@ -1,7 +1,6 @@
 package com.mesalab.qgw.benchmark;
 
 import cn.hutool.core.io.IORuntimeException;
-import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -15,14 +14,13 @@ import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.qgw.service.MetadataService;
-import com.mesalab.services.service.SQLDatasetService;
+import com.mesalab.services.service.DatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +33,7 @@ public abstract class Writer {
     @Autowired
     MetadataService metadataService;
     @Autowired
-    SQLDatasetService sqlDatasetService;
+    DatasetService datasetService;
 
     private static final Log log = LogFactory.get();
     public static final boolean IS_TITLE = false;
@@ -73,14 +71,14 @@ public abstract class Writer {
                 writer.getFile().createNewFile();
             }
             List<LinkedHashMap> variables = Lists.newArrayList();
-            Object codeInfo = metadataService.getCfg(NacosConst.SQL_DATASETS_VARIABLES);
+            Object codeInfo = metadataService.getCfg(NacosConst.DATASETS_VARIABLES);
             if (StringUtil.isNotEmpty(codeInfo)) {
                 Object json = JSON.toJSON(codeInfo);
                 variables = (List<LinkedHashMap>) JSON.parseArray(json.toString(), LinkedHashMap.class);
             }
             List<String> resultLines = Lists.newArrayList();
             for (String line : list){
-                String sql = sqlDatasetService.buildExecSQL(variables, line);
+                String sql = datasetService.buildExecSQL(variables, line);
                 resultLines.add(sql);
             }
             writer.appendLines(resultLines);

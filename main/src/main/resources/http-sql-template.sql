@@ -131,7 +131,7 @@ SELECT common_log_id AS log_id,%s AS file_path FROM %s where %s AND notEmpty(%s)
 #end
 
 #sql("SQL_DATASETS")
-SELECT id, identifier_name, category, execute_engine, type, template, description, generated_time, last_update_time FROM dataset %s ORDER BY last_update_time DESC
+SELECT id, identifier_name, category, backend_engine, type, template, description, generated_time, last_update_time FROM dataset %s ORDER BY last_update_time DESC
 #end
 
 #sql("SQL_DATASETS_CATEGORY")
