@@ -5,10 +5,9 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
-import com.hazelcast.cp.internal.raftop.metadata.CompleteDestroyRaftGroupsOp;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.HttpHelper;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.model.basic.AuditServiceLog;
 import com.geedgenetworks.utils.IPUtil;
@@ -79,8 +78,8 @@ public class AuditLogAspect {
 
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
-       if (joinPoint.getArgs()[0] instanceof QueryContext) {
-           QueryContext queryContext = (QueryContext) joinPoint.getArgs()[0];
+       if (joinPoint.getArgs()[0] instanceof SQLQueryContext) {
+           SQLQueryContext queryContext = (SQLQueryContext) joinPoint.getArgs()[0];
            auditLog.get().setDbEngine(queryContext.getDbEngine());
        }
     }

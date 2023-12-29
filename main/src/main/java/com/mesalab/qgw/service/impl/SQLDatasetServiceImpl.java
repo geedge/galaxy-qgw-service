@@ -61,7 +61,7 @@ public class SQLDatasetServiceImpl
 
 
     public Dialect buildAndGetDialect(String queryId) {
-        QueryContext queryContext = new QueryContext();
+        SQLQueryContext queryContext = new SQLQueryContext();
         queryContext.setDbEngine(parseDBEngineType(queryId));
         return getDialect(queryContext);
     }
@@ -79,12 +79,12 @@ public class SQLDatasetServiceImpl
         return DBEngineType.CLICKHOUSE.getValue();
     }
 
-    private Dialect getDialect(QueryContext queryContext) {
+    private Dialect getDialect(SQLQueryContext queryContext) {
         Dialect dialect;
         try {
             Class dialectClazz = Class.forName("com.mesalab.qgw.dialect." +
                     CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, queryContext.getDbEngine()) + "Dialect");
-            Constructor constructor = dialectClazz.getConstructor(QueryContext.class);
+            Constructor constructor = dialectClazz.getConstructor(SQLQueryContext.class);
             dialect = (Dialect) constructor.newInstance(queryContext);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error("Dialect conversion instance exception:{}", e);

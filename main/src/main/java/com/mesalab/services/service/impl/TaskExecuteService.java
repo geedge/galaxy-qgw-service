@@ -14,7 +14,7 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.QueryOption;
 import com.mesalab.common.exception.BusinessException;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
@@ -72,9 +72,9 @@ public class TaskExecuteService implements EnvironmentAware {
             }
         }
         try {
-            BaseResult currentTop = sqlSyncQueryService.executeQuery(QueryContext.builder()
+            BaseResult currentTop = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
                     .option(QueryOption.REAL_TIME.getValue())
-                    .query(buildTopSQL(dataSource, filter, field, fnDefault, column, value))
+                    .rawSQL(buildTopSQL(dataSource, filter, field, fnDefault, column, value))
                     .build());
             if (!currentTop.isSuccess()) {
                 setJobFailed(id);
@@ -93,8 +93,8 @@ public class TaskExecuteService implements EnvironmentAware {
     @Async("taskExecutor")
     public Future<Boolean> executeLongTerm(String id, String sql) {
         try {
-            BaseResult lastResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(sql).build());
-            BaseResult preResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
+            BaseResult lastResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(sql).build());
+            BaseResult preResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
             List<Map<String, Object>> lastData = (List<Map<String, Object>>) lastResult.getData();
             List<Map<String, Object>> lastMeta = (List<Map<String, Object>>) lastResult.getMeta();
             Map preDataFirst = ((List<Map>) preResult.getData()).get(0);

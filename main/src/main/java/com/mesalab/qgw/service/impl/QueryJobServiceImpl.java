@@ -80,8 +80,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         long start = System.currentTimeMillis();
         ExecMode execMode = sqlQueryRequestParam.getExecMode();
         if (ExecMode.ONESHOT.equals(execMode)) {
-            return sqlSyncQueryService.executeQuery(QueryContext.builder()
-                    .query(sqlQueryRequestParam.getStatement())
+            return sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
+                    .rawSQL(sqlQueryRequestParam.getStatement())
                     .option(option)
                     .format(sqlQueryRequestParam.getOutputMode().getValue())
                     .build());
@@ -92,7 +92,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         } else if (ExecMode.BLOCKING.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
-            BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
+            BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
             QueryCache queryCache = buildQueryCacheOfDone(id, start, sqlQueryRequestParam.getOutputMode().getValue(), baseResult);
             HazelcastInstanceMapUtil.put(id, queryCache);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
@@ -121,8 +121,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 }
                 return BaseResultGenerator.error(baseResult.getMessage());
             } else {
-                DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
-                return dslService.execDsl(dslProfile, request.isDryRun());
+                DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
+                return dslService.execDsl(dslQueryContext, request.isDryRun());
             }
         } else if (ExecMode.NORMAL.equals(execMode)) {
             QueryCache queryCache = new QueryCache(id, request.getOutputMode().getValue());
@@ -141,8 +141,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 execAdnWaitFieldDiscoveryDone(id, request);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             } else {
-                DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
-                BaseResult baseResult = dslService.execDsl(dslProfile, request.isDryRun());
+                DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
+                BaseResult baseResult = dslService.execDsl(dslQueryContext, request.isDryRun());
                 QueryCache queryCache = buildQueryCacheOfDone(id, start, request.getOutputMode().getValue(), baseResult);
                 HazelcastInstanceMapUtil.put(id, queryCache);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
@@ -281,7 +281,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     private void syntaxParseSql(String sql) {
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(sql).option(QueryOption.SYNTAX_PARSE.getValue()).build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(sql).option(QueryOption.SYNTAX_PARSE.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));

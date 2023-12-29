@@ -31,21 +31,21 @@ public class QueryController {
 
     @GetMapping("/sql")
     @AuditLog("QueryController.get")
-    public BaseResult get(QueryContext queryProfile) {
-        if (queryProfile.queryParamIsNull())
+    public BaseResult get(SQLQueryContext queryContext) {
+        if (queryContext.rawSQLIsNull())
             return BaseResultGenerator.success4Message("ok");
-        log.debug("Quest Params:{}", JSON.toJSONString(queryProfile));
-        return sqlSyncQueryService.executeQuery(queryProfile);
+        log.debug("Quest Params:{}", JSON.toJSONString(queryContext));
+        return sqlSyncQueryService.executeQuery(queryContext);
     }
 
     @PostMapping(value = "/sql", produces = "application/json;charset=utf-8")
     @AuditLog("QueryController.post")
-    public BaseResult post(@RequestBody QueryContext queryProfile) {
-        if (queryProfile.queryParamIsNull()) {
+    public BaseResult post(@RequestBody SQLQueryContext queryContext) {
+        if (queryContext.rawSQLIsNull()) {
             return BaseResultGenerator.success4Message("ok");
         }
-        log.debug("Quest Params:{}", JSON.toJSONString(queryProfile));
-        return sqlSyncQueryService.executeQuery(queryProfile);
+        log.debug("Quest Params:{}", JSON.toJSONString(queryContext));
+        return sqlSyncQueryService.executeQuery(queryContext);
 
     }
 

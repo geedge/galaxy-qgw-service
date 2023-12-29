@@ -5,7 +5,7 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,6 @@ import java.util.Map;
 public class SavedQueryResultUtils {
     private static final Log log = LogFactory.get();
 
-
     private static HBaseAPISource hBaseAPISource;
     private static SQLSyncQueryService sqlSyncQueryService;
 
@@ -34,12 +33,12 @@ public class SavedQueryResultUtils {
     }
 
     private static List<Map<String, Object>> query(List<String> rowKeys) {
-        QueryContext param = new QueryContext();
+        SQLQueryContext param = new SQLQueryContext();
         StringBuffer sb = new StringBuffer();
         sb.append("select ROWKEY, ").append(hBaseAPISource.getColumnName());
         sb.append(" from ").append(hBaseAPISource.getDbName()).append(".").append(hBaseAPISource.getTableName());
         sb.append(" where ").append("ROWKEY IN ('").append(StrUtil.join("', '", rowKeys)).append("')");
-        param.setQuery(sb.toString());
+        param.setRawSQL(sb.toString());
         BaseResult baseResult = sqlSyncQueryService.executeQuery(param);
         return (List<Map<String, Object>>) baseResult.getData();
     }

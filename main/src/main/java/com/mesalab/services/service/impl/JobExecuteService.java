@@ -137,8 +137,8 @@ public class JobExecuteService implements EnvironmentAware {
     public void addExecutorSql(String id, SqlQueryRequestParam request) {
         signJobInfoToStartOnQueryCache(id);
         try {
-            BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder()
-                    .query(request.getStatement())
+            BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
+                    .rawSQL(request.getStatement())
                     .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
                     .format(request.getOutputMode().getValue())
                     .build());
@@ -155,7 +155,7 @@ public class JobExecuteService implements EnvironmentAware {
     public void addExecutorDsl(String id, DSLQueryRequestParam request) {
         signJobInfoToStartOnQueryCache(id);
         try {
-            DSLProfile dslProfile = BeanUtil.copyProperties(request, DSLProfile.class);
+            DSLQueryContext dslProfile = BeanUtil.copyProperties(request, DSLQueryContext.class);
             BaseResult baseResult = dslService.execDsl(dslProfile, request.isDryRun());
             updateJobResultOnQueryCache(id, baseResult);
         } catch (RuntimeException e) {
@@ -258,7 +258,7 @@ public class JobExecuteService implements EnvironmentAware {
         List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
         String per = StringUtil.isEmpty(timeFloorWithFill) ? "PT5M" : timeFloorWithFill.get(1).toString().substring(1, timeFloorWithFill.get(1).toString().length() - 1);
         String function = SQLFunctionUtil.translateCommonFun(SQLFunctionUtil.TIME_FLOOR_WITH_FILL + "(" + interval.getEnd() + ", '" + per + "', 'zero')", DBEngineType.CLICKHOUSE.getValue());
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1", function, param.get(JobConfig.QUERY_DATA_SOURCE))).build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(StrUtil.format("SELECT {} AS stat_time FROM {} LIMIT 1", function, param.get(JobConfig.QUERY_DATA_SOURCE))).build());
         List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
         long statTime = Long.parseLong(data.get(0).get("stat_time").toString()) * 1000;
 
@@ -525,7 +525,7 @@ public class JobExecuteService implements EnvironmentAware {
 
     @Deprecated
     private boolean isCancelLongTerm(String id) {
-        QueryContext build = QueryContext.builder().query(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id)).
+        SQLQueryContext build = SQLQueryContext.builder().rawSQL(String.format(Objects.requireNonNull(env.getProperty("FIELD_RESULT")), JobConfig.DETAIL, JobConfig.LAST_QUERY_TIME, id)).
                 option(QueryOption.REAL_TIME.getValue()).build();
         BaseResult baseResult = sqlSyncQueryService.executeQuery(build);
         if (baseResult.isSuccess() && (StringUtil.isNotEmpty(baseResult.getData()))) {
@@ -568,7 +568,7 @@ public class JobExecuteService implements EnvironmentAware {
     private Map<String, Long> getCount(String logType, String filter, String totalMetric) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_LOG_COUNT")),
                 totalMetric, logType, StrUtil.isBlankIfStr(filter) ? "" : "WHERE ".concat(filter));
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(QueryContext.builder().query(sql).build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(sql).build());
         if (!baseResult.isSuccess()) {
             log.error("Job-get log count failed, message: {}", baseResult.getMessage());
             throw new QGWBusinessException(baseResult.getStatus(), baseResult.getCode(), "Job-get log count failed, message: " + baseResult.getMessage());

@@ -32,7 +32,7 @@ import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.JobAdminHttpSource;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
@@ -267,8 +267,8 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Override
     public BaseResult getStorageQuota() {
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
-        QueryContext param = new QueryContext();
-        param.setQuery(env.getProperty("SYSTEM_STORAGE_QUOTA"));
+        SQLQueryContext param = new SQLQueryContext();
+        param.setRawSQL(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         BaseResult result = sqlSyncQueryService.executeQuery(param);
         return resetBaseResult(result, "type");
     }
@@ -283,9 +283,9 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         }
 
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
-            QueryContext param = new QueryContext();
+            SQLQueryContext param = new SQLQueryContext();
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
-            param.setQuery(sql);
+            param.setRawSQL(sql);
             BaseResult result = sqlSyncQueryService.executeQuery(param);
             List<Map> data = (List<Map>) result.getData();
             data.forEach(o -> o.put("type", LogType.getLabelByValue(String.valueOf(o.get("type")))));
@@ -499,7 +499,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             if (symbols.contains(name)) {
                 sql = String.format(Objects.requireNonNull(environment.getProperty("SCHEMA_STORAGE_SIZE")), name, clickHouseHttpSource.getDbName());
             }
-            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : sqlSyncQueryService.executeQuery(QueryContext.builder().query(sql).build());
+            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(sql).build());
             if (baseResult.isSuccess()) {
                 return (List<Map>) baseResult.getData();
             } else {

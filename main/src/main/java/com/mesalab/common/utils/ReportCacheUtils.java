@@ -10,7 +10,7 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.geedgenetworks.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,12 +45,12 @@ public class ReportCacheUtils {
     }
 
     private static Map<String, Object> query(String rowKey) {
-        QueryContext param = new QueryContext();
+        SQLQueryContext param = new SQLQueryContext();
         StringBuffer sb = new StringBuffer();
         sb.append("select ").append(hBaseAPISource.getColumnName());
         sb.append(" from ").append(hBaseAPISource.getDbName()).append(".").append(hBaseAPISource.getTableName());
         sb.append(" where ").append("ROWKEY=").append("\'" + rowKey + "\'");
-        param.setQuery(sb.toString());
+        param.setRawSQL(sb.toString());
         BaseResult result = sqlSyncQueryService.executeQuery(param);
         Map<String, Object> resultMap = Maps.newHashMap();
         if (StringUtil.isNotEmpty(result.getData())) {

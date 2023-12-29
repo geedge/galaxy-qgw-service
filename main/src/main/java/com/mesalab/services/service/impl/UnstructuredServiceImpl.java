@@ -13,7 +13,7 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.mesalab.qgw.model.basic.QueryContext;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.service.SQLSyncQueryService;
@@ -206,8 +206,8 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     }
 
 
-    private QueryContext queryBuild(String sql) {
-        return QueryContext.builder().format(OutputMode.JSON.getValue()).query(sql).build();
+    private SQLQueryContext queryBuild(String sql) {
+        return SQLQueryContext.builder().format(OutputMode.JSON.getValue()).rawSQL(sql).build();
     }
 
     private void validationDataSource(String dataSource) {
