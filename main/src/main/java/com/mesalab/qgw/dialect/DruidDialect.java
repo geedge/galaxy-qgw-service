@@ -1,6 +1,5 @@
 package com.mesalab.qgw.dialect;
 
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.DigestUtil;
@@ -12,7 +11,8 @@ import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.configuration.HttpConfig;
-import com.mesalab.common.utils.sqlparser.DruidSampleSQLHelper;
+import com.mesalab.common.httpClient.HttpClientService;
+import com.mesalab.common.utils.sqlparser.SampleSQLHelper;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -24,7 +24,6 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.model.basic.QueryProfile;
-import com.mesalab.common.httpClient.HttpClientService;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.Data;
 import net.sf.jsqlparser.JSQLParserException;
@@ -60,7 +59,6 @@ public class DruidDialect extends AbstractDataSourceDialect {
         }
         baseResult = BaseResultGenerator.success();
     }
-
 
 
     @Override
@@ -226,10 +224,8 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
-        boolean isSampled = BooleanUtil.isTrue(param.getSampled());
-        String filterExpr = String.format("%s >= CURRENT_TIMESTAMP - INTERVAL %s AND %s < CURRENT_TIMESTAMP",
-                param.getDbQuerySource().getPartitionKey(), isSampled ? "'12' HOUR " : "'1' SECOND", param.getDbQuerySource().getPartitionKey());
-        return new DruidSampleSQLHelper(sql, filterExpr, isSampled).build();
+        String dataSet = StrUtil.format("SELECT * FROM {} LIMIT 1000");
+        return new SampleSQLHelper(sql, dataSet, true).build();
     }
 
     private List<Map<String, String>> unifyMeta(List<Object> list) {

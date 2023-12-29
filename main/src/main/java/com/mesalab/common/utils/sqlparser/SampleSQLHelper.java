@@ -21,7 +21,7 @@ import java.util.List;
  * @Date 2023/3/22 10:42
  * @Author wWei
  */
-public class ClickhouseSampleSQLHelper {
+public class SampleSQLHelper {
 
     private final String templateSQL;
     private final String originalSQL;
@@ -39,7 +39,7 @@ public class ClickhouseSampleSQLHelper {
      * @created by wWei
      * @date 2023/3/23 15:17
      */
-    public ClickhouseSampleSQLHelper(String originalSQL, String dataSetTemplate, boolean isInvalidCondExpr) {
+    public SampleSQLHelper(String originalSQL, String dataSetTemplate, boolean isInvalidCondExpr) {
         this.templateSQL = dataSetTemplate;
         this.originalSQL = originalSQL;
         this.isInvalidCondExpr = isInvalidCondExpr;
