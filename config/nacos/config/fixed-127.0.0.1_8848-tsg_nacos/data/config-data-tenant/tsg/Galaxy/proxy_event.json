@@ -578,8 +578,8 @@
             "value": "HTTP"
           },
           {
-            "code": "Doh",
-            "value": "Doh"
+            "code": "DoH",
+            "value": "DoH"
           }
         ],
         "visibility": "enabled",
