@@ -406,8 +406,6 @@
         "dns_nscount",
         "dns_arcount",
         "dns_qname",
-        "dns_qtype",
-        "dns_qclass",
         "dns_cname",
         "dns_sub",
         "dns_rr",
