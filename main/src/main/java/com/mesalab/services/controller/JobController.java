@@ -10,7 +10,7 @@ import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.service.DeferredResultHolder;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.configuration.JobConfig;
 import com.mesalab.services.service.JobService;
 import com.geedgenetworks.utils.StringUtil;
@@ -42,7 +42,7 @@ public class JobController {
     @Autowired
     JobConfig jobConfig;
     @Autowired
-    MetadataService metadataService;
+    DatabaseService databaseService;
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
@@ -185,7 +185,7 @@ public class JobController {
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_DATA_SOURCE_NOT_NULL));
         }
         String dataSource = String.valueOf(reqBody.get(JobConfig.KEY_QUERY_DATA_SOURCE));
-        if (!metadataService.getAllTable().contains(dataSource)) {
+        if (!databaseService.getAllTable().contains(dataSource)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.QUERY_DATA_SOURCE_ERROR));
         }

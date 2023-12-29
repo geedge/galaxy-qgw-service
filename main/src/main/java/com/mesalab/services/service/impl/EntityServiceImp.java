@@ -25,7 +25,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.configuration.HttpConfig;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.qgw.model.basic.EntityConfigSource;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.impl.QueryServiceImpl;
 import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.services.common.dsl.ComDSLObject;
@@ -69,7 +69,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
     @Autowired
     private EntityConfigSource entityConfigSourceTemp;
     @Autowired
-    private MetadataService metadataService;
+    private DatabaseService databaseService;
 
     private static HttpClientService httpClientService;
     private static HttpConfig httpConfig;
@@ -329,7 +329,7 @@ public class EntityServiceImp implements EntityService, EnvironmentAware {
 
 
     private Map<String, List<String>> getCfgCDN() {
-        Object codeInfo = metadataService.getCfg("public_code_info.json");
+        Object codeInfo = databaseService.getCfg("public_code_info.json");
         if (StringUtil.isNotEmpty(codeInfo)) {
             Map<String, Map<String, List<String>>> data = JSON.parseObject(codeInfo.toString(), Map.class);
             return Maps.newHashMap(data.get("CDN"));

@@ -1,7 +1,6 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.common.utils.SpringContextUtil;
-import com.mesalab.qgw.service.MetadataService;
 import com.geedgenetworks.utils.StringUtil;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
@@ -18,7 +17,7 @@ import net.sf.jsqlparser.util.deparser.SelectDeParser;
  */
 public class RewriteTable extends SelectDeParser {
 
-    private static MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    private static DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
 
     public RewriteTable(ExpressionVisitor expressionVisitor, StringBuilder buffer) {
         super(expressionVisitor, buffer);
@@ -27,7 +26,7 @@ public class RewriteTable extends SelectDeParser {
     @Override
     public void visit(Table table) {
         if (StringUtil.isBlank(table.getSchemaName())) {
-            table.setSchemaName(metadataService.getDBNameByTableName(table.getName()));
+            table.setSchemaName(databaseService.getDBNameByTableName(table.getName()));
         }
         if (((table.getAlias() == null)) || (StringUtil.isBlank(table.getAlias().getName()))) {
             Alias alias = new Alias(table.getName(), true);

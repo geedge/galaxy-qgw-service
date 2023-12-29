@@ -16,7 +16,7 @@ import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.AllArgsConstructor;
@@ -39,7 +39,7 @@ import java.util.*;
 @NoArgsConstructor
 public class TIME_FLOOR_WITH_FILL implements UDF{
     private static final Log log = LogFactory.get();
-    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    private DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private String name;
     private String timestamp;
@@ -303,7 +303,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
      * @return
      */
     private WhereTimeRange getWhereTimeRange(SQLQuerySource sqlQuerySource) {
-        String dbType = metadataService.getDBTypeByTableName(sqlQuerySource.getTableNames().get(0));
+        String dbType = databaseService.getDBTypeByTableName(sqlQuerySource.getTableNames().get(0));
         WhereTimeRange whereTimeRange = new WhereTimeRange();
         List<FillParam> outToInnerList = getFillParams(sqlQuerySource);
         for (FillParam fillParam : outToInnerList) {

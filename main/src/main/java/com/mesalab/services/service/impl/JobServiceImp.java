@@ -25,7 +25,7 @@ import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
 import com.mesalab.qgw.service.QueryService;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.enums.MetricFunction;
 import com.mesalab.services.common.enums.MetricType;
 import com.mesalab.services.configuration.JobConfig;
@@ -66,7 +66,7 @@ public class JobServiceImp implements JobService, EnvironmentAware {
     @Autowired
     QueryService queryService;
     @Autowired
-    MetadataService metadataService;
+    DatabaseService databaseService;
     @Autowired
     JobExecuteService jobExecuteService;
     @Autowired

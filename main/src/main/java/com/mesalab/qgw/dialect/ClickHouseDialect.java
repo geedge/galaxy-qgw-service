@@ -11,19 +11,19 @@ import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
+import com.mesalab.common.configuration.HttpConfig;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.*;
+import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.exception.QGWErrorCode;
 import com.mesalab.qgw.service.RewriteTable;
-import com.mesalab.common.configuration.HttpConfig;
 import com.mesalab.qgw.model.basic.*;
-import com.mesalab.qgw.service.MetadataService;
-import com.mesalab.common.httpClient.HttpClientService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.geedgenetworks.utils.Encodes;
 import com.geedgenetworks.utils.StringUtil;
 import net.sf.jsqlparser.JSQLParserException;
@@ -55,7 +55,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private HttpClientService httpClientService = (HttpClientService) SpringContextUtil.getBean("httpClientService");
-    private MetadataService metadataService = (MetadataService) SpringContextUtil.getBean("metadataService");
+    private DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     public QueryProfile param;
@@ -532,21 +532,21 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private String getAvailableIndexTable() throws JSQLParserException {
-            String str = metadataService.getValueByKeyInSchemaDoc(param.getDbQuerySource().getTableNames().get(0), "index_table");
+            String str = databaseService.getValueByKeyInSchemaDoc(param.getDbQuerySource().getTableNames().get(0), "index_table");
             String[] indexTables = StringUtil.split(str, ",");
-            if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(metadataService.getIndexKey(param.getDbQuerySource().getTableNames().get(0)))) {
+            if (StringUtil.isEmpty(indexTables) || StringUtil.isEmpty(databaseService.getIndexKey(param.getDbQuerySource().getTableNames().get(0)))) {
                 return StringUtil.EMPTY;
             }
             Expression expression = CondExpressionHelper.rewireCondExprBaseOnCK(param.getDbQuerySource().getWhereExpression().toString(), param.getDbQuerySource().getAliasFields(), false, null);
             List<String> actualFieldOfWhere = CondExpressionHelper.getDistinctFields(expression.toString());
             table:
             for (String tempIndexTable : indexTables) {
-                List<String> indexKey = metadataService.getIndexKey(tempIndexTable);
+                List<String> indexKey = databaseService.getIndexKey(tempIndexTable);
                 //判断一: where 是否包含索引键
                 if (StringUtil.isEmpty(indexKey) || !actualFieldOfWhere.contains(indexKey.get(0))) {
                     continue;
                 }
-                Schema indexTableSchema = metadataService.getSchemaByName(tempIndexTable);
+                Schema indexTableSchema = databaseService.getSchemaByName(tempIndexTable);
                 //判断二: where 条件列是否都在索引表中
                 for (String field : actualFieldOfWhere) {
                     if (!isFieldOfSchema(indexTableSchema, field)) {
@@ -570,12 +570,12 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          */
         private String getSubQueryByIndexTable(String indexTable) throws JSQLParserException {
 
-            String primaryKey = metadataService.getValueByKeyInSchemaDoc(param.getDbQuerySource().getTableNames().get(0), "primary_key");
-            List<String> indexKey = metadataService.getIndexKey(param.getDbQuerySource().getTableNames().get(0));
+            String primaryKey = databaseService.getValueByKeyInSchemaDoc(param.getDbQuerySource().getTableNames().get(0), "primary_key");
+            List<String> indexKey = databaseService.getIndexKey(param.getDbQuerySource().getTableNames().get(0));
             indexKey = indexKey.subList(0, indexKey.contains(primaryKey) ? indexKey.indexOf(primaryKey) + 1 : indexKey.size());
 
             List<String> indexKeyMaster = Lists.newArrayList();
-            String nameMaster = metadataService.getSchemaByName(param.getDbQuerySource().getTableNames().get(0)).getName();
+            String nameMaster = databaseService.getSchemaByName(param.getDbQuerySource().getTableNames().get(0)).getName();
             indexKey.forEach(o -> indexKeyMaster.add(nameMaster.concat(".").concat(o)));
 
             String subQuery = getSubquerySql(String.join(",", indexKey), indexTable);
@@ -600,7 +600,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * @return
          */
         private String getSubQueryByPartitionKey(String sql) throws JSQLParserException {
-            String partitionKey = metadataService.getPartitionKey(param.getDbQuerySource().getTableNames().get(0));
+            String partitionKey = databaseService.getPartitionKey(param.getDbQuerySource().getTableNames().get(0));
             if (StringUtil.isBlank(partitionKey)) {
                 log.warn("Partition Key is Empty. Focus in tableName {} schema", param.getDbQuerySource().getTableNames().get(0));
                 return sql;
@@ -611,7 +611,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             Matcher m = pWhere.matcher(sql);
             StringBuffer sb = new StringBuffer();
             while (m.find()) {
-                m.appendReplacement(sb, "where  " + metadataService.getSchemaByName(param.getDbQuerySource().getTableNames().get(0)).getName().concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
+                m.appendReplacement(sb, "where  " + databaseService.getSchemaByName(param.getDbQuerySource().getTableNames().get(0)).getName().concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
             }
             m.appendTail(sb);
             return sb.toString();
@@ -838,7 +838,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         ClickHouseHttpQuery clickHouseHttpQuery = new ClickHouseHttpQuery();
         StringBuilder queryParameterBuilder = new StringBuilder(1024);
         String dbName = StringUtil.isNotEmpty(param.getDbQuerySource().getTableNames())
-                ? metadataService.getDBNameByTableName(param.getDbQuerySource().getTableNames().get(0)) : clickHouseHttpSource.getDbName();
+                ? databaseService.getDBNameByTableName(param.getDbQuerySource().getTableNames().get(0)) : clickHouseHttpSource.getDbName();
         if (dbName.equalsIgnoreCase(clickHouseHttpSource.getSystemDBName())) {
             param.setOption(QueryOptionEnum.LONG_TERM.getValue());
         }

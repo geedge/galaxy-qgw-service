@@ -32,7 +32,7 @@ import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.metadata.MetadataBean;
 import com.mesalab.qgw.model.metadata.MetadataConfig;
 import com.mesalab.qgw.service.QueryService;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.geedgenetworks.utils.StringUtil;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaParseException;
@@ -46,11 +46,11 @@ import java.util.*;
 /**
  * @Date: 2021-03-11 15:48
  * @Author : liuyongqiang
- * @ClassName : NacosMetadataServiceImpl
+ * @ClassName : DatabaseServiceImpl
  * @Description : 获取Nacos注册中心元数据实现类
  */
-@Service("metadataService")
-public class MetadataServiceImpl implements MetadataService {
+@Service("databaseService")
+public class DatabaseServiceImpl implements DatabaseService {
 
     private static final Log log = LogFactory.get();
     @Autowired

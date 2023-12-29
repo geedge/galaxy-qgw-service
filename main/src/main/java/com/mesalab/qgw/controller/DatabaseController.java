@@ -11,7 +11,7 @@ import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.ResultStatusEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,26 +24,26 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "v1/metadata")
-public class MetadataController {
+@RequestMapping(value = "v1/database")
+public class DatabaseController {
 
     @Autowired
-    private MetadataService metadataService;
+    private DatabaseService databaseService;
 
     private final static List<String> VISIBILITY = Arrays.asList("enabled", "hidden", "disabled");
 
 
-    @RequestMapping("/schema/{table_name}")
+    @RequestMapping(value = "/table/{table_name}/schema", consumes = "application/x-www-form-urlencoded")
     public BaseResult getSchemaByTable(@PathVariable("table_name") String tableName) {
         log.debug("SCHEMA信息获取,参数为{} {}", tableName);
 
         if (StringUtil.isBlank(tableName)) {
             return BaseResultGenerator.success4Message("ok");
         }
-        return BaseResultGenerator.success(metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, true));
+        return BaseResultGenerator.success(databaseService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, true));
     }
 
-    @PutMapping("/schema/{table_name}")
+    @PutMapping(value = "/table/{table_name}/schema", consumes = "application/json")
     public BaseResult updateSchema(@PathVariable("table_name") String tableName, @RequestBody Map<String, Object> obj) {
         log.info("update Schema api, params is: {}-{}", tableName, obj);
         if (StringUtil.isBlank(tableName) || StringUtil.isEmpty(obj)) {
@@ -51,22 +51,22 @@ public class MetadataController {
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.SCHEMA_PARAM_ERROR));
         }
         validationParam(tableName, obj);
-        return metadataService.updateSchema(tableName, obj);
+        return databaseService.updateSchema(tableName, obj);
     }
 
-    @RequestMapping("/{database}/table")
-    public BaseResult getTableByDB(@PathVariable String database) {
-        log.debug("SCHEMA信息获取,参数为{} {}",database);
+    @RequestMapping(value = "/{dbName}/table", consumes = "application/x-www-form-urlencoded")
+    public BaseResult getTableByDB(@PathVariable String dbName) {
+        log.debug("SCHEMA信息获取,参数为{} {}", dbName);
 
-        if (StringUtil.isBlank(database)) {
+        if (StringUtil.isBlank(dbName)) {
 
             return BaseResultGenerator.success4Message("ok");
         }
-        return BaseResultGenerator.success(metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), database, true));
+        return BaseResultGenerator.success(databaseService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), dbName, true));
     }
 
     private void validationParam(String name, Map<String, Object> obj) {
-        if (!metadataService.getAllTable().contains(name)) {
+        if (!databaseService.getAllTable().contains(name)) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), name + QGWMessageConst.NOT_SUPPORT_SETTING_TTL));
         }

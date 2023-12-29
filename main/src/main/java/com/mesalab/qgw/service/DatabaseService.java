@@ -6,7 +6,7 @@ import org.apache.avro.Schema;
 import java.util.List;
 import java.util.Map;
 
-public interface MetadataService {
+public interface DatabaseService {
 
     /**
      * 查询schema信息

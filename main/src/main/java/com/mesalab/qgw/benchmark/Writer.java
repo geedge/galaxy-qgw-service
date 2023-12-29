@@ -13,7 +13,7 @@ import com.jayway.jsonpath.JsonPathException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.common.nacos.NacosConst;
 import com.geedgenetworks.utils.StringUtil;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.service.DatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +31,7 @@ public abstract class Writer {
     @Autowired
     NacosConfig nacosConfig;
     @Autowired
-    MetadataService metadataService;
+    DatabaseService databaseService;
     @Autowired
     DatasetService datasetService;
 
@@ -71,7 +71,7 @@ public abstract class Writer {
                 writer.getFile().createNewFile();
             }
             List<LinkedHashMap> variables = Lists.newArrayList();
-            Object codeInfo = metadataService.getCfg(NacosConst.DATASETS_VARIABLES);
+            Object codeInfo = databaseService.getCfg(NacosConst.DATASETS_VARIABLES);
             if (StringUtil.isNotEmpty(codeInfo)) {
                 Object json = JSON.toJSON(codeInfo);
                 variables = (List<LinkedHashMap>) JSON.parseArray(json.toString(), LinkedHashMap.class);

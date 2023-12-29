@@ -8,15 +8,15 @@ import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
-import com.mesalab.common.httpClient.HttpClientService;
+import com.mesalab.common.configuration.HttpConfig;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
+import com.mesalab.common.httpClient.HttpClientService;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
-import com.mesalab.common.configuration.HttpConfig;
 import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.JobAdminHttpSource;
 import com.mesalab.qgw.model.job.EncryptionInfo;
@@ -24,7 +24,7 @@ import com.mesalab.qgw.model.job.ExecutorParam;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.model.job.XxlJobInfo;
 import com.mesalab.qgw.service.QueryService;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SystemService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.geedgenetworks.utils.DateUtils;
@@ -59,8 +59,8 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private JobAdminHttpSource jobAdminHttpSource;
     @Autowired
     private HttpClientService httpClientService;
-    @Resource(name = "metadataService")
-    private MetadataService metadataService;
+    @Resource(name = "databaseService")
+    private DatabaseService databaseService;
     @Autowired
     HttpConfig httpConfig;
     @Autowired
@@ -176,7 +176,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     @Override
     public String getCustomQueryId(String resultId, String query) {
         String tableName = SQLHelper.getTableName(query).get(0);
-        String dbType = metadataService.getDBTypeByTableName(tableName);
+        String dbType = databaseService.getDBTypeByTableName(tableName);
         return DigestUtil.md5Hex(dbType) + queryIdSeparator + DigestUtil.md5Hex(resultId + query.trim());
     }
 
@@ -310,7 +310,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
     private void updateSchema(StorageDeletionInfo info, Map dataByHandler) {
         Map<String, Map> previous = Maps.newHashMap();
         try {
-            Map schemaInfo = metadataService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
+            Map schemaInfo = databaseService.getSchemaInfo(MetadataTypeEnum.TABLES.getValue(), clickHouseHttpSource.getDbName(), false);
             Object tables = schemaInfo.get("symbols");
             if (StringUtil.isEmpty(tables)) {
                 return;
@@ -318,13 +318,13 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             long ttl = 24 * 60 * 60 * info.getMaxDays();
             List<String> list = (List) tables;
             for (String tableName : list) {
-                Map schemaMap = metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, false);
+                Map schemaMap = databaseService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, false);
                 List<Object> schemaDocTTL = JsonPath.read(schemaMap, "$.[?(@.doc.ttl != null)].doc.ttl");
                 List<Object> fieldDocTTL = JsonPath.read(schemaMap, "$.fields[?(@.doc.ttl != null)].doc.ttl");
                 if (schemaDocTTL.isEmpty() && fieldDocTTL.isEmpty()) {
                     continue;
                 }
-                previous.put(tableName, metadataService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, false));
+                previous.put(tableName, databaseService.getSchemaInfo(MetadataTypeEnum.FIELDS.getValue(), tableName, false));
                 Object schemaDoc = schemaMap.get("doc");
                 Map<String, Object> map = Maps.newHashMap();
                 if (StringUtil.isNotEmpty(schemaDoc)) {
@@ -335,7 +335,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                     schemaMap.put("doc", map);
                 }
                 List<Map<String, Object>> fields = JsonPath.read(schemaMap, "$.fields");
-                List<String> indexKey = metadataService.getIndexKey(tableName);
+                List<String> indexKey = databaseService.getIndexKey(tableName);
                 for (Map<String, Object> field : fields) {
                     Object doc = field.get("doc");
                     if (StringUtil.isEmpty(doc)) {
@@ -352,11 +352,11 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
                         field.put("doc", fieldDoc);
                     }
                 }
-                metadataService.updateSchema(tableName, schemaMap);
+                databaseService.updateSchema(tableName, schemaMap);
             }
         } catch (RuntimeException ex) {
             for (String tableName : previous.keySet()) {
-                metadataService.updateSchema(tableName, previous.get(tableName));
+                databaseService.updateSchema(tableName, previous.get(tableName));
             }
             executeManageJob("update", mapToBean(dataByHandler, XxlJobInfo.class));
             throw new QGWBusinessException(ResultStatusEnum.SERVER_ERROR.getCode(),

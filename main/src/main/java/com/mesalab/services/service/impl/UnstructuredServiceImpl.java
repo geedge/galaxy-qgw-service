@@ -17,7 +17,7 @@ import com.mesalab.qgw.model.basic.QueryProfile;
 import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.service.QueryService;
-import com.mesalab.qgw.service.MetadataService;
+import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.UnstructuredDataType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -57,7 +57,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     }
 
     @Autowired
-    private MetadataService metadataService;
+    private DatabaseService databaseService;
     @Autowired
     private ClickHouseHttpSource clickHouseHttpSource;
     @Autowired
@@ -69,9 +69,9 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     @Override
     public Map<String, Object> getUnstructuredFields() {
         Map<String, Object> fileTypeInSchema = Maps.newHashMap();
-        List<String> allTable = metadataService.getAllTable();
+        List<String> allTable = databaseService.getAllTable();
         for (String tableName : allTable) {
-            Schema schema = metadataService.getSchemaByName(tableName);
+            Schema schema = databaseService.getSchemaByName(tableName);
             Map schemaMap = JSON.parseObject(schema.toString(), Map.class);
             List<String> fieldList = new ArrayList<>();
             if (!clickHouseHttpSource.getDbName().equals(schema.getNamespace())) continue;
@@ -211,7 +211,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
     }
 
     private void validationDataSource(String dataSource) {
-        List<String> allTable = metadataService.getAllTable();
+        List<String> allTable = databaseService.getAllTable();
         if (!allTable.contains(dataSource) && !dataSource.equals(clickHouseHttpSource.getDbName())) {
             throw new QGWBusinessException(ResultStatusEnum.BAD_REQUEST.getCode(), ResultCodeEnum.PARAMETER_ERROR.getCode(),
                     String.format(ResultCodeEnum.PARAMETER_ERROR.getMessage(), QGWMessageConst.DATASOURCE_NOT_EXIST));
