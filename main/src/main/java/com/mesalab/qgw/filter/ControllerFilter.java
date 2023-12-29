@@ -6,14 +6,12 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 @Component
 @WebFilter(urlPatterns = "/*")
-public class ControllerFilter implements  Filter {
+public class ControllerFilter implements Filter {
     private static final String NOT_FILTER_PATHS = "/v1/knowledge_base";
+    private static final String NOT_FILTER_PATHS_DEPRECATED = "/knowledge_base/v1";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -24,7 +22,7 @@ public class ControllerFilter implements  Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
         String servletPath = httpServletRequest.getServletPath();
-        if (String.valueOf(servletPath).contains(NOT_FILTER_PATHS)) {
+        if (String.valueOf(servletPath).contains(NOT_FILTER_PATHS) || String.valueOf(servletPath).contains(NOT_FILTER_PATHS_DEPRECATED)) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             filterChain.doFilter(new RequestParamWrapper(httpServletRequest), servletResponse);
