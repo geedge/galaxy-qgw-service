@@ -162,16 +162,15 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         if (CollectionUtil.isEmpty(query)) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(), "Not Find Matching Job.");
         }
-        Map<String, Object> job = buildJobStatus(query.get(0).getColumns());
-        return BaseResultGenerator.success("ok", Lists.newArrayList(job));
+        Map<String, Object> jobInfo = buildJobStatus(query.get(0).getColumns());
+        return BaseResultGenerator.success(null, jobInfo, null, null);
     }
 
     @Override
     public BaseResult getSavedQueryResult(String jobId) {
         BaseResult statusBaseResult = getSavedQueryStatus(jobId);
         if (statusBaseResult.isSuccess()) {
-            List<HashMap<String, Object>> statusData = (List<HashMap<String, Object>>) statusBaseResult.getData();
-            HashMap<String, Object> jobInfo = statusData.get(0);
+            Map<String, Object> jobInfo = (Map<String, Object>) statusBaseResult.getJob();
             boolean isDone = Boolean.parseBoolean(jobInfo.get(JobConfig.IS_DONE).toString());
             boolean isCanceled = Boolean.parseBoolean(jobInfo.get(JobConfig.IS_CANCELED).toString());
             boolean isFailed = Boolean.parseBoolean(jobInfo.get(JobConfig.IS_FAILED).toString());
