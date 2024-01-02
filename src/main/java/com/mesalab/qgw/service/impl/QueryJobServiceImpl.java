@@ -1,12 +1,14 @@
 package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -174,8 +176,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         if (!baseResult.isSuccess()) {
             jobInfo.put(JobConfig.IS_FAILED, false);
         }
-        jobInfo.put(JobConfig.START_TIME, start / 1000);
-        jobInfo.put(JobConfig.END_TIME, System.currentTimeMillis() / 1000);
+        jobInfo.put(JobConfig.START_TIME, DateUtils.convertTimestampToString(start / 1000, DatePattern.UTC_PATTERN));
+        jobInfo.put(JobConfig.END_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
         baseResult.setJob(jobInfo);
         queryCache.setBaseResult(baseResult);
         return queryCache;

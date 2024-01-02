@@ -1,6 +1,7 @@
 package com.mesalab.services.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
@@ -8,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.geedgenetworks.utils.DateUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jfinal.plugin.activerecord.Db;
@@ -273,7 +275,6 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         return buildLongTermResult(id);
     }
 
-
     private Map<String, Object> buildJobStatus(Map<String, Object> data) {
         Map<String, Object> job = Maps.newLinkedHashMap();
         job.put(JobConfig.JOB_ID, data.get("job_id"));
@@ -281,8 +282,10 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         job.put(JobConfig.DONE_PROGRESS, Math.min(Double.parseDouble(String.valueOf(data.get("done_progress"))), 1.0));
         job.put(JobConfig.IS_CANCELED, !BooleanUtil.toBoolean(String.valueOf(data.get("is_valid"))));
         job.put(JobConfig.IS_FAILED, BooleanUtil.toBoolean(String.valueOf(data.get("is_failed"))));
-        job.put(JobConfig.START_TIME, data.get("start_time"));
-        job.put(JobConfig.END_TIME, data.get("end_time"));
+        job.put(JobConfig.START_TIME, Optional.ofNullable(data.get("start_time")).map(s -> DateUtils.convertTimestampToString(Long.parseLong(data.get("start_time").toString()), DatePattern.UTC_PATTERN))
+                .orElse(null));
+        job.put(JobConfig.END_TIME, Optional.ofNullable(data.get("end_time")).map(s -> DateUtils.convertTimestampToString(Long.parseLong(data.get("end_time").toString()), DatePattern.UTC_PATTERN))
+                .orElse(null));
         Map<String, Object> links = Maps.newLinkedHashMap();
         links.put(JobConfig.LINKS_STATUS, "/v1/query/job/" + job.get(JobConfig.JOB_ID));
         links.put(JobConfig.LINKS_RESULT, "/v1/query/job/" + job.get(JobConfig.JOB_ID) + "/result");

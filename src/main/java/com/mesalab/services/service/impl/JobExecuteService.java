@@ -3,6 +3,7 @@ package com.mesalab.services.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
@@ -180,7 +181,7 @@ public class JobExecuteService implements EnvironmentAware {
 
     private static void signJobInfoToStartOnQueryCache(String id) {
         QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        queryCache.getBaseResult().getJob().put(JobConfig.START_TIME, System.currentTimeMillis() / 1000);
+        queryCache.getBaseResult().getJob().put(JobConfig.START_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
         HazelcastInstanceMapUtil.put(id, queryCache);
     }
 
@@ -189,7 +190,7 @@ public class JobExecuteService implements EnvironmentAware {
         Map<String, Object> job = queryCache.getBaseResult().getJob();
         job.put(JobConfig.IS_DONE, true);
         job.put(JobConfig.DONE_PROGRESS, 1);
-        job.put(JobConfig.END_TIME, System.currentTimeMillis() / 1000);
+        job.put(JobConfig.END_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
         HazelcastInstanceMapUtil.put(id, queryCache);
     }
 
