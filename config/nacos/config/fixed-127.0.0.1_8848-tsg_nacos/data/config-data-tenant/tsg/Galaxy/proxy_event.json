@@ -1543,7 +1543,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1555,7 +1555,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1567,7 +1567,7 @@
         "constraints": {
           "type": "bytes"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1579,7 +1579,7 @@
         "constraints": {
           "type": "bytes"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1591,7 +1591,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1603,7 +1603,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1615,7 +1615,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1627,7 +1627,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1639,7 +1639,7 @@
         "constraints": {
           "type": "bytes"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1651,7 +1651,7 @@
         "constraints": {
           "type": "bytes"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1664,7 +1664,7 @@
           "type": "decimal",
           "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
