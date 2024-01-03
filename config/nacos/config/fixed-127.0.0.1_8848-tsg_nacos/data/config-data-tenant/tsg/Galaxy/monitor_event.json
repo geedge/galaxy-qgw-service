@@ -1223,6 +1223,22 @@
       }
     },
     {
+      "name": "statistics_rule_list",
+      "label": "Statistics Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "sc_rsp_raw",
       "label": "SC RSP Raw",
       "doc": {

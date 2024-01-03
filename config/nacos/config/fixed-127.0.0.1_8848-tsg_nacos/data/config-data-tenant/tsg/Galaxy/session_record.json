@@ -39,6 +39,7 @@
         "monitor_rule_list",
         "shaping_rule_list",
         "sc_rule_list",
+        "statistics_rule_list",
         "sc_rsp_raw",
         "sc_rsp_decrypted",
         "proxy_action",
@@ -307,6 +308,7 @@
         "monitor_rule_list",
         "shaping_rule_list",
         "sc_rule_list",
+        "statistics_rule_list",
         "sc_rsp_raw",
         "sc_rsp_decrypted",
         "proxy_rule_list",
@@ -1230,6 +1232,22 @@
     {
       "name": "sc_rule_list",
       "label": "Service Chaining Rule List",
+      "doc": {
+        "constraints": {
+          "operator_functions": "has,notEmpty,empty"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
+      "name": "statistics_rule_list",
+      "label": "Statistics Rule List",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
