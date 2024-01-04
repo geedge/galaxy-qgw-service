@@ -2376,6 +2376,30 @@
         "label": "Down Tunnel ID",
         "type": "int"
       }
+    ],
+    "IPv4": [
+      {
+        "name": "client_ip",
+        "label": "Client IP",
+        "type": "string"
+      },
+      {
+        "name": "server_ip",
+        "label": "Server IP",
+        "type": "string"
+      }
+    ],
+    "IPv6": [
+      {
+        "name": "client_ip",
+        "label": "Client IP",
+        "type": "string"
+      },
+      {
+        "name": "server_ip",
+        "label": "Server IP",
+        "type": "string"
+      }
     ]
   },
   "details": {
