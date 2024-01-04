@@ -199,7 +199,50 @@
         "$ref": "public_schema_info.json#/schema_query/references"
       },
       "details": {
-        "$ref": "public_schema_info.json#/details"
+        "general": {
+          "$ref": "public_schema_info.json#/details/general"
+        },
+        "treatment": {
+          "$ref": "public_schema_info.json#/details/treatment"
+        },
+        "source": {
+          "$ref": "public_schema_info.json#/details/source"
+        },
+        "destination": {
+          "$ref": "public_schema_info.json#/details/destination"
+        },
+        "application": {
+          "$ref": "public_schema_info.json#/details/application"
+        },
+        "protocol": [
+          "ip_protocol",
+          "decoded_path",
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration_s",
+          "sip_bye",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ],
+        "transmission": {
+          "$ref": "public_schema_info.json#/details/transmission"
+        },
+        "other": {
+          "$ref": "public_schema_info.json#/details/other"
+        }
       }
     },
     "decoded_as": {

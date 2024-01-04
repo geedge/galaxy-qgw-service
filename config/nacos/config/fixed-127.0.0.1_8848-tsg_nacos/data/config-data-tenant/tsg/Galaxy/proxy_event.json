@@ -268,7 +268,81 @@
         "$ref": "public_schema_info.json#/schema_query/references"
       },
       "details": {
-        "$ref": "public_schema_info.json#/details"
+        "general": {
+          "$ref": "public_schema_info.json#/details/general"
+        },
+        "treatment": {
+          "$ref": "public_schema_info.json#/details/treatment"
+        },
+        "source": {
+          "$ref": "public_schema_info.json#/details/source"
+        },
+        "destination": {
+          "$ref": "public_schema_info.json#/details/destination"
+        },
+        "application": {
+          "$ref": "public_schema_info.json#/details/application"
+        },
+        "protocol": [
+          "ip_protocol",
+          "decoded_path",
+          "http_url",
+          "http_host",
+          "http_request_line",
+          "http_response_line",
+          "http_request_content_length",
+          "http_request_content_type",
+          "http_response_content_length",
+          "http_response_content_type",
+          "http_request_body",
+          "http_response_body",
+          "http_proxy_flag",
+          "http_sequence",
+          "http_cookie",
+          "http_referer",
+          "http_user_agent",
+          "http_set_cookie",
+          "http_version",
+          "http_status_code",
+          "http_response_latency_ms",
+          "http_session_duration_ms",
+          "http_action_file_size",
+          "doh_url",
+          "doh_host",
+          "doh_request_line",
+          "doh_response_line",
+          "doh_cookie",
+          "doh_referer",
+          "doh_user_agent",
+          "doh_content_length",
+          "doh_content_type",
+          "doh_set_cookie",
+          "doh_version",
+          "doh_message_id",
+          "doh_qr",
+          "doh_opcode",
+          "doh_aa",
+          "doh_tc",
+          "doh_rd",
+          "doh_ra",
+          "doh_rcode",
+          "doh_qdcount",
+          "doh_ancount",
+          "doh_nscount",
+          "doh_arcount",
+          "doh_qname",
+          "doh_qtype",
+          "doh_qclass",
+          "doh_cname",
+          "doh_sub",
+          "doh_rr"
+        ],
+        "transmission": {
+          "$ref": "public_schema_info.json#/details/transmission"
+        },
+        "other": {
+          "$ref": "public_schema_info.json#/details/other"
+        }
       }
     },
     "decoded_as": {
