@@ -1017,7 +1017,7 @@
     },
     {
       "name": "sc_rule_list",
-      "label": "Service Chaining Rule List",
+      "label": "SC Rule List",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1254,7 +1254,7 @@
     },
     {
       "name": "proxy_cert_verify",
-      "label": "Proxy Cert Verify",
+      "label": "Proxy Certificate Verify",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1660,7 +1660,7 @@
     },
     {
       "name": "tcp_c2s_o3_pkts",
-      "label": "TCP C2S out-of-order packets",
+      "label": "TCP C2S O3 Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -1672,7 +1672,7 @@
     },
     {
       "name": "tcp_s2c_o3_pkts",
-      "label": "TCP S2C out-of-order packets",
+      "label": "TCP S2C O3 packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2016,7 +2016,7 @@
     },
     {
       "name": "http_user_agent",
-      "label": "HTTP.User Agent",
+      "label": "HTTP.User-Agent",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2025,7 +2025,7 @@
     },
     {
       "name": "http_set_cookie",
-      "label": "HTTP.Set Cookie",
+      "label": "HTTP.Set-Cookie",
       "doc": {
         "visibility": "enabled",
         "ttl": null

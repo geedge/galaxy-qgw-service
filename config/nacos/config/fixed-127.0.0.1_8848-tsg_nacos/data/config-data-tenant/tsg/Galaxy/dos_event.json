@@ -223,7 +223,7 @@
     },
     {
       "name": "source_ip_list",
-      "label": "Source IPs",
+      "label": "Source IP List",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -232,7 +232,7 @@
     },
     {
       "name": "source_country_list",
-      "label": "Source Countries",
+      "label": "Source Country List",
       "doc": {
         "visibility": "enabled",
         "ttl": null

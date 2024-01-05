@@ -879,7 +879,7 @@
     },
     {
       "name": "sc_rule_list",
-      "label": "Service Chaining Rule List",
+      "label": "SC Rule List",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1088,7 +1088,7 @@
     },
     {
       "name": "proxy_cert_verify",
-      "label": "Proxy Cert Verify",
+      "label": "Proxy Certificate Verify",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1494,7 +1494,7 @@
     },
     {
       "name": "tcp_c2s_o3_pkts",
-      "label": "TCP C2S out-of-order packets",
+      "label": "TCP C2S O3 Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -1506,7 +1506,7 @@
     },
     {
       "name": "tcp_s2c_o3_pkts",
-      "label": "TCP S2C out-of-order packets",
+      "label": "TCP S2C O3 packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -1833,7 +1833,7 @@
     },
     {
       "name": "rtp_payload_type_c2s",
-      "label": "RTP.Payload Type (c2s)",
+      "label": "RTP.Payload Type(C2S)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -1955,7 +1955,7 @@
     },
     {
       "name": "rtp_payload_type_s2c",
-      "label": "RTP.Payload Type (s2c)",
+      "label": "RTP.Payload Type(S2C)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"

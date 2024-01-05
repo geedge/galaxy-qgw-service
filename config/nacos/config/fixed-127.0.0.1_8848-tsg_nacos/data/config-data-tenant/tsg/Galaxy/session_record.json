@@ -1388,7 +1388,7 @@
     },
     {
       "name": "sc_rule_list",
-      "label": "Service Chaining Rule List",
+      "label": "SC Rule List",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1597,7 +1597,7 @@
     },
     {
       "name": "proxy_cert_verify",
-      "label": "Proxy Cert Verify",
+      "label": "Proxy Certificate Verify",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2003,7 +2003,7 @@
     },
     {
       "name": "tcp_c2s_o3_pkts",
-      "label": "TCP C2S out-of-order packets",
+      "label": "TCP C2S O3 Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2015,7 +2015,7 @@
     },
     {
       "name": "tcp_s2c_o3_pkts",
-      "label": "TCP S2C out-of-order packets",
+      "label": "TCP S2C O3 packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2359,7 +2359,7 @@
     },
     {
       "name": "http_user_agent",
-      "label": "HTTP.User Agent",
+      "label": "HTTP.User-Agent",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2368,7 +2368,7 @@
     },
     {
       "name": "http_set_cookie",
-      "label": "HTTP.Set Cookie",
+      "label": "HTTP.Set-Cookie",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2436,7 +2436,7 @@
     },
     {
       "name": "mail_protocol_type",
-      "label": "Mail.Protocol Type",
+      "label": "MAIL.Protocol Type",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2445,7 +2445,7 @@
     },
     {
       "name": "mail_account",
-      "label": "Mail.Account",
+      "label": "MAIL.Account",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2454,7 +2454,7 @@
     },
     {
       "name": "mail_from_cmd",
-      "label": "Mail.From CMD",
+      "label": "MAIL.From CMD",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2463,7 +2463,7 @@
     },
     {
       "name": "mail_to_cmd",
-      "label": "Mail.To CMD",
+      "label": "MAIL.To CMD",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2472,7 +2472,7 @@
     },
     {
       "name": "mail_from",
-      "label": "Mail.From",
+      "label": "MAIL.From",
       "doc": {
         "constraints": {
           "type": "email"
@@ -2484,7 +2484,7 @@
     },
     {
       "name": "mail_password",
-      "label": "Mail.Password",
+      "label": "MAIL.Password",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2493,7 +2493,7 @@
     },
     {
       "name": "mail_to",
-      "label": "Mail.To",
+      "label": "MAIL.To",
       "doc": {
         "constraints": {
           "type": "email"
@@ -2505,7 +2505,7 @@
     },
     {
       "name": "mail_cc",
-      "label": "Mail.CC",
+      "label": "MAIL.CC",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2514,7 +2514,7 @@
     },
     {
       "name": "mail_bcc",
-      "label": "Mail.BCC",
+      "label": "MAIL.BCC",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2523,7 +2523,7 @@
     },
     {
       "name": "mail_subject",
-      "label": "Mail.Subject",
+      "label": "MAIL.Subject",
       "doc": {
         "format": [
           {
@@ -2538,7 +2538,7 @@
     },
     {
       "name": "mail_subject_charset",
-      "label": "Mail.Subject Charset",
+      "label": "MAIL.Subject Charset",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2547,7 +2547,7 @@
     },
     {
       "name": "mail_attachment_name",
-      "label": "Mail.Attachment",
+      "label": "MAIL.Attachment Name",
       "doc": {
         "format": [
           {
@@ -2562,7 +2562,7 @@
     },
     {
       "name": "mail_attachment_name_charset",
-      "label": "Mail.Attachment Charset",
+      "label": "MAIL.Attachment Name Charset",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2571,7 +2571,7 @@
     },
     {
       "name": "mail_eml_file",
-      "label": "Mail.EML File",
+      "label": "MAIL.EML File",
       "doc": {
         "format": [
           {
@@ -3454,7 +3454,7 @@
     },
     {
       "name": "quic_version",
-      "label": "Quic.Version",
+      "label": "QUIC.Version",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -3463,7 +3463,7 @@
     },
     {
       "name": "quic_sni",
-      "label": "Quic.SNI",
+      "label": "QUIC.SNI",
       "doc": {
         "format": [
           {
@@ -3482,7 +3482,7 @@
     },
     {
       "name": "quic_user_agent",
-      "label": "Quic.User Agent",
+      "label": "QUIC.User-Agent",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -3656,7 +3656,7 @@
     },
     {
       "name": "rtp_payload_type_c2s",
-      "label": "RTP.Payload Type (c2s)",
+      "label": "RTP.Payload Type(C2S)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3778,7 +3778,7 @@
     },
     {
       "name": "rtp_payload_type_s2c",
-      "label": "RTP.Payload Type (s2c)",
+      "label": "RTP.Payload Type(S2C)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"

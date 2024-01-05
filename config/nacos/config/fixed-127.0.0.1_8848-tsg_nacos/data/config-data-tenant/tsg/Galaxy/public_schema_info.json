@@ -2475,7 +2475,6 @@
     "application": [
       "app_transition",
       "app",
-      "app_debug_info",
       "app_content",
       "fqdn_category_list"
     ],
