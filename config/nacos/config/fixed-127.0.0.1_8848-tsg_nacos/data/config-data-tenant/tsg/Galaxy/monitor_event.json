@@ -1538,7 +1538,7 @@
     },
     {
       "name": "proxy_server_side_latency_ms",
-      "label": "Proxy Server Side Latency",
+      "label": "Proxy Server-Side Latency (ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1547,7 +1547,7 @@
     },
     {
       "name": "proxy_client_side_latency_ms",
-      "label": "Proxy Client Side Latency",
+      "label": "Proxy Client-Side Latency (ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1556,7 +1556,7 @@
     },
     {
       "name": "proxy_client_side_version",
-      "label": "Proxy Client Side Version",
+      "label": "Proxy Client-Side Version",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1565,7 +1565,7 @@
     },
     {
       "name": "proxy_server_side_version",
-      "label": "Proxy Server Side Version",
+      "label": "Proxy Server-Side Version",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -2226,7 +2226,7 @@
     },
     {
       "name": "http_request_content_length",
-      "label": "HTTP.Request Content Length",
+      "label": "HTTP.Request Content-Length",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2235,7 +2235,7 @@
     },
     {
       "name": "http_request_content_type",
-      "label": "HTTP.Request Content Type",
+      "label": "HTTP.Request Content-Type",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2244,7 +2244,7 @@
     },
     {
       "name": "http_response_content_length",
-      "label": "HTTP.Response Content Length",
+      "label": "HTTP.Response Content-Length",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -3267,7 +3267,7 @@
     },
     {
       "name": "ssl_ja3_hash",
-      "label": "SSL.JA3 hash",
+      "label": "SSL.JA3 Hash",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -3276,7 +3276,7 @@
     },
     {
       "name": "ssl_ja3s_hash",
-      "label": "SSL.JA3S hash",
+      "label": "SSL.JA3S Hash",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -3395,7 +3395,7 @@
     },
     {
       "name": "dtls_ja3_fingerprint",
-      "label": "DTLS.JA3",
+      "label": "DTLS.JA3 Fingerprint",
       "doc": {
         "visibility": "disabled",
         "ttl": null
@@ -3404,7 +3404,7 @@
     },
     {
       "name": "dtls_ja3_hash",
-      "label": "DTLS.JA3 hash",
+      "label": "DTLS.JA3 Hash",
       "doc": {
         "visibility": "disabled",
         "ttl": null
@@ -3413,7 +3413,7 @@
     },
     {
       "name": "dtls_cert_issuer",
-      "label": "DTLS.Issuer",
+      "label": "DTLS.Certificate Issuer",
       "doc": {
         "visibility": "disabled",
         "ttl": null
@@ -3422,7 +3422,7 @@
     },
     {
       "name": "dtls_cert_subject",
-      "label": "DTLS.Subject",
+      "label": "DTLS.Certificate Subject",
       "doc": {
         "visibility": "disabled",
         "ttl": null
@@ -3633,7 +3633,7 @@
     },
     {
       "name": "rtp_payload_type_c2s",
-      "label": "RTP.Payload Type(C2S)",
+      "label": "RTP.Payload Type (C2S)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3755,7 +3755,7 @@
     },
     {
       "name": "rtp_payload_type_s2c",
-      "label": "RTP.Payload Type(S2C)",
+      "label": "RTP.Payload Type (S2C)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -4120,7 +4120,7 @@
     },
     {
       "name": "rdp_desktop_width",
-      "label": "RDP. Desktop Width",
+      "label": "RDP.Desktop Width",
       "doc": {
         "visibility": "enabled",
         "ttl": null

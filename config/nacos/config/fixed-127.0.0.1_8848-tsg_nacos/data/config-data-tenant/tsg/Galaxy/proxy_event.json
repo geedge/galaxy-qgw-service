@@ -1218,7 +1218,7 @@
     },
     {
       "name": "proxy_server_side_latency_ms",
-      "label": "Proxy Server Side Latency",
+      "label": "Proxy Server-Side Latency (ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1227,7 +1227,7 @@
     },
     {
       "name": "proxy_client_side_latency_ms",
-      "label": "Proxy Client Side Latency",
+      "label": "Proxy Client-Side Latency (ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1236,7 +1236,7 @@
     },
     {
       "name": "proxy_client_side_version",
-      "label": "Proxy Client Side Version",
+      "label": "Proxy Client-Side Version",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1245,7 +1245,7 @@
     },
     {
       "name": "proxy_server_side_version",
-      "label": "Proxy Server Side Version",
+      "label": "Proxy Server-Side Version",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1906,7 +1906,7 @@
     },
     {
       "name": "http_request_content_length",
-      "label": "HTTP.Request Content Length",
+      "label": "HTTP.Request Content-Length",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1915,7 +1915,7 @@
     },
     {
       "name": "http_request_content_type",
-      "label": "HTTP.Request Content Type",
+      "label": "HTTP.Request Content-Type",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1924,7 +1924,7 @@
     },
     {
       "name": "http_response_content_length",
-      "label": "HTTP.Response Content Length",
+      "label": "HTTP.Response Content-Length",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2147,7 +2147,7 @@
     },
     {
       "name": "doh_user_agent",
-      "label": "DoH.User Agent",
+      "label": "DoH.User-Agent",
       "doc": {
         "visibility": "enabled",
         "ttl": null

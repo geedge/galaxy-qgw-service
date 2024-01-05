@@ -597,7 +597,7 @@
     },
     {
       "name": "http_request_content_length",
-      "label": "HTTP.Request Content Length",
+      "label": "HTTP.Request Content-Length",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -606,7 +606,7 @@
     },
     {
       "name": "http_request_content_type",
-      "label": "HTTP.Request Content Type",
+      "label": "HTTP.Request Content-Type",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -615,7 +615,7 @@
     },
     {
       "name": "http_response_content_length",
-      "label": "HTTP.Response Content Length",
+      "label": "HTTP.Response Content-Length",
       "doc": {
         "visibility": "enabled",
         "ttl": null

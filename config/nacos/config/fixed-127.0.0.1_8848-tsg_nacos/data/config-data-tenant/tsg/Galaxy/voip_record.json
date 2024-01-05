@@ -1052,7 +1052,7 @@
     },
     {
       "name": "proxy_server_side_latency_ms",
-      "label": "Proxy Server Side Latency",
+      "label": "Proxy Server-Side Latency (ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1061,7 +1061,7 @@
     },
     {
       "name": "proxy_client_side_latency_ms",
-      "label": "Proxy Client Side Latency",
+      "label": "Proxy Client-Side Latency (ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1070,7 +1070,7 @@
     },
     {
       "name": "proxy_client_side_version",
-      "label": "Proxy Client Side Version",
+      "label": "Proxy Client-Side Version",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1079,7 +1079,7 @@
     },
     {
       "name": "proxy_server_side_version",
-      "label": "Proxy Server Side Version",
+      "label": "Proxy Server-Side Version",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1833,7 +1833,7 @@
     },
     {
       "name": "rtp_payload_type_c2s",
-      "label": "RTP.Payload Type(C2S)",
+      "label": "RTP.Payload Type (C2S)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -1955,7 +1955,7 @@
     },
     {
       "name": "rtp_payload_type_s2c",
-      "label": "RTP.Payload Type(S2C)",
+      "label": "RTP.Payload Type (S2C)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
