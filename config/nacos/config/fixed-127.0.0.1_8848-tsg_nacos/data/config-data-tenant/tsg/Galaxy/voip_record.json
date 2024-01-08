@@ -516,6 +516,10 @@
           {
             "code": "RTP",
             "value": "RTP"
+          },
+          {
+            "code": "VoIP",
+            "value": "VoIP"
           }
         ],
         "visibility": "enabled",
