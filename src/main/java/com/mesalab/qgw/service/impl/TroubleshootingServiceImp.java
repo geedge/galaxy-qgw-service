@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpStatus;
@@ -27,6 +28,7 @@ import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConfig;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.constant.QGWMessageConst;
@@ -224,48 +226,55 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     @Override
     public BaseResult datesetVerification() {
         List<Record> datasetList = Db.find(String.format(Objects.requireNonNull(env.getProperty("SQL_DATASETS")), ""));
-        List<Map<String, String>> sqlList = Lists.newArrayList();
-        List<Map<String, String>> dslList = Lists.newArrayList();
+        List<Map<String, String>> sqlDatasetList = Lists.newArrayList();
+        List<Map<String, String>> dslDatasetList = Lists.newArrayList();
+        List<Map<String, String>> resultData = Lists.newArrayList();
         datasetList.forEach(record -> {
             Map<String, String> map = Maps.newHashMap();
             map.put(IDENTIFIER_NAME, String.valueOf(record.getColumns().get(IDENTIFIER_NAME)));
             map.put(TEMPLATE, String.valueOf(datasetService.buildExecSQL(datasetService.getVariable(), String.valueOf(record.getColumns().get(TEMPLATE)))));
             if (record.getColumns().get(DATASET_TYPE).equals("sql")) {
-                sqlList.add(map);
+                sqlDatasetList.add(map);
             } else if (record.getColumns().get(DATASET_TYPE).equals("dsl")) {
-                dslList.add(map);
+                dslDatasetList.add(map);
             }
         });
 
         SqlQueryRequestParam sqlQueryRequest;
-        for (Map map : sqlList) {
-            sqlQueryRequest = JSON.parseObject(String.valueOf(map.get(TEMPLATE)), SqlQueryRequestParam.class);
-            sqlQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
-            sqlQueryRequest.setIsDryRun(1);
-            sqlQueryRequest.setOutputMode(OutputMode.JSON.getValue());
-            log.info("SQL Dataset Verification, identifier_name is: {}", map.get(IDENTIFIER_NAME));
-            BaseResult result = queryJobService.createSQLAdHocQuery(sqlQueryRequest);
-            if (!result.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
-                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), result.getMessage()));
+        for (Map sqlDataset : sqlDatasetList) {
+            Map<String, String> map = Maps.newHashMap();
+            try {
+                sqlQueryRequest = JSON.parseObject(String.valueOf(sqlDataset.get(TEMPLATE)), SqlQueryRequestParam.class);
+                sqlQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
+                sqlQueryRequest.setIsDryRun(1);
+                sqlQueryRequest.setOutputMode(OutputMode.JSON.getValue());
+                log.info("SQL Dataset Verification, ID is: {}", sqlDataset.get(IDENTIFIER_NAME));
+                queryJobService.createSQLAdHocQuery(sqlQueryRequest);
+            } catch (QGWBusinessException | BusinessException e) {
+                map.put(String.valueOf(sqlDataset.get(IDENTIFIER_NAME)), e.getMessage());
+                resultData.add(map);
+                log.error("SQL Dataset execute error, ID is: {}, message is: {}", sqlDataset.get(IDENTIFIER_NAME), e.getMessage());
             }
         }
 
         DSLQueryRequestParam dslQueryRequest;
-        for (Map map : dslList) {
-            dslQueryRequest = JSON.parseObject(String.valueOf(map.get(TEMPLATE)), DSLQueryRequestParam.class);
-            dslQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
-            dslQueryRequest.setIsDryRun(1);
-            dslQueryRequest.setOutputMode(OutputMode.JSON.getValue());
-            log.info("DSL Dataset Verification, identifier_name is {}", map.get(IDENTIFIER_NAME));
-            BaseResult result = queryJobService.createDSLAdHocQuery(dslQueryRequest);
-            if (!result.getStatus().equals(HttpStatusCodeEnum.SUCCESS.getCode())) {
-                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), result.getMessage()));
+        for (Map dslDataset : dslDatasetList) {
+            Map<String, String> map = Maps.newHashMap();
+            try {
+                dslQueryRequest = JSON.parseObject(String.valueOf(dslDataset.get(TEMPLATE)), DSLQueryRequestParam.class);
+                dslQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
+                dslQueryRequest.setIsDryRun(1);
+                dslQueryRequest.setOutputMode(OutputMode.JSON.getValue());
+                log.info("DSL Dataset Verification, ID is {}", dslDataset.get(IDENTIFIER_NAME));
+                queryJobService.createDSLAdHocQuery(dslQueryRequest);
+            } catch (QGWBusinessException | BusinessException e) {
+                map.put(String.valueOf(dslDataset.get(IDENTIFIER_NAME)), e.getMessage());
+                resultData.add(map);
+                log.error("DSL Dataset execute error, ID is: {}, message is: {}", dslDataset.get(IDENTIFIER_NAME), e.getMessage());
             }
         }
 
-        return BaseResultGenerator.success("The dataset verification passed", Collections.emptyList());
+        return buildResult(resultData, sqlDatasetList.size() + dslDatasetList.size());
     }
 
     @Override
@@ -545,15 +554,23 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
     }
 
-    private List<Map<String, Object>> generateDatasets(String category) {
-        List<String> categorylist = Lists.newLinkedList();
-        List<Record> list = Db.find(String.format(Objects.requireNonNull(env.getProperty("SQL_DATASETS_CATEGORY"))));
-        list.forEach(record -> categorylist.add(String.valueOf(record.getColumns().get("category"))));
-        /*if (CollectionUtil.isNotEmpty(categorylist) && StrUtil.isNotBlank(category) && !categorylist.contains(category)) {
-            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.DATASET_CATEGORY_ERROR));
-        }*/
-        return datasetService.getDatasets(Lists.newArrayList(), category, null);
+    private BaseResult<List<Map<String, String>>> buildResult(List<Map<String, String>> resultData, int totalSize) {
+        List<LinkedHashMap> variable = datasetService.getVariable();
+        String startTime = "";
+        String endTime = "";
+        for (Map map : variable) {
+            if (map.get("key").equals("start")) {
+                startTime = String.valueOf(map.get("default"));
+            }
+            if (map.get("key").equals("end")) {
+                endTime = String.valueOf(map.get("default"));
+            }
+        }
+        if (CollectionUtil.isEmpty(resultData)) {
+            return BaseResultGenerator.success(StrUtil.format("{} datasets in total, 100% pass the verification, time range is: {} - {}", totalSize, startTime, endTime), resultData);
+        } else {
+            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), StrUtil.format("{} datasets in total, {} pass the verification, time range is: {} - {}", totalSize, NumberUtil.decimalFormat("#.##%", ((totalSize - resultData.size()) * 1.00 / totalSize)), startTime, endTime), resultData);
+        }
     }
 
     private Map<String, Map<String, String>> buildResult(String executeEngine, List<String> list, boolean isSaved) {
