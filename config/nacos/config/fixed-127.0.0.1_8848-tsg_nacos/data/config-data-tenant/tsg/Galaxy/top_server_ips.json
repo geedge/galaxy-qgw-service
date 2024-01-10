@@ -23,10 +23,8 @@
       ],
       "filters": [
         "metric",
-        "device_id",
         "device_group",
-        "data_center",
-        "server_ip"
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

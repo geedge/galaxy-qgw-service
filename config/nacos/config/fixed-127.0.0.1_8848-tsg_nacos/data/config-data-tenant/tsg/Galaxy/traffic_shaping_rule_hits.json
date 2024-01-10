@@ -13,7 +13,9 @@
       ],
       "dimensions": [
         "rule_id",
-        "profile_id"
+        "profile_id",
+        "device_group",
+        "data_center"
       ],
       "metrics": [
         "in_bytes",
@@ -24,12 +26,11 @@
         "out_drop_pkts"
       ],
       "filters": [
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
         "profile_id",
-        "priority"
+        "priority",
+        "device_group",
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

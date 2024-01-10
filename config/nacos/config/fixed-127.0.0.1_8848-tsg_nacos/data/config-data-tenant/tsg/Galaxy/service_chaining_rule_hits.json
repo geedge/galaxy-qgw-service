@@ -14,7 +14,9 @@
       "dimensions": [
         "rule_id",
         "sff_profile_id",
-        "sf_profile_id"
+        "sf_profile_id",
+        "device_group",
+        "data_center"
       ],
       "metrics": [
         "sent_bytes",
@@ -23,12 +25,11 @@
         "recv_pkts"
       ],
       "filters": [
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
         "sff_profile_id",
-        "sf_profile_id"
+        "sf_profile_id",
+        "device_group",
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -134,7 +135,7 @@
     },
     {
       "name": "sff_profile_id",
-      "label": "Service Function Forwarder Profile ID",
+      "label": "SFF Profile ID",
       "doc": {
         "visibility": "enabled"
       },
@@ -142,7 +143,7 @@
     },
     {
       "name": "sf_profile_id",
-      "label": "Service Function Profile ID",
+      "label": "SF Profile ID",
       "doc": {
         "visibility": "enabled"
       },

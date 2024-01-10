@@ -23,7 +23,6 @@
       ],
       "filters": [
         "metric",
-        "device_id",
         "device_group",
         "data_center"
       ],

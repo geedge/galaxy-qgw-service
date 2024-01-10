@@ -14,7 +14,9 @@
       "dimensions": [
         "rule_id",
         "action",
-        "sub_action"
+        "sub_action",
+        "device_group",
+        "data_center"
       ],
       "metrics": [
         "hit_count",
@@ -24,13 +26,12 @@
         "out_pkts"
       ],
       "filters": [
-        "device_id",
-        "device_group",
-        "data_center",
         "rule_id",
-        "pinning_status",
         "action",
-        "sub_action"
+        "sub_action",
+        "pinning_status",
+        "device_group",
+        "data_center"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

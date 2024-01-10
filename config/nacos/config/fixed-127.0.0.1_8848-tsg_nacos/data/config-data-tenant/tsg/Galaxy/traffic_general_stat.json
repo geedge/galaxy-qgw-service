@@ -12,7 +12,6 @@
         "__time"
       ],
       "dimensions": [
-        "device_id",
         "device_group",
         "data_center"
       ],
@@ -27,7 +26,6 @@
         "asymmetric_s2c_flows"
       ],
       "filters": [
-        "device_id",
         "device_group",
         "data_center"
       ],
@@ -132,7 +130,7 @@
     },
     {
       "name": "sessions",
-      "label": "Sessions",
+      "label": "New Sessions",
       "doc": {
         "constraints": {
           "metric_type": "counter",
