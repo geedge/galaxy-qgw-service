@@ -184,7 +184,10 @@
         "rdp_certificate_count",
         "rdp_certificate_permanent",
         "rdp_encryption_level",
-        "rdp_encryption_method"
+        "rdp_encryption_method",
+        "internal_ip_list",
+        "external_ip_list",
+        "monitor_rule_id"
       ],
       "metrics": [
         "client_ip",
@@ -468,7 +471,10 @@
         "rdp_certificate_count",
         "rdp_certificate_permanent",
         "rdp_encryption_level",
-        "rdp_encryption_method"
+        "rdp_encryption_method",
+        "internal_ip_list",
+        "external_ip_list",
+        "monitor_rule_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -911,7 +917,47 @@
           }
         ]
       }
-    }
+    },
+    "expression_fields": [
+      {
+        "name": "internal_ip_list",
+        "label": "Internal IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)=8, client_ip,''), if(bitAnd(flags, 16)=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "external_ip_list",
+        "label": "External IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)!=8, client_ip,''), if(bitAnd(flags, 16)!=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "monitor_rule_id",
+        "label": "Monitor Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(monitor_rule_list)"
+        }
+      }
+    ]
   },
   "fields": [
     {

@@ -114,7 +114,10 @@
         "doh_qclass",
         "doh_cname",
         "doh_sub",
-        "doh_rr"
+        "doh_rr",
+        "internal_ip_list",
+        "external_ip_list",
+        "proxy_rule_id"
       ],
       "metrics": [
         "client_ip",
@@ -262,7 +265,10 @@
         "doh_qclass",
         "doh_cname",
         "doh_sub",
-        "doh_rr"
+        "doh_rr",
+        "internal_ip_list",
+        "external_ip_list",
+        "proxy_rule_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -603,7 +609,47 @@
           }
         ]
       }
-    }
+    },
+    "expression_fields": [
+      {
+        "name": "internal_ip_list",
+        "label": "Internal IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)=8, client_ip,''), if(bitAnd(flags, 16)=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "external_ip_list",
+        "label": "External IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)!=8, client_ip,''), if(bitAnd(flags, 16)!=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "proxy_rule_id",
+        "label": "Proxy Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(proxy_rule_list)"
+        }
+      }
+    ]
   },
   "fields": [
     {

@@ -193,7 +193,15 @@
         "rdp_certificate_count",
         "rdp_certificate_permanent",
         "rdp_encryption_level",
-        "rdp_encryption_method"
+        "rdp_encryption_method",
+        "internal_ip_list",
+        "external_ip_list",
+        "security_rule_id",
+        "monitor_rule_id",
+        "proxy_rule_id",
+        "statistics_rule_id",
+        "shaping_rule_id",
+        "sc_rule_id"
       ],
       "metrics": [
         "client_ip",
@@ -486,7 +494,15 @@
         "rdp_certificate_count",
         "rdp_certificate_permanent",
         "rdp_encryption_level",
-        "rdp_encryption_method"
+        "rdp_encryption_method",
+        "internal_ip_list",
+        "external_ip_list",
+        "security_rule_id",
+        "monitor_rule_id",
+        "proxy_rule_id",
+        "statistics_rule_id",
+        "shaping_rule_id",
+        "sc_rule_id"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"
@@ -934,7 +950,87 @@
           }
         ]
       }
-    }
+    },
+    "expression_fields": [
+      {
+        "name": "internal_ip_list",
+        "label": "Internal IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)=8, client_ip,''), if(bitAnd(flags, 16)=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "external_ip_list",
+        "label": "External IP List",
+        "type": {
+          "type": "array",
+          "items": "string",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)!=8, client_ip,''), if(bitAnd(flags, 16)!=16, server_ip,''))"
+        }
+      },
+      {
+        "name": "security_rule_id",
+        "label": "Security Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(security_rule_list)"
+        }
+      },
+      {
+        "name": "proxy_rule_id",
+        "label": "Proxy Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(proxy_rule_list)"
+        }
+      },
+      {
+        "name": "monitor_rule_id",
+        "label": "Monitor Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(monitor_rule_list)"
+        }
+      },
+      {
+        "name": "shaping_rule_id",
+        "label": "Shaping Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(shaping_rule_list)"
+        }
+      },
+      {
+        "name": "sc_rule_id",
+        "label": "SC Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(sc_rule_list)"
+        }
+      },
+      {
+        "name": "statistics_rule_id",
+        "label": "Statistics Rule ID",
+        "type": "long",
+        "doc": {
+          "expression": "arrayJoin(statistics_rule_list)"
+        }
+      }
+    ]
   },
   "fields": [
     {
