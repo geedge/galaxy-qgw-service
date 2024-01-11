@@ -8,6 +8,7 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.service.HosService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,7 @@ public class HosController {
     private HosService hosService;
 
     @GetMapping(value = "/{bucket_name}", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("HosController.getFileList")
     public BaseResult getFileList(@PathVariable("bucket_name") String bucketName, @RequestParam(required = false) String prefix, HttpServletRequest request) {
         if (StrUtil.isNotBlank(bucketName)) {
             Map<String, String> udfMetaParam = new HashMap<>();

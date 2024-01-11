@@ -8,6 +8,7 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.service.UtilService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,13 @@ public class UtilController {
     private UtilService utilService;
 
     @GetMapping(value = "/sql_parser", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("UtilController.getSQLSyntaxTree")
     public BaseResult getSQLSyntaxTree(String sql){
         return utilService.getSQLSyntaxTree(sql);
     }
 
     @PostMapping(value = "/password_generator", consumes = "application/json")
+    @AuditLog("UtilController.getCiphertext")
     public BaseResult getCiphertext(@RequestBody EncryptionInfo param) {
         log.info("Plaintext encrypted,The plaintext argument is : {}", param);
         if (StringUtil.isEmpty(param.getPassword()) || StringUtil.isEmpty(param.getSalt())) {

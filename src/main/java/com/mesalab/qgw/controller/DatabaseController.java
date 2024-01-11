@@ -12,6 +12,7 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
 import com.mesalab.qgw.service.DatabaseService;
 import com.geedgenetworks.utils.StringUtil;
@@ -36,6 +37,7 @@ public class DatabaseController {
 
 
     @RequestMapping(value = "/table/{table_name}/schema", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("DatabaseController.getSchemaByTable")
     public BaseResult getSchemaByTable(@PathVariable("table_name") String tableName) {
         log.debug("SCHEMA信息获取,参数为{} {}", tableName);
 
@@ -46,6 +48,7 @@ public class DatabaseController {
     }
 
     @PutMapping(value = "/table/{table_name}/schema", consumes = "application/json")
+    @AuditLog("DatabaseController.updateSchema")
     public BaseResult updateSchema(@PathVariable("table_name") String tableName, @RequestBody Map<String, Object> obj) {
         log.info("update Schema api, params is: {}-{}", tableName, obj);
         if (StringUtil.isBlank(tableName) || StringUtil.isEmpty(obj)) {
@@ -57,6 +60,7 @@ public class DatabaseController {
     }
 
     @RequestMapping(value = "/{dbName}/table", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("DatabaseController.getTableByDB")
     public BaseResult getTableByDB(@PathVariable String dbName) {
         log.debug("SCHEMA信息获取,参数为{} {}", dbName);
 
@@ -68,11 +72,13 @@ public class DatabaseController {
     }
 
     @GetMapping(value = "/storage/quota", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("DatabaseController.storageQuota")
     public BaseResult storageQuota() {
         return databaseService.getStorageQuota();
     }
 
     @PutMapping(value = "/storage/quota", consumes = "application/json")
+    @AuditLog("DatabaseController.storageSetting")
     public BaseResult storageSetting(@RequestBody List<StorageDeletionInfo> list) {
         log.warn("数据配额设置, 参数: params is {}", list);
         if (StringUtil.isEmpty(list)) {
@@ -97,6 +103,7 @@ public class DatabaseController {
     }
 
     @RequestMapping(value = "/storage/quota", method = RequestMethod.DELETE, consumes = "application/x-www-form-urlencoded")
+    @AuditLog("DatabaseController.storageDeletion")
     public BaseResult storageDeletion(@RequestParam String type) {
         List<StorageDeletionInfo> deletionInfoList = Lists.newArrayList();
         StorageDeletionInfo deletionInfo = new StorageDeletionInfo();
@@ -107,6 +114,7 @@ public class DatabaseController {
     }
 
     @RequestMapping(value = "/storage/quota/daily_usage", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("DatabaseController.dailyTrendOfStorage")
     public BaseResult dailyTrendOfStorage(@RequestParam Map<String, Object> param) {
         String searchStartTime = StringUtil.stripToEmpty((String) param.get("start_time"));
         String searchEndTime = StringUtil.stripToEmpty((String) param.get("end_time"));

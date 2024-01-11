@@ -12,7 +12,7 @@
         <!--日志文件名称-->
         <property name="LOG_FILE_NAME">galaxy-qgw-service</property>
         <!--日志打印格式-->
-        <property name="LOG_PATTERN">[%d{yyyy-MM-dd HH:mm:ssZ}] [%p] [Thread:%t] %l %x - %m%n</property>
+        <property name="LOG_PATTERN">[%d{yyyy-MM-dd HH:mm:ssZ}] [%p] [Thread:%t] [%X{traceId}] %l %x - %m%n</property>
     </Properties>
 
     <appenders>

@@ -27,6 +27,9 @@ management:
         health: /component_status
 #MySql configuration
 spring:
+  sleuth:
+    enabled: true
+    traceId128: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://192.168.44.12:3306/tsg_olap?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
@@ -114,7 +117,7 @@ service:
       defaultSize: 100000
 ## ArangoDB configuration
 arango:
-  server: http://192.168.44.83:8529
+  server: http://192.168.44.12:8529
   database: tsg_galaxy_v3
   username: ENC(UyZxsi4PT6kQXJAep5qvQQ==)
   pin: ENC(qUA355VopKSx6kwwwXZwqWWEYSu76Slz)

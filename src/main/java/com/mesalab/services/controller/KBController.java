@@ -11,6 +11,7 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.services.common.entity.KnowledgeBaseRequest;
 import com.mesalab.services.service.KBService;
 import com.geedgenetworks.utils.StringUtil;
@@ -33,6 +34,7 @@ public class KBController {
     KBService kbService;
 
     @PostMapping(produces = "application/json", consumes = "multipart/form-data")
+    @AuditLog("KBController.publishKnowledgeBase")
     public BaseResult publishKnowledgeBase(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         try {
             KnowledgeBaseRequest KBRequest = getKnowledgeBaseRequest(request);
@@ -46,6 +48,7 @@ public class KBController {
     }
 
     @PutMapping(value = {"/{kb_Id}"},consumes = "multipart/form-data")
+    @AuditLog("KBController.updateKnowledgeBase")
     public BaseResult updateKnowledgeBase(@PathVariable(value = "kb_Id",required = false) String kbId,@RequestPart(value = "file") MultipartFile file,HttpServletRequest request) {
         try {
             KnowledgeBaseRequest KBRequest = getKnowledgeBaseRequest(request);
@@ -67,6 +70,7 @@ public class KBController {
     }
 
     @DeleteMapping(value = "/{kb_id}",consumes = "application/x-www-form-urlencoded")
+    @AuditLog("KBController.deleteKnowledgeBase")
     public BaseResult deleteKnowledgeBase(@PathVariable(value = "kb_id") String kbId, @RequestParam(required = false) String version) {
         try {
             KnowledgeBaseRequest request = new KnowledgeBaseRequest();
@@ -87,6 +91,7 @@ public class KBController {
     }
 
     @PutMapping(value = "/{kb_id}/status",consumes = "application/x-www-form-urlencoded")
+    @AuditLog("KBController.updateStatusKnowledgeBase")
     public BaseResult updateStatusKnowledgeBase(@PathVariable(value = "kb_id") String kbId, HttpServletRequest request) {
         try {
             KnowledgeBaseRequest KBRequest = getKnowledgeBaseRequest(request);
@@ -108,6 +113,7 @@ public class KBController {
     }
 
     @GetMapping(produces = "application/json")
+    @AuditLog("KBController.getList")
     public BaseResult getList(@RequestParam(required = false, value = "kb_id") String kbId) {
         try {
             log.info("Knowledge Base File get list interface,param is: kb_id= {}", kbId);

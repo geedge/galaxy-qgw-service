@@ -1,17 +1,16 @@
 package com.mesalab.qgw.aspect;
 
 import cn.hutool.core.thread.ThreadUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.utils.HttpHelper;
+import com.mesalab.common.utils.MDCUtil;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.model.basic.AuditServiceLog;
 import com.geedgenetworks.utils.IPUtil;
-import com.geedgenetworks.utils.StringUtil;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -22,7 +21,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Optional;
 
 
 @Aspect
@@ -35,7 +33,8 @@ public class AuditLogAspect {
 
 
     @Pointcut("@annotation(com.mesalab.qgw.model.basic.AuditLog)")
-    public void annotationPointCut(){}
+    public void annotationPointCut() {
+    }
 
     @Before("annotationPointCut()")
     public void doBefore(JoinPoint joinPoint) {
@@ -47,30 +46,28 @@ public class AuditLogAspect {
         String remoteAddr = request.getRemoteAddr();
         String clientIp = IPUtil.getIpAddr(request);
         String classMethod = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
-        Object paramObject = joinPoint.getArgs()[0];
 
-        MethodSignature sign =  (MethodSignature)joinPoint.getSignature();
+        MethodSignature sign = (MethodSignature) joinPoint.getSignature();
         Method method2 = sign.getMethod();
         AuditLog annotation = method2.getAnnotation(AuditLog.class);
-        AuditServiceLog auditServiceLog =  new AuditServiceLog();
+        AuditServiceLog auditServiceLog = new AuditServiceLog();
         auditServiceLog.setAnnotation(annotation.value());
         auditServiceLog.setRemoteAddr(remoteAddr);
         auditServiceLog.setClientIp(clientIp);
         auditServiceLog.setMethod(method);
-        if (log.isDebugEnabled()) {
-            auditServiceLog.setParam(Optional.ofNullable(paramObject).orElse("").toString());
+        if (log.isInfoEnabled()) {
+            auditServiceLog.setParam(Arrays.toString(joinPoint.getArgs()));
             auditServiceLog.setUrl(url);
             auditServiceLog.setClassMethod(classMethod);
         }
         auditServiceLog.setCacheKey(HttpHelper.generateCacheKey(request));
-        auditServiceLog.setRequestId(DigestUtil.md5Hex(StringUtil.createUUID()));
+        auditServiceLog.setRequestId(MDCUtil.getTraceId());
         auditLog.set(auditServiceLog);
     }
 
     @AfterThrowing(value = "annotationPointCut()", throwing = "exception")
-    public void doAfterThrowingAdvice(JoinPoint joinPoint, Throwable exception){
-        AuditServiceLog logAfter =  auditLog.get();
-        logAfter.setRequestId(null);
+    public void doAfterThrowingAdvice(JoinPoint joinPoint, Throwable exception) {
+        AuditServiceLog logAfter = auditLog.get();
         logAfter.setParam(Arrays.toString(joinPoint.getArgs()));
         log.error("Audit Log [error]:{}", JSON.toJSONString(logAfter));
     }
@@ -78,16 +75,20 @@ public class AuditLogAspect {
 
     @After(value = "annotationPointCut()")
     public void after(JoinPoint joinPoint) {
-       if (joinPoint.getArgs()[0] instanceof SQLQueryContext) {
-           SQLQueryContext queryContext = (SQLQueryContext) joinPoint.getArgs()[0];
-           auditLog.get().setDbEngine(queryContext.getDbEngine());
-       }
+        Object[] args = joinPoint.getArgs();
+        if (args.length == 0) {
+            return;
+        }
+        if (args[0] instanceof SQLQueryContext) {
+            SQLQueryContext queryContext = (SQLQueryContext) joinPoint.getArgs()[0];
+            auditLog.get().setDbEngine(queryContext.getDbEngine());
+        }
     }
 
     @AfterReturning(returning = "result", pointcut = "annotationPointCut()")
     public void doAfterReturning(Object result) {
-        AuditServiceLog logAfter =  auditLog.get();
-        if(result instanceof BaseResult){
+        AuditServiceLog logAfter = auditLog.get();
+        if (result instanceof BaseResult) {
             BaseResult baseResult = (BaseResult) result;
             baseResult.setRequestId(logAfter.getRequestId());
         }
@@ -95,7 +96,6 @@ public class AuditLogAspect {
         logAfter.setExeTime(exeTime);
         log.info("Audit Log [success]: {}", JSON.toJSONString(logAfter));
     }
-
 
 
 }

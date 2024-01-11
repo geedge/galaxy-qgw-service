@@ -11,7 +11,6 @@ import java.io.IOException;
 @WebFilter(urlPatterns = "/*")
 public class ControllerFilter implements Filter {
     private static final String NOT_FILTER_PATHS = "/v1/knowledge_base";
-    private static final String NOT_FILTER_PATHS_DEPRECATED = "/knowledge_base/v1";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -22,7 +21,7 @@ public class ControllerFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
         String servletPath = httpServletRequest.getServletPath();
-        if (String.valueOf(servletPath).contains(NOT_FILTER_PATHS) || String.valueOf(servletPath).contains(NOT_FILTER_PATHS_DEPRECATED)) {
+        if (String.valueOf(servletPath).contains(NOT_FILTER_PATHS)) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             filterChain.doFilter(new RequestParamWrapper(httpServletRequest), servletResponse);

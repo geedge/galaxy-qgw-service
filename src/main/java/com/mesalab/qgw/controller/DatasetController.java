@@ -10,6 +10,7 @@ import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.service.DatasetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ public class DatasetController {
     private DatasetService datasetService;
 
     @GetMapping(value = "/{identifier_name}")
+    @AuditLog("DatasetController.getDataset")
     public BaseResult getDataset(@PathVariable("identifier_name") String identifierName) {
         log.info("Get Dataset, ID is: {}", identifierName);
         Map<String, Object> dataset = datasetService.getDataset(identifierName);
@@ -33,6 +35,7 @@ public class DatasetController {
     }
 
     @GetMapping
+    @AuditLog("DatasetController.getDatasets")
     public BaseResult getDatasets(@RequestParam(value = "identifier_names", required = false) String datasetIds, @RequestParam(required = false) String category, @RequestParam(value = "backend_engine", required = false) String backendEngine) {
         if (StrUtil.isNotBlank(backendEngine)) {
             if (Arrays.stream(DBEngineType.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(backendEngine))) {
@@ -45,11 +48,13 @@ public class DatasetController {
     }
 
     @GetMapping(value = "/{identifier_name}/result_preview")
+    @AuditLog("DatasetController.getPreview")
     public BaseResult getPreview(@PathVariable("identifier_name") String identifierName) {
         return datasetService.getPreview(identifierName);
     }
 
     @GetMapping(value = "/dataset/global_variable")
+    @AuditLog("DatasetController.getVariable")
     public BaseResult getVariable() {
         return BaseResultGenerator.success(datasetService.getVariable());
     }

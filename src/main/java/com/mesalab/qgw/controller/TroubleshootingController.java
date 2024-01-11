@@ -11,6 +11,7 @@ import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.service.TroubleshootingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +32,13 @@ public class TroubleshootingController {
     private static final String TEST_PARAM = "olap_sql_dataset";
 
     @RequestMapping("/component/status")
-    public JSONObject ComponentStatus() {
+    @AuditLog("TroubleshootingController.componentStatus")
+    public JSONObject componentStatus() {
         return troubleshootingService.getComponentStatus();
     }
 
     @RequestMapping(value = "sanity", method = RequestMethod.GET)
+    @AuditLog("TroubleshootingController.sanity")
     public BaseResult sanity(String test) {
         if (Arrays.stream(ConsistencyOption.values()).noneMatch(o -> o.getValue().equalsIgnoreCase(test))) {
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
@@ -54,6 +57,7 @@ public class TroubleshootingController {
     }
 
     @RequestMapping(value = "/benchmark", method = RequestMethod.GET)
+    @AuditLog("TroubleshootingController.benchmark")
     public BaseResult benchmark(@RequestParam String test, @RequestParam(value = "is_saved", required = false, defaultValue = "0") @JsonProperty("isSaved") Integer isSaved) throws BusinessException {
         if (!TEST_PARAM.equals(test) || StrUtil.isBlankIfStr(test)) {
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
