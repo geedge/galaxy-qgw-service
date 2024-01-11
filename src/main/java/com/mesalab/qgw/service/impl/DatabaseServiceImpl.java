@@ -89,8 +89,6 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     HttpConfig httpConfig;
     @Autowired
     Environment environment;
-    @NacosValue(value = "${switch.version.schema}", autoRefreshed = true)
-    private String schemaVersion;
 
     private Map<String, Schema> schemaCache = Maps.newHashMap();
     private Map<String, Object> originalCache = Maps.newHashMap();
@@ -526,8 +524,8 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
                 Map mapValue = (Map) keyObj;
                 if (mapValue.containsKey(KEY_REF)) {
                     if (INDEX_KEY.equals(String.valueOf(mapKey))) {
-                        String s = String.valueOf(mapValue.get(KEY_REF));
-                        mapValue.put(KEY_REF, s.contains("public_schema_info_2311.json") ? s.concat("/" + schemaVersion) : s);
+                        String refValue = String.valueOf(mapValue.get(KEY_REF));
+                        mapValue.put(KEY_REF, refValue);
                     }
                     Object refValue = getRefValue(cfgName, mapValue);
                     map.put(mapKey, regexValue(refValue, mapValue));

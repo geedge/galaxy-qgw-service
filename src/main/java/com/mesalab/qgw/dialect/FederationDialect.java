@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteConnectionProcessor;
 import com.mesalab.common.enums.DBEngineType;
-import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.common.utils.sqlparser.SampleSQLHelper;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
@@ -78,7 +78,7 @@ public class FederationDialect extends AbstractEngineDialect{
             return sql;
         }
         try {
-            sql = String.valueOf(convertSampleSql(sql));
+            sql = new SampleSQLHelper(sql, null, true).build();
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sql, sql = sqlQueryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
@@ -227,48 +227,6 @@ public class FederationDialect extends AbstractEngineDialect{
         baseResult.setMeta(Joiner.on(",").useForNull("").join(metas));
     }
 
-    /**
-     * Desc: where、having至无效：添加 OR 1=1
-     *
-     * @param sql
-     * @return {@link SelectBody}
-     * @created by wWei
-     * @date 2022/4/27 5:18 下午
-     */
-    private SelectBody convertSampleSql(String sql) throws JSQLParserException {
-        Statement parse = CCJSqlParserUtil.parse(sql);
-        if (parse instanceof Select) {
-            Select select = (Select) parse;
-            SelectBody selectBody = select.getSelectBody();
-            if (selectBody instanceof PlainSelect) {
-                PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-                FromItem fromItem = plainSelect.getFromItem();
-                if (fromItem instanceof SubSelect) {
-                    SubSelect subSelect = (SubSelect) plainSelect.getFromItem();
-                    subSelect.setSelectBody(convertSampleSql(subSelect.getSelectBody().toString()));
-                }
-                if (StringUtil.isNotEmpty(plainSelect.getWhere())) {
-                    plainSelect.setWhere(generateDatasetWhereSql(plainSelect.getWhere().toString()));
-                }
-                if (StringUtil.isNotEmpty(plainSelect.getHaving())) {
-                    plainSelect.setHaving(generateDatasetWhereSql(plainSelect.getHaving().toString()));
-                }
-                return plainSelect;
-            } else if (selectBody instanceof SetOperationList) {
-                SetOperationList setOperationList = (SetOperationList) selectBody;
-                List<SelectBody> selects = setOperationList.getSelects();
-                for (int i = 0; i < selects.size(); i++) {
-                    selects.set(i, convertSampleSql(selects.get(i).toString()));
-                }
-                return setOperationList;
-            } else {
-                throw new QGWBusinessException(CommonErrorCode.PARAMETER_ERROR.getCode(),
-                        String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
-            }
-        }
-        throw new QGWBusinessException(CommonErrorCode.PARAMETER_ERROR.getCode(),
-                String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_PARSE_ONLY_SUPPORT_SELECT));
-    }
 
     private Expression generateDatasetWhereSql(String where) throws JSQLParserException {
         String sql = String.format("SELECT * FROM tableName WHERE  %s %s ", where, "OR 1=1");

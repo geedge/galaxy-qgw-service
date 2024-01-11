@@ -71,10 +71,6 @@ project:
     name: darnell
     url:
     email:
-switch:
-  version:
-    ## 目前ck支持的版本：vsys_id、log_id，默认为vsys_id
-    schema: vsys_id
 ## ClickhHouse configuration
 clickhouse:
   url: http://192.168.44.12:8123

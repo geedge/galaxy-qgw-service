@@ -26,6 +26,7 @@ public class SampleSQLHelper {
     private final String templateSQL;
     private final String originalSQL;
     private final boolean isInvalidCondExpr;
+    public static final int MAX_COUNT = 1000;
 
     /**
      * Desc: TODO
@@ -63,6 +64,9 @@ public class SampleSQLHelper {
 
         @Override
         public void visit(Table table) {
+            if (StrUtil.isEmptyIfStr(templateSQL)) {
+                return;
+            }
             if (table.getAlias() == null) {
                 table.setAlias(new Alias(table.getName(), true));
             }
@@ -126,6 +130,26 @@ public class SampleSQLHelper {
                 }
                 having.accept(new ExpressionAdapter());
             }
+
+            Limit limit = plainSelect.getLimit();
+            if (limit == null) {
+                Limit limitObj = new Limit();
+                limitObj.setRowCount(new LongValue(MAX_COUNT));
+                plainSelect.setLimit(limitObj);
+            } else {
+                Expression rowCountExpr = limit.getRowCount();
+                if (rowCountExpr instanceof LongValue) {
+                    LongValue rowCountObj = (LongValue) rowCountExpr;
+                    long value = rowCountObj.getValue();
+                    if (value > MAX_COUNT) {
+                        Limit limit1 = new Limit();
+                        limit1.setRowCount(new LongValue(MAX_COUNT));
+                        plainSelect.setLimit(limit1);
+                    }
+                }
+                limit.setOffset(null);
+            }
+
         }
 
         @Override

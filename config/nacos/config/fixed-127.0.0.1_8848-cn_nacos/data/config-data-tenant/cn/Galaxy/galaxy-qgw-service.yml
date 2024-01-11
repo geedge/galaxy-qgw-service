@@ -27,6 +27,9 @@ management:
         health: /component_status
 #MySql configuration
 spring:
+  sleuth:
+    enabled: true
+    traceId128: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://192.168.44.55:3306/cn_olap?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=UTC&failOverReadOnly=false&connectTimeout=10000&socketTimeout=30000
@@ -68,10 +71,6 @@ project:
     name: darnell
     url:
     email:
-switch:
-  version:
-    ## 目前ck支持的版本：vsys_id、log_id，默认为vsys_id
-    schema: vsys_id
 ## ClickhHouse configuration
 clickhouse:
   url: http://192.168.44.55:8123

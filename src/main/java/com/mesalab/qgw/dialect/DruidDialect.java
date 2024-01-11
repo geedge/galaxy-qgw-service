@@ -224,7 +224,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
         String filterExpr = String.format("%s >= CURRENT_TIMESTAMP - INTERVAL %s AND %s < CURRENT_TIMESTAMP",
-                sqlQueryContext.getDbQuerySource().getPartitionKey(), "'1' MINUTE", sqlQueryContext.getDbQuerySource().getPartitionKey());
+                sqlQueryContext.getDbQuerySource().getPartitionKey(), "'5' MINUTE", sqlQueryContext.getDbQuerySource().getPartitionKey());
         return new DruidSampleSQLHelper(sql, filterExpr, true).build();
     }
 

@@ -115,6 +115,25 @@ public class DruidSampleSQLHelper {
                 }
                 having.accept(new ExpressionAdapter());
             }
+
+            Limit limit = plainSelect.getLimit();
+            if (limit == null) {
+                Limit limitObj = new Limit();
+                limitObj.setRowCount(new LongValue(SampleSQLHelper.MAX_COUNT));
+                plainSelect.setLimit(limitObj);
+            } else {
+                Expression rowCountExpr = limit.getRowCount();
+                if (rowCountExpr instanceof LongValue) {
+                    LongValue rowCountObj = (LongValue) rowCountExpr;
+                    long value = rowCountObj.getValue();
+                    if (value > SampleSQLHelper.MAX_COUNT) {
+                        Limit limit1 = new Limit();
+                        limit1.setRowCount(new LongValue(SampleSQLHelper.MAX_COUNT));
+                        plainSelect.setLimit(limit1);
+                    }
+                }
+                limit.setOffset(null);
+            }
         }
 
         @Override
