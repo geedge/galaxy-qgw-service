@@ -112,9 +112,11 @@ public class QGWMessageConst {
 
     public static final String QUERY_CUSTOM_FIELD_DISCOVERY_ERROR = "The param custom.field_discovery.* illegal.";
 
-    public static final String DATASET_BACKEND_ENGINE_ERROR = "The backend_engine is not supported, backend_engine value must be :[ qgw| clickhouse| druid| hbase]";
+    public static final String DATASET_BACKEND_ENGINE_ERROR = "The dataset backend_engine is not supported, backend_engine value must be :[ qgw| clickhouse| druid| hbase]";
 
     public static final String BUCKET_NAME_ERROR = "The bucket_name cannot be empty.";
+
+    public static final String DATASET_ID_NOT_EXIST = "The dataset identifier_name is not exist.";
 
     public static final String KB_FILE_ID_CANNOT_BE_EMPTY = "The knowledge base file id cannot be empty.";
 

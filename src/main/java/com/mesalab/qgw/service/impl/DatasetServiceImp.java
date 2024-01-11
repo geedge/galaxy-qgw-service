@@ -13,6 +13,7 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.nacos.NacosConst;
+import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
@@ -67,7 +68,8 @@ public class DatasetServiceImp
     public Map<String, Object> getDataset(String datasetId) {
         List<Record> list = Db.find(buildGetDatasetSQL(Lists.newArrayList(datasetId), null, null));
         if (CollectionUtils.isEmpty(list)) {
-            return Maps.newHashMap();
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(),QGWMessageConst.DATASET_ID_NOT_EXIST));
         }
         List<Map<String, Object>> results = formatResultData(list);
         Map<String, Object> result = results.get(0);
@@ -99,11 +101,7 @@ public class DatasetServiceImp
     @Override
     public BaseResult getPreview(String datasetId) {
         Map<String, Object> dataset = getDataset(datasetId);
-        if (dataset.isEmpty() || StrUtil.isBlankIfStr(dataset.get(TEMPLATE))) {
-            return BaseResultGenerator.success();
-        }
         String template = buildExecSQL(getVariable(), String.valueOf(dataset.get(TEMPLATE)));
-        String backendEngine = String.valueOf(dataset.get(BACKEND_ENGINE));
         String datasetType = String.valueOf(dataset.get(DATASET_TYPE));
         if (datasetType.equalsIgnoreCase("sql")) {
             SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(template, SqlQueryRequestParam.class);

@@ -7,6 +7,7 @@ import com.mesalab.common.entity.BaseResult;
 
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.DBEngineType;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
@@ -53,7 +54,7 @@ public class DatasetController {
         return datasetService.getPreview(identifierName);
     }
 
-    @GetMapping(value = "/dataset/global_variable")
+    @GetMapping(value = "/global_variable")
     @AuditLog("DatasetController.getVariable")
     public BaseResult getVariable() {
         return BaseResultGenerator.success(datasetService.getVariable());
