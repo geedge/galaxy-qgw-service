@@ -22,7 +22,7 @@
         "out_bytes",
         "in_pkts",
         "out_pkts",
-        "in_drop_pkt",
+        "in_drop_pkts",
         "out_drop_pkts"
       ],
       "filters": [
@@ -45,7 +45,7 @@
           "out_bytes": "bytes",
           "in_pkts": "packets",
           "out_pkts": "packets",
-          "in_drop_pkt": "packets",
+          "in_drop_pkts": "packets",
           "out_drop_pkts": "packets"
         },
         "RATE": {
@@ -53,7 +53,7 @@
           "out_bytes": "Bps",
           "in_pkts": "pps",
           "out_pkts": "pps",
-          "in_drop_pkt": "pps",
+          "in_drop_pkts": "pps",
           "out_drop_pkts": "pps"
         },
         "BITRATE": {
