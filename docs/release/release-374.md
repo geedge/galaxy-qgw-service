@@ -27,7 +27,9 @@ Release 374 (TSG-23.12)
 * 修改Schema，完善Log/Metric Schema 函数、Unit约束(TSG-18048)
 * 修改Schema，Proxy Event decoded_as 增加DoH协议字典
 * 修改Schema，更新流量Top类统计schema metric字典
-* 修改Schema,修改 metrics schema dimensions、metrics、filters自定义报告约束
+* 修改Schema，修改 metrics schema dimensions、metrics、filters自定义报告约束
+* 修改Schema，Monitor Events中未展示Monitor Mirrored相关字段(TSG-18602)
+* 修改Schema，Manipulation日志中应隐藏FQDN Category List、HTTP.Proxy Flags等字段(TSG-18577)
 * 扩展Schema，histogram支持MEDIAN_HDR函数
 * 扩展Schema，schema doc 增加time分类(TSG-17875)
 * 扩展Schema，新增公共字段ip_protocol，支持report统计(TSG-18203)
