@@ -1,11 +1,12 @@
 package com.mesalab.common.utils.sqlparser;
 
-import cn.hutool.core.util.StrUtil;
+import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.Parenthesis;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -17,32 +18,29 @@ import java.util.List;
 /**
  * TODO
  *
- * @Classname ClickhouseSampleSQLHelper
+ * @Classname SampleSQLHelperOfWhereExpr
  * @Date 2023/3/22 10:42
  * @Author wWei
  */
 public class SampleSQLHelper {
 
-    private final String templateSQL;
     private final String originalSQL;
+    private final String filterExpr;
     private final boolean isInvalidCondExpr;
-    public static final int MAX_COUNT = 1000;
 
     /**
      * Desc: TODO
      *
      * @param originalSQL       原始SQL
-     * @param dataSetTemplate   数据集SQL模版。表名通过解析 originalSQL 获取，不需指定，如：
-     *                          1. SELECT * FROM {} LIMIT 0
-     *                          2. SELECT * FROM {} WHERE rand() % 100 = 0 LIMIT 1000
-     * @param isInvalidCondExpr 是否失效过滤条件
+     * @param filterExpr        新增的 WHERE 过滤条件
+     * @param isInvalidCondExpr 是否失效 HAVING 过滤条件
      * @return {@link null}
      * @created by wWei
-     * @date 2023/3/23 15:17
+     * @date 2023/4/10 11:03
      */
-    public SampleSQLHelper(String originalSQL, String dataSetTemplate, boolean isInvalidCondExpr) {
-        this.templateSQL = dataSetTemplate;
+    public SampleSQLHelper(String originalSQL, String filterExpr, boolean isInvalidCondExpr) {
         this.originalSQL = originalSQL;
+        this.filterExpr = filterExpr;
         this.isInvalidCondExpr = isInvalidCondExpr;
     }
 
@@ -61,18 +59,6 @@ public class SampleSQLHelper {
     }
 
     private class FromItemAdapter extends FromItemVisitorAdapter {
-
-        @Override
-        public void visit(Table table) {
-            if (StrUtil.isEmptyIfStr(templateSQL)) {
-                return;
-            }
-            if (table.getAlias() == null) {
-                table.setAlias(new Alias(table.getName(), true));
-            }
-            table.setName(StrUtil.format("(" + templateSQL + ")", table.getFullyQualifiedName()));
-            table.setSchemaName(null);
-        }
 
         @Override
         public void visit(SubSelect subSelect) {
@@ -97,7 +83,9 @@ public class SampleSQLHelper {
         }
     }
 
+
     private class SelectAdapter extends SelectVisitorAdapter {
+        @SneakyThrows
         @Override
         public void visit(PlainSelect plainSelect) {
             List<SelectItem> selectItems = plainSelect.getSelectItems();
@@ -112,14 +100,26 @@ public class SampleSQLHelper {
                 fromItem.accept(new FromItemAdapter());
             }
 
-            Expression where = plainSelect.getWhere();
-            if (where != null) {
-                if (isInvalidCondExpr) {
-                    OrExpression orExpression = buildOrExpression(where);
-                    plainSelect.setWhere(orExpression);
+            if ((fromItem instanceof Table) && filterExpr != null) {
+                Expression expression = CCJSqlParserUtil.parseCondExpression(filterExpr, false);
+                if (plainSelect.getWhere() != null) {
+                    Expression where = plainSelect.getWhere();
+                    if (isInvalidCondExpr) {
+                        OrExpression orExpression = buildOrExpression(where);
+                        plainSelect.setWhere(orExpression);
+                        where = plainSelect.getWhere();
+                    }
+                    AndExpression andExpression = new AndExpression();
+                    Parenthesis parenthesisLeft = new Parenthesis();
+                    parenthesisLeft.setExpression(where instanceof Parenthesis ? ((Parenthesis) where).getExpression() : where);
+                    Parenthesis parenthesisRight = new Parenthesis();
+                    parenthesisRight.setExpression(expression);
+                    andExpression.setLeftExpression(parenthesisLeft);
+                    andExpression.setRightExpression(parenthesisRight);
+                    plainSelect.setWhere(andExpression);
+                } else {
+                    plainSelect.setWhere(expression);
                 }
-
-                where.accept(new ExpressionAdapter());
             }
 
             Expression having = plainSelect.getHaving();
@@ -130,26 +130,6 @@ public class SampleSQLHelper {
                 }
                 having.accept(new ExpressionAdapter());
             }
-
-            Limit limit = plainSelect.getLimit();
-            if (limit == null) {
-                Limit limitObj = new Limit();
-                limitObj.setRowCount(new LongValue(MAX_COUNT));
-                plainSelect.setLimit(limitObj);
-            } else {
-                Expression rowCountExpr = limit.getRowCount();
-                if (rowCountExpr instanceof LongValue) {
-                    LongValue rowCountObj = (LongValue) rowCountExpr;
-                    long value = rowCountObj.getValue();
-                    if (value > MAX_COUNT) {
-                        Limit limit1 = new Limit();
-                        limit1.setRowCount(new LongValue(MAX_COUNT));
-                        plainSelect.setLimit(limit1);
-                    }
-                }
-                limit.setOffset(null);
-            }
-
         }
 
         @Override

@@ -6,11 +6,12 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.geedgenetworks.utils.DateUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
-import com.mesalab.common.utils.sqlparser.DruidSampleSQLHelper;
+import com.mesalab.common.utils.sqlparser.SampleSQLHelper;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -132,7 +133,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         log.info("Query ID: {}, SQL: {}", sqlQueryContext.getQueryId(), sql);
         if (log.isDebugEnabled()) {
             log.debug("DB engine is: {}, : {}", DBEngineType.DRUID.getValue(), JSON.toJSONString(druidQueryParam)
-                     + ". body sql is:" + sql);
+                    + ". body sql is:" + sql);
         }
         return httpClientService.post(queryURL, sqlQueryContext.getTimeout(), JSON.toJSONString(druidQueryParam));
     }
@@ -223,9 +224,17 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
-        String filterExpr = String.format("%s >= CURRENT_TIMESTAMP - INTERVAL %s AND %s < CURRENT_TIMESTAMP",
-                sqlQueryContext.getDbQuerySource().getPartitionKey(), "'5' MINUTE", sqlQueryContext.getDbQuerySource().getPartitionKey());
-        return new DruidSampleSQLHelper(sql, filterExpr, true).build();
+        int dryRunDataIntervalDruid = engineConfigSource.getDryRunIntervalOffsetSecondDruid();
+        Date date = new Date();
+        String endDate = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        String startDate = DateUtils.getFormatDate(DateUtils.getSomeSecond(date, dryRunDataIntervalDruid), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        String filterExpr = String.format("%s >= '%s' AND %s < '%s'",
+                sqlQueryContext.getDbQuerySource().getPartitionKey(),
+                startDate,
+                sqlQueryContext.getDbQuerySource().getPartitionKey(),
+                endDate
+        );
+        return new SampleSQLHelper(sql, filterExpr, false).build();
     }
 
     private List<Map<String, String>> unifyMeta(List<Object> list) {

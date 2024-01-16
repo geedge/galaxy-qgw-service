@@ -1,7 +1,8 @@
 package com.mesalab.common.utils.sqlparser;
 
-import lombok.SneakyThrows;
+import cn.hutool.core.util.StrUtil;
 import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.LongValue;
@@ -16,29 +17,32 @@ import java.util.List;
 /**
  * TODO
  *
- * @Classname DruidSampleSQLHelper
+ * @Classname SampleSQLHelperOfDataset
  * @Date 2023/3/22 10:42
  * @Author wWei
  */
-public class DruidSampleSQLHelper {
+@Deprecated
+public class SampleSQLHelperOfDataset {
 
+    private final String templateSQL;
     private final String originalSQL;
-    private final String filterExpr;
     private final boolean isInvalidCondExpr;
 
     /**
      * Desc: TODO
      *
      * @param originalSQL       原始SQL
-     * @param filterExpr        置换后的 WHERE 过滤条件
-     * @param isInvalidCondExpr 是否失效 HAVING 过滤条件
+     * @param dataSetTemplate   数据集SQL模版。表名通过解析 originalSQL 获取，不需指定，如：
+     *                          1. SELECT * FROM {} LIMIT 0
+     *                          2. SELECT * FROM {} WHERE rand() % 100 = 0 LIMIT 1000
+     * @param isInvalidCondExpr 是否失效过滤条件
      * @return {@link null}
      * @created by wWei
-     * @date 2023/4/10 11:03
+     * @date 2023/3/23 15:17
      */
-    public DruidSampleSQLHelper(String originalSQL, String filterExpr, boolean isInvalidCondExpr) {
+    public SampleSQLHelperOfDataset(String originalSQL, String dataSetTemplate, boolean isInvalidCondExpr) {
+        this.templateSQL = dataSetTemplate;
         this.originalSQL = originalSQL;
-        this.filterExpr = filterExpr;
         this.isInvalidCondExpr = isInvalidCondExpr;
     }
 
@@ -57,6 +61,18 @@ public class DruidSampleSQLHelper {
     }
 
     private class FromItemAdapter extends FromItemVisitorAdapter {
+
+        @Override
+        public void visit(Table table) {
+            if (StrUtil.isEmptyIfStr(templateSQL)) {
+                return;
+            }
+            if (table.getAlias() == null) {
+                table.setAlias(new Alias(table.getName(), true));
+            }
+            table.setName(StrUtil.format("(" + templateSQL + ")", table.getFullyQualifiedName()));
+            table.setSchemaName(null);
+        }
 
         @Override
         public void visit(SubSelect subSelect) {
@@ -82,7 +98,6 @@ public class DruidSampleSQLHelper {
     }
 
     private class SelectAdapter extends SelectVisitorAdapter {
-        @SneakyThrows
         @Override
         public void visit(PlainSelect plainSelect) {
             List<SelectItem> selectItems = plainSelect.getSelectItems();
@@ -97,42 +112,23 @@ public class DruidSampleSQLHelper {
                 fromItem.accept(new FromItemAdapter());
             }
 
-            if ((fromItem instanceof Table) && plainSelect.getWhere() != null) {
-                plainSelect.setWhere(CCJSqlParserUtil.parseCondExpression(filterExpr));
+            Expression where = plainSelect.getWhere();
+            if (where != null) {
+                if (isInvalidCondExpr) {
+                    OrExpression orExpression = buildOrExpression(where);
+                    plainSelect.setWhere(orExpression);
+                }
+
+                where.accept(new ExpressionAdapter());
             }
 
             Expression having = plainSelect.getHaving();
             if (having != null) {
                 if (isInvalidCondExpr) {
-                    OrExpression orExpression = new OrExpression();
-                    orExpression.setRightExpression(having);
-                    EqualsTo equalsTo = new EqualsTo();
-                    LongValue longValue = new LongValue(1);
-                    equalsTo.setLeftExpression(longValue);
-                    equalsTo.setRightExpression(longValue);
-                    orExpression.setLeftExpression(equalsTo);
+                    OrExpression orExpression = buildOrExpression(having);
                     plainSelect.setHaving(orExpression);
                 }
                 having.accept(new ExpressionAdapter());
-            }
-
-            Limit limit = plainSelect.getLimit();
-            if (limit == null) {
-                Limit limitObj = new Limit();
-                limitObj.setRowCount(new LongValue(SampleSQLHelper.MAX_COUNT));
-                plainSelect.setLimit(limitObj);
-            } else {
-                Expression rowCountExpr = limit.getRowCount();
-                if (rowCountExpr instanceof LongValue) {
-                    LongValue rowCountObj = (LongValue) rowCountExpr;
-                    long value = rowCountObj.getValue();
-                    if (value > SampleSQLHelper.MAX_COUNT) {
-                        Limit limit1 = new Limit();
-                        limit1.setRowCount(new LongValue(SampleSQLHelper.MAX_COUNT));
-                        plainSelect.setLimit(limit1);
-                    }
-                }
-                limit.setOffset(null);
             }
         }
 
@@ -143,6 +139,17 @@ public class DruidSampleSQLHelper {
                     select.accept(this);
                 }
             }
+        }
+
+        private OrExpression buildOrExpression(Expression where) {
+            OrExpression orExpression = new OrExpression();
+            orExpression.setRightExpression(where);
+            EqualsTo equalsTo = new EqualsTo();
+            LongValue longValue = new LongValue(1);
+            equalsTo.setLeftExpression(longValue);
+            equalsTo.setRightExpression(longValue);
+            orExpression.setLeftExpression(equalsTo);
+            return orExpression;
         }
     }
 }

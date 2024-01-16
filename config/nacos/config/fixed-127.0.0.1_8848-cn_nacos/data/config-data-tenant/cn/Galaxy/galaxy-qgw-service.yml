@@ -98,6 +98,9 @@ xxl-job-admin:
 engine:
   maxCacheNum: 1048575
   defaultResultNum: 100000
+  dryRunIntervalOffsetSecond:
+    clickhouse: -500
+    druid: -3600
 service:
   entity:
     activeClientIP: 10000

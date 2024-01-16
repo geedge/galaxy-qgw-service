@@ -78,7 +78,7 @@ public class FederationDialect extends AbstractEngineDialect{
             return sql;
         }
         try {
-            sql = new SampleSQLHelper(sql, null, true).build();
+            sql = new SampleSQLHelper(sql, null, false).build();
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sql, sql = sqlQueryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
