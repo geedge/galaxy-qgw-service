@@ -32,8 +32,6 @@
         "address_type",
         "decoded_as",
         "vsys_id",
-        "flags",
-        "flags_identify_info",
         "proxy_rule_list",
         "proxy_action",
         "client_ip",
@@ -42,13 +40,6 @@
         "client_geolocation",
         "client_asn",
         "subscriber_id",
-        "imei",
-        "imsi",
-        "apn",
-        "phone_number",
-        "packet_capture_file",
-        "in_src_mac",
-        "out_src_mac",
         "server_ip",
         "server_port",
         "server_os_desc",
@@ -56,17 +47,7 @@
         "server_asn",
         "server_fqdn",
         "server_domain",
-        "in_dest_mac",
-        "out_dest_mac",
-        "app_transition",
-        "app",
-        "app_debug_info",
-        "app_content",
         "ip_protocol",
-        "decoded_path",
-        "dup_traffic_flag",
-        "tunnel_endpoint_a_desc",
-        "tunnel_endpoint_b_desc",
         "http_url",
         "http_host",
         "http_request_line",
@@ -84,7 +65,6 @@
         "http_version",
         "http_status_code",
         "http_response_latency_ms",
-        "http_session_duration_ms",
         "http_action_file_size",
         "doh_url",
         "doh_host",
@@ -125,28 +105,14 @@
         "client_geolocation",
         "client_asn",
         "subscriber_id",
-        "imei",
-        "imsi",
-        "apn",
-        "phone_number",
-        "in_src_mac",
-        "out_src_mac",
         "server_ip",
         "server_port",
         "server_geolocation",
         "server_asn",
         "server_fqdn",
         "server_domain",
-        "in_dest_mac",
-        "out_dest_mac",
-        "app",
-        "decoded_path",
-        "sent_pkts",
-        "received_pkts",
         "sent_bytes",
         "received_bytes",
-        "duration_ms",
-        "tcp_handshake_latency_ms",
         "tcp_rtt_ms",
         "http_url",
         "http_host",
@@ -155,7 +121,6 @@
         "http_response_content_length",
         "http_status_code",
         "http_response_latency_ms",
-        "http_session_duration_ms",
         "doh_url",
         "doh_host",
         "doh_user_agent",
@@ -167,8 +132,6 @@
         "session_id",
         "start_timestamp_ms",
         "end_timestamp_ms",
-        "duration_ms",
-        "tcp_handshake_latency_ms",
         "processing_time",
         "ingestion_time",
         "device_id",
@@ -178,8 +141,6 @@
         "address_type",
         "decoded_as",
         "vsys_id",
-        "flags",
-        "flags_identify_info",
         "proxy_rule_list",
         "proxy_action",
         "client_ip",
@@ -188,12 +149,6 @@
         "client_geolocation",
         "client_asn",
         "subscriber_id",
-        "imei",
-        "imsi",
-        "apn",
-        "phone_number",
-        "in_src_mac",
-        "out_src_mac",
         "server_ip",
         "server_port",
         "server_os_desc",
@@ -201,20 +156,7 @@
         "server_asn",
         "server_fqdn",
         "server_domain",
-        "in_dest_mac",
-        "out_dest_mac",
-        "app_transition",
-        "app_debug_info",
-        "app",
-        "app_content",
-        "dup_traffic_flag",
-        "tunnel_endpoint_a_desc",
-        "tunnel_endpoint_b_desc",
         "ip_protocol",
-        "decoded_path",
-        "fqdn_category_list",
-        "sent_pkts",
-        "received_pkts",
         "sent_bytes",
         "received_bytes",
         "tcp_rtt_ms",
@@ -235,7 +177,6 @@
         "http_version",
         "http_status_code",
         "http_response_latency_ms",
-        "http_session_duration_ms",
         "http_action_file_size",
         "doh_url",
         "doh_host",
@@ -766,7 +707,7 @@
           "type": "decimal",
           "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -779,7 +720,7 @@
           "type": "decimal",
           "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -990,7 +931,7 @@
         "data": {
           "$ref": "public_schema_info.json#/fields/flags/data"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
@@ -1002,7 +943,7 @@
       "name": "flags_identify_info",
       "label": "Flags Identify Info",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1413,7 +1354,7 @@
       "name": "imei",
       "label": "IMEI",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1422,7 +1363,7 @@
       "name": "imsi",
       "label": "IMSI",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1431,7 +1372,7 @@
       "name": "apn",
       "label": "APN",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1440,7 +1381,7 @@
       "name": "phone_number",
       "label": "Phone Number",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1528,7 +1469,7 @@
       "label": "Application Transition",
       "type": "string",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       }
     },
@@ -1536,7 +1477,7 @@
       "name": "app",
       "label": "Application",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1545,7 +1486,7 @@
       "name": "app_debug_info",
       "label": "Application Debug Info",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1554,7 +1495,7 @@
       "name": "app_content",
       "label": "Application Content",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1582,7 +1523,7 @@
       "name": "decoded_path",
       "label": "Decoded Path",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1599,7 +1540,7 @@
           "key": "category_id",
           "value": "category_name"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
@@ -1615,7 +1556,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1627,7 +1568,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
@@ -1818,7 +1759,7 @@
           }
         ],
         "allow_query": "false",
-        "visibility": "enabled",
+        "visibility": "hidden",
         "constraints": {
           "type": "file"
         },
@@ -1830,7 +1771,7 @@
       "name": "in_src_mac",
       "label": "Incoming Source MAC",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1839,7 +1780,7 @@
       "name": "out_src_mac",
       "label": "Outgoing Source MAC",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1848,7 +1789,7 @@
       "name": "in_dest_mac",
       "label": "Incoming Destination MAC",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1857,7 +1798,7 @@
       "name": "out_dest_mac",
       "label": "Outgoing Destination MAC",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1866,7 +1807,7 @@
       "name": "tunnels",
       "label": "Tunnels",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1881,7 +1822,7 @@
         "data": {
           "$ref": "public_schema_info.json#/fields/dup_traffic_flag/data"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "int"
@@ -1890,7 +1831,7 @@
       "name": "tunnel_endpoint_a_desc",
       "label": "Tunnel Endpoint A Description",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -1899,7 +1840,7 @@
       "name": "tunnel_endpoint_b_desc",
       "label": "Tunnel Endpoint B Description",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
@@ -2132,7 +2073,7 @@
           "type": "decimal",
           "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "long"
