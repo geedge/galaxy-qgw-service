@@ -15,7 +15,12 @@
     },
     "schema_query": {
       "time": [
-        "recv_time"
+        "recv_time",
+        "start_timestamp_ms",
+        "end_timestamp_ms",
+        "processing_time",
+        "ingestion_time",
+        "insert_time"
       ],
       "dimensions": [
         "session_id",

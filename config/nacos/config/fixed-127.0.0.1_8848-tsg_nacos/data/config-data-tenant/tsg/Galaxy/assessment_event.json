@@ -13,7 +13,8 @@
     },
     "schema_query": {
       "time": [
-        "recv_time"
+        "recv_time",
+        "assessment_date"
       ]
     }
   },

@@ -15,7 +15,9 @@
     },
     "schema_query": {
       "time": [
-        "recv_time"
+        "recv_time",
+        "start_time",
+        "end_time"
       ],
       "references": {
         "$ref": "public_schema_info.json#/schema_query/references"

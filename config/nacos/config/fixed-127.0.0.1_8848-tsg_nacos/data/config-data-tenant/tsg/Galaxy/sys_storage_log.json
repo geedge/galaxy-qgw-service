@@ -9,7 +9,8 @@
     },
     "schema_query": {
       "time": [
-        "__time"
+        "__time",
+        "last_storage"
       ],
       "dimensions": [
         "log_type",
@@ -105,9 +106,15 @@
       "name": "last_storage",
       "label": "Last Storage",
       "doc": {
+        "constraints": {
+          "type": "unix_timestamp"
+        },
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp"
+      }
     }
   ]
 }
