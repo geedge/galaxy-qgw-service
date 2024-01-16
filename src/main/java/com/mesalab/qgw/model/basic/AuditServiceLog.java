@@ -16,11 +16,11 @@ public class AuditServiceLog {
 
     private String clientIp;
 
-    private long exeTime;
+    private long elapsed;
 
     private String dbEngine;
 
-    private String param;
+    private String requestParam;
 
     private String url;
 

@@ -56,7 +56,7 @@ public class AuditLogAspect {
         auditServiceLog.setClientIp(clientIp);
         auditServiceLog.setMethod(method);
         if (log.isInfoEnabled()) {
-            auditServiceLog.setParam(Arrays.toString(joinPoint.getArgs()));
+            auditServiceLog.setRequestParam(Arrays.toString(joinPoint.getArgs()));
             auditServiceLog.setUrl(url);
             auditServiceLog.setClassMethod(classMethod);
         }
@@ -68,7 +68,7 @@ public class AuditLogAspect {
     @AfterThrowing(value = "annotationPointCut()", throwing = "exception")
     public void doAfterThrowingAdvice(JoinPoint joinPoint, Throwable exception) {
         AuditServiceLog logAfter = auditLog.get();
-        logAfter.setParam(Arrays.toString(joinPoint.getArgs()));
+        logAfter.setRequestParam(Arrays.toString(joinPoint.getArgs()));
         log.error("Audit Log [error]:{}", JSON.toJSONString(logAfter));
     }
 
@@ -92,8 +92,8 @@ public class AuditLogAspect {
             BaseResult baseResult = (BaseResult) result;
             baseResult.setRequestId(logAfter.getRequestId());
         }
-        Long exeTime = System.currentTimeMillis() - startTime.get();
-        logAfter.setExeTime(exeTime);
+        long elapsed = System.currentTimeMillis() - startTime.get();
+        logAfter.setElapsed(elapsed);
         log.info("Audit Log [success]: {}", JSON.toJSONString(logAfter));
     }
 
