@@ -39,6 +39,7 @@ Release 374 (TSG-23.12)
 * 扩展Schema，VoIP Record decoded_as 增加VoIP字典值(TSG-18445)
 * 扩展Schema，日志Schema支持表达式字段(TSG-18511)
 * 扩展Schema，object_statistics 新增object_type字段及字典数据(TSG-17960)
+* 扩展Schema，描述可作为维度的时间字段(TSG-18662)
 
 
 
