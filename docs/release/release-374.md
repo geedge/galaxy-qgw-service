@@ -16,6 +16,7 @@ Release 374 (TSG-23.12)
 * 修改dataset，数monitor-event-timeline 只提供会话指标趋势(TSG-17952)
 * 修改配置，Hbase Saved Query结果表为tsg_galaxy:saved_query_result
 * 修改配置，HOS存储桶重命名为knowledge_base_bucket(GAL-453)
+* 修改样例数据接口，只增加where时间范围(防止数据集过大)，其它不做处理
 * 修改Schema，适配DosEvent、ProxyEvent与AssessmentEvent结构变化(TSG-17819)
 * 修改Schema，基础字段app_path、protocol_path重命名(TSG-17828)
 * 修改Schema，修改文件路径补全对应HOS桶名
@@ -30,6 +31,7 @@ Release 374 (TSG-23.12)
 * 修改Schema，修改 metrics schema dimensions、metrics、filters自定义报告约束
 * 修改Schema，Monitor Events中未展示Monitor Mirrored相关字段(TSG-18602)
 * 修改Schema，Manipulation日志中应隐藏FQDN Category List、HTTP.Proxy Flags等字段(TSG-18577)
+* 修改Schema，修正traffic_shaping_rule_hits.doc中字段名(TSG-18639)
 * 扩展Schema，histogram支持MEDIAN_HDR函数
 * 扩展Schema，schema doc 增加time分类(TSG-17875)
 * 扩展Schema，新增公共字段ip_protocol，支持report统计(TSG-18203)
