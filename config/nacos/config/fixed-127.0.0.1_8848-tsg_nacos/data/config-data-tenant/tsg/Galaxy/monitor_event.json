@@ -300,6 +300,8 @@
         "flags",
         "flags_identify_info",
         "monitor_rule_list",
+        "monitor_mirrored_pkts",
+        "monitor_mirrored_bytes",
         "client_ip",
         "client_port",
         "client_os_desc",
@@ -1644,7 +1646,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       }
     },
@@ -1656,7 +1658,7 @@
         "constraints": {
           "type": "bytes"
         },
-        "visibility": "hidden",
+        "visibility": "enabled",
         "ttl": null
       }
     },
