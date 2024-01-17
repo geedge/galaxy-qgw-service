@@ -808,17 +808,16 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
-        int dryRunDataIntervalClickhouse = engineConfigSource.getDryRunIntervalOffsetSecondClickhouse();
         Date date = new Date();
         String endDate = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-        String startDate = DateUtils.getFormatDate(DateUtils.getSomeSecond(new Date(), dryRunDataIntervalClickhouse), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        String startDate = DateUtils.getFormatDate(DateUtils.getSomeSecond(new Date(), engineConfigSource.getDryRunIntervalOffsetSecond()), DateUtils.YYYY_MM_DD_HH24_MM_SS);
         String filterExpr = String.format("%s >= UNIX_TIMESTAMP('%s') AND %s < UNIX_TIMESTAMP('%s')",
                 sqlQueryContext.getDbQuerySource().getPartitionKey(),
                 startDate,
                 sqlQueryContext.getDbQuerySource().getPartitionKey(),
                 endDate
         );
-        return new SampleSQLHelper(sql, filterExpr, true, StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) ? engineConfigSource.getDefaultResultNum() : engineConfigSource.getMaxCacheNum()).build();
+        return new SampleSQLHelper(sql, filterExpr, false, StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) ? engineConfigSource.getDefaultResultNum() : engineConfigSource.getMaxCacheNum()).build();
     }
 
     /**
