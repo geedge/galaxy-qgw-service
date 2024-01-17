@@ -83,7 +83,7 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         init();
         String transformedSQL = getExplainQuery();
         Map sqlMap = Maps.newHashMap();
-        sqlMap.put("RawSQL", Encodes.encodeBase64(sqlQueryContext.getOriginalSQL().getBytes()));
+        sqlMap.put("OriginalSQL", Encodes.encodeBase64(sqlQueryContext.getOriginalSQL().getBytes()));
         sqlMap.put("TransformedSQL", Encodes.encodeBase64(transformedSQL.getBytes()));
         return generateBaseResult(transformedSQL, Optional.of(JSON.toJSONString(sqlMap)));
     }
