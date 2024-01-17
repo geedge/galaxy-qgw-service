@@ -13,5 +13,5 @@ public interface KBService {
 
     BaseResult updateStatus(KnowledgeBaseRequest request);
 
-    BaseResult getList(String kbId);
+    BaseResult getList(String kbId, String category);
 }
