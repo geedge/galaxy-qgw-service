@@ -151,7 +151,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 .append(" FORMAT ").append(OutputMode.JSON.getValue().toUpperCase()).append(" ;");
         List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
 
-       HttpResponseResult responseResult = httpClientService.get(queryURL + URLEncodedUtils.format(values, "utf-8"));
+        HttpResponseResult responseResult = httpClientService.get(queryURL + URLEncodedUtils.format(values, "utf-8"));
         if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
             return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
         } else {
@@ -230,6 +230,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
          * 兼容标准SQL语言（支持CK19.14.6.12 新特性）：
          * 1.不支持 count(1) 需转为count(*)
          * 2.针对非聚合SQL，非分组sql in/not in 替换为 Global in/not
+         *
          * @return Converter
          */
         public Converter generateStandard() {
@@ -732,8 +733,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                     CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
                     responseResult.getErrorMessage(),
-               null,
-            null,
+                    null,
+                    null,
                     sqlQueryContext.getFormat());
         }
         return build();
@@ -817,7 +818,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 sqlQueryContext.getDbQuerySource().getPartitionKey(),
                 endDate
         );
-        return new SampleSQLHelper(sql, filterExpr, true).build();
+        return new SampleSQLHelper(sql, filterExpr, true, StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) ? engineConfigSource.getDefaultResultNum() : engineConfigSource.getMaxCacheNum()).build();
     }
 
     /**
@@ -837,7 +838,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, Charset.forName("UTF-8"));
         return httpClientService.post(queryURL + URLEncodedUtils.format(values, "utf-8"),
                 sqlQueryContext.getTimeout(),
-                                    sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()));
+                sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()));
     }
 
     private String enrichContextAndBuildQueryParameter() {
@@ -851,7 +852,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         }
 
         int timeout = (QueryOption.LONG_TERM.getValue().equalsIgnoreCase(sqlQueryContext.getOption())) ?
-                    httpConfig.getCkLongTermAccountSocketTimeOut() : httpConfig.getCkRealTimeAccountSocketTimeOut();
+                httpConfig.getCkLongTermAccountSocketTimeOut() : httpConfig.getCkRealTimeAccountSocketTimeOut();
         sqlQueryContext.setTimeout(timeout);
 
         if (StringUtil.isBlank(sqlQueryContext.getQueryId())) {

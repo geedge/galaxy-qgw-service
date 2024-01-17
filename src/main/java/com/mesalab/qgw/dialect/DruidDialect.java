@@ -234,7 +234,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 sqlQueryContext.getDbQuerySource().getPartitionKey(),
                 endDate
         );
-        return new SampleSQLHelper(sql, filterExpr, false).build();
+        return new SampleSQLHelper(sql, filterExpr, false, StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) ? engineConfigSource.getDefaultResultNum() : engineConfigSource.getMaxCacheNum()).build();
     }
 
     private List<Map<String, String>> unifyMeta(List<Object> list) {
