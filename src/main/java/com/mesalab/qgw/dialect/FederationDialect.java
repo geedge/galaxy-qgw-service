@@ -10,6 +10,7 @@ import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteConnectionProcessor;
 import com.mesalab.common.enums.DBEngineType;
+import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.sqlparser.SampleSQLHelper;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -18,6 +19,7 @@ import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.SQLQuerySource;
 import com.mesalab.qgw.model.basic.udf.UDF;
@@ -38,8 +40,11 @@ import java.util.concurrent.TimeUnit;
  * 联邦查询-基于Calcite支持多源联合查询
  */
 @Slf4j
-public class FederationDialect extends AbstractEngineDialect{
+public class FederationDialect extends AbstractEngineDialect {
     private Stopwatch watch = Stopwatch.createUnstarted();
+
+    private final EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
+
     private static final Map<String, String> metaMap = Maps.newHashMap();
     public SQLQueryContext sqlQueryContext;
     public BaseResult baseResult;
@@ -68,7 +73,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     @Override
     public String getFederateQuery() {
-        return  sqlQueryContext.getEngineQuerySource().getExecSQL();
+        return sqlQueryContext.getEngineQuerySource().getExecSQL();
     }
 
     @Override
@@ -78,7 +83,7 @@ public class FederationDialect extends AbstractEngineDialect{
             return sql;
         }
         try {
-            sql = new SampleSQLHelper(sql, null, false).build();
+            sql = new SampleSQLHelper(sql, null, false, engineConfigSource.getDefaultResultNum()).build();
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
                     sql, sql = sqlQueryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
@@ -106,7 +111,7 @@ public class FederationDialect extends AbstractEngineDialect{
     }
 
     @Override
-    final public BaseResult getProcesses(String queryId){
+    final public BaseResult getProcesses(String queryId) {
         return null;
     }
 
@@ -134,7 +139,7 @@ public class FederationDialect extends AbstractEngineDialect{
             log.error("Federation query error:{}", ex);
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                     CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getMessage(),ex.getMessage()));
+                    String.format(CommonErrorCode.SQL_FEDERATION_QUERY_EXCEPTION.getMessage(), ex.getMessage()));
         }
         return build();
     }
@@ -158,7 +163,7 @@ public class FederationDialect extends AbstractEngineDialect{
             convertJsonToCSV();
         }
         baseResult.setFormatType(sqlQueryContext.getFormat());
-        log.debug("Federation execute and build result time : {} ms",  watch.elapsed(TimeUnit.MILLISECONDS));
+        log.debug("Federation execute and build result time : {} ms", watch.elapsed(TimeUnit.MILLISECONDS));
         return baseResult;
     }
 
@@ -207,7 +212,7 @@ public class FederationDialect extends AbstractEngineDialect{
 
     private void convertJsonToCSV() {
 
-        List<String> results = Lists.transform( (List<Map<String, Object>>) baseResult.getData(), new Function<Map<String, Object>, String>() {
+        List<String> results = Lists.transform((List<Map<String, Object>>) baseResult.getData(), new Function<Map<String, Object>, String>() {
 
             @Override
             public String apply(@Nullable Map<String, Object> input) {

@@ -224,17 +224,16 @@ public class DruidDialect extends AbstractDataSourceDialect {
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
-        int dryRunDataIntervalDruid = engineConfigSource.getDryRunIntervalOffsetSecondDruid();
         Date date = new Date();
         String endDate = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-        String startDate = DateUtils.getFormatDate(DateUtils.getSomeSecond(date, dryRunDataIntervalDruid), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        String startDate = DateUtils.getFormatDate(DateUtils.getSomeSecond(date, engineConfigSource.getDryRunIntervalOffsetSecond()), DateUtils.YYYY_MM_DD_HH24_MM_SS);
         String filterExpr = String.format("%s >= '%s' AND %s < '%s'",
                 sqlQueryContext.getDbQuerySource().getPartitionKey(),
                 startDate,
                 sqlQueryContext.getDbQuerySource().getPartitionKey(),
                 endDate
         );
-        return new SampleSQLHelper(sql, filterExpr, false).build();
+        return new SampleSQLHelper(sql, filterExpr, false, StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) ? engineConfigSource.getDefaultResultNum() : engineConfigSource.getMaxCacheNum()).build();
     }
 
     private List<Map<String, String>> unifyMeta(List<Object> list) {

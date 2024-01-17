@@ -114,10 +114,10 @@ public class KBController {
 
     @GetMapping(produces = "application/json")
     @AuditLog("KBController.getList")
-    public BaseResult getList(@RequestParam(required = false, value = "kb_id") String kbId) {
+    public BaseResult getList(@RequestParam(required = false, value = "kb_id") String kbId, @RequestParam(required = false) String category) {
         try {
-            log.info("Knowledge Base File get list interface,param is: kb_id= {}", kbId);
-            return kbService.getList(kbId);
+            log.info("Knowledge Base File get list interface,param is: kb_id= {},category = {}", kbId, category);
+            return kbService.getList(kbId, category);
         } catch (BusinessException e) {
             log.error("Knowledge Base File get list error:{}", e.getMessage());
             return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), "Knowledge Base File get list error: " + e.getMessage());
