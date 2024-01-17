@@ -10,7 +10,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class SQLQueryContext implements Serializable {
 
-    private String rawSQL;
+    private String originalSQL;
     private String option;
     private Boolean sampled;
     private String format;
@@ -27,8 +27,8 @@ public class SQLQueryContext implements Serializable {
         return resultId;
     }
 
-    public boolean rawSQLIsNull() {
-        return StringUtil.isBlank(rawSQL);
+    public boolean originalSQLIsNull() {
+        return StringUtil.isBlank(originalSQL);
     }
 
     public void setResultId(String resultId) {

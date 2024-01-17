@@ -43,7 +43,7 @@ public class CNServiceImpl implements CNService {
         dslObject.getQuery().getParameters().setGranularity("user_id,ip");
         String executeSql = cnParser.buildShareNetSQL(dslObject);
         SQLQueryContext queryProfile = new SQLQueryContext();
-        queryProfile.setRawSQL(executeSql);
+        queryProfile.setOriginalSQL(executeSql);
         BaseResult baseResult = sqlSyncQueryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             return baseResult;
@@ -68,7 +68,7 @@ public class CNServiceImpl implements CNService {
     public BaseResult bannedAppQuery(DSLObject dslObject) throws BusinessException {
         dslObject.getQuery().getParameters().setGranularity("user_id,ip");
         String executeSql = cnParser.bannedAppSQL(dslObject);
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(executeSql).build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(executeSql).build());
         if (!baseResult.isSuccess()) {
             return baseResult;
         }

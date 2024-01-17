@@ -54,7 +54,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
             sqlQueryContext.getDbQuerySource().setExecSQL(sqlQueryContext.getDbQuerySource().getSqlBody());
         } else {
             SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(sqlQueryContext.getRawSQL());
+            sqlQuerySource.setExecSQL(sqlQueryContext.getOriginalSQL());
             sqlQueryContext.setDbQuerySource(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();

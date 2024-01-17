@@ -134,25 +134,25 @@ public class DslServiceImpl implements DSLService {
     public BaseResult appAndProtocolSummary(DSLQueryContext dslProfile, boolean isDryRun) {
         String queryOption = isDryRun ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
         BaseResult asymmetricFlowsResult = sqlSyncQueryService.executeQuery(
-                SQLQueryContext.builder().rawSQL(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_ASYMMETRIC_FLOWS_STAT"), TABLE_TRAFFIC_GENERAL_STAT, databaseService.getPartitionKey(TABLE_TRAFFIC_GENERAL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
+                SQLQueryContext.builder().originalSQL(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_ASYMMETRIC_FLOWS_STAT"), TABLE_TRAFFIC_GENERAL_STAT, databaseService.getPartitionKey(TABLE_TRAFFIC_GENERAL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
         if (!asymmetricFlowsResult.isSuccess()) {
             throw new BusinessException(asymmetricFlowsResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), asymmetricFlowsResult.getMessage()));
         }
 
         BaseResult networkTrafficStatResult = sqlSyncQueryService.executeQuery(
-                SQLQueryContext.builder().rawSQL(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_TRAFFIC_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
+                SQLQueryContext.builder().originalSQL(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_TRAFFIC_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
         if (!networkTrafficStatResult.isSuccess()) {
             throw new BusinessException(networkTrafficStatResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), networkTrafficStatResult.getMessage()));
         }
 
         BaseResult networkTcpStatResult = sqlSyncQueryService.executeQuery(
-                SQLQueryContext.builder().rawSQL(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_TCP_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
+                SQLQueryContext.builder().originalSQL(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_TCP_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
         if (!networkTcpStatResult.isSuccess()) {
             throw new BusinessException(networkTcpStatResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), networkTcpStatResult.getMessage()));
         }
 
         BaseResult networkAppStatResult = sqlSyncQueryService.executeQuery(
-                SQLQueryContext.builder().rawSQL(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_APP_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
+                SQLQueryContext.builder().originalSQL(dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_SUMMARY_APP_STAT"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP)).option(queryOption).build());
         if (!networkAppStatResult.isSuccess()) {
             throw new BusinessException(networkAppStatResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), networkAppStatResult.getMessage()));
         }
@@ -753,7 +753,7 @@ public class DslServiceImpl implements DSLService {
 
     private SQLQueryContext queryBuild(String sql, boolean isDryRun) {
         String queryOption = isDryRun ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
-        return SQLQueryContext.builder().format(OutputMode.JSON.getValue()).rawSQL(sql).option(queryOption).build();
+        return SQLQueryContext.builder().format(OutputMode.JSON.getValue()).originalSQL(sql).option(queryOption).build();
     }
 
     private BaseResult build(List<Map> dataList, Stopwatch watch) {

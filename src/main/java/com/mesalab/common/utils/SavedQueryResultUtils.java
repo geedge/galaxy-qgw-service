@@ -38,7 +38,7 @@ public class SavedQueryResultUtils {
         sb.append("select ROWKEY, ").append(hBaseAPISource.getColumnName());
         sb.append(" from ").append(hBaseAPISource.getDbName()).append(".").append(hBaseAPISource.getTableName());
         sb.append(" where ").append("ROWKEY IN ('").append(StrUtil.join("', '", rowKeys)).append("')");
-        param.setRawSQL(sb.toString());
+        param.setOriginalSQL(sb.toString());
         BaseResult baseResult = sqlSyncQueryService.executeQuery(param);
         return (List<Map<String, Object>>) baseResult.getData();
     }

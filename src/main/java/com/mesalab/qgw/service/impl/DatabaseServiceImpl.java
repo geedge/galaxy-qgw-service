@@ -265,7 +265,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     public BaseResult getStorageQuota() {
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         SQLQueryContext param = new SQLQueryContext();
-        param.setRawSQL(env.getProperty("SYSTEM_STORAGE_QUOTA"));
+        param.setOriginalSQL(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         BaseResult result = sqlSyncQueryService.executeQuery(param);
         return resetBaseResult(result, "type");
     }
@@ -282,7 +282,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
             SQLQueryContext param = new SQLQueryContext();
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
-            param.setRawSQL(sql);
+            param.setOriginalSQL(sql);
             BaseResult result = sqlSyncQueryService.executeQuery(param);
             List<Map> data = (List<Map>) result.getData();
             data.forEach(o -> o.put("type", LogType.getLabelByValue(String.valueOf(o.get("type")))));
@@ -496,7 +496,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             if (symbols.contains(name)) {
                 sql = String.format(Objects.requireNonNull(environment.getProperty("SCHEMA_STORAGE_SIZE")), name, clickHouseHttpSource.getDbName());
             }
-            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(sql).build());
+            BaseResult baseResult = StringUtil.isBlank(sql) ? BaseResultGenerator.success(Lists.newArrayList()) : sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sql).build());
             if (baseResult.isSuccess()) {
                 return (List<Map>) baseResult.getData();
             } else {

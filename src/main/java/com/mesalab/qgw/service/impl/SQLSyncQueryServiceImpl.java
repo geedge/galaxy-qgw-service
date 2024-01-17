@@ -70,7 +70,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         parseAndSetConnectorType(queryContext);
         Statement statement;
         try {
-            statement = CCJSqlParserUtil.parse(queryContext.getRawSQL());
+            statement = CCJSqlParserUtil.parse(queryContext.getOriginalSQL());
         } catch (JSQLParserException e) {
             log.error("Error Parsing SQL: {}", ExceptionUtil.getRootCauseMessage(e));
             String message = getJSQLParserSimpleErrorMessage(e);
@@ -78,7 +78,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                     String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), message));
         }
         BaseResult baseResult;
-        log.debug("Request SQL Statement: {}", queryContext.getRawSQL());
+        log.debug("Request SQL Statement: {}", queryContext.getOriginalSQL());
         if (statement instanceof Select) {
             baseResult = executeSelectStatement(queryContext);
         } else if (statement instanceof DescribeStatement) {
@@ -96,10 +96,10 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     }
 
     private void parseAndSetConnectorType(SQLQueryContext queryContext) {
-        if (SQLHelper.getTableName(queryContext.getRawSQL()).isEmpty()) {
+        if (SQLHelper.getTableName(queryContext.getOriginalSQL()).isEmpty()) {
             return;
         }
-        String tableName = SQLHelper.getTableName(queryContext.getRawSQL()).get(0);
+        String tableName = SQLHelper.getTableName(queryContext.getOriginalSQL()).get(0);
         queryContext.setDbEngine(databaseService.getDBEngineByTableName(tableName));
         queryContext.setSqlDialect(SQLHelper.getDialectType(queryContext.getDbEngine()));
     }
@@ -111,7 +111,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         if (StringUtil.isBlank(queryContext.getFormat())) {
             queryContext.setFormat(OutputMode.JSON.getValue());
         }
-        if (StringUtil.isBlank(queryContext.getRawSQL())) {
+        if (StringUtil.isBlank(queryContext.getOriginalSQL())) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SQL_MUST_BE_EXISTS));
         }
@@ -168,7 +168,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         } else if (QueryOption.SYNTAX_VALIDATION.getValue().equalsIgnoreCase(queryContext.getOption())) {
             return executeSyntaxValidation(queryContext);
         } else if (QueryOption.LONG_TERM.getValue().equalsIgnoreCase(queryContext.getOption())) {
-            queryContext.setQueryId(systemService.getCustomQueryId(queryContext.getResultId(), queryContext.getRawSQL()));
+            queryContext.setQueryId(systemService.getCustomQueryId(queryContext.getResultId(), queryContext.getOriginalSQL()));
             return executeLongTermQuery(queryContext);
         } else {
             return executeRealTimeQuery(queryContext);
@@ -177,7 +177,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     }
 
     private BaseResult executeSyntaxParse(SQLQueryContext param) {
-        return BaseResultGenerator.success(SQLSyntaxParserUtil.syntaxParse(param.getRawSQL()));
+        return BaseResultGenerator.success(SQLSyntaxParserUtil.syntaxParse(param.getOriginalSQL()));
     }
 
     private BaseResult executeSyntaxValidation(SQLQueryContext queryContext) {
@@ -199,7 +199,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
 
 
     private Dialect getDialect(SQLQueryContext queryContext) {
-        convertQueryRecursive(queryContext, parserSQLByAst(queryContext.getRawSQL()));
+        convertQueryRecursive(queryContext, parserSQLByAst(queryContext.getOriginalSQL()));
         return getReflectiveDialectObject(queryContext);
     }
 
@@ -454,11 +454,11 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         } else if (DBEngineType.DRUID.getValue().equalsIgnoreCase(dbEngineType)) {
             queryContext.setDbEngine(DBEngineType.DRUID.getValue());
             queryContext.setSqlDialect(DBEngineType.DRUID.getValue());
-            queryContext.setRawSQL("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
+            queryContext.setOriginalSQL("SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'");
         } else if (DBEngineType.HBASE.getValue().equalsIgnoreCase(dbEngineType)) {
             queryContext.setDbEngine(DBEngineType.HBASE.getValue());
             queryContext.setSqlDialect(DBEngineType.HBASE.getValue());
-            queryContext.setRawSQL(StrFormatter.format("SELECT COLUMN_NAME as \"name\", DATA_TYPE as \"type\" FROM SYSTEM.CATALOG WHERE TABLE_NAME= '{}' AND COLUMN_NAME  IS NOT NULL", tableName));
+            queryContext.setOriginalSQL(StrFormatter.format("SELECT COLUMN_NAME as \"name\", DATA_TYPE as \"type\" FROM SYSTEM.CATALOG WHERE TABLE_NAME= '{}' AND COLUMN_NAME  IS NOT NULL", tableName));
         } else {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),
@@ -467,7 +467,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
 
         queryContext.setFormat(OutputMode.JSON.getValue());
         SQLQuerySource dbQuerySource = new SQLQuerySource();
-        dbQuerySource.setSqlBody(queryContext.getRawSQL());
+        dbQuerySource.setSqlBody(queryContext.getOriginalSQL());
         queryContext.setDbQuerySource(dbQuerySource);
         Dialect dialect = getReflectiveDialectObject(queryContext);
         BaseResult baseResult = dataEncapsulationOfSchema(dialect.executeAdministrativeQuery(), queryContext);
@@ -505,11 +505,11 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         Arrays.stream(DBEngineType.values()).forEach(dbTypeEnum -> {
             SQLQueryContext dbParam = new SQLQueryContext();
             if (dbTypeEnum.getValue().equalsIgnoreCase(DBEngineType.CLICKHOUSE.getValue())) {
-                dbParam.setRawSQL("show tables");
+                dbParam.setOriginalSQL("show tables");
                 dbParam.setDbEngine(DBEngineType.CLICKHOUSE.getValue());
                 dbParam.setSqlDialect(SQLHelper.getDialectType(DBEngineType.CLICKHOUSE.getValue()));
             } else if (dbTypeEnum.getValue().equalsIgnoreCase(DBEngineType.DRUID.getValue())) {
-                dbParam.setRawSQL("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE'");
+                dbParam.setOriginalSQL("SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE'");
                 dbParam.setDbEngine(DBEngineType.DRUID.getValue());
                 dbParam.setSqlDialect(SQLHelper.getDialectType(DBEngineType.DRUID.getValue()));
             } else {
@@ -562,7 +562,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
      */
     public BaseResult dataEncapsulationOfSchema(BaseResult result, SQLQueryContext param) {
         SchemaBase schema = new SchemaBase();
-        schema.setName(SQLHelper.getTableName(param.getRawSQL()).get(0));
+        schema.setName(SQLHelper.getTableName(param.getOriginalSQL()).get(0));
         List<Map> fields = new ArrayList<>();
         List<Map> list = (List<Map>) result.getData();
         for (Map resultMap : list) {

@@ -74,7 +74,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
 
         //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         SQLQueryContext param = new SQLQueryContext();
-        param.setRawSQL(env.getProperty("SYSTEM_STORAGE_QUOTA"));
+        param.setOriginalSQL(env.getProperty("SYSTEM_STORAGE_QUOTA"));
         BaseResult result = sqlSyncQueryService.executeQuery(param);
         return resetBaseResult(result, "type");
     }
@@ -92,7 +92,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
         if (StringUtil.isNotBlank(searchStartTime) && StringUtil.isNotBlank(searchEndTime)) {
             SQLQueryContext param = new SQLQueryContext();
             String sql = String.format(env.getProperty("SYSTEM_DAILY_TREND_OF_STORAGE"), searchStartTime, searchEndTime);
-            param.setRawSQL(sql);
+            param.setOriginalSQL(sql);
             BaseResult result = sqlSyncQueryService.executeQuery(param);
             List<Map> data = (List<Map>) result.getData();
             data.forEach(o -> o.put("type", LogType.getLabelByValue(String.valueOf(o.get("type")))));

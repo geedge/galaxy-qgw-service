@@ -373,7 +373,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
 
     private boolean isExist(String id) {
         String sql = String.format(Objects.requireNonNull(env.getProperty("JOB_DETAIL")), id);
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(sql).build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sql).build());
         if (!baseResult.isSuccess()) {
             log.error("Query job status error: {}", baseResult.getMessage());
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Query job status error: " + baseResult.getMessage());
@@ -396,7 +396,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         property.put(JobConfig.JOB_PROPERTY_TYPE, JobConfig.FIELD_DISCOVERY);
         List<String> fields = (List<String>) body.get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
         List<String> interim = Lists.newArrayList(fields);
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOption.REAL_TIME.getValue()).build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(env.getProperty("JOB_GET_FIELD_DISCOVERY_ALL_COLUMN")).option(QueryOption.REAL_TIME.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     "Init job error: get field_discovery all column error: ".concat(baseResult.getMessage()));
@@ -578,7 +578,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
     private List<Map<String, Object>> validationData(String id) {
         BaseResult baseResult = sqlSyncQueryService.executeQuery(
                 SQLQueryContext.builder().option(QueryOption.REAL_TIME.getValue())
-                        .rawSQL(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id))
+                        .originalSQL(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id))
                         .build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
@@ -610,7 +610,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
 
 
     private void validateReport(HashMap<String, Object> map) {
-        SQLQueryContext queryProfile = SQLQueryContext.builder().rawSQL(String.valueOf(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL)))
+        SQLQueryContext queryProfile = SQLQueryContext.builder().originalSQL(String.valueOf(map.get(JobConfig.KEY_CUSTOM_SAVED_QUERY_SQL)))
                 .option(QueryOption.SYNTAX_PARSE.getValue())
                 .build();
         BaseResult baseResult = sqlSyncQueryService.executeQuery(queryProfile);
@@ -633,7 +633,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         List field = (List) map.get("custom.field_discovery.fields");
         Object filter = map.get("custom.field_discovery.filter");
         String validationSql = String.format(syntaxValidation, String.join(",", field), map.get("query.data_source"), StringUtil.isEmpty(filter) ? " 1 = 1" : filter);
-        SQLQueryContext queryProfile = SQLQueryContext.builder().rawSQL(validationSql).option(QueryOption.SYNTAX_VALIDATION.getValue()).build();
+        SQLQueryContext queryProfile = SQLQueryContext.builder().originalSQL(validationSql).option(QueryOption.SYNTAX_VALIDATION.getValue()).build();
         BaseResult baseResult = sqlSyncQueryService.executeQuery(queryProfile);
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
@@ -643,7 +643,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
 
     private void syntaxValidationStatistics(HashMap<String, Object> body) {
         String sql = String.valueOf(body.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL));
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().rawSQL(sql).option(QueryOption.SYNTAX_VALIDATION.getValue()).build());
+        BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sql).option(QueryOption.SYNTAX_VALIDATION.getValue()).build());
         if (!baseResult.isSuccess()) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), baseResult.getMessage()));

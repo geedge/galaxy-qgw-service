@@ -207,7 +207,7 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
 
 
     private SQLQueryContext queryBuild(String sql) {
-        return SQLQueryContext.builder().format(OutputMode.JSON.getValue()).rawSQL(sql).build();
+        return SQLQueryContext.builder().format(OutputMode.JSON.getValue()).originalSQL(sql).build();
     }
 
     private void validationDataSource(String dataSource) {

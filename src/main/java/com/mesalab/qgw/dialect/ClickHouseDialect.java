@@ -95,7 +95,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             sqlQueryContext.getDbQuerySource().setExecSQL(sqlQueryContext.getDbQuerySource().getSqlBody());
         } else {
             SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(sqlQueryContext.getRawSQL());
+            sqlQuerySource.setExecSQL(sqlQueryContext.getOriginalSQL());
             sqlQueryContext.setDbQuerySource(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
@@ -166,8 +166,8 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         String tableName = "processes";
         tableNames.add(tableName);
         String sql = StrUtil.format("select elapsed,total_rows_approx,read_rows from system.{} where query_id='{}'", tableName, queryId);
-        sqlQueryContext.setRawSQL(sql);
-        sqlQuerySource.setExecSQL(sqlQueryContext.getRawSQL());
+        sqlQueryContext.setOriginalSQL(sql);
+        sqlQuerySource.setExecSQL(sqlQueryContext.getOriginalSQL());
         sqlQuerySource.setTableNames(tableNames);
         sqlQueryContext.setDbQuerySource(sqlQuerySource);
         BaseResult baseResult = generateBaseResult(sql, Optional.of("ok"));

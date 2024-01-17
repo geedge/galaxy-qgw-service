@@ -32,7 +32,7 @@ public class QueryController {
     @GetMapping("/sql")
     @AuditLog("QueryController.get")
     public BaseResult get(SQLQueryContext queryContext) {
-        if (queryContext.rawSQLIsNull())
+        if (queryContext.originalSQLIsNull())
             return BaseResultGenerator.success4Message("ok");
         log.debug("Quest Params:{}", JSON.toJSONString(queryContext));
         return sqlSyncQueryService.executeQuery(queryContext);
@@ -41,7 +41,7 @@ public class QueryController {
     @PostMapping(value = "/sql", produces = "application/json;charset=utf-8")
     @AuditLog("QueryController.post")
     public BaseResult post(@RequestBody SQLQueryContext queryContext) {
-        if (queryContext.rawSQLIsNull()) {
+        if (queryContext.originalSQLIsNull()) {
             return BaseResultGenerator.success4Message("ok");
         }
         log.debug("Quest Params:{}", JSON.toJSONString(queryContext));

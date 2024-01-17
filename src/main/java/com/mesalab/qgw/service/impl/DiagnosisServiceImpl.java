@@ -324,7 +324,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     }
 
     private SQLQueryContext queryBuild(String sql) {
-        return SQLQueryContext.builder().format(OutputMode.JSON.getValue()).rawSQL(sql).build();
+        return SQLQueryContext.builder().format(OutputMode.JSON.getValue()).originalSQL(sql).build();
     }
 
     private Map<String, String> getPocSqlByDatasource(Optional<File> file, Integer queryNo) {
