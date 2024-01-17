@@ -22,8 +22,6 @@
       ],
       "dimensions": [
         "session_id",
-        "processing_time",
-        "ingestion_time",
         "address_type",
         "decoded_as",
         "vsys_id",

@@ -24,10 +24,6 @@
       ],
       "dimensions": [
         "session_id",
-        "start_timestamp_ms",
-        "end_timestamp_ms",
-        "processing_time",
-        "ingestion_time",
         "device_id",
         "out_link_id",
         "in_link_id",
