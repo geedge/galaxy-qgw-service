@@ -47,7 +47,7 @@ public class KnowledgeScheduler {
     //@PostConstruct
     private void loadKnowledge() {
         try {
-            BaseResult baseResult = kbService.getList(null);
+            BaseResult baseResult = kbService.getList(null, null);
             if (!baseResult.isSuccess()) {
                 log.error("get KB list error: {}", baseResult.getMessage());
             }

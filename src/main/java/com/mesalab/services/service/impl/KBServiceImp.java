@@ -121,15 +121,21 @@ public class KBServiceImp implements KBService {
 
 
     @Override
-    public BaseResult getList(String kbId) {
+    public BaseResult getList(String kbId, String category) {
         List<Map<String, Object>> dataList;
-        String getListUrl;
+        StringBuilder getListUrl = new StringBuilder();
         if (StrUtil.isNotBlank(kbId)) {
-            getListUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket()).concat("?").concat("prefix=").concat(kbId).concat("_");
-            dataList = filterResult("kb_id", Arrays.asList(kbId), generateFileListResult(getContentList(getListUrl)));
+            getListUrl.append(hosConfig.getUri()).append("/").append(hosConfig.getBucket()).append("?prefix=").append(kbId).append("_");
+            if (StrUtil.isNotBlank(category)) {
+                getListUrl.append("&").append(X_HOS_METADATA_PREFIX).append("category=").append(category);
+            }
+            dataList = filterResult("kb_id", Arrays.asList(kbId), generateFileListResult(getContentList(getListUrl.toString())));
         } else {
-            getListUrl = hosConfig.getUri().concat("/").concat(hosConfig.getBucket());
-            dataList = generateFileListResult(getContentList(getListUrl));
+            getListUrl.append(hosConfig.getUri()).append("/").append(hosConfig.getBucket());
+            if (StrUtil.isNotBlank(category)) {
+                getListUrl.append("?").append(X_HOS_METADATA_PREFIX).append("category=").append(category);
+            }
+            dataList = generateFileListResult(getContentList(getListUrl.toString()));
         }
         return BaseResultGenerator.success(dataList);
     }
