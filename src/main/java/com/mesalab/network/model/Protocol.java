@@ -1,4 +1,4 @@
-package com.mesalab.network.model.protocol;
+package com.mesalab.network.model;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -17,11 +17,11 @@ import java.util.Objects;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProtocolTree implements Serializable {
+public class Protocol implements Serializable {
     private String id;
     private String name;
     private String parentId;
-    private List<ProtocolTree> childrens = Lists.newArrayList();
+    private List<Protocol> childrens = Lists.newArrayList();
     private Map<String, Object> metrics = Maps.newLinkedHashMap();
     private long sentBytes;
     private long receivedBytes;
@@ -29,13 +29,13 @@ public class ProtocolTree implements Serializable {
     private long totalReceivedBytes;
 
 
-    public ProtocolTree(String id, String  name, String parentId) {
+    public Protocol(String id, String  name, String parentId) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
     }
 
-    public ProtocolTree(String id, String  name, String parentId, long sentBytes, long receivedBytes) {
+    public Protocol(String id, String  name, String parentId, long sentBytes, long receivedBytes) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
@@ -61,7 +61,7 @@ public class ProtocolTree implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ProtocolTree that = (ProtocolTree) o;
+        Protocol that = (Protocol) o;
         return Objects.equals(id, that.id);
     }
 

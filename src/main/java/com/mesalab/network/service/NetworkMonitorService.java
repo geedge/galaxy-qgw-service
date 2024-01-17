@@ -2,7 +2,7 @@ package com.mesalab.network.service;
 
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.network.dsl.DSLObject;
-import com.mesalab.network.model.protocol.ProtocolTree;
+import com.mesalab.network.model.Protocol;
 
 import java.util.List;
 import java.util.Map;
@@ -19,8 +19,8 @@ public interface NetworkMonitorService {
     BaseResult buildProtocolTree(DSLObject dslObject);
     BaseResult buildProtocolDataRateSummary(DSLObject dslObject);
     BaseResult buildNetworkOverviewResult(DSLObject dslObject);
-    List<ProtocolTree> buildFlatStructure(List<Map> data);
-    List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes);
+    List<Protocol> buildFlatStructure(List<Map> data);
+    List<Protocol> buildHierarchicalStructure(List<Protocol> nodes);
     BaseResult buildAppData(DSLObject dslObject);
     BaseResult buildInternalIPData(DSLObject dslObject);
 

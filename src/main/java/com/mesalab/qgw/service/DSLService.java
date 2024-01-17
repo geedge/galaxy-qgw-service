@@ -1,7 +1,7 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.network.model.protocol.ProtocolTree;
+import com.mesalab.network.model.Protocol;
 import com.mesalab.qgw.model.basic.DSLQueryContext;
 
 import java.util.List;
@@ -147,8 +147,8 @@ public interface DSLService {
      */
     BaseResult ipLearningActiveIp(DSLQueryContext dslProfile, boolean isDryRun);
 
-    List<ProtocolTree> buildFlatStructure(List<Map> protocolData);
+    List<Protocol> buildFlatStructure(List<Map> protocols);
 
-    List<ProtocolTree> buildHierarchicalStructure(List<ProtocolTree> nodes);
+    List<Protocol> buildHierarchicalStructure(List<Protocol> nodes);
 
 }
