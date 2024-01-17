@@ -16,7 +16,6 @@ Release 374 (TSG-23.12)
 * 修改dataset，数monitor-event-timeline 只提供会话指标趋势(TSG-17952)
 * 修改配置，Hbase Saved Query结果表为tsg_galaxy:saved_query_result
 * 修改配置，HOS存储桶重命名为knowledge_base_bucket(GAL-453)
-* 修改样例数据接口，增加where时间范围(防止数据集过大)及默认Limit，其它不做处理(TSG-18645)
 * 修改Schema，适配DosEvent、ProxyEvent与AssessmentEvent结构变化(TSG-17819)
 * 修改Schema，基础字段app_path、protocol_path重命名(TSG-17828)
 * 修改Schema，修改文件路径补全对应HOS桶名
@@ -40,6 +39,7 @@ Release 374 (TSG-23.12)
 * 扩展Schema，日志Schema支持表达式字段(TSG-18511)
 * 扩展Schema，object_statistics 新增object_type字段及字典数据(TSG-17960)
 * 扩展Schema，描述可作为维度的时间字段(TSG-18662)
+* 优化样例数据接口，优化Chart预览样例数据的生成方式(TSG-18645、TSG-18673)
 
 
 

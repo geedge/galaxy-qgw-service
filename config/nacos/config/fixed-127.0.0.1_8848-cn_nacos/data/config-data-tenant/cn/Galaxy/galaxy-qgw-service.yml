@@ -98,7 +98,7 @@ xxl-job-admin:
 engine:
   maxCacheNum: 1048575
   defaultResultNum: 100000
-  dryRunIntervalOffsetSecond: -3600
+  sampleDataPeriod: 1800
 service:
   entity:
     activeClientIP: 10000

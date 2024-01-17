@@ -799,18 +799,19 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
     /**
      * 通过递归方式将原SQL转换为样例SQL
-     * 做数据集限制:
-     * 1. 将最内层sql的表名, 替换成(select * from tableName limit XXX) as alias
-     * 2. 可对where、having添加：OR 1=1
+     * 做数据集限制: 取指定时间范围记录的子集
      *
      * @param sql 原始sql
      * @return 经转换后的样例SQL
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
+        if (engineConfigSource.getSampleDataPeriod() == 0) {
+            return sql;
+        }
         Date date = new Date();
         String endDate = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-        String startDate = DateUtils.getFormatDate(DateUtils.getSomeSecond(new Date(), engineConfigSource.getDryRunIntervalOffsetSecond()), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+        String startDate = DateUtils.getFormatDate(DateUtils.getSomeSecond(new Date(), -engineConfigSource.getSampleDataPeriod()), DateUtils.YYYY_MM_DD_HH24_MM_SS);
         String filterExpr = String.format("%s >= UNIX_TIMESTAMP('%s') AND %s < UNIX_TIMESTAMP('%s')",
                 sqlQueryContext.getDbQuerySource().getPartitionKey(),
                 startDate,

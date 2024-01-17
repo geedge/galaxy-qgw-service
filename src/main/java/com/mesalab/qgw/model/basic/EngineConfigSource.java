@@ -14,7 +14,7 @@ public class EngineConfigSource implements Serializable {
     private int maxCacheNum;
     @NacosValue(value = "${engine.defaultResultNum}", autoRefreshed = true)
     private int defaultResultNum;
-    @NacosValue(value = "${engine.dryRunIntervalOffsetSecond}", autoRefreshed = true)
-    private int dryRunIntervalOffsetSecond;
+    @NacosValue(value = "${engine.sampleDataPeriod}", autoRefreshed = true)
+    private int sampleDataPeriod;
 
 }
