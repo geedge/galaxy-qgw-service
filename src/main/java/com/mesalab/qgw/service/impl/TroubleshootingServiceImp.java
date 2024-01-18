@@ -36,6 +36,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.*;
+import com.opencsv.CSVWriter;
 import org.apache.avro.Schema;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.NameValuePair;
@@ -47,6 +48,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -61,7 +63,6 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private static final Log log = LogFactory.get();
     private static final String METADATA_PREFIX = "Metadata/";
 
-    private static final String HBASE_DBNAME2 = "tsg_galaxy";
     private static final String BACKEND_ENGINE = "backend_engine";
     private static final String IDENTIFIER_NAME = "identifier_name";
     private static final String TEMPLATE = "template";
@@ -106,7 +107,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private static Pattern pTTL = Pattern.compile(".*toIntervalSecond\\((\\d+)\\)", Pattern.CASE_INSENSITIVE);
     private static final String trafficPort = "8123";
     private final static String DATA_ID = "version.json";
-    private static final String BUILD_IN_BENCHMARK = "built_in_benchmark";
+    private static final String BENCHMARK = "benchmark";
     private static String localHostAddress;
 
     static {
@@ -203,12 +204,10 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
             Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), databaseService.getAllTable());
             Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), databaseService.getAllTable());
-            Map<String, Map<String, String>> hbase2Result = checkMetadataByDatasource(HBASE_DBNAME2, databaseService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
@@ -281,6 +280,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     public BaseResult benchmarkTest(boolean isSaved) {
 
         BaseResult result = null;
+        Map<String, Object> dataResult = Maps.newLinkedHashMap();
         Map<String, Object> statistics = Maps.newLinkedHashMap();
         Map<String, Map<String, String>> mergeResult;
         Map<String, Map<String, String>> engineResult;
@@ -288,7 +288,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, Map<String, String>> druidResult;
         Map<String, Map<String, String>> hbaseResult;
         try {
-            List<Map<String, Object>> dataSetlist = datasetService.getDatasets(Lists.newArrayList(), BUILD_IN_BENCHMARK, null);
+            List<Map<String, Object>> dataSetlist = datasetService.getDatasets(Lists.newArrayList(), BENCHMARK, null);
             List<String> druidIdList = Lists.newLinkedList();
             List<String> ckIdList = Lists.newLinkedList();
             List<String> engineIdList = Lists.newLinkedList();
@@ -309,23 +309,18 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                             druidIdList.add(identifierName);
                             druidSqlList.add(template);
                         } else if (DBEngineType.CLICKHOUSE.getValue().equalsIgnoreCase(backendEngine)) {
-                            druidIdList.add(identifierName);
-                            druidSqlList.add(template);
+                            ckIdList.add(identifierName);
+                            ckSqlList.add(template);
                         } else if (DBEngineType.HBASE.getValue().equalsIgnoreCase(backendEngine)) {
-                            druidIdList.add(identifierName);
-                            druidSqlList.add(template);
+                            hbaseIdList.add(identifierName);
+                            hbaseSqlList.add(template);
                         } else {
-                            druidIdList.add(identifierName);
-                            druidSqlList.add(template);
+                            engineIdList.add(identifierName);
+                            engineSqlList.add(template);
                         }
                     }
                 }
             }
-
-            Optional.of(new File(dialectWriter.buildPocSQL(druidSqlList, DBEngineType.DRUID.getValue(), BUILD_IN_BENCHMARK)));
-            Optional.of(new File(dialectWriter.buildPocSQL(ckSqlList, DBEngineType.CLICKHOUSE.getValue(), BUILD_IN_BENCHMARK)));
-            Optional.of(new File(dialectWriter.buildPocSQL(hbaseSqlList, DBEngineType.HBASE.getValue(), BUILD_IN_BENCHMARK)));
-            Optional.of(new File(dialectWriter.buildPocSQL(engineSqlList, DBEngineType.QGW.getValue(), BUILD_IN_BENCHMARK)));
 
             clickhouseResult = buildResult(DBEngineType.CLICKHOUSE.getValue(), ckIdList, isSaved);
             druidResult = buildResult(DBEngineType.DRUID.getValue(), druidIdList, isSaved);
@@ -340,8 +335,9 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), hbaseResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+            dataResult.put(BENCHMARK, mergeResult);
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            result = BaseResultGenerator.success("SQL Queries Success.", mergeResult, statistics);
+            result = BaseResultGenerator.success("SQL benchmark complete.", dataResult, statistics);
             result.setFormatType(OutputMode.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
@@ -576,24 +572,36 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private Map<String, Map<String, String>> buildResult(String executeEngine, List<String> list, boolean isSaved) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newLinkedHashMap();
-        FileWriter writer = null;
-        String benchFileName = executeEngine + "_queries_" + DateUtils.getCurrentDate(DateUtils.YYYYMMDD) + ".sql";
+        CSVWriter csvWriter = null;
+        String benchFileName = executeEngine + "_queries_" + DateUtils.getCurrentDate(DateUtils.YYYYMMDD);
+        String filePath = "benchmark" + File.separator + benchFileName + "." + IdUtil.simpleUUID() + ".csv";
         if (isSaved) {
-            File file = new File("benchmark" + File.separator + benchFileName + "." + IdUtil.simpleUUID() + ".dat");
-            writer = FileWriter.create(file);
+            try {
+                csvWriter = new CSVWriter(new java.io.FileWriter(filePath));
+                String[] headers = {"ID", "Elapsed(ms)", "Data sample"};
+                csvWriter.writeNext(headers);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-        int index = 0;
-        for (String line : list) {
-            index++;
+        for (String id : list) {
             Stopwatch watch = Stopwatch.createStarted();
-            BaseResult queryResult = datasetService.getPreview(line);
+            BaseResult queryResult = datasetService.getPreview(id);
             if (StringUtil.isEmpty(queryResult.getStatistics())) {
                 Map<String, Object> statistics = Maps.newLinkedHashMap();
                 statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
                 queryResult.setStatistics(statistics);
             }
-            processQueryResult(benchFileName, infoMap, writer, index, queryResult);
+            processQueryResult(benchFileName, infoMap, csvWriter, id, queryResult);
         }
+        if (csvWriter != null) {
+            try {
+                csvWriter.close();
+            } catch (IOException e) {
+                log.error("Failed to close CSVWriter:{}", e.getMessage());
+            }
+        }
+
         resultMap.put(benchFileName, buildQueryTimeMetric(infoMap));
         return resultMap;
     }
@@ -611,23 +619,21 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         return infoMap;
     }
 
-    private void processQueryResult(String name, Map<String, String> infoMap, FileWriter writer,
-                                    int index, BaseResult queryResult) {
+    private void processQueryResult(String name, Map<String, String> infoMap, CSVWriter writer,
+                                    String id, BaseResult queryResult) {
         int statusCode = Integer.parseInt(queryResult.getStatus().toString());
         if (statusCode == HttpStatusCodeEnum.SUCCESS.getCode()) {
             if (writer != null) {
-                writer.append("--Query" + index + "\t" + "Elapsed(ms):" + queryResult.getStatistics().get("elapsed") + "\n");
-                writer.append(queryResult.getMeta() + "\n");
-                writer.append(queryResult.getData() + "\n");
+                String [] data = {id, String.valueOf(queryResult.getStatistics().get("elapsed")), String.valueOf(queryResult.getData())};
+                writer.writeNext(data);
             }
-            infoMap.put("Query" + index, queryResult.getStatistics().get("elapsed") + "");
+            infoMap.put(id, queryResult.getStatistics().get("elapsed") + "");
         } else if (statusCode == HttpStatusCodeEnum.GATEWAY_TIMEOUT.getCode() || statusCode == HttpStatusCodeEnum.BAD_GATEWAY.getCode()) {
-            infoMap.put("Query" + index, "status:" + queryResult.getStatus() + ",message:" + queryResult.getMessage());
-
+            infoMap.put(id, "status:" + queryResult.getStatus() + ",message:" + queryResult.getMessage());
         } else {
             throw new QGWBusinessException(statusCode, CommonErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), name
-                            + ",Query" + index + "," + queryResult.getStatus() + "," + queryResult.getMessage()));
+                            + "," + id + "," + queryResult.getStatus() + "," + queryResult.getMessage()));
         }
     }
 

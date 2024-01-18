@@ -29,7 +29,7 @@ public class TroubleshootingController {
 
     @Autowired
     private TroubleshootingService troubleshootingService;
-    private static final String TEST_PARAM = "olap_sql_dataset";
+    private static final String TEST_PARAM = "sql_benchmark_dataset";
 
     @RequestMapping("/component/status")
     @AuditLog("TroubleshootingController.componentStatus")
