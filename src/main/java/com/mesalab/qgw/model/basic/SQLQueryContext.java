@@ -18,11 +18,9 @@ public class SQLQueryContext implements Serializable {
     private String resultId;
     private Integer timeout;
     private String dbEngine;
-    // SQL Dialect,such as: Mysql,Hive, etc. It used syntax and semantic rules to transform SQL query.
-    private String sqlDialect;
-    private SQLQuerySource engineQuerySource;
-    private SQLQuerySource dbQuerySource;
-
+    private String sqlDialect; // SQL Dialect,such as: Mysql,Hive, etc. It used syntax and semantic rules to transform SQL query.
+    private SelectStatement federationSelectStatement;
+    private SelectStatement dbSelectStatement;
     public String getResultId() {
         return resultId;
     }

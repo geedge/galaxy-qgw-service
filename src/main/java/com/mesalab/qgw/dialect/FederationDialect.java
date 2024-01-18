@@ -21,7 +21,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
-import com.mesalab.qgw.model.basic.SQLQuerySource;
+import com.mesalab.qgw.model.basic.SelectStatement;
 import com.mesalab.qgw.model.basic.udf.UDF;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -62,23 +62,23 @@ public class FederationDialect extends AbstractEngineDialect {
 
     @Override
     public void init() {
-        if (StringUtil.isNotEmpty(sqlQueryContext.getEngineQuerySource())) {
-            sqlQueryContext.getEngineQuerySource().setExecSQL(sqlQueryContext.getEngineQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getFederationSelectStatement())) {
+            sqlQueryContext.getFederationSelectStatement().setExecSQL(sqlQueryContext.getFederationSelectStatement().getSqlBody());
         } else {
-            SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(null);
-            sqlQueryContext.setEngineQuerySource(sqlQuerySource);
+            SelectStatement fdSelectStatement = new SelectStatement();
+            fdSelectStatement.setExecSQL(null);
+            sqlQueryContext.setFederationSelectStatement(fdSelectStatement);
         }
     }
 
     @Override
     public String getFederateQuery() {
-        return sqlQueryContext.getEngineQuerySource().getExecSQL();
+        return sqlQueryContext.getFederationSelectStatement().getExecSQL();
     }
 
     @Override
     public String getSampleQuery() {
-        String sql = sqlQueryContext.getEngineQuerySource().getExecSQL();
+        String sql = sqlQueryContext.getFederationSelectStatement().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
@@ -86,14 +86,14 @@ public class FederationDialect extends AbstractEngineDialect {
             sql = new SampleSQLHelper(sql, null, false, engineConfigSource.getDefaultResultNum()).build();
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sql, sql = sqlQueryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+                    sql, sql = sqlQueryContext.getDbSelectStatement().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sql;
     }
 
     @Override
     public String getSyntaxCheckQuery() {
-        String sql = sqlQueryContext.getEngineQuerySource().getExecSQL();
+        String sql = sqlQueryContext.getFederationSelectStatement().getExecSQL();
         if (!isExecute()) {
             return sql;
         }
@@ -117,7 +117,7 @@ public class FederationDialect extends AbstractEngineDialect {
 
     @Override
     public boolean isExecute() {
-        return StringUtil.isNotEmpty(sqlQueryContext.getEngineQuerySource().getExecSQL());
+        return StringUtil.isNotEmpty(sqlQueryContext.getFederationSelectStatement().getExecSQL());
     }
 
 
@@ -127,8 +127,8 @@ public class FederationDialect extends AbstractEngineDialect {
             watch.start();
             if (isExecute()) {
                 log.info("DB engine is :{}, execute query is: {}", DBEngineType.QGW.getValue(), JSON.toJSONString(sql));
-                SQLQuerySource sqlQuerySource = sqlQueryContext.getEngineQuerySource();
-                Map resultMap = CalciteConnectionProcessor.getInstance().executeMemoryQuery(sqlQuerySource.getTableNames().get(0),
+                SelectStatement fdSelectStatement = sqlQueryContext.getFederationSelectStatement();
+                Map resultMap = CalciteConnectionProcessor.getInstance().executeMemoryQuery(fdSelectStatement.getTableNames().get(0),
                         (List<Map<String, String>>) baseResult.getMeta(),
                         (List<Map<String, Object>>) baseResult.getData(), sql);
                 baseResult.setData(resultMap.get("data"));
@@ -172,7 +172,7 @@ public class FederationDialect extends AbstractEngineDialect {
             return;
         }
         List<Map<String, Object>> data = JsonPath.read(meta, "$");
-        SQLQuerySource querySource = StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) || StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource().getExecSQL()) ? sqlQueryContext.getDbQuerySource() : sqlQueryContext.getEngineQuerySource();
+        SelectStatement querySource = StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement()) || StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement().getExecSQL()) ? sqlQueryContext.getDbSelectStatement() : sqlQueryContext.getFederationSelectStatement();
         Map<String, String> groupDimension = querySource.getGroupDimension();
         for (Map<String, Object> map : data) {
             String field = String.valueOf(map.get("name"));
@@ -200,7 +200,7 @@ public class FederationDialect extends AbstractEngineDialect {
 
     @Override
     public void executeUDF() {
-        SQLQuerySource sqlQuerySource = sqlQueryContext.getDbQuerySource();
+        SelectStatement sqlQuerySource = sqlQueryContext.getDbSelectStatement();
         Set<UDF> udfSet = sqlQuerySource.getUdfSet();
         for (UDF udf : udfSet) {
             List<Map<String, String>> targetResult = (List<Map<String, String>>) udf.execute(sqlQuerySource,

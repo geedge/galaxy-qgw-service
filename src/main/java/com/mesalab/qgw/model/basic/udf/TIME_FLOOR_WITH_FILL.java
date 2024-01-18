@@ -15,7 +15,7 @@ import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
-import com.mesalab.qgw.model.basic.SQLQuerySource;
+import com.mesalab.qgw.model.basic.SelectStatement;
 import com.mesalab.qgw.service.DatabaseService;
 import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
@@ -90,13 +90,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
 
 
     @Override
-    public Object execute(SQLQuerySource sqlQuerySource, BaseResult baseResult) {
+    public Object execute(SelectStatement selectStatement, BaseResult baseResult) {
         List<Object> results = (List<Object>)baseResult.getData();
         List<Map<String, Object>> targetResult = Lists.newArrayList();
         List<String> groupLabels = Lists.newArrayList();
         String timeGranLabel = null;
         try {
-            Map<String, String> groupDimension = sqlQuerySource.getGroupDimension();
+            Map<String, String> groupDimension = selectStatement.getGroupDimension();
             if (results.isEmpty() || StringUtil.isBlank(fill) || StringUtil.isEmpty(groupDimension)) {
                 return results;
             }
@@ -125,7 +125,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
                 return results;
             }
 
-            WhereTimeRange whereTimeRange = getWhereTimeRange(sqlQuerySource);
+            WhereTimeRange whereTimeRange = getWhereTimeRange(selectStatement);
             Date benchmarkDate = getBenchmarkDate(resultsFirst, timeGranLabel);
 
             targetResult = fillResultBasedOnTimeSeries(results, groupLabels, timeGranLabel);
@@ -176,13 +176,13 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
             log.error("Parser function : TIME_FLOOR_WITH_FILL error :{} ", e.toString());
             return results;
         } finally {
-            if (StringUtil.isNotBlank(sqlQuerySource.getLimit())
-                    && !sqlQuerySource.getLimit().equalsIgnoreCase(SQLHelper.INVALID_LIMIT_DESC)
-                    && targetResult.size() > Integer.parseInt(sqlQuerySource.getLimit())) {
-                targetResult = targetResult.subList(0, Integer.parseInt(sqlQuerySource.getLimit()));
+            if (StringUtil.isNotBlank(selectStatement.getLimit())
+                    && !selectStatement.getLimit().equalsIgnoreCase(SQLHelper.INVALID_LIMIT_DESC)
+                    && targetResult.size() > Integer.parseInt(selectStatement.getLimit())) {
+                targetResult = targetResult.subList(0, Integer.parseInt(selectStatement.getLimit()));
             }
         }
-        sortByTime(sqlQuerySource, targetResult, timeGranLabel);
+        sortByTime(selectStatement, targetResult, timeGranLabel);
         List<String> objects = Lists.newArrayList();
         objects.add(timeGranLabel);
         objects.addAll(groupLabels);
@@ -231,7 +231,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         });
     }
 
-    private void sortByTime(SQLQuerySource sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
+    private void sortByTime(SelectStatement sqlQuerySource, List<Map<String, Object>> targetResult, String timeGranLabel) {
         if(StringUtil.isEmpty(sqlQuerySource.getOrderByElements())){
             return;
         }
@@ -302,7 +302,7 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
      * @param sqlQuerySource
      * @return
      */
-    private WhereTimeRange getWhereTimeRange(SQLQuerySource sqlQuerySource) {
+    private WhereTimeRange getWhereTimeRange(SelectStatement sqlQuerySource) {
         String dbType = databaseService.getDBEngineByTableName(sqlQuerySource.getTableNames().get(0));
         WhereTimeRange whereTimeRange = new WhereTimeRange();
         List<FillParam> outToInnerList = getFillParams(sqlQuerySource);
@@ -315,9 +315,9 @@ public class TIME_FLOOR_WITH_FILL implements UDF{
         return whereTimeRange;
     }
 
-    private List<FillParam> getFillParams(SQLQuerySource sqlQuerySource) {
+    private List<FillParam> getFillParams(SelectStatement sqlQuerySource) {
         List<FillParam> result = Lists.newArrayList();
-        SQLQuerySource currentSource = sqlQuerySource;
+        SelectStatement currentSource = sqlQuerySource;
         boolean isOriginalDataSource = false;
         while (!isOriginalDataSource) {
             FillParam currentParam = new FillParam();

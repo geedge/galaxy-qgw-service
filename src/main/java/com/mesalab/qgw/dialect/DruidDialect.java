@@ -50,12 +50,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
     @Override
     void init() {
-        if (StringUtil.isNotEmpty(sqlQueryContext.getDbQuerySource())) {
-            sqlQueryContext.getDbQuerySource().setExecSQL(sqlQueryContext.getDbQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getDbSelectStatement())) {
+            sqlQueryContext.getDbSelectStatement().setExecSQL(sqlQueryContext.getDbSelectStatement().getSqlBody());
         } else {
-            SQLQuerySource sqlQuerySource = new SQLQuerySource();
+            SelectStatement sqlQuerySource = new SelectStatement();
             sqlQuerySource.setExecSQL(sqlQueryContext.getOriginalSQL());
-            sqlQueryContext.setDbQuerySource(sqlQuerySource);
+            sqlQueryContext.setDbSelectStatement(sqlQuerySource);
         }
         baseResult = BaseResultGenerator.success();
     }
@@ -87,12 +87,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
      */
     @Override
     public String getSampleQuery() {
-        String sampleSQL = sqlQueryContext.getDbQuerySource().getSqlBody();
+        String sampleSQL = sqlQueryContext.getDbSelectStatement().getSqlBody();
         try {
             sampleSQL = convertQuery(convertSampleSql(sampleSQL));
         } catch (JSQLParserException e) {
             log.error("syntax-check sql error {}, execute original sql: {}, error is: {} ",
-                    sampleSQL, sampleSQL = sqlQueryContext.getDbQuerySource().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
+                    sampleSQL, sampleSQL = sqlQueryContext.getDbSelectStatement().getSqlBody(), e.getMessage() == null ? e.getCause() : e.getMessage());
         }
         return sampleSQL;
     }
@@ -232,12 +232,12 @@ public class DruidDialect extends AbstractDataSourceDialect {
         String endDate = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
         String startDate = DateUtils.getFormatDate(DateUtils.getSomeSecond(date, -engineConfigSource.getSampleDataPeriod()), DateUtils.YYYY_MM_DD_HH24_MM_SS);
         String filterExpr = String.format("%s >= '%s' AND %s < '%s'",
-                sqlQueryContext.getDbQuerySource().getPartitionKey(),
+                sqlQueryContext.getDbSelectStatement().getPartitionKey(),
                 startDate,
-                sqlQueryContext.getDbQuerySource().getPartitionKey(),
+                sqlQueryContext.getDbSelectStatement().getPartitionKey(),
                 endDate
         );
-        return new SampleSQLHelper(sql, filterExpr, false, StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) ? engineConfigSource.getDefaultResultNum() : engineConfigSource.getMaxCacheNum()).build();
+        return new SampleSQLHelper(sql, filterExpr, false, StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement()) ? engineConfigSource.getDefaultResultNum() : engineConfigSource.getMaxCacheNum()).build();
     }
 
     private List<Map<String, String>> unifyMeta(List<Object> list) {
@@ -280,7 +280,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
          * @return
          */
         public Converter generateStandard() {
-            SQLQuerySource dbQuerySource = sqlQueryContext.getDbQuerySource();
+            SelectStatement dbQuerySource = sqlQueryContext.getDbSelectStatement();
             if (StringUtil.isNotBlank(dbQuerySource.getLimit()) &&
                     dbQuerySource.getLimit().split(",").length >= 2) {
 
@@ -316,19 +316,19 @@ public class DruidDialect extends AbstractDataSourceDialect {
          * @return
          */
         public Optimizer generateQueryLimit() {
-            if (StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource())) {
-                setDefaultResultRows(sqlQueryContext.getDbQuerySource(), engineConfigSource.getDefaultResultNum());
-                setMaxCacheResultRows(sqlQueryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
+            if (StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement())) {
+                setDefaultResultRows(sqlQueryContext.getDbSelectStatement(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(sqlQueryContext.getDbSelectStatement(), engineConfigSource.getMaxCacheNum());
             } else {
-                setDefaultResultRows(sqlQueryContext.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
-                setMaxCacheResultRows(sqlQueryContext.getDbQuerySource(), engineConfigSource.getMaxCacheNum());
-                setMaxCacheResultRows(sqlQueryContext.getEngineQuerySource(), engineConfigSource.getMaxCacheNum());
+                setDefaultResultRows(sqlQueryContext.getFederationSelectStatement(), engineConfigSource.getDefaultResultNum());
+                setMaxCacheResultRows(sqlQueryContext.getDbSelectStatement(), engineConfigSource.getMaxCacheNum());
+                setMaxCacheResultRows(sqlQueryContext.getFederationSelectStatement(), engineConfigSource.getMaxCacheNum());
             }
             return this;
         }
 
 
-        private void setDefaultResultRows(SQLQuerySource sqlQuerySource, int defaultResultRows) {
+        private void setDefaultResultRows(SelectStatement sqlQuerySource, int defaultResultRows) {
             if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
                 sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody() + " limit " + defaultResultRows);
                 sqlQuerySource.setLimit(String.valueOf(defaultResultRows));
@@ -342,7 +342,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
          * @param sqlQuerySource
          * @return
          */
-        private void setMaxCacheResultRows(SQLQuerySource sqlQuerySource, int maxCacheResultRows) {
+        private void setMaxCacheResultRows(SelectStatement sqlQuerySource, int maxCacheResultRows) {
             if (!sqlQuerySource.isEnableLimit()) {
                 return;
             }
@@ -367,7 +367,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         }
 
         public Optimizer generateSQL() {
-            SQLQuerySource sqlQuerySource = sqlQueryContext.getDbQuerySource();
+            SelectStatement sqlQuerySource = sqlQueryContext.getDbSelectStatement();
             sql = sqlQuerySource.getSqlBody();
             return this;
         }

@@ -20,7 +20,7 @@ import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.model.basic.HBaseAPISource;
-import com.mesalab.qgw.model.basic.SQLQuerySource;
+import com.mesalab.qgw.model.basic.SelectStatement;
 import com.geedgenetworks.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
@@ -82,12 +82,12 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     void init() {
-        if (StringUtil.isNotEmpty(sqlQueryContext.getDbQuerySource())) {
-            sqlQueryContext.getDbQuerySource().setExecSQL(sqlQueryContext.getDbQuerySource().getSqlBody());
+        if (StringUtil.isNotEmpty(sqlQueryContext.getDbSelectStatement())) {
+            sqlQueryContext.getDbSelectStatement().setExecSQL(sqlQueryContext.getDbSelectStatement().getSqlBody());
         } else {
-            SQLQuerySource sqlQuerySource = new SQLQuerySource();
-            sqlQuerySource.setExecSQL(sqlQueryContext.getOriginalSQL());
-            sqlQueryContext.setDbQuerySource(sqlQuerySource);
+            SelectStatement dbSelectStatement = new SelectStatement();
+            dbSelectStatement.setExecSQL(sqlQueryContext.getOriginalSQL());
+            sqlQueryContext.setDbSelectStatement(dbSelectStatement);
         }
         baseResult = BaseResultGenerator.success();
     }
@@ -225,11 +225,11 @@ public class HbaseDialect extends AbstractDataSourceDialect {
          */
         public Optimizer generateQueryLimit() {
 
-            setDefaultResultRows(StringUtil.isEmpty(sqlQueryContext.getEngineQuerySource()) ? sqlQueryContext.getDbQuerySource() : sqlQueryContext.getEngineQuerySource(), engineConfigSource.getDefaultResultNum());
+            setDefaultResultRows(StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement()) ? sqlQueryContext.getDbSelectStatement() : sqlQueryContext.getFederationSelectStatement(), engineConfigSource.getDefaultResultNum());
             return this;
         }
 
-        private void setDefaultResultRows(SQLQuerySource sqlQuerySource, int defaultResultRows) {
+        private void setDefaultResultRows(SelectStatement sqlQuerySource, int defaultResultRows) {
             if (StringUtil.isBlank(sqlQuerySource.getLimit())) {
                 sqlQuerySource.setSqlBody(sqlQuerySource.getSqlBody() + " limit " + defaultResultRows);
                 sqlQuerySource.setLimit(String.valueOf(defaultResultRows));
@@ -238,7 +238,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         }
 
         public Optimizer generateSQL() {
-            SQLQuerySource sqlQuerySource = sqlQueryContext.getDbQuerySource();
+            SelectStatement sqlQuerySource = sqlQueryContext.getDbSelectStatement();
             sql = sqlQuerySource.getSqlBody();
             return this;
         }

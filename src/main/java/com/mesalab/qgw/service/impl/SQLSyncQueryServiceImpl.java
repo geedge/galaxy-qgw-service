@@ -199,7 +199,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
 
 
     private Dialect getDialect(SQLQueryContext queryContext) {
-        convertQueryRecursive(queryContext, parserSQLByAst(queryContext.getOriginalSQL()));
+        buildSelectStatement(queryContext, parserSQLByAst(queryContext.getOriginalSQL()));
         return getReflectiveDialectObject(queryContext);
     }
 
@@ -219,49 +219,58 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         return dialect;
     }
 
-
     /**
-     * 递归解析SQLQuerySource ，拆分为数据库执行SQL与引擎执行的SQL source
+     * Parse a nested SQL statement into dbSelectStatement and FederationStatement object
+     * @param sqlQueryContext query context
+     * @param originalSelectStatement original SQL statement
      *
-     * @param sqlQuerySource SQL解析对象
      */
-    public void convertQueryRecursive(SQLQueryContext param, SQLQuerySource sqlQuerySource) {
-        SQLQuerySource engineQuerySource = null;
-        SQLQuerySource dbQuerySource = null;
-
-        SQLQuerySource indexUpSqlQuerySource = null;
-        SQLQuerySource indexSqlQuerySource = sqlQuerySource;
+    public void buildSelectStatement(SQLQueryContext sqlQueryContext, SelectStatement originalSelectStatement) {
+        SelectStatement federationSelectStatement = null;
+        SelectStatement dbSelectStatement = null;
+        SelectStatement parentSelectStatement = null;
+        SelectStatement cursorSelectStatement = originalSelectStatement;
         for (int i = 0; i < MAX_PARSER_LEVEL; i++) {
-            if (indexSqlQuerySource.getUdfSet().size() > 0) {
-                dbQuerySource = indexSqlQuerySource;
+            if (hasUDF(cursorSelectStatement)) {
+                dbSelectStatement = cursorSelectStatement;
                 break;
             }
-            if (StringUtil.isEmpty(indexSqlQuerySource.getSubSelect())) {
-                dbQuerySource = sqlQuerySource;
-                indexUpSqlQuerySource = null;
+
+            if (isEmptySubSelect(cursorSelectStatement)) {
+                dbSelectStatement = originalSelectStatement;
+                parentSelectStatement = null;
                 break;
             } else {
-                indexUpSqlQuerySource = indexSqlQuerySource;
-                indexSqlQuerySource = indexSqlQuerySource.getSubSqlQuerySources().get(0);
-                if (indexSqlQuerySource.getUdfSet().size() > 0) {
-                    dbQuerySource = indexSqlQuerySource;
+                parentSelectStatement = cursorSelectStatement;
+                cursorSelectStatement = cursorSelectStatement.getSubSqlQuerySources().get(0);
+                if (hasUDF(cursorSelectStatement)) {
+                    dbSelectStatement = cursorSelectStatement;
                     break;
                 }
             }
         }
 
-        if (StringUtil.isNotEmpty(indexUpSqlQuerySource)) {
-            engineQuerySource = new SQLQuerySource();
-            String tableName = StringUtil.isEmpty(indexUpSqlQuerySource.getSubSelect().getAlias()) ? indexUpSqlQuerySource.getTableNames().get(0) : indexUpSqlQuerySource.getSubSelect().getAlias().getName();
-            String replace = sqlQuerySource.getSqlBody().replace(indexUpSqlQuerySource.getSubSelect().toString(), tableName);
-            engineQuerySource.setSqlBody(replace);
-            engineQuerySource.getTableNames().add(0, tableName);
-            engineQuerySource.setLimit(sqlQuerySource.getLimit());
+        if (StringUtil.isNotEmpty(parentSelectStatement)) {
+            federationSelectStatement = new SelectStatement();
+            String tableName = StringUtil.isEmpty(parentSelectStatement.getSubSelect().getAlias()) ? parentSelectStatement.getTableNames().get(0) : parentSelectStatement.getSubSelect().getAlias().getName();
+            String replace = originalSelectStatement.getSqlBody().replace(parentSelectStatement.getSubSelect().toString(), tableName);
+            federationSelectStatement.setSqlBody(replace);
+            federationSelectStatement.getTableNames().add(0, tableName);
+            federationSelectStatement.setLimit(originalSelectStatement.getLimit());
         }
 
-        param.setDbQuerySource(dbQuerySource);
-        param.setEngineQuerySource(engineQuerySource);
+        sqlQueryContext.setDbSelectStatement(dbSelectStatement);
+        sqlQueryContext.setFederationSelectStatement(federationSelectStatement);
     }
+
+    private boolean hasUDF(SelectStatement selectStatement) {
+        return selectStatement != null && selectStatement.getUdfSet() != null && !selectStatement.getUdfSet().isEmpty();
+    }
+
+    private boolean isEmptySubSelect(SelectStatement selectStatement) {
+        return selectStatement == null || StringUtil.isEmpty(selectStatement.getSubSelect());
+    }
+
 
 
     /**
@@ -270,8 +279,8 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
      * @param sql
      * @return
      */
-    private SQLQuerySource parserSQLByAst(String sql) {
-        SQLQuerySource sqlQuerySource = new SQLQuerySource();
+    private SelectStatement parserSQLByAst(String sql) {
+        SelectStatement sqlQuerySource = new SelectStatement();
         try {
 
             Statement statement = CCJSqlParserUtil.parse(sql);
@@ -357,7 +366,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                 List<SelectBody> selects = setOperationList.getSelects();
                 //暂时只解析第一个结构，不接受不相同的where
                 if (StringUtil.isNotEmpty(selects)) {
-                    SQLQuerySource parseSql = parserSQLByAst(selects.get(0).toString());
+                    SelectStatement parseSql = parserSQLByAst(selects.get(0).toString());
                     sqlQuerySource.setUdfSet(parseSql.getUdfSet());
                     sqlQuerySource.setWhereExpression(parseSql.getWhereExpression());
                     sqlQuerySource.setGroupByElement(parseSql.getGroupByElement());
@@ -466,9 +475,9 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
         }
 
         queryContext.setFormat(OutputMode.JSON.getValue());
-        SQLQuerySource dbQuerySource = new SQLQuerySource();
-        dbQuerySource.setSqlBody(queryContext.getOriginalSQL());
-        queryContext.setDbQuerySource(dbQuerySource);
+        SelectStatement dbSelectStatement = new SelectStatement();
+        dbSelectStatement.setSqlBody(queryContext.getOriginalSQL());
+        queryContext.setDbSelectStatement(dbSelectStatement);
         Dialect dialect = getReflectiveDialectObject(queryContext);
         BaseResult baseResult = dataEncapsulationOfSchema(dialect.executeAdministrativeQuery(), queryContext);
 

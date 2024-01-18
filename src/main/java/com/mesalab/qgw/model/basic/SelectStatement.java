@@ -16,11 +16,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * SQL Parser properties
+ * A parsed SQL statement
  */
 @Data
-public class SQLQuerySource {
-
+public class SelectStatement {
     private String execSQL;
     private String sqlBody;
     private List<String> tableNames = Lists.newArrayList();
@@ -37,7 +36,7 @@ public class SQLQuerySource {
     private boolean isEnableLimit;
 
     private SubSelect subSelect;
-    private List<SQLQuerySource> subSqlQuerySources = Lists.newArrayList();
+    private List<SelectStatement> subSqlQuerySources = Lists.newArrayList();
     private Set<UDF> udfSet = Sets.newHashSet();
 
     public boolean isEnableLimit() {
