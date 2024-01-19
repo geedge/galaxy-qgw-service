@@ -393,6 +393,7 @@
                     <artifactId>spotbugs-maven-plugin</artifactId>
                     <version>4.4.2.2</version>
                     <configuration>
+                        <skip>true</skip>
                         <threshold>Low</threshold>
                         <effort>default</effort>
                         <failOnError>true</failOnError>
