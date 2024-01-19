@@ -397,7 +397,7 @@
                         <effort>default</effort>
                         <failOnError>true</failOnError>
                         <xmlOutput>true</xmlOutput>
-                        <excludeFilterFile>${rootDir}/develop/spotbugs-exclude.xml</excludeFilterFile>
+                        <excludeFilterFile>${qgw.main.basedir}/develop/spotbugs-exclude.xml</excludeFilterFile>
                         <spotbugsXmlOutputDirectory>${project.build.directory}/spotbugs</spotbugsXmlOutputDirectory>
                     </configuration>
                 </plugin>
