@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 public class HazelcastInstanceMapUtil {
 
     private static HazelcastInstance hazelcastInstance;
+    private static final String AD_HOC_CACHE = "adHocCache";
 
     @Autowired
     public HazelcastInstanceMapUtil(@Qualifier("hazelcastInstance") HazelcastInstance hazelcastInstance) {
@@ -27,7 +28,7 @@ public class HazelcastInstanceMapUtil {
 
 
     private static ConcurrentMap<String, QueryCache> retrieveMap() {
-        return hazelcastInstance.getMap("adHocCache");
+        return hazelcastInstance.getMap(AD_HOC_CACHE);
     }
 
     public static Object put(String key, QueryCache value) {

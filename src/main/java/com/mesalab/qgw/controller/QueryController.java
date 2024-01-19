@@ -2,6 +2,7 @@ package com.mesalab.qgw.controller;
 
 import cn.hutool.core.util.BooleanUtil;
 import com.alibaba.fastjson2.JSON;
+import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.ExecMode;
@@ -10,15 +11,19 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
+import com.mesalab.qgw.service.DeferredResultHolder;
 import com.mesalab.qgw.service.QueryJobService;
 import com.mesalab.qgw.service.SQLSyncQueryService;
+import com.mesalab.services.configuration.JobConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -28,6 +33,8 @@ public class QueryController {
 
     private SQLSyncQueryService sqlSyncQueryService;
     private QueryJobService queryJobService;
+    private JobConfig jobConfig;
+    private DeferredResultHolder deferredResultHolder;
 
     @GetMapping("/sql")
     @AuditLog("QueryController.get")
@@ -83,48 +90,114 @@ public class QueryController {
 
     @GetMapping(value = "/v1/query/job/{id}/result", consumes = "application/x-www-form-urlencoded")
     @AuditLog("QueryController.getJobResultById")
-    public BaseResult getJobResultById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
+    public DeferredResult<BaseResult> getJobResultById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
+        BaseResult baseResult;
         if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
-            return queryJobService.getSavedQueryResultById(id);
+            baseResult = queryJobService.getSavedQueryResultById(id);
         } else {
-            return queryJobService.getAdHocQueryResultById(id);
+            baseResult = queryJobService.getAdHocQueryResultById(id);
         }
+        DeferredResult<BaseResult> deferredResult =
+                deferredResultHolder.newDeferredResult(id, jobConfig.getResponseTimeout(), baseResult);
+        if (!jobConfig.isLongPollingEnabled()) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+            return deferredResult;
+        }
+        deferredResult.onTimeout(() -> {
+            deferredResultHolder.handleDeferredData(deferredResult, BooleanUtil.toBoolean(String.valueOf(isSavedQuery)) ? queryJobService.getSavedQueryResultById(id) : queryJobService.getAdHocQueryResultById(id));
+        });
+
+        if (StringUtil.isNotEmpty(baseResult)
+                && StringUtil.isNotEmpty(baseResult.getJob())
+                && Boolean.valueOf(String.valueOf(baseResult.getJob().get(JobConfig.IS_DONE)))) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+        }
+        return deferredResult;
     }
 
     @GetMapping(value = "/v1/query/job/{id}", consumes = "application/x-www-form-urlencoded")
     @AuditLog("QueryController.getJobStatusById")
-    public BaseResult getJobStatusById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
+    public DeferredResult<BaseResult> getJobStatusById(@PathVariable String id, @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQuery) {
+        BaseResult baseResult;
         if (BooleanUtil.toBoolean(String.valueOf(isSavedQuery))) {
-            return queryJobService.getSavedQueryStatusById(id);
+            baseResult = queryJobService.getSavedQueryStatusById(id);
         } else {
-            return queryJobService.getAdHocQueryStatusById(id);
+            baseResult = queryJobService.getAdHocQueryStatusById(id);
         }
+        DeferredResult<BaseResult> deferredResult =
+                deferredResultHolder.newDeferredResult(id, jobConfig.getResponseTimeout(), baseResult);
+        if (!jobConfig.isLongPollingEnabled()) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+            return deferredResult;
+        }
+        deferredResult.onTimeout(() -> {
+            deferredResultHolder.handleDeferredData(deferredResult, BooleanUtil.toBoolean(String.valueOf(isSavedQuery)) ? queryJobService.getSavedQueryStatusById(id) : queryJobService.getAdHocQueryStatusById(id));
+        });
+
+        if (StringUtil.isNotEmpty(baseResult)
+                && StringUtil.isNotEmpty(baseResult.getJob())
+                && Boolean.valueOf(String.valueOf(baseResult.getJob().get(JobConfig.IS_DONE)))) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+        }
+        return deferredResult;
     }
 
     @GetMapping(value = "/v1/query/job/result", consumes = "application/x-www-form-urlencoded")
     @AuditLog("QueryController.getJobResult")
-    public BaseResult getJobResult(@RequestParam(value = "job_ids") String jobIds
+    public DeferredResult<BaseResult> getJobResult(@RequestParam(value = "job_ids") String jobIds
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
         List<String> ids = Arrays.stream(jobIds.split(",")).distinct().collect(Collectors.toList());
+        BaseResult baseResult;
         if (isSavedQuery) {
-            return queryJobService.getSavedQueryResult(ids);
+            baseResult = queryJobService.getSavedQueryResult(ids);
         } else {
-            return queryJobService.getAdHocQueryResult(ids);
+            baseResult = queryJobService.getAdHocQueryResult(ids);
         }
+
+        DeferredResult<BaseResult> deferredResult =
+                deferredResultHolder.newDeferredResult(String.valueOf(ids), jobConfig.getResponseTimeout(), baseResult);
+        if (!jobConfig.isLongPollingEnabled()) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+            return deferredResult;
+        }
+        deferredResult.onTimeout(() -> {
+            deferredResultHolder.handleDeferredData(deferredResult, BooleanUtil.toBoolean(String.valueOf(isSavedQuery)) ? queryJobService.getSavedQueryResult(ids) : queryJobService.getAdHocQueryResult(ids));
+        });
+
+        if (jobsIsDoneOfResult(baseResult)) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+        }
+        return deferredResult;
     }
 
     @GetMapping(value = "/v1/query/job", consumes = "application/x-www-form-urlencoded")
     @AuditLog("QueryController.getJobStatus")
-    public BaseResult getJobStatus(@RequestParam(value = "job_ids") String jobIds
+    public DeferredResult<BaseResult> getJobStatus(@RequestParam(value = "job_ids") String jobIds
             , @RequestParam(value = "is_saved_query", required = false, defaultValue = "0") Integer isSavedQueryInt) {
         boolean isSavedQuery = BooleanUtil.toBoolean(String.valueOf(isSavedQueryInt));
         List<String> ids = Arrays.stream(jobIds.split(",")).distinct().collect(Collectors.toList());
+        BaseResult baseResult;
         if (isSavedQuery) {
-            return queryJobService.getSavedQueryStatus(ids);
+            baseResult = queryJobService.getSavedQueryStatus(ids);
         } else {
-            return queryJobService.getAdHocQueryStatus(ids);
+            baseResult = queryJobService.getAdHocQueryStatus(ids);
         }
+
+        DeferredResult<BaseResult> deferredResult =
+                deferredResultHolder.newDeferredResult(String.valueOf(ids), jobConfig.getResponseTimeout(), baseResult);
+        if (!jobConfig.isLongPollingEnabled()) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+            return deferredResult;
+        }
+        deferredResult.onTimeout(() -> {
+            deferredResultHolder.handleDeferredData(deferredResult, BooleanUtil.toBoolean(String.valueOf(isSavedQuery)) ? queryJobService.getSavedQueryStatus(ids) : queryJobService.getAdHocQueryStatus(ids));
+        });
+
+        if (jobsIsDoneOfStatus(baseResult)) {
+            deferredResultHolder.handleDeferredData(deferredResult, baseResult);
+        }
+        return deferredResult;
     }
 
     @DeleteMapping(value = "/v1/query/job/{id}", consumes = "application/x-www-form-urlencoded")
@@ -138,6 +211,39 @@ public class QueryController {
                 String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "The AdHoc Query Job does not yet support deletion."));
     }
 
+    private boolean jobsIsDoneOfResult(BaseResult baseResult) {
+        if (StringUtil.isEmpty(baseResult)) {
+            return false;
+        }
+        if (StringUtil.isEmpty(baseResult.getData())) {
+            return false;
+        }
+        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+        for (Map<String, Object> datum : data) {
+            Map<String, Object> job = (Map<String, Object>) datum.get(JobConfig.JOB);
+            if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean jobsIsDoneOfStatus(BaseResult baseResult) {
+        if (StringUtil.isEmpty(baseResult)) {
+            return false;
+        }
+        if (StringUtil.isEmpty(baseResult.getData())) {
+            return false;
+        }
+        List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+        for (Map<String, Object> datum : data) {
+            if (!BooleanUtil.toBoolean(String.valueOf(datum.get(JobConfig.IS_DONE)))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Autowired
     public void setQueryJobService(QueryJobService queryJobService) {
         this.queryJobService = queryJobService;
@@ -146,5 +252,15 @@ public class QueryController {
     @Autowired
     public void setSqlSyncQueryService(SQLSyncQueryService sqlSyncQueryService) {
         this.sqlSyncQueryService = sqlSyncQueryService;
+    }
+
+    @Autowired
+    public void setJobConfig(JobConfig jobConfig) {
+        this.jobConfig = jobConfig;
+    }
+
+    @Autowired
+    public void setDeferredResultHolder(DeferredResultHolder deferredResultHolder) {
+        this.deferredResultHolder = deferredResultHolder;
     }
 }

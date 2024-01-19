@@ -4,6 +4,7 @@ package com.mesalab.services.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
@@ -99,9 +100,10 @@ public class JobExecuteService implements EnvironmentAware {
             }
         } catch (Exception e) {
             signJobInfoToFailedOnQueryCache(id);
-            log.info("Exec SQL Query Job Error, message is: {}", e.getMessage());
+            log.error("Exec SQL Query Job Error, message is: {}", e.getMessage());
         } finally {
             signJobInfoToDoneOnQueryCache(id);
+            log.info("Async Query Job Done, id is: {}", id);
         }
         return new AsyncResult<>(true);
     }
@@ -146,9 +148,10 @@ public class JobExecuteService implements EnvironmentAware {
             updateJobResultOnQueryCache(id, baseResult);
         } catch (RuntimeException e) {
             signJobInfoToFailedOnQueryCache(id);
-            log.info("Exec SQL Query Job Error, message is: {}", e.getMessage());
+            log.error("Exec SQL Query Job Error, message is: {}", e.getMessage());
         } finally {
             signJobInfoToDoneOnQueryCache(id);
+            log.info("Async Query Job Done, id is: {}", id);
         }
     }
 
@@ -161,9 +164,10 @@ public class JobExecuteService implements EnvironmentAware {
             updateJobResultOnQueryCache(id, baseResult);
         } catch (RuntimeException e) {
             signJobInfoToFailedOnQueryCache(id);
-            log.info("Exec SQL Query Job Error, message is: {}", e.getMessage());
+            log.error("Exec SQL Query Job Error, message is: {}", e.getMessage());
         } finally {
             signJobInfoToDoneOnQueryCache(id);
+            log.info("Async Query Job Done, id is: {}", id);
         }
     }
 
@@ -235,6 +239,18 @@ public class JobExecuteService implements EnvironmentAware {
             if (jobInfo.isTimeout()) {
                 log.error("execute job timeout: job-{}", jobInfo);
                 signJobInfoToFailedOnQueryCache(id);
+                break;
+            }
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            if (StrUtil.isEmptyIfStr(queryCache)) {
+                log.warn("cache expiration: job-{}", jobInfo);
+                break;
+            }
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            if (BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))
+                    || BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
+                    || BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))) {
+                log.warn("job done or interrupt: job obj-{}", job);
                 break;
             }
             long start = interval.getEnd() - jobCfg.getTimeSlicingInterval();
@@ -329,6 +345,7 @@ public class JobExecuteService implements EnvironmentAware {
     private void waitAsyncResultAndUpdateProcess(String id, JobInfo jobInfo, Map<String, Future<List<Map<String, Object>>>> taskCallbackList, DSLQueryRequestParam request, Map<String, Long> mapCurrent) throws ExecutionException, InterruptedException {
         List<String> updatedResult = Lists.newArrayList();
         while (true) {
+            log.warn("id :{}, done size: {}, task size: {}", id, updatedResult.size(), taskCallbackList.size());
             if (jobInfo.isTimeout()) {
                 log.error("execute job timeout, job id is: {}", id);
                 signJobInfoToFailedOnQueryCache(id);
