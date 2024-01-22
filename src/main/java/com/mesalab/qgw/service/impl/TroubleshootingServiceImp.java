@@ -578,7 +578,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         if (isSaved) {
             try {
                 csvWriter = new CSVWriter(new java.io.FileWriter(filePath));
-                String[] headers = {"ID", "Elapsed(ms)", "Data sample"};
+                String[] headers = {"ID", "Elapsed(ms)", "Results"};
                 csvWriter.writeNext(headers);
             } catch (IOException e) {
                 throw new RuntimeException(e);
