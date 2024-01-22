@@ -574,9 +574,9 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, String> infoMap = Maps.newLinkedHashMap();
         CSVWriter csvWriter = null;
         String benchFileName = executeEngine + "_queries_" + DateUtils.getCurrentDate(DateUtils.YYYYMMDD);
-        String filePath = "benchmark" + File.separator + benchFileName + "." + IdUtil.simpleUUID() + ".csv";
         if (isSaved) {
             try {
+                String filePath = new File("").getCanonicalPath() + File.separator + "benchmark" + File.separator + benchFileName + "." + IdUtil.simpleUUID() + ".csv";
                 csvWriter = new CSVWriter(new java.io.FileWriter(filePath));
                 String[] headers = {"ID", "Elapsed(ms)", "Results"};
                 csvWriter.writeNext(headers);
