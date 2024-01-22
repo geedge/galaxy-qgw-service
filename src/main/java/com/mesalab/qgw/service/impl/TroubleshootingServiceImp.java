@@ -576,7 +576,12 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         String benchFileName = executeEngine + "_queries_" + DateUtils.getCurrentDate(DateUtils.YYYYMMDD);
         if (isSaved) {
             try {
-                String filePath = new File("").getCanonicalPath() + File.separator + "benchmark" + File.separator + benchFileName + "." + IdUtil.simpleUUID() + ".csv";
+                String directoryPath = new File("").getCanonicalPath() + File.separator + "benchmark";
+                File directory = new File(directoryPath);
+                if (!directory.exists()) {
+                    directory.mkdir();
+                }
+                String filePath = directoryPath + File.separator + benchFileName + "." + IdUtil.simpleUUID() + ".csv";
                 csvWriter = new CSVWriter(new java.io.FileWriter(filePath));
                 String[] headers = {"ID", "Elapsed(ms)", "Results"};
                 csvWriter.writeNext(headers);
