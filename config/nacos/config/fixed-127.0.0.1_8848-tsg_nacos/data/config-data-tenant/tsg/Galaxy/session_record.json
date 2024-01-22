@@ -1939,7 +1939,7 @@
       "name": "app_debug_info",
       "label": "Application Debug Info",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"
