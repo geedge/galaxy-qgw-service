@@ -39,7 +39,7 @@ public class KBController {
         try {
             KnowledgeBaseRequest KBRequest = getKnowledgeBaseRequest(request);
             validateRequest(KBRequest);
-            log.info("Knowledge Base File publish interface:param is :{}", request.toString());
+            log.info("Knowledge Base File publish interface:param is :{}", KBRequest.toString());
             return kbService.publishKnowledge(file, KBRequest);
         } catch (Exception e) {
             log.error("Knowledge Base File publish error: {}", e.getMessage());
@@ -61,7 +61,7 @@ public class KBController {
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.KB_FILE_VERSION_CANNOT_BE_EMPTY));
             }
             KBRequest.setKbId(kbId);
-            log.info("Knowledge Base File update interface:param is :{}", request.toString());
+            log.info("Knowledge Base File update interface:param is :{}", KBRequest.toString());
             return kbService.updateKnowledge(file, KBRequest);
         } catch (Exception e) {
             log.error("Knowledge Base File update error: {}", e.getMessage());
