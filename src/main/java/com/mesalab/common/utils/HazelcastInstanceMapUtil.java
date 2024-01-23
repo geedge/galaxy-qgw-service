@@ -1,12 +1,11 @@
 package com.mesalab.common.utils;
 
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
 import com.mesalab.qgw.model.basic.QueryCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * TODO
@@ -26,12 +25,11 @@ public class HazelcastInstanceMapUtil {
         HazelcastInstanceMapUtil.hazelcastInstance = hazelcastInstance;
     }
 
-
-    private static ConcurrentMap<String, QueryCache> retrieveMap() {
+    public static IMap<String, QueryCache> retrieveMap() {
         return hazelcastInstance.getMap(AD_HOC_CACHE);
     }
 
-    public static Object put(String key, QueryCache value) {
+    public static QueryCache put(String key, QueryCache value) {
         return retrieveMap().put(key, value);
     }
 

@@ -112,7 +112,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         if (ExecMode.ONESHOT.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 execAdnWaitFieldDiscoveryDone(id, request);
-                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(getAdhocQueryCache(id));
+                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(getAdhocQueryCacheAndRefresh(id));
                 HazelcastInstanceMapUtil.remove(id);
                 BaseResult<Object> baseResult = queryCache.getBaseResult();
                 Map<String, Object> job = baseResult.getJob();
@@ -185,7 +185,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult getAdHocQueryResultById(String id) {
-        QueryCache queryCache = getAdhocQueryCache(id);
+        QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
         if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
             queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
         }
@@ -200,7 +200,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult getAdHocQueryStatusById(String id) {
-        QueryCache queryCache = getAdhocQueryCache(id);
+        QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
         return BaseResultGenerator.success(null, queryCache.getBaseResult().getJob(), null, null);
     }
 
@@ -220,7 +220,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
             BaseResult<Object> baseResult;
-            QueryCache queryCache = getAdhocQueryCache(id);
+            QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
             if (JobConfig.FIELD_DISCOVERY.equals(queryCache.getType())) {
                 queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
             }
@@ -245,7 +245,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     public BaseResult getAdHocQueryStatus(List<String> ids) {
         List<Object> results = Lists.newArrayList();
         for (String id : ids) {
-            QueryCache queryCache = getAdhocQueryCache(id);
+            QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
             results.add(queryCache.getBaseResult().getJob());
         }
         return BaseResultGenerator.success(results);
@@ -308,15 +308,20 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         return result;
     }
 
-    private static QueryCache getAdhocQueryCache(String id) {
-        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        if (queryCache == null) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), id + ", Does not exist or result expired."));
+    private static QueryCache getAdhocQueryCacheAndRefresh(String id) {
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            if (queryCache == null) {
+                throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), id + ", Does not exist or result expired."));
+            }
+            queryCache.setLatestQueryTimeMs(System.currentTimeMillis());
+            HazelcastInstanceMapUtil.put(id, queryCache);
+            return queryCache;
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
         }
-        queryCache.setLatestQueryTimeMs(System.currentTimeMillis());
-        HazelcastInstanceMapUtil.put(id, queryCache);
-        return queryCache;
     }
 
     private static QueryCache rebuildFieldDiscoveryQueryCache(QueryCache queryCache) {

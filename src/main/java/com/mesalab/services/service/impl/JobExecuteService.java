@@ -176,26 +176,41 @@ public class JobExecuteService implements EnvironmentAware {
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
-        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        Map<String, Object> job = queryCache.getBaseResult().getJob();
-        baseResult.setJob(job);
-        queryCache.setBaseResult(baseResult);
-        HazelcastInstanceMapUtil.put(id, queryCache);
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            baseResult.setJob(job);
+            queryCache.setBaseResult(baseResult);
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
+        }
     }
 
     private static void signJobInfoToStartOnQueryCache(String id) {
-        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        queryCache.getBaseResult().getJob().put(JobConfig.START_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
-        HazelcastInstanceMapUtil.put(id, queryCache);
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            queryCache.getBaseResult().getJob().put(JobConfig.START_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
+        }
     }
 
     private static void signJobInfoToDoneOnQueryCache(String id) {
-        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        Map<String, Object> job = queryCache.getBaseResult().getJob();
-        job.put(JobConfig.IS_DONE, true);
-        job.put(JobConfig.DONE_PROGRESS, 1);
-        job.put(JobConfig.END_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
-        HazelcastInstanceMapUtil.put(id, queryCache);
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            job.put(JobConfig.IS_DONE, true);
+            job.put(JobConfig.DONE_PROGRESS, 1);
+            job.put(JobConfig.END_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
+        }
     }
 
     public static void signJobInfoToFailedOnQueryCache(String id) {
@@ -345,7 +360,6 @@ public class JobExecuteService implements EnvironmentAware {
     private void waitAsyncResultAndUpdateProcess(String id, JobInfo jobInfo, Map<String, Future<List<Map<String, Object>>>> taskCallbackList, DSLQueryRequestParam request, Map<String, Long> mapCurrent) throws ExecutionException, InterruptedException {
         List<String> updatedResult = Lists.newArrayList();
         while (true) {
-            log.warn("id :{}, done size: {}, task size: {}", id, updatedResult.size(), taskCallbackList.size());
             if (jobInfo.isTimeout()) {
                 log.error("execute job timeout, job id is: {}", id);
                 signJobInfoToFailedOnQueryCache(id);
@@ -356,6 +370,10 @@ public class JobExecuteService implements EnvironmentAware {
                 break;
             }
             long completedTaskCount = taskCallbackList.keySet().stream().filter(o -> taskCallbackList.get(o).isDone()).count();
+            if ((completedTaskCount - updatedResult.size()) * 1.0 / taskCallbackList.size() < 0.01 && completedTaskCount < taskCallbackList.size()) {
+                continue;
+            }
+            log.warn("id :{}, done size: {}, task size: {}", id, completedTaskCount, taskCallbackList.size());
             DecimalFormat format = getDecimalFormat();
             double jobCompletedProcess = Double.parseDouble(format.format(jobInfo.getCurrentTimes() * 1.0 / jobInfo.getTotalTimes() - ((1 - completedTaskCount * 1.0 / taskCallbackList.size()) / jobInfo.getTotalTimes())));
             List<String> queryDoneField = taskCallbackList.keySet().stream().filter(o -> taskCallbackList.get(o).isDone()).collect(Collectors.toList());
@@ -416,37 +434,42 @@ public class JobExecuteService implements EnvironmentAware {
         map.put("topk", topList);
         map.put("distinct_count", Math.min(topList.size(), 100));
         map.put(value, currentTotalMetric + Long.parseLong(lastTotalMetric.toString()));
-        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        BaseResult<Object> baseResult = queryCache.getBaseResult();
-        if (jobCompletedProcess < 1) {
-            Map<String, Object> job = queryCache.getBaseResult().getJob();
-            job.put(JobConfig.DONE_PROGRESS, jobCompletedProcess);
-        }
-
-        Object data1 = baseResult.getData();
-        if (StrUtil.isEmptyIfStr(data1)) {
-            List<Object> list = Lists.newArrayList();
-            Map<Object, Object> item = Maps.newLinkedHashMap();
-            item.put(field, map);
-            list.add(item);
-            baseResult.setData(list);
-            HazelcastInstanceMapUtil.put(id, queryCache);
-            return;
-        }
-        List<Map<String, Object>> list = (List<Map<String, Object>>) data1;
-        for (int i = 0; i < list.size(); i++) {
-            Map<String, Object> map1 = list.get(i);
-            if (map1.containsKey(field)) {
-                map1.put(field, map);
-                break;
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            BaseResult<Object> baseResult = queryCache.getBaseResult();
+            if (jobCompletedProcess < 1) {
+                Map<String, Object> job = queryCache.getBaseResult().getJob();
+                job.put(JobConfig.DONE_PROGRESS, jobCompletedProcess);
             }
+
+            Object data1 = baseResult.getData();
+            if (StrUtil.isEmptyIfStr(data1)) {
+                List<Object> list = Lists.newArrayList();
+                Map<Object, Object> item = Maps.newLinkedHashMap();
+                item.put(field, map);
+                list.add(item);
+                baseResult.setData(list);
+                HazelcastInstanceMapUtil.put(id, queryCache);
+                return;
+            }
+            List<Map<String, Object>> list = (List<Map<String, Object>>) data1;
+            for (int i = 0; i < list.size(); i++) {
+                Map<String, Object> map1 = list.get(i);
+                if (map1.containsKey(field)) {
+                    map1.put(field, map);
+                    break;
+                }
+            }
+            if (list.stream().noneMatch(o -> o.containsKey(field))) {
+                Map<String, Object> objectObjectHashMap = Maps.newHashMap();
+                objectObjectHashMap.put(field, map);
+                list.add(objectObjectHashMap);
+            }
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
         }
-        if (list.stream().noneMatch(o -> o.containsKey(field))) {
-            Map<String, Object> objectObjectHashMap = Maps.newHashMap();
-            objectObjectHashMap.put(field, map);
-            list.add(objectObjectHashMap);
-        }
-        HazelcastInstanceMapUtil.put(id, queryCache);
     }
 
     private List<Map<String, Object>> sortDataAndSetMaxSize(List<Map<String, Object>> data, String sortElement, String sortType, boolean isAsc) {

@@ -62,16 +62,16 @@ public class TaskExecuteService implements EnvironmentAware {
         String fnDefault = "count";
         String column = "*";
         String value = "count";
-        if (StringUtil.isNotEmpty(metric)) {
-            String measurements = databaseService.getValueByKeyInSchemaDoc(dataSource, "measurements");
-            List<Map<String, String>> read = JsonPath.read(measurements, "$.field_discovery_metric['" + metric + "'][?(@.fn == '" + fn + "')]");
-            if (!read.isEmpty()) {
-                fnDefault = fn.toString();
-                column = read.get(0).get("column");
-                value = read.get(0).get("value");
-            }
-        }
         try {
+            if (StringUtil.isNotEmpty(metric)) {
+                String measurements = databaseService.getValueByKeyInSchemaDoc(dataSource, "measurements");
+                List<Map<String, String>> read = JsonPath.read(measurements, "$.field_discovery_metric['" + metric + "'][?(@.fn == '" + fn + "')]");
+                if (!read.isEmpty()) {
+                    fnDefault = fn.toString();
+                    column = read.get(0).get("column");
+                    value = read.get(0).get("value");
+                }
+            }
             BaseResult currentTop = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
                     .option(QueryOption.REAL_TIME.getValue())
                     .originalSQL(buildTopSQL(dataSource, filter, field, fnDefault, column, value))
