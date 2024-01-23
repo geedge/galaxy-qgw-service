@@ -119,19 +119,17 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, Object> jsonMap = Maps.newLinkedHashMap();
         try {
             String content = systemConfigService.getConfig(DATA_ID, nacosConfig.getGroup(), 3000);
-            jsonMap = JSON.parseObject(content, Map.class);
-
-            List<Map<String, Object>> componentList = (List<Map<String, Object>>) jsonMap.get("components");
+            Map componentInfo = JSON.parseObject(content, Map.class);
+            List<Map<String, Object>> componentList = (List<Map<String, Object>>) componentInfo.get("components");
             Map<String, Object> componentHealthResult = getComponentHealth();
             Set<String> componentNameSet = componentHealthResult.keySet();
+            boolean isStatusUp = true;
             for (Map component : componentList) {
                 String componentName = String.valueOf(component.get("name"));
                 if (componentNameSet.contains(componentName)) {
                     Map<String, String> healthMap = buildHealth(componentName, componentHealthResult);
                     if (healthMap.get("status").equals("DOWN")) {
-                        jsonMap.put("status", "DOWN");
-                    } else {
-                        jsonMap.put("status", "UP");
+                        isStatusUp = false;
                     }
                     if (StringUtil.isNotEmpty(healthMap.get("version"))) {
                         component.put("version", healthMap.get("version"));
@@ -140,7 +138,12 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                     component.put("health", healthMap);
                 }
             }
+            jsonMap.put("product", componentInfo.get("product"));
+            jsonMap.put("status", isStatusUp ? "UP" : "DOWN");
             jsonMap.put("components", componentList);
+            jsonMap.put("registered", componentInfo.get("registered"));
+            jsonMap.put("version", componentInfo.get("version"));
+            jsonMap.put("updated", componentInfo.get("updated"));
         } catch (NacosException e) {
             e.printStackTrace();
         }
