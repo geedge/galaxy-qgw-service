@@ -135,7 +135,7 @@
     },
     {
       "name": "sff_profile_id",
-      "label": "SFF Profile ID",
+      "label": "Service Function Forwarder Profile ID",
       "doc": {
         "visibility": "enabled"
       },
@@ -143,7 +143,7 @@
     },
     {
       "name": "sf_profile_id",
-      "label": "SF Profile ID",
+      "label": "Service Function Profile ID",
       "doc": {
         "visibility": "enabled"
       },

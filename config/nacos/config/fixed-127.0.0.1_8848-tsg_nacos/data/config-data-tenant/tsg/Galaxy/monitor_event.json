@@ -1414,7 +1414,7 @@
     },
     {
       "name": "sc_rule_list",
-      "label": "SC Rule List",
+      "label": "Service Chaining Rule List",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1446,7 +1446,7 @@
     },
     {
       "name": "sc_rsp_raw",
-      "label": "SC RSP Raw",
+      "label": "Service Chaining Rendered Service Path (Raw)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1462,7 +1462,7 @@
     },
     {
       "name": "sc_rsp_decrypted",
-      "label": "SC RSP Decrypted",
+      "label": "Service Chaining Rendered Service Path (Decrypted)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1981,7 +1981,7 @@
     },
     {
       "name": "tcp_c2s_ip_fragments",
-      "label": "TCP C2S IP Fragments ",
+      "label": "Client-to-Server IP Fragments",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -1993,7 +1993,7 @@
     },
     {
       "name": "tcp_s2c_ip_fragments",
-      "label": "TCP S2C IP Fragments",
+      "label": "Server-to-Client IP Fragments",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2005,7 +2005,7 @@
     },
     {
       "name": "tcp_c2s_lost_bytes",
-      "label": "TCP C2S Lost Bytes",
+      "label": "Client-to-Server Lost Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"
@@ -2017,7 +2017,7 @@
     },
     {
       "name": "tcp_s2c_lost_bytes",
-      "label": "TCP S2C Lost Bytes",
+      "label": "Server-to-Client Lost Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"
@@ -2029,7 +2029,7 @@
     },
     {
       "name": "tcp_c2s_o3_pkts",
-      "label": "TCP C2S O3 Packets",
+      "label": "Client-to-Server Out-of-Order Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2041,7 +2041,7 @@
     },
     {
       "name": "tcp_s2c_o3_pkts",
-      "label": "TCP S2C O3 packets",
+      "label": "Server-to-Client Out-of-Order Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2053,7 +2053,7 @@
     },
     {
       "name": "tcp_c2s_rtx_pkts",
-      "label": "TCP C2S RTX Packets",
+      "label": "Client-to-Server Retransmission Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2065,7 +2065,7 @@
     },
     {
       "name": "tcp_s2c_rtx_pkts",
-      "label": "TCP S2C RTX Packets",
+      "label": "Server-to-Client Retransmission Packets",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -2077,7 +2077,7 @@
     },
     {
       "name": "tcp_c2s_rtx_bytes",
-      "label": "TCP C2S RTX Bytes",
+      "label": "Client-to-Server Retransmission Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"
@@ -2089,7 +2089,7 @@
     },
     {
       "name": "tcp_s2c_rtx_bytes",
-      "label": "TCP S2C RTX Bytes",
+      "label": "Server-to-Client Retransmission Bytes",
       "doc": {
         "constraints": {
           "type": "bytes"
@@ -2114,7 +2114,7 @@
     },
     {
       "name": "tcp_client_isn",
-      "label": "TCP Client ISN",
+      "label": "Client ISN",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2123,7 +2123,7 @@
     },
     {
       "name": "tcp_server_isn",
-      "label": "TCP Server ISN",
+      "label": "Server ISN",
       "doc": {
         "visibility": "enabled",
         "ttl": null

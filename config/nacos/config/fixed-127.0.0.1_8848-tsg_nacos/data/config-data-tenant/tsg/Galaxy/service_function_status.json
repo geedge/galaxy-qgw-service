@@ -98,7 +98,7 @@
     },
     {
       "name": "sf_latency_us",
-      "label": "SF Latency (us)",
+      "label": "Service Function Latency (us)",
       "doc": {
         "constraints": {
           "metric_type": "gauge"
@@ -109,7 +109,7 @@
     },
     {
       "name": "sf_profile_id",
-      "label": "SF Profile ID",
+      "label": "Service Function Profile ID",
       "doc": {
         "visibility": "enabled"
       },
@@ -117,7 +117,7 @@
     },
     {
       "name": "sf_status",
-      "label": "SF Status",
+      "label": "Service Function Status",
       "doc": {
         "constraints": {
           "metric_type": "gauge"
