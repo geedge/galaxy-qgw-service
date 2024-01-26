@@ -195,6 +195,14 @@ public class HttpClientServiceV2 {
         return executeHttpRequest(new HttpGet(url), socketTimeout, headers);
     }
 
+    public HttpResponseResult head(String url, int socketTimeout) {
+        return executeHttpRequest(new HttpHead(url), socketTimeout, null);
+    }
+
+    public HttpResponseResult head(String url, int socketTimeout, Map<String, String> headers) {
+        return executeHttpRequest(new HttpHead(url), socketTimeout, headers);
+    }
+
     public HttpResponseResult post(String url, int socketTimeout, String requestBody, Map<String, String> headers) {
         if (StringUtil.isEmpty(headers)) {
             headers = Maps.newHashMap();
@@ -295,7 +303,16 @@ public class HttpClientServiceV2 {
             response = getHttpClient(socketTimeout).execute(request);
             HttpEntity entity = response.getEntity();
             responseResult.setStatusCode(response.getStatusLine().getStatusCode());
-            responseResult.setResponseBody(EntityUtils.toString(entity, StandardCharsets.UTF_8));
+            if (entity != null) {
+                responseResult.setResponseBody(EntityUtils.toString(entity, StandardCharsets.UTF_8));
+            }
+            if (response.getAllHeaders() != null) {
+                Map<String, String> headersMap = Maps.newHashMap();
+                for (Header header : response.getAllHeaders()) {
+                    headersMap.put(header.getName(), header.getValue());
+                }
+                responseResult.setResponseHeaders(headersMap);
+            }
             if (responseResult.getStatusCode() >= 300) {
                 log.error("Http request failed, url:{}, statusCode:{}, responseBody:{}",
                         request.getURI(), responseResult.getStatusCode(), responseResult.getResponseBody());
