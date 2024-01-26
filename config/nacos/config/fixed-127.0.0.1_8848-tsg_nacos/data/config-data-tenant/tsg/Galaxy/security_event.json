@@ -962,7 +962,7 @@
         "label": "Security Rule ID",
         "type": "long",
         "doc": {
-          "expression": "arrayJoin(security_rule_list)"
+          "expression": "arrayJoin(IF(empty(security_rule_list), arrayPushFront(security_rule_list, null),security_rule_list))"
         }
       }
     ]

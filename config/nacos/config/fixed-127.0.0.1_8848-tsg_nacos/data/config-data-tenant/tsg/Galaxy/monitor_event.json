@@ -957,7 +957,7 @@
         "label": "Monitor Rule ID",
         "type": "long",
         "doc": {
-          "expression": "arrayJoin(monitor_rule_list)"
+          "expression": "arrayJoin(IF(empty(monitor_rule_list), arrayPushFront(monitor_rule_list, null),monitor_rule_list))"
         }
       }
     ]
