@@ -12,11 +12,11 @@ import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.service.HosService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/v1/hos")
@@ -24,8 +24,14 @@ public class HosController {
     private static final Log log = LogFactory.get();
     private static final String X_HOS_META_PREFIX = "x-hos-meta-";
 
-    @Autowired
     private HosService hosService;
+
+
+    @GetMapping(value = "/{bucket_name}/{file_name}", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("HosController.getFile")
+    public BaseResult getFile(@PathVariable("bucket_name") String bucketName, @PathVariable("file_name") String fileName) {
+        return hosService.getFile(bucketName, fileName);
+    }
 
     @GetMapping(value = "/{bucket_name}", consumes = "application/x-www-form-urlencoded")
     @AuditLog("HosController.getFileList")
@@ -46,5 +52,23 @@ public class HosController {
             throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.BUCKET_NAME_ERROR));
         }
+    }
+
+    @PostMapping(value = "/{bucket_name}/{file_name}", consumes = "multipart/form-data")
+    @AuditLog("HosController.uploadFile")
+    public BaseResult uploadFile(@PathVariable("bucket_name") String bucketName, @PathVariable("file_name") String fileName, @RequestParam("file") MultipartFile file) {
+        return hosService.uploadFile(bucketName, fileName, file);
+    }
+
+    @DeleteMapping(value = "/{bucket_name}", consumes = "application/x-www-form-urlencoded")
+    @AuditLog("HosController.deleteFileList")
+    public BaseResult deleteFileList(@PathVariable("bucket_name") String bucketName, @RequestParam("file_names") String fileNames) {
+        return hosService.deleteFileList(bucketName, Arrays.stream(fileNames.split(",")).distinct().collect(Collectors.toList()));
+    }
+
+
+    @Autowired
+    public void setHosService(HosService hosService) {
+        this.hosService = hosService;
     }
 }
