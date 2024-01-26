@@ -1,7 +1,7 @@
 Release 374 (TSG-23.12)
 * 新增自定义聚合函数：MEDIAN_HDR、QUANTILE_HDR、PERCENTILES_HDR、COUNT_DISTINCT、APPROX_COUNT_DISTINCT_HLLD、RATE(GAL-44、TSG-18048)
 * 新增自定义毫秒时间函数：FROM_UNIXTIME_MILLIS、UNIX_TIMESTAMP_MILLIS(GAL-449)
-* 新增HOS API Get File List 接口(TSG-17843)
+* 新增HOS API, 支持文件上传、删除、文件元信息获取接口(TSG-17843、TSG-18698、TSG-18808)
 * 新增Monitor Schema，监测策略规则命中统计Schema(TSG-17851)
 * 新增Trace ID，日志中新增TraceID(同响应request_id)便于日志追踪(TSG-17851)
 * 删除过期Schema：radius_record、gtpc_record、radius_onff_log、sys_packet_capture_event、ctive_defence_event(TSG-17239、TSG-18119)
