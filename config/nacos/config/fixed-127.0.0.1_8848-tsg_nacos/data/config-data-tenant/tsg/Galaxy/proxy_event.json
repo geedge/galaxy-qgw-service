@@ -588,7 +588,7 @@
         "label": "Proxy Rule ID",
         "type": "long",
         "doc": {
-          "expression": "arrayJoin(proxy_rule_list)"
+          "expression": "arrayJoin(IF(empty(proxy_rule_list), arrayPushFront(proxy_rule_list, null),proxy_rule_list))"
         }
       }
     ]
