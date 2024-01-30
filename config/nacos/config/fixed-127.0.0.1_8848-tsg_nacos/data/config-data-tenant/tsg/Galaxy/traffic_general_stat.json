@@ -34,8 +34,8 @@
       }
     },
     "measurements": {
-      "granularity": 5,
-      "ingestion_delay": 15,
+      "granularity": 1,
+      "ingestion_delay": 5,
       "aggregated_metric_unit": {
         "SUM": {
           "in_bytes": "bytes",
