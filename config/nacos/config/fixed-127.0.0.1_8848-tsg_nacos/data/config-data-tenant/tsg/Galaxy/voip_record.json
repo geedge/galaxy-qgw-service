@@ -247,14 +247,14 @@
       }
     },
     "decoded_as": {
-      "BASE": {
-        "$ref": "public_schema_info.json#/decoded_as/BASE"
-      },
       "SIP": {
         "$ref": "public_schema_info.json#/decoded_as/SIP"
       },
       "RTP": {
         "$ref": "public_schema_info.json#/decoded_as/RTP"
+      },
+      "VoIP": {
+        "$ref": "public_schema_info.json#/decoded_as/VoIP"
       }
     },
     "default_columns": [
@@ -506,10 +506,6 @@
           "operator_functions": "=,!=,in,not in"
         },
         "data": [
-          {
-            "code": "BASE",
-            "value": "BASE"
-          },
           {
             "code": "SIP",
             "value": "SIP"
