@@ -144,10 +144,6 @@
         },
         "data": [
           {
-            "code": "1",
-            "value": "Monitor"
-          },
-          {
             "code": "16",
             "value": "Deny"
           },
