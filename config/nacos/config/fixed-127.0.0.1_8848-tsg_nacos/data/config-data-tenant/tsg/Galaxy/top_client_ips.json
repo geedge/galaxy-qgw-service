@@ -31,8 +31,8 @@
       }
     },
     "measurements": {
-      "granularity": 300,
-      "ingestion_delay": 15,
+      "granularity": 60,
+      "ingestion_delay": 5,
       "aggregated_metric_unit": {
         "SUM": {
           "sessions": "sessions",
