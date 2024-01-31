@@ -8,7 +8,7 @@ import cn.hutool.log.LogFactory;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
-import com.mesalab.common.exception.BusinessException;;
+import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.utils.MDCUtil;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.geedgenetworks.utils.StringUtil;

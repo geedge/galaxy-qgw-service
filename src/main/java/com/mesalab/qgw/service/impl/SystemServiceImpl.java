@@ -43,6 +43,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -314,7 +315,7 @@ public class SystemServiceImpl implements SystemService, EnvironmentAware {
             if (StringUtil.isEmpty(tables)) {
                 return;
             }
-            long ttl = 24 * 60 * 60 * info.getMaxDays();
+            long ttl = Duration.ofDays(info.getMaxDays()).getSeconds();
             List<String> list = (List) tables;
             for (String tableName : list) {
                 Map schemaMap = databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), tableName, false);

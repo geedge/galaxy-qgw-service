@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
+import javax.validation.constraints.NotNull;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1657,10 +1658,7 @@ public class SQLFunctionUtil {
      * @param div 参数分隔符
      * @return
      */
-    public static List<String> diviParam(String str, String div) {
-        if (str == null) {
-            return null;
-        }
+    public static List<String> diviParam(@NotNull String str, String div) {
         List<String> result = new ArrayList<>();
         String[] split = str.split(div);
         String resultTemp = "";
@@ -1945,7 +1943,7 @@ public class SQLFunctionUtil {
                     double probability = Double.parseDouble(fun.getParamsList().get(1));
                     return String.format("APPROX_QUANTILE_HDR(%s,%s)", hdrSketchExpr, probability);
                 case PERCENTILES_HDR:
-                    return String.format("HDR_GET_PERCENTILES(HDR_HISTOGRAM(%s), 2)", hdrSketchExpr);
+                    return String.format("HDR_GET_PERCENTILES(HDR_HISTOGRAM(%s))", hdrSketchExpr);
                 case APPROX_COUNT_DISTINCT_HLLD:
                     return String.format("APPROX_COUNT_DISTINCT_HLLD#[%s#]", hdrSketchExpr);
             }

@@ -566,9 +566,9 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             }
         }
         if (CollectionUtil.isEmpty(resultData)) {
-            return BaseResultGenerator.success(StrUtil.format("{} datasets in total, 100% pass the verification, time range is: {} - {}", totalSize, startTime, endTime), resultData);
+            return BaseResultGenerator.success(StrUtil.format("There are {} datasets in total, and 100% of them pass the verification, time range is: ['{}'/'{}']", totalSize, startTime, endTime), resultData);
         } else {
-            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), StrUtil.format("{} datasets in total, {} pass the verification, time range is: {} - {}", totalSize, NumberUtil.decimalFormat("#.##%", ((totalSize - resultData.size()) * 1.00 / totalSize)), startTime, endTime), resultData);
+            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), StrUtil.format("There are {} datasets in total, and {} of them pass the verification, time range is: ['{}'/'{}']", totalSize, NumberUtil.decimalFormat("#.##%", ((totalSize - resultData.size()) * 1.00 / totalSize)), startTime, endTime), resultData);
         }
     }
 

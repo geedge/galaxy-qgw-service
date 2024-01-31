@@ -132,7 +132,7 @@ public class TaskExecuteService implements EnvironmentAware {
         List<String> dimensions = JsonPath.read(JSONUtil.toJsonStr(preDataFirst.get(JobConfig.JOB_PROPERTY)), "$.sub_option.dimension");
         Map<String, String> metrics = JsonPath.read(JSONUtil.toJsonStr(preDataFirst.get(JobConfig.JOB_PROPERTY)), "$.sub_option.metric");
         Map<String, Boolean> isAsc = JsonPath.read(JSONUtil.toJsonStr(preDataFirst.get(JobConfig.JOB_PROPERTY)), "$.sub_option.isAsc");
-        String sortKey = isAsc.keySet().stream().findFirst().get();
+        String sortKey = isAsc.keySet().stream().findFirst().orElse(null);
         if (StringUtil.isNotEmpty(preDataFirst.get(JobConfig.LONG_TERM_RESULT))) {
             Map<String, Object> item = JSONUtil.toBean(preDataFirst.get(JobConfig.LONG_TERM_RESULT).toString(), Map.class);
             preData = (List<Map<String, Object>>) item.get("data");
@@ -140,7 +140,7 @@ public class TaskExecuteService implements EnvironmentAware {
             lastData = mergeData(lastData, preData, dimensions, metrics);
             Map<String, String> meta = Maps.newHashMap();
             lastMeta.forEach(o -> meta.put(String.valueOf(o.get("name")), String.valueOf(o.get("type"))));
-            lastData = sortDataAndSetMaxSize(lastData, sortKey, meta.get(sortKey), isAsc.values().stream().findFirst().get());
+            lastData = sortDataAndSetMaxSize(lastData, sortKey, meta.get(sortKey), isAsc.values().stream().findFirst().orElse(true));
         }
         valueMap.put("data", lastData);
         valueMap.put("meta", lastMeta);
@@ -155,7 +155,7 @@ public class TaskExecuteService implements EnvironmentAware {
             Map<String, Boolean> isAsc = JsonPath.read(JSONUtil.toJsonStr(preDataFirst.get(JobConfig.JOB_PROPERTY)), "$.sub_option.isAsc");
             Map<String, String> meta = Maps.newHashMap();
             lastMeta.forEach(o -> meta.put(String.valueOf(o.get("name")), String.valueOf(o.get("type"))));
-            lastData = appendData(lastData, preData, isAsc.values().stream().findFirst().get());
+            lastData = appendData(lastData, preData, isAsc.values().stream().findFirst().orElse(true));
         }
         valueMap.put("meta", lastMeta);
         valueMap.put("data", lastData);

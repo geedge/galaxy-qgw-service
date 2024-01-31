@@ -5,7 +5,6 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.common.utils.HttpHelper;
 import com.mesalab.common.utils.MDCUtil;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.AuditLog;

@@ -148,7 +148,9 @@ public class TopSQLVisitor implements OrderByVisitor, GroupByVisitor, SelectItem
      * @return
      */
     private boolean parseAndValidation(PlainSelect plainSelect) {
-
+        if (plainSelect == null) {
+            return false;
+        }
         for (SelectItem item : plainSelect.getSelectItems()) {
             item.accept(this);
         }
