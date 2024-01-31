@@ -1,0 +1,60 @@
+{
+  "application_and_protocol_summary": {
+    "name": "application-and-protocol-summary",
+    "granularity": "PT5S",
+    "filter": "vsys_id = 1",
+    "intervals": [
+      "2024-01-30 00:00:00/2024-01-31 00:00:00"
+    ]
+  },
+  "application_and_protocol_tree_composition": {
+    "name": "application-and-protocol-tree-composition",
+    "filter": "vsys_id = 1",
+    "intervals": [
+      "2024-01-30T00:00:00+08:00/2024-01-31T00:00:00+08:00"
+    ]
+  },
+  "application_and_protocol_tree_throughput": {
+    "name": "application-and-protocol-tree-throughput",
+    "granularity": "PT1H",
+    "filter": " (vsys_id = 1) AND (protocol_stack_id = 'ETHERNET.IPv4' OR ( protocol_stack_id LIKE 'ETHERNET.IPv4.%' AND NOT CONTAINS_STRING(REPLACE(protocol_stack_id, 'ETHERNET.IPv4.', ''), '.')))",
+    "intervals": [
+      "2024-01-30T00:00:00.000+01:00/2024-01-31T00:00:00.000+01:00"
+    ]
+  },
+  "application_and_protocol_top_apps": {
+    "name": "application-and-protocol-top-apps",
+    "filter": "vsys_id = 1",
+    "intervals": [
+      "2024-01-30 00:00:00/2024-01-31 00:00:00"
+    ],
+    "limit": 10
+  },
+  "application_and_protocol_app_summary": {
+    "name": "application-and-protocol-app-summary",
+    "exec_mode":"oneshot",
+    "filter": " vsys_id = 1 AND app_name IN ('ftp', 'http')",
+    "intervals": [
+      "2024-01-30 00:00:00/2024-01-31 00:00:00"
+    ]
+  },
+  "application_and_protocol_app_related_internal_ips": {
+    "name": "application-and-protocol-app-related-internal-ips",
+    "exec_mode":"oneshot",
+    "filter": "vsys_id = 1",
+    "intervals": [
+      "2024-01-30 00:00:00/2024-01-31 00:00:00"
+    ],
+    "limit": 10
+  },
+  "application_and_protocol_app_throughput": {
+    "name": "application-and-protocol-app-throughput",
+    "exec_mode":"oneshot",
+    "granularity": "PT15S",
+    "filter": "vsys_id = 1",
+    "intervals": [
+      "2024-01-30 00:00:00/2024-01-31 00:00:00"
+    ],
+    "limit": 10
+  }
+}

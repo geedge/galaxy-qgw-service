@@ -1,0 +1,25 @@
+{
+  "query_sql_default": {
+    "statement": "select * from session_record limit 1"
+  },
+  "query_sql_oneshot": {
+    "statement": "select * from session_record limit 1",
+    "exec_mode": "oneshot"
+  },
+  "query_sql_normal": {
+    "statement": "select * from session_record limit 1",
+    "exec_mode": "normal"
+  },
+  "query_sql_blocking": {
+    "statement": "select * from session_record limit 1",
+    "exec_mode": "blocking"
+  },
+  "query_sql_json": {
+    "statement": "select * from session_record limit 1",
+    "output_mode": "json"
+  },
+  "query_sql_csv": {
+    "statement": "select * from session_record limit 1",
+    "output_mode": "csv"
+  }
+}

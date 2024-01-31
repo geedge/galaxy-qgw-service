@@ -383,6 +383,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 }
             } else {
                 File fileTemp = null;
+                RandomAccessFile randomAccessFile = null;
                 try {
                     fileTemp = new File(System.currentTimeMillis() + file.getOriginalFilename());
                     String resBody = createMultipartUpload(url, header);
@@ -390,7 +391,7 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     Object uploadId = XmlUtil.getByXPath("//InitiateMultipartUploadResult/UploadId", resXml, XPathConstants.STRING);
                     Map<Integer, String> parts = Maps.newHashMap();
                     FileUtils.copyInputStreamToFile(file.getInputStream(), fileTemp);
-                    RandomAccessFile randomAccessFile = FileUtil.createRandomAccessFile(fileTemp, FileMode.r);
+                    randomAccessFile = FileUtil.createRandomAccessFile(fileTemp, FileMode.r);
                     long totalLength = randomAccessFile.length();
                     long hadReadLength = 0;
                     int count = 1;
@@ -408,6 +409,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                     log.error("execute upload part file failed.");
                     throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),ex.getMessage());
                 } finally {
+                    if (randomAccessFile != null) {
+                        randomAccessFile.close();
+                    }
                     if (fileTemp != null && fileTemp.exists()) {
                         FileUtil.del(fileTemp);
                     }

@@ -62,6 +62,9 @@ public class HbaseHealthIndicator extends AbstractHealthIndicator {
                     .withDetail("app", APP)
                     .withDetail("message", e.getMessage());
         } finally {
+            if (ps != null) {
+                ps.close();
+            }
             if (conn != null) {
                 conn.close();
             }

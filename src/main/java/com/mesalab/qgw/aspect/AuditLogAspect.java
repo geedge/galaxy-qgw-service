@@ -40,27 +40,28 @@ public class AuditLogAspect {
     public void doBefore(JoinPoint joinPoint) {
         startTime.set(System.currentTimeMillis());
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = attributes.getRequest();
-        String url = request.getRequestURL().toString();
-        String method = request.getMethod();
-        String remoteAddr = request.getRemoteAddr();
-        String clientIp = IPUtil.getIpAddr(request);
+        AuditServiceLog auditServiceLog = new AuditServiceLog();
+        String url = null;
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            url = request.getRequestURL().toString();
+            String method = request.getMethod();
+            String remoteAddr = request.getRemoteAddr();
+            String clientIp = IPUtil.getIpAddr(request);
+            auditServiceLog.setRemoteAddr(remoteAddr);
+            auditServiceLog.setClientIp(clientIp);
+            auditServiceLog.setMethod(method);
+        }
         String classMethod = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
-
         MethodSignature sign = (MethodSignature) joinPoint.getSignature();
         Method method2 = sign.getMethod();
         AuditLog annotation = method2.getAnnotation(AuditLog.class);
-        AuditServiceLog auditServiceLog = new AuditServiceLog();
-        auditServiceLog.setAnnotation(annotation.value());
-        auditServiceLog.setRemoteAddr(remoteAddr);
-        auditServiceLog.setClientIp(clientIp);
-        auditServiceLog.setMethod(method);
         if (log.isInfoEnabled()) {
             auditServiceLog.setRequestParam(Arrays.toString(joinPoint.getArgs()));
             auditServiceLog.setUrl(url);
             auditServiceLog.setClassMethod(classMethod);
         }
-        auditServiceLog.setCacheKey(HttpHelper.generateCacheKey(request));
+        auditServiceLog.setAnnotation(annotation.value());
         auditServiceLog.setRequestId(MDCUtil.getTraceId());
         auditLog.set(auditServiceLog);
     }
