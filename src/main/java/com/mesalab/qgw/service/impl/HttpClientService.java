@@ -624,8 +624,8 @@ public class HttpClientService {
 
                 }
             }
-            return result;
         }
+        return result;
     }
 
     /**

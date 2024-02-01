@@ -1,5 +1,6 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.google.common.base.Function;
@@ -17,6 +18,7 @@ import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.utils.sqlparser.SQLHelper;
+import com.mesalab.common.utils.sqlparser.ExpressionColumnCollectAdapter;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
@@ -42,7 +44,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class FederationDialect extends AbstractEngineDialect {
     private Stopwatch watch = Stopwatch.createUnstarted();
-
+    private static final String META_CATEGORY = "category";
+    private static final String META_CATEGORY_METRIC = "Metric";
+    private static final String META_CATEGORY_DIMENSION = "Dimension";
     private final EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
 
     private static final Map<String, String> metaMap = Maps.newHashMap();
@@ -145,7 +149,6 @@ public class FederationDialect extends AbstractEngineDialect {
     }
 
 
-
     private BaseResult build() {
 
         long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
@@ -174,13 +177,44 @@ public class FederationDialect extends AbstractEngineDialect {
         List<Map<String, Object>> data = JsonPath.read(meta, "$");
         SelectStatement querySource = StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement()) || StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement().getExecSQL()) ? sqlQueryContext.getDbSelectStatement() : sqlQueryContext.getFederationSelectStatement();
         Map<String, String> groupDimension = querySource.getGroupDimension();
+        Map<String, String> aliasFields = querySource.getAliasFields();
+        meta:
         for (Map<String, Object> map : data) {
             String field = String.valueOf(map.get("name"));
-            if (StringUtil.isNotEmpty(groupDimension) && ((groupDimension.containsKey(field) || groupDimension.containsValue(field)))) {
-                map.put("category", "Dimension");
-            } else {
-                map.put("category", "Metric");
+            if (StrUtil.isEmptyIfStr(groupDimension)) {
+                map.put(META_CATEGORY, META_CATEGORY_METRIC);
+                continue;
             }
+            for (String dimensionKey : groupDimension.keySet()) {
+                if (Objects.equals(field, dimensionKey) || Objects.equals(field, groupDimension.get(dimensionKey))) {
+                    map.put(META_CATEGORY, META_CATEGORY_DIMENSION);
+                    continue meta;
+                }
+                try {
+                    String selectItemExpr = aliasFields.get(field);
+                    String dimensionExpr = groupDimension.get(dimensionKey);
+                    if (dimensionExpr != null && selectItemExpr != null) {
+                        ExpressionColumnCollectAdapter selectItemAdapter = new ExpressionColumnCollectAdapter();
+                        Expression expr1 = CCJSqlParserUtil.parseExpression(selectItemExpr);
+                        expr1.accept(selectItemAdapter);
+                        Set<String> selectItemColumn = selectItemAdapter.getColumns();
+
+                        ExpressionColumnCollectAdapter dimensionAdapter = new ExpressionColumnCollectAdapter();
+                        Expression expr2 = CCJSqlParserUtil.parseExpression(dimensionExpr);
+                        expr2.accept(dimensionAdapter);
+                        Set<String> dimensionColumn = dimensionAdapter.getColumns();
+
+                        boolean hasDuplicates = selectItemColumn.stream().anyMatch(dimensionColumn::contains);
+                        if (hasDuplicates) {
+                            map.put(META_CATEGORY, META_CATEGORY_DIMENSION);
+                            continue meta;
+                        }
+                    }
+                } catch (JSQLParserException e) {
+                    throw new RuntimeException("parse expression error.", e);
+                }
+            }
+            map.put(META_CATEGORY, META_CATEGORY_METRIC);
         }
     }
 
