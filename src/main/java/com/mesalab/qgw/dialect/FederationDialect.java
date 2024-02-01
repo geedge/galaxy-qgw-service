@@ -12,6 +12,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.mesalab.calcite.CalciteConnectionProcessor;
 import com.mesalab.common.enums.DBEngineType;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.common.utils.sqlparser.SampleSQLHelper;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
@@ -191,8 +192,8 @@ public class FederationDialect extends AbstractEngineDialect {
                     continue meta;
                 }
                 try {
-                    String selectItemExpr = aliasFields.get(field);
-                    String dimensionExpr = groupDimension.get(dimensionKey);
+                    String selectItemExpr = aliasFields.get(field) == null ? SQLFunctionUtil.generateDateFunction(field, sqlQueryContext.getDbEngine()) : aliasFields.get(field);
+                    String dimensionExpr = groupDimension.get(dimensionKey) == null ? SQLFunctionUtil.generateDateFunction(dimensionKey, sqlQueryContext.getDbEngine()) : groupDimension.get(dimensionKey);
                     if (dimensionExpr != null && selectItemExpr != null) {
                         ExpressionColumnCollectAdapter selectItemAdapter = new ExpressionColumnCollectAdapter();
                         Expression expr1 = CCJSqlParserUtil.parseExpression(selectItemExpr);
@@ -211,7 +212,7 @@ public class FederationDialect extends AbstractEngineDialect {
                         }
                     }
                 } catch (JSQLParserException e) {
-                    throw new RuntimeException("parse expression error.", e);
+                    log.warn("build meta error, message is: {}", e.getMessage());
                 }
             }
             map.put(META_CATEGORY, META_CATEGORY_METRIC);
