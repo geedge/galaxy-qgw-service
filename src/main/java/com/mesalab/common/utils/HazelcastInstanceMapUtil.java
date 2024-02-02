@@ -1,5 +1,6 @@
 package com.mesalab.common.utils;
 
+import cn.hutool.json.JSONUtil;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.mesalab.qgw.model.basic.QueryCache;
@@ -25,19 +26,22 @@ public class HazelcastInstanceMapUtil {
         HazelcastInstanceMapUtil.hazelcastInstance = hazelcastInstance;
     }
 
-    public static IMap<String, QueryCache> retrieveMap() {
+    public static IMap<String, String> retrieveMap() {
         return hazelcastInstance.getMap(AD_HOC_CACHE);
     }
 
     public static QueryCache put(String key, QueryCache value) {
-        return retrieveMap().put(key, value);
+        String old = retrieveMap().put(key, JSONUtil.toJsonStr(value));
+        return old == null ? null : JSONUtil.toBean(old, QueryCache.class);
     }
 
     public static QueryCache get(String key) {
-        return retrieveMap().get(key);
+        String v = retrieveMap().get(key);
+        return v == null ? null : JSONUtil.toBean(v, QueryCache.class);
     }
 
     public static QueryCache remove(String key) {
-        return retrieveMap().remove(key);
+        String d = retrieveMap().remove(key);
+        return d == null ? null : JSONUtil.toBean(d, QueryCache.class);
     }
 }
