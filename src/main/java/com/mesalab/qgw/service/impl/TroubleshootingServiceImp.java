@@ -269,7 +269,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                 dslQueryRequest.setOutputMode(OutputMode.JSON.getValue());
                 log.info("DSL Dataset Verification, ID is {}", dslDataset.get(IDENTIFIER_NAME));
                 queryJobService.createDSLAdHocQuery(dslQueryRequest);
-            } catch (QGWBusinessException | BusinessException e) {
+            } catch (RuntimeException e) {
                 map.put(String.valueOf(dslDataset.get(IDENTIFIER_NAME)), e.getMessage());
                 resultData.add(map);
                 log.error("DSL Dataset execute error, ID is: {}, message is: {}", dslDataset.get(IDENTIFIER_NAME), e.getMessage());

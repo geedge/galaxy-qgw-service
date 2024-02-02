@@ -54,22 +54,10 @@ public class ComDSLValidate {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.GRANULARITY_VALUE_IS_INVALID));
         }
-        if (!isValidMatch(parameters.getMatch())) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.MATCH_TYPE));
-        }
-        if (!isValidRange(parameters.getRange())) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.INTERVALS_PARAM_ERROR));
-        }
-        if (!isValidIntervals(parameters.getIntervals())) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.INTERVALS_PARAM_ERROR));
-        }
-        if (!isValidSort(parameters.getSort())) {
-            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.INTERVALS_PARAM_ERROR));
-        }
+        validMatch(parameters.getMatch());
+        validRange(parameters.getRange());
+        validIntervals(parameters.getIntervals());
+        validSort(parameters.getSort());
     }
 
     private boolean isValidGranularity(String granularity) {
@@ -82,9 +70,9 @@ public class ComDSLValidate {
         return false;
     }
 
-    private boolean isValidSort(List<ComDSLObject.Query.SortBean> sortList) {
+    private void validSort(List<ComDSLObject.Query.SortBean> sortList) {
         if (CollectionUtils.isEmpty(sortList)) {
-            return true;
+            return;
         }
         for (ComDSLObject.Query.SortBean sortBean : sortList) {
             Validate.isTrue(EnumUtils.isValidEnum(SortEnum.class, StringUtil.upperCase(sortBean.getType())), QGWMessageConst.SORT_TYPE_IS_INVALID);
@@ -94,12 +82,11 @@ public class ComDSLValidate {
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.SORT_FIELD_VALUES));
             }
         }
-        return true;
     }
 
-    private boolean isValidRange(List<ComDSLObject.Query.FilterBean> rangeList) {
+    private void validRange(List<ComDSLObject.Query.FilterBean> rangeList) {
         if (CollectionUtils.isEmpty(rangeList)) {
-            return true;
+            return;
         }
         for (ComDSLObject.Query.FilterBean rangeBean : rangeList) {
 
@@ -114,12 +101,11 @@ public class ComDSLValidate {
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.RANGE_FIELD_VALUES));
             }
         }
-        return true;
     }
 
-    private boolean isValidMatch(List<ComDSLObject.Query.FilterBean> matchList) {
+    private void validMatch(List<ComDSLObject.Query.FilterBean> matchList) {
         if (CollectionUtils.isEmpty(matchList)) {
-            return true;
+            return;
         }
         for (ComDSLObject.Query.FilterBean matchBean : matchList) {
             if (!EnumUtils.isValidEnum(MatchEnum.class, StringUtil.upperCase(matchBean.getType()))) {
@@ -136,13 +122,12 @@ public class ComDSLValidate {
                 });
             }
         }
-        return true;
     }
 
-    private boolean isValidIntervals(List<String> intervalsBean) {
+    private void validIntervals(List<String> intervalsBean) {
         try {
             if (CollectionUtils.isEmpty(intervalsBean)) {
-                return true;
+                return;
             }
             if (intervalsBean.size() != 1) {
                 throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
@@ -156,7 +141,6 @@ public class ComDSLValidate {
             for (String dateTimeStr : split) {
                 DateUtil.parse(dateTimeStr);
             }
-            return true;
         } catch (DateException e) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.TIME_FORMAT_ERROR));
