@@ -335,7 +335,7 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
-          "sip_duration_s": "ms"
+          "sip_duration_s": "s"
         },
         "MIN": {
           "sent_pkts": "packets",
@@ -353,7 +353,7 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
-          "sip_duration_s": "ms"
+          "sip_duration_s": "s"
         },
         "AVG": {
           "sent_pkts": "packets",
@@ -371,7 +371,7 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
-          "sip_duration_s": "ms"
+          "sip_duration_s": "s"
         },
         "MEDIAN": {
           "sent_pkts": "packets",
@@ -389,7 +389,7 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
-          "sip_duration_s": "ms"
+          "sip_duration_s": "s"
         },
         "P95_PERCENTILE": {
           "sent_pkts": "packets",
@@ -407,7 +407,7 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
-          "sip_duration_s": "ms"
+          "sip_duration_s": "s"
         },
         "P99_PERCENTILE": {
           "sent_pkts": "packets",
@@ -425,7 +425,7 @@
           "tcp_c2s_rtx_bytes": "bytes",
           "tcp_s2c_rtx_bytes": "bytes",
           "tcp_rtt_ms": "ms",
-          "sip_duration_s": "ms"
+          "sip_duration_s": "s"
         }
       },
       "field_discovery_metric": {
