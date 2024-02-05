@@ -318,7 +318,7 @@
       "recv_time",
       "log_id",
       "flags_identify_info",
-      "tunnels",
+      "encapsulation",
       "app_debug_info",
       "app_content",
       "packet_capture_file",
@@ -1805,8 +1805,8 @@
       "type": "string"
     },
     {
-      "name": "tunnels",
-      "label": "Tunnels",
+      "name": "encapsulation",
+      "label": "Encapsulation",
       "doc": {
         "visibility": "hidden",
         "ttl": null
