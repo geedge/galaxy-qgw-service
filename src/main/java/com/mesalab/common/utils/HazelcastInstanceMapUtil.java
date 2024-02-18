@@ -1,6 +1,7 @@
 package com.mesalab.common.utils;
 
-import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.mesalab.qgw.model.basic.QueryCache;
@@ -31,17 +32,18 @@ public class HazelcastInstanceMapUtil {
     }
 
     public static QueryCache put(String key, QueryCache value) {
-        String old = retrieveMap().put(key, JSONUtil.toJsonStr(value));
-        return old == null ? null : JSONUtil.toBean(old, QueryCache.class);
+        String vStr = JSON.toJSONString(value, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject);
+        String old = retrieveMap().put(key, vStr);
+        return old == null ? null : JSON.parseObject(old, QueryCache.class);
     }
 
     public static QueryCache get(String key) {
         String v = retrieveMap().get(key);
-        return v == null ? null : JSONUtil.toBean(v, QueryCache.class);
+        return v == null ? null : JSON.parseObject(v, QueryCache.class);
     }
 
     public static QueryCache remove(String key) {
         String d = retrieveMap().remove(key);
-        return d == null ? null : JSONUtil.toBean(d, QueryCache.class);
+        return d == null ? null : JSON.parseObject(d, QueryCache.class);
     }
 }

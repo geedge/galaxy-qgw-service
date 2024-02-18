@@ -32,7 +32,7 @@ public class BaseResult<T> implements Serializable {
     @JsonProperty("request_id")
     private String requestId;
 
-    private boolean success;
+    private Boolean success;
 
     private String message;
 

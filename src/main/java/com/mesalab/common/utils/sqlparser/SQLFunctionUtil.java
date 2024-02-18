@@ -91,20 +91,20 @@ public class SQLFunctionUtil {
 
     public static final Pattern pApproxCountDistinctHlld = Pattern.compile("\\b" + APPROX_COUNT_DISTINCT_HLLD + "\\(", Pattern.CASE_INSENSITIVE);
 
-    public static final HashMap<String, String> functions = Maps.newHashMap();
+    public static final HashMap<String, String> federationUDFFunctions = Maps.newHashMap();
     private static final Map<String, String> distributedGroupByFunction = Maps.newHashMap();
 
     public static final Map<String, String> timeSlicingFunction = Maps.newHashMap();
 
     static {
-        functions.put(TIME_FLOOR_WITH_FILL, null);
-        functions.put(IP_TO_GEO, null);
-        functions.put(IP_TO_CITY, null);
-        functions.put(IP_TO_COUNTRY, null);
-        functions.put(IP_TO_ISP, null);
-        functions.put(IP_TO_ASN, null);
-        functions.put(IP_TO_ASN_DETAIL, null);
-        functions.put(IP_TO_ASN_ORG, null);
+        federationUDFFunctions.put(TIME_FLOOR_WITH_FILL, null);
+        federationUDFFunctions.put(IP_TO_GEO, null);
+        federationUDFFunctions.put(IP_TO_CITY, null);
+        federationUDFFunctions.put(IP_TO_COUNTRY, null);
+        federationUDFFunctions.put(IP_TO_ISP, null);
+        federationUDFFunctions.put(IP_TO_ASN, null);
+        federationUDFFunctions.put(IP_TO_ASN_DETAIL, null);
+        federationUDFFunctions.put(IP_TO_ASN_ORG, null);
         distributedGroupByFunction.put("count", "sum");
         distributedGroupByFunction.put("sum", "sum");
         distributedGroupByFunction.put("avg", "avg");

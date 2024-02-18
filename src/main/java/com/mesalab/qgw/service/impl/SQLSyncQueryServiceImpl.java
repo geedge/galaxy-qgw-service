@@ -403,7 +403,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     private static void parserExpressionForFun(Set<UDF> udfSet, Expression expr) {
         if (expr instanceof Function) {
             Function fun = (Function) expr;
-            if (SQLFunctionUtil.functions.keySet().contains(fun.getName().toUpperCase())) {
+            if (SQLFunctionUtil.federationUDFFunctions.containsKey(fun.getName().toUpperCase())) {
                 List<Expression> expressions = fun.getParameters().getExpressions();
                 UDF udf = getUDF(fun, expressions);
                 udfSet.add(udf);
