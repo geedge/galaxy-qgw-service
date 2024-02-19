@@ -2633,7 +2633,6 @@
       "out_src_mac",
       "in_dest_mac",
       "out_dest_mac",
-      "encapsulation",
       "dup_traffic_flag",
       "tunnel_endpoint_a_desc",
       "tunnel_endpoint_b_desc"
