@@ -131,4 +131,11 @@ public class QGWMessageConst {
     public static final String KB_FILE_FORMAT_NOT_SUPPORT = "The knowledge base file format is not supported, category value must be :[ MMDB| CSV| TXT]";
 
     public static final String KB_FILE_CATEGORY_NOT_SUPPORT = "The knowledge base file category is not supported, format value must be :[ IP| DOMAIN| APP]";
+
+    public static final String JSON_SCHEMA_ATTRIBUTE_NECESSITY = "The %s Attribute must exist";
+
+    public static final String JSON_SCHEMA_FIELD_UNIQUENESS = "The %s array has duplicate fields";
+
+    public static final String JSON_SCHEMA_DOC_FIELD_USABILITY = "The %s described field must exist in doc.fields.*";
+
 }
