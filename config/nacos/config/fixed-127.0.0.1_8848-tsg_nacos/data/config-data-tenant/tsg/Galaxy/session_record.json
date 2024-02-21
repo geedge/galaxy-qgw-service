@@ -1053,11 +1053,6 @@
       "name": "log_id",
       "label": "Log ID",
       "doc": {
-        "format": [
-          {
-            "function": "snowflake_id"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1146,11 +1141,6 @@
           "operator_functions": "=,!=,>,<,>=,<=",
           "type": "datetime64"
         },
-        "format": [
-          {
-            "function": "from_unix_timestamp_ms"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1167,11 +1157,6 @@
           "operator_functions": "=,!=,>,<,>=,<=",
           "type": "datetime64"
         },
-        "format": [
-          {
-            "function": "from_unix_timestamp_ms"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1213,11 +1198,6 @@
         "constraints": {
           "type": "unix_timestamp"
         },
-        "format": [
-          {
-            "function": "current_timestamp"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1233,15 +1213,6 @@
         "constraints": {
           "type": "unix_timestamp"
         },
-        "format": [
-          {
-            "function": "ingestion_time"
-          },
-          {
-            "function": "get_value",
-            "appendTo": "recv_time"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1297,18 +1268,6 @@
       "label": "Device Tag",
       "doc": {
         "visibility": "hidden",
-        "format": [
-          {
-            "function": "flattenSpec",
-            "appendTo": "data_center",
-            "param": "$.tags[?(@.tag=='data_center')][0].value"
-          },
-          {
-            "function": "flattenSpec",
-            "appendTo": "device_group",
-            "param": "$.tags[?(@.tag=='device_group')][0].value"
-          }
-        ],
         "ttl": null
       },
       "type": "string"
@@ -1741,12 +1700,6 @@
         "constraints": {
           "type": "ip"
         },
-        "format": [
-          {
-            "function": "geo_asn",
-            "appendTo": "client_asn"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -1846,12 +1799,6 @@
         "constraints": {
           "type": "ip"
         },
-        "format": [
-          {
-            "function": "geo_asn",
-            "appendTo": "server_asn"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -2205,12 +2152,6 @@
       "name": "packet_capture_file",
       "label": "Packet Capture File",
       "doc": {
-        "format": [
-          {
-            "function": "combine",
-            "param": "traffic_file_bucket"
-          }
-        ],
         "allow_query": "false",
         "visibility": "enabled",
         "constraints": {
@@ -2311,16 +2252,6 @@
       "name": "http_host",
       "label": "HTTP.Host",
       "doc": {
-        "format": [
-          {
-            "function": "sub_domain",
-            "appendTo": "server_domain"
-          },
-          {
-            "function": "get_value",
-            "appendTo": "server_fqdn"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -2384,12 +2315,6 @@
       "name": "http_request_body",
       "label": "HTTP.Request Body",
       "doc": {
-        "format": [
-          {
-            "function": "combine",
-            "param": "traffic_file_bucket"
-          }
-        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"
@@ -2403,12 +2328,6 @@
       "name": "http_response_body",
       "label": "HTTP.Response Body",
       "doc": {
-        "format": [
-          {
-            "function": "combine",
-            "param": "traffic_file_bucket"
-          }
-        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"
@@ -2622,12 +2541,6 @@
       "name": "mail_subject",
       "label": "MAIL.Subject",
       "doc": {
-        "format": [
-          {
-            "function": "decode_of_base64",
-            "param": "$.mail_subject_charset"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -2646,12 +2559,6 @@
       "name": "mail_attachment_name",
       "label": "MAIL.Attachment Name",
       "doc": {
-        "format": [
-          {
-            "function": "decode_of_base64",
-            "param": "$.mail_attachment_name_charset"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -2670,12 +2577,6 @@
       "name": "mail_eml_file",
       "label": "MAIL.EML File",
       "doc": {
-        "format": [
-          {
-            "function": "combine",
-            "param": "traffic_file_bucket"
-          }
-        ],
         "constraints": {
           "type": "file"
         },
@@ -3339,16 +3240,6 @@
       "name": "ssl_sni",
       "label": "SSL.SNI",
       "doc": {
-        "format": [
-          {
-            "function": "sub_domain",
-            "appendTo": "server_domain"
-          },
-          {
-            "function": "get_value",
-            "appendTo": "server_fqdn"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -3467,16 +3358,6 @@
       "name": "dtls_sni",
       "label": "DTLS.SNI",
       "doc": {
-        "format": [
-          {
-            "function": "sub_domain",
-            "appendTo": "server_domain"
-          },
-          {
-            "function": "get_value",
-            "appendTo": "server_fqdn"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -3562,16 +3443,6 @@
       "name": "quic_sni",
       "label": "QUIC.SNI",
       "doc": {
-        "format": [
-          {
-            "function": "sub_domain",
-            "appendTo": "server_domain"
-          },
-          {
-            "function": "get_value",
-            "appendTo": "server_fqdn"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
@@ -3999,12 +3870,6 @@
       "name": "rtp_pcap_path",
       "label": "RTP.PCAP",
       "doc": {
-        "format": [
-          {
-            "function": "combine",
-            "param": "traffic_file_bucket"
-          }
-        ],
         "allow_query": "false",
         "constraints": {
           "type": "file"

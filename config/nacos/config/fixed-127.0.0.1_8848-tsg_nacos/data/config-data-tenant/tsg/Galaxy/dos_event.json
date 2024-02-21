@@ -103,11 +103,6 @@
       "name": "log_id",
       "label": "Log ID",
       "doc": {
-        "format": [
-          {
-            "function": "snowflake_id"
-          }
-        ],
         "visibility": "enabled",
         "ttl": null
       },
