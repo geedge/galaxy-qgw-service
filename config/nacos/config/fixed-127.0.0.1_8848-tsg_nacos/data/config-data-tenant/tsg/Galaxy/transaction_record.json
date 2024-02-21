@@ -177,7 +177,6 @@
         "decoded_as",
         "vsys_id",
         "client_ip",
-        "internal_ip",
         "client_port",
         "server_ip",
         "server_port",

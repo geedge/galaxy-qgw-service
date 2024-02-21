@@ -89,7 +89,7 @@
         </profile>
     </profiles>
 
-        <dependencies>
+    <dependencies>
 
         <dependency>
             <groupId>com.mesalab.ua</groupId>
@@ -332,6 +332,11 @@
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>5.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>1.0.87</version>
         </dependency>
     </dependencies>
 

@@ -1,13 +1,11 @@
 package com.mesalab.qgw.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
-import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -30,6 +28,7 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConfig;
+import com.mesalab.common.utils.JsonSchemaValidatorUtil;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -61,8 +60,6 @@ import java.util.stream.Stream;
 public class TroubleshootingServiceImp implements TroubleshootingService, EnvironmentAware {
 
     private static final Log log = LogFactory.get();
-    private static final String METADATA_PREFIX = "Metadata/";
-
     private static final String BACKEND_ENGINE = "backend_engine";
     private static final String IDENTIFIER_NAME = "identifier_name";
     private static final String TEMPLATE = "template";
@@ -108,6 +105,14 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private static final String trafficPort = "8123";
     private final static String DATA_ID = "version.json";
     private static final String BENCHMARK = "benchmark";
+    private static final String FIELDS= "fields";
+    private static final String NAMESPACE = "namespace";
+    private static final String FIELD_UNIQUENESS_VALIDATION = "field-uniqueness-validation.json";
+    private static final String DOC_FIELD_USABILITY_VALIDATION = "doc-field-usability-validation.json";
+    private static final String ATTRIBUTE_NECESSITY_VALIDATION = "attribute-necessity-validation.json";
+    private static final String ERROR = "ERROR";
+    private static final String WARN = "WARN";
+
     private static String localHostAddress;
 
     static {
@@ -169,12 +174,12 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                     ipPort = url.substring(url.indexOf("//") + 2, url.lastIndexOf(":") + 1).concat(trafficPort);
                 }
                 for (String tableName : symbols) {
-                    Map schemaMap = databaseService.getSchemaInfo("fields", tableName, false);
+                    Map schemaMap = databaseService.getSchemaInfo(FIELDS, tableName, false);
                     Object tableTTLInSchema = getTableTTLInSchema(schemaMap);
                     Map<String, Object> tableDiff = getTableDiff(ipPort, tableName, tableTTLInSchema);
                     List fieldDiff = getFieldDiff(ipPort, tableName, schemaMap);
                     if (CollectionUtil.isNotEmpty(fieldDiff)) {
-                        tableDiff.put("fields", fieldDiff);
+                        tableDiff.put(FIELDS, fieldDiff);
 
                     }
                     if (CollectionUtil.isNotEmpty(tableDiff)) {
@@ -202,21 +207,29 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         try {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
-            List<Object> data = Lists.newArrayList();
+            Map<String, Map<String,List<String>>> resultData = Maps.newHashMap();
+            for (String tableName : databaseService.getAllTable()) {
+                Map schemaMap = databaseService.getSchemaInfo(FIELDS, tableName, false);
+                if (!clickHouseHttpSource.getDbName().equals(schemaMap.get(NAMESPACE)) && !druidIoHttpSource.getDbname().equals(schemaMap.get(NAMESPACE))) continue;
+                JsonSchemaValidatorUtil jsonSchemaValidatorUtil = new JsonSchemaValidatorUtil();
+                List<String> validate = jsonSchemaValidatorUtil
+                        .addRule(FIELD_UNIQUENESS_VALIDATION, QGWMessageConst.JSON_SCHEMA_FIELD_UNIQUENESS, WARN)
+                        .addRule(DOC_FIELD_USABILITY_VALIDATION, QGWMessageConst.JSON_SCHEMA_DOC_FIELD_USABILITY, ERROR)
+                        .addRule(ATTRIBUTE_NECESSITY_VALIDATION, QGWMessageConst.JSON_SCHEMA_ATTRIBUTE_NECESSITY, ERROR)
+                        .validate(JSON.toJSONString(schemaMap));
+                if (!validate.isEmpty()) {
+                    Map<String, List<String>> resultMap = resultData.computeIfAbsent(String.valueOf(schemaMap.get(NAMESPACE)), k -> Maps.newHashMap());
+                    resultMap.put(tableName, validate);
+                }
+            }
             checkCKIndexKey(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
-            Map<String, Map<String, String>> clickhouseResult = checkMetadataByDatasource(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
-            Map<String, Map<String, String>> druidResult = checkMetadataByDatasource(druidIoHttpSource.getDbname(), databaseService.getAllTable());
-            Map<String, Map<String, String>> hbaseResult = checkMetadataByDatasource(hBaseAPISource.getDbName(), databaseService.getAllTable());
-
-            data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            checkMetadataByDatasource(databaseService.getAllTable(), resultData);
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            result = BaseResultGenerator.success("Metadata Validation Success, Only Table Exist Fields detail.", data, statistics);
+            result = BaseResultGenerator.success("Json Schema Validation Success.", resultData, statistics);
             result.setFormatType(OutputMode.JSON.getValue());
         } catch (RuntimeException e) {
-            log.error("Metadata Validation Fail: {}", e.getMessage());
+            log.error("Json Schema Validation Fail: {}", e.getMessage());
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                     CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
@@ -400,17 +413,17 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     /**
      * 对指定数据源dbName下的schema 与数据库的字段进行对比检查
      *
-     * @param dbName
+     * @param
      * @param tables
      * @return
      */
-    private Map<String, Map<String, String>> checkMetadataByDatasource(String dbName, List<String> tables) {
-
-        Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
-        Map<String, String> infoMap = Maps.newHashMap();
+    private void checkMetadataByDatasource(List<String> tables, Map<String, Map<String, List<String>>> resultData) {
         for (String tableName : tables) {
-            Schema schema = databaseService.getSchemaByName(tableName);
-            if (!dbName.equals(schema.getNamespace())) continue;
+            Map schemaMap = databaseService.getSchemaInfo(FIELDS, tableName, false);
+            String dbName = String.valueOf(schemaMap.get(NAMESPACE));
+            if (!clickHouseHttpSource.getDbName().equals(dbName)
+                    && !druidIoHttpSource.getDbname().equals(dbName)
+                    && !hBaseAPISource.getDbName().equals(dbName)) continue;
             BaseResult baseResult = getBaseResultByEngine(SQLQueryContext.builder().option(QueryOption.REAL_TIME.getValue()).originalSQL("describe " + tableName).build());
             if (HttpStatusCodeEnum.SUCCESS.getCode() != baseResult.getStatus()) {
                 log.error("The Table[" + tableName + "] Structure query failed" + baseResult.getMessage());
@@ -424,7 +437,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             dbFields.stream().forEach(objectMap -> {
                 dbFieldMap.put(objectMap.get("name").toString(), objectMap.get("type"));
             });
-            List<Map<String, Object>> schemaFields = JsonPath.read(schema.toString(), "$.fields.*");
+
+            List<Map<String, Object>> schemaFields = (List<Map<String, Object>>) schemaMap.get(FIELDS);
             Map<String, Object> schemaFieldMap = Maps.newHashMap();
             schemaFields.stream().forEach(objectMap -> {
                 schemaFieldMap.put(objectMap.get("name").toString(), objectMap.get("type"));
@@ -439,18 +453,33 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                         CommonErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
                         String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),
-                                " Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft));
-
+                                "Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft));
             }
             Map<String, Object> entriesOnlyOnRight = difference.entriesOnlyOnRight();
             if (entriesOnlyOnRight.size() > 0) {
                 log.warn("键只存在于右边Map的映射项:" + entriesOnlyOnRight);
-                infoMap.put(tableName, entriesOnlyOnRight.toString());
+                if (!resultData.isEmpty()) {
+                    if (resultData.containsKey(dbName)) {
+                        if (resultData.get(dbName).containsKey(tableName)) {
+                            Map<String, List<String>> map = resultData.get(dbName);
+                            map.get(tableName).add("Schema Fields less than Table Fields:" + entriesOnlyOnRight);
+                        }
+                    } else {
+                        putData(resultData, tableName, schemaMap, entriesOnlyOnRight);
+                    }
+                } else {
+                    putData(resultData, tableName, schemaMap, entriesOnlyOnRight);
+                }
             }
-
         }
-        resultMap.put(METADATA_PREFIX + dbName, infoMap);
-        return resultMap;
+    }
+
+    private static void putData(Map<String, Map<String, List<String>>> resultData, String tableName, Map schemaMap, Map<String, Object> entriesOnlyOnRight) {
+        Map<String, List<String>> map = Maps.newHashMap();
+        List<String> list = Lists.newArrayList();
+        list.add("Schema Fields less than Table Fields:" + entriesOnlyOnRight);
+        map.put(tableName, list);
+        resultData.put(String.valueOf(schemaMap.get(NAMESPACE)), map);
     }
 
     private Object getTableTTLInSchema(Map schemaMap) {
@@ -499,7 +528,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), result.toString()));
         }
-        List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
+        List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get(FIELDS);
         for (Map<String, Object> field : fields) {
             Object read = JsonPath.read(result, "$.result");
             List<Object> fieldList = JsonPath.read(JSONUtil.toJsonStr(JSONUtil.parseObj(read)), "$.data[?(@.name == \"" + field.get("name") + "\")].ttl_expression");
