@@ -52,21 +52,19 @@
         <commons.codec.version>1.11</commons.codec.version>
         <commons.configuration.version>1.10</commons.configuration.version>
         <commons.logging.version>1.2</commons.logging.version>
-        <guava.version>23.0</guava.version>
         <nutz.version>1.r.65</nutz.version>
         <log4j2.version>2.17.0</log4j2.version>
         <httpclient.version>4.5.6</httpclient.version>
         <avro.version>1.9.1</avro.version>
         <active.record.version>4.9.01</active.record.version>
         <json.schema.version>2.2.10</json.schema.version>
-        <zdjizhi.version>1.2</zdjizhi.version>
+        <galaxy.tool.version>2.0.1</galaxy.tool.version>
         <uaAnalyser.version>1.0-RELEASE</uaAnalyser.version>
         <jsqlparser.version>4.6</jsqlparser.version>
         <hbase.client.version>2.2.3</hbase.client.version>
         <hutool.version>5.6.1</hutool.version>
         <fastjson2.version>2.0.32</fastjson2.version>
         <json.path.version>2.5.0</json.path.version>
-
         <docker.build>192.168.40.153</docker.build>
         <docker.build.port>2375</docker.build.port>
         <docker.registry>192.168.40.153</docker.registry>
@@ -222,11 +220,6 @@
             <version>${commons.logging.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.nutz</groupId>
             <artifactId>nutz</artifactId>
             <version>${nutz.version}</version>
@@ -254,7 +247,7 @@
         <dependency>
             <groupId>com.geedgenetworks</groupId>
             <artifactId>galaxy</artifactId>
-            <version>${zdjizhi.version}</version>
+            <version>${galaxy.tool.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -706,26 +699,7 @@
                 </dependencies>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-toolchains-plugin</artifactId>
-                <version>1.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>toolchain</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <toolchains>
-                        <jdk>
-                            <version>11</version>
-                            <vendor>amazon</vendor>
-                        </jdk>
-                    </toolchains>
-                </configuration>
-            </plugin>
+
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
