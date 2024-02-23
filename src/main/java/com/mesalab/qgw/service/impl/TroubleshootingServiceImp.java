@@ -28,7 +28,7 @@ import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConfig;
-import com.mesalab.common.utils.JsonSchemaValidatorUtil;
+import com.mesalab.common.utils.JsonSchemaValidator;
 import com.mesalab.qgw.benchmark.DialectWriter;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -211,8 +211,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             for (String tableName : databaseService.getAllTable()) {
                 Map schemaMap = databaseService.getSchemaInfo(FIELDS, tableName, false);
                 if (!clickHouseHttpSource.getDbName().equals(schemaMap.get(NAMESPACE)) && !druidIoHttpSource.getDbname().equals(schemaMap.get(NAMESPACE))) continue;
-                JsonSchemaValidatorUtil jsonSchemaValidatorUtil = new JsonSchemaValidatorUtil();
-                List<String> validate = jsonSchemaValidatorUtil
+                JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getInstance();
+                List<String> validate = jsonSchemaValidator
                         .addRule(FIELD_UNIQUENESS_VALIDATION, QGWMessageConst.JSON_SCHEMA_FIELD_UNIQUENESS, WARN)
                         .addRule(DOC_FIELD_USABILITY_VALIDATION, QGWMessageConst.JSON_SCHEMA_DOC_FIELD_USABILITY, ERROR)
                         .addRule(ATTRIBUTE_NECESSITY_VALIDATION, QGWMessageConst.JSON_SCHEMA_ATTRIBUTE_NECESSITY, ERROR)
