@@ -4,4 +4,6 @@ Release 375 (TSG-24.02)
 * 修改Schema，字段tunnels重命名为encapsulation(TSG-19249)
 * 修正字段发现统计结果查询失败(TSG-19354)
 * 修改Schema，解决Encapsulation内容重复显示的问题(TSG-19347)
-
+* 修改Schema，移除format function定义(GAL-488)
+* 完善Schema校验接口(TSG-18390)
+* 优化TIME_FLOOR_WITH_FILL函数转义(TSG-19375)
