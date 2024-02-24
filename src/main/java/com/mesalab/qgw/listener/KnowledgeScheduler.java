@@ -44,7 +44,7 @@ public class KnowledgeScheduler {
     private KBService kbService;
     private static final Map<String, String> updateMap = new HashMap<>();
 
-    //@PostConstruct
+    @PostConstruct
     private void loadKnowledge() {
         try {
             BaseResult baseResult = kbService.getList(null, null);

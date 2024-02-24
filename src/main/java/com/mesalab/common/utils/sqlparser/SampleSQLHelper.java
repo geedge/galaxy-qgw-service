@@ -26,8 +26,8 @@ public class SampleSQLHelper {
 
     private final String originalSQL;
     private final String filterExpr;
-    private final long maxSize;
-    private final boolean isInvalidCondExpr;
+    private final Integer maxSize;
+    private final Boolean isInvalidCondExpr;
 
     /**
      * Desc: TODO
@@ -35,12 +35,12 @@ public class SampleSQLHelper {
      * @param originalSQL       原始SQL
      * @param filterExpr        新增的 WHERE 过滤条件
      * @param isInvalidCondExpr 是否失效 HAVING 过滤条件
-     * @param defaultSize           结果默认条数
+     * @param defaultSize       结果默认条数
      * @return {@link null}
      * @created by wWei
      * @date 2023/4/10 11:03
      */
-    public SampleSQLHelper(String originalSQL, String filterExpr, boolean isInvalidCondExpr, long defaultSize) {
+    public SampleSQLHelper(String originalSQL, String filterExpr, Boolean isInvalidCondExpr, Integer defaultSize) {
         this.originalSQL = originalSQL;
         this.filterExpr = filterExpr;
         this.isInvalidCondExpr = isInvalidCondExpr;
@@ -135,7 +135,7 @@ public class SampleSQLHelper {
             }
 
             Limit limit = plainSelect.getLimit();
-            if (limit == null) {
+            if (limit == null && maxSize != null) {
                 Limit limitObj = new Limit();
                 limitObj.setRowCount(new LongValue(maxSize));
                 plainSelect.setLimit(limitObj);

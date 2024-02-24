@@ -11,6 +11,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
+import com.mesalab.common.utils.sqlparser.FunctionsMergeHelper;
 import com.mesalab.common.utils.sqlparser.SampleSQLHelper;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
@@ -26,6 +27,7 @@ import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.qgw.service.impl.HttpClientServiceV2;
 import lombok.Data;
+import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.compress.utils.Lists;
 
@@ -69,7 +71,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
     @Override
     public String convertQuery(String sql) {
-        return new Converter(sql).generateStandard().generateDateFunction().build();
+        return new Converter(sql).generateStandard().mergeFunctions().generateDateFunction().build();
 
     }
 
@@ -237,7 +239,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
                 sqlQueryContext.getDbSelectStatement().getPartitionKey(),
                 endDate
         );
-        return new SampleSQLHelper(sql, filterExpr, false, StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement()) ? engineConfigSource.getDefaultResultNum() : engineConfigSource.getMaxCacheNum()).build();
+        return new SampleSQLHelper(sql, filterExpr, false, null).build();
     }
 
     private List<Map<String, String>> unifyMeta(List<Object> list) {
@@ -293,6 +295,11 @@ public class DruidDialect extends AbstractDataSourceDialect {
             return this;
         }
 
+        @SneakyThrows
+        public Converter mergeFunctions() {
+            sql = FunctionsMergeHelper.build(sql);
+            return this;
+        }
 
         public Converter generateDateFunction() {
             sql = SQLFunctionUtil.generateDateFunction(sql, DBEngineType.DRUID.getValue());
