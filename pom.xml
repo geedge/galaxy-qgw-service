@@ -58,6 +58,7 @@
         <avro.version>1.9.1</avro.version>
         <active.record.version>4.9.01</active.record.version>
         <json.schema.version>2.2.10</json.schema.version>
+        <guava.version>33.0.0-jre</guava.version>
         <galaxy.tool.version>2.0.1</galaxy.tool.version>
         <uaAnalyser.version>1.0-RELEASE</uaAnalyser.version>
         <jsqlparser.version>4.6</jsqlparser.version>
@@ -133,6 +134,11 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql-connector-java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
