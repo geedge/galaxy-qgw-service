@@ -5,6 +5,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.arithmetic.Division;
 import net.sf.jsqlparser.expression.operators.arithmetic.Multiplication;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -27,6 +28,7 @@ public class FunctionsMergeHelper {
     private static final String TIME_FLOOR_WITH_FILL = "TIME_FLOOR_WITH_FILL";
     private static final String UNIX_TIMESTAMP = "UNIX_TIMESTAMP";
     private static final String TIME_FORMAT = "TIME_FORMAT";
+    private static final String DATE_TIME_FORMAT_PATTERN = "'yyyy-MM-dd HH:mm:ss'";
     private static final String TIME_FLOOR = "TIME_FLOOR";
     private static final String MILLIS_TO_TIMESTAMP = "MILLIS_TO_TIMESTAMP";
     private static final String TIMESTAMP_TO_MILLIS = "TIMESTAMP_TO_MILLIS";
@@ -37,17 +39,17 @@ public class FunctionsMergeHelper {
     /**
      * Desc: Merge the TIME_FLOOR_WITH_FILL functions in the SQL statement
      * 1. FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(column), *[, *])) ==>
-     *      1. Select Item: TIME_FORMAT(TIME_FLOOR(column, *))
-     *      2. GroupBy or Order By Expr: TIME_FLOOR(column, *)
+     * 1. Select Item: TIME_FORMAT(TIME_FLOOR(column, *), 'yyyy-MM-dd HH:mm:ss')
+     * 2. GroupBy or Order By Expr: TIME_FLOOR(column, *)
      * 2. FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(column, *[, *])) ==>
-     *      1. Select Item: TIME_FORMAT(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *))
-     *      2. GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
+     * 1. Select Item: TIME_FORMAT(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *), 'yyyy-MM-dd HH:mm:ss')
+     * 2. GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
      * 3. TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(column), *[, *]) ==>
-     *      1. Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(column, *)) / 1000
-     *      2. GroupBy or Order By Expr: TIME_FLOOR(column, *)
+     * 1. Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(column, *)) / 1000
+     * 2. GroupBy or Order By Expr: TIME_FLOOR(column, *)
      * 4. TIME_FLOOR_WITH_FILL(column, *[, *]) ==>
-     *      1. Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)) / 1000
-     *      2. GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
+     * 1. Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)) / 1000
+     * 2. GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
      *
      * @param sql
      * @return {@link String}
@@ -177,7 +179,7 @@ public class FunctionsMergeHelper {
                         List<Expression> timeFloorArgs = new ArrayList<>(Arrays.asList(unixTimestampFun.getParameters().getExpressions().get(0), timeFloorWithFillFunArg1));
                         Function timeFloor = createFunction(TIME_FLOOR, timeFloorArgs);
                         mainFunction.setName(TIME_FORMAT);
-                        List<Expression> timeFormatArgs = new ArrayList<>(Collections.singletonList(timeFloor));
+                        List<Expression> timeFormatArgs = new ArrayList<>(Arrays.asList(timeFloor, new StringValue(DATE_TIME_FORMAT_PATTERN)));
                         mainFunction.setParameters(new ExpressionList(timeFormatArgs));
                     } else if (timeFloorWithFillFunArg0 instanceof Column) {
                         if (selectExpressionItem.getAlias() != null) {
@@ -194,7 +196,7 @@ public class FunctionsMergeHelper {
                         Function timeFloorFun = createFunction(TIME_FLOOR, timeFloorArgs);
 
                         mainFunction.setName(TIME_FORMAT);
-                        List<Expression> timeFormatArgs = new ArrayList<>(Collections.singletonList(timeFloorFun));
+                        List<Expression> timeFormatArgs = new ArrayList<>(Arrays.asList(timeFloorFun, new StringValue(DATE_TIME_FORMAT_PATTERN)));
                         mainFunction.setParameters(new ExpressionList(timeFormatArgs));
                     }
                 }
