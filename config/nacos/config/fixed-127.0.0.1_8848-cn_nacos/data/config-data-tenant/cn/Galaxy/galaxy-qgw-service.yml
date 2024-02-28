@@ -89,7 +89,7 @@ druid:
   url: 127.0.0.1:8082/druid/v2/sql
   dbname: druid
   socketTimeOut: 120000
-  maxSubquergiyRows: 2147483647
+  maxSubqueryRows: 2147483647
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.55:8181/xxl-job-admin
