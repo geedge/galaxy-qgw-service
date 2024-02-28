@@ -1488,7 +1488,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "int"

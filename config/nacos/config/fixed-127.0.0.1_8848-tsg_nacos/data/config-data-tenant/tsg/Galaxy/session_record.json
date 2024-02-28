@@ -3222,7 +3222,7 @@
           "type": "decimal",
           "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "int"
@@ -3340,7 +3340,7 @@
       "name": "dtls_cookie",
       "label": "DTLS.Cookie",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -3349,7 +3349,7 @@
       "name": "dtls_version",
       "label": "DTLS.Version",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -3367,7 +3367,7 @@
       "name": "dtls_san",
       "label": "DTLS.SAN",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -3376,7 +3376,7 @@
       "name": "dtls_cn",
       "label": "DTLS.CN",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -3389,7 +3389,7 @@
           "type": "decimal",
           "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
         },
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "int"
@@ -3398,7 +3398,7 @@
       "name": "dtls_ja3_fingerprint",
       "label": "DTLS.JA3 Fingerprint",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -3407,7 +3407,7 @@
       "name": "dtls_ja3_hash",
       "label": "DTLS.JA3 Hash",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -3416,7 +3416,7 @@
       "name": "dtls_cert_issuer",
       "label": "DTLS.Certificate Issuer",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
@@ -3425,7 +3425,7 @@
       "name": "dtls_cert_subject",
       "label": "DTLS.Certificate Subject",
       "doc": {
-        "visibility": "disabled",
+        "visibility": "enabled",
         "ttl": null
       },
       "type": "string"
