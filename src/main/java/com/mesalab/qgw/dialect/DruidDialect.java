@@ -149,6 +149,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         druidQueryParam.setQuery(sql);
         druidQueryParam.getContext().put("skipEmptyBuckets", druidIoHttpSource.getSkipEmptyBuckets());
         druidQueryParam.getContext().put("sqlQueryId", sqlQueryContext.getQueryId());
+        druidQueryParam.getContext().put("maxSubqueryRows", druidIoHttpSource.getMaxSubqueryRows());
         druidQueryParam.setResultFormat("object");
         return druidQueryParam;
     }
@@ -390,7 +391,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
     @Data
     class DruidQueryParam {
         private String query;
-        private Map<String, String> context = Maps.newHashMap();
+        private Map<String, Object> context = Maps.newHashMap();
         private String resultFormat;
 
     }

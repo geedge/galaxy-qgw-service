@@ -14,4 +14,5 @@ public class DruidIoHttpSource implements Serializable {
     private String url;
     private String dbname;
     private String skipEmptyBuckets = "true";
+    private Integer maxSubqueryRows;
 }

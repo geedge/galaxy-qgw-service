@@ -89,6 +89,7 @@ druid:
   url: 192.168.44.12:8089/druid/v2/sql
   dbname: druid
   socketTimeOut: 120000
+  maxSubquergiyRows: 2147483647
 ## xxl-job-admin configuration
 xxl-job-admin:
   url: http://192.168.44.12:8181/xxl-job-admin
@@ -133,9 +134,9 @@ hos:
 knowledge:
   corn: 0 0 */1 * * ?
   ipLocation:
-      userDefined: 004390bc-3135-4a6f-a492-3662ecb9e289_latest
-      builtIn: 64af7077-eb9b-4b8f-80cf-2ceebc89bea9_latest
-      asn: f9f6bc91-2142-4673-8249-e097c00fe1ea_latest
+    userDefined: 004390bc-3135-4a6f-a492-3662ecb9e289_latest
+    builtIn: 64af7077-eb9b-4b8f-80cf-2ceebc89bea9_latest
+    asn: f9f6bc91-2142-4673-8249-e097c00fe1ea_latest
 ## http pool config
 http:
   pool:
