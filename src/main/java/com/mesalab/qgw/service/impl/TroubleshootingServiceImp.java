@@ -11,6 +11,7 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONPath;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.geedgenetworks.utils.CommonUtil;
@@ -25,6 +26,7 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
+import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.nacos.NacosConfig;
@@ -104,19 +106,48 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private static Pattern pTTL = Pattern.compile(".*toIntervalSecond\\((\\d+)\\)", Pattern.CASE_INSENSITIVE);
     private static final String trafficPort = "8123";
     private final static String DATA_ID = "version.json";
+    private final static String PUBLIC_SCHEMA_INFO = "public_schema_info.json";
     private static final String BENCHMARK = "benchmark";
-    private static final String FIELDS= "fields";
+    private static final String FIELDS = "fields";
     private static final String NAMESPACE = "namespace";
-    private static final String FIELD_UNIQUENESS_VALIDATION = "field-uniqueness-validation.json";
-    private static final String DOC_FIELD_USABILITY_VALIDATION = "doc-field-usability-validation.json";
-    private static final String ATTRIBUTE_NECESSITY_VALIDATION = "attribute-necessity-validation.json";
+    private static final String FIELD_UNIQUENESS_RULE = "field-uniqueness-rule.json";
+    private static final String DOC_FIELD_USABILITY_RULE = "doc-field-usability-rule.json";
+    private static final String ATTRIBUTE_NECESSITY_RULE = "attribute-necessity-rule.json";
     private static final String ERROR = "ERROR";
     private static final String WARN = "WARN";
 
     private static String localHostAddress;
+    private final static Map<String, String> metaMap = Maps.newHashMap();
 
     static {
         localHostAddress = NetUtil.getLocalhostStr();
+    }
+
+    static {
+        metaMap.put("Int8", DataTypeMapping.INT);
+        metaMap.put("Int16", DataTypeMapping.INT);
+        metaMap.put("Int32", DataTypeMapping.INT);
+        metaMap.put("Int64", DataTypeMapping.LONG);
+        metaMap.put("Int128", DataTypeMapping.LONG);
+        metaMap.put("Int256", DataTypeMapping.LONG);
+        metaMap.put("UInt8", DataTypeMapping.INT);
+        metaMap.put("UInt16", DataTypeMapping.INT);
+        metaMap.put("UInt32", DataTypeMapping.LONG);
+        metaMap.put("UInt64", DataTypeMapping.LONG);
+        metaMap.put("UInt256", DataTypeMapping.LONG);
+        metaMap.put("Nullable(Int32)", DataTypeMapping.INT);
+        metaMap.put("Nullable(Int64)", DataTypeMapping.LONG);
+        metaMap.put("BIGINT", DataTypeMapping.LONG);
+        metaMap.put("Float32", DataTypeMapping.FLOAT);
+        metaMap.put("Float64", DataTypeMapping.DOUBLE);
+        metaMap.put("Date", DataTypeMapping.DATE);
+        metaMap.put("DateTime", DataTypeMapping.TIMESTAMP);
+        metaMap.put("TIMESTAMP", DataTypeMapping.STRING);
+        metaMap.put("Array(Int64)", DataTypeMapping.ARRAY.concat("(").concat(DataTypeMapping.LONG).concat(")"));
+        metaMap.put("Array(Int32)", DataTypeMapping.ARRAY.concat("(").concat(DataTypeMapping.INT).concat(")"));
+        metaMap.put("Array(String)", DataTypeMapping.ARRAY.concat("(").concat(DataTypeMapping.STRING).concat(")"));
+        metaMap.put("VARCHAR", DataTypeMapping.STRING);
+        metaMap.put("LowCardinality(String)", DataTypeMapping.STRING);
     }
 
     @Override
@@ -207,15 +238,16 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         try {
             Stopwatch watch = Stopwatch.createStarted();
             Map<String, Object> statistics = Maps.newLinkedHashMap();
-            Map<String, Map<String,List<String>>> resultData = Maps.newHashMap();
+            Map<String, Map<String, List<String>>> resultData = Maps.newHashMap();
+            JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getInstance();
             for (String tableName : databaseService.getAllTable()) {
                 Map schemaMap = databaseService.getSchemaInfo(FIELDS, tableName, false);
-                if (!clickHouseHttpSource.getDbName().equals(schemaMap.get(NAMESPACE)) && !druidIoHttpSource.getDbname().equals(schemaMap.get(NAMESPACE))) continue;
-                JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getInstance();
+                if (!clickHouseHttpSource.getDbName().equals(schemaMap.get(NAMESPACE)) && !druidIoHttpSource.getDbname().equals(schemaMap.get(NAMESPACE)))
+                    continue;
                 List<String> validate = jsonSchemaValidator
-                        .addRule(FIELD_UNIQUENESS_VALIDATION, QGWMessageConst.JSON_SCHEMA_FIELD_UNIQUENESS, WARN)
-                        .addRule(DOC_FIELD_USABILITY_VALIDATION, QGWMessageConst.JSON_SCHEMA_DOC_FIELD_USABILITY, ERROR)
-                        .addRule(ATTRIBUTE_NECESSITY_VALIDATION, QGWMessageConst.JSON_SCHEMA_ATTRIBUTE_NECESSITY, ERROR)
+                        .addRule(FIELD_UNIQUENESS_RULE, QGWMessageConst.JSON_SCHEMA_FIELD_UNIQUENESS, WARN)
+                        .addRule(DOC_FIELD_USABILITY_RULE, QGWMessageConst.JSON_SCHEMA_DOC_FIELD_USABILITY, ERROR)
+                        .addRule(ATTRIBUTE_NECESSITY_RULE, QGWMessageConst.JSON_SCHEMA_ATTRIBUTE_NECESSITY, ERROR)
                         .validate(JSON.toJSONString(schemaMap));
                 if (!validate.isEmpty()) {
                     Map<String, List<String>> resultMap = resultData.computeIfAbsent(String.valueOf(schemaMap.get(NAMESPACE)), k -> Maps.newHashMap());
@@ -223,7 +255,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                 }
             }
             checkCKIndexKey(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
-            checkMetadataByDatasource(databaseService.getAllTable(), resultData);
+            checkMetadataFieldAndType(databaseService.getAllTable(), resultData);
+            checkMetadataFunctionConstraint(databaseService.getAllTable());
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Json Schema Validation Success.", resultData, statistics);
@@ -411,13 +444,13 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     }
 
     /**
-     * 对指定数据源dbName下的schema 与数据库的字段进行对比检查
+     * 对指定数据源dbName下的schema 与数据库的字段及字段类型进行对比检查
      *
      * @param
      * @param tables
      * @return
      */
-    private void checkMetadataByDatasource(List<String> tables, Map<String, Map<String, List<String>>> resultData) {
+    private void checkMetadataFieldAndType(List<String> tables, Map<String, Map<String, List<String>>> resultData) {
         for (String tableName : tables) {
             Map schemaMap = databaseService.getSchemaInfo(FIELDS, tableName, false);
             String dbName = String.valueOf(schemaMap.get(NAMESPACE));
@@ -432,22 +465,12 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                         String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(), " The Table[" + tableName + "] Structure query failed"));
             }
             List<Map<String, Object>> dbFields = JsonPath.read(JSON.toJSONString(baseResult.getData()), "$.fields.*");
-
-            Map<String, Object> dbFieldMap = Maps.newHashMap();
-            dbFields.stream().forEach(objectMap -> {
-                dbFieldMap.put(objectMap.get("name").toString(), objectMap.get("type"));
-            });
-
+            Map<String, Object> dbFieldMap = buildDBFiedldMap(dbFields);
             List<Map<String, Object>> schemaFields = (List<Map<String, Object>>) schemaMap.get(FIELDS);
-            Map<String, Object> schemaFieldMap = Maps.newHashMap();
-            schemaFields.stream().forEach(objectMap -> {
-                schemaFieldMap.put(objectMap.get("name").toString(), objectMap.get("type"));
-            });
+            Map<String, Object> schemaFieldMap = buildSchemaFiedldMap(schemaFields);
 
             MapDifference<String, Object> difference = Maps.difference(schemaFieldMap, dbFieldMap);
-
             Map<String, Object> entriesOnlyOnLeft = difference.entriesOnlyOnLeft();
-
             if (entriesOnlyOnLeft.size() > 0) {
                 log.error("Schema Fields greater than Table Fields,Schema " + tableName + " exist fields :" + entriesOnlyOnLeft);
                 throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
@@ -455,31 +478,112 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                         String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),
                                 "Schema Fields greater than Table Fields,Schema " + tableName + " exist fields " + entriesOnlyOnLeft));
             }
+
             Map<String, Object> entriesOnlyOnRight = difference.entriesOnlyOnRight();
+            String fieldValidationMessage = "Schema Fields less than Table Fields:" + entriesOnlyOnRight;
             if (entriesOnlyOnRight.size() > 0) {
-                log.warn("键只存在于右边Map的映射项:" + entriesOnlyOnRight);
-                if (!resultData.isEmpty()) {
-                    if (resultData.containsKey(dbName)) {
-                        if (resultData.get(dbName).containsKey(tableName)) {
-                            Map<String, List<String>> map = resultData.get(dbName);
-                            map.get(tableName).add("Schema Fields less than Table Fields:" + entriesOnlyOnRight);
-                        }
-                    } else {
-                        putData(resultData, tableName, schemaMap, entriesOnlyOnRight);
-                    }
-                } else {
-                    putData(resultData, tableName, schemaMap, entriesOnlyOnRight);
+                log.warn(tableName + " " + fieldValidationMessage);
+                buildData(resultData, tableName, dbName, fieldValidationMessage);
+            }
+
+            Map<String, MapDifference.ValueDifference<Object>> fieldTypeDiff = difference.entriesDiffering();
+            if (fieldTypeDiff.size() > 0 && (clickHouseHttpSource.getDbName().equals(dbName)
+                    || druidIoHttpSource.getDbname().equals(dbName))) {
+                StringBuilder sb = new StringBuilder();
+                for (String field : fieldTypeDiff.keySet()) {
+                    sb.append(field)
+                            .append("[")
+                            .append(fieldTypeDiff.get(field).leftValue())
+                            .append(" modified to ")
+                            .append(fieldTypeDiff.get(field).rightValue())
+                            .append("]")
+                            .append(", ");
                 }
+                sb.setLength(sb.length()-2);
+                String fieldTypeValidationMessage = String.format(QGWMessageConst.SCHEMA_FIELD_TYPE_NEED_CHECK, sb);
+                buildData(resultData, tableName, dbName, fieldTypeValidationMessage);
             }
         }
     }
 
-    private static void putData(Map<String, Map<String, List<String>>> resultData, String tableName, Map schemaMap, Map<String, Object> entriesOnlyOnRight) {
+    private static Map<String, Object> buildDBFiedldMap(List<Map<String, Object>> dbFields) {
+        Map<String, Object> dbFieldMap = Maps.newHashMap();
+        dbFields.stream().forEach(objectMap -> {
+            String type = StrUtil.isBlank(metaMap.get(objectMap.get("type"))) ? "string" : metaMap.get(objectMap.get("type"));
+            dbFieldMap.put(String.valueOf(objectMap.get("name")), type);
+        });
+        return dbFieldMap;
+    }
+
+    private static Map<String, Object> buildSchemaFiedldMap(List<Map<String, Object>> schemaFields) {
+        Map<String, Object> schemaFieldMap = Maps.newHashMap();
+        schemaFields.stream().forEach(objectMap -> {
+            String type;
+            if (objectMap.get("type") instanceof String) {
+                type = String.valueOf(objectMap.get("type"));
+            } else {
+                Map map = (Map) objectMap.get("type");
+                type = String.valueOf(map.get("type")).equals("array") ? String.valueOf(map.get("type")).concat("(").concat(String.valueOf(map.get("items"))).concat(")") : String.valueOf(map.get("type"));
+            }
+            schemaFieldMap.put(String.valueOf(objectMap.get("name")), type);
+        });
+        return schemaFieldMap;
+    }
+
+    private static void buildData(Map<String, Map<String, List<String>>> resultData, String tableName, String dbName, String message) {
+        if (!resultData.isEmpty()) {
+            if (resultData.containsKey(dbName)) {
+                if (resultData.get(dbName).containsKey(tableName)) {
+                    Map<String, List<String>> map = resultData.get(dbName);
+                    map.get(tableName).add(message);
+                } else {
+                    Map<String, List<String>> map = resultData.get(dbName);
+                    List<String> list = Lists.newArrayList();
+                    list.add(message);
+                    map.put(tableName, list);
+                    resultData.put(dbName, map);
+                }
+            } else {
+                putData(resultData, tableName, dbName, message);
+            }
+        } else {
+            putData(resultData, tableName, dbName, message);
+        }
+    }
+
+    private static void putData(Map<String, Map<String, List<String>>> resultData, String tableName, String dbName, String message) {
         Map<String, List<String>> map = Maps.newHashMap();
         List<String> list = Lists.newArrayList();
-        list.add("Schema Fields less than Table Fields:" + entriesOnlyOnRight);
+        list.add(message);
         map.put(tableName, list);
-        resultData.put(String.valueOf(schemaMap.get(NAMESPACE)), map);
+        resultData.put(dbName, map);
+    }
+
+    private void checkMetadataFunctionConstraint(List<String> tables) {
+        Object cfg = databaseService.getCfg(PUBLIC_SCHEMA_INFO);
+        Map map = JSON.parseObject(String.valueOf(JSON.toJSON(cfg)), Map.class);
+        List<String> aggregationFunctions = JsonPath.read(map, "$.functions.aggregation[*].name");
+        for (String tableName : tables) {
+            Map schemaMap = databaseService.getSchemaInfo(FIELDS, tableName, false);
+            String dbName = String.valueOf(schemaMap.get(NAMESPACE));
+            if (!clickHouseHttpSource.getDbName().equals(dbName) && !druidIoHttpSource.getDbname().equals(dbName))
+                continue;
+            List<Map<String, Object>> schemaFields = (List<Map<String, Object>>) schemaMap.get(FIELDS);
+            schemaFields.stream().forEach(objectMap -> {
+                if(JSONPath.contains(objectMap, "$.doc.constraints.aggregation_functions")){
+                    String str =JsonPath.read(objectMap, "$.doc.constraints.aggregation_functions");
+                    String funStr = str.replaceAll(" ", "");
+                    List<String> funList = new ArrayList<>(Arrays.asList(funStr.split(",")));
+                    for (String fun : funList) {
+                        if (!aggregationFunctions.contains(fun)) {
+                            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                                    CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                                    String.format(QGWMessageConst.SCHEMA_FUNCTION_CONSTRAINT_ERROR, tableName, objectMap.get("name"), fun));
+                        }
+                    }
+                }
+            });
+        }
     }
 
     private Object getTableTTLInSchema(Map schemaMap) {

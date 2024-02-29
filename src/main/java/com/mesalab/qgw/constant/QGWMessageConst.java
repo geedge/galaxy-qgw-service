@@ -138,4 +138,8 @@ public class QGWMessageConst {
 
     public static final String JSON_SCHEMA_DOC_FIELD_USABILITY = "The %s described field must exist in doc.fields.*";
 
+    public static final String SCHEMA_FUNCTION_CONSTRAINT_ERROR ="The %s schema %s constraint functions has %s, does not exit in the list of supported aggregate functions.";
+
+    public static final String SCHEMA_FIELD_TYPE_NEED_CHECK = "The schema fields type need to be checked: %s.";
+
 }

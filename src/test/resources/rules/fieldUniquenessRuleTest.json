@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "doc": {
+      "properties": {
+        "schema_query": {
+          "properties": {
+            "time": {
+              "uniqueItems": true
+            },
+            "dimensions": {
+              "uniqueItems": true
+            },
+            "metrics": {
+              "uniqueItems": true
+            },
+            "filters": {
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
