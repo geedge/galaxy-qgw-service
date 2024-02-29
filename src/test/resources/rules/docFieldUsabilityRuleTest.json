@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$def": {
+    "usable": {
+      "items": {
+        "enum": [
+          "$ENUM_VALUES$"
+        ]
+      }
+    }
+  },
+  "properties": {
+    "doc": {
+      "properties": {
+        "schema_query": {
+          "properties": {
+            "time": {
+              "$ref": "#/$def/usable"
+            },
+            "dimensions": {
+              "$ref": "#/$def/usable"
+            },
+            "metrics": {
+              "$ref": "#/$def/usable"
+            },
+            "filters": {
+              "$ref": "#/$def/usable"
+            },
+            "details": {
+              "properties": {
+                "general": {
+                  "$ref": "#/$def/usable"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
