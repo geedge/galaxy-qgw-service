@@ -1886,7 +1886,7 @@
       },
       "type": {
         "type": "array",
-        "items": "int",
+        "items": "long",
         "logicalType": "array"
       }
     },
@@ -2223,7 +2223,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "string"
+      "type": "long"
     },
     {
       "name": "http_request_content_type",
@@ -2241,7 +2241,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "string"
+      "type": "long"
     },
     {
       "name": "http_response_content_type",
@@ -2364,7 +2364,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": "int"
     },
     {
       "name": "http_action_file_size",
@@ -2376,7 +2376,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "http_session_duration_ms",
@@ -2389,7 +2389,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": "int"
     },
     {
       "name": "mail_protocol_type",

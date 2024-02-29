@@ -134,7 +134,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
@@ -191,7 +191,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "chart_id",
@@ -199,7 +199,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "version",
@@ -210,7 +210,7 @@
         },
         "visibility": "enabled"
       },
-      "type": "string"
+      "type": "long"
     },
     {
       "name": "client_ip_object",

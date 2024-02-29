@@ -94,7 +94,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
@@ -237,7 +237,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "in_bytes",
