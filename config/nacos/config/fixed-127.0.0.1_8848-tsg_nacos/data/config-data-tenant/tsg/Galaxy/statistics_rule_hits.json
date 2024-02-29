@@ -118,7 +118,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
@@ -130,7 +130,7 @@
         },
         "visibility": "enabled"
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "hit_count",

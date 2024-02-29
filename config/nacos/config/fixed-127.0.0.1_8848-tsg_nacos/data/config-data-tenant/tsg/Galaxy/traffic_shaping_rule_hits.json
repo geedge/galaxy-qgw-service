@@ -84,7 +84,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
@@ -130,7 +130,7 @@
     {
       "name": "rule_id",
       "label": "Rule",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "operator_functions": "=,in"
@@ -141,7 +141,7 @@
     {
       "name": "profile_id",
       "label": "Profile ID",
-      "type": "int",
+      "type": "long",
       "doc": {
         "visibility": "enabled"
       }
@@ -149,7 +149,7 @@
     {
       "name": "priority",
       "label": "Priority",
-      "type": "int",
+      "type": "long",
       "doc": {
         "visibility": "enabled"
       }
@@ -157,7 +157,7 @@
     {
       "name": "in_bytes",
       "label": "Incoming Bytes",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "counter",
@@ -169,7 +169,7 @@
     {
       "name": "in_pkts",
       "label": "Incoming Packets",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "counter",
@@ -181,7 +181,7 @@
     {
       "name": "out_bytes",
       "label": "Outgoing Bytes",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "counter",
@@ -193,7 +193,7 @@
     {
       "name": "out_pkts",
       "label": "Outgoing Packets",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "counter",
@@ -205,7 +205,7 @@
     {
       "name": "in_drop_pkts",
       "label": "Incoming Drop Packets",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "counter",
@@ -217,7 +217,7 @@
     {
       "name": "out_drop_pkts",
       "label": "Outgoing Drop Packets",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "counter",
@@ -229,7 +229,7 @@
     {
       "name": "in_max_latency_us",
       "label": "Incoming Max Latency (us)",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "gauge"
@@ -240,7 +240,7 @@
     {
       "name": "out_max_latency_us",
       "label": "Outgoing Max Latency (us)",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "gauge"
@@ -251,7 +251,7 @@
     {
       "name": "in_queue_len",
       "label": "Incoming Queue Length",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "gauge"
@@ -262,7 +262,7 @@
     {
       "name": "out_queue_len",
       "label": "Outgoing Queue Length",
-      "type": "int",
+      "type": "long",
       "doc": {
         "constraints": {
           "metric_type": "gauge"

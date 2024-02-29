@@ -76,7 +76,7 @@
       "doc": {
         "visibility": "enabled"
       },
-      "type": "int",
+      "type": "long",
       "default": 1
     },
     {
