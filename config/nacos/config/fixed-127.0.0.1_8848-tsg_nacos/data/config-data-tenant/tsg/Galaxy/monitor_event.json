@@ -769,7 +769,9 @@
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
           "http_session_duration_ms": "ms",
-          "dtls_handshake_latency_ms": "ms"
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
         },
         "MIN": {
           "sent_pkts": "packets",
@@ -791,7 +793,9 @@
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
           "http_session_duration_ms": "ms",
-          "dtls_handshake_latency_ms": "ms"
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
         },
         "AVG": {
           "sent_pkts": "packets",
@@ -813,7 +817,9 @@
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
           "http_session_duration_ms": "ms",
-          "dtls_handshake_latency_ms": "ms"
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
         },
         "MEDIAN": {
           "sent_pkts": "packets",
@@ -835,7 +841,9 @@
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
           "http_session_duration_ms": "ms",
-          "dtls_handshake_latency_ms": "ms"
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
         },
         "P95_PERCENTILE": {
           "sent_pkts": "packets",
@@ -857,7 +865,9 @@
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
           "http_session_duration_ms": "ms",
-          "dtls_handshake_latency_ms": "ms"
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
         },
         "P99_PERCENTILE": {
           "sent_pkts": "packets",
@@ -879,7 +889,9 @@
           "http_response_content_length": "bytes",
           "http_response_latency_ms": "ms",
           "http_session_duration_ms": "ms",
-          "dtls_handshake_latency_ms": "ms"
+          "dtls_handshake_latency_ms": "ms",
+          "dns_response_latency_ms": "ms",
+          "ssl_handshake_latency_ms": "ms"
         }
       },
       "field_discovery_metric": {
