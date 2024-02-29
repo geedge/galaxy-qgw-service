@@ -22,7 +22,6 @@
         "out_pkts"
       ],
       "filters": [
-        "metric",
         "device_group",
         "data_center"
       ],
@@ -148,7 +147,7 @@
             "value": "Packets"
           }
         ],
-        "visibility": "enabled"
+        "visibility": "hidden"
       },
       "type": "string"
     },
