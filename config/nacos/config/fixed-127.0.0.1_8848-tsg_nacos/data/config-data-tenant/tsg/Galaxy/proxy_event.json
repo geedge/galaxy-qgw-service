@@ -1493,7 +1493,7 @@
       },
       "type": {
         "type": "array",
-        "items": "int",
+        "items": "long",
         "logicalType": "array"
       }
     },
@@ -1830,7 +1830,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "string"
+      "type": "long"
     },
     {
       "name": "http_request_content_type",
@@ -1848,7 +1848,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "string"
+      "type": "long"
     },
     {
       "name": "http_response_content_type",
@@ -1971,7 +1971,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "long"
+      "type": "int"
     },
     {
       "name": "http_action_file_size",
@@ -1983,7 +1983,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "http_session_duration_ms",
@@ -1996,7 +1996,7 @@
         "visibility": "hidden",
         "ttl": null
       },
-      "type": "long"
+      "type": "int"
     },
     {
       "name": "doh_url",
@@ -2104,7 +2104,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_qr",
@@ -2126,7 +2126,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_opcode",
@@ -2156,7 +2156,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_aa",
@@ -2165,7 +2165,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_tc",
@@ -2174,7 +2174,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_rd",
@@ -2183,7 +2183,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_ra",
@@ -2192,7 +2192,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_rcode",
@@ -2201,7 +2201,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_qdcount",
@@ -2213,7 +2213,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_ancount",
@@ -2225,7 +2225,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_nscount",
@@ -2237,7 +2237,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_arcount",
@@ -2249,7 +2249,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_qname",
@@ -2312,7 +2312,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_qclass",
@@ -2321,7 +2321,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_cname",
@@ -2352,7 +2352,7 @@
         "visibility": "enabled",
         "ttl": null
       },
-      "type": "int"
+      "type": "long"
     },
     {
       "name": "doh_rr",

@@ -1340,7 +1340,7 @@
       },
       "type": {
         "type": "array",
-        "items": "int",
+        "items": "long",
         "logicalType": "array"
       }
     },
