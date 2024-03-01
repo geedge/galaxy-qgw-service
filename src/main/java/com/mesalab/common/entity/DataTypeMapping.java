@@ -16,4 +16,5 @@ public class DataTypeMapping {
     public static final String DATE = "date";
     public static final String TIMESTAMP = "timestamp";
     public static final String BOOLEAN = "boolean";
+    public static final String ARRAY = "array";
 }
