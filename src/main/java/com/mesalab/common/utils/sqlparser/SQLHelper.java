@@ -8,6 +8,7 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
+import com.sun.jdi.IntegerValue;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -128,6 +129,39 @@ public class SQLHelper {
                     String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
         }
         return result;
+    }
+
+    /**
+     * Desc: 获取当前sql执行最大结果数
+     *
+     * @param sql
+     * @return {@link Long}
+     * @created by wWei
+     * @date 2024/3/4 18:12
+     */
+    public static Long getRowCount(String sql) {
+        try {
+            Statement statement = CCJSqlParserUtil.parse(sql);
+            if (statement instanceof Select) {
+                Select select = (Select) statement;
+                SelectBody selectBody = select.getSelectBody();
+                if (selectBody instanceof PlainSelect) {
+                    PlainSelect plainSelect = (PlainSelect) selectBody;
+                    Limit limit = plainSelect.getLimit();
+                    if (limit != null) {
+                        Expression rowCount = limit.getRowCount();
+                        if (rowCount instanceof LongValue) {
+                            return ((LongValue) rowCount).getValue();
+                        }
+                    }
+                }
+            }
+        } catch (JSQLParserException e) {
+            log.error("SQL Syntax Error: Get Row Count Error, SQL is:{}, Error is:{}", sql, e);
+            throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), e.getMessage()));
+        }
+        return null;
     }
 
     /**

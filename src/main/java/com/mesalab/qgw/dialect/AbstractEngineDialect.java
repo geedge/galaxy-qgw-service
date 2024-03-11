@@ -79,7 +79,7 @@ public abstract class AbstractEngineDialect implements Dialect {
     }
 
     @Override
-    final public BaseResult executeSyntaxCheck() {
+    final public BaseResult executeSyntaxValidation() {
         init();
         executeUDF();
         return generateBaseResult(getSampleQuery());

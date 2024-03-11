@@ -240,6 +240,9 @@
       "name": "client_ip",
       "label": "Client IP",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled"
       },
       "type": "string"
@@ -248,6 +251,9 @@
       "name": "server_ip",
       "label": "Server IP",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled"
       },
       "type": "string"
@@ -256,6 +262,9 @@
       "name": "server_fqdn",
       "label": "Server FQDN",
       "doc": {
+        "constraints": {
+          "type": "fqdn"
+        },
         "visibility": "enabled"
       },
       "type": "string"
@@ -264,6 +273,9 @@
       "name": "server_domain",
       "label": "Server Domain",
       "doc": {
+        "constraints": {
+          "type": "domain"
+        },
         "visibility": "enabled"
       },
       "type": "string"
@@ -272,6 +284,9 @@
       "name": "application",
       "label": "Application",
       "doc": {
+        "constraints": {
+          "type": "app"
+        },
         "visibility": "enabled"
       },
       "type": "string"

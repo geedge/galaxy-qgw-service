@@ -39,17 +39,20 @@ public class FunctionsMergeHelper {
     /**
      * Desc: Merge the TIME_FLOOR_WITH_FILL functions in the SQL statement
      * 1. FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(column), *[, *])) ==>
-     * 1. Select Item: TIME_FORMAT(TIME_FLOOR(column, *), 'yyyy-MM-dd HH:mm:ss')
-     * 2. GroupBy or Order By Expr: TIME_FLOOR(column, *)
+     *  1.1 Select Item: TIME_FORMAT(TIME_FLOOR(column, *), 'yyyy-MM-dd HH:mm:ss')
+     *  1.2 GroupBy or Order By Expr: TIME_FLOOR(column, *)
+     *
      * 2. FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(column, *[, *])) ==>
-     * 1. Select Item: TIME_FORMAT(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *), 'yyyy-MM-dd HH:mm:ss')
-     * 2. GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
+     *  2.1 Select Item: TIME_FORMAT(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *), 'yyyy-MM-dd HH:mm:ss')
+     *  2.2 GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)]
+     *
      * 3. TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(column), *[, *]) ==>
-     * 1. Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(column, *)) / 1000
-     * 2. GroupBy or Order By Expr: TIME_FLOOR(column, *)
+     *  3.1 Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(column, *)) / 1000
+     *  3.2 GroupBy or Order By Expr: TIME_FLOOR(column, *)
+     *
      * 4. TIME_FLOOR_WITH_FILL(column, *[, *]) ==>
-     * 1. Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)) / 1000
-     * 2. GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
+     *  4.1 Select Item: TIMESTAMP_TO_MILLIS(TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)) / 1000
+     *  4.2 GroupBy or Order By Expr: TIME_FLOOR(MILLIS_TO_TIMESTAMP(column * 1000), *)
      *
      * @param sql
      * @return {@link String}
