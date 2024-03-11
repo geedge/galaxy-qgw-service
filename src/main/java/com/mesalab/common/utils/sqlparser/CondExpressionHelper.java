@@ -60,23 +60,6 @@ public class CondExpressionHelper {
         return orderBy.getList();
     }
 
-    /**
-     * Desc: Get filed name
-     *
-     * @param column
-     * @return {@link String}
-     * @created by wWei
-     * @date 2023/3/2 09:58
-     */
-    public static String getFieldName(Column column) {
-        String columnName = column.getColumnName();
-        if ((columnName.startsWith("\"") && columnName.endsWith("\""))
-                || (columnName.startsWith("`") && columnName.endsWith("`"))) {
-            columnName = columnName.substring(1, columnName.length() - 1);
-        }
-        return columnName;
-    }
-
     private static class ExprFieldParser extends ExpressionVisitorAdapter {
         private final List<String> list = Lists.newArrayList();
 
@@ -86,7 +69,7 @@ public class CondExpressionHelper {
 
         @Override
         public void visit(Column column) {
-            list.add(getFieldName(column));
+            list.add(SQLHelper.removeQuotesAndBackticks(column.getColumnName()));
         }
     }
 
@@ -109,7 +92,7 @@ public class CondExpressionHelper {
                 }
                 return;
             }
-            String columnName = getFieldName(column);
+            String columnName = SQLHelper.removeQuotesAndBackticks(column.getColumnName());
             if (map.containsKey(columnName)) {
                 column.setColumnName(String.valueOf(map.get(columnName)));
             }

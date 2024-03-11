@@ -1,6 +1,5 @@
 package com.mesalab.qgw.dialect;
 
-import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.google.common.base.Function;
@@ -24,20 +23,13 @@ import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.SelectStatement;
 import com.mesalab.qgw.model.basic.udf.UDF;
 import com.geedgenetworks.utils.StringUtil;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.*;
 
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
-import static com.mesalab.qgw.constant.MetaConst.*;
 
 /**
  * 联邦查询-基于Calcite支持多源联合查询
@@ -159,7 +151,7 @@ public class FederationDialect extends AbstractEngineDialect {
             statisticMap.put("result_bytes", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
-        ColumnCategoryHelper.expandColumnMeta(baseResult.getMeta(), sqlQueryContext.getFederationSelectStatement(), null);
+        baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(baseResult.getMeta(), sqlQueryContext.getFederationSelectStatement(), null));
         if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.CSV.getValue())) {
             convertJsonToCSV();
         }

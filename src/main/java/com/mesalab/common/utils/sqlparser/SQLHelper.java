@@ -8,7 +8,6 @@ import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.sun.jdi.IntegerValue;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -30,6 +29,8 @@ public class SQLHelper {
 
     public static final Pattern pOrder = Pattern.compile("order\\s*by[\\w|\\W|\\s|\\S]*", Pattern.CASE_INSENSITIVE);
     public static final String INVALID_LIMIT_DESC = "NO LIMIT";
+
+    private static final Pattern PATTERN_QUOTES_AND_BACKTICKS = Pattern.compile("^([\"`])(.*)([\"`])$");
 
     /**
      * 去除qlString的select子句。
@@ -56,6 +57,22 @@ public class SQLHelper {
         }
         m.appendTail(sb);
         return sb.toString();
+    }
+
+    /**
+     * Desc: 去除字符串首位引号或反引号
+     *
+     * @param str
+     * @return {@link String}
+     * @created by wWei
+     * @date 2024/3/11 17:31
+     */
+    public static String removeQuotesAndBackticks(String str) {
+        Matcher matcher = PATTERN_QUOTES_AND_BACKTICKS.matcher(str);
+        if (matcher.matches()) {
+            return matcher.group(2);
+        }
+        return str;
     }
 
 

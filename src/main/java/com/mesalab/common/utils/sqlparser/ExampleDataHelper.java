@@ -37,6 +37,7 @@ public class ExampleDataHelper {
     public static final String QUERY_TYPE_GROUP_BY = "GroupBy";
     public static final String QUERY_TYPE_AGG_STATISTICS = "AggStatistics";
     public static final String QUERY_TYPE_OTHER = "Other";
+    private static final String[] JSONPATH_SPECIAL_CHARS = {"/", ".", "[", "]", "'", "\""};
 
     private ExampleDataHelper() {
     }
@@ -51,7 +52,7 @@ public class ExampleDataHelper {
     public static void initJsonData() {
         String filePath;
         try {
-            filePath = new File("").getCanonicalPath() + File.separator + "dat" + File.separator + "sample_data.json";
+            filePath = new File("").getCanonicalPath() + File.separator + "dat" + File.separator + "example_data.json";
             exampleJsonData = FileUtil.readString(filePath, CharsetUtil.UTF_8);
         } catch (IOException e) {
             log.error("Init Example Data Error: Read File Error, Error is:{}", e.getMessage());
@@ -63,15 +64,16 @@ public class ExampleDataHelper {
     /**
      * Desc: TODO
      *
-     * @param queryType  Timeseries, TopN, GroupBy, AggStatistics, Other: Scan
-     * @param meta       Column Meta
-     * @param rowCount   结果行数
-     * @param jsonSchema Json Schema
+     * @param queryType   Timeseries, TopN, GroupBy, AggStatistics, Other: Scan
+     * @param meta        Column Meta
+     * @param sqlRowCount 结果行数
+     * @param jsonSchema  Json Schema
      * @return {@link List<Object>}
      * @created by wWei
      * @date 2024/3/6 16:59
      */
-    public static List<Object> buildExampleData(@NotNull String queryType, List<Map<String, String>> meta, Integer rowCount, Map<String, Object> jsonSchema, Object queryTypeParameters) {
+    public static List<Object> buildExampleData(@NotNull String queryType, List<Map<String, String>> meta, Long sqlRowCount, Map<String, Object> jsonSchema, Object queryTypeParameters) {
+        int rowCount = (sqlRowCount == null) ? RandomNumberGenerator.generateRangeRandomInt(10, 50) : Math.min(sqlRowCount.intValue(), 50);
         List<Map<String, Object>> result;
         switch (queryType) {
             case QUERY_TYPE_TIMESERIES:
@@ -96,17 +98,19 @@ public class ExampleDataHelper {
         Map<String, String> timeGranMeta = meta.stream()
                 .filter(item -> timeGranLabel.equals(item.get(MetaConst.META_NAME)))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("No element found with name: " + timeGranLabel));
-        String timeGranDataType = timeGranMeta.get(MetaConst.META_DATA_TYPE);
-        timeGranDataType = timeGranDataType == null ? timeGranMeta.get(MetaConst.META_TYPE) : timeGranDataType;
+                .orElse(Maps.newHashMap());
         List<Map<String, Object>> result = new ArrayList<>();
-        Date currentDate = DateUtil.beginOfHour(new Date());
-        int iteratorRowCount = rowCount;
-        while (iteratorRowCount-- > 0) {
-            Object value = getDateTimeValue(timeGranDataType, iteratorRowCount, currentDate);
-            Map<String, Object> timeseries = Maps.newHashMap();
-            timeseries.put(timeGranLabel, value);
-            result.add(timeseries);
+        if (!timeGranMeta.isEmpty()) {
+            String timeGranDataType = timeGranMeta.get(MetaConst.META_DATA_TYPE);
+            timeGranDataType = timeGranDataType == null ? timeGranMeta.get(MetaConst.META_TYPE) : timeGranDataType;
+            Date currentDate = DateUtil.beginOfHour(new Date());
+            int iteratorRowCount = rowCount;
+            while (iteratorRowCount-- > 0) {
+                Object value = getDateTimeValue(timeGranDataType, iteratorRowCount, currentDate);
+                Map<String, Object> timeseries = Maps.newHashMap();
+                timeseries.put(timeGranLabel, value);
+                result.add(timeseries);
+            }
         }
         meta.stream().filter(item -> MetaConst.META_CATEGORY_DIMENSION.equals(item.get(MetaConst.META_CATEGORY)) && !timeGranLabel.equals(item.get(MetaConst.META_NAME)))
                 .forEach(item -> {
@@ -312,6 +316,10 @@ public class ExampleDataHelper {
      * @date 2024/3/9 15:02
      */
     private static boolean inExampleDataFile(String dataType) {
+        // 对特殊字符进行转义处理
+        for (String specialChar : JSONPATH_SPECIAL_CHARS) {
+            dataType = dataType.replace(specialChar, "\\" + specialChar);
+        }
         String path = "$." + dataType;
         return JSONPath.extract(exampleJsonData, path) != null;
     }

@@ -58,10 +58,7 @@ public class SelectStatement {
         for (Expression groupByExpression : groupByElement.getGroupByExpressions()) {
 
             String groupBy = groupByExpression.toString();
-            if ((groupBy.startsWith("\"") && groupBy.endsWith("\""))
-                    || ((groupBy.startsWith("`") && groupBy.endsWith("`")))) {
-                groupBy = groupBy.substring(1, groupBy.length() - 1);
-            }
+            groupBy = SQLHelper.removeQuotesAndBackticks(groupBy);
             if (StringUtil.isNotBlank(aliasFields.get(groupBy))) {
                 groupDimension.put(groupBy, aliasFields.get(groupBy));
             } else {
