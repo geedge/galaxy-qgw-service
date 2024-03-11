@@ -12,6 +12,7 @@ import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.ResultCodeEnum;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.utils.SpringContextUtil;
+import com.mesalab.common.utils.sqlparser.ColumnCategoryHelper;
 import com.mesalab.common.utils.sqlparser.SQLVisitorUtil;
 import com.mesalab.common.utils.sqlparser.SQLFunctionUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
@@ -79,7 +80,6 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     }
 
 
-
     @Override
     void init() {
         if (StringUtil.isNotEmpty(sqlQueryContext.getDbSelectStatement())) {
@@ -132,6 +132,16 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
+    List<Map<String, String>> perfectMeta() {
+        return baseResult.getMeta() != null ? (List<Map<String, String>>) baseResult.getMeta() : null;
+    }
+
+    @Override
+    List<Object> buildExampleData() {
+        return baseResult.getData() != null ? (List<Object>) baseResult.getData() : null;
+    }
+
+    @Override
     public BaseResult generateBaseResult(String sql, Optional<String> message) {
         watch.start();
         Map<String, Object> results = executeQuery(sql);
@@ -143,6 +153,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             baseResult = BaseResultGenerator.generate(status, CommonErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), String.valueOf(results.get("message")),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), sqlQueryContext.getFormat());
         }
+        ColumnCategoryHelper.expandColumnMeta(baseResult.getMeta(), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine());
         return baseResult;
     }
 
@@ -163,7 +174,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         } catch (RuntimeException | SQLException e) {
             log.error("{} engine error: {}", DBEngineType.HBASE.getValue(), e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getCode(),
-                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(),simplyErrorMessage(e.getMessage())));
+                    String.format(CommonErrorCode.BAD_REQUEST_SQL_SYNTAX_PARSE_EXCEPTION.getMessage(), simplyErrorMessage(e.getMessage())));
         } finally {
             close(resultSet, statement, conn);
         }
@@ -207,12 +218,12 @@ public class HbaseDialect extends AbstractDataSourceDialect {
 
     @Override
     public BaseResult executeKillQuery(String queryId) {
-        return BaseResultGenerator.failure(CommonErrorCode.PARAMETER_ERROR.getCode(), String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),"not support"));
+        return BaseResultGenerator.failure(CommonErrorCode.PARAMETER_ERROR.getCode(), String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "not support"));
     }
 
     @Override
     public BaseResult getProcesses(String queryId) {
-        return BaseResultGenerator.failure(CommonErrorCode.PARAMETER_ERROR.getCode(), String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),"not support"));
+        return BaseResultGenerator.failure(CommonErrorCode.PARAMETER_ERROR.getCode(), String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), "not support"));
     }
 
     class Optimizer {

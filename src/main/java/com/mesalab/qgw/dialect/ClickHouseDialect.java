@@ -7,6 +7,7 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONPath;
 import com.geedgenetworks.utils.DateUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -17,8 +18,11 @@ import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.*;
 import com.mesalab.common.utils.sqlparser.*;
+import com.mesalab.qgw.constant.MetaConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
+import com.mesalab.qgw.model.basic.udf.UDF;
 import com.mesalab.qgw.service.RewriteTable;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.model.basic.*;
@@ -26,8 +30,10 @@ import com.mesalab.qgw.service.DatabaseService;
 import com.geedgenetworks.utils.Encodes;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.qgw.service.impl.HttpClientServiceV2;
+import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.deparser.ExpressionDeParser;
@@ -51,7 +57,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Pattern pWhere = Pattern.compile("where\\s*", Pattern.CASE_INSENSITIVE);
     private static final Pattern pGroupBy = Pattern.compile("\\bgroup\\s+by\\s+", Pattern.CASE_INSENSITIVE);
     private static final Pattern pDistinct = Pattern.compile("\\b(DISTINCT)(\\(|\\s+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern pAggregateFunSpecificOfCK = Pattern.compile("\\b(anyHeavy|anyLast|argMin|argMax|avgWeighted|topK|topKWeighted|groupArray|groupUniqArray|groupArrayInsertAt|groupArrayMovingAvg|groupArrayMovingSum|groupBitAnd|groupBitOr|groupBitXor|groupBitmap|groupBitmapAnd|groupBitmapOr|groupBitmapXor|sumWithOverflow|sumMap|minMap|maxMap|skewSamp|skewPop|kurtSamp|kurtPop|uniq|uniqExact|uniqCombined|uniqCombined64|uniqHLL12|quantile|quantiles|quantileExact|quantileExactLow|quantileExactHigh|quantileExactWeighted|quantileTiming|quantileTimingWeighted|quantileDeterministic|quantileTDigest|quantileTDigestWeighted|quantileBFloat16|quantileBFloat16Weighted|simpleLinearRegression|stochasticLinearRegression|stochasticLogisticRegression|categoricalInformationValue)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pAggregateFunSpecificOfCK = Pattern.compile("\\b(anyHeavy|anyLast|argMin|argMax|avgWeighted|topK|topKWeighted|groupArray|groupUniqArray|groupArrayInsertAt|groupArrayMovingAvg|groupArrayMovingSum|groupBitAnd|groupBitOr|groupBitXor|groupBitmap|groupBitmapAnd|groupBitmapOr|groupBitmapXor|sumWithOverflow|sumMap|minMap|maxMap|skewSamp|skewPop|kurtSamp|kurtPop|uniq|uniqExact|uniqCombined|uniqCombined64|uniqHLL12|quantile|quantiles|quantileExact|quantileExactLow|quantileExactHigh|quantileExactWeighted|quantileTiming|quantileTimingWeighted|quantileDeterministic|quantileTDigest|quantileTDigestWeighted|quantileBFloat16|quantileBFloat16Weighted|simpleLinearRegression|stochasticLinearRegression|stochasticLogisticRegression|categoricalInformationValue)\\s*\\(", Pattern.CASE_INSENSITIVE);
     private static final Pattern pCount1 = Pattern.compile("count\\(\\s*1\\s*\\)", Pattern.CASE_INSENSITIVE);
     private final ClickHouseHttpSource clickHouseHttpSource = (ClickHouseHttpSource) SpringContextUtil.getBean("clickHouseHttpSource");
     private final HttpClientServiceV2 httpClientService = (HttpClientServiceV2) SpringContextUtil.getBean("httpClientServiceV2");
@@ -755,6 +761,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             statistics.put("bytes_read", statisticMap.get("bytes_read"));
             baseResult.setData(resultMap.get("data"));
             baseResult.setMeta(unifyMeta(resultMap.get("meta")));
+            ColumnCategoryHelper.expandColumnMeta(baseResult.getMeta(), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine());
             baseResult.setStatistics(statistics);
         } else {
             if (baseResult.getStatus() >= HttpStatusCodeEnum.BAD_REQUEST.getCode()
@@ -781,6 +788,121 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 message.substring(i, !message.contains("(version ") ? message.length() : message.indexOf("(version "))
                 : message;
         return StrUtil.removeAllLineBreaks(message).trim();
+    }
+
+    @SneakyThrows
+    @Override
+    List<Map<String, String>> perfectMeta() {
+        if (baseResult.getMeta() == null) {
+            return Lists.newArrayList();
+        }
+        List<Map<String, String>> metaList = (List<Map<String, String>>) baseResult.getMeta();
+        Map<String, SelectItemHelper.AliasObject> selectItem = SelectItemHelper.getSelectItem(sqlQueryContext.getDbSelectStatement().getSqlBody());
+        for (Map<String, String> meta : metaList) {
+            toPerfectMeta(selectItem, meta);
+        }
+        return metaList;
+    }
+
+    private void toPerfectMeta(Map<String, SelectItemHelper.AliasObject> aliasObjects, Map<String, String> meta) {
+        if (aliasObjects == null) {
+            return;
+        }
+        String name = meta.get(MetaConst.META_NAME);
+        SelectItemHelper.AliasObject aliasObject = aliasObjects.get(name);
+        if (aliasObject == null) {
+            return;
+        }
+        if (aliasObject instanceof SelectItemHelper.AliasColumn) {
+            SelectItemHelper.AliasColumn aliasColumn = (SelectItemHelper.AliasColumn) aliasObject;
+            String fieldName = aliasColumn.getFieldName();
+            meta.put(MetaConst.META_FIELD_NAME, fieldName);
+            Map schemaInfo = databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), sqlQueryContext.getDbSelectStatement().getTableNames().get(0), false);
+            Object dateType = JSONPath.extract(JSON.toJSONString(schemaInfo), "$.fields[?(@.name == \"" + fieldName + "\")].doc.constraints.type");
+            if (dateType instanceof List && ((List<?>) dateType).size() > 0) {
+                dateType = ((List<?>) dateType).get(0);
+                meta.put(MetaConst.META_DATA_TYPE, dateType.toString());
+            }
+        } else if (aliasObject instanceof SelectItemHelper.AliasFunExpr) {
+            SelectItemHelper.AliasFunExpr aliasDatetime = (SelectItemHelper.AliasFunExpr) aliasObject;
+            String dateType = aliasDatetime.getDateType();
+            if (dateType != null) {
+                meta.put(MetaConst.META_DATA_TYPE, dateType);
+            }
+        }
+    }
+
+    @Override
+    List<Object> buildExampleData() {
+        if (baseResult.getMeta() == null) {
+            return Lists.newArrayList();
+        }
+        List<Map<String, String>> metaList = (List<Map<String, String>>) baseResult.getMeta();
+        Map<String, Object> schema = databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), sqlQueryContext.getDbSelectStatement().getTableNames().get(0), false);
+        Long rowCount = SQLHelper.getRowCount(sqlQueryContext.getDbSelectStatement().getSqlBody());
+        String queryType = determineQueryType(sqlQueryContext.getDbSelectStatement());
+        Object param = determineParam(sqlQueryContext.getDbSelectStatement(), queryType);
+        return ExampleDataHelper.buildExampleData(queryType, metaList, Math.min(rowCount == null ? 50 : rowCount.intValue(), 50), schema, param);
+    }
+
+    private String determineQueryType(SelectStatement dbSelectStatement) {
+        Set<UDF> udfSet = dbSelectStatement.getUdfSet();
+        if (udfSet != null && !udfSet.isEmpty()) {
+            for (UDF udf : udfSet) {
+                if (udf instanceof TIME_FLOOR_WITH_FILL) {
+                    return ExampleDataHelper.QUERY_TYPE_TIMESERIES;
+                }
+            }
+        }
+
+        Map<String, String> groupDimension = dbSelectStatement.getGroupDimension();
+        if (groupDimension != null && !groupDimension.isEmpty()) {
+            return ExampleDataHelper.QUERY_TYPE_GROUP_BY;
+        }
+
+        List<SelectItem> selectItems = dbSelectStatement.getSelectItems();
+        for (SelectItem selectItem : selectItems) {
+            if (selectItem instanceof SelectExpressionItem) {
+                SelectExpressionItem selectExpressionItem = ((SelectExpressionItem) selectItem);
+                if (selectExpressionItem.getExpression() instanceof Function) {
+                    Function function = (Function) selectExpressionItem.getExpression();
+                    if (SQLFunctionUtil.pAggregateFunStandard.matcher(function.toString()).find() || ClickHouseDialect.pAggregateFunSpecificOfCK.matcher(function.toString()).find()) {
+                        return ExampleDataHelper.QUERY_TYPE_AGG_STATISTICS;
+                    }
+                }
+            }
+        }
+        return ExampleDataHelper.QUERY_TYPE_OTHER;
+    }
+
+    private Object determineParam(SelectStatement dbSelectStatement, String queryType) {
+        if (ExampleDataHelper.QUERY_TYPE_TIMESERIES.equals(queryType)) {
+            TIME_FLOOR_WITH_FILL udfElements = dbSelectStatement.getUdfSet().stream()
+                    .filter(udf -> udf instanceof TIME_FLOOR_WITH_FILL)
+                    .map(udf -> (TIME_FLOOR_WITH_FILL) udf)
+                    .findFirst()
+                    .orElse(null);
+
+            if (udfElements != null) {
+                String name = udfElements.getName();
+                String timestamp = udfElements.getTimestamp();
+                Map<String, String> groupDimension = dbSelectStatement.getGroupDimension();
+                for (String groupKey : groupDimension.keySet()) {
+                    if (groupDimension.get(groupKey).contains(name) && groupDimension.get(groupKey).contains(timestamp)) {
+                        return groupKey;
+                    }
+                }
+            }
+        } else if (ExampleDataHelper.QUERY_TYPE_GROUP_BY.equals(queryType)) {
+            List<OrderByElement> orderByElements = dbSelectStatement.getOrderByElements();
+            if (orderByElements != null && !orderByElements.isEmpty()) {
+                return !orderByElements.get(0).isAsc();
+            } else {
+                return false;
+            }
+        }
+
+        return null;
     }
 
     private boolean containAggregateFunction(String sql) {

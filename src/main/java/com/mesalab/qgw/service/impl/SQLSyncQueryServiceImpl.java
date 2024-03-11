@@ -181,7 +181,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
     }
 
     private BaseResult executeSyntaxValidation(SQLQueryContext queryContext) {
-        return new FederationDialect(queryContext, getDialect(queryContext).executeSyntaxCheck()).executeSyntaxCheck();
+        return new FederationDialect(queryContext, getDialect(queryContext).executeSyntaxValidation()).executeSyntaxValidation();
     }
 
     private BaseResult executeLongTermQuery(SQLQueryContext param) {

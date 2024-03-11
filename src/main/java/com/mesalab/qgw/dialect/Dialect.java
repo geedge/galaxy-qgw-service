@@ -16,7 +16,7 @@ public interface Dialect {
      * 执行SQL语法检查
      * @return
      */
-    BaseResult executeSyntaxCheck();
+    BaseResult executeSyntaxValidation();
 
     /**
      * 执行查询操作
