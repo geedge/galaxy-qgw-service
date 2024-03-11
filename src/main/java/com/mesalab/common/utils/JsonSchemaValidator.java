@@ -3,19 +3,15 @@ package com.mesalab.common.utils;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.resource.ClassPathResource;
 import cn.hutool.core.io.resource.Resource;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.networknt.schema.*;
-import lombok.Data;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -26,11 +22,9 @@ import java.util.*;
 public class JsonSchemaValidator {
     private static final Log log = LogFactory.get();
     private static final JsonSchemaValidator INSTANCE = new JsonSchemaValidator();
-    private final List<ValidationRule> rules;
+    private final List<String> rules;
     private static final String ENUM_VALUES = "\"$ENUM_VALUES$\"";
     private static final String EXPRESSION_FIELDS = "expression_fields";
-    private static final String ERROR = "ERROR";
-    private static final String WARN = "WARN";
 
     private JsonSchemaValidator() {
         this.rules = new ArrayList<>();
@@ -40,52 +34,42 @@ public class JsonSchemaValidator {
         return INSTANCE;
     }
 
-    public JsonSchemaValidator addRule(String jsonSchemaFileName, String message, String ruleAlarmLevel) {
-        rules.add(new ValidationRule(jsonSchemaFileName, message, ruleAlarmLevel));
+    public JsonSchemaValidator addRule(String jsonSchemaFileName) {
+        rules.add(jsonSchemaFileName);
         return this;
     }
 
 
-    public List<String> validate(String jsonStr) {
-        List<String> data = Lists.newArrayList();
-
+    public boolean validate(String jsonStr) {
         JsonSchemaFactory schemaFactory = JsonSchemaFactory
                 .builder(com.networknt.schema.JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7))
-                .objectMapper(new ObjectMapper())
                 .build();
-
-        for (ValidationRule rule : rules) {
+        SchemaValidatorsConfig schemaValidatorsConfig = new SchemaValidatorsConfig();
+        schemaValidatorsConfig.setLocale(Locale.ENGLISH);
+        for (String jsonSchemaFileName : rules) {
             Map map = JSON.parseObject(jsonStr, Map.class);
             String tableName = String.valueOf(map.get("name"));
-            String jsonString = getJsonSchema(rule, map);
-            JsonSchema schema = schemaFactory.getSchema(JsonMapper.fromJsonString(jsonString, JsonNode.class));
+            String jsonString = getJsonSchema(jsonSchemaFileName, map);
+            JsonSchema schema = schemaFactory.getSchema(JsonMapper.fromJsonString(jsonString, JsonNode.class), schemaValidatorsConfig);
             Set<ValidationMessage> validate = schema.validate(JsonMapper.fromJsonString(jsonStr, JsonNode.class));
             if (!CollectionUtil.isEmpty(validate)) {
-                List<String> messageList = Lists.newArrayList();
                 Iterator<ValidationMessage> iterator = validate.iterator();
                 while (iterator.hasNext()) {
                     ValidationMessage next = iterator.next();
-                    String message = String.format(rule.getMessage(), StrUtil.subBefore(next.getMessage(), "：", false));
-                    if (rule.getRuleAlarmLevel().equals(ERROR)) {
-                        log.error(String.format("%s schema validation fail: %s", tableName, message));
-                        throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
-                                CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                                String.format("%s schema validation fail: %s", tableName, message));
-                    } else if (rule.getRuleAlarmLevel().equals(WARN)) {
-                        messageList.add(message);
-                    }
-                }
-                for (String s : messageList) {
-                    data.add(s);
+                    String message = next.getMessage();
+                    log.error(String.format("%s schema validation fail: %s", tableName, message));
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                            CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format("%s schema validation fail: %s", tableName, message));
                 }
             }
         }
-        return data;
+        return true;
     }
 
-    private static String getJsonSchema(ValidationRule rule, Map map) {
+    private static String getJsonSchema(String jsonSchemaFileName, Map map) {
         try {
-            Resource resource = new ClassPathResource(rule.getJsonSchemaFileName());
+            Resource resource = new ClassPathResource(jsonSchemaFileName);
             String jsonSchemaStr = new String(IOUtils.toByteArray(resource.getStream()), StandardCharsets.UTF_8);
             StringBuffer sb = new StringBuffer();
             if (jsonSchemaStr.contains(ENUM_VALUES)) {
@@ -112,19 +96,5 @@ public class JsonSchemaValidator {
         } catch (IOException e) {
             throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), e.getMessage());
         }
-    }
-
-    @Data
-    public static class ValidationRule {
-        private final String jsonSchemaFileName;
-        private final String message;
-        private final String ruleAlarmLevel;
-
-        ValidationRule(String jsonSchemaFileName, String message, String ruleAlarmLevel) {
-            this.jsonSchemaFileName = jsonSchemaFileName;
-            this.message = message;
-            this.ruleAlarmLevel = ruleAlarmLevel;
-        }
-
     }
 }

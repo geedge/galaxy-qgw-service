@@ -110,11 +110,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private static final String BENCHMARK = "benchmark";
     private static final String FIELDS = "fields";
     private static final String NAMESPACE = "namespace";
-    private static final String FIELD_UNIQUENESS_RULE = "field-uniqueness-rule.json";
-    private static final String DOC_FIELD_USABILITY_RULE = "doc-field-usability-rule.json";
-    private static final String ATTRIBUTE_NECESSITY_RULE = "attribute-necessity-rule.json";
-    private static final String ERROR = "ERROR";
-    private static final String WARN = "WARN";
+    private static final String SCHEMA_SYNTAX_RULE = "schema-syntax-validation.json";
 
     private static String localHostAddress;
     private final static Map<String, String> metaMap = Maps.newHashMap();
@@ -244,15 +240,9 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                 Map schemaMap = databaseService.getSchemaInfo(FIELDS, tableName, false);
                 if (!clickHouseHttpSource.getDbName().equals(schemaMap.get(NAMESPACE)) && !druidIoHttpSource.getDbname().equals(schemaMap.get(NAMESPACE)))
                     continue;
-                List<String> validate = jsonSchemaValidator
-                        .addRule(FIELD_UNIQUENESS_RULE, QGWMessageConst.JSON_SCHEMA_FIELD_UNIQUENESS, WARN)
-                        .addRule(DOC_FIELD_USABILITY_RULE, QGWMessageConst.JSON_SCHEMA_DOC_FIELD_USABILITY, ERROR)
-                        .addRule(ATTRIBUTE_NECESSITY_RULE, QGWMessageConst.JSON_SCHEMA_ATTRIBUTE_NECESSITY, ERROR)
+                jsonSchemaValidator
+                        .addRule(SCHEMA_SYNTAX_RULE)
                         .validate(JSON.toJSONString(schemaMap));
-                if (!validate.isEmpty()) {
-                    Map<String, List<String>> resultMap = resultData.computeIfAbsent(String.valueOf(schemaMap.get(NAMESPACE)), k -> Maps.newHashMap());
-                    resultMap.put(tableName, validate);
-                }
             }
             checkCKIndexKey(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
             checkMetadataFieldAndType(databaseService.getAllTable(), resultData);
@@ -500,8 +490,9 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                             .append(", ");
                 }
                 sb.setLength(sb.length()-2);
-                String fieldTypeValidationMessage = String.format(QGWMessageConst.SCHEMA_FIELD_TYPE_NEED_CHECK, sb);
-                buildData(resultData, tableName, dbName, fieldTypeValidationMessage);
+                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
+                        CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                        String.format(QGWMessageConst.SCHEMA_FIELD_TYPE_NEED_CHECK, tableName, sb));
             }
         }
     }

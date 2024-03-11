@@ -132,14 +132,8 @@ public class QGWMessageConst {
 
     public static final String KB_FILE_CATEGORY_NOT_SUPPORT = "The knowledge base file category is not supported, format value must be :[ IP| DOMAIN| APP]";
 
-    public static final String JSON_SCHEMA_ATTRIBUTE_NECESSITY = "The %s Attribute must exist";
-
-    public static final String JSON_SCHEMA_FIELD_UNIQUENESS = "The %s array has duplicate fields";
-
-    public static final String JSON_SCHEMA_DOC_FIELD_USABILITY = "The %s described field must exist in doc.fields.*";
-
     public static final String SCHEMA_FUNCTION_CONSTRAINT_ERROR ="The %s schema %s constraint functions has %s, does not exit in the list of supported aggregate functions.";
 
-    public static final String SCHEMA_FIELD_TYPE_NEED_CHECK = "The schema fields type need to be checked: %s.";
+    public static final String SCHEMA_FIELD_TYPE_NEED_CHECK = "The %s schema fields type need to be checked: %s.";
 
 }
