@@ -996,6 +996,66 @@
         }
       },
       {
+        "name": "internal_port_list",
+        "label": "Internal Port List",
+        "type": {
+          "type": "array",
+          "items": "int",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)=8, client_port, null), if(bitAnd(flags, 16)=16, server_port, null))"
+        }
+      },
+      {
+        "name": "external_port_list",
+        "label": "External Port List",
+        "type": {
+          "type": "array",
+          "items": "int",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)!=8, client_port, null), if(bitAnd(flags, 16)!=16, server_port, null))"
+        }
+      },
+      {
+        "name": "internal_asn_list",
+        "label": "Internal ASN List",
+        "type": {
+          "type": "array",
+          "items": "long",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)=8, client_asn, null), if(bitAnd(flags, 16)=16, server_asn, null))"
+        }
+      },
+      {
+        "name": "external_asn_list",
+        "label": "External ASN List",
+        "type": {
+          "type": "array",
+          "items": "long",
+          "logicalType": "array"
+        },
+        "doc": {
+          "constraints": {
+            "operator_functions": "has,notEmpty,empty"
+          },
+          "expression": "array(if(bitAnd(flags, 8)!=8, client_asn, null), if(bitAnd(flags, 16)!=16, server_asn, null))"
+        }
+      },
+      {
         "name": "security_rule_id",
         "label": "Security Rule ID",
         "type": "long",
