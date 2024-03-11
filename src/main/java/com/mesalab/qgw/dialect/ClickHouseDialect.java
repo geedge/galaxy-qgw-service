@@ -8,7 +8,6 @@ import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONPath;
-import com.geedgenetworks.utils.DateUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jayway.jsonpath.JsonPath;
@@ -21,8 +20,6 @@ import com.mesalab.common.utils.sqlparser.*;
 import com.mesalab.qgw.constant.MetaConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
-import com.mesalab.qgw.model.basic.udf.UDF;
 import com.mesalab.qgw.service.RewriteTable;
 import com.mesalab.qgw.model.basic.HttpConfig;
 import com.mesalab.qgw.model.basic.*;
@@ -33,7 +30,6 @@ import com.mesalab.qgw.service.impl.HttpClientServiceV2;
 import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.deparser.ExpressionDeParser;
@@ -635,10 +631,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 String orderBy = sqlQueryContext.getDbSelectStatement().getOrderBy();
                 for (OrderByElement order : listOrderElement) {
                     String orderField = order.getExpression().toString();
-                    if ((orderField.startsWith("\"") && orderField.endsWith("\""))
-                            || (orderField.startsWith("`") && orderField.endsWith("`"))) {
-                        orderField = orderField.substring(1, orderField.length() - 1);
-                    }
+                    orderField = SQLHelper.removeQuotesAndBackticks(orderField);
                     String originalField = sqlQueryContext.getDbSelectStatement().getAliasFields().get(orderField);
                     if (StringUtil.isNotBlank(originalField)) {
                         orderBy = orderBy.replaceAll("(\"" + orderField + "\")|(\\b" + orderField + "\\b)", originalField);
@@ -760,8 +753,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             statistics.put("rows_read", statisticMap.get("rows_read"));
             statistics.put("bytes_read", statisticMap.get("bytes_read"));
             baseResult.setData(resultMap.get("data"));
-            baseResult.setMeta(unifyMeta(resultMap.get("meta")));
-            ColumnCategoryHelper.expandColumnMeta(baseResult.getMeta(), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine());
+            baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(unifyMeta(resultMap.get("meta")), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine()));
             baseResult.setStatistics(statistics);
         } else {
             if (baseResult.getStatus() >= HttpStatusCodeEnum.BAD_REQUEST.getCode()
@@ -792,7 +784,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
     @SneakyThrows
     @Override
-    List<Map<String, String>> perfectMeta() {
+    List<Map<String, String>> buildExampleMeta() {
         if (baseResult.getMeta() == null) {
             return Lists.newArrayList();
         }
@@ -840,69 +832,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         List<Map<String, String>> metaList = (List<Map<String, String>>) baseResult.getMeta();
         Map<String, Object> schema = databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), sqlQueryContext.getDbSelectStatement().getTableNames().get(0), false);
         Long rowCount = SQLHelper.getRowCount(sqlQueryContext.getDbSelectStatement().getSqlBody());
-        String queryType = determineQueryType(sqlQueryContext.getDbSelectStatement());
-        Object param = determineParam(sqlQueryContext.getDbSelectStatement(), queryType);
-        return ExampleDataHelper.buildExampleData(queryType, metaList, Math.min(rowCount == null ? 50 : rowCount.intValue(), 50), schema, param);
-    }
-
-    private String determineQueryType(SelectStatement dbSelectStatement) {
-        Set<UDF> udfSet = dbSelectStatement.getUdfSet();
-        if (udfSet != null && !udfSet.isEmpty()) {
-            for (UDF udf : udfSet) {
-                if (udf instanceof TIME_FLOOR_WITH_FILL) {
-                    return ExampleDataHelper.QUERY_TYPE_TIMESERIES;
-                }
-            }
-        }
-
-        Map<String, String> groupDimension = dbSelectStatement.getGroupDimension();
-        if (groupDimension != null && !groupDimension.isEmpty()) {
-            return ExampleDataHelper.QUERY_TYPE_GROUP_BY;
-        }
-
-        List<SelectItem> selectItems = dbSelectStatement.getSelectItems();
-        for (SelectItem selectItem : selectItems) {
-            if (selectItem instanceof SelectExpressionItem) {
-                SelectExpressionItem selectExpressionItem = ((SelectExpressionItem) selectItem);
-                if (selectExpressionItem.getExpression() instanceof Function) {
-                    Function function = (Function) selectExpressionItem.getExpression();
-                    if (SQLFunctionUtil.pAggregateFunStandard.matcher(function.toString()).find() || ClickHouseDialect.pAggregateFunSpecificOfCK.matcher(function.toString()).find()) {
-                        return ExampleDataHelper.QUERY_TYPE_AGG_STATISTICS;
-                    }
-                }
-            }
-        }
-        return ExampleDataHelper.QUERY_TYPE_OTHER;
-    }
-
-    private Object determineParam(SelectStatement dbSelectStatement, String queryType) {
-        if (ExampleDataHelper.QUERY_TYPE_TIMESERIES.equals(queryType)) {
-            TIME_FLOOR_WITH_FILL udfElements = dbSelectStatement.getUdfSet().stream()
-                    .filter(udf -> udf instanceof TIME_FLOOR_WITH_FILL)
-                    .map(udf -> (TIME_FLOOR_WITH_FILL) udf)
-                    .findFirst()
-                    .orElse(null);
-
-            if (udfElements != null) {
-                String name = udfElements.getName();
-                String timestamp = udfElements.getTimestamp();
-                Map<String, String> groupDimension = dbSelectStatement.getGroupDimension();
-                for (String groupKey : groupDimension.keySet()) {
-                    if (groupDimension.get(groupKey).contains(name) && groupDimension.get(groupKey).contains(timestamp)) {
-                        return groupKey;
-                    }
-                }
-            }
-        } else if (ExampleDataHelper.QUERY_TYPE_GROUP_BY.equals(queryType)) {
-            List<OrderByElement> orderByElements = dbSelectStatement.getOrderByElements();
-            if (orderByElements != null && !orderByElements.isEmpty()) {
-                return !orderByElements.get(0).isAsc();
-            } else {
-                return false;
-            }
-        }
-
-        return null;
+        String queryType = QueryTypeHelper.determineQueryType(sqlQueryContext.getDbSelectStatement());
+        Object param = QueryTypeHelper.determineParam(sqlQueryContext.getDbSelectStatement(), queryType);
+        return ExampleDataHelper.buildExampleData(queryType, metaList, rowCount, schema, param);
     }
 
     private boolean containAggregateFunction(String sql) {
@@ -920,27 +852,14 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
 
     /**
-     * 通过递归方式将原SQL转换为样例SQL
-     * 做数据集限制: 取指定时间范围记录的子集
+     * 将目标SQL转换为Dry Run SQ。使其不扫描数据，仅做执行
      *
-     * @param sql 原始sql
-     * @return 经转换后的样例SQL
+     * @param sql
+     * @return
      * @throws JSQLParserException
      */
     private String convertSampleSql(String sql) throws JSQLParserException {
-        if (engineConfigSource.getSampleDataPeriod() == 0) {
-            return sql;
-        }
-        Date date = new Date();
-        String endDate = DateUtils.getFormatDate(date, DateUtils.YYYY_MM_DD_HH24_MM_SS);
-        String startDate = DateUtils.getFormatDate(DateUtils.getSomeSecond(new Date(), -engineConfigSource.getSampleDataPeriod()), DateUtils.YYYY_MM_DD_HH24_MM_SS);
-        String filterExpr = String.format("%s >= UNIX_TIMESTAMP('%s') AND %s < UNIX_TIMESTAMP('%s')",
-                sqlQueryContext.getDbSelectStatement().getPartitionKey(),
-                startDate,
-                sqlQueryContext.getDbSelectStatement().getPartitionKey(),
-                endDate
-        );
-        return new SampleSQLHelper(sql, filterExpr, false, StringUtil.isEmpty(sqlQueryContext.getFederationSelectStatement()) ? engineConfigSource.getDefaultResultNum() : engineConfigSource.getMaxCacheNum()).build();
+        return new SampleSQLHelper(sql, " 1 != 1 ", false, null).build();
     }
 
     /**

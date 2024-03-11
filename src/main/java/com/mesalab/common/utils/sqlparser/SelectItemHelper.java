@@ -12,8 +12,6 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.*;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * TODO
@@ -23,8 +21,6 @@ import java.util.regex.Pattern;
  * @Author wWei
  */
 public class SelectItemHelper {
-
-    private static final Pattern pattern = Pattern.compile("^([\"`])(.*)([\"`])$");
 
     private SelectItemHelper() {
     }
@@ -85,10 +81,7 @@ public class SelectItemHelper {
         public void visit(SelectExpressionItem selectExpressionItem) {
             Expression expression = selectExpressionItem.getExpression();
             String name = selectExpressionItem.getAlias() != null ? selectExpressionItem.getAlias().getName() : selectExpressionItem.toString();
-            Matcher matcher = pattern.matcher(name);
-            if (matcher.matches()) {
-                name = matcher.group(2);
-            }
+            name = SQLHelper.removeQuotesAndBackticks(name);
             if (expression instanceof Column) {
                 Column column = (Column) expression;
                 AliasColumn aliasColumn = new AliasColumn();
@@ -109,6 +102,13 @@ public class SelectItemHelper {
                 functionDateTypeMap.put("TIME_FLOOR_WITH_FILL", DataTypeConst.UNIX_TIMESTAMP);
                 functionDateTypeMap.put("UNIX_TIMESTAMP_MILLIS", DataTypeConst.UNIX_TIMESTAMP_MS);
                 functionDateTypeMap.put("PERCENTILES_HDR", DataTypeConst.HDR_HISTOGRAM);
+                functionDateTypeMap.put("IP_TO_GEO", DataTypeConst.IP);
+                functionDateTypeMap.put("IP_TO_CITY", DataTypeConst.IP);
+                functionDateTypeMap.put("IP_TO_COUNTRY", DataTypeConst.IP);
+                functionDateTypeMap.put("IP_TO_ISP", DataTypeConst.IP);
+                functionDateTypeMap.put("IP_TO_ASN", DataTypeConst.IP);
+                functionDateTypeMap.put("IP_TO_ASN_DETAIL", DataTypeConst.IP);
+                functionDateTypeMap.put("IP_TO_ASN_ORG", DataTypeConst.IP);
 
                 if (functionDateTypeMap.containsKey(functionName)) {
                     AliasFunExpr aliasFunExpr = new AliasFunExpr();

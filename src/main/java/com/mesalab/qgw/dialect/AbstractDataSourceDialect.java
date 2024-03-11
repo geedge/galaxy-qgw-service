@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.geedgenetworks.utils.Encodes;
-import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
 import com.mesalab.qgw.model.basic.udf.UDF;
@@ -59,12 +58,12 @@ public abstract class AbstractDataSourceDialect implements Dialect {
     abstract String simplyErrorMessage(Object object);
 
     /**
-     * Desc: 完善meta信息
+     * Desc: 构建样例数据 meta 信息
      *
      * @created by wWei
      * @date 2024/3/7 09:54
      */
-    abstract List<Map<String, String>> perfectMeta();
+    abstract List<Map<String, String>> buildExampleMeta();
 
     /**
      * Desc: 样例数据
@@ -119,7 +118,7 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         init();
         String transformedSQL = getSampleQuery();
         BaseResult baseResult = generateBaseResult(transformedSQL, Optional.of(sqlQueryContext.getOriginalSQL()));
-        baseResult.setMeta(perfectMeta());
+        baseResult.setMeta(buildExampleMeta());
         baseResult.setData(buildExampleData());
         removeTimeFloorWithFill();
         return baseResult;

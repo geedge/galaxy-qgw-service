@@ -204,6 +204,9 @@
       "name": "destination_ip",
       "label": "Destination IP",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled",
         "ttl": null
       },

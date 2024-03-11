@@ -325,10 +325,7 @@ public class SQLSyncQueryServiceImpl implements SQLSyncQueryService {
                         SelectExpressionItem expressionItem = ((SelectExpressionItem) item);
                         if (StringUtil.isNotEmpty(expressionItem.getAlias())) {
                             String aliasName = expressionItem.getAlias().getName();
-                            if ((aliasName.startsWith("\"") && aliasName.endsWith("\""))
-                                    || ((aliasName.startsWith("`") && aliasName.endsWith("`")))) {
-                                aliasName = aliasName.substring(1, aliasName.length() - 1);
-                            }
+                            aliasName = SQLHelper.removeQuotesAndBackticks(aliasName);
                             sqlQuerySource.getAliasFields().put(aliasName, expressionItem.getExpression().toString());
                         } else {
                             sqlQuerySource.getAliasFields().put(expressionItem.getExpression().toString(), expressionItem.getExpression().toString());

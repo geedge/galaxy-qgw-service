@@ -827,8 +827,8 @@ public class DslServiceImpl implements DSLService {
                     p -> Constants.PROTOCOL_ETHERNET_NODE.equals(p.getName())).collect(Collectors.toList());
             if (protocolTree.getChildrens().size() != ethernetList.size()) {
                 protocolTree.setChildrens(ethernetList);
-                protocolTree.setReceivedBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getReceivedBytes());
-                protocolTree.setSentBytes(StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getSentBytes());
+                protocolTree.setReceivedBytes(ethernetList.isEmpty() || StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getReceivedBytes());
+                protocolTree.setSentBytes(ethernetList.isEmpty() || StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getSentBytes());
                 log.warn("Protocol Tree Exceptional data occurs and non-{} protocols are filtered out: {}", Constants.PROTOCOL_ETHERNET_NODE, protocolTree.getChildrens());
             }
         }
