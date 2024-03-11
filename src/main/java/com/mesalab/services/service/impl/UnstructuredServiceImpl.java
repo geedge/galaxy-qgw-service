@@ -23,7 +23,6 @@ import com.mesalab.services.common.enums.UnstructuredDataType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.UnstructuredService;
 import com.geedgenetworks.utils.StringUtil;
-import org.apache.avro.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
@@ -71,10 +70,9 @@ public class UnstructuredServiceImpl implements UnstructuredService, Environment
         Map<String, Object> fileTypeInSchema = Maps.newHashMap();
         List<String> allTable = databaseService.getAllTable();
         for (String tableName : allTable) {
-            Schema schema = databaseService.getSchemaByName(tableName);
-            Map schemaMap = JSON.parseObject(schema.toString(), Map.class);
+            LinkedHashMap<String, Object> schemaMap = databaseService.getSchemaByName(tableName);
             List<String> fieldList = new ArrayList<>();
-            if (!clickHouseHttpSource.getDbName().equals(schema.getNamespace())) continue;
+            if (!clickHouseHttpSource.getDbName().equals(schemaMap.get("namespace"))) continue;
             List<Map> fields = (List<Map>) schemaMap.get("fields");
             for (Map field : fields) {
                 Map schemaDoc = JSON.parseObject(field.get("doc").toString(), Map.class);

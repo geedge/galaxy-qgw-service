@@ -38,7 +38,6 @@ import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.*;
 import com.opencsv.CSVWriter;
-import org.apache.avro.Schema;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -406,8 +405,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
 
     private void checkCKIndexKey(String dbName, List<String> tables) {
         for (String tableName : tables) {
-            Schema schema = databaseService.getSchemaByName(tableName);
-            if (!dbName.equals(schema.getNamespace())) continue;
+            LinkedHashMap<String, Object> schemaMap = databaseService.getSchemaByName(tableName);
+            if (!dbName.equals(schemaMap.get("namespace"))) continue;
             BaseResult indexKeyResult = getBaseResultByEngine(SQLQueryContext.builder().option(QueryOption.REAL_TIME.getValue()).originalSQL(String.format(Objects.requireNonNull(env.getProperty("TABLE_INDEX_KEY")), tableName, clickHouseHttpSource.getDbName())).build());
             if (HttpStatusCodeEnum.SUCCESS.getCode() != indexKeyResult.getStatus()) {
                 log.error("The Table[" + tableName + "] index key query failed" + indexKeyResult.getMessage());

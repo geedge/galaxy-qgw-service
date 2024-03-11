@@ -21,8 +21,6 @@ import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.configuration.JobConfig;
 import com.geedgenetworks.utils.StringUtil;
-import org.apache.avro.LogicalType;
-import org.apache.avro.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
@@ -247,22 +245,29 @@ public class TaskExecuteService implements EnvironmentAware {
     }
 
     private String buildTopSQL(String tableName, String filter, String fieldName, String fn, String column, String value) {
-        Schema.Field field = databaseService.getSchemaByName(tableName).getField(fieldName);
-        if (StringUtil.isNotEmpty(field)) {
-            Schema schema = field.schema();
-            String type = schema.getType().getName();
-            String logicalType = schema.getProp(LogicalType.LOGICAL_TYPE_PROP);
-            if (StrUtil.equalsIgnoreCase(Schema.Type.ARRAY.getName(), type)
-                    || StrUtil.equalsIgnoreCase(Schema.Type.ARRAY.getName(), logicalType)) {
-                return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_ARRAY")),
-                        "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, fieldName, StrUtil.isBlankIfStr(filter) ? "" : " AND ".concat(filter), value);
-            } else if (StrUtil.equalsIgnoreCase("bit", type)
-                    || StrUtil.equalsIgnoreCase("bit", logicalType)) {
-
-                return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_BIT")),
-                        "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value);
+        List<Map> fields = (List<Map>) databaseService.getSchemaByName(tableName).get("fields");
+        for (Map next : fields) {
+            if (next.get("name").equals(fieldName)) {
+                String type;
+                String logicalType;
+                if (next.get("type") instanceof String) {
+                    type = String.valueOf(next.get("type"));
+                    logicalType = StrUtil.EMPTY;
+                } else {
+                    Map typeMap = (Map) next.get("type");
+                    type = String.valueOf(typeMap.get("type"));
+                    logicalType = StrUtil.isNotBlank(String.valueOf(typeMap.get("logicalType"))) ? String.valueOf(typeMap.get("logicalType")) : StrUtil.EMPTY;
+                }
+                if (StrUtil.equalsIgnoreCase("array", type)
+                        || StrUtil.equalsIgnoreCase("array", logicalType)) {
+                    return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_ARRAY")),
+                            "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, fieldName, StrUtil.isBlankIfStr(filter) ? "" : " AND ".concat(filter), value);
+                } else if (StrUtil.equalsIgnoreCase("bit", type)
+                        || StrUtil.equalsIgnoreCase("bit", logicalType)) {
+                    return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_BIT")),
+                            "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value);
+                }
             }
-
         }
         return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_DEFAULT")),
                 fieldName, fn, column, value, tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value);

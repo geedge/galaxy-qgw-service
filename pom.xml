@@ -55,7 +55,6 @@
         <nutz.version>1.r.65</nutz.version>
         <log4j2.version>2.17.0</log4j2.version>
         <httpclient.version>4.5.6</httpclient.version>
-        <avro.version>1.9.1</avro.version>
         <active.record.version>4.9.01</active.record.version>
         <json.schema.version>2.2.10</json.schema.version>
         <guava.version>33.0.0-jre</guava.version>
@@ -239,11 +238,6 @@
             <groupId>com.github.jsqlparser</groupId>
             <artifactId>jsqlparser</artifactId>
             <version>${jsqlparser.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-            <version>${avro.version}</version>
         </dependency>
         <dependency>
             <groupId>com.zdjizhi</groupId>
