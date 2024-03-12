@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.CharsetUtil;
 import com.alibaba.fastjson2.JSONPath;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
@@ -16,6 +17,7 @@ import com.mesalab.qgw.constant.MetaConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.validation.constraints.NotNull;
 import java.io.File;
@@ -66,7 +68,7 @@ public class ExampleDataHelper {
      *
      * @param queryType   Timeseries, TopN, GroupBy, AggStatistics, Other: Scan
      * @param meta        Column Meta
-     * @param sqlRowCount 结果行数
+     * @param sqlRowCount SQL结果行数
      * @param jsonSchema  Json Schema
      * @return {@link List<Object>}
      * @created by wWei
@@ -77,7 +79,7 @@ public class ExampleDataHelper {
         List<Map<String, Object>> result;
         switch (queryType) {
             case QUERY_TYPE_TIMESERIES:
-                result = buildExampleDataOfTimeseries(queryTypeParameters.toString(), meta, rowCount);
+                result = buildExampleDataOfTimeseries(queryTypeParameters.toString(), meta, sqlRowCount);
                 break;
             case QUERY_TYPE_GROUP_BY:
                 result = buildExampleDataOfGroupBy(meta, rowCount, Boolean.parseBoolean(queryTypeParameters.toString()));
@@ -94,42 +96,59 @@ public class ExampleDataHelper {
                 .collect(Collectors.toList());
     }
 
-    private static List<Map<String, Object>> buildExampleDataOfTimeseries(String timeGranLabel, List<Map<String, String>> meta, Integer rowCount) {
+    private static List<Map<String, Object>> buildExampleDataOfTimeseries(String timeGranLabel, List<Map<String, String>> meta, Long sqlRowCount) {
         Map<String, String> timeGranMeta = meta.stream()
                 .filter(item -> timeGranLabel.equals(item.get(MetaConst.META_NAME)))
                 .findFirst()
                 .orElse(Maps.newHashMap());
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<Map<String, Object>> timeseriesList = new ArrayList<>();
         if (!timeGranMeta.isEmpty()) {
             String timeGranDataType = timeGranMeta.get(MetaConst.META_DATA_TYPE);
             timeGranDataType = timeGranDataType == null ? timeGranMeta.get(MetaConst.META_TYPE) : timeGranDataType;
             Date currentDate = DateUtil.beginOfHour(new Date());
-            int iteratorRowCount = rowCount;
+            int iteratorRowCount = (sqlRowCount == null) ? RandomNumberGenerator.generateRangeRandomInt(10, 50) : Math.min(sqlRowCount.intValue(), 50);
             while (iteratorRowCount-- > 0) {
                 Object value = getDateTimeValue(timeGranDataType, iteratorRowCount, currentDate);
                 Map<String, Object> timeseries = Maps.newHashMap();
                 timeseries.put(timeGranLabel, value);
-                result.add(timeseries);
+                timeseriesList.add(timeseries);
             }
         }
-        meta.stream().filter(item -> MetaConst.META_CATEGORY_DIMENSION.equals(item.get(MetaConst.META_CATEGORY)) && !timeGranLabel.equals(item.get(MetaConst.META_NAME)))
-                .forEach(item -> {
-                    String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, null, true, RandomNumberGenerator.generateRangeRandomInt(1, 5));
-                    for (int i = 0; i < result.size(); i++) {
-                        result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(RandomNumberGenerator.generateRangeRandomInt(0, exampleValue.size() - 1)));
-                    }
-                });
 
+        int counter = 0;
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int i = 0; i < meta.size(); i++) {
+            Map<String, String> item = meta.get(i);
+            if (MetaConst.META_CATEGORY_DIMENSION.equals(item.get(MetaConst.META_CATEGORY)) && !timeGranLabel.equals(item.get(MetaConst.META_NAME))) {
+                if (counter >= 1) {
+                    timeseriesList = new ArrayList<>(result);
+                    result = new ArrayList<>();
+                }
+                counter++;
+                String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
+                List exampleValue = getExampleValue(dataType, null, null, false, RandomNumberGenerator.generateRangeRandomInt(1, 5));
+                for (int i1 = 0; i1 < exampleValue.size(); i1++) {
+                    List<Map<String, Object>> maps = new ArrayList<>();
+                    for (int j = 0; j < timeseriesList.size(); j++) {
+                        Map<String, Object> copiedMap = new HashMap<>(timeseriesList.get(j));
+                        copiedMap.put(item.get(MetaConst.META_NAME), exampleValue.get(i1));
+                        maps.add(copiedMap);
+                    }
+                    result.addAll(maps);
+                }
+            }
+        }
+
+        List<Map<String, Object>> finalResult = result.isEmpty() ? timeseriesList : result;
         meta.stream().filter(item -> MetaConst.META_CATEGORY_METRIC.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
                     String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, null, true, result.size());
-                    for (int i = 0; i < result.size(); i++) {
-                        result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
+                    List exampleValue = getExampleValue(dataType, null, null, true, finalResult.size());
+                    for (int i = 0; i < finalResult.size(); i++) {
+                        finalResult.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
                     }
                 });
-        return result;
+        return (sqlRowCount == null) ? finalResult : finalResult.subList(0, Math.min(sqlRowCount.intValue(), finalResult.size()));
     }
 
     private static List<Map<String, Object>> buildExampleDataOfGroupBy(List<Map<String, String>> meta, Integer rowCount, boolean isDesc) {
@@ -311,7 +330,7 @@ public class ExampleDataHelper {
                     result.add(list.get(index));
                 }
             } else {
-                result.addAll(list);
+                result.addAll(list.subList(0, size));
             }
         }
         return result;
