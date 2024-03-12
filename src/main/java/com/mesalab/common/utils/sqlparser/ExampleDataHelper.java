@@ -115,7 +115,7 @@ public class ExampleDataHelper {
         meta.stream().filter(item -> MetaConst.META_CATEGORY_DIMENSION.equals(item.get(MetaConst.META_CATEGORY)) && !timeGranLabel.equals(item.get(MetaConst.META_NAME)))
                 .forEach(item -> {
                     String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, null, RandomNumberGenerator.generateRangeRandomInt(1, 5));
+                    List exampleValue = getExampleValue(dataType, null, null, true, RandomNumberGenerator.generateRangeRandomInt(1, 5));
                     for (int i = 0; i < result.size(); i++) {
                         result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(RandomNumberGenerator.generateRangeRandomInt(0, exampleValue.size() - 1)));
                     }
@@ -124,7 +124,7 @@ public class ExampleDataHelper {
         meta.stream().filter(item -> MetaConst.META_CATEGORY_METRIC.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
                     String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, null, result.size());
+                    List exampleValue = getExampleValue(dataType, null, null, true, result.size());
                     for (int i = 0; i < result.size(); i++) {
                         result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
                     }
@@ -133,22 +133,31 @@ public class ExampleDataHelper {
     }
 
     private static List<Map<String, Object>> buildExampleDataOfGroupBy(List<Map<String, String>> meta, Integer rowCount, boolean isDesc) {
+        for (Map<String, String> item : meta) {
+            String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
+            if (inExampleDataFile(dataType)) {
+                Integer exampleDataSize = getExampleDataSize(dataType);
+                rowCount = exampleDataSize == null ? rowCount : Math.min(rowCount, exampleDataSize);
+            }
+        }
         List<Map<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < rowCount; i++) {
             result.add(Maps.newHashMap());
         }
+        Integer finalRowCount = rowCount;
         meta.stream().filter(item -> MetaConst.META_CATEGORY_DIMENSION.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
                     String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, null, rowCount);
+                    List exampleValue = getExampleValue(dataType, null, null, false, finalRowCount);
                     for (int i = 0; i < result.size(); i++) {
                         result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
                     }
                 });
+        Integer finalRowCount1 = rowCount;
         meta.stream().filter(item -> MetaConst.META_CATEGORY_METRIC.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
                     String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, isDesc, rowCount);
+                    List exampleValue = getExampleValue(dataType, null, isDesc, true, finalRowCount1);
                     for (int i = 0; i < result.size(); i++) {
                         result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
                     }
@@ -162,7 +171,7 @@ public class ExampleDataHelper {
         meta.stream().filter(item -> MetaConst.META_CATEGORY_METRIC.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
                     String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, null, 1);
+                    List exampleValue = getExampleValue(dataType, null, null, true, 1);
                     for (int i = 0; i < result.size(); i++) {
                         result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(0));
                     }
@@ -171,13 +180,21 @@ public class ExampleDataHelper {
     }
 
     private static List<Map<String, Object>> buildExampleDataOfScan(List<Map<String, String>> meta, int rowCount) {
+        for (Map<String, String> item : meta) {
+            String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
+            if (inExampleDataFile(dataType)) {
+                Integer exampleDataSize = getExampleDataSize(dataType);
+                rowCount = exampleDataSize == null ? rowCount : Math.min(rowCount, exampleDataSize);
+            }
+        }
         List<Map<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < rowCount; i++) {
             result.add(Maps.newHashMap());
         }
+        int finalRowCount = rowCount;
         meta.forEach(item -> {
             String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-            List exampleValue = getExampleValue(dataType, null, null, rowCount);
+            List exampleValue = getExampleValue(dataType, null, null, true, finalRowCount);
             for (int i = 0; i < result.size(); i++) {
                 result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
             }
@@ -185,9 +202,9 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List getExampleValue(String dataType, Object initValue, Boolean isDesc, int size) {
+    private static List getExampleValue(String dataType, Object initValue, Boolean isDesc, boolean canRepeat, int size) {
         if (inExampleDataFile(dataType)) {
-            return getExampleFileValues(dataType, isDesc, size);
+            return getExampleDataValues(dataType, canRepeat, size);
         }
         if (DataTypeMapping.LONG.equals(dataType) || DataTypeMapping.INT.equals(dataType)) {
             return getExampleIntegerValues(null, isDesc, size);
@@ -270,26 +287,46 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List<Object> getExampleFileValues(String dateType, Boolean increase, int size) {
+    private static List<Object> getExampleDataValues(String dateType, boolean canRepeat, int size) {
         String path = "$." + dateType;
         Object mode = JSONPath.extract(exampleJsonData, path + ".mode");
         List<Object> result = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            if (mode == null) {
+
+        if (mode == null) {
+            for (int i = 0; i < size; i++) {
                 result.add(null);
-            } else if (ExampleDataModeConst.RANGE.equalsIgnoreCase(mode.toString())) {
-                Integer start = (Integer) JSONPath.extract(exampleJsonData, path + ".start");
-                Integer end = (Integer) JSONPath.extract(exampleJsonData, path + ".end");
-                int v = new Random().nextInt(end - start + 1) + start;
+            }
+        } else if (ExampleDataModeConst.RANGE.equalsIgnoreCase(mode.toString())) {
+            Integer start = (Integer) JSONPath.extract(exampleJsonData, path + ".start");
+            Integer end = (Integer) JSONPath.extract(exampleJsonData, path + ".end");
+            for (int i = 0; i < size; i++) {
+                int v = RandomNumberGenerator.generateRangeRandomInt(start, end);
                 result.add(v);
-            } else if (ExampleDataModeConst.ENUM.equalsIgnoreCase(mode.toString())) {
-                List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
-                int index = new Random().nextInt(list.size());
-                result.add(list.get(index));
+            }
+        } else if (ExampleDataModeConst.ENUM.equalsIgnoreCase(mode.toString())) {
+            List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
+            if (canRepeat) {
+                for (int i = 0; i < size; i++) {
+                    int index = RandomNumberGenerator.generateRangeRandomInt(0, list.size() - 1);
+                    result.add(list.get(index));
+                }
+            } else {
+                result.addAll(list);
             }
         }
         return result;
     }
+
+    private static Integer getExampleDataSize(String dateType) {
+        String path = "$." + dateType;
+        Object mode = JSONPath.extract(exampleJsonData, path + ".mode");
+        if (ExampleDataModeConst.ENUM.equalsIgnoreCase(mode.toString())) {
+            List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
+            return list.size();
+        }
+        return null;
+    }
+
 
     /**
      * Desc: 随机生成List<String>类型的数据
