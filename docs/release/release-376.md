@@ -1,5 +1,7 @@
 Release 376 (TSG-24.03)
 * 隐藏Top Metrics Schema metric列，Dataset不再按照Metric定义不同数据源(TSG-19563)
 * 优化Dry Run查询的样例数据生成方式(TSG-19467)
+* 修复样例数据，修复结果维度列数据重复问题(TSG-19890)
+* 修复样例数据，修复别名存在特殊字符导致JSONPath解析失败问题(TSG-19870)
 * 扩展Schema，在tunnel_type 描述GRE(TSG-19518)
 * 扩展Schema，扩展表达式字段：internal_port_list, external_port_list, interal_asn_list, external_asn_list(TSG-19579)
