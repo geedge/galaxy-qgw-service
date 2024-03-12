@@ -98,6 +98,10 @@
         "doh_rr",
         "internal_ip_list",
         "external_ip_list",
+        "internal_port_list",
+        "external_port_list",
+        "internal_asn_list",
+        "external_asn_list",
         "proxy_rule_id"
       ],
       "metrics": [
@@ -210,6 +214,10 @@
         "doh_rr",
         "internal_ip_list",
         "external_ip_list",
+        "internal_port_list",
+        "external_port_list",
+        "internal_asn_list",
+        "external_asn_list",
         "proxy_rule_id"
       ],
       "references": {
