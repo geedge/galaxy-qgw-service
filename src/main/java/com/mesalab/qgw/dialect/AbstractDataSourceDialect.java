@@ -1,5 +1,7 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
@@ -14,7 +16,7 @@ import java.util.*;
 @Data
 public abstract class AbstractDataSourceDialect implements Dialect {
     protected SQLQueryContext sqlQueryContext;
-
+    private static final Log log = LogFactory.get();
     public AbstractDataSourceDialect(SQLQueryContext sqlQueryContext) {
         this.sqlQueryContext = sqlQueryContext;
     }
@@ -118,9 +120,13 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         init();
         String transformedSQL = getSampleQuery();
         BaseResult baseResult = generateBaseResult(transformedSQL, Optional.of(sqlQueryContext.getOriginalSQL()));
-        baseResult.setMeta(buildExampleMeta());
-        baseResult.setData(buildExampleData());
-        removeTimeFloorWithFill();
+        try {
+            baseResult.setMeta(buildExampleMeta());
+            baseResult.setData(buildExampleData());
+            removeTimeFloorWithFill();
+        } catch (Exception e) {
+            log.error("Build Example Data Error: {} ", e.toString());
+        }
         return baseResult;
     }
 
