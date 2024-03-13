@@ -113,4 +113,11 @@ public class SQLAdHocTest extends GalaxyQGWApplicationTests {
         BaseResult result = (BaseResult) getResult.getResult();
         Assert.assertTrue(result.getMessage(), result.getStatus() == 200);
     }
+
+    @Test
+    public void testQueryNoneSubQuery() {
+        SqlQueryRequestParam body = jsonToInParameter("parameters/sqlAdHocTest.json", "query_sql_oneshot_error_trigger_sub_query", SqlQueryRequestParam.class);
+        BaseResult baseResult = queryController.createSQLQuery(body);
+        Assert.assertTrue(baseResult.getMessage(), baseResult.getStatus() == 200);
+    }
 }
