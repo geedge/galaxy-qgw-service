@@ -122,7 +122,7 @@ public class SQLFunctionUtil {
      * 标准函数
      */
     //time functions
-    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|rate|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp)\\s*\\(", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pAggregateFunStandard = Pattern.compile("\\b(count|min|max|sum|avg|any|rate|stddevPop|stddevSamp|varPop|varSamp|covarPop|covarSamp|MEDIAN|QUANTILE|MAX_DURATION|MEDIAN_HDR|QUANTILE_HDR|PERCENTILES_HDR|COUNT_DISTINCT|APPROX_COUNT_DISTINCT_HLLD)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pDateFormat = Pattern.compile("\\W(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pGroupByFormat = Pattern.compile("(SELECT\\s+|GROUP\\s*BY\\s+|,\\s*)(FROM_UNIXTIME|DATE_FORMAT|STR_TO_DATE)\\s*\\(", Pattern.CASE_INSENSITIVE);
     public static final Pattern pFromUnixTimeMillis = Pattern.compile("\\WFROM_UNIXTIME_MILLIS\\s*\\(", Pattern.CASE_INSENSITIVE);
