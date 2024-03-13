@@ -127,31 +127,6 @@
       "type": "string"
     },
     {
-      "name": "metric",
-      "label": "Metric",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,!=,in,not in"
-        },
-        "data": [
-          {
-            "code": "bytes",
-            "value": "Bytes"
-          },
-          {
-            "code": "sessions",
-            "value": "Sessions"
-          },
-          {
-            "code": "packets",
-            "value": "Packets"
-          }
-        ],
-        "visibility": "hidden"
-      },
-      "type": "string"
-    },
-    {
       "name": "sessions",
       "label": "Sessions",
       "doc": {
