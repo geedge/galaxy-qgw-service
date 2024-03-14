@@ -1,10 +1,11 @@
 package com.mesalab.qgw.dialect;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.geedgenetworks.utils.Encodes;
-import com.mesalab.common.utils.SpringContextUtil;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
 import com.mesalab.qgw.model.basic.udf.UDF;
@@ -15,7 +16,7 @@ import java.util.*;
 @Data
 public abstract class AbstractDataSourceDialect implements Dialect {
     protected SQLQueryContext sqlQueryContext;
-
+    private static final Log log = LogFactory.get();
     public AbstractDataSourceDialect(SQLQueryContext sqlQueryContext) {
         this.sqlQueryContext = sqlQueryContext;
     }
@@ -59,12 +60,12 @@ public abstract class AbstractDataSourceDialect implements Dialect {
     abstract String simplyErrorMessage(Object object);
 
     /**
-     * Desc: 完善meta信息
+     * Desc: 构建样例数据 meta 信息
      *
      * @created by wWei
      * @date 2024/3/7 09:54
      */
-    abstract List<Map<String, String>> perfectMeta();
+    abstract List<Map<String, String>> buildExampleMeta();
 
     /**
      * Desc: 样例数据
@@ -119,9 +120,13 @@ public abstract class AbstractDataSourceDialect implements Dialect {
         init();
         String transformedSQL = getSampleQuery();
         BaseResult baseResult = generateBaseResult(transformedSQL, Optional.of(sqlQueryContext.getOriginalSQL()));
-        baseResult.setMeta(perfectMeta());
-        baseResult.setData(buildExampleData());
-        removeTimeFloorWithFill();
+        try {
+            baseResult.setMeta(buildExampleMeta());
+            baseResult.setData(buildExampleData());
+            removeTimeFloorWithFill();
+        } catch (Exception e) {
+            log.error("Build Example Data Error: {} ", e.toString());
+        }
         return baseResult;
     }
 

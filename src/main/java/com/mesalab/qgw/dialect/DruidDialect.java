@@ -24,17 +24,11 @@ import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.geedgenetworks.utils.StringUtil;
-import com.mesalab.qgw.model.basic.udf.TIME_FLOOR_WITH_FILL;
-import com.mesalab.qgw.model.basic.udf.UDF;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.impl.HttpClientServiceV2;
 import lombok.Data;
 import lombok.SneakyThrows;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.statement.select.OrderByElement;
-import net.sf.jsqlparser.statement.select.SelectExpressionItem;
-import net.sf.jsqlparser.statement.select.SelectItem;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -43,15 +37,12 @@ import java.util.regex.Pattern;
 
 public class DruidDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
-
     public static final Pattern pAggregateFunSpecificOfDruid = Pattern.compile("\\b(QUANTILE_HDR|HDR_HISTOGRAM|HLLD|APPROX_COUNT_DISTINCT_HLLD|PERCENTILES_HDR)\\s*\\(", Pattern.CASE_INSENSITIVE);
-
     private DruidIoHttpSource druidIoHttpSource = (DruidIoHttpSource) SpringContextUtil.getBean("druidIoHttpSource");
     private HttpClientServiceV2 httpClientService = (HttpClientServiceV2) SpringContextUtil.getBean("httpClientServiceV2");
     private EngineConfigSource engineConfigSource = (EngineConfigSource) SpringContextUtil.getBean("engineConfigSource");
     private HttpConfig httpConfig = (HttpConfig) SpringContextUtil.getBean("httpConfig");
     private DatabaseService databaseService = (DatabaseService) SpringContextUtil.getBean("databaseService");
-
     private int pageOffset;
     private static final String CLAZZ_NAME_CALCITE_EXCEPTION = "com.zdjizhi.calcite.runtime.CalciteContextException: ";
     private Stopwatch watch = Stopwatch.createUnstarted();
@@ -219,9 +210,8 @@ public class DruidDialect extends AbstractDataSourceDialect {
             }
             List<Object> allResults = (List<Object>) dataObject;
             Object metaObj = allResults.remove(0);
-            baseResult.setMeta(unifyMeta(JSON.parseObject(JSON.toJSONString(metaObj), Map.class)));
-            ColumnCategoryHelper.expandColumnMeta(baseResult.getMeta(), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine());
-            if (pageOffset > 0) {
+            baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(unifyMeta(JSON.parseObject(JSON.toJSONString(metaObj), Map.class)), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine()));
+            if (pageOffset > 0 && StringUtil.isNotEmpty(allResults)) {
                 if (pageOffset >= allResults.size()) {
                     allResults = new ArrayList<>();
                 } else {
@@ -259,7 +249,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
 
     @SneakyThrows
     @Override
-    List<Map<String, String>> perfectMeta() {
+    List<Map<String, String>> buildExampleMeta() {
         if (baseResult.getMeta() == null) {
             return Lists.newArrayList();
         }
@@ -279,69 +269,9 @@ public class DruidDialect extends AbstractDataSourceDialect {
         List<Map<String, String>> metaList = (List<Map<String, String>>) baseResult.getMeta();
         Map<String, Object> schema = databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), sqlQueryContext.getDbSelectStatement().getTableNames().get(0), false);
         Long rowCount = SQLHelper.getRowCount(sqlQueryContext.getDbSelectStatement().getSqlBody());
-        String queryType = determineQueryType(sqlQueryContext.getDbSelectStatement());
-        Object param = determineParam(sqlQueryContext.getDbSelectStatement(), queryType);
-        return ExampleDataHelper.buildExampleData(queryType, metaList, Math.min(rowCount == null ? 50 : rowCount.intValue(), 50), schema, param);
-    }
-
-    private String determineQueryType(SelectStatement dbSelectStatement) {
-        Set<UDF> udfSet = dbSelectStatement.getUdfSet();
-        if (udfSet != null && !udfSet.isEmpty()) {
-            for (UDF udf : udfSet) {
-                if (udf instanceof TIME_FLOOR_WITH_FILL) {
-                    return ExampleDataHelper.QUERY_TYPE_TIMESERIES;
-                }
-            }
-        }
-
-        Map<String, String> groupDimension = dbSelectStatement.getGroupDimension();
-        if (groupDimension != null && !groupDimension.isEmpty()) {
-            return ExampleDataHelper.QUERY_TYPE_GROUP_BY;
-        }
-
-        List<SelectItem> selectItems = dbSelectStatement.getSelectItems();
-        for (SelectItem selectItem : selectItems) {
-            if (selectItem instanceof SelectExpressionItem) {
-                SelectExpressionItem selectExpressionItem = ((SelectExpressionItem) selectItem);
-                if (selectExpressionItem.getExpression() instanceof Function) {
-                    Function function = (Function) selectExpressionItem.getExpression();
-                    if (SQLFunctionUtil.pAggregateFunStandard.matcher(function.toString()).find() || DruidDialect.pAggregateFunSpecificOfDruid.matcher(function.toString()).find()) {
-                        return ExampleDataHelper.QUERY_TYPE_AGG_STATISTICS;
-                    }
-                }
-            }
-        }
-        return ExampleDataHelper.QUERY_TYPE_OTHER;
-    }
-
-    private Object determineParam(SelectStatement dbSelectStatement, String queryType) {
-        if (ExampleDataHelper.QUERY_TYPE_TIMESERIES.equals(queryType)) {
-            TIME_FLOOR_WITH_FILL udfElements = dbSelectStatement.getUdfSet().stream()
-                    .filter(udf -> udf instanceof TIME_FLOOR_WITH_FILL)
-                    .map(udf -> (TIME_FLOOR_WITH_FILL) udf)
-                    .findFirst()
-                    .orElse(null);
-
-            if (udfElements != null) {
-                String name = udfElements.getName();
-                String timestamp = udfElements.getTimestamp();
-                Map<String, String> groupDimension = dbSelectStatement.getGroupDimension();
-                for (String groupKey : groupDimension.keySet()) {
-                    if (groupDimension.get(groupKey).contains(name) && groupDimension.get(groupKey).contains(timestamp)) {
-                        return groupKey;
-                    }
-                }
-            }
-        } else if (ExampleDataHelper.QUERY_TYPE_GROUP_BY.equals(queryType)) {
-            List<OrderByElement> orderByElements = dbSelectStatement.getOrderByElements();
-            if (orderByElements != null && !orderByElements.isEmpty()) {
-                return !orderByElements.get(0).isAsc();
-            } else {
-                return false;
-            }
-        }
-
-        return null;
+        String queryType = QueryTypeHelper.determineQueryType(sqlQueryContext.getDbSelectStatement());
+        Object param = QueryTypeHelper.determineParam(sqlQueryContext.getDbSelectStatement(), queryType);
+        return ExampleDataHelper.buildExampleData(queryType, metaList, rowCount, schema, param);
     }
 
     /**
@@ -399,7 +329,6 @@ public class DruidDialect extends AbstractDataSourceDialect {
             }
         }
     }
-
 
     class Converter {
         String sql = null;

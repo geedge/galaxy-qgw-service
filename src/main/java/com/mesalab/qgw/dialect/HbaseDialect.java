@@ -132,7 +132,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
     }
 
     @Override
-    List<Map<String, String>> perfectMeta() {
+    List<Map<String, String>> buildExampleMeta() {
         return baseResult.getMeta() != null ? (List<Map<String, String>>) baseResult.getMeta() : null;
     }
 
@@ -153,7 +153,7 @@ public class HbaseDialect extends AbstractDataSourceDialect {
             baseResult = BaseResultGenerator.generate(status, CommonErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), String.valueOf(results.get("message")),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), sqlQueryContext.getFormat());
         }
-        ColumnCategoryHelper.expandColumnMeta(baseResult.getMeta(), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine());
+        baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(baseResult.getMeta(), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine()));
         return baseResult;
     }
 

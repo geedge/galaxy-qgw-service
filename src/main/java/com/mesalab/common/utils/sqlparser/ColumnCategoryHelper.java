@@ -6,15 +6,13 @@ import cn.hutool.log.LogFactory;
 import com.geedgenetworks.utils.StringUtil;
 import com.jayway.jsonpath.JsonPath;
 import com.mesalab.common.enums.DBEngineType;
+import com.mesalab.qgw.constant.MetaConst;
 import com.mesalab.qgw.dialect.ClickHouseDialect;
 import com.mesalab.qgw.dialect.DruidDialect;
-import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.model.basic.SelectStatement;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 
 import java.util.List;
 import java.util.Map;
@@ -36,20 +34,20 @@ public class ColumnCategoryHelper {
     private ColumnCategoryHelper() {
     }
 
-    public static void expandColumnMeta(Object columnMeta, SelectStatement selectStatement, String dbEngine) {
+    public static Object expandMetaCategory(Object columnMeta, SelectStatement selectStatement, String dbEngine) {
         if (StringUtil.isEmpty(selectStatement) || StringUtil.isEmpty(selectStatement.getExecSQL()) || StringUtil.isEmpty(columnMeta)) {
-            return;
+            return columnMeta;
         }
-        List<Map<String, String>> data = JsonPath.read(columnMeta, "$");
+        List<Map<String, String>> result = JsonPath.read(columnMeta, "$");
         Map<String, String> groupDimension = selectStatement.getGroupDimension();
         Map<String, String> aliasFields = selectStatement.getAliasFields();
         meta:
-        for (Map<String, String> map : data) {
+        for (Map<String, String> map : result) {
             if (StrUtil.isEmptyIfStr(groupDimension)) {
                 map.put(META_CATEGORY, META_CATEGORY_METRIC);
                 continue;
             }
-            String field = String.valueOf(map.get("name"));
+            String field = String.valueOf(map.get(META_NAME));
             for (String dimensionKey : groupDimension.keySet()) {
                 if (Objects.equals(field, dimensionKey) || Objects.equals(field, groupDimension.get(dimensionKey))) {
                     map.put(META_CATEGORY, META_CATEGORY_DIMENSION);
@@ -93,5 +91,6 @@ public class ColumnCategoryHelper {
             }
             map.put(META_CATEGORY, META_CATEGORY_METRIC);
         }
+        return result;
     }
 }
