@@ -1,12 +1,11 @@
 {
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "服务推荐",
   "description": "查询",
   "type": "object",
   "properties": {
     "clientId": {
       "description": "唯一标识符",
-      "maximum": 2147483647,
-      "minimum": -2147483648,
       "type": [
         "null",
         "integer"
@@ -21,12 +20,10 @@
       "properties": {
         "queryType": {
           "description": "查询类型",
-          "maxLength": 65535,
           "type": "string"
         },
         "dataSource": {
           "description": "查询数据源",
-          "maxLength": 65535,
           "type": "string"
         },
         "parameters": {
@@ -47,19 +44,16 @@
                   "properties": {
                     "type": {
                       "description": "匹配符号",
-                      "maxLength": 65535,
                       "type": "string"
                     },
                     "fieldKey": {
                       "description": "查询字段",
-                      "maxLength": 65535,
                       "type": "string"
                     },
                     "fieldValues": {
                       "description": "查询参数",
                       "type": "array",
                       "items": {
-                        "maxLength": 65535,
                         "type": "string"
                       }
                     }
@@ -76,19 +70,16 @@
                 "properties": {
                   "type": {
                     "description": "匹配符号",
-                    "maxLength": 65535,
                     "type": "string"
                   },
                   "fieldKey": {
                     "description": "查询字段",
-                    "maxLength": 65535,
                     "type": "string"
                   },
                   "fieldValues": {
                     "description": "查询参数",
                     "type": "array",
                     "items": {
-                      "maxLength": 65535,
                       "type": "string"
                     }
                   }
@@ -108,21 +99,16 @@
                 "properties": {
                   "type": {
                     "description": "匹配符号",
-                    "maxLength": 65535,
                     "type": "string"
                   },
                   "fieldKey": {
                     "description": "查询字段",
-                    "maxLength": 65535,
                     "type": "string"
                   },
                   "fieldValues": {
                     "description": "查询参数",
                     "type": "array",
                     "items": {
-                      "maximum": 2147483647,
-                      "minimum": -2147483648,
-                      "maxLength": 65535,
                       "type": [
                         "integer",
                         "string"
@@ -141,21 +127,16 @@
                 "properties": {
                   "type": {
                     "description": "匹配符号",
-                    "maxLength": 65535,
                     "type": "string"
                   },
                   "fieldKey": {
                     "description": "查询字段",
-                    "maxLength": 65535,
                     "type": "string"
                   },
                   "fieldValues": {
                     "description": "查询参数",
                     "type": "array",
                     "items": {
-                      "maximum": 2147483647,
-                      "minimum": -2147483648,
-                      "maxLength": 65535,
                       "type": [
                         "integer",
                         "string"
@@ -169,11 +150,9 @@
               "description": "查询时间",
               "type": "array",
               "items": {
-                "maxLength": 65535,
                 "type": "string"
               },
               "additionalItems": {
-                "maxLength": 65535,
                 "type": "string"
               }
             },
@@ -186,12 +165,10 @@
                 "properties": {
                   "type": {
                     "description": "匹配符号",
-                    "maxLength": 65535,
                     "type": "string"
                   },
                   "fieldKey": {
                     "description": "排序字段",
-                    "maxLength": 65535,
                     "type": "string"
                   }
                 }
@@ -202,12 +179,10 @@
                 "properties": {
                   "type": {
                     "description": "匹配符号",
-                    "maxLength": 65535,
                     "type": "string"
                   },
                   "fieldKey": {
                     "description": "排序字段",
-                    "maxLength": 65535,
                     "type": "string"
                   }
                 }
@@ -215,9 +190,6 @@
             },
             "limit": {
               "description": "查询条数",
-              "maxLength": 65535,
-              "maximum": 2147483647,
-              "minimum": 0,
               "type": [
                 "integer",
                 "string"

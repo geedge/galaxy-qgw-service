@@ -240,8 +240,8 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                 if (!clickHouseHttpSource.getDbName().equals(schemaMap.get(NAMESPACE)) && !druidIoHttpSource.getDbname().equals(schemaMap.get(NAMESPACE)))
                     continue;
                 jsonSchemaValidator
-                        .addRule(SCHEMA_SYNTAX_RULE)
-                        .validate(JSON.toJSONString(schemaMap));
+                        .addRule(SCHEMA_SYNTAX_RULE, "schema")
+                        .validateSchema(JSON.toJSONString(schemaMap));
             }
             checkCKIndexKey(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
             checkMetadataFieldAndType(databaseService.getAllTable(), resultData);
