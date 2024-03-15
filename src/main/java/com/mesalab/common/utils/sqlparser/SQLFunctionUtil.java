@@ -1917,10 +1917,14 @@ public class SQLFunctionUtil {
      */
     private static String translateRate(Function fun, String dbType) {
         List<String> paramsList = fun.paramsList;
-        if (DBEngineType.DRUID.getValue().equals(dbType)) {
-            return String.format("SUM(%s) / %s", paramsList.get(0), paramsList.get(1));
-        } else if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
-            return String.format("SUM(%s) / %s", paramsList.get(0), paramsList.get(1));
+        if (DBEngineType.DRUID.getValue().equals(dbType) || DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
+            if (paramsList.size() == 2) {
+                String formatString = "SUM(%s) / %s";
+                return String.format(formatString, paramsList.get(0), paramsList.get(1));
+            } else if (paramsList.size() == 3) {
+                String formatString = "SUM(%s) / (%s/%s)";
+                return String.format(formatString, paramsList.get(0), paramsList.get(1), paramsList.get(2));
+            }
         }
         return fun.toString();
     }

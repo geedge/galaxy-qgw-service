@@ -60,42 +60,42 @@
       {
         "name": "QUANTILE",
         "label": "QUANTILE",
-        "function": "QUANTILE(expr,level)",
+        "function": "QUANTILE(expr, level)",
         "metric_type": "gauge",
         "unit": "short"
       },
       {
         "name": "P95_PERCENTILE",
         "label": "P95_PERCENTILE",
-        "function": "QUANTILE(expr,0.95)",
+        "function": "QUANTILE(expr, 0.95)",
         "metric_type": "gauge",
         "unit": "short"
       },
       {
         "name": "P99_PERCENTILE",
         "label": "P99_PERCENTILE",
-        "function": "QUANTILE(expr,0.99)",
+        "function": "QUANTILE(expr, 0.99)",
         "metric_type": "gauge",
         "unit": "short"
       },
       {
         "name": "QUANTILE_HDR",
         "label": "QUANTILE_HDR",
-        "function": "QUANTILE_HDR(expr,level)",
+        "function": "QUANTILE_HDR(expr, level)",
         "metric_type": "gauge",
         "unit": "short"
       },
       {
         "name": "P95_PERCENTILE_HDR",
         "label": "P95_PERCENTILE_HDR",
-        "function": "QUANTILE_HDR(expr,0.95)",
+        "function": "QUANTILE_HDR(expr, 0.95)",
         "metric_type": "gauge",
         "unit": "short"
       },
       {
         "name": "P99_PERCENTILE_HDR",
         "label": "P99_PERCENTILE_HDR",
-        "function": "QUANTILE_HDR(expr,0.99)",
+        "function": "QUANTILE_HDR(expr, 0.99)",
         "metric_type": "gauge",
         "unit": "short"
       },
@@ -123,14 +123,14 @@
       {
         "name": "RATE",
         "label": "RATE",
-        "function": "RATE(expr,duration)",
+        "function": "RATE(<expr>, <duration>, [interval])",
         "metric_type": "gauge",
         "unit": "sps"
       },
       {
         "name": "BITRATE",
         "label": "BITRATE",
-        "function": "RATE(expr,duration)*8",
+        "function": "RATE(<expr>, <duration>, [interval]) * 8",
         "metric_type": "gauge",
         "unit": "bps"
       }
@@ -159,7 +159,7 @@
       {
         "name": "DATE_FORMAT",
         "label": "DATE_FORMAT",
-        "function": "DATE_FORMAT(expr,format)"
+        "function": "DATE_FORMAT(expr, format)"
       },
       {
         "name": "CONVERT_TZ",
@@ -169,7 +169,7 @@
       {
         "name": "TIME_FLOOR_WITH_FILL",
         "label": "TIME_FLOOR_WITH_FILL",
-        "function": "TIME_FLOOR_WITH_FILL(expr,period,fill)"
+        "function": "TIME_FLOOR_WITH_FILL(expr, period, fill)"
       }
     ],
     "operator": [
@@ -241,7 +241,7 @@
       {
         "name": "bitAnd",
         "label": "Bitwise AND",
-        "function": "bitAnd(expr, value)=value"
+        "function": "bitAnd(expr, value) = value"
       }
     ]
   },
