@@ -16,6 +16,8 @@
         "server_ip",
         "client_asn",
         "server_asn",
+        "client_region_code",
+        "server_region_code",
         "server_fqdn",
         "server_domain",
         "application",
@@ -275,6 +277,22 @@
         "visibility": "enabled"
       },
       "type": "long"
+    },
+    {
+      "name": "client_region_code",
+      "label": "Client Region",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_region_code",
+      "label": "Server Region",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
     },
     {
       "name": "server_fqdn",
