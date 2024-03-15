@@ -53,7 +53,8 @@
         "statistics_rule",
         "object_statistics",
         "statistics_rule_hits",
-        "monitor_rule_hits"
+        "monitor_rule_hits",
+        "rate_limiting_rule_hits"
       ]
     },
     {

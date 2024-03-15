@@ -1,0 +1,196 @@
+{
+  "type": "record",
+  "name": "rate_limiting_rule_hits",
+  "namespace": "druid",
+  "doc": {
+    "partition_key": "__time",
+    "functions": {
+      "$ref": "public_schema_info.json#/functions"
+    },
+    "schema_query": {
+      "time": [
+        "__time"
+      ],
+      "dimensions": [
+        "rule_id",
+        "device_group",
+        "data_center"
+      ],
+      "metrics": [
+        "hit_count",
+        "in_bytes",
+        "out_bytes",
+        "in_pkts",
+        "out_pkts"
+      ],
+      "filters": [
+        "rule_id",
+        "device_group",
+        "data_center"
+      ],
+      "references": {
+        "$ref": "public_schema_info.json#/schema_query/references"
+      }
+    },
+    "measurements": {
+      "granularity": 1,
+      "ingestion_delay": 5,
+      "aggregated_metric_unit": {
+        "SUM": {
+          "hit_count": "sessions",
+          "in_bytes": "bytes",
+          "out_bytes": "bytes",
+          "in_pkts": "packets",
+          "out_pkts": "packets"
+        },
+        "RATE": {
+          "hit_count": "sps",
+          "in_bytes": "Bps",
+          "out_bytes": "Bps",
+          "in_pkts": "pps",
+          "out_pkts": "pps"
+        },
+        "BITRATE": {
+          "in_bytes": "bps",
+          "out_bytes": "bps"
+        }
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "__time",
+      "label": "Time",
+      "type": {
+        "type": "string",
+        "logicalType": "timestamp"
+      },
+      "doc": {
+        "constraints": {
+          "type": "timestamp"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "data_center",
+      "label": "Data Center",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagValue']",
+          "value": "$[?(@.tagType=='data_center')].subTags.[?(@.tagType=='data_center')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "device_group",
+      "label": "Device Group",
+      "type": "string",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "data": {
+          "$ref": "device_tag.json#",
+          "key": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagValue']",
+          "value": "$[?(@.tagType=='device_group')].subTags.[?(@.tagType=='device_group')]['tagName']"
+        },
+        "visibility": "enabled"
+      }
+    },
+    {
+      "name": "device_id",
+      "label": "Device ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "string"
+    },
+    {
+      "name": "vsys_id",
+      "label": "Vsys ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "rule_id",
+      "label": "Rule",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,in"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "hit_count",
+      "label": "Hit Count",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_bytes",
+      "label": "Incoming Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "in_pkts",
+      "label": "Incoming Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "out_pkts",
+      "label": "Outgoing Packets",
+      "doc": {
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE"
+        },
+        "visibility": "enabled"
+      },
+      "type": "long"
+    }
+  ]
+}
