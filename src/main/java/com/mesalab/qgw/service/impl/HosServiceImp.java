@@ -179,23 +179,21 @@ public class HosServiceImp implements HosService {
     private Map<String, Object> buildData(String bucketName, Map contents) {
         Map<String, Object> dataMap = Maps.newHashMap();
         String key = String.valueOf(contents.get(KEY));
+        dataMap.put("fileName", key);
         dataMap.put("size", StrUtil.isBlankIfStr(contents.get(SIZE)) ? 0 : Integer.parseInt(String.valueOf(contents.get(SIZE))));
         dataMap.put("fileUrl", hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(key));
         dataMap.put("lastModified", String.valueOf(contents.get(LAST_MODIFIED)));
         if (MapUtil.isNotEmpty((Map<?, ?>) contents.get(USER_DEFINED_META))) {
             Map<String, String> udfMeta = (Map<String, String>) contents.get(USER_DEFINED_META);
-            String fileType = StrUtil.isBlankIfStr(udfMeta.get(FILE_TYPE)) ? "" : udfMeta.get(FILE_TYPE);
             Integer chunkCount = StrUtil.isBlankIfStr(udfMeta.get(CHUNK_COUNT)) ? 0 : Integer.parseInt(udfMeta.get(CHUNK_COUNT));
             String taskId = StrUtil.isBlankIfStr(udfMeta.get(TASK_ID)) ? "" : udfMeta.get(TASK_ID);
             String ruleId = StrUtil.isBlankIfStr(udfMeta.get(RULE_ID)) ? "" : udfMeta.get(RULE_ID);
             dataMap.put("taskId", taskId);
             dataMap.put("ruleId", ruleId);
-            dataMap.put("fileName", key.concat(".").concat(fileType));
             dataMap.put("chunkCount", chunkCount);
         } else {
             dataMap.put("taskId", "");
             dataMap.put("ruleId", "");
-            dataMap.put("fileName", key);
             dataMap.put("chunkCount", 0);
         }
         return dataMap;
