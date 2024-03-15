@@ -14,6 +14,8 @@
       "dimensions": [
         "client_ip",
         "server_ip",
+        "client_asn",
+        "server_asn",
         "server_fqdn",
         "server_domain",
         "application",
@@ -257,6 +259,22 @@
         "visibility": "enabled"
       },
       "type": "string"
+    },
+    {
+      "name": "client_asn",
+      "label": "Client ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "server_asn",
+      "label": "Server ASN",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
     },
     {
       "name": "server_fqdn",
