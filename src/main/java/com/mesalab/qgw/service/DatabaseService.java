@@ -4,7 +4,7 @@ package com.mesalab.qgw.service;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.qgw.model.job.EncryptionInfo;
 import com.mesalab.qgw.model.job.StorageDeletionInfo;
-import org.apache.avro.Schema;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,11 +82,11 @@ public interface DatabaseService {
      * Desc: 通过表名获取Schema
      *
      * @param name
-     * @return {@link Schema}
+     * @return {@link }
      * @created by wWei
      * @date 2021/7/27 2:41 下午
      */
-    Schema getSchemaByName(String name);
+    LinkedHashMap<String, Object> getSchemaByName(String name);
 
 
 

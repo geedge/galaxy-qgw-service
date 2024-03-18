@@ -44,8 +44,6 @@ import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.avro.Schema;
-import org.apache.avro.SchemaParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
 import org.springframework.context.EnvironmentAware;
@@ -91,7 +89,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Autowired
     Environment environment;
 
-    private Map<String, Schema> schemaCache = Maps.newHashMap();
+    private Map<String, Object> schemaCache = Maps.newHashMap();
     private Map<String, Object> originalCache = Maps.newHashMap();
     private final static String KEY_REF = "$ref";
     private final static String KEY = "key";
@@ -123,9 +121,9 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     @Override
     public String getPartitionKey(String tableName) {
         String partitionKey = StringUtil.EMPTY;
-        Schema schema = getSchemaByName(tableName);
-        Map doc = (Map) JSON.parseObject(schema.getDoc(), Map.class);
-        if (StringUtil.isNotEmpty(doc)) {
+        LinkedHashMap<String, Object> schemaMap = getSchemaByName(tableName);
+        if (schemaMap.containsKey("doc")){
+            LinkedHashMap<String, Object> doc = (LinkedHashMap<String, Object>) schemaMap.get("doc");
             Object partition_key = doc.get("partition_key");
             partitionKey = StringUtil.isEmpty(partition_key) ? StringUtil.EMPTY : partition_key.toString();
         }
@@ -138,17 +136,17 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         if (StringUtil.isEmpty(schemaJsonMap) || StringUtil.isEmpty(schemaJsonMap.get("doc"))) {
             return Lists.newArrayList();
         }
-        Map doc = (Map) schemaJsonMap.get("doc");
-        Object indexKey = doc.get(INDEX_KEY);
+        LinkedHashMap docMap = (LinkedHashMap) schemaJsonMap.get("doc");
+        Object indexKey = docMap.get(INDEX_KEY);
         return StringUtil.isEmpty(indexKey) ? Lists.newArrayList() : (List<String>) indexKey;
     }
 
     @Override
     public String getValueByKeyInSchemaDoc(String tableName, String key) {
-        Schema schema = getSchemaByName(tableName);
-        Map doc = (Map) JSON.parseObject(schema.getDoc(), Map.class);
-        if (StringUtil.isNotEmpty(doc)) {
-            Object value = doc.get(key);
+        LinkedHashMap<String, Object> schemaMap = getSchemaByName(tableName);
+        if (schemaMap.containsKey("doc")){
+            LinkedHashMap<String, Object> docMap = (LinkedHashMap<String, Object>) schemaMap.get("doc");
+            Object value = docMap.get(key);
             if (value instanceof Map) {
                 return JSONUtil.toJsonStr(JSONUtil.parseObj(value));
             } else {
@@ -160,9 +158,9 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
 
     @Override
     public String getDBEngineByTableName(String tableName) {
-        Schema schema = getSchemaByName(tableName);
+        LinkedHashMap<String, Object> schemaMap = getSchemaByName(tableName);
         String data = StringUtil.EMPTY;
-        if (StringUtil.isEmpty(schema)) {
+        if (StringUtil.isEmpty(schemaMap)) {
             return data;
         }
         for (MetadataBean meta : metadataConfig.getMetadata()) {
@@ -193,8 +191,8 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
 
     @Override
     public String getDBNameByTableName(String tableName) {
-        Schema schema = getSchemaByName(tableName);
-        return StringUtil.isNotEmpty(schema) ? schema.getNamespace() : clickHouseHttpSource.getDbName();
+        LinkedHashMap<String, Object> schemaMap = getSchemaByName(tableName);
+        return StringUtil.isNotEmpty(schemaMap) ? String.valueOf(schemaMap.get("namespace")) : clickHouseHttpSource.getDbName();
     }
 
     @Override
@@ -209,16 +207,16 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     @Override
-    public Schema getSchemaByName(String tableName) {
+    public LinkedHashMap<String, Object> getSchemaByName(String tableName) {
         if (!getAllTable().contains(tableName)) {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(),
                     CommonErrorCode.PARAMETER_ERROR.getCode(),
                     String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),
                     tableName + ":"+QGWMessageConst.TABLE_NOT_EXIST));
         }
-        Schema schema;
-        if (!StrUtil.isBlankIfStr(schema = schemaCache.get(tableName))) {
-            return schema;
+        LinkedHashMap<String, Object> map;
+        if (!StrUtil.isBlankIfStr(map = (LinkedHashMap<String, Object>) schemaCache.get(tableName))) {
+            return map;
         }
         try {
             String content = systemConfigService.getConfig(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), 3000);
@@ -227,7 +225,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
                         CommonErrorCode.PARAMETER_ERROR.getCode(),
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(),tableName + ":"+QGWMessageConst.QUERY_SCHEMA_ERROR));
             }
-            schemaCache.put(tableName, schema = parseSchema(content));
+            schemaCache.put(tableName, map = parseSchema(content));
             systemConfigService.addListener(tableName.concat(NacosConst.JSON_SUFFIX), nacosConfig.getGroup(), new AbstractListener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
@@ -239,7 +237,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         } catch (NacosException e) {
             log.error("NacosException:{}", e);
         }
-        return schema;
+        return map;
     }
 
     @Override
@@ -425,15 +423,14 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     private Map loadFields(String name, boolean displayStorageSize) {
-        Schema schema = getSchemaByName(name);
-        if (StringUtil.isEmpty(schema)) {
+        LinkedHashMap<String, Object> schemaMap = getSchemaByName(name);
+        if (StringUtil.isEmpty(schemaMap)) {
             throw new QGWBusinessException(HttpStatusCodeEnum.NOT_FOUND.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(), QGWMessageConst.SCHEMA_URL_NOT_FOUND);
         }
-        LinkedHashMap resultMap = JSON.parseObject(String.valueOf(schema), LinkedHashMap.class);
-        LinkedHashMap schemaDoc = JSON.parseObject(schema.getDoc(), LinkedHashMap.class);
+        LinkedHashMap schemaDoc = (LinkedHashMap) schemaMap.get("doc");
         if (StringUtil.isEmpty(schemaDoc) &&
-                StringUtil.isNotEmpty(schema.getDoc())) {
-            log.error("{} schema's doc isn't jsonString and won't convert: {}", name, schema.getDoc());
+                StringUtil.isNotEmpty(schemaMap.get("doc"))) {
+            log.error("{} schema's doc isn't jsonString and won't convert: {}", name, schemaMap.get("doc"));
         }
         List<Map> data = Lists.newArrayList();
         if (displayStorageSize) {
@@ -441,12 +438,12 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             schemaDoc = (LinkedHashMap) fillSchemaStorageSize(schemaDoc, data);
         }
         if (StringUtil.isNotEmpty(schemaDoc)) {
-            resultMap.put("doc", schemaDoc);
+            schemaMap.put("doc", schemaDoc);
         }
-        List<Map> fields = (List<Map>) resultMap.get("fields");
+        List<Map> fields = (List<Map>) schemaMap.get("fields");
         LinkedHashMap mapDoc;
         for (Map next : fields) {
-            mapDoc = JSON.parseObject((String) next.get("doc"), LinkedHashMap.class);
+            mapDoc = (LinkedHashMap) next.get("doc");
             mapDoc = (LinkedHashMap) fillFieldStorageSize(data, mapDoc, next);
             if (StringUtil.isNotEmpty(mapDoc)) {
                 next.put("doc", mapDoc);
@@ -455,8 +452,8 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
                 log.error("{} field's doc isn't jsonString and won't convert: {}", next.get("name"), next.get("doc"));
             }
         }
-        fillReference(resultMap, name);
-        return resultMap;
+        fillReference(schemaMap, name);
+        return schemaMap;
     }
 
     private Map fillSchemaStorageSize(LinkedHashMap schemaDoc, List<Map> data) {
@@ -661,30 +658,30 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
         return date;
     }
 
-    private Schema parseSchema(String configInfo) {
+    private LinkedHashMap parseSchema(String configInfo) {
         if (StrUtil.isBlank(configInfo)) return null;
-        Map schemaMap = null;
+        LinkedHashMap schemaMap = null;
         try {
-            schemaMap = JSON.parseObject(configInfo, Map.class);
+            schemaMap = JSON.parseObject(configInfo, LinkedHashMap.class);
             Object docSchema;
             if (StringUtil.isNotEmpty(docSchema = schemaMap.get("doc"))) {
-                schemaMap.put("doc", JSON.toJSONString(docSchema, JSONWriter.Feature.WriteNulls));
+                schemaMap.put("doc", JSON.parseObject(JSON.toJSONString(docSchema, JSONWriter.Feature.WriteNulls), LinkedHashMap.class));
             }
             Object fieldsObj;
             if (StringUtil.isNotEmpty(fieldsObj = schemaMap.get("fields"))) {
-                List<Map> fields = (List<Map>) fieldsObj;
+                List<LinkedHashMap> fields = (List<LinkedHashMap>) fieldsObj;
                 for (Map next : fields) {
                     Object docField;
                     if (StringUtil.isEmpty(docField = next.get("doc"))) {
                         continue;
                     }
-                    next.put("doc", JSON.toJSONString(docField, JSONWriter.Feature.WriteNulls));
+                    next.put("doc", JSON.parseObject(JSON.toJSONString(docField, JSONWriter.Feature.WriteNulls), LinkedHashMap.class));
                 }
             }
-        } catch (JSONException | SchemaParseException | ClassCastException e) {
+        } catch (JSONException | ClassCastException e) {
             log.error("update Schema error: {}", e);
         }
-       return new Schema.Parser().parse(JSON.toJSONString(schemaMap, JSONWriter.Feature.WriteNulls));
+       return schemaMap;
     }
 
     private BaseResult resetBaseResult(BaseResult result, String alias) {
