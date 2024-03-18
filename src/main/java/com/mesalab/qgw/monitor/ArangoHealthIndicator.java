@@ -57,6 +57,7 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
                     StringUtil.EMPTY, new BasicHeader(HttpHeaders.AUTHORIZATION, String.valueOf(jwt)));
             Map map = JSON.parseObject(result, Map.class);
             if (StringUtil.isEmpty(map) || StringUtil.isEmpty(map.get("version"))) {
+                JwtCache.remove(Constant.ARANGO_CACHE_JWT);
                 builder.down()
                         .withDetail("app", APP)
                         .withDetail("message", "连接Arango 失败: " + result);
