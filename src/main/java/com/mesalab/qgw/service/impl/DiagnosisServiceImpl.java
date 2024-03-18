@@ -28,7 +28,6 @@ import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.EntityService;
 import com.geedgenetworks.utils.*;
 import lombok.Data;
-import org.apache.avro.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
@@ -126,10 +125,10 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
 
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
-            result = BaseResultGenerator.success("Avro Schema Validation Success.", data, statistics);
+            result = BaseResultGenerator.success("Schema Validation Success.", data, statistics);
             result.setFormatType(OutputMode.JSON.getValue());
         } catch (RuntimeException e) {
-            log.error("Avro Schema Validation Fail:{}", e);
+            log.error("Schema Validation Fail:{}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
                     CommonErrorCode.SQL_EXECUTION_EXCEPTION.getCode(),
                     String.format(CommonErrorCode.SQL_EXECUTION_EXCEPTION.getMessage(),e.getMessage()));
@@ -354,9 +353,8 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newHashMap();
         for (String tableName : tables) {
-            Schema schema = databaseService.getSchemaByName(tableName);
-            Map schemaMap = JSON.parseObject(schema.toString(), Map.class);
-            if (!dbName.equals(schema.getNamespace())) continue;
+            LinkedHashMap<String, Object> schemaMap = databaseService.getSchemaByName(tableName);
+            if (!dbName.equals(schemaMap.get("namespace"))) continue;
             List<Map<String, Object>> fields = (List<Map<String, Object>>) schemaMap.get("fields");
             infoMap.put(tableName, fields.size() + " Fields");
         }

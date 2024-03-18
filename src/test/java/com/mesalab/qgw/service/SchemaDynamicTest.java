@@ -14,7 +14,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import static org.junit.Assert.assertEquals;
 
 @EnableAutoConfiguration
-public class AvroSchemaDynamicTest extends GalaxyQGWApplicationTests {
+public class SchemaDynamicTest extends GalaxyQGWApplicationTests {
     private static final Log log = LogFactory.get();
     @Autowired
     public DiagnosisService diagnosisService;

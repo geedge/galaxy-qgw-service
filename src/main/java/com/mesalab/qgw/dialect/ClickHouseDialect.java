@@ -33,7 +33,6 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.deparser.ExpressionDeParser;
-import org.apache.avro.Schema;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.util.CollectionUtils;
@@ -541,7 +540,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 if (StringUtil.isEmpty(indexKey) || !actualFieldOfWhere.contains(indexKey.get(0))) {
                     continue;
                 }
-                Schema indexTableSchema = databaseService.getSchemaByName(tempIndexTable);
+                LinkedHashMap<String, Object> indexTableSchema = databaseService.getSchemaByName(tempIndexTable);
                 //判断二: where 条件列是否都在索引表中
                 for (String field : actualFieldOfWhere) {
                     if (!isFieldOfSchema(indexTableSchema, field)) {
@@ -552,7 +551,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 if (!isValidOfOrderElementsInSchema(indexTableSchema)) {
                     continue;
                 }
-                return indexTableSchema.getName();
+                return String.valueOf(indexTableSchema.get("name"));
             }
             return StringUtil.EMPTY;
         }
@@ -570,7 +569,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             indexKey = indexKey.subList(0, indexKey.contains(primaryKey) ? indexKey.indexOf(primaryKey) + 1 : indexKey.size());
 
             List<String> indexKeyMaster = Lists.newArrayList();
-            String nameMaster = databaseService.getSchemaByName(sqlQueryContext.getDbSelectStatement().getTableNames().get(0)).getName();
+            String nameMaster = String.valueOf(databaseService.getSchemaByName(sqlQueryContext.getDbSelectStatement().getTableNames().get(0)).get("name"));
             indexKey.forEach(o -> indexKeyMaster.add(nameMaster.concat(".").concat(o)));
 
             String subQuery = getSubquerySql(String.join(",", indexKey), indexTable);
@@ -606,7 +605,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             Matcher m = pWhere.matcher(sql);
             StringBuffer sb = new StringBuffer();
             while (m.find()) {
-                m.appendReplacement(sb, "where  " + databaseService.getSchemaByName(sqlQueryContext.getDbSelectStatement().getTableNames().get(0)).getName().concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
+                m.appendReplacement(sb, "where  " + String.valueOf(databaseService.getSchemaByName(sqlQueryContext.getDbSelectStatement().getTableNames().get(0)).get("name")).concat(".").concat(partitionKey) + " in ( " + subQuery + ") and  ");
             }
             m.appendTail(sb);
             return sb.toString();
@@ -660,10 +659,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         /**
          * 判断order by 元素是否属于schema字段中
          *
-         * @param schema
+         * @param schemaMap
          * @return
          */
-        private boolean isValidOfOrderElementsInSchema(Schema schema) throws JSQLParserException {
+        private boolean isValidOfOrderElementsInSchema(Map<String, Object> schemaMap) throws JSQLParserException {
             List<OrderByElement> listOrderElement = sqlQueryContext.getDbSelectStatement().getOrderByElements();
             if (StringUtil.isEmpty(listOrderElement)) {
                 return true;
@@ -674,7 +673,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 orderByElement.setExpression(expression);
                 List<String> fields = CondExpressionHelper.getDistinctFieldsOfOrderBy(orderByElement);
                 for (String field : fields) {
-                    if (!isFieldOfSchema(schema, field)) {
+                    if (!isFieldOfSchema(schemaMap, field)) {
                         return false;
                     }
                 }
@@ -685,16 +684,18 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         /**
          * 判断schema中是否存在field列
          *
-         * @param schema
+         * @param schemaMap
          * @param fieldName
          * @return
          */
-        private boolean isFieldOfSchema(Schema schema, String fieldName) {
-            Schema.Field field = schema.getField(fieldName);
-            if (StringUtil.isEmpty(field)) {
-                return false;
+        private boolean isFieldOfSchema(Map<String, Object> schemaMap, String fieldName) {
+            List<Map> fields = (List<Map>) schemaMap.get("fields");
+            for (Map next : fields) {
+                if (next.get("name").equals(fieldName)) {
+                    return true;
+                }
             }
-            return true;
+            return false;
         }
 
         public String build() {
