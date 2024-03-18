@@ -29,6 +29,7 @@ import java.util.Objects;
 @Component
 public class BaseQueryProvider {
     private static final Log log = LogFactory.get();
+    private static final int UNAUTHORIZED_CODE = 401;
     @Autowired
     ArangoConfig arangoConfig;
 
@@ -74,22 +75,15 @@ public class BaseQueryProvider {
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.AUTHORIZATION, getJwt());
         HttpResponseResult responseResult = null;
-        try {
-            responseResult = httpClientServiceV2.post(arangoConfig.getQueryurl(), JSON.toJSONString(queryMap), headers);
-        } catch (BusinessException e) {
-            if (e.getMessage() != null && e.getMessage().contains("not authorized to execute this request")) {
-                JwtCache.remove(Constant.ARANGO_CACHE_JWT);
-                log.warn("Arango jwt 失效后重置");
-                headers.put(HttpHeaders.AUTHORIZATION, getJwt());
-                responseResult = httpClientServiceV2.post(arangoConfig.getQueryurl(), JSON.toJSONString(queryMap), headers);
-            } else {
-                log.error(e.getMessage());
-                throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(),e.getMessage()));
-            }
-        }
+        responseResult = httpClientServiceV2.post(arangoConfig.getQueryurl(), JSON.toJSONString(queryMap), headers);
         Map jsonMap = JSON.parseObject(responseResult.getResponseBody(), Map.class);
-        Object result = jsonMap.get("result");
-        return result;
+        if (jsonMap != null && jsonMap.get("code") != null && Integer.parseInt(jsonMap.get("code").toString()) == UNAUTHORIZED_CODE) {
+            JwtCache.remove(Constant.ARANGO_CACHE_JWT);
+            log.warn("Arango jwt 失效后重置");
+            headers.put(HttpHeaders.AUTHORIZATION, getJwt());
+            responseResult = httpClientServiceV2.post(arangoConfig.getQueryurl(), JSON.toJSONString(queryMap), headers);
+            jsonMap = JSON.parseObject(responseResult.getResponseBody(), Map.class);
+        }
+        return jsonMap.get("result");
     }
 }
