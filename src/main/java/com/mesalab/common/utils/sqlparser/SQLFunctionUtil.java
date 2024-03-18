@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
  */
 public class SQLFunctionUtil {
 
+    private static final boolean CONVERT_DEFAULT_TIMEZONE_INTO_UTC;
     public static final String TIME_FLOOR_WITH_FILL = "TIME_FLOOR_WITH_FILL";
     public static final String IP_TO_GEO = "IP_TO_GEO";
     public static final String IP_TO_CITY = "IP_TO_CITY";
@@ -116,6 +117,7 @@ public class SQLFunctionUtil {
         timeSlicingFunction.put("avg", "avg");
         timeSlicingFunction.put("min", "min");
         timeSlicingFunction.put("max", "max");
+        CONVERT_DEFAULT_TIMEZONE_INTO_UTC = clickHouseHttpSource.isConvertDefaultTimezoneIntoUTC();
     }
 
     /**
@@ -862,10 +864,10 @@ public class SQLFunctionUtil {
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 switch (var) {
                     case "/60)*60),'%Y-%m-%d%H:%i:%s'":
-                        replaceValue = "toStartOfMinute#[toDateTime#[" + param + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfMinute#[toDateTime#[" + param + ", 'UTC'#]#]" : "toStartOfMinute#[toDateTime#[" + param + "#]#]";
                         break;
                     case "/3600)*3600),'%Y-%m-%d%H:%i:%s'":
-                        replaceValue = "toStartOfHour#[toDateTime#[" + param + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfHour#[toDateTime#[" + param + ", 'UTC'#]#]" : "toStartOfHour#[toDateTime#[" + param + "#]#]";
                         break;
                 }
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
@@ -940,9 +942,9 @@ public class SQLFunctionUtil {
                 String replaceValue = "";
                 if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                     if (split.length == 1) {
-                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "#]#]+#[" + group4 + "#]*86400 )";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + group2 + ", 'UTC'#]#]+#[" + group4 + "#]*86400 )" : "toStartOfDay#[toDateTime#[" + group2 + "#]#]+#[" + group4 + "#]*86400 )";
                     } else if (split.length == 2) {
-                        replaceValue = "toStartOfDay#[toDateTime#[" + group2 + "#]#]+#[" + split[0] + "#]*86400 ," + split[1] + ")";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + group2 + ", 'UTC'#]#]+#[" + split[0] + "#]*86400 ," + split[1] + ")" : "toStartOfDay#[toDateTime#[" + group2 + "#]#]+#[" + split[0] + "#]*86400 ," + split[1] + ")";
                     }
                 } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                     if (split.length == 1) {
@@ -991,7 +993,7 @@ public class SQLFunctionUtil {
         String replaceValue = null;
         if ("LAST_DAY".equals(StringUtils.upperCase(unit))) {
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
-                replaceValue = "addDays#[addMonths#[toStartOfMonth#[toDateTime#[" + param + "#]#],1#],-1#]";
+                replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addDays#[addMonths#[toStartOfMonth#[toDateTime#[" + param + ", 'UTC'#]#],1#],-1#]" : "addDays#[addMonths#[toStartOfMonth#[toDateTime#[" + param + "#]#],1#],-1#]";
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 replaceValue = "TIME_SHIFT#[FLOOR#[TIME_SHIFT#[ TIMESTAMP " + param + ", 'P1M', 1#] to month#], 'P1D', -1#]";
             }
@@ -1045,13 +1047,17 @@ public class SQLFunctionUtil {
                     String group5 = mYear.group(5);
                     if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                         if (group1 != null && !"".equals(group1.trim()) && group5 != null && !"".equals(group5.trim())) {
-                            replaceValue = "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group1 + " " + group5 + "#]," + params.get(1) + " -1 #]#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + ", 'UTC'#]#]," + group1 + " " + group5 + "#]," + params.get(1) + " -1 #]#]" :
+                                    "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group1 + " " + group5 + "#]," + params.get(1) + " -1 #]#]";
                         } else if (group5 != null && !"".equals(group5.trim())) {
-                            replaceValue = "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group5 + "#]," + params.get(1) + " -1 #]#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + ", 'UTC'#]#]," + group5 + "#]," + params.get(1) + " -1 #]#]"
+                                    : "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group5 + "#]," + params.get(1) + " -1 #]#]";
                         } else if (group1 != null && !"".equals(group1.trim())) {
-                            replaceValue = "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group1 + "0 #]," + params.get(1) + " -1 #]#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + ", 'UTC'#]#]," + group1 + "0 #]," + params.get(1) + " -1 #]#]"
+                                    : "toDateTime#[addDays#[addYears#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + group1 + "0 #]," + params.get(1) + " -1 #]#]";
                         } else {
-                            replaceValue = "toDateTime#[addDays#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + params.get(1) + " -1 #]#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[addDays#[toStartOfYear#[toDateTime#[" + mYear.group(3) + ", 'UTC'#]#]," + params.get(1) + " -1 #]#]"
+                                    : "toDateTime#[addDays#[toStartOfYear#[toDateTime#[" + mYear.group(3) + "#]#]," + params.get(1) + " -1 #]#]";
                         }
                     } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                         if (group1 != null && !"".equals(group1.trim()) && group5 != null && !"".equals(group5.trim())) {
@@ -1104,34 +1110,34 @@ public class SQLFunctionUtil {
         if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             switch (unit) {
                 case "YEAR":
-                    replaceValue = "toYear#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toYear#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toYear#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "QUARTER":
-                    replaceValue = "toQuarter#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toQuarter#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toQuarter#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "MONTH":
-                    replaceValue = "toMonth#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toMonth#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toMonth#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "DAY":
-                    replaceValue = "toDayOfMonth#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDayOfMonth#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toDayOfMonth#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "HOUR":
-                    replaceValue = "toHour#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toHour#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toHour#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "MINUTE":
-                    replaceValue = "toMinute#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toMinute#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toMinute#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "SECOND":
-                    replaceValue = "toSecond#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toSecond#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toSecond#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "DAYOFYEAR":
-                    replaceValue = "toDayOfYear#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDayOfYear#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toDayOfYear#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "DAYOFMONTH":
-                    replaceValue = "toDayOfMonth#[toDateTime#[" + expr + "#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDayOfMonth#[toDateTime#[" + expr + ", 'UTC'#]#]" : "toDayOfMonth#[toDateTime#[" + expr + "#]#]";
                     break;
                 case "DAYOFWEEK":
-                    replaceValue = "toDayOfWeek#[addDays#[toDateTime#[" + expr + "#],1#]#]";
+                    replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDayOfWeek#[addDays#[toDateTime#[" + expr + ", 'UTC'#],1#]#]" : "toDayOfWeek#[addDays#[toDateTime#[" + expr + "#],1#]#]";
                     break;
                 default:
                     replaceValue = unit + "#[" + expr + "#]";
@@ -1197,28 +1203,28 @@ public class SQLFunctionUtil {
                 if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                     switch (StringUtils.upperCase(matcher.group(2))) {
                         case "SECOND":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2;
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 : "toDateTime#[" + param1 + "#]" + param2;
                             break;
                         case "MINUTE":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2 + "*60";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 + "*60" : "toDateTime#[" + param1 + "#]" + param2 + "*60";
                             break;
                         case "HOUR":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2 + "*3600";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 + "*3600" : "toDateTime#[" + param1 + "#]" + param2 + "*3600";
                             break;
                         case "DAY":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2 + "*86400";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 + "*86400" : "toDateTime#[" + param1 + "#]" + param2 + "*86400";
                             break;
                         case "WEEK":
-                            replaceValue = "toDateTime#[" + param1 + "#]" + param2 + "*604800";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" + param2 + "*604800" : "toDateTime#[" + param1 + "#]" + param2 + "*604800";
                             break;
                         case "MONTH":
-                            replaceValue = "addMonths#[toDateTime#[" + param1 + "#] ," + param2 + "#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addMonths#[toDateTime#[" + param1 + ", 'UTC'#] ," + param2 + "#]" : "addMonths#[toDateTime#[" + param1 + "#] ," + param2 + "#]";
                             break;
                         case "QUARTER":
-                            replaceValue = "addQuarter#[toDateTime#[" + param1 + "#]," + param2 + "#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addQuarter#[toDateTime#[" + param1 + ", 'UTC'#]," + param2 + "#]" : "addQuarter#[toDateTime#[" + param1 + "#]," + param2 + "#]";
                             break;
                         case "YEAR":
-                            replaceValue = "addYears#[toDateTime#[" + param1 + "#]," + param2 + "#]";
+                            replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addYears#[toDateTime#[" + param1 + ", 'UTC'#]," + param2 + "#]" : "addYears#[toDateTime#[" + param1 + "#]," + param2 + "#]";
                             break;
                         default:
                             replaceValue = param1 + param2;
@@ -1264,7 +1270,7 @@ public class SQLFunctionUtil {
                 param2 = "-  #[" + param2 + "#]";
             }
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
-                replaceValue = "addDays#[toDateTime#[" + param1 + "#]," + param2 + "#]";
+                replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "addDays#[toDateTime#[" + param1 + ", 'UTC'#]," + param2 + "#]" : "addDays#[toDateTime#[" + param1 + "#]," + param2 + "#]";
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 replaceValue = "TIME_SHIFT#[ TIMESTAMP " + param1 + ",'P1D'," + param2 + "#]";
             }
@@ -1289,7 +1295,7 @@ public class SQLFunctionUtil {
         String replaceValue = null;
         if ("FROM_UNIXTIME".equals(StringUtils.upperCase(func)) && params.size() == 1) {
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
-                replaceValue = "toDateTime#[" + param + "#]";
+                replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param + ", 'UTC'#]" : "toDateTime#[" + param + "#]";
             } else if (DBEngineType.DRUID.getValue().equals(dbType) && !bool) {
                 replaceValue = "MILLIS_TO_TIMESTAMP#[ 1000 * #[" + param + "#]#]";
             } else if (DBEngineType.DRUID.getValue().equals(dbType) && bool) {
@@ -1306,31 +1312,31 @@ public class SQLFunctionUtil {
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType) && bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s":
-                        replaceValue = "toDateTime#[" + param1 + "#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" : "toDateTime#[" + param1 + "#]";
                         break;
                     case "%Y-%m-%d %H:%i:00":
-                        replaceValue = "toStartOfMinute#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfMinute#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfMinute#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-%d %H:00:00":
-                        replaceValue = "toStartOfHour#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfHour#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfHour#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-%d 00:00:00":
-                        replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-01 00:00:00":
-                        replaceValue = "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "#]#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + ", 'UTC'#]#]#]" : "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "#]#]#]";
                         break;
                     case "%Y-01-01 00:00:00":
-                        replaceValue = "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "#]#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + ", 'UTC'#]#]#]" : "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "#]#]#]";
                         break;
                     case "%Y-%m-%d":
-                        replaceValue = "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-%m-%d'#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "formatDateTime#[toDateTime#[" + param1 + ", 'UTC'#], '%Y-%m-%d'#]" : "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-%m-%d'#]";
                         break;
                     case "%Y-%m-01":
-                        replaceValue = "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-%m-01'#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "formatDateTime#[toDateTime#[" + param1 + ", 'UTC'#], '%Y-%m-01'#]" : "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-%m-01'#]";
                         break;
                     case "%Y-01-01":
-                        replaceValue = "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-01-01'#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "formatDateTime#[toDateTime#[" + param1 + ", 'UTC'#], '%Y-01-01'#]" : "formatDateTime#[toDateTime#[" + param1 + "#], '%Y-01-01'#]";
                         break;
                     default:
                         replaceValue = "toDateTime#[" + param1 + "#]";
@@ -1338,34 +1344,34 @@ public class SQLFunctionUtil {
             } else if (DBEngineType.CLICKHOUSE.getValue().equals(dbType) && !bool) {
                 switch (param2) {
                     case "%Y-%m-%d %H:%i:%s":
-                        replaceValue = "toDateTime#[" + param1 + "#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" : "toDateTime#[" + param1 + "#]";
                         break;
                     case "%Y-%m-%d %H:%i:00":
-                        replaceValue = "toStartOfMinute#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfMinute#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfMinute#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-%d %H:00:00":
-                        replaceValue = "toStartOfHour#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfHour#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfHour#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-%d 00:00:00":
-                        replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-01 00:00:00":
-                        replaceValue = "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "#]#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + ", 'UTC'#]#]#]" : "toDateTime#[toStartOfMonth#[toDateTime#[" + param1 + "#]#]#]";
                         break;
                     case "%Y-01-01 00:00:00":
-                        replaceValue = "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "#]#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + ", 'UTC'#]#]#]" : "toDateTime#[toStartOfYear#[toDateTime#[" + param1 + "#]#]#]";
                         break;
                     case "%Y-%m-%d":
-                        replaceValue = "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfDay#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-%m-01":
-                        replaceValue = "toStartOfMonth#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfMonth#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfMonth#[toDateTime#[" + param1 + "#]#]";
                         break;
                     case "%Y-01-01":
-                        replaceValue = "toStartOfYear#[toDateTime#[" + param1 + "#]#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfYear#[toDateTime#[" + param1 + ", 'UTC'#]#]" : "toStartOfYear#[toDateTime#[" + param1 + "#]#]";
                         break;
                     default:
-                        replaceValue = "toDateTime#[" + param1 + "#]";
+                        replaceValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toDateTime#[" + param1 + ", 'UTC'#]" : "toDateTime#[" + param1 + "#]";
                 }
             } else if (DBEngineType.DRUID.getValue().equals(dbType) && bool) {
                 switch (param2) {
@@ -1578,7 +1584,7 @@ public class SQLFunctionUtil {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "toUnixTimestamp#[now#[#]#]";
                 } else {
-                    innerValue = "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + matcherParse.group(2) + "#]#]#]";
+                    innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + matcherParse.group(2) + "#], 'UTC'#]#]" : "toUnixTimestamp#[parseDateTimeBestEffort#[toString#[ " + matcherParse.group(2) + "#]#]#]";
                 }
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
@@ -1607,7 +1613,7 @@ public class SQLFunctionUtil {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
                     innerValue = "toUnixTimestamp64Milli#[CAST#[now#[#] as DateTime64#]#]";
                 } else {
-                    innerValue = "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#]#] as DateTime64#]#]";
+                    innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#], 'UTC'#] as DateTime64#]#]" : "toUnixTimestamp64Milli#[CAST#[parseDateTime64BestEffort#[toString#[ " + matcherParse.group(2) + "#]#] as DateTime64#]#]";
                 }
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 if (matcherParse.group(2) == null || "".equals(matcherParse.group(2).trim())) {
@@ -1641,7 +1647,8 @@ public class SQLFunctionUtil {
         String innerValue = null;
         if (matcherParse.find()) {
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
-                innerValue = "toStartOfDay#[parseDateTimeBestEffort#[toString#[" + matcherParse.group(2) + "#]#]#]";
+                String param = matcherParse.group(2);
+                innerValue = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toStartOfDay#[parseDateTimeBestEffort#[toString#[" + param + "#], 'UTC'#]#]" : "toStartOfDay#[parseDateTimeBestEffort#[toString#[" + param + "#]#]#]";
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
                 innerValue = "TIME_FLOOR#[ TIMESTAMP " + matcherParse.group(2) + ",'P1D'#]";
             }
@@ -1849,11 +1856,11 @@ public class SQLFunctionUtil {
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 String format = null;
                 if ("S".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s SECOND)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s SECOND)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s SECOND)))";
                 } else if ("M".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MINUTE)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s MINUTE)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MINUTE)))";
                 } else if ("H".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s HOUR)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s HOUR)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s HOUR)))";
                 }
                 return String.format(format, timestamp, num);
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {
@@ -1869,13 +1876,13 @@ public class SQLFunctionUtil {
             if (DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
                 String format = null;
                 if ("D".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s DAY)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s DAY)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s DAY)))";
                 } else if ("W".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s WEEK)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s WEEK)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s WEEK)))";
                 } else if ("M".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MONTH)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s MONTH)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s MONTH)))";
                 } else if ("Y".equalsIgnoreCase(unit)) {
-                    format = "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s YEAR)))";
+                    format = CONVERT_DEFAULT_TIMEZONE_INTO_UTC ? "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s, 'UTC'),INTERVAL %s YEAR)))" : "toUnixTimestamp(toDateTime(toStartOfInterval(toDateTime(%s),INTERVAL %s YEAR)))";
                 }
                 return String.format(format, timestamp, num);
             } else if (DBEngineType.DRUID.getValue().equals(dbType)) {

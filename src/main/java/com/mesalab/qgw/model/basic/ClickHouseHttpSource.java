@@ -25,6 +25,11 @@ public class ClickHouseHttpSource implements Serializable {
     @NacosValue(value = "${clickhouse.enableApproximateOptimizer}", autoRefreshed = true)
     private boolean enableApproximateOptimizer;
     /**
+     * 是否指定时间为UTC
+     */
+    @NacosValue(value = "${clickhouse.convertDefaultTimezoneIntoUTC}", autoRefreshed = true)
+    private boolean convertDefaultTimezoneIntoUTC;
+    /**
      * realTime的用户名
      */
     @NacosValue(value = "${clickhouse.realTimeAccount.username}")

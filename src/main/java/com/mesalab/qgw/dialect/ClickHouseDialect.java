@@ -37,6 +37,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,6 +45,7 @@ import java.util.regex.Pattern;
 public class ClickHouseDialect extends AbstractDataSourceDialect {
     private static final Log log = LogFactory.get();
     private static final Pattern pNullable = Pattern.compile("\\bNullable\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pDateTime = Pattern.compile("\\b(DateTime|DateTime64|Date)\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern pIn = Pattern.compile("(?<!\\bnot)\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern pNotIn = Pattern.compile("\\bnot\\s+in\\s*\\(\\s*SELECT\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern pUniq = Pattern.compile("count\\s*\\(\\s*distinct\\s*\\((.*?)\\)", Pattern.CASE_INSENSITIVE);
@@ -210,6 +212,10 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         {
             String type = x.get("type");
             Matcher matcher = pNullable.matcher(type);
+            if (matcher.find()) {
+                type = matcher.group(1);
+            }
+            matcher = pDateTime.matcher(type);
             if (matcher.find()) {
                 type = matcher.group(1);
             }
@@ -835,7 +841,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             log.debug("DB engine is: {}, : {}", DBEngineType.CLICKHOUSE.getValue(), queryURL +
                     Encodes.urlDecode(queryParameter).replaceAll("password=(.*?)&", "password=XXX&") + ". body sql is:" + sql);
         }
-        List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, Charset.forName("UTF-8"));
+        List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, StandardCharsets.UTF_8);
         return httpClientService.post(queryURL + URLEncodedUtils.format(values, "utf-8"),
                 sqlQueryContext.getTimeout(),
                 sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()));
