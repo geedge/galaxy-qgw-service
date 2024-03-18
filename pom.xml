@@ -55,9 +55,7 @@
         <nutz.version>1.r.65</nutz.version>
         <log4j2.version>2.17.0</log4j2.version>
         <httpclient.version>4.5.6</httpclient.version>
-        <avro.version>1.9.1</avro.version>
         <active.record.version>4.9.01</active.record.version>
-        <json.schema.version>2.2.10</json.schema.version>
         <guava.version>33.0.0-jre</guava.version>
         <galaxy.tool.version>2.0.1</galaxy.tool.version>
         <uaAnalyser.version>1.0-RELEASE</uaAnalyser.version>
@@ -241,11 +239,6 @@
             <version>${jsqlparser.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-            <version>${avro.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.zdjizhi</groupId>
             <artifactId>shade-calcite</artifactId>
             <version>1.0.0</version>
@@ -265,11 +258,6 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>${hutool.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.java-json-tools</groupId>
-            <artifactId>json-schema-validator</artifactId>
-            <version>${json.schema.version}</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>
@@ -299,6 +287,10 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>avro</artifactId>
+                    <groupId>org.apache.avro</groupId>
                 </exclusion>
             </exclusions>
         </dependency>

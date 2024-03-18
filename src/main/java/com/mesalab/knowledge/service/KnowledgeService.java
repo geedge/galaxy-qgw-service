@@ -5,18 +5,12 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jackson.JsonLoader;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.ProcessingMessage;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchema;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.common.base.Splitter;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.exception.BusinessException;
+import com.mesalab.common.utils.JsonSchemaValidator;
 import com.mesalab.knowledge.entity.*;
 import com.mesalab.knowledge.enums.DataSourceEnum;
 import com.mesalab.knowledge.enums.MatchEnum;
@@ -167,36 +161,9 @@ public class KnowledgeService {
     }
 
     private void validateJson(String jsonString) {
-        JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
-        //通过jsonschemaFactory获取jsonnode对象
-        try {
-
-            JsonNode schemaNode = JsonLoader.fromResource("/dsl-validation.json");
-            //通过jsonstr字符串获取对应的jsonnode对象
-            JsonNode dataNode = JsonLoader.fromString(jsonString);
-            JsonSchema jsonSchema = factory.getJsonSchema(schemaNode);
-            //使用json-schema-validator中的jsonschema对象的validate方法对数据进行校验
-            //获取处理的报告信息
-            ProcessingReport processingReport = jsonSchema.validate(dataNode);
-            //获取完整的报告信息
-            Iterator<ProcessingMessage> iterator = processingReport.iterator();
-            StringBuffer sb = new StringBuffer();
-            while (iterator.hasNext()) {
-                ProcessingMessage next = iterator.next();
-                JsonNode jsonNode = next.asJson();
-                sb.append("pointer on ");
-                sb.append(jsonNode.get("instance").get("pointer"));
-                sb.append(", ");
-                sb.append(next.getMessage());
-                sb.append(". ");
-            }
-            //判断校验是否成功，如果为true成功
-            Validate.isTrue(processingReport.isSuccess(), sb.toString());
-        } catch (ProcessingException e) {
-            log.error(e);
-        } catch (IOException e) {
-            log.error(e);
-        }
+        JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getInstance();
+        jsonSchemaValidator.addRule("dsl-validation.json", "dsl")
+                .validateDSL(jsonString);
     }
 
 }
