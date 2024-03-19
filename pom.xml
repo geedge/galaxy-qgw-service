@@ -705,6 +705,12 @@
                     </imageTags>
                     <resources>
                         <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.xjar</include>
+                            <include>xjar.go</include>
+                        </resource>
+                        <resource>
                             <targetPath>/lib</targetPath>
                             <directory>${project.build.directory}/lib</directory>
                             <includes>
