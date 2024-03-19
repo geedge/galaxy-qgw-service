@@ -62,12 +62,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     public BaseResult createSQLSavedQuery(SqlQueryRequestParam request) {
         syntaxParseSql(request.getStatement());
         String sql = JSONUtil.quote(request.getStatement(), false).replace("'", "\\'");
-        String id = getSameJob(sql);
-        if (StringUtil.isNotBlank(id)) {
-            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
-        }
         request.getCustomRequestParam().put("UUID", System.currentTimeMillis());
-        id = buildJobId(request.toString());
+        String id = buildJobId(request.toString());
         long currentTime = System.currentTimeMillis() / 1000;
         Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
         log.info("Committed a SQL Saved Query Job, id is: {}", id);
