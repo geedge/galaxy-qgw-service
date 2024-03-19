@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "rate_limiting_rule_hits",
+  "name": "dos_protection_rule_hits",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
