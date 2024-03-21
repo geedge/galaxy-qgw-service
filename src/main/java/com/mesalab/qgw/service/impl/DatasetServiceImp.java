@@ -6,11 +6,9 @@ import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.nacos.NacosConst;
 import com.mesalab.qgw.constant.QGWMessageConst;
@@ -105,12 +103,12 @@ public class DatasetServiceImp
         String datasetType = String.valueOf(dataset.get(DATASET_TYPE));
         if (datasetType.equalsIgnoreCase("sql")) {
             SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(template, SqlQueryRequestParam.class);
-            sqlQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
+            sqlQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
             log.info("Dataset Preview, ID is: {}, Type is: {}, Exec SQL is: {}", datasetId, "sql", sqlQueryRequest.getStatement());
             return queryJobService.createSQLAdHocQuery(sqlQueryRequest);
         } else if (datasetType.equalsIgnoreCase("dsl")) {
             DSLQueryRequestParam dslQueryRequest = JSON.parseObject(template, DSLQueryRequestParam.class);
-            dslQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
+            dslQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
             log.info("Dataset Preview, ID is: {}, Type is: {}, DSL is: {}", datasetId, "dsl", template);
             return queryJobService.createDSLAdHocQuery(dslQueryRequest);
         } else {

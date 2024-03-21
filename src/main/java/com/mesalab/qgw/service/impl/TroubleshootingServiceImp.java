@@ -249,7 +249,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
 
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Json Schema Validation Success.", resultData, statistics);
-            result.setFormatType(OutputMode.JSON.getValue());
+            result.setOutputMode(OutputMode.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Json Schema Validation Fail: {}", e.getMessage());
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
@@ -282,7 +282,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             Map<String, String> map = Maps.newHashMap();
             try {
                 sqlQueryRequest = JSON.parseObject(String.valueOf(sqlDataset.get(TEMPLATE)), SqlQueryRequestParam.class);
-                sqlQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
+                sqlQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
                 sqlQueryRequest.setIsDryRun(1);
                 sqlQueryRequest.setOutputMode(OutputMode.JSON.getValue());
                 log.info("SQL Dataset Verification, ID is: {}", sqlDataset.get(IDENTIFIER_NAME));
@@ -299,7 +299,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             Map<String, String> map = Maps.newHashMap();
             try {
                 dslQueryRequest = JSON.parseObject(String.valueOf(dslDataset.get(TEMPLATE)), DSLQueryRequestParam.class);
-                dslQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
+                dslQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
                 dslQueryRequest.setIsDryRun(1);
                 dslQueryRequest.setOutputMode(OutputMode.JSON.getValue());
                 log.info("DSL Dataset Verification, ID is {}", dslDataset.get(IDENTIFIER_NAME));
@@ -376,7 +376,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             dataResult.put(BENCHMARK, mergeResult);
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("SQL benchmark complete.", dataResult, statistics);
-            result.setFormatType(OutputMode.JSON.getValue());
+            result.setOutputMode(OutputMode.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(),

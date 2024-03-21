@@ -22,7 +22,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonPropertyOrder({"status", "message", "requestId", "success", "code", "job", "formatType", "statistics", "meta", "data"})
+@JsonPropertyOrder({"status", "message", "requestId", "success", "code", "job", "output_mode", "statistics", "meta", "data"})
 public class BaseResult<T> implements Serializable {
 
     private Integer status;
@@ -40,20 +40,21 @@ public class BaseResult<T> implements Serializable {
 
     private Map<String, Object> job;
 
-    private String formatType;
+    @JsonProperty("output_mode")
+    private String outputMode;
 
     private T meta;
 
     private T data;
 
-    public BaseResult(Integer status, String code, String requestId, boolean success, String message, Map<String, Object> statistics, String formatType, T meta, T data) {
+    public BaseResult(Integer status, String code, String requestId, boolean success, String message, Map<String, Object> statistics, String outputMode, T meta, T data) {
         this.status = status;
         this.code = code;
         this.requestId = requestId;
         this.success = success;
         this.message = message;
         this.statistics = statistics;
-        this.formatType = formatType;
+        this.outputMode = outputMode;
         this.meta = meta;
         this.data = data;
     }
@@ -78,7 +79,7 @@ public class BaseResult<T> implements Serializable {
                 ", message='" + message + '\'' +
                 ", statistics=" + statistics +
                 ", job=" + job +
-                ", formatType='" + formatType + '\'' +
+                ", output_mode='" + outputMode + '\'' +
                 ", meta=" + meta +
                 ", data=" + data +
                 '}';

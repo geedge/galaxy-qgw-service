@@ -126,7 +126,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
             result = BaseResultGenerator.success("Schema Validation Success.", data, statistics);
-            result.setFormatType(OutputMode.JSON.getValue());
+            result.setOutputMode(OutputMode.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Schema Validation Fail:{}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(),
@@ -162,7 +162,7 @@ DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
             }
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success("Get SQL Success.", dialectResult, statistics);
-            result.setFormatType(OutputMode.JSON.getValue());
+            result.setOutputMode(OutputMode.JSON.getValue());
         } catch (RuntimeException | IOException e) {
             log.error("Get Poc SQL Fail:{}", e);
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(),

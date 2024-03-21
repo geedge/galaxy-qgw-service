@@ -10,7 +10,7 @@
         "result_bytes": 2094352,
         "result_rows": 14371
     },
-    "formatType": "json",
+    "output_mode": "json",
     "meta": [
         {
             "name": "protocol_stack_id",

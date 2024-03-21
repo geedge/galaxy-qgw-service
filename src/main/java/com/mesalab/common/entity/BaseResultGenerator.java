@@ -23,12 +23,12 @@ public class BaseResultGenerator {
      * @param code       返回业务编码
      * @param message    返回消息
      * @param data       返回数据
-     * @param formatType 返回数据格式 JSON/CSV
+     * @param outputMode 返回数据格式 json/jsonWithMetadata/csv
      * @param <T>        返回数据类型
      * @return 返回结果
      */
-    public static <T> BaseResult<T> generate(final int status, final String code, final String message, T data, T meta, final Map<String, Object> statistics, final String formatType) {
-        return new BaseResult<>(status, code,null, false, message, statistics, formatType, meta, data);
+    public static <T> BaseResult<T> generate(final int status, final String code, final String message, T data, T meta, final Map<String, Object> statistics, final String outputMode) {
+        return new BaseResult<>(status, code,null, false, message, statistics, outputMode, meta, data);
     }
 
     /**
@@ -99,14 +99,16 @@ public class BaseResultGenerator {
      *
      * @param statistics
      * @param job
+     * @param outputMode
+     * @param meta
      * @param data
      * @return {@link BaseResult<T>}
      * @created by wWei
      * @date 2021/11/26 11:46 上午
      */
-    public static <T> BaseResult<T> success(final Map<String, Object> statistics, final Map<String, Object> job, final T meta, final T data) {
+    public static <T> BaseResult<T> success(final Map<String, Object> statistics, final Map<String, Object> job,final String outputMode, final T meta, final T data) {
         return new BaseResult<>(HttpStatusCodeEnum.SUCCESS.getCode(), ResultCodeEnum.SUCCESS.getCode(), null, true,
-                ResultCodeEnum.SUCCESS.getMessage(), statistics, job, null, meta, data);
+                ResultCodeEnum.SUCCESS.getMessage(), statistics, job, outputMode, meta, data);
     }
 
     /**

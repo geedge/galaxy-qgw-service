@@ -165,7 +165,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
             throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(), "Not Find Matching Job.");
         }
         Map<String, Object> jobInfo = buildJobStatus(query.get(0).getColumns());
-        return BaseResultGenerator.success(null, jobInfo, null, null);
+        return BaseResultGenerator.success(null, jobInfo, null, null, null);
     }
 
     @Override
@@ -180,7 +180,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
                 List<BaseResult> resultList = buildBaseResults(Lists.newArrayList(jobId), Lists.newArrayList(jobInfo));
                 return resultList.get(0);
             } else {
-                return BaseResultGenerator.success(null, jobInfo, null, null);
+                return BaseResultGenerator.success(null, jobInfo, statusBaseResult.getOutputMode(), null, null);
             }
         }
         throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
@@ -330,7 +330,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
         job.put(JobConfig.IS_FAILED, StringUtil.isEmpty(map.get(JobConfig.IS_FAILED)) ? false : map.get(JobConfig.IS_FAILED));
-        return BaseResultGenerator.success(statistics, job, meta, resultList);
+        return BaseResultGenerator.success(statistics, job, null, meta, resultList);
     }
 
     private BaseResult<List<Map<String, Object>>> buildResultFieldDiscovery(String id) {
@@ -368,7 +368,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         job.put(JobConfig.DONE_PROGRESS, StringUtil.isEmpty(map.get(JobConfig.DONE_PROGRESS)) ? 0 : map.get(JobConfig.DONE_PROGRESS));
         job.put(JobConfig.IS_CANCELED, StringUtil.isEmpty(map.get(JobConfig.IS_CANCELED)) ? false : map.get(JobConfig.IS_CANCELED));
         job.put(JobConfig.IS_FAILED, StringUtil.isEmpty(map.get(JobConfig.IS_FAILED)) ? false : map.get(JobConfig.IS_FAILED));
-        return BaseResultGenerator.success(statistics, job, null, resultList);
+        return BaseResultGenerator.success(statistics, job, OutputMode.JSON.getValue(), null, resultList);
     }
 
     private boolean isExist(String id) {

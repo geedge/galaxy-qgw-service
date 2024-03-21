@@ -155,7 +155,7 @@ public class FederationDialect extends AbstractEngineDialect {
         if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.CSV.getValue())) {
             convertJsonToCSV();
         }
-        baseResult.setFormatType(sqlQueryContext.getFormat());
+        baseResult.setOutputMode(sqlQueryContext.getFormat());
         log.debug("Federation execute and build result time : {} ms", watch.elapsed(TimeUnit.MILLISECONDS));
         return baseResult;
     }

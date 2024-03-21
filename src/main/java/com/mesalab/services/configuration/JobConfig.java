@@ -25,7 +25,6 @@ public class JobConfig {
     public static final String IS_DONE = "is_done";
     public static final String START_TIME = "start_time";
     public static final String END_TIME = "end_time";
-    public static final String OUTPUT_MODE = "output_mode";
     public static final String DONE_PROGRESS = "done_progress";
     public static final String IS_CANCELED = "is_canceled";
     public static final String IS_FAILED = "is_failed";

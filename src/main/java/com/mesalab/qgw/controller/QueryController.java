@@ -5,7 +5,7 @@ import com.alibaba.fastjson2.JSON;
 import com.geedgenetworks.utils.StringUtil;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
-import com.mesalab.common.enums.ExecMode;
+import com.mesalab.common.enums.ExecutionMode;
 import com.mesalab.common.enums.OutputMode;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.qgw.exception.QGWBusinessException;
@@ -61,10 +61,10 @@ public class QueryController {
     public BaseResult createSQLQuery(@RequestBody SqlQueryRequestParam sqlQueryRequestParam) {
         log.info("Create an SQL Query {}", JSON.toJSONString(sqlQueryRequestParam));
         if (sqlQueryRequestParam.isSavedQuery()) {
-            if (sqlQueryRequestParam.isDryRun() || !sqlQueryRequestParam.getExecMode().equals(ExecMode.NORMAL) || !sqlQueryRequestParam.getOutputMode().equals(OutputMode.JSON)) {
+            if (sqlQueryRequestParam.isDryRun() || !sqlQueryRequestParam.getExecutionMode().equals(ExecutionMode.NORMAL) || !sqlQueryRequestParam.getOutputMode().equals(OutputMode.JSON)) {
                 throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                         String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(),
-                                "for the Saved Query Job, is_dry_run must be 0(default), exec_mode must be normal(default), and output_mode must be JSON(default)"));
+                                "for the Saved Query Job, is_dry_run must be 0(default), execution_mode must be normal(default), and output_mode must be JSON(default)"));
             }
             return queryJobService.createSQLSavedQuery(sqlQueryRequestParam);
         } else {

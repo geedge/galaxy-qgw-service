@@ -76,22 +76,22 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
         sqlQueryRequestParam.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         long start = System.currentTimeMillis();
-        ExecMode execMode = sqlQueryRequestParam.getExecMode();
-        if (ExecMode.ONESHOT.equals(execMode)) {
+        ExecutionMode execMode = sqlQueryRequestParam.getExecutionMode();
+        if (ExecutionMode.ONESHOT.equals(execMode)) {
             return sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
                     .originalSQL(sqlQueryRequestParam.getStatement())
                     .option(option)
                     .format(sqlQueryRequestParam.getOutputMode().getValue())
                     .build());
-        } else if (ExecMode.NORMAL.equals(execMode)) {
+        } else if (ExecutionMode.NORMAL.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
-            HazelcastInstanceMapUtil.put(id, new QueryCache(id, sqlQueryRequestParam.getOutputMode().getValue()));
+            HazelcastInstanceMapUtil.put(id, new QueryCache(id));
             jobExecuteService.addExecutorSql(id, sqlQueryRequestParam);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
-        } else if (ExecMode.BLOCKING.equals(execMode)) {
+        } else if (ExecutionMode.BLOCKING.equals(execMode)) {
             String id = buildJobId(sqlQueryRequestParam.toString());
             BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
-            QueryCache queryCache = buildQueryCacheOfDone(id, start, sqlQueryRequestParam.getOutputMode().getValue(), baseResult);
+            QueryCache queryCache = buildQueryCacheOfDone(id, start, baseResult);
             HazelcastInstanceMapUtil.put(id, queryCache);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         }
@@ -104,8 +104,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         request.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         String id = buildJobId(request.toString());
         long start = System.currentTimeMillis();
-        ExecMode execMode = request.getExecMode();
-        if (ExecMode.ONESHOT.equals(execMode)) {
+        ExecutionMode execMode = request.getExecutionMode();
+        if (ExecutionMode.ONESHOT.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 execAdnWaitFieldDiscoveryDone(id, request);
                 QueryCache queryCache = rebuildFieldDiscoveryQueryCache(getAdhocQueryCacheAndRefresh(id));
@@ -115,15 +115,15 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
                         && !BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)))
                         && BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_DONE)))) {
-                    return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getMeta(), baseResult.getData());
+                    return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
                 }
                 return BaseResultGenerator.error(baseResult.getMessage());
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 return dslService.execDsl(dslQueryContext, request.isDryRun());
             }
-        } else if (ExecMode.NORMAL.equals(execMode)) {
-            QueryCache queryCache = new QueryCache(id, request.getOutputMode().getValue());
+        } else if (ExecutionMode.NORMAL.equals(execMode)) {
+            QueryCache queryCache = new QueryCache(id);
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 queryCache.setType(JobConfig.FIELD_DISCOVERY);
                 validFieldDiscovery(request);
@@ -134,14 +134,14 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 jobExecuteService.addExecutorDsl(id, request);
             }
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
-        } else if (ExecMode.BLOCKING.equals(execMode)) {
+        } else if (ExecutionMode.BLOCKING.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 execAdnWaitFieldDiscoveryDone(id, request);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 BaseResult baseResult = dslService.execDsl(dslQueryContext, request.isDryRun());
-                QueryCache queryCache = buildQueryCacheOfDone(id, start, request.getOutputMode().getValue(), baseResult);
+                QueryCache queryCache = buildQueryCacheOfDone(id, start, baseResult);
                 HazelcastInstanceMapUtil.put(id, queryCache);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
             }
@@ -151,7 +151,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     }
 
     private void execAdnWaitFieldDiscoveryDone(String id, DSLQueryRequestParam request) {
-        QueryCache queryCacheStart = new QueryCache(id, request.getOutputMode().getValue());
+        QueryCache queryCacheStart = new QueryCache(id);
         queryCacheStart.setType(JobConfig.FIELD_DISCOVERY);
         validFieldDiscovery(request);
         HazelcastInstanceMapUtil.put(id, queryCacheStart);
@@ -164,8 +164,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         }
     }
 
-    private QueryCache buildQueryCacheOfDone(String id, long start, String outputMode, BaseResult baseResult) {
-        QueryCache queryCache = new QueryCache(id, outputMode);
+    private QueryCache buildQueryCacheOfDone(String id, long start, BaseResult baseResult) {
+        QueryCache queryCache = new QueryCache(id);
         Map<String, Object> jobInfo = queryCache.getBaseResult().getJob();
         jobInfo.put(JobConfig.IS_DONE, true);
         jobInfo.put(JobConfig.DONE_PROGRESS, 1);
@@ -186,7 +186,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             queryCache = rebuildFieldDiscoveryQueryCache(queryCache);
         }
         BaseResult<Object> baseResult = queryCache.getBaseResult();
-        return BaseResultGenerator.success(baseResult.getStatistics(), baseResult.getJob(), baseResult.getMeta(), baseResult.getData());
+        return BaseResultGenerator.success(baseResult.getStatistics(), baseResult.getJob(), baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
     }
 
     @Override
@@ -197,7 +197,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult getAdHocQueryStatusById(String id) {
         QueryCache queryCache = getAdhocQueryCacheAndRefresh(id);
-        return BaseResultGenerator.success(null, queryCache.getBaseResult().getJob(), null, null);
+        return BaseResultGenerator.success(null, queryCache.getBaseResult().getJob(), null, null, null);
     }
 
     @Override

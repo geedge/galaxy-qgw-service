@@ -1,7 +1,7 @@
 package com.mesalab.qgw.model.basic;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesalab.common.enums.ExecMode;
+import com.mesalab.common.enums.ExecutionMode;
 import com.mesalab.common.enums.OutputMode;
 import lombok.Data;
 
@@ -16,8 +16,8 @@ import java.io.Serializable;
 public class CommonRequestParam implements Serializable {
     @JsonProperty("output_mode")
     private OutputMode outputMode = OutputMode.JSON;
-    @JsonProperty("exec_mode")
-    private ExecMode execMode = ExecMode.NORMAL;
+    @JsonProperty("execution_mode")
+    private ExecutionMode executionMode = ExecutionMode.NORMAL;
     @JsonProperty("is_dry_run")
     private boolean isDryRun = false;
     @JsonProperty("is_saved_query")
@@ -29,8 +29,8 @@ public class CommonRequestParam implements Serializable {
         this.outputMode = OutputMode.valueOf(outputMode.toUpperCase());
     }
 
-    public void setExecMode(String execMode) {
-        this.execMode = ExecMode.valueOf(execMode.toUpperCase());
+    public void setExecutionMode(String executionMode) {
+        this.executionMode = ExecutionMode.valueOf(executionMode.toUpperCase());
     }
 
     public void setIsDryRun(Integer isDryRun) {

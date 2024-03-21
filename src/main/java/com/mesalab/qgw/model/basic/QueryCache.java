@@ -20,7 +20,7 @@ public class QueryCache implements Serializable {
     private String type;
     private Long latestQueryTimeMs = System.currentTimeMillis();
     private BaseResult<Object> baseResult;
-    public QueryCache(String jobId, String outputMode) {
+    public QueryCache(String jobId) {
         this.baseResult = new BaseResult<>();
         Map<String, Object> job = Maps.newLinkedHashMap();
         job.put(JobConfig.JOB_ID, jobId);
@@ -30,7 +30,6 @@ public class QueryCache implements Serializable {
         job.put(JobConfig.IS_FAILED, false);
         job.put(JobConfig.START_TIME, null);
         job.put(JobConfig.END_TIME, null);
-        job.put(JobConfig.OUTPUT_MODE, outputMode);
         Map<String, Object> links = Maps.newLinkedHashMap();
         links.put(JobConfig.LINKS_STATUS, "/v1/query/job/" + jobId);
         links.put(JobConfig.LINKS_RESULT, "/v1/query/job/" + jobId + "/result");

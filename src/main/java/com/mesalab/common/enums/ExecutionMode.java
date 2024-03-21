@@ -1,13 +1,13 @@
 package com.mesalab.common.enums;
 
 /**
- * TODO
+ * Create Query Job Execution Mode
  *
- * @Classname ExecModeEnum
+ * @Classname ExecutionMode
  * @Date 2023/12/6 17:06
  * @Author wWei
  */
-public enum ExecMode {
+public enum ExecutionMode {
     /**
      * Desc:  run an asynchronous query
      */
@@ -22,7 +22,7 @@ public enum ExecMode {
     ONESHOT("oneshot");
     private final String value;
 
-    ExecMode(String value) {
+    ExecutionMode(String value) {
         this.value = value.toLowerCase();
     }
 
