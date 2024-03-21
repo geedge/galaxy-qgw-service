@@ -14,7 +14,7 @@ COPY --from=builder /build .
 COPY config config
 COPY dat dat
 COPY docs docs
-COPY lib lib
+COPY target/lib lib
 ARG JAR_FILE
 COPY ${JAR_FILE} galaxy-qgw-service.xjar
 #dockercompose set JAVA_OPTS
