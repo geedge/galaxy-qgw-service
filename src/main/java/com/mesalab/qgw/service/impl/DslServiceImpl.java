@@ -201,15 +201,14 @@ public class DslServiceImpl implements DSLService {
         long unknownAppBytes = Long.parseLong(String.valueOf(
                 data.get(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES)));
 
-
-        String unknownAppPercent = totalBytes == 0 ? String.valueOf(0)
-                : NumberUtil.div(BigDecimal.valueOf(unknownAppBytes), BigDecimal.valueOf(totalBytes), 4).toPlainString();
-        String asymmetricFlowsPercent = totalSessionUseOnAsymmetricFlows == 0 ? String.valueOf(0)
-                : NumberUtil.div(BigDecimal.valueOf(asymmetricFlows), BigDecimal.valueOf(totalSessionUseOnAsymmetricFlows), 4).toPlainString();
-        String tcpRetransmissionsPercent = tcpTotalPackets == 0 ? String.valueOf(0)
-                : NumberUtil.div(BigDecimal.valueOf(tcpRetransmissionsPackets), BigDecimal.valueOf(tcpTotalPackets), 4).toPlainString();
-        String fragmentationPacketsPercent = totalPackets == 0 ? String.valueOf(0)
-                : NumberUtil.div(BigDecimal.valueOf(fragmentationPackets), BigDecimal.valueOf(totalPackets), 4).toPlainString();
+        double unknownAppPercent = totalBytes == 0 ? 0.0
+                : NumberUtil.div(BigDecimal.valueOf(unknownAppBytes), BigDecimal.valueOf(totalBytes), 4).doubleValue();
+        double asymmetricFlowsPercent = totalSessionUseOnAsymmetricFlows == 0 ? 0.0
+                : NumberUtil.div(BigDecimal.valueOf(asymmetricFlows), BigDecimal.valueOf(totalSessionUseOnAsymmetricFlows), 4).doubleValue();
+        double tcpRetransmissionsPercent = tcpTotalPackets == 0 ? 0.0
+                : NumberUtil.div(BigDecimal.valueOf(tcpRetransmissionsPackets), BigDecimal.valueOf(tcpTotalPackets), 4).doubleValue();
+        double fragmentationPacketsPercent = totalPackets == 0 ? 0.0
+                : NumberUtil.div(BigDecimal.valueOf(fragmentationPackets), BigDecimal.valueOf(totalPackets), 4).doubleValue();
 
         List result = new ArrayList<>();
         Map resultMap = new LinkedHashMap<>();

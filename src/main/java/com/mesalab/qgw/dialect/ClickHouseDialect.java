@@ -152,9 +152,9 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
                 .append("database=").append(clickHouseHttpSource.getDbName()).append("&")
                 .append("query=").append(killSql)
                 .append(" FORMAT ").append(OutputMode.JSON.getValue().toUpperCase()).append(" ;");
-        List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), Charset.forName("UTF-8"));
+        List<NameValuePair> values = URLEncodedUtils.parse(queryParamBuilder.toString(), StandardCharsets.UTF_8);
 
-        HttpResponseResult responseResult = httpClientService.get(queryURL + URLEncodedUtils.format(values, "utf-8"));
+        HttpResponseResult responseResult = httpClientService.get(queryURL + URLEncodedUtils.format(values, StandardCharsets.UTF_8.toString()));
         if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
             return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
         } else {
@@ -915,8 +915,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             queryParameterBuilder.append(getRealTimeAccount()).append("&")
                     .append("database=").append(dbName);
         }
-        queryParameterBuilder.append("&").append("query_id=").append(sqlQueryContext.getQueryId());
-
+        queryParameterBuilder.append("&").append("query_id=").append(sqlQueryContext.getQueryId()).append("&").append("output_format_json_quote_64bit_integers=0");
         return queryParameterBuilder.toString();
     }
 

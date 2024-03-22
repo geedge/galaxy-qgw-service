@@ -16,6 +16,7 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.enums.OutputMode;
+import com.mesalab.qgw.constant.MetaConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.EngineConfigSource;
@@ -152,6 +153,19 @@ public class FederationDialect extends AbstractEngineDialect {
             statisticMap.put("result_rows", ((List) baseResult.getData()).size());
         }
         baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(baseResult.getMeta(), sqlQueryContext.getFederationSelectStatement(), null));
+        if (baseResult.getMeta() != null && ((List<Map<String, Object>>) baseResult.getMeta()).stream().anyMatch(x -> DataTypeMapping.LONG.equalsIgnoreCase(String.valueOf(x.get("type"))))) {
+            String jsonString = JSON.toJSONString(baseResult.getData(), JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject, JSONWriter.Feature.BrowserCompatible);
+            baseResult.setData(JSON.parseObject(jsonString, List.class));
+        }
+        if (baseResult.getMeta() != null) {
+            List<Map<String, Object>> metaList = (List<Map<String, Object>>) baseResult.getMeta();
+            metaList.forEach(x -> {
+                x.remove(MetaConst.META_CATEGORY);
+                x.remove(MetaConst.META_DATA_TYPE);
+                x.remove(MetaConst.META_FIELD_NAME);
+            });
+
+        }
         if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.CSV.getValue())) {
             convertJsonToCSV();
         }
