@@ -40,7 +40,6 @@
         "top_external_ips",
         "top_server_domains",
         "top_server_fqdns",
-        "top_subscribers",
         "application_protocol_stat",
         "traffic_general_stat",
         "traffic_top_destination_ip_metrics_log",
