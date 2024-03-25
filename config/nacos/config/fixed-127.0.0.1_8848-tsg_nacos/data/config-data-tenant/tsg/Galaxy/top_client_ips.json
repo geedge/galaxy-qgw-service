@@ -16,8 +16,10 @@
       ],
       "metrics": [
         "sessions",
+        "bytes",
         "in_bytes",
         "out_bytes",
+        "pkts",
         "in_pkts",
         "out_pkts"
       ],
@@ -35,19 +37,24 @@
       "aggregated_metric_unit": {
         "SUM": {
           "sessions": "sessions",
+          "bytes": "bytes",
           "in_bytes": "bytes",
           "out_bytes": "bytes",
+          "pkts": "packets",
           "in_pkts": "packets",
           "out_pkts": "packets"
         },
         "RATE": {
           "sessions": "sps",
+          "bytes": "Bps",
           "in_bytes": "Bps",
           "out_bytes": "Bps",
+          "pkts": "pps",
           "in_pkts": "pps",
           "out_pkts": "pps"
         },
         "BITRATE": {
+          "bytes": "bps",
           "in_bytes": "bps",
           "out_bytes": "bps"
         }
@@ -139,6 +146,18 @@
       "type": "long"
     },
     {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
+      },
+      "type": "long"
+    },
+    {
       "name": "in_bytes",
       "label": "Incoming Bytes",
       "doc": {
@@ -151,8 +170,20 @@
       "type": "long"
     },
     {
-      "name": "in_pkts",
-      "label": "Incoming Packets",
+      "name": "out_bytes",
+      "label": "Outgoing Bytes",
+      "doc": {
+        "visibility": "enabled",
+        "constraints": {
+          "metric_type": "counter",
+          "aggregation_functions": "SUM, RATE, BITRATE"
+        }
+      },
+      "type": "long"
+    },
+    {
+      "name": "pkts",
+      "label": "Packets",
       "doc": {
         "visibility": "enabled",
         "constraints": {
@@ -163,13 +194,13 @@
       "type": "long"
     },
     {
-      "name": "out_bytes",
-      "label": "Outgoing Bytes",
+      "name": "in_pkts",
+      "label": "Incoming Packets",
       "doc": {
         "visibility": "enabled",
         "constraints": {
           "metric_type": "counter",
-          "aggregation_functions": "SUM, RATE, BITRATE"
+          "aggregation_functions": "SUM, RATE"
         }
       },
       "type": "long"
