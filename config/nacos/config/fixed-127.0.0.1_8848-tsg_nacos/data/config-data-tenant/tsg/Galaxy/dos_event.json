@@ -110,7 +110,16 @@
     },
     {
       "name": "profile_id",
-      "label": "Profile ID",
+      "label": "Profile ID (Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "rule_id",
+      "label": "Rule ID",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -240,12 +249,30 @@
       "type": "string"
     },
     {
+      "name": "sessions",
+      "label": "Sessions",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
       "name": "session_rate",
       "label": "Sessions/s",
       "doc": {
         "constraints": {
           "type": "sessions/sec"
         },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+    {
+      "name": "packets",
+      "label": "Packets",
+      "doc": {
         "visibility": "enabled",
         "ttl": null
       },
@@ -263,6 +290,16 @@
       },
       "type": "long"
     },
+    {
+      "name": "bytes",
+      "label": "Bytes",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "long"
+    },
+
     {
       "name": "bit_rate",
       "label": "Bits/s",
