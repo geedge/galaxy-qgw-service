@@ -681,10 +681,10 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         String startTime = "";
         String endTime = "";
         for (Map map : variable) {
-            if (map.get("key").equals("start")) {
+            if (map.get("key").equals("start_time")) {
                 startTime = String.valueOf(map.get("default"));
             }
-            if (map.get("key").equals("end")) {
+            if (map.get("key").equals("end_time")) {
                 endTime = String.valueOf(map.get("default"));
             }
         }
