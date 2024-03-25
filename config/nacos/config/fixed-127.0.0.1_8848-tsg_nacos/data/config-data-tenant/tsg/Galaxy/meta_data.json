@@ -53,7 +53,8 @@
         "object_statistics",
         "statistics_rule_hits",
         "monitor_rule_hits",
-        "dos_protection_rule_hits"
+        "dos_protection_rule_hits",
+        "dos_protection_rule_metric"
       ]
     },
     {
