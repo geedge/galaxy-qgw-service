@@ -1,11 +1,17 @@
 package com.mesalab.qgw.model.basic;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.EnumMultiset;
 import com.mesalab.common.enums.ExecutionMode;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
 import com.mesalab.common.enums.OutputMode;
+import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.constant.QGWMessageConst;
+import com.mesalab.qgw.exception.QGWBusinessException;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Common request parameters for all query types, including: SQL and DSL.
@@ -26,6 +32,13 @@ public class CommonRequestParam implements Serializable {
     private Integer timeout;
 
     public void setOutputMode(String outputMode) {
+        OutputMode[] values = OutputMode.values();
+        for (OutputMode value : values) {
+            if(value.getValue().equalsIgnoreCase(outputMode)){
+                outputMode = value.name();
+                break;
+            }
+        }
         this.outputMode = OutputMode.valueOf(outputMode.toUpperCase());
     }
 

@@ -31,6 +31,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 联邦查询-基于Calcite支持多源联合查询
@@ -168,6 +169,10 @@ public class FederationDialect extends AbstractEngineDialect {
         }
         if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.CSV.getValue())) {
             convertJsonToCSV();
+        } else if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.JSON.getValue())) {
+            baseResult.setMeta(null);
+        } else if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.JSON_COMPACT.getValue())) {
+            convertToJsonCompact();
         }
         baseResult.setOutputMode(sqlQueryContext.getFormat());
         log.debug("Federation execute and build result time : {} ms", watch.elapsed(TimeUnit.MILLISECONDS));
@@ -220,6 +225,14 @@ public class FederationDialect extends AbstractEngineDialect {
 
         baseResult.setData(Joiner.on("\n").useForNull("").join(results));
         baseResult.setMeta(Joiner.on(",").useForNull("").join(metas));
+    }
+
+    private void convertToJsonCompact() {
+        List<Map<String, Object>> dataList = (List<Map<String, Object>>) baseResult.getData();
+        List<Object> result = dataList.stream()
+                .map(Map::values)
+                .collect(Collectors.toList());
+        baseResult.setData(result);
     }
 
 }
