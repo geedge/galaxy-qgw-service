@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "top_client_countries",
+  "name": "top_server_countries",
   "namespace": "druid",
   "doc": {
     "partition_key": "__time",
