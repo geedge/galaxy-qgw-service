@@ -13,7 +13,7 @@
     {
       "name":"qtype",
       "label":"QTYPE",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"stat_time",
@@ -48,7 +48,7 @@
     {
       "name":"avg_response_latency_ms",
       "label":"Avg Response Latency (ms)",
-      "type":"float"
+      "type":"double"
     }
   ]
 }

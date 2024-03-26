@@ -42,7 +42,7 @@
     {
       "name":"is_builtin",
       "label":"IS Builtin",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"severity",
@@ -92,7 +92,7 @@
     {
       "name":"status",
       "label":"Status",
-      "type":"int"
+      "type":"long"
     },
     {
       "name":"event_info",

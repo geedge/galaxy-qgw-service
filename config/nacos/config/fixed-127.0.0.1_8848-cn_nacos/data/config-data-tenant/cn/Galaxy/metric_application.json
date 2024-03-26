@@ -106,77 +106,77 @@
     {
       "name":"tcp_c2s_lost_bytes_ratio",
       "label":"Sequence Gap Loss (c2s)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_s2c_lost_bytes_ratio",
       "label":"Sequence Gap Loss (s2c)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_lost_bytes_ratio",
       "label":"Sequence Gap Loss",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_c2s_o3_pkts_ratio",
       "label":"Unordered Packets (c2s)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_s2c_o3_pkts_ratio",
       "label":"Unordered Packets (s2c)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_o3_pkts_ratio",
       "label":"Unordered Packets",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_c2s_rtx_bytes_ratio",
       "label":"Byte Retransmission (c2s)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_s2c_rtx_bytes_ratio",
       "label":"Byte Retransmission (s2c)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_rtx_bytes_ratio",
       "label":"Byte Retransmission",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_c2s_rtx_pkts_ratio",
       "label":"Packet Retransmission (c2s)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_s2c_rtx_pkts_ratio",
       "label":"Packet Retransmission (s2c)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"tcp_rtx_pkts_ratio",
       "label":"Packet Retransmission",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"avg_tcp_rtt_ms",
       "label":"AVG TCP Handshake Latency (ms)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"avg_http_response_latency_ms",
       "label":"AVG HTTP.Response Latency (ms)",
-      "type":"float"
+      "type":"double"
     },
     {
       "name":"avg_ssl_handshake_latency_ms",
       "label":"AVG SSL.Handshake Latency (ms)",
-      "type":"float"
+      "type":"double"
     }
   ]
 }

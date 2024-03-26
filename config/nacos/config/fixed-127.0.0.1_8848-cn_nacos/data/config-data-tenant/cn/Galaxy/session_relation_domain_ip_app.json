@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "cn_entity_relation",
+  "name": "session_relation_domain_ip_app",
   "namespace": "cyber_narrator_galaxy",
   "doc": {
     "partition_key": "create_time",

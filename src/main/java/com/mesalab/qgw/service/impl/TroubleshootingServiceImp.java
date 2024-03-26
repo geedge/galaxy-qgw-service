@@ -132,11 +132,13 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         metaMap.put("UInt256", DataTypeMapping.LONG);
         metaMap.put("Nullable(Int32)", DataTypeMapping.INT);
         metaMap.put("Nullable(Int64)", DataTypeMapping.LONG);
+        metaMap.put("Nullable(Float64)", DataTypeMapping.DOUBLE);
         metaMap.put("BIGINT", DataTypeMapping.LONG);
         metaMap.put("Float32", DataTypeMapping.FLOAT);
         metaMap.put("Float64", DataTypeMapping.DOUBLE);
         metaMap.put("Date", DataTypeMapping.DATE);
         metaMap.put("DateTime", DataTypeMapping.TIMESTAMP);
+        metaMap.put("DateTime64(3)", DataTypeMapping.STRING);
         metaMap.put("TIMESTAMP", DataTypeMapping.STRING);
         metaMap.put("Array(Int64)", DataTypeMapping.ARRAY.concat("(").concat(DataTypeMapping.LONG).concat(")"));
         metaMap.put("Array(Int32)", DataTypeMapping.ARRAY.concat("(").concat(DataTypeMapping.INT).concat(")"));
