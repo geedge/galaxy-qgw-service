@@ -25,8 +25,8 @@ import com.mesalab.knowledge.entity.*;
 import com.mesalab.knowledge.enums.MatchEnum;
 import com.mesalab.knowledge.enums.SortEnum;
 import com.mesalab.knowledge.service.KnowledgeService;
-import com.mesalab.network.common.Constants;
-import com.mesalab.network.model.Protocol;
+import com.mesalab.qgw.constant.dsl.LiveChartConstants;
+import com.mesalab.qgw.model.dsl.LiveChartProtocol;
 import com.mesalab.qgw.constant.DslIdentifierNameConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
@@ -178,28 +178,28 @@ public class DslServiceImpl implements DSLService {
         }
 
         long asymmetricFlows = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES)));
         long totalSessionUseOnAsymmetricFlows = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES_USE_ON_ASYMMETRIC_FLOWS)));
 
         long totalSessions = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS)));
         long totalBytes = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES)));
         long totalPackets = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS)));
 
         long fragmentationPackets = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS)));
         long dataRate = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_DATA_RATE) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_DATA_RATE)));
 
         long tcpRetransmissionsPackets = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS)));
         long tcpTotalPackets = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_TCP_TOTAL_PACKETS) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_TCP_TOTAL_PACKETS)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TCP_TOTAL_PACKETS) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TCP_TOTAL_PACKETS)));
         long unknownAppBytes = Long.parseLong(String.valueOf(
-                data.get(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES) == null ? 0 : data.get(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES)));
+                data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES) == null ? 0 : data.get(LiveChartConstants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES)));
 
         double unknownAppPercent = totalBytes == 0 ? 0.0
                 : NumberUtil.div(BigDecimal.valueOf(unknownAppBytes), BigDecimal.valueOf(totalBytes), 4).doubleValue();
@@ -212,18 +212,18 @@ public class DslServiceImpl implements DSLService {
 
         List result = new ArrayList<>();
         Map resultMap = new LinkedHashMap<>();
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, totalSessions);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_DATA_RATE, dataRate);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, totalBytes);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS, totalPackets);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES, unknownAppBytes);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_PERCENT, unknownAppPercent);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES, asymmetricFlows);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_PERCENT, asymmetricFlowsPercent);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS, tcpRetransmissionsPackets);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PERCENT, tcpRetransmissionsPercent);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS, fragmentationPackets);
-        resultMap.put(Constants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PERCENT, fragmentationPacketsPercent);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_SESSIONS, totalSessions);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_DATA_RATE, dataRate);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_BYTES, totalBytes);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TOTAL_PACKETS, totalPackets);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_BYTES, unknownAppBytes);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_UNKNOWN_APP_PERCENT, unknownAppPercent);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_BYTES, asymmetricFlows);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_ASYMMETRIC_FLOWS_PERCENT, asymmetricFlowsPercent);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PACKETS, tcpRetransmissionsPackets);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_TCP_RETRANSMISSIONS_PERCENT, tcpRetransmissionsPercent);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PACKETS, fragmentationPackets);
+        resultMap.put(LiveChartConstants.NETWORK_OVERVIEW_METRIC_FRAGMENTATION_PERCENT, fragmentationPacketsPercent);
         result.add(resultMap);
 
         Map statistics = asymmetricFlowsResult.getStatistics();
@@ -251,7 +251,7 @@ public class DslServiceImpl implements DSLService {
         if (StringUtil.isEmpty(resultList)) {
             return BaseResultGenerator.success("ok", resultList, baseResult.getStatistics());
         }
-        List<Protocol> protocols = buildHierarchicalStructure(buildFlatStructure(resultList));
+        List<LiveChartProtocol> protocols = buildHierarchicalStructure(buildFlatStructure(resultList));
         return BaseResultGenerator.success("ok", protocols, baseResult.getStatistics());
     }
 
@@ -766,20 +766,20 @@ public class DslServiceImpl implements DSLService {
     }
 
     @Override
-    public List<Protocol> buildFlatStructure(List<Map> protocols) {
-        List<Protocol> nodes = Lists.newArrayList();
+    public List<LiveChartProtocol> buildFlatStructure(List<Map> protocols) {
+        List<LiveChartProtocol> nodes = Lists.newArrayList();
         for (Map protocolMap : protocols) {
-            Protocol protocol = convertStringToObject(JSON.toJSONString(protocolMap, JSONWriter.Feature.LargeObject));
+            LiveChartProtocol protocol = convertStringToObject(JSON.toJSONString(protocolMap, JSONWriter.Feature.LargeObject));
             if (StringUtil.isNotEmpty(protocol)) {
                 nodes.add(protocol);
             }
 
         }
-        Protocol root = new Protocol(Constants.PROTOCOL_TREE_ROOT_NAME, Constants.PROTOCOL_TREE_ROOT_NAME, null);
-        Map<String, Long> protocolsAndApplications = nodes.stream().collect(Collectors.groupingBy(Protocol::getName, Collectors.counting()));
-        root.addMetric(Constants.PROTOCOL_TREE_METRIC_ENCAPSULATION_PATHS, nodes.size());
-        root.addMetric(Constants.PROTOCOL_TREE_METRIC_PROTOCOLS_AND_APPLICATIONS, protocolsAndApplications.size());
-        List<Protocol> roots = nodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
+        LiveChartProtocol root = new LiveChartProtocol(LiveChartConstants.PROTOCOL_TREE_ROOT_NAME, LiveChartConstants.PROTOCOL_TREE_ROOT_NAME, null);
+        Map<String, Long> protocolsAndApplications = nodes.stream().collect(Collectors.groupingBy(LiveChartProtocol::getName, Collectors.counting()));
+        root.addMetric(LiveChartConstants.PROTOCOL_TREE_METRIC_ENCAPSULATION_PATHS, nodes.size());
+        root.addMetric(LiveChartConstants.PROTOCOL_TREE_METRIC_PROTOCOLS_AND_APPLICATIONS, protocolsAndApplications.size());
+        List<LiveChartProtocol> roots = nodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
         roots.forEach(item -> {
             root.setSentBytes(root.getSentBytes() + item.getSentBytes());
             root.setReceivedBytes(root.getReceivedBytes() + item.getReceivedBytes());
@@ -787,16 +787,16 @@ public class DslServiceImpl implements DSLService {
             root.setTotalReceivedBytes(root.getTotalReceivedBytes() + item.getReceivedBytes());
         });
         nodes.forEach(item -> {
-            item.setId(Constants.PROTOCOL_TREE_ROOT_NAME + Constants.ENCAPSULATION_PATH_SEPARATOR + item.getId());
+            item.setId(LiveChartConstants.PROTOCOL_TREE_ROOT_NAME + LiveChartConstants.ENCAPSULATION_PATH_SEPARATOR + item.getId());
         });
         nodes.add(root);
         return nodes;
     }
 
     @Override
-    public List<Protocol> buildHierarchicalStructure(List<Protocol> nodes) {
+    public List<LiveChartProtocol> buildHierarchicalStructure(List<LiveChartProtocol> nodes) {
 
-        List<Protocol> targetNodes = groupByName(nodes);
+        List<LiveChartProtocol> targetNodes = groupByName(nodes);
 
         targetNodes.sort((o1, o2) -> {
             long numThis = o1.getReceivedBytes() + o1.getSentBytes();
@@ -809,9 +809,9 @@ public class DslServiceImpl implements DSLService {
                 return 0;
             }
         });
-        Map<String, List<Protocol>> protocolMap = Maps.newLinkedHashMap();
-        List<Protocol> roots = targetNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
-        protocolMap.put(Constants.PROTOCOLS_PARENT_ID, roots);
+        Map<String, List<LiveChartProtocol>> protocolMap = Maps.newLinkedHashMap();
+        List<LiveChartProtocol> roots = targetNodes.stream().filter(o -> StringUtil.isBlank(o.getParentId())).collect(Collectors.toList());
+        protocolMap.put(LiveChartConstants.PROTOCOLS_PARENT_ID, roots);
         targetNodes.stream().filter(o -> StringUtil.isNotBlank(o.getParentId())).forEach(x -> {
             if (StringUtil.isEmpty(protocolMap.get(x.getParentId()))) {
                 protocolMap.put(x.getParentId(), Lists.newArrayList(x));
@@ -820,15 +820,15 @@ public class DslServiceImpl implements DSLService {
             }
         });
 
-        List<Protocol> protocols = TreeUtils.mergeTree(protocolMap, Constants.PROTOCOLS_PARENT_ID, Protocol::getId, Protocol::setChildrens);
-        for (Protocol protocolTree : protocols) {
-            List<Protocol> ethernetList = protocolTree.getChildrens().stream().filter(
-                    p -> Constants.PROTOCOL_ETHERNET_NODE.equals(p.getName())).collect(Collectors.toList());
+        List<LiveChartProtocol> protocols = TreeUtils.mergeTree(protocolMap, LiveChartConstants.PROTOCOLS_PARENT_ID, LiveChartProtocol::getId, LiveChartProtocol::setChildrens);
+        for (LiveChartProtocol protocolTree : protocols) {
+            List<LiveChartProtocol> ethernetList = protocolTree.getChildrens().stream().filter(
+                    p -> LiveChartConstants.PROTOCOL_ETHERNET_NODE.equals(p.getName())).collect(Collectors.toList());
             if (protocolTree.getChildrens().size() != ethernetList.size()) {
                 protocolTree.setChildrens(ethernetList);
                 protocolTree.setReceivedBytes(ethernetList.isEmpty() || StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getReceivedBytes());
                 protocolTree.setSentBytes(ethernetList.isEmpty() || StringUtil.isEmpty(ethernetList.get(0)) ? 0 : ethernetList.get(0).getSentBytes());
-                log.warn("Protocol Tree Exceptional data occurs and non-{} protocols are filtered out: {}", Constants.PROTOCOL_ETHERNET_NODE, protocolTree.getChildrens());
+                log.warn("Protocol Tree Exceptional data occurs and non-{} protocols are filtered out: {}", LiveChartConstants.PROTOCOL_ETHERNET_NODE, protocolTree.getChildrens());
             }
         }
         return protocols;
@@ -840,21 +840,21 @@ public class DslServiceImpl implements DSLService {
      * @param nodes
      * @return
      */
-    private List<Protocol> groupByName(List<Protocol> nodes) {
-        Map<String, List<Protocol>> resultMap = nodes.stream()
-                .collect(Collectors.groupingBy(Protocol::getName, Collectors.collectingAndThen(Collectors.toList(), protocols -> {
+    private List<LiveChartProtocol> groupByName(List<LiveChartProtocol> nodes) {
+        Map<String, List<LiveChartProtocol>> resultMap = nodes.stream()
+                .collect(Collectors.groupingBy(LiveChartProtocol::getName, Collectors.collectingAndThen(Collectors.toList(), protocols -> {
 
-                    List<Protocol> parentNodes = protocols.stream()
+                    List<LiveChartProtocol> parentNodes = protocols.stream()
                             .filter(p -> StringUtil.isBlank(p.getParentId()) || !Splitter.on(".").omitEmptyStrings().splitToList(p.getParentId()).contains(p.getName()))
                             .collect(Collectors.toList());
                     Map<String, Long> summedMetrics = Maps.newLinkedHashMap();
                     Map<String, Long> totalBytesMetrics = Maps.newLinkedHashMap();
-                    totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES, 0L);
-                    totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES, 0L);
+                    totalBytesMetrics.put(LiveChartConstants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES, 0L);
+                    totalBytesMetrics.put(LiveChartConstants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES, 0L);
 
-                    parentNodes.stream().filter(p -> !p.getName().equalsIgnoreCase(Constants.PROTOCOL_TREE_ROOT_NAME)).forEach(protocolTree -> {
-                        totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES, totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES) + protocolTree.getSentBytes());
-                        totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES, totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES) + protocolTree.getReceivedBytes());
+                    parentNodes.stream().filter(p -> !p.getName().equalsIgnoreCase(LiveChartConstants.PROTOCOL_TREE_ROOT_NAME)).forEach(protocolTree -> {
+                        totalBytesMetrics.put(LiveChartConstants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES, totalBytesMetrics.get(LiveChartConstants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES) + protocolTree.getSentBytes());
+                        totalBytesMetrics.put(LiveChartConstants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES, totalBytesMetrics.get(LiveChartConstants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES) + protocolTree.getReceivedBytes());
                         for (String key : protocolTree.getMetrics().keySet()) {
                             String totalKey = StrUtil.addPrefixIfNot(key, "total_");
                             if (StringUtil.isEmpty(summedMetrics.get(totalKey))) {
@@ -866,16 +866,16 @@ public class DslServiceImpl implements DSLService {
                         }
                     });
 
-                    protocols.stream().filter(p -> !p.getName().equalsIgnoreCase(Constants.PROTOCOL_TREE_ROOT_NAME)).forEach(protocolTree -> {
-                        protocolTree.setTotalSentBytes(totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES));
-                        protocolTree.setTotalReceivedBytes(totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES));
+                    protocols.stream().filter(p -> !p.getName().equalsIgnoreCase(LiveChartConstants.PROTOCOL_TREE_ROOT_NAME)).forEach(protocolTree -> {
+                        protocolTree.setTotalSentBytes(totalBytesMetrics.get(LiveChartConstants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES));
+                        protocolTree.setTotalReceivedBytes(totalBytesMetrics.get(LiveChartConstants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES));
                         protocolTree.getMetrics().putAll(summedMetrics);
                     });
 
                     return protocols;
                 })));
 
-        List<Protocol> protocols = Lists.newArrayList();
+        List<LiveChartProtocol> protocols = Lists.newArrayList();
         resultMap.values().forEach(o -> {
             protocols.addAll(o);
         });
@@ -914,8 +914,8 @@ public class DslServiceImpl implements DSLService {
         return filter;
     }
 
-    private Protocol convertStringToObject(String protocolString) {
-        Protocol protocol = null;
+    private LiveChartProtocol convertStringToObject(String protocolString) {
+        LiveChartProtocol protocol = null;
         try {
             Map<String, Object> results = JSON.parseObject(protocolString, Map.class);
             String protocolId = String.valueOf(results.get("protocol_stack_id"));
@@ -924,23 +924,23 @@ public class DslServiceImpl implements DSLService {
                 return null;
             }
             long sessions = Long.parseLong(Optional.ofNullable(
-                    results.get(Constants.PROTOCOL_TREE_METRIC_SESSIONS)).orElse(0).toString());
+                    results.get(LiveChartConstants.PROTOCOL_TREE_METRIC_SESSIONS)).orElse(0).toString());
             long sentBytes = Long.parseLong(Optional.ofNullable(
-                    results.get(Constants.PROTOCOL_TREE_METRIC_C2S_BYTES)).orElse(0).toString());
+                    results.get(LiveChartConstants.PROTOCOL_TREE_METRIC_C2S_BYTES)).orElse(0).toString());
             long receivedBytes = Long.parseLong(Optional.ofNullable(
-                    results.get(Constants.PROTOCOL_TREE_METRIC_S2C_BYTES)).orElse(0).toString());
+                    results.get(LiveChartConstants.PROTOCOL_TREE_METRIC_S2C_BYTES)).orElse(0).toString());
             long sentPackets = Long.parseLong(Optional.ofNullable(
-                    results.get(Constants.PROTOCOL_TREE_METRIC_C2S_PKTS)).orElse(0).toString());
+                    results.get(LiveChartConstants.PROTOCOL_TREE_METRIC_C2S_PKTS)).orElse(0).toString());
             long receivedPackets = Long.parseLong(Optional.ofNullable(
-                    results.get(Constants.PROTOCOL_TREE_METRIC_S2C_PKTS)).orElse(0).toString());
-            List<String> protocols = Splitter.on(Constants.ENCAPSULATION_PATH_SEPARATOR).omitEmptyStrings().splitToList(protocolId);
+                    results.get(LiveChartConstants.PROTOCOL_TREE_METRIC_S2C_PKTS)).orElse(0).toString());
+            List<String> protocols = Splitter.on(LiveChartConstants.ENCAPSULATION_PATH_SEPARATOR).omitEmptyStrings().splitToList(protocolId);
             String protocolName = StringUtil.isNotEmpty(protocols) ? protocols.get(protocols.size() - 1) : null;
-            protocol = new Protocol(protocolId, protocolName, null);
+            protocol = new LiveChartProtocol(protocolId, protocolName, null);
             protocol.setSentBytes(sentBytes);
             protocol.setReceivedBytes(receivedBytes);
-            protocol.getMetrics().put(Constants.PROTOCOL_TREE_METRIC_SENT_PACKETS, sentPackets);
-            protocol.getMetrics().put(Constants.PROTOCOL_TREE_METRIC_RECEIVED_PACKETS, receivedPackets);
-            protocol.getMetrics().put(Constants.PROTOCOL_TREE_METRIC_SESSIONS, sessions);
+            protocol.getMetrics().put(LiveChartConstants.PROTOCOL_TREE_METRIC_SENT_PACKETS, sentPackets);
+            protocol.getMetrics().put(LiveChartConstants.PROTOCOL_TREE_METRIC_RECEIVED_PACKETS, receivedPackets);
+            protocol.getMetrics().put(LiveChartConstants.PROTOCOL_TREE_METRIC_SESSIONS, sessions);
         } catch (BusinessException e) {
             log.error("Convert Json String to  Protocol Tree Object Error ", e);
         }

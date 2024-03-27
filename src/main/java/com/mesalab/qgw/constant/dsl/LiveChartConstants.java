@@ -1,6 +1,9 @@
-package com.mesalab.network.common;
+package com.mesalab.qgw.constant.dsl;
 
-public class Constants {
+/**
+ * @author wangwei
+ */
+public class LiveChartConstants {
 
     public static final String PROTOCOL_TREE_ROOT_NAME = "Protocols";
     public static final String ENCAPSULATION_PATH_SEPARATOR = ".";

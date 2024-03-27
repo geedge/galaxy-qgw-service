@@ -1,7 +1,7 @@
 package com.mesalab.qgw.service;
 
 import com.mesalab.common.entity.BaseResult;
-import com.mesalab.network.model.Protocol;
+import com.mesalab.qgw.model.dsl.LiveChartProtocol;
 import com.mesalab.qgw.model.basic.DSLQueryContext;
 
 import java.util.List;
@@ -147,8 +147,8 @@ public interface DSLService {
      */
     BaseResult ipLearningActiveIp(DSLQueryContext dslProfile, boolean isDryRun);
 
-    List<Protocol> buildFlatStructure(List<Map> protocols);
+    List<LiveChartProtocol> buildFlatStructure(List<Map> protocols);
 
-    List<Protocol> buildHierarchicalStructure(List<Protocol> nodes);
+    List<LiveChartProtocol> buildHierarchicalStructure(List<LiveChartProtocol> nodes);
 
 }
