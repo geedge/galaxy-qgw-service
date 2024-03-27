@@ -59,7 +59,7 @@ public class HosServiceImp implements HosService {
         String putFileUrl = hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(fileName);
         HttpResponseResult responseResult = httpClientServiceV2.head(putFileUrl, httpConfig.getServerResponseTimeOut(), hosDefaultHeaders);
         if (HttpStatusCodeEnum.SUCCESS.getCode() != responseResult.getStatusCode()) {
-            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Upload file failed, message is: " + responseResult.getErrorMessage());
+            throw new BusinessException(responseResult.getStatusCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Get file failed, message is: " + responseResult.getErrorMessage());
         }
         Map<String, String> responseHeaders = responseResult.getResponseHeaders();
         Map<String, Object> result = Maps.newHashMap();
