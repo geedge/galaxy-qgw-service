@@ -1926,10 +1926,10 @@ public class SQLFunctionUtil {
         List<String> paramsList = fun.paramsList;
         if (DBEngineType.DRUID.getValue().equals(dbType) || DBEngineType.CLICKHOUSE.getValue().equals(dbType)) {
             if (paramsList.size() == 2) {
-                String formatString = "SUM(%s) / %s";
+                String formatString = "ROUND(SUM(%s) * 1.0 / %s, 2)";
                 return String.format(formatString, paramsList.get(0), paramsList.get(1));
             } else if (paramsList.size() == 3) {
-                String formatString = "SUM(%s) / (%s/%s)";
+                String formatString = "ROUND(SUM(%s) * 1.0 / (%s/%s), 2)";
                 return String.format(formatString, paramsList.get(0), paramsList.get(1), paramsList.get(2));
             }
         }

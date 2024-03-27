@@ -1,5 +1,6 @@
 Release 377 (TSG-24.04)
 * 扩展RATE函数，支持不同时间粒度(TSG-19773)
+* 完善RATE函数，结果保留两位小数(TSG-20131)
 * 扩展Schema，Statistics Rule Metric Schema 和 dataset 增加client_asn 和 server_asn(TSG-19744)
 * 扩展Schema，Statistics Rule Metric Schema 和 dataset 增加client_country 和 server_countryTSG-19886)
 * 新增Schema，新增Dos Protection Rule Hits Schema 和 dataset(TSG-19777)
