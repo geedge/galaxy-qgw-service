@@ -575,7 +575,7 @@ public class NetworkMonitorServiceImpl implements NetworkMonitorService {
                         totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES, totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_SENT_BYTES) + protocolTree.getSentBytes());
                         totalBytesMetrics.put(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES, totalBytesMetrics.get(Constants.PROTOCOL_TREE_METRIC_TOTAL_RECEIVED_BYTES) + protocolTree.getReceivedBytes());
                         for (String key : protocolTree.getMetrics().keySet()) {
-                            String totalKey = StrUtil.upperFirstAndAddPre(key, "total");
+                            String totalKey = StrUtil.addPrefixIfNot(key, "total_");
                             if (StringUtil.isEmpty(summedMetrics.get(totalKey))) {
                                 summedMetrics.put(totalKey, Long.valueOf(protocolTree.getMetrics().get(key).toString()));
                             } else {

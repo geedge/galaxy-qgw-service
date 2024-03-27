@@ -1,5 +1,7 @@
 package com.mesalab.network.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.network.common.Constants;
@@ -17,15 +19,21 @@ import java.util.Objects;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonPropertyOrder({"id", "name", "parentId", "childrens", "metrics", "sentBytes", "receivedBytes", "totalSentBytes", "totalReceivedBytes"})
 public class Protocol implements Serializable {
     private String id;
     private String name;
+    @JsonProperty("parent_id")
     private String parentId;
     private List<Protocol> childrens = Lists.newArrayList();
     private Map<String, Object> metrics = Maps.newLinkedHashMap();
+    @JsonProperty("sent_bytes")
     private long sentBytes;
+    @JsonProperty("received_bytes")
     private long receivedBytes;
+    @JsonProperty("total_sent_bytes")
     private long totalSentBytes;
+    @JsonProperty("total_received_bytes")
     private long totalReceivedBytes;
 
 
