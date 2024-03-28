@@ -142,10 +142,7 @@ public class FederationDialect extends AbstractEngineDialect {
 
 
     private BaseResult build() {
-
-        long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
         Map<String, Object> statisticMap = (Map<String, Object>) baseResult.getStatistics();
-        statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
         if (StringUtil.isEmpty(baseResult.getData())) {
             statisticMap.put("result_bytes", 0);
             statisticMap.put("result_rows", 0);
@@ -174,8 +171,10 @@ public class FederationDialect extends AbstractEngineDialect {
         } else if (sqlQueryContext.getFormat().equalsIgnoreCase(OutputMode.JSON_COMPACT.getValue())) {
             convertToJsonCompact();
         }
+        long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
+        statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
         baseResult.setOutputMode(sqlQueryContext.getFormat());
-        log.debug("Federation execute and build result time : {} ms", watch.elapsed(TimeUnit.MILLISECONDS));
+        log.info("Federation execute and build result time : {} ms", executeTime);
         return baseResult;
     }
 
