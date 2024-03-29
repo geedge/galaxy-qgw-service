@@ -49,6 +49,10 @@
         "client_port",
         "client_os_desc",
         "client_geolocation",
+        "client_country",
+        "client_super_administrative_area",
+        "client_administrative_area",
+        "client_sub_administrative_area",
         "client_asn",
         "subscriber_id",
         "imei",
@@ -62,6 +66,10 @@
         "server_port",
         "server_os_desc",
         "server_geolocation",
+        "server_country",
+        "server_super_administrative_area",
+        "server_administrative_area",
+        "server_sub_administrative_area",
         "server_asn",
         "server_fqdn",
         "server_domain",
@@ -1808,7 +1816,43 @@
     },
     {
       "name": "client_geolocation",
-      "label": "Client Geolocation",
+      "label": "Client Geolocation (Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_country",
+      "label": "Client Country",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_super_administrative_area",
+      "label": "Client Super Administrative Area",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_administrative_area",
+      "label": "Client Administrative Area",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "client_sub_administrative_area",
+      "label": "Client SubAdministrative Area",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1907,7 +1951,43 @@
     },
     {
       "name": "server_geolocation",
-      "label": "Server Geolocation",
+      "label": "Server Geolocation (Deprecated)",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_country",
+      "label": "Server Country",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_super_administrative_area",
+      "label": "Server Super Administrative Area",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_administrative_area",
+      "label": "Server Administrative Area",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "server_sub_administrative_area",
+      "label": "Server SubAdministrative Area",
       "doc": {
         "visibility": "enabled",
         "ttl": null
