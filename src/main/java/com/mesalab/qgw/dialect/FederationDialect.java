@@ -174,7 +174,7 @@ public class FederationDialect extends AbstractEngineDialect {
         long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
         statisticMap.put("elapsed", Long.parseLong(String.valueOf(statisticMap.get("elapsed"))) + executeTime);
         baseResult.setOutputMode(sqlQueryContext.getFormat());
-        log.info("Federation execute and build result time : {} ms", executeTime);
+        log.debug("Federation execute and build result time : {} ms", executeTime);
         return baseResult;
     }
 

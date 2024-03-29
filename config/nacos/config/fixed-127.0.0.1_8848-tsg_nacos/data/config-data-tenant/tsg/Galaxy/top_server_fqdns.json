@@ -24,6 +24,7 @@
         "out_pkts"
       ],
       "filters": [
+        "rank_by",
         "device_group",
         "data_center"
       ],
@@ -124,6 +125,31 @@
         },
         "visibility": "enabled"
       }
+    },
+    {
+      "name": "rank_by",
+      "label": "Rank",
+      "doc": {
+        "constraints": {
+          "operator_functions": "="
+        },
+        "data": [
+          {
+            "code": "bytes",
+            "value": "Bytes"
+          },
+          {
+            "code": "sessions",
+            "value": "Sessions"
+          },
+          {
+            "code": "packets",
+            "value": "Packets"
+          }
+        ],
+        "visibility": "enabled"
+      },
+      "type": "string"
     },
     {
       "name": "server_fqdn",
