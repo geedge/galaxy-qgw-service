@@ -3334,6 +3334,9 @@
       "name": "ssl_esni_flag",
       "label": "SSL.ESNI Flag",
       "doc": {
+        "data": {
+          "$ref": "public_schema_info.json#/fields/ssl_esni_flag/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -3343,6 +3346,9 @@
       "name": "ssl_ech_flag",
       "label": " SSL.ECH Flag",
       "doc": {
+        "data": {
+          "$ref": "public_schema_info.json#/fields/ssl_ech_flag/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
