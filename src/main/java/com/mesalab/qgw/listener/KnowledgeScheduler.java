@@ -89,11 +89,6 @@ public class KnowledgeScheduler {
         }
     }
 
-    @Scheduled(cron = "${knowledge.corn}")
-    public void knowledgeCorn() {
-        loadKnowledge();
-    }
-
     private static void rebuildIpLookup() {
         IPUtil.ipLookupBuild();
     }
