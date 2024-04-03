@@ -11,7 +11,13 @@ import org.slf4j.MDC;
  */
 public class MDCUtil {
 
+    public static final String TRACE_ID = "traceId";
+
     public static String getTraceId() {
-        return MDC.get("traceId");
+        return MDC.get(TRACE_ID);
+    }
+
+    public static String generateTraceId() {
+        return RandomUtil.getUUID();
     }
 }

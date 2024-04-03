@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
@@ -18,6 +17,7 @@ import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
 import com.mesalab.common.utils.HazelcastInstanceMapUtil;
+import com.mesalab.common.utils.RandomUtil;
 import com.mesalab.qgw.constant.QGWMessageConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
@@ -62,8 +62,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     public BaseResult createSQLSavedQuery(SqlQueryRequestParam request) {
         syntaxParseSql(request.getStatement());
         String sql = JSONUtil.quote(request.getStatement(), false).replace("'", "\\'");
-        request.getCustomRequestParam().put("UUID", System.currentTimeMillis());
-        String id = buildJobId(request.toString());
+        String id = generateJobId();
         long currentTime = System.currentTimeMillis() / 1000;
         Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
         log.info("Committed a SQL Saved Query Job, id is: {}", id);
@@ -74,7 +73,6 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     public BaseResult createSQLAdHocQuery(SqlQueryRequestParam sqlQueryRequestParam) {
         String option = sqlQueryRequestParam.isDryRun()
                     ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
-        sqlQueryRequestParam.getCustomRequestParam().put("UUID", System.currentTimeMillis());
         long start = System.currentTimeMillis();
         ExecutionMode execMode = sqlQueryRequestParam.getExecutionMode();
         if (ExecutionMode.ONESHOT.equals(execMode)) {
@@ -84,12 +82,12 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     .format(sqlQueryRequestParam.getOutputMode().getValue())
                     .build());
         } else if (ExecutionMode.NORMAL.equals(execMode)) {
-            String id = buildJobId(sqlQueryRequestParam.toString());
+            String id = generateJobId();
             HazelcastInstanceMapUtil.put(id, new QueryCache(id));
             jobExecuteService.addExecutorSql(id, sqlQueryRequestParam);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         } else if (ExecutionMode.BLOCKING.equals(execMode)) {
-            String id = buildJobId(sqlQueryRequestParam.toString());
+            String id = generateJobId();
             BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
             QueryCache queryCache = buildQueryCacheOfDone(id, start, baseResult);
             HazelcastInstanceMapUtil.put(id, queryCache);
@@ -101,8 +99,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult createDSLAdHocQuery(DSLQueryRequestParam request) {
-        request.getCustomRequestParam().put("UUID", System.currentTimeMillis());
-        String id = buildJobId(request.toString());
+        String id = generateJobId();
         long start = System.currentTimeMillis();
         ExecutionMode execMode = request.getExecutionMode();
         if (ExecutionMode.ONESHOT.equals(execMode)) {
@@ -286,16 +283,8 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         }
     }
 
-    private String getSameJob(String sql) {
-        List<Record> jobs = Db.find(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_SAME")), sql));
-        if (jobs.isEmpty()) {
-            return StringUtil.EMPTY;
-        }
-        return jobs.get(0).get("id");
-    }
-
-    private static String buildJobId(String request) {
-        return DigestUtil.md5Hex(request);
+    private static String generateJobId() {
+        return RandomUtil.getUUID();
     }
 
     private static Map<String, Object> buildJobInfoOfCreated(String id) {
