@@ -1929,7 +1929,7 @@ public class SQLFunctionUtil {
                 String formatString = "ROUND(SUM(%s) * 1.0 / %s, 2)";
                 return String.format(formatString, paramsList.get(0), paramsList.get(1));
             } else if (paramsList.size() == 3) {
-                String formatString = "ROUND(SUM(%s) * 1.0 / (%s/%s), 2)";
+                String formatString = "ROUND(SUM(%s) / (%s * 1.0/%s), 2)";
                 return String.format(formatString, paramsList.get(0), paramsList.get(1), paramsList.get(2));
             }
         }
