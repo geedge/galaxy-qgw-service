@@ -118,16 +118,6 @@ public interface DSLService {
     BaseResult realTimeDataAnalyticsMobileIdentityRelateTeid(DSLQueryContext dslProfile);
 
     /**
-     * Desc: Unstructured Data
-     *
-     * @param dslProfile
-     * @return {@link BaseResult}
-     * @created by wWei
-     * @date 2023/12/1 10:56
-     */
-    BaseResult realTimeDataAnalyticsUnstructuredData(DSLQueryContext dslProfile, boolean isDryRun);
-
-    /**
      * Desc: IP Learning （FQDN-IP）
      *
      * @param dslProfile

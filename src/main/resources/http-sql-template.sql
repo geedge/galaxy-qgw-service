@@ -122,17 +122,6 @@ SELECT uplink_teid AS teid, apn, phone_number, imsi, imei, last_update_time,vsys
 SELECT any(splitByString(', ',sorting_key)) AS index_key FROM tables_cluster where name = '%s_local' AND "database" = '%s'
 #end
 
-#sql("UNSTRUCTURED_DATA_PATH")
-SELECT log_id AS log_id,%s AS file_path FROM %s where %s AND notEmpty(%s) ORDER BY recv_time DESC LIMIT %s
-#end
-
-#sql("UNSTRUCTURED_DATA_PATH_OLD")
-SELECT common_log_id AS log_id,%s AS file_path FROM %s where %s AND notEmpty(%s) ORDER BY common_recv_time DESC LIMIT %s
-#end
-
 #sql("SQL_DATASETS")
 SELECT id, identifier_name, category, backend_engine, type, template, description, generated_time, last_update_time FROM dataset %s ORDER BY last_update_time DESC
 #end
-
-#sql("SQL_DATASETS_CATEGORY")
-SELECT category FROM dataset GROUP BY category

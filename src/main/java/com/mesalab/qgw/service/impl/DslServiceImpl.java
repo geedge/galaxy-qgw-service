@@ -28,9 +28,7 @@ import com.mesalab.knowledge.service.KnowledgeService;
 import com.mesalab.qgw.constant.dsl.LiveChartConstants;
 import com.mesalab.qgw.model.dsl.LiveChartProtocol;
 import com.mesalab.qgw.constant.DslIdentifierNameConst;
-import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
-import com.mesalab.qgw.model.basic.ClickHouseHttpSource;
 import com.mesalab.qgw.model.basic.DSLQueryContext;
 import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.service.DSLService;
@@ -38,11 +36,8 @@ import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.services.common.dsl.ComDSLObject;
 import com.mesalab.services.common.enums.EntityQueryType;
-import com.mesalab.services.common.enums.UnstructuredDataType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
 import com.mesalab.services.service.RelationService;
-import com.mesalab.services.service.UnstructuredService;
-import com.mesalab.services.service.impl.UnstructuredServiceImpl;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -87,10 +82,6 @@ public class DslServiceImpl implements DSLService {
     @Autowired
     SQLSyncQueryService sqlSyncQueryService;
     @Autowired
-    UnstructuredService unstructuredService;
-    @Autowired
-    private ClickHouseHttpSource clickHouseHttpSource;
-    @Autowired
     KnowledgeService knowledgeService;
     @Autowired
     RelationService relationService;
@@ -120,8 +111,6 @@ public class DslServiceImpl implements DSLService {
             return applicationAndProtocolAppThroughput(dslProfile, isDryRun);
         } else if (DslIdentifierNameConst.APPLICATION_AND_PROTOCOL_APP_SUMMARY.equals(dslProfile.getName())) {
             return applicationAndProtocolAppSummary(dslProfile, isDryRun);
-        } else if (DslIdentifierNameConst.REAL_TIME_DATA_ANALYTICS_UNSTRUCTURED_DATA.equals(dslProfile.getName())) {
-            return realTimeDataAnalyticsUnstructuredData(dslProfile, isDryRun);
         } else if (DslIdentifierNameConst.IP_LEARNING_FQDN_RELATE_IP.equals(dslProfile.getName())) {
             return ipLearningFqdnRelateIp(dslProfile, isDryRun);
         } else if (DslIdentifierNameConst.IP_LEARNING_ACTIVE_IP.equals(dslProfile.getName())) {
@@ -349,84 +338,6 @@ public class DslServiceImpl implements DSLService {
             throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }
         return baseResult;
-    }
-
-    @Override
-    public BaseResult realTimeDataAnalyticsUnstructuredData(DSLQueryContext dslProfile, boolean isDryRun) {
-        Stopwatch watch = Stopwatch.createStarted();
-        List<String> fileTypes = Lists.newArrayList();
-        List<String> dataSources = Lists.newArrayList();
-
-        ExpressionVisitorAdapter expressionVisitorAdapter = new ExpressionVisitorAdapter() {
-            @Override
-            public void visit(EqualsTo equalsTo) {
-                if (equalsTo.getLeftExpression() != null && "file_type".equals(equalsTo.getLeftExpression().toString())) {
-                    if (equalsTo.getRightExpression() instanceof StringValue) {
-                        fileTypes.add(((StringValue) equalsTo.getRightExpression()).getValue());
-                        equalsTo.setLeftExpression(new LongValue(1));
-                        equalsTo.setRightExpression(new LongValue(1));
-                    }
-                } else if (equalsTo.getLeftExpression() != null && "data_source".equals(equalsTo.getLeftExpression().toString())) {
-                    if (equalsTo.getRightExpression() instanceof StringValue) {
-                        dataSources.add(((StringValue) equalsTo.getRightExpression()).getValue());
-                        equalsTo.setLeftExpression(new LongValue(1));
-                        equalsTo.setRightExpression(new LongValue(1));
-                    }
-                }
-            }
-        };
-        String filter = dslProfile.getFilter();
-        Expression expression = null;
-        try {
-            expression = CCJSqlParserUtil.parseExpression(filter, false);
-        } catch (JSQLParserException e) {
-            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
-        }
-        expression.accept(expressionVisitorAdapter);
-        if (fileTypes.size() != 1 && dataSources.size() != 1) {
-            throw new BusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.PARAMETER_ERROR.getCode(), String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), dslProfile.getFilter()));
-        }
-        dslProfile.setFilter(expression.toString());
-
-        String type = fileTypes.get(0);
-        String dataSource = dataSources.get(0);
-        Map<String, Object> fileTypeInSchema = unstructuredService.getUnstructuredFields();
-        List<Map> dataList = Lists.newArrayList();
-        if (!fileTypeInSchema.containsKey(dataSource) && !clickHouseHttpSource.getDbName().equals(dataSource)) {
-            return build(dataList, watch);
-        }
-        if (UnstructuredDataType.ALL.getType().equalsIgnoreCase(type)) {
-            if (clickHouseHttpSource.getDbName().equals(dataSource)) {
-                for (String tableName : fileTypeInSchema.keySet()) {
-                    Map<String, List<String>> typeFields = (Map<String, List<String>>) fileTypeInSchema.get(tableName);
-                    for (String typeTmp : typeFields.keySet()) {
-                        dataList.addAll(getData(typeFields.get(typeTmp), tableName, dslProfile, isDryRun));
-                    }
-                }
-            } else {
-                Map<String, List<String>> typeFields = (Map<String, List<String>>) fileTypeInSchema.get(dataSource);
-                for (String typeTmp : typeFields.keySet()) {
-                    dataList.addAll(getData(typeFields.get(typeTmp), dataSource, dslProfile, isDryRun));
-                }
-            }
-        } else {
-            if (clickHouseHttpSource.getDbName().equals(dataSource)) {
-                for (String tableName : fileTypeInSchema.keySet()) {
-                    Map<String, List<String>> typeFields = (Map<String, List<String>>) fileTypeInSchema.get(tableName);
-                    dataList.addAll(getData(typeFields.get(type), tableName, dslProfile, isDryRun));
-                }
-            } else {
-                Map<String, List<String>> typeFields = (Map<String, List<String>>) fileTypeInSchema.get(dataSource);
-                dataList = getData(typeFields.get(type), dataSource, dslProfile, isDryRun);
-            }
-        }
-        List<Map> distinctList = dataList.stream()
-                .filter(distinctByValue(x -> x.get("file_path")))
-                .collect(Collectors.toList());
-        if (StrUtil.isNotEmpty(dslProfile.getLimit())) {
-            distinctList = distinctList.size() > Long.parseLong(dslProfile.getLimit()) ? distinctList.subList(0, Integer.parseInt(dslProfile.getLimit())) : distinctList;
-        }
-        return build(Lists.newArrayList(distinctList), watch);
     }
 
     @Override
@@ -722,47 +633,9 @@ public class DslServiceImpl implements DSLService {
         return expressionVisitorAdapter;
     }
 
-    private static <T> Predicate<T> distinctByValue(Function<? super T, Object> keyExtractor) {
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
-
-    private List<Map> getData(List<String> fields, String dataSource, DSLQueryContext dslProfile, boolean isDryRun) {
-        List<Map> dataResult = Lists.newArrayList();
-        for (String field : fields) {
-            String sql = dslProfile.toSql(environment.getProperty("REAL_TIME_DATA_ANALYTICS_UNSTRUCTURED_DATA"), dataSource, databaseService.getPartitionKey(dataSource), LOGICAL_TYPE_UNIX_TIMESTAMP);
-            sql = sql.replace("$field", field);
-            sql = sql.replace("$primary_key", databaseService.getValueByKeyInSchemaDoc(dataSource, "primary_key"));
-            sql = sql.replace("$partition_key", databaseService.getValueByKeyInSchemaDoc(dataSource, "partition_key"));
-            BaseResult result = sqlSyncQueryService.executeQuery(queryBuild(sql, isDryRun));
-            if (!result.isSuccess()) {
-                log.error("Query unstructured data status error: {}", result.getMessage());
-                throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Query unstructured data status error: " + result.getMessage());
-            }
-            List<Map> datalist = (List<Map>) result.getData();
-            for (Map data : datalist) {
-                String fileTypeStr = StringUtil.isNotEmpty(UnstructuredServiceImpl.fileType.get(field)) ? UnstructuredServiceImpl.fileType.get(field).toString() : UnstructuredServiceImpl.OTHER_FILE;
-                data.put("log_type", dataSource);
-                data.put("file_type", fileTypeStr);
-                dataResult.add(data);
-            }
-        }
-        return dataResult;
-    }
-
     private SQLQueryContext queryBuild(String sql, boolean isDryRun) {
         String queryOption = isDryRun ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
         return SQLQueryContext.builder().format(OutputMode.JSON.getValue()).originalSQL(sql).option(queryOption).build();
-    }
-
-    private BaseResult build(List<Map> dataList, Stopwatch watch) {
-        BaseResult baseResult;
-        Map statistics = Maps.newHashMap();
-        statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-        statistics.put("result_rows", dataList.size());
-        statistics.put("result_bytes", dataList.toString().getBytes().length);
-        baseResult = BaseResultGenerator.success("ok", dataList, statistics);
-        return baseResult;
     }
 
     @Override

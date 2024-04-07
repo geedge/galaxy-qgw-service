@@ -17,7 +17,6 @@ public class DslIdentifierNameConst {
     public static final String APPLICATION_AND_PROTOCOL_APP_SUMMARY = "application-and-protocol-app-summary";
     public static final String REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP = "real-time-data-analytics-subscriber-id-relate-ip";
     public static final String REAL_TIME_DATA_ANALYTICS_MOBILE_IDENTITY_RELATE_TEID = "real-time-data-analytics-mobile-identity-relate-teid";
-    public static final String REAL_TIME_DATA_ANALYTICS_UNSTRUCTURED_DATA = "real-time-data-analytics-unstructured-data";
     public static final String IP_LEARNING_FQDN_RELATE_IP = "ip-learning-fqdn-relate-ip";
     public static final String IP_LEARNING_ACTIVE_IP = "ip-learning-active-ip";
 }
