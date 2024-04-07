@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware {
     private static final Log log = LogFactory.get();
     private static final String SCHEMA_PREFIX = "Schema/";
-    private static final String HBASE_DBNAME2 = "tsg_galaxy";
 
     @Autowired
     private DialectWriter dialectWriter;
@@ -91,12 +90,10 @@ public class DiagnosisServiceImpl implements DiagnosisService, EnvironmentAware 
             Map<String, Map<String, String>> clickhouseResult = parseSchemaByDatasource(clickHouseHttpSource.getDbName(), databaseService.getAllTable());
             Map<String, Map<String, String>> druidResult = parseSchemaByDatasource(druidIoHttpSource.getDbname(), databaseService.getAllTable());
             Map<String, Map<String, String>> hbaseResult = parseSchemaByDatasource(hBaseAPISource.getDbName(), databaseService.getAllTable());
-            Map<String, Map<String, String>> hbase2Result = parseSchemaByDatasource(HBASE_DBNAME2, databaseService.getAllTable());
 
             data.add(clickhouseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(druidResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             data.add(hbaseResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            data.add(hbase2Result.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
             long executeTime = watch.elapsed(TimeUnit.MILLISECONDS);
             statistics.put("elapsed", executeTime);
