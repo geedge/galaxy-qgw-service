@@ -98,26 +98,6 @@ public interface DSLService {
     BaseResult applicationAndProtocolAppSummary(DSLQueryContext dslProfile, boolean isDryRun);
 
     /**
-     * Desc: Get Subscriber ID Relate Client IPs
-     *
-     * @param dslProfile
-     * @return {@link BaseResult}
-     * @created by wWei
-     * @date 2023/11/30 11:31
-     */
-    BaseResult realTimeDataAnalyticsSubscriberIdRelateIp(DSLQueryContext dslProfile);
-
-    /**
-     * Desc: GTP-C Mobile Identities AND APNs Relate TEID
-     *
-     * @param dslProfile
-     * @return {@link BaseResult}
-     * @created by wWei
-     * @date 2023/11/30 11:35
-     */
-    BaseResult realTimeDataAnalyticsMobileIdentityRelateTeid(DSLQueryContext dslProfile);
-
-    /**
      * Desc: IP Learning （FQDN-IP）
      *
      * @param dslProfile

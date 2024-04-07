@@ -1,6 +1,5 @@
 package com.mesalab.qgw.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
@@ -10,7 +9,6 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.base.Splitter;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.cn.enums.RangeTypeEnum;
@@ -34,10 +32,7 @@ import com.mesalab.qgw.model.basic.SQLQueryContext;
 import com.mesalab.qgw.service.DSLService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.qgw.service.SQLSyncQueryService;
-import com.mesalab.services.common.dsl.ComDSLObject;
-import com.mesalab.services.common.enums.EntityQueryType;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
-import com.mesalab.services.service.RelationService;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -56,10 +51,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -83,14 +74,11 @@ public class DslServiceImpl implements DSLService {
     SQLSyncQueryService sqlSyncQueryService;
     @Autowired
     KnowledgeService knowledgeService;
-    @Autowired
-    RelationService relationService;
 
     private static final String TABLE_TRAFFIC_GENERAL_STAT = "traffic_general_stat";
     private static final String TABLE_APPLICATION_PROTOCOL_STAT = "application_protocol_stat";
     private static final String TABLE_SESSION_RECORD = "session_record";
-    private static final String TABLE_RELATION_ACCOUNT_FRAMEDIP = "relation_account_framedip";
-    private static final String TABLE_GTPC_KNOWLEDGE_BASE = "gtpc_knowledge_base";
+
     private static final String LOGICAL_TYPE_TIMESTAMP = "timestamp";
     private static final String LOGICAL_TYPE_UNIX_TIMESTAMP = "unix_timestamp";
 
@@ -298,42 +286,6 @@ public class DslServiceImpl implements DSLService {
     public BaseResult applicationAndProtocolAppSummary(DSLQueryContext dslProfile, boolean isDryRun) {
         String sql = dslProfile.toSql(environment.getProperty("APPLICATION_AND_PROTOCOL_APP_SUMMARY"), TABLE_APPLICATION_PROTOCOL_STAT, databaseService.getPartitionKey(TABLE_APPLICATION_PROTOCOL_STAT), LOGICAL_TYPE_TIMESTAMP);
         BaseResult baseResult = sqlSyncQueryService.executeQuery(queryBuild(sql, isDryRun));
-        if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
-        }
-        return baseResult;
-    }
-
-    @Override
-    public BaseResult realTimeDataAnalyticsSubscriberIdRelateIp(DSLQueryContext dslProfile) {
-        String filter = dslProfile.getFilter();
-        if (StrUtil.isNotEmpty(filter) && filter.contains("subscriber_id")) {
-            try {
-                dslProfile.setFilter(inToLike(filter));
-            } catch (JSQLParserException e) {
-                log.error("InExpression to LikeExpression error: {}", e.getMessage());
-                throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
-            }
-        }
-        String sql = dslProfile.toSql(environment.getProperty("REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP"), TABLE_RELATION_ACCOUNT_FRAMEDIP, "last_update_time", LOGICAL_TYPE_UNIX_TIMESTAMP);
-        BaseResult baseResult = sqlSyncQueryService.executeQuery(queryBuild(sql, false));
-        if (!baseResult.isSuccess()) {
-            throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
-        }
-        return baseResult;
-    }
-
-    @Override
-    public BaseResult realTimeDataAnalyticsMobileIdentityRelateTeid(DSLQueryContext dslProfile) {
-        String dataSource = "gtpc_knowledge_base";
-        DSLObject dslObject = getDslObject(dslProfile, null, dataSource);
-        ComDSLObject comDSLObject = BeanUtil.copyProperties(dslObject, ComDSLObject.class);
-        if (!StrUtil.isEmptyIfStr(dslObject.getQuery())
-                && !StrUtil.isEmptyIfStr(dslObject.getQuery().getParameters())
-                && !StrUtil.isEmptyIfStr(dslObject.getQuery().getParameters().getLimit())) {
-            comDSLObject.getQuery().setLimit(dslObject.getQuery().getParameters().getLimit());
-        }
-        BaseResult baseResult = relationService.getRealRelation(EntityQueryType.GTPC.getType(), comDSLObject);
         if (!baseResult.isSuccess()) {
             throw new BusinessException(baseResult.getStatus(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), baseResult.getMessage()));
         }

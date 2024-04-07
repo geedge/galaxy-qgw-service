@@ -9,7 +9,6 @@ public interface DiagnosisService {
 
     BaseResult getPocSQL(String dialect, Integer queryNo);
 
-    BaseResult getMessageInfo(String param);
 
     JSONObject getVersionInfo();
 }

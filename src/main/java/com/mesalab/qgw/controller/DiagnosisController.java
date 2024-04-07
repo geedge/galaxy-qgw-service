@@ -9,7 +9,6 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.AuditLog;
 import com.mesalab.qgw.service.DiagnosisService;
-import com.mesalab.services.common.enums.EntityQueryType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -50,14 +49,4 @@ public class DiagnosisController {
         return diagnosisService.getPocSQL(dialect, queryNo);
     }
 
-    @RequestMapping(value = "/entity")
-    @AuditLog("DiagnosisController.getMessageInfo")
-    public BaseResult getMessageInfo(String option) {
-        log.info("Entity recommendation proportion statistical information interface, param is: {}", option);
-        if (!EntityQueryType.TOPSERVERIP.getType().equalsIgnoreCase(option) && !EntityQueryType.TOPSNI.getType().equalsIgnoreCase(option)) {
-            throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.DIAGNOSIS_OPTION_ERROR));
-        }
-        return diagnosisService.getMessageInfo(option);
-    }
 }

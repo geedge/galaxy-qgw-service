@@ -99,19 +99,6 @@ xxl-job-admin:
 engine:
   maxCacheNum: 1048575
   defaultResultNum: 100000
-service:
-  entity:
-    activeClientIP: 10000
-    topServerIP:
-      TCPBySession: 100000
-      TCPByUniqClientIP: 100000
-      UDPBySession: 100000
-      UDPByUniqClientIP: 40000
-    topSNI:
-      defaultSize: 30000
-      dataset: 2000000
-    gtpc:
-      defaultSize: 100000
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.12:8529
