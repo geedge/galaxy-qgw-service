@@ -158,5 +158,9 @@
   {
     "key": "field_list",
     "default": "log_id"
+  },
+  {
+    "key": "duration",
+    "default": 300
   }
 ]

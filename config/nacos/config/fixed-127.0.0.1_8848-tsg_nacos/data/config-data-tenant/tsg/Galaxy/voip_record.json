@@ -72,6 +72,7 @@
         "ip_protocol",
         "decoded_path",
         "dup_traffic_flag",
+        "tunnel_id_list",
         "tunnel_endpoint_a_desc",
         "tunnel_endpoint_b_desc",
         "sip_call_id",
@@ -181,6 +182,7 @@
         "app",
         "app_content",
         "dup_traffic_flag",
+        "tunnel_id_list",
         "tunnel_endpoint_a_desc",
         "tunnel_endpoint_b_desc",
         "ip_protocol",
@@ -1713,8 +1715,21 @@
       "type": "int"
     },
     {
+      "name": "tunnel_id_list",
+      "label": "Tunnel ID List",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "tunnel_endpoint_a_desc",
-      "label": "Tunnel Endpoint A Description",
+      "label": "Tunnel Endpoint A Description (Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1723,7 +1738,7 @@
     },
     {
       "name": "tunnel_endpoint_b_desc",
-      "label": "Tunnel Endpoint B Description",
+      "label": "Tunnel Endpoint B Description (Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null

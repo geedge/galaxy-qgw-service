@@ -57,6 +57,7 @@
         "server_fqdn",
         "server_domain",
         "ip_protocol",
+        "tunnel_id_list",
         "http_url",
         "http_host",
         "http_request_line",
@@ -189,6 +190,7 @@
         "sent_bytes",
         "received_bytes",
         "tcp_rtt_ms",
+        "tunnel_id_list",
         "http_url",
         "http_host",
         "http_request_line",
@@ -1934,8 +1936,21 @@
       "type": "int"
     },
     {
+      "name": "tunnel_id_list",
+      "label": "Tunnel ID List",
+      "doc": {
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": {
+        "type": "array",
+        "items": "long",
+        "logicalType": "array"
+      }
+    },
+    {
       "name": "tunnel_endpoint_a_desc",
-      "label": "Tunnel Endpoint A Description",
+      "label": "Tunnel Endpoint A Description (Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1944,7 +1959,7 @@
     },
     {
       "name": "tunnel_endpoint_b_desc",
-      "label": "Tunnel Endpoint B Description",
+      "label": "Tunnel Endpoint B Description (Deprecated)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
