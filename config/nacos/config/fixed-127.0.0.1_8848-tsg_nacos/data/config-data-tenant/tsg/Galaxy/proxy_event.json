@@ -1363,7 +1363,7 @@
       "name": "client_os_desc",
       "type": "string",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "label": "Client OS Description"
@@ -1498,7 +1498,7 @@
       "name": "server_os_desc",
       "type": "string",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "label": "Server OS Description"
