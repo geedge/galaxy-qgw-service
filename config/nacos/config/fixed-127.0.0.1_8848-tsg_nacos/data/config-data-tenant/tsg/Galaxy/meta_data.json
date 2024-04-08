@@ -44,7 +44,6 @@
         "top_server_countries",
         "application_protocol_stat",
         "traffic_general_stat",
-        "traffic_top_destination_ip_metrics_log",
         "traffic_shaping_rule_hits",
         "sys_storage_log",
         "service_chaining_rule_hits",
