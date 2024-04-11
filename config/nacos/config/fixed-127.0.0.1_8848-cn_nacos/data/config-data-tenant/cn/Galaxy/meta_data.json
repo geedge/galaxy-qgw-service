@@ -23,6 +23,7 @@
         "metric_dns_rr_a",
         "metric_dns_rr_aaaa",
         "metric_dns_rr_cname",
+        "metric_tag",
         "location_subscriber",
         "session_relation_subscriber_app"
       ]
