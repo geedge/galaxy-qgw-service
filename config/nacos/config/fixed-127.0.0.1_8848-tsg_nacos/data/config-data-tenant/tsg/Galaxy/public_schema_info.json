@@ -2910,6 +2910,10 @@
         {
           "code": "32768",
           "value": "Bidirectional"
+        },
+        {
+          "code": "65536",
+          "value": "Tunneling"
         }
       ]
     }
