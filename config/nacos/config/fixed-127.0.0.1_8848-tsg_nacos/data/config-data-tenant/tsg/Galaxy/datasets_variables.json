@@ -89,7 +89,7 @@
   },
   {
     "key": "filter",
-    "default": "1 = 1"
+    "default": "1 != 1"
   },
   {
     "key": "timestampdiff_second",
