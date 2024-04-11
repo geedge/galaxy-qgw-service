@@ -149,8 +149,11 @@ public class KBController {
                         String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.KB_FILE_FORMAT_NOT_SUPPORT));
             }
         }
-        if (StrUtil.isBlankIfStr(String.valueOf(request.getIsValid()))){
+        if (StrUtil.isBlankIfStr(String.valueOf(request.getIsValid()))) {
             request.setIsValid(1);
+        }
+        if (StrUtil.isBlankIfStr(String.valueOf(request.getIsEncryption()))) {
+            request.setIsEncryption(0);
         }
         return request;
     }
