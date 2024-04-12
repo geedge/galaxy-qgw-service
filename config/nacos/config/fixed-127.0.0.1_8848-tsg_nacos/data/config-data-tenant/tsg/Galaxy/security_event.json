@@ -1274,11 +1274,11 @@
         "data": [
           {
             "code": "4",
-            "value": "ipv4"
+            "value": "IPv4"
           },
           {
             "code": "6",
-            "value": "ipv6"
+            "value": "IPv6"
           }
         ],
         "visibility": "enabled",
