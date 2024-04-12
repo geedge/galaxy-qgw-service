@@ -159,6 +159,10 @@
           {
             "code": "DNS Flood",
             "value": "DNS Flood"
+          },
+          {
+            "code": "Custom Network Attack",
+            "value": "Custom Network Attack"
           }
         ],
         "visibility": "enabled",
