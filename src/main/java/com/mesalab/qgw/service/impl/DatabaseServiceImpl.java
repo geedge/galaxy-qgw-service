@@ -560,6 +560,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
                 public void receiveConfigInfo(String configInfo) {
                     log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
                     originalCache.put(cfgName, configInfo);
+                    schemaCache.clear();
                 }
             });
         } catch (NacosException e) {
@@ -575,6 +576,7 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             public void receiveConfigInfo(String configInfo) {
                 log.info("ReceiveConfigInfo Schema Fields {}", configInfo);
                 originalCache.put(cfgName, configInfo);
+                schemaCache.clear();
             }
         });
         return content;
