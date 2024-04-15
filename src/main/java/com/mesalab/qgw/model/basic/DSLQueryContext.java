@@ -38,6 +38,8 @@ public class DSLQueryContext implements Serializable {
 
         sql = StrUtil.isNotEmpty(table) ? sql.replace("$table", table) : sql;
 
+        sql = !CollectionUtils.isEmpty(this.intervals) ? sql.replace("$interval_seconds", Long.toString(getIntervalSeconds(this.intervals))) : sql;
+
         if (StrUtil.isEmpty(this.filter) && CollectionUtils.isEmpty(this.intervals)) {
             sql = sql.replace("$intervals_and_filter", " 1= 1 ");
         } else if (StrUtil.isNotEmpty(this.filter) && !CollectionUtils.isEmpty(this.intervals)) {
@@ -54,6 +56,16 @@ public class DSLQueryContext implements Serializable {
         return sql;
     }
 
+    private long getIntervalSeconds(List<String> intervals) {
+        if (CollectionUtils.isEmpty(intervals) || !intervals.get(0).contains("/")) {
+            throw new IllegalArgumentException();
+        }
+        String[] split = intervals.get(0).split("/");
+        long start = DateUtil.parse(split[0]).getTime() / 1000;
+        long end = DateUtil.parse(split[1]).getTime() / 1000;
+        return end - start;
+    }
+
     private String parseIntervals(List<String> intervals, String timeField, String timeFieldType) {
         if (CollectionUtils.isEmpty(intervals) || !intervals.get(0).contains("/")) {
             return null;
@@ -64,7 +76,7 @@ public class DSLQueryContext implements Serializable {
         StringBuffer whereOfTime = new StringBuffer();
         if ("unix_timestamp".equalsIgnoreCase(timeFieldType)) {
             return whereOfTime.append(timeField).append(">= ").append(DateUtil.parse(start).getTime() / 1000).append(" AND ").append(timeField).append("< ").append(DateUtil.parse(end).getTime() / 1000).toString();
-        } else{
+        } else {
             return whereOfTime.append(timeField).append(">= '").append(start).append("' AND ").append(timeField).append("< '").append(end).append("'").toString();
         }
     }
