@@ -152,9 +152,6 @@ public class KBController {
         if (StrUtil.isBlankIfStr(String.valueOf(request.getIsValid()))) {
             request.setIsValid(1);
         }
-        if (StrUtil.isBlankIfStr(String.valueOf(request.getIsEncryption()))) {
-            request.setIsEncryption(0);
-        }
         return request;
     }
 }

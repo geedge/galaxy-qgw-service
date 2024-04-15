@@ -23,8 +23,6 @@ public class KnowledgeBaseRequest implements Serializable {
     private String category;
     @JsonProperty("is_valid")
     private Integer isValid;
-    @JsonProperty("is_encryption")
-    private Integer isEncryption;
     @JsonProperty("version")
     private String version;
     @JsonProperty("sha256")
