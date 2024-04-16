@@ -128,9 +128,7 @@ public class QGWMessageConst {
 
     public static final String KB_FILE_FORMAT_CANNOT_BE_EMPTY = "The knowledge base file format cannot be empty.";
 
-    public static final String KB_FILE_FORMAT_NOT_SUPPORT = "The knowledge base file format is not supported, category value must be :[ MMDB| CSV| TXT]";
-
-    public static final String KB_FILE_CATEGORY_NOT_SUPPORT = "The knowledge base file category is not supported, format value must be :[ IP| DOMAIN| APP]";
+    public static final String KB_FILE_FORMAT_NOT_SUPPORT = "The knowledge base file format is not supported, format value must be :[ MMDB| CSV| TXT| AES]";
 
     public static final String SCHEMA_FUNCTION_CONSTRAINT_ERROR ="The %s schema %s constraint functions has %s, does not exit in the list of supported aggregate functions.";
 

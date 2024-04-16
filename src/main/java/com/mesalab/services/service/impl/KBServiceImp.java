@@ -53,7 +53,6 @@ public class KBServiceImp implements KBService {
     private static final String SHA_256 = "Sha256";
     private static final String VERSION = "Version";
     private static final String IS_VALID = "IsValid";
-    private static final String IS_ENCRYPTION = "IsEncryption";
     private static final String KEY = "Key";
     private static final String SIZE = "Size";
     private static final String USER_DEFINED_META = "UserDefinedMeta";
@@ -317,7 +316,6 @@ public class KBServiceImp implements KBService {
                     map1.put("sha256", StrUtil.isBlankIfStr(udfMeta.get(SHA_256)) ? "" : udfMeta.get(SHA_256));
                     map1.put("version", StrUtil.isBlankIfStr(udfMeta.get(VERSION)) ? "" : udfMeta.get(VERSION));
                     map1.put("is_valid", StrUtil.isBlankIfStr(udfMeta.get(IS_VALID)) ? 1 : Integer.parseInt(udfMeta.get(IS_VALID)));
-                    map1.put("is_encryption", StrUtil.isBlankIfStr(udfMeta.get(IS_ENCRYPTION)) ? 0 : Integer.parseInt(udfMeta.get(IS_ENCRYPTION)));
                 } else {
                     map1.put("name", "");
                     map1.put("category", "");
@@ -328,7 +326,6 @@ public class KBServiceImp implements KBService {
                     map1.put("sha256", "");
                     map1.put("version", "");
                     map1.put("is_valid", 1);
-                    map1.put("is_encryption", 0);
                     map1.put("kb_id", StrUtil.subBefore(String.valueOf(contents.get(KEY)), "_", true));
                 }
                 map1.put("size", StrUtil.isBlankIfStr(contents.get(SIZE)) ? 0 : Integer.parseInt(String.valueOf(contents.get(SIZE))));
