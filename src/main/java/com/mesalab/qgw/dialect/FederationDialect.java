@@ -148,12 +148,22 @@ public class FederationDialect extends AbstractEngineDialect {
             statisticMap.put("result_rows", 0);
         } else {
             statisticMap.put("result_bytes", JSON.toJSONBytes(baseResult.getData(), JSONWriter.Feature.LargeObject).length);
-            statisticMap.put("result_rows", ((List) baseResult.getData()).size());
+            statisticMap.put("result_rows", ((List<?>) baseResult.getData()).size());
         }
         baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(baseResult.getMeta(), sqlQueryContext.getFederationSelectStatement(), null));
-        if (baseResult.getMeta() != null && ((List<Map<String, Object>>) baseResult.getMeta()).stream().anyMatch(x -> DataTypeMapping.LONG.equalsIgnoreCase(String.valueOf(x.get("type"))))) {
-            String jsonString = JSON.toJSONString(baseResult.getData(), JSONWriter.Feature.WriteNulls, JSONWriter.Feature.LargeObject, JSONWriter.Feature.BrowserCompatible);
-            baseResult.setData(JSON.parseObject(jsonString, List.class));
+        if (baseResult.getMeta() != null
+                && baseResult.getData() != null
+                && ((List<Map<String, Object>>) baseResult.getMeta()).stream().anyMatch(x -> DataTypeMapping.LONG.equalsIgnoreCase(String.valueOf(x.get("type"))))) {
+
+            List<Map<String, Object>> data = (List<Map<String, Object>>) baseResult.getData();
+            for (int i = 0; i < data.size(); i++) {
+                Map<String, Object> map = data.get(i);
+                String jsonString = JSON.toJSONString(map, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.BrowserCompatible);
+                Map<String, Object> parsedMap = JSON.parseObject(jsonString, Map.class);
+                map.clear();
+                map.putAll(parsedMap);
+            }
+            baseResult.setData(data);
         }
         if (baseResult.getMeta() != null) {
             List<Map<String, Object>> metaList = (List<Map<String, Object>>) baseResult.getMeta();
