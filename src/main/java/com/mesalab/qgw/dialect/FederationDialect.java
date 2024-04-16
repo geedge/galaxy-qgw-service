@@ -159,7 +159,7 @@ public class FederationDialect extends AbstractEngineDialect {
             for (int i = 0; i < data.size(); i++) {
                 Map<String, Object> map = data.get(i);
                 String jsonString = JSON.toJSONString(map, JSONWriter.Feature.WriteNulls, JSONWriter.Feature.BrowserCompatible);
-                Map<String, Object> parsedMap = JSON.parseObject(jsonString, Map.class);
+                Map parsedMap = JSON.parseObject(jsonString, LinkedHashMap.class);
                 map.clear();
                 map.putAll(parsedMap);
             }
