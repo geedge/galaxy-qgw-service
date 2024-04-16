@@ -886,7 +886,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         List<NameValuePair> values = URLEncodedUtils.parse(queryParameter, StandardCharsets.UTF_8);
         return httpClientService.post(queryURL + URLEncodedUtils.format(values, "utf-8"),
                 sqlQueryContext.getTimeout(),
-                sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()));
+                sql.concat(" FORMAT ").concat(OutputMode.JSON.getValue().toUpperCase()).concat(" settings output_format_json_quote_64bit_integers=0"));
     }
 
     private String enrichContextAndBuildQueryParameter() {
@@ -915,7 +915,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             queryParameterBuilder.append(getRealTimeAccount()).append("&")
                     .append("database=").append(dbName);
         }
-        queryParameterBuilder.append("&").append("query_id=").append(sqlQueryContext.getQueryId()).append("&").append("output_format_json_quote_64bit_integers=0");
+        queryParameterBuilder.append("&").append("query_id=").append(sqlQueryContext.getQueryId());
         return queryParameterBuilder.toString();
     }
 
