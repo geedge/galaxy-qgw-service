@@ -147,10 +147,10 @@ public class HbaseDialect extends AbstractDataSourceDialect {
         Map<String, Object> results = executeQuery(sql);
         int status = Integer.parseInt(String.valueOf(results.get("status")));
         if (status == HttpStatusCodeEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SUCCESS.getCode(), message.get(),
+            baseResult = BaseResultGenerator.generate(status, ResultCodeEnum.SUCCESS.getCode(), true, message.get(),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), OutputMode.JSON.getValue());
         } else {
-            baseResult = BaseResultGenerator.generate(status, CommonErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), String.valueOf(results.get("message")),
+            baseResult = BaseResultGenerator.generate(status, CommonErrorCode.SQL_REWRITE_AND_TRANSFORMATION_EXCEPTION.getCode(), false, String.valueOf(results.get("message")),
                     results.get("data"), results.get("meta"), (Map<String, Object>) results.get("statistics"), sqlQueryContext.getFormat());
         }
         baseResult.setMeta(ColumnCategoryHelper.expandMetaCategory(baseResult.getMeta(), sqlQueryContext.getDbSelectStatement(), sqlQueryContext.getDbEngine()));

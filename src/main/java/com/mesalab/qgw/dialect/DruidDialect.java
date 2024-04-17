@@ -137,7 +137,7 @@ public class DruidDialect extends AbstractDataSourceDialect {
         HttpResponseResult httpResponseResult = httpClientService.delete(deleteUrl);
         if (httpResponseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()
                 || httpResponseResult.getStatusCode() == HttpStatusCodeEnum.ACCEPTED.getCode()) {
-            return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
+            return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, true, "ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(httpResponseResult.getStatusCode(), httpResponseResult.getErrorMessage());
         }
@@ -189,11 +189,11 @@ public class DruidDialect extends AbstractDataSourceDialect {
         HttpResponseResult responseResult = executeHttpPost(sql);
 
         if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
-            baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(), ResultCodeEnum.SUCCESS.getCode(), message.get(),
+            baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(), ResultCodeEnum.SUCCESS.getCode(), true, message.get(),
                     (List<Object>) JSON.parseObject(responseResult.getResponseBody(), Object.class), null, null, OutputMode.JSON.getValue());
         } else {
             baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(),
-                    CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
+                    CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), false, String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
                     responseResult.getErrorMessage(), null, null, sqlQueryContext.getFormat());
         }
         return build();

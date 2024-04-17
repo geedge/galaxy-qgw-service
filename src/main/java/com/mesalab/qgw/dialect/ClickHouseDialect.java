@@ -156,7 +156,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
 
         HttpResponseResult responseResult = httpClientService.get(queryURL + URLEncodedUtils.format(values, StandardCharsets.UTF_8.toString()));
         if (responseResult.getStatusCode() == HttpStatusCodeEnum.SUCCESS.getCode()) {
-            return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, "ok", null, null, null, null);
+            return BaseResultGenerator.generate(HttpStatusCodeEnum.ACCEPTED.getCode(), null, true,"ok", null, null, null, null);
         } else {
             return BaseResultGenerator.failure(responseResult.getStatusCode(), responseResult.getErrorMessage());
         }
@@ -729,6 +729,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             baseResult = BaseResultGenerator.generate(
                     responseResult.getStatusCode(),
                     ResultCodeEnum.SUCCESS.getCode(),
+                    true,
                     message.get(),
                     JSON.parseObject(responseResult.getResponseBody(), Map.class),
                     null,
@@ -737,6 +738,7 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
         } else {
             baseResult = BaseResultGenerator.generate(responseResult.getStatusCode(),
                     CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    false,
                     String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), message.get()),
                     responseResult.getErrorMessage(),
                     null,
