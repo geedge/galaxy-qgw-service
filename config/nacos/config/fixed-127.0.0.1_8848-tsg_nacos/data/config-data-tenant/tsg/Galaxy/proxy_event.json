@@ -1939,7 +1939,7 @@
       "name": "tunnel_id_list",
       "label": "Tunnel ID List",
       "doc": {
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       },
       "type": {
