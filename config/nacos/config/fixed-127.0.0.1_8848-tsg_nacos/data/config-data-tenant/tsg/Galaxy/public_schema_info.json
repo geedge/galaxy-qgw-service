@@ -759,7 +759,8 @@
         "mail_subject_charset",
         "mail_attachment_name",
         "mail_attachment_name_charset",
-        "mail_eml_file"
+        "mail_eml_file",
+        "mail_starttls_flag"
       ],
       "default_columns": [
         "recv_time",

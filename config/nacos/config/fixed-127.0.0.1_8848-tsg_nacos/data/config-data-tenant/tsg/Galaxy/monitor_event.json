@@ -100,6 +100,7 @@
         "mail_attachment_name",
         "mail_attachment_name_charset",
         "mail_eml_file",
+        "mail_starttls_flag",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -382,6 +383,7 @@
         "mail_attachment_name",
         "mail_attachment_name_charset",
         "mail_eml_file",
+        "mail_starttls_flag",
         "dns_message_id",
         "dns_qr",
         "dns_opcode",
@@ -568,6 +570,7 @@
           "mail_attachment_name",
           "mail_attachment_name_charset",
           "mail_eml_file",
+          "mail_starttls_flag",
           "quic_version",
           "quic_sni",
           "quic_user_agent",
@@ -2525,6 +2528,28 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "mail_starttls_flag",
+      "label": "MAIL.STARTTLS Flag",
+      "doc": {
+        "constraints": {
+          "operator_functions": "=,!=,in,not in"
+        },
+        "data": [
+          {
+            "code": 0,
+            "value": "False"
+          },
+          {
+            "code": 1,
+            "value": "True"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "dns_message_id",
