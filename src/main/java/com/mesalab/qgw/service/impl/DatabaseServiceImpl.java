@@ -264,11 +264,35 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
 
     @Override
     public BaseResult getStorageQuota() {
-        //封装sql进行查询：Analytic Logs、Files、Traffic Logs
         SQLQueryContext param = new SQLQueryContext();
         param.setOriginalSQL(env.getProperty("SYSTEM_STORAGE_QUOTA"));
-        BaseResult result = sqlSyncQueryService.executeQuery(param);
-        return resetBaseResult(result, "type");
+        BaseResult storageData = sqlSyncQueryService.executeQuery(param);
+        List<Map> result = Lists.newArrayList();
+        for (SystemServiceImpl.LogType value : SystemServiceImpl.LogType.values()) {
+            if (value.getValue().equals(SystemServiceImpl.LogType.ALL.getValue())) {
+                continue;
+            }
+            Map<String, Object> resultItem = new HashMap();
+            if (storageData.isSuccess()) {
+                List<Map> data = (List<Map>) storageData.getData();
+                for (Map map : data) {
+                    if (value.getValue().equals(map.get("type"))) {
+                        resultItem.putAll(map);
+                        break;
+                    }
+                }
+            }
+            BaseResult deleteStorageStatus = getDeleteStorageStatus(value.getValue());
+            if (deleteStorageStatus.isSuccess()) {
+                List<StorageDeletionInfo> data1 = (List<StorageDeletionInfo>) deleteStorageStatus.getData();
+                resultItem.put("type", value.getLabel());
+                resultItem.put("max_days", data1.get(0).getMaxDays());
+                resultItem.put("default_max_days", data1.get(0).getDefaultMaxDays());
+            }
+            result.add(resultItem);
+
+        }
+        return BaseResultGenerator.success(result);
     }
 
     @Override
@@ -685,22 +709,6 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
             log.error("update Schema error: {}", e);
         }
        return new Schema.Parser().parse(JSON.toJSONString(schemaMap, JSONWriter.Feature.WriteNulls));
-    }
-
-    private BaseResult resetBaseResult(BaseResult result, String alias) {
-        if (!result.isSuccess()) {
-            return result;
-        }
-        List<Map> data = (List<Map>) result.getData();
-        for (Map map : data){
-            String logType = LogType.getLabelByValue(String.valueOf(map.get(alias)));
-            BaseResult deleteStorageStatus = getDeleteStorageStatus(String.valueOf(map.get(alias)));
-            List<StorageDeletionInfo> data1 = (List<StorageDeletionInfo>) deleteStorageStatus.getData();
-            map.put(alias, logType);
-            map.put("max_days",data1.get(0).getMaxDays());
-            map.put("default_max_days",data1.get(0).getDefaultMaxDays());
-        }
-        return result;
     }
 
     private boolean logTypeValid(List<StorageDeletionInfo> list) {
