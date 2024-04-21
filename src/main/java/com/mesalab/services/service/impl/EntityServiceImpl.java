@@ -373,41 +373,6 @@ public class EntityServiceImpl implements EntityService, EnvironmentAware {
         }
     }
 
-    private BaseResult formatResult(BaseResult baseResult, String limit) {
-        if (String.valueOf(HttpStatusCodeEnum.SUCCESS.getCode()).equals(String.valueOf(baseResult.getStatus()))) {
-            List<Object> alterationResultList = new ArrayList<>();
-            List<Map> resultList = new ObjectMapper().convertValue(baseResult.getData(), new TypeReference<List<Map>>() {
-            });
-            resultList.forEach(r -> {
-                if (ObjectUtil.isNotEmpty(r)) {
-                    List<Object> list = (List<Object>) JSON.parseObject((String)(r.get("client_ip")), Object.class);
-                    alterationResultList.addAll(list);
-                }
-            });
-
-            List<Object> sortedAndDistinctList = alterationResultList.stream()
-                    .sorted(Comparator.comparingInt(x -> Integer.parseInt(String.valueOf(((Map) x).get("sessions")))).reversed())
-                    .filter(distinctByKey(x -> String.valueOf(((Map) x).get("common_client_ip"))))
-                    .collect(Collectors.toList());
-
-            List<Object> dataResult = new ArrayList<>();
-            for (Object o : sortedAndDistinctList) {
-                if (dataResult.size() >= Integer.parseInt(limit)) {
-                    break;
-                }
-                Map clientIp = new HashMap();
-                clientIp.put("client_ip", ((Map) o).get("common_client_ip"));
-                dataResult.add(clientIp);
-            }
-            baseResult.getStatistics().put("result_rows", dataResult.size());
-            baseResult.getStatistics().put("result_bytes", JSON.toJSONString(dataResult).getBytes().length);
-            return BaseResultGenerator.generate(baseResult.getStatus(), baseResult.getCode(), baseResult.getMessage(), dataResult, baseResult.getMeta(), baseResult.getStatistics(), OutputMode.JSON.getValue());
-        } else {
-            baseResult = BaseResultGenerator.error(baseResult.getStatus(), baseResult.getMessage());
-        }
-        return baseResult;
-    }
-
     /**
      * @param keyExtractor
      * @return java.util.function.Predicate<T>

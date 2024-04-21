@@ -198,7 +198,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         for (Map<String, Object> data : resultData) {
             BaseResult result;
             Map map = JSON.parseObject((String) data.get("result"), Map.class);
-            result = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.SUCCESS.getCode(), String.valueOf(map.get("message")),
+            result = BaseResultGenerator.generate(Integer.parseInt(String.valueOf(map.get("status"))), ResultCodeEnum.SUCCESS.getCode(), true, String.valueOf(map.get("message")),
                     map.get("data"), map.get("meta"), (Map<String, Object>) (map.get(JobConfig.STATISTICS)), OutputMode.JSON.getValue());
             String rowKey = String.valueOf(data.get("ROWKEY"));
             jobStatus.forEach(o -> {

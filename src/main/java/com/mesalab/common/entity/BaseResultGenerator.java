@@ -27,8 +27,8 @@ public class BaseResultGenerator {
      * @param <T>        返回数据类型
      * @return 返回结果
      */
-    public static <T> BaseResult<T> generate(final int status, final String code, final String message, T data, T meta, final Map<String, Object> statistics, final String formatType) {
-        return new BaseResult<>(status, code,null, false, message, statistics, formatType, meta, data);
+    public static <T> BaseResult<T> generate(final int status, final String code,final boolean success, final String message, T data, T meta, final Map<String, Object> statistics, final String formatType) {
+        return new BaseResult<>(status, code,null, success, message, statistics, formatType, meta, data);
     }
 
     /**
