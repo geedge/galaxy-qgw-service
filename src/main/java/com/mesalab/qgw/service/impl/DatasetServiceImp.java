@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
+import com.geedgenetworks.utils.DateUtils;
 import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.jfinal.plugin.activerecord.Db;
@@ -57,7 +58,21 @@ public class DatasetServiceImp
         Object codeInfo = databaseService.getCfg(NacosConst.DATASETS_VARIABLES);
         if (StringUtil.isNotEmpty(codeInfo)) {
             Object json = JSON.toJSON(codeInfo);
-            return JSON.parseArray(json.toString(), LinkedHashMap.class);
+            List<LinkedHashMap> variables = JSON.parseArray(json.toString(), LinkedHashMap.class);
+            for (LinkedHashMap variable : variables) {
+                String key = String.valueOf(variable.get("key"));
+                String def = String.valueOf(variable.get("default"));
+                Date currentDate = DateUtils.convertStringToDate(DateUtils.getCurrentDate(DateUtils.YYYY_MM_DD_HH24_MM_SS), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+                if ("start_time".equals(key)&& StringUtil.isBlank(def)){
+                    def = DateUtils.getFormatDate(DateUtils.getSomeHour(currentDate, -1), DateUtils.YYYY_MM_DD_HH24_MM_SS);
+                    variable.put("default", def);
+                }
+                if ("end_time".equals(key)&& StringUtil.isBlank(def)){
+                    def = DateUtils.getFormatDate(currentDate, DateUtils.YYYY_MM_DD_HH24_MM_SS);
+                    variable.put("default", def);
+                }
+            }
+            return variables;
         }
         return Lists.newArrayList();
     }
