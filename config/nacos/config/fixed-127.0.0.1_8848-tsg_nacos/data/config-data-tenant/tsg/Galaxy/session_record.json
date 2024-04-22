@@ -71,6 +71,7 @@
         "app",
         "app_debug_info",
         "app_content",
+        "app_extra_info",
         "ip_protocol",
         "decoded_path",
         "dup_traffic_flag",
@@ -350,6 +351,7 @@
         "app_debug_info",
         "app",
         "app_content",
+        "app_extra_info",
         "dup_traffic_flag",
         "tunnel_endpoint_a_desc",
         "tunnel_endpoint_b_desc",
@@ -1911,6 +1913,15 @@
       "label": "Application Content",
       "doc": {
         "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
+      "name": "app_extra_info",
+      "label": "Application Extra Info",
+      "doc": {
+        "visibility": "hidden",
         "ttl": null
       },
       "type": "string"

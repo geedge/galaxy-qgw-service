@@ -1449,6 +1449,15 @@
       "type": "string"
     },
     {
+      "name": "app_extra_info",
+      "label": "Application Extra Info",
+      "doc": {
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "string"
+    },
+    {
       "name": "ip_protocol",
       "label": "IP Protocol",
       "doc": {
