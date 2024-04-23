@@ -277,10 +277,11 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         List<Map<String, String>> sqlDatasetList = Lists.newArrayList();
         List<Map<String, String>> dslDatasetList = Lists.newArrayList();
         List<Map<String, String>> resultData = Lists.newArrayList();
+        List<LinkedHashMap> variables = datasetService.getVariable();
         datasetList.forEach(record -> {
             Map<String, String> map = Maps.newHashMap();
             map.put(IDENTIFIER_NAME, String.valueOf(record.getColumns().get(IDENTIFIER_NAME)));
-            map.put(TEMPLATE, String.valueOf(datasetService.buildExecSQL(datasetService.getVariable(), String.valueOf(record.getColumns().get(TEMPLATE)))));
+            map.put(TEMPLATE, String.valueOf(datasetService.buildExecSQL(variables, String.valueOf(record.getColumns().get(TEMPLATE)))));
             if (record.getColumns().get(DATASET_TYPE).equals("sql")) {
                 sqlDatasetList.add(map);
             } else if (record.getColumns().get(DATASET_TYPE).equals("dsl")) {
@@ -322,7 +323,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             }
         }
 
-        return buildResult(resultData, sqlDatasetList.size() + dslDatasetList.size());
+        return buildResult(variables ,resultData, sqlDatasetList.size() + dslDatasetList.size());
     }
 
     @Override
@@ -338,15 +339,12 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, Map<String, String>> hbaseResult;
         try {
             List<Map<String, Object>> dataSetlist = datasetService.getDatasets(Lists.newArrayList(), BENCHMARK, null);
-            List<String> druidIdList = Lists.newLinkedList();
-            List<String> ckIdList = Lists.newLinkedList();
-            List<String> engineIdList = Lists.newLinkedList();
-            List<String> hbaseIdList = Lists.newLinkedList();
+            List<Map> druidDatasetList = Lists.newLinkedList();
+            List<Map> ckDatasetList = Lists.newLinkedList();
+            List<Map> engineDatasetList = Lists.newLinkedList();
+            List<Map> hbaseDatasetList = Lists.newLinkedList();
+            List<LinkedHashMap> variables = datasetService.getVariable();
 
-            List<String> druidSqlList = Lists.newLinkedList();
-            List<String> ckSqlList = Lists.newLinkedList();
-            List<String> engineSqlList = Lists.newLinkedList();
-            List<String> hbaseSqlList = Lists.newLinkedList();
             Stopwatch watch = Stopwatch.createStarted();
             if (CollectionUtil.isNotEmpty(dataSetlist)) {
                 for (int i = 0; i < dataSetlist.size(); i++) {
@@ -354,27 +352,26 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                         String backendEngine = String.valueOf(dataSetlist.get(i).get(BACKEND_ENGINE));
                         String identifierName = String.valueOf(dataSetlist.get(i).get(IDENTIFIER_NAME));
                         String template = String.valueOf(dataSetlist.get(i).get(TEMPLATE));
+                        Map<String, String> map = Maps.newHashMap();
+                        map.put(IDENTIFIER_NAME, identifierName);
+                        map.put(TEMPLATE, String.valueOf(datasetService.buildExecSQL(variables, template)));
                         if (DBEngineType.DRUID.getValue().equalsIgnoreCase(backendEngine)) {
-                            druidIdList.add(identifierName);
-                            druidSqlList.add(template);
+                            druidDatasetList.add(map);
                         } else if (DBEngineType.CLICKHOUSE.getValue().equalsIgnoreCase(backendEngine)) {
-                            ckIdList.add(identifierName);
-                            ckSqlList.add(template);
+                            ckDatasetList.add(map);
                         } else if (DBEngineType.HBASE.getValue().equalsIgnoreCase(backendEngine)) {
-                            hbaseIdList.add(identifierName);
-                            hbaseSqlList.add(template);
+                            hbaseDatasetList.add(map);
                         } else {
-                            engineIdList.add(identifierName);
-                            engineSqlList.add(template);
+                            engineDatasetList.add(map);
                         }
                     }
                 }
             }
 
-            clickhouseResult = buildResult(DBEngineType.CLICKHOUSE.getValue(), ckIdList, isSaved);
-            druidResult = buildResult(DBEngineType.DRUID.getValue(), druidIdList, isSaved);
-            engineResult = buildResult(DBEngineType.QGW.getValue(), engineIdList, isSaved);
-            hbaseResult = buildResult(DBEngineType.HBASE.getValue(), hbaseIdList, isSaved);
+            clickhouseResult = buildResult(DBEngineType.CLICKHOUSE.getValue(), ckDatasetList, isSaved);
+            druidResult = buildResult(DBEngineType.DRUID.getValue(), druidDatasetList, isSaved);
+            engineResult = buildResult(DBEngineType.QGW.getValue(), engineDatasetList, isSaved);
+            hbaseResult = buildResult(DBEngineType.HBASE.getValue(), hbaseDatasetList, isSaved);
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
@@ -386,7 +383,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
 
             dataResult.put(BENCHMARK, mergeResult);
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
-            result = BaseResultGenerator.success("SQL benchmark complete.", dataResult, statistics);
+            result = BaseResultGenerator.success(StrUtil.format("SQL benchmark complete, time range is: {}", getTimeRangeByVariable(variables)), dataResult, statistics);
             result.setFormatType(OutputMode.JSON.getValue());
         } catch (RuntimeException e) {
             log.error("Execute Poc SQL Fail:{}", e);
@@ -686,26 +683,15 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         return httpClientService.httpGet(queryURL + URLEncodedUtils.format(values, "utf-8"), socketTimeOut);
     }
 
-    private BaseResult<List<Map<String, String>>> buildResult(List<Map<String, String>> resultData, int totalSize) {
-        List<LinkedHashMap> variable = datasetService.getVariable();
-        String startTime = "";
-        String endTime = "";
-        for (Map map : variable) {
-            if (map.get("key").equals("start")) {
-                startTime = String.valueOf(map.get("default"));
-            }
-            if (map.get("key").equals("end")) {
-                endTime = String.valueOf(map.get("default"));
-            }
-        }
+    private BaseResult<List<Map<String, String>>> buildResult(List<LinkedHashMap> variables,List<Map<String, String>> resultData, int totalSize) {
         if (CollectionUtil.isEmpty(resultData)) {
-            return BaseResultGenerator.success(StrUtil.format("There are {} datasets in total, and 100% of them pass the verification, time range is: ['{}'/'{}']", totalSize, startTime, endTime), resultData);
+            return BaseResultGenerator.success(StrUtil.format("There are {} datasets in total, and 100% of them pass the verification, time range is: {}", totalSize, getTimeRangeByVariable(variables)), resultData);
         } else {
-            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), StrUtil.format("There are {} datasets in total, and {} of them pass the verification, time range is: ['{}'/'{}']", totalSize, NumberUtil.decimalFormat("#.##%", ((totalSize - resultData.size()) * 1.00 / totalSize)), startTime, endTime), resultData);
+            return BaseResultGenerator.failure(HttpStatusCodeEnum.SERVER_ERROR.getCode(), StrUtil.format("There are {} datasets in total, and {} of them pass the verification, time range is: {}", totalSize, NumberUtil.decimalFormat("#.##%", ((totalSize - resultData.size()) * 1.00 / totalSize)), getTimeRangeByVariable(variables)), resultData);
         }
     }
 
-    private Map<String, Map<String, String>> buildResult(String executeEngine, List<String> list, boolean isSaved) {
+    private Map<String, Map<String, String>> buildResult(String executeEngine, List<Map> list, boolean isSaved) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newLinkedHashMap();
         CSVWriter csvWriter = null;
@@ -725,15 +711,18 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
                 throw new RuntimeException(e);
             }
         }
-        for (String id : list) {
+        for (Map map : list) {
             Stopwatch watch = Stopwatch.createStarted();
-            BaseResult queryResult = datasetService.getPreview(id);
+            SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(String.valueOf(map.get(TEMPLATE)), SqlQueryRequestParam.class);
+            sqlQueryRequest.setExecMode(ExecMode.ONESHOT.getValue());
+            log.info("Benchmark Test, ID is: {}", map.get(IDENTIFIER_NAME));
+            BaseResult queryResult = queryJobService.createSQLAdHocQuery(sqlQueryRequest);
             if (StringUtil.isEmpty(queryResult.getStatistics())) {
                 Map<String, Object> statistics = Maps.newLinkedHashMap();
                 statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
                 queryResult.setStatistics(statistics);
             }
-            processQueryResult(benchFileName, infoMap, csvWriter, id, queryResult);
+            processQueryResult(benchFileName, infoMap, csvWriter, String.valueOf(map.get(IDENTIFIER_NAME)), queryResult);
         }
         if (csvWriter != null) {
             try {
@@ -745,6 +734,20 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
 
         resultMap.put(benchFileName, buildQueryTimeMetric(infoMap));
         return resultMap;
+    }
+
+    private static String getTimeRangeByVariable(List<LinkedHashMap> variables) {
+        String startTime = "";
+        String endTime = "";
+        for (LinkedHashMap variable : variables) {
+            if (variable.get("key").equals("start")) {
+                startTime = String.valueOf(variable.get("default"));
+            }
+            if (variable.get("key").equals("end")) {
+                endTime = String.valueOf(variable.get("default"));
+            }
+        }
+        return StrUtil.format("['{}'/'{}']", startTime, endTime);
     }
 
     private Map<String, String> buildQueryTimeMetric(Map<String, String> infoMap) {
