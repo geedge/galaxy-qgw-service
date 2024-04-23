@@ -11,7 +11,8 @@
         "proxy_event",
         "dos_event",
         "assessment_event",
-        "monitor_event"
+        "monitor_event",
+        "datapath_telemetry_record"
       ]
     },
     {
