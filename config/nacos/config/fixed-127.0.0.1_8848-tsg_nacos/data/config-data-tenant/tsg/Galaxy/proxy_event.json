@@ -1003,6 +1003,30 @@
       "type": "string"
     },
     {
+      "name": "c2s_ttl",
+      "label": "Client-to-Server TTL",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "s2c_ttl",
+      "label": "Server-to-Client TTL",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "hidden",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
       "name": "security_rule_list",
       "label": "Security Rule List",
       "doc": {

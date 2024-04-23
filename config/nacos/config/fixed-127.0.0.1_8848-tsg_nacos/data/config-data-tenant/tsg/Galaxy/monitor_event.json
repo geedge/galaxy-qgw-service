@@ -35,6 +35,8 @@
         "vsys_id",
         "flags",
         "flags_identify_info",
+        "c2s_ttl",
+        "s2c_ttl",
         "monitor_rule_list",
         "client_ip",
         "client_port",
@@ -206,6 +208,8 @@
         "monitor_rule_id"
       ],
       "metrics": [
+        "c2s_ttl",
+        "s2c_ttl",
         "client_ip",
         "client_port",
         "client_geolocation",
@@ -323,6 +327,8 @@
         "vsys_id",
         "flags",
         "flags_identify_info",
+        "c2s_ttl",
+        "s2c_ttl",
         "monitor_rule_list",
         "monitor_mirrored_pkts",
         "monitor_mirrored_bytes",
@@ -1427,6 +1433,30 @@
         "ttl": null
       },
       "type": "string"
+    },
+    {
+      "name": "c2s_ttl",
+      "label": "Client-to-Server TTL",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
+    },
+    {
+      "name": "s2c_ttl",
+      "label": "Server-to-Client TTL",
+      "doc": {
+        "constraints": {
+          "aggregation_functions": "COUNT, COUNT_DISTINCT"
+        },
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "int"
     },
     {
       "name": "security_rule_list",
