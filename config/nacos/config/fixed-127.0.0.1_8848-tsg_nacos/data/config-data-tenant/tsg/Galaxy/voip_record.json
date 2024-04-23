@@ -44,14 +44,6 @@
         "client_administrative_area",
         "client_sub_administrative_area",
         "client_asn",
-        "subscriber_id",
-        "imei",
-        "imsi",
-        "apn",
-        "phone_number",
-        "packet_capture_file",
-        "in_src_mac",
-        "out_src_mac",
         "server_ip",
         "server_port",
         "server_os_desc",
@@ -61,21 +53,7 @@
         "server_administrative_area",
         "server_sub_administrative_area",
         "server_asn",
-        "server_fqdn",
-        "server_domain",
-        "in_dest_mac",
-        "out_dest_mac",
-        "app_transition",
-        "app",
-        "app_debug_info",
-        "app_content",
-        "app_extra_info",
         "ip_protocol",
-        "decoded_path",
-        "dup_traffic_flag",
-        "tunnel_id_list",
-        "tunnel_endpoint_a_desc",
-        "tunnel_endpoint_b_desc",
         "sip_call_id",
         "sip_originator_description",
         "sip_responder_description",
@@ -103,8 +81,6 @@
         "client_administrative_area",
         "client_sub_administrative_area",
         "client_asn",
-        "in_src_mac",
-        "out_src_mac",
         "server_ip",
         "server_port",
         "server_geolocation",
@@ -113,17 +89,12 @@
         "server_administrative_area",
         "server_sub_administrative_area",
         "server_asn",
-        "in_dest_mac",
-        "out_dest_mac",
-        "app",
-        "decoded_path",
         "sent_pkts",
         "received_pkts",
         "sent_bytes",
         "received_bytes",
         "duration_ms",
         "tcp_handshake_latency_ms",
-        "tcp_rtt_ms",
         "sip_call_id",
         "sip_server",
         "sip_originator_sdp_connect_ip",
@@ -147,8 +118,6 @@
         "vsys_id",
         "flags",
         "flags_identify_info",
-        "monitor_mirrored_pkts",
-        "monitor_mirrored_bytes",
         "client_ip",
         "client_port",
         "client_os_desc",
@@ -158,13 +127,6 @@
         "client_administrative_area",
         "client_sub_administrative_area",
         "client_asn",
-        "subscriber_id",
-        "imei",
-        "imsi",
-        "apn",
-        "phone_number",
-        "in_src_mac",
-        "out_src_mac",
         "server_ip",
         "server_port",
         "server_os_desc",
@@ -174,37 +136,11 @@
         "server_administrative_area",
         "server_sub_administrative_area",
         "server_asn",
-        "server_fqdn",
-        "server_domain",
-        "in_dest_mac",
-        "out_dest_mac",
-        "app_transition",
-        "app_debug_info",
-        "app",
-        "app_content",
-        "app_extra_info",
-        "dup_traffic_flag",
-        "tunnel_id_list",
-        "tunnel_endpoint_a_desc",
-        "tunnel_endpoint_b_desc",
         "ip_protocol",
-        "decoded_path",
-        "fqdn_category_list",
         "sent_pkts",
         "received_pkts",
         "sent_bytes",
         "received_bytes",
-        "tcp_c2s_ip_fragments",
-        "tcp_s2c_ip_fragments",
-        "tcp_c2s_lost_bytes",
-        "tcp_s2c_lost_bytes",
-        "tcp_c2s_o3_pkts",
-        "tcp_s2c_o3_pkts",
-        "tcp_c2s_rtx_pkts",
-        "tcp_s2c_rtx_pkts",
-        "tcp_c2s_rtx_bytes",
-        "tcp_s2c_rtx_bytes",
-        "tcp_rtt_ms",
         "sip_call_id",
         "sip_originator_description",
         "sip_responder_description",
@@ -228,24 +164,55 @@
         "$ref": "public_schema_info.json#/schema_query/references"
       },
       "details": {
-        "general": {
-          "$ref": "public_schema_info.json#/details/general"
-        },
-        "treatment": {
-          "$ref": "public_schema_info.json#/details/treatment"
-        },
-        "source": {
-          "$ref": "public_schema_info.json#/details/source"
-        },
-        "destination": {
-          "$ref": "public_schema_info.json#/details/destination"
-        },
-        "application": {
-          "$ref": "public_schema_info.json#/details/application"
-        },
+        "general": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info"
+        ],
+        "source": [
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_country",
+          "client_super_administrative_area",
+          "client_administrative_area",
+          "client_sub_administrative_area",
+          "client_asn"
+        ],
+        "destination": [
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_country",
+          "server_super_administrative_area",
+          "server_administrative_area",
+          "server_sub_administrative_area",
+          "server_asn"
+        ],
         "protocol": [
           "ip_protocol",
-          "decoded_path",
           "sip_call_id",
           "sip_originator_description",
           "sip_responder_description",
@@ -266,45 +233,247 @@
           "rtp_pcap_path",
           "rtp_originator_dir"
         ],
-        "transmission": {
-          "$ref": "public_schema_info.json#/details/transmission"
-        },
-        "other": {
-          "$ref": "public_schema_info.json#/details/other"
-        }
+        "transmission": [
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes"
+        ]
       }
     },
     "decoded_as": {
       "SIP": {
-        "$ref": "public_schema_info.json#/decoded_as/SIP"
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_country",
+          "client_super_administrative_area",
+          "client_administrative_area",
+          "client_sub_administrative_area",
+          "client_asn",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_country",
+          "server_super_administrative_area",
+          "server_administrative_area",
+          "server_sub_administrative_area",
+          "server_asn",
+          "ip_protocol",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration_s",
+          "sip_bye"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_call_id",
+          "server_ip",
+          "server_port"
+        ]
       },
       "RTP": {
-        "$ref": "public_schema_info.json#/decoded_as/RTP"
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_country",
+          "client_super_administrative_area",
+          "client_administrative_area",
+          "client_sub_administrative_area",
+          "client_asn",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_country",
+          "server_super_administrative_area",
+          "server_administrative_area",
+          "server_sub_administrative_area",
+          "server_asn",
+          "ip_protocol",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ]
       },
       "VoIP": {
-        "$ref": "public_schema_info.json#/decoded_as/VoIP"
+        "columns": [
+          "recv_time",
+          "log_id",
+          "decoded_as",
+          "session_id",
+          "start_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "tcp_handshake_latency_ms",
+          "ingestion_time",
+          "processing_time",
+          "insert_time",
+          "device_id",
+          "out_link_id",
+          "in_link_id",
+          "device_tag",
+          "data_center",
+          "device_group",
+          "sled_ip",
+          "address_type",
+          "vsys_id",
+          "t_vsys_id",
+          "flags",
+          "flags_identify_info",
+          "client_ip",
+          "client_port",
+          "client_os_desc",
+          "client_geolocation",
+          "client_country",
+          "client_super_administrative_area",
+          "client_administrative_area",
+          "client_sub_administrative_area",
+          "client_asn",
+          "server_ip",
+          "server_port",
+          "server_os_desc",
+          "server_geolocation",
+          "server_country",
+          "server_super_administrative_area",
+          "server_administrative_area",
+          "server_sub_administrative_area",
+          "server_asn",
+          "ip_protocol",
+          "sent_pkts",
+          "received_pkts",
+          "sent_bytes",
+          "received_bytes",
+          "sip_call_id",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_user_agent",
+          "sip_server",
+          "sip_originator_sdp_connect_ip",
+          "sip_originator_sdp_media_port",
+          "sip_originator_sdp_media_type",
+          "sip_originator_sdp_content",
+          "sip_responder_sdp_connect_ip",
+          "sip_responder_sdp_media_port",
+          "sip_responder_sdp_media_type",
+          "sip_responder_sdp_content",
+          "sip_duration_s",
+          "sip_bye",
+          "rtp_payload_type_c2s",
+          "rtp_payload_type_s2c",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ],
+        "default_columns": [
+          "recv_time",
+          "client_ip",
+          "client_port",
+          "server_ip",
+          "server_port",
+          "sip_originator_description",
+          "sip_responder_description",
+          "sip_call_id",
+          "rtp_pcap_path",
+          "rtp_originator_dir"
+        ]
       }
     },
     "default_columns": [
       "recv_time",
-      "subscriber_id",
       "client_ip",
       "client_port",
       "server_ip",
       "server_port",
-      "decoded_as",
-      "server_fqdn"
+      "decoded_as"
     ],
     "internal_columns": [
       "recv_time",
       "log_id",
-      "flags_identify_info",
-      "encapsulation",
-      "app_debug_info",
-      "app_content",
-      "packet_capture_file",
-      "tunnel_endpoint_a_desc",
-      "tunnel_endpoint_b_desc"
+      "flags_identify_info"
     ],
     "tunnel_type": {
       "$ref": "public_schema_info.json#/tunnel_type"
@@ -315,37 +484,17 @@
           "sent_pkts": "packets",
           "received_pkts": "packets",
           "sent_bytes": "bytes",
-          "received_bytes": "bytes",
-          "tcp_c2s_lost_bytes": "bytes",
-          "tcp_s2c_lost_bytes": "bytes",
-          "tcp_c2s_o3_pkts": "packets",
-          "tcp_s2c_o3_pkts": "packets",
-          "tcp_c2s_rtx_pkts": "packets",
-          "tcp_s2c_rtx_pkts": "packets",
-          "tcp_c2s_rtx_bytes": "bytes",
-          "tcp_s2c_rtx_bytes": "bytes"
+          "received_bytes": "bytes"
         },
         "RATE": {
           "sent_pkts": "pps",
           "received_pkts": "pps",
           "sent_bytes": "Bps",
-          "received_bytes": "Bps",
-          "tcp_c2s_lost_bytes": "Bps",
-          "tcp_s2c_lost_bytes": "Bps",
-          "tcp_c2s_o3_pkts": "pps",
-          "tcp_s2c_o3_pkts": "pps",
-          "tcp_c2s_rtx_pkts": "pps",
-          "tcp_s2c_rtx_pkts": "pps",
-          "tcp_c2s_rtx_bytes": "Bps",
-          "tcp_s2c_rtx_bytes": "Bps"
+          "received_bytes": "Bps"
         },
         "BITRATE": {
           "sent_bytes": "bps",
-          "received_bytes": "bps",
-          "tcp_c2s_lost_bytes": "bps",
-          "tcp_s2c_lost_bytes": "bps",
-          "tcp_c2s_rtx_bytes": "bps",
-          "tcp_s2c_rtx_bytes": "bps"
+          "received_bytes": "bps"
         },
         "MAX": {
           "sent_pkts": "packets",
@@ -354,15 +503,6 @@
           "received_bytes": "bytes",
           "duration_ms": "ms",
           "tcp_handshake_latency_ms": "ms",
-          "tcp_c2s_lost_bytes": "bytes",
-          "tcp_s2c_lost_bytes": "bytes",
-          "tcp_c2s_o3_pkts": "packets",
-          "tcp_s2c_o3_pkts": "packets",
-          "tcp_c2s_rtx_pkts": "packets",
-          "tcp_s2c_rtx_pkts": "packets",
-          "tcp_c2s_rtx_bytes": "bytes",
-          "tcp_s2c_rtx_bytes": "bytes",
-          "tcp_rtt_ms": "ms",
           "sip_duration_s": "s"
         },
         "MIN": {
@@ -372,15 +512,6 @@
           "received_bytes": "bytes",
           "duration_ms": "ms",
           "tcp_handshake_latency_ms": "ms",
-          "tcp_c2s_lost_bytes": "bytes",
-          "tcp_s2c_lost_bytes": "bytes",
-          "tcp_c2s_o3_pkts": "packets",
-          "tcp_s2c_o3_pkts": "packets",
-          "tcp_c2s_rtx_pkts": "packets",
-          "tcp_s2c_rtx_pkts": "packets",
-          "tcp_c2s_rtx_bytes": "bytes",
-          "tcp_s2c_rtx_bytes": "bytes",
-          "tcp_rtt_ms": "ms",
           "sip_duration_s": "s"
         },
         "AVG": {
@@ -390,15 +521,6 @@
           "received_bytes": "bytes",
           "duration_ms": "ms",
           "tcp_handshake_latency_ms": "ms",
-          "tcp_c2s_lost_bytes": "bytes",
-          "tcp_s2c_lost_bytes": "bytes",
-          "tcp_c2s_o3_pkts": "packets",
-          "tcp_s2c_o3_pkts": "packets",
-          "tcp_c2s_rtx_pkts": "packets",
-          "tcp_s2c_rtx_pkts": "packets",
-          "tcp_c2s_rtx_bytes": "bytes",
-          "tcp_s2c_rtx_bytes": "bytes",
-          "tcp_rtt_ms": "ms",
           "sip_duration_s": "s"
         },
         "MEDIAN": {
@@ -408,15 +530,6 @@
           "received_bytes": "bytes",
           "duration_ms": "ms",
           "tcp_handshake_latency_ms": "ms",
-          "tcp_c2s_lost_bytes": "bytes",
-          "tcp_s2c_lost_bytes": "bytes",
-          "tcp_c2s_o3_pkts": "packets",
-          "tcp_s2c_o3_pkts": "packets",
-          "tcp_c2s_rtx_pkts": "packets",
-          "tcp_s2c_rtx_pkts": "packets",
-          "tcp_c2s_rtx_bytes": "bytes",
-          "tcp_s2c_rtx_bytes": "bytes",
-          "tcp_rtt_ms": "ms",
           "sip_duration_s": "s"
         },
         "P95_PERCENTILE": {
@@ -426,15 +539,6 @@
           "received_bytes": "bytes",
           "duration_ms": "ms",
           "tcp_handshake_latency_ms": "ms",
-          "tcp_c2s_lost_bytes": "bytes",
-          "tcp_s2c_lost_bytes": "bytes",
-          "tcp_c2s_o3_pkts": "packets",
-          "tcp_s2c_o3_pkts": "packets",
-          "tcp_c2s_rtx_pkts": "packets",
-          "tcp_s2c_rtx_pkts": "packets",
-          "tcp_c2s_rtx_bytes": "bytes",
-          "tcp_s2c_rtx_bytes": "bytes",
-          "tcp_rtt_ms": "ms",
           "sip_duration_s": "s"
         },
         "P99_PERCENTILE": {
@@ -444,15 +548,6 @@
           "received_bytes": "bytes",
           "duration_ms": "ms",
           "tcp_handshake_latency_ms": "ms",
-          "tcp_c2s_lost_bytes": "bytes",
-          "tcp_s2c_lost_bytes": "bytes",
-          "tcp_c2s_o3_pkts": "packets",
-          "tcp_s2c_o3_pkts": "packets",
-          "tcp_c2s_rtx_pkts": "packets",
-          "tcp_s2c_rtx_pkts": "packets",
-          "tcp_c2s_rtx_bytes": "bytes",
-          "tcp_s2c_rtx_bytes": "bytes",
-          "tcp_rtt_ms": "ms",
           "sip_duration_s": "s"
         }
       },
@@ -812,311 +907,6 @@
       "type": "string"
     },
     {
-      "name": "security_rule_list",
-      "label": "Security Rule List",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "security_action",
-      "label": "Security Action",
-      "doc": {
-        "visibility": "hidden",
-        "constraints": {
-          "operator_functions": "=,!=,in,not in"
-        },
-        "data": [
-          {
-            "code": "Deny",
-            "value": "Deny"
-          },
-          {
-            "code": "Allow",
-            "value": "Allow"
-          }
-        ],
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "monitor_rule_list",
-      "label": "Monitor Rule List",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "sc_rule_list",
-      "label": "Service Chaining Rule List",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "statistics_rule_list",
-      "label": "Statistics Rule List",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "sc_rsp_raw",
-      "label": "Service Chaining Rendered Service Path (Raw)",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "sc_rsp_decrypted",
-      "label": "Service Chaining Rendered Service Path (Decrypted)",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "shaping_rule_list",
-      "label": "Shaping Rule List",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "proxy_rule_list",
-      "label": "Proxy Rule List",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "proxy_action",
-      "label": "Proxy Action",
-      "doc": {
-        "visibility": "hidden",
-        "constraints": {
-          "operator_functions": "=,!=,in,not in"
-        },
-        "data": [
-          {
-            "code": "Intercept",
-            "value": "Intercept"
-          },
-          {
-            "code": "No Intercept",
-            "value": "No Intercept"
-          }
-        ],
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "proxy_pinning_status",
-      "label": "Proxy Pinning Status",
-      "doc": {
-        "data": [
-          {
-            "code": "0",
-            "value": "not pinning"
-          },
-          {
-            "code": "1",
-            "value": "pinning"
-          },
-          {
-            "code": "2",
-            "value": "maybe pinning"
-          }
-        ],
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
-      "name": "proxy_intercept_status",
-      "label": "Proxy Intercept Status",
-      "doc": {
-        "data": [
-          {
-            "code": "0",
-            "value": "passthrough"
-          },
-          {
-            "code": "1",
-            "value": "intercept"
-          },
-          {
-            "code": "2",
-            "value": "shutdown"
-          }
-        ],
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
-      "name": "proxy_passthrough_reason",
-      "label": "Proxy Passthrough Reason",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "proxy_server_side_latency_ms",
-      "label": "Proxy Server-Side Latency (ms)",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
-      "name": "proxy_client_side_latency_ms",
-      "label": "Proxy Client-Side Latency (ms)",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
-      "name": "proxy_client_side_version",
-      "label": "Proxy Client-Side Version",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "proxy_server_side_version",
-      "label": "Proxy Server-Side Version",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "proxy_cert_verify",
-      "label": "Proxy Certificate Verify",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
-      "name": "proxy_intercept_error",
-      "label": "Proxy Intercept Error",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "monitor_mirrored_pkts",
-      "label": "Monitor Mirrored Packets",
-      "type": "int",
-      "doc": {
-        "constraints": {
-          "type": "decimal"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      }
-    },
-    {
-      "name": "monitor_mirrored_bytes",
-      "label": "Monitor Mirrored Bytes",
-      "type": "int",
-      "doc": {
-        "constraints": {
-          "type": "bytes"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      }
-    },
-    {
       "name": "client_ip",
       "label": "Client IP",
       "doc": {
@@ -1205,51 +995,6 @@
         "ttl": null
       },
       "type": "long"
-    },
-    {
-      "name": "subscriber_id",
-      "label": "Subscriber ID",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "imei",
-      "label": "IMEI",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "imsi",
-      "label": "IMSI",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "apn",
-      "label": "APN",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "phone_number",
-      "label": "Phone Number",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
     },
     {
       "name": "server_ip",
@@ -1342,69 +1087,6 @@
       "type": "long"
     },
     {
-      "name": "server_fqdn",
-      "label": "Server FQDN",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "server_domain",
-      "label": "Server Domain",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "app_transition",
-      "label": "Application Transition",
-      "type": "string",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      }
-    },
-    {
-      "name": "app",
-      "label": "Application",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "app_debug_info",
-      "label": "Application Debug Info",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "app_content",
-      "label": "Application Content",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "app_extra_info",
-      "label": "Application Extra Info",
-      "doc": {
-        "visibility": "hidden",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
       "name": "ip_protocol",
       "label": "IP Protocol",
       "doc": {
@@ -1422,36 +1104,6 @@
         "ttl": null
       },
       "type": "string"
-    },
-    {
-      "name": "decoded_path",
-      "label": "Decoded Path",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "fqdn_category_list",
-      "label": "FQDN Category List",
-      "doc": {
-        "constraints": {
-          "operator_functions": "has,notEmpty,empty"
-        },
-        "dict_location": {
-          "path": "/v1/policy/object?type=fqdn_category",
-          "key": "category_id",
-          "value": "category_name"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
     },
     {
       "name": "sent_pkts",
@@ -1500,261 +1152,6 @@
         "ttl": null
       },
       "type": "long"
-    },
-    {
-      "name": "tcp_c2s_ip_fragments",
-      "label": "Client-to-Server IP Fragments",
-      "doc": {
-        "constraints": {
-          "type": "decimal"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_s2c_ip_fragments",
-      "label": "Server-to-Client IP Fragments",
-      "doc": {
-        "constraints": {
-          "type": "decimal"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_c2s_lost_bytes",
-      "label": "Client-to-Server Lost Bytes",
-      "doc": {
-        "constraints": {
-          "type": "bytes"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_s2c_lost_bytes",
-      "label": "Server-to-Client Lost Bytes",
-      "doc": {
-        "constraints": {
-          "type": "bytes"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_c2s_o3_pkts",
-      "label": "Client-to-Server Out-of-Order Packets",
-      "doc": {
-        "constraints": {
-          "type": "decimal"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_s2c_o3_pkts",
-      "label": "Server-to-Client Out-of-Order Packets",
-      "doc": {
-        "constraints": {
-          "type": "decimal"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_c2s_rtx_pkts",
-      "label": "Client-to-Server Retransmission Packets",
-      "doc": {
-        "constraints": {
-          "type": "decimal"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_s2c_rtx_pkts",
-      "label": "Server-to-Client Retransmission Packets",
-      "doc": {
-        "constraints": {
-          "type": "decimal"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_c2s_rtx_bytes",
-      "label": "Client-to-Server Retransmission Bytes",
-      "doc": {
-        "constraints": {
-          "type": "bytes"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_s2c_rtx_bytes",
-      "label": "Server-to-Client Retransmission Bytes",
-      "doc": {
-        "constraints": {
-          "type": "bytes"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_rtt_ms",
-      "label": "Round-trip Time (ms)",
-      "doc": {
-        "constraints": {
-          "type": "decimal",
-          "aggregation_functions": "AVG, MAX, MIN, MEDIAN, P95_PERCENTILE, P99_PERCENTILE"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
-      "name": "tcp_client_isn",
-      "label": "Client ISN",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "tcp_server_isn",
-      "label": "Server ISN",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "long"
-    },
-    {
-      "name": "packet_capture_file",
-      "label": "Packet Capture File",
-      "doc": {
-        "allow_query": "false",
-        "visibility": "enabled",
-        "constraints": {
-          "type": "file"
-        },
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "in_src_mac",
-      "label": "Incoming Source MAC",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "out_src_mac",
-      "label": "Outgoing Source MAC",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "in_dest_mac",
-      "label": "Incoming Destination MAC",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "out_dest_mac",
-      "label": "Outgoing Destination MAC",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "encapsulation",
-      "label": "Encapsulation",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "dup_traffic_flag",
-      "label": "Duplicate Traffic Flag",
-      "doc": {
-        "constraints": {
-          "operator_functions": "=,!=,in,not in"
-        },
-        "data": {
-          "$ref": "public_schema_info.json#/fields/dup_traffic_flag/data"
-        },
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "int"
-    },
-    {
-      "name": "tunnel_id_list",
-      "label": "Tunnel ID List",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": {
-        "type": "array",
-        "items": "long",
-        "logicalType": "array"
-      }
-    },
-    {
-      "name": "tunnel_endpoint_a_desc",
-      "label": "Tunnel Endpoint A Description (Deprecated)",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
-    },
-    {
-      "name": "tunnel_endpoint_b_desc",
-      "label": "Tunnel Endpoint B Description (Deprecated)",
-      "doc": {
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
     },
     {
       "name": "sip_call_id",
