@@ -12,6 +12,7 @@
         "__time"
       ],
       "dimensions": [
+        "device_group",
         "client_ip",
         "server_ip",
         "client_asn",
@@ -23,7 +24,11 @@
         "application",
         "fqdn_category",
         "client_ip_object",
-        "server_ip_object"
+        "server_ip_object",
+        "c2s_ttl",
+        "s2c_ttl",
+        "c2s_link_id",
+        "s2c_link_id"
       ],
       "metrics": [
         "in_bytes",
@@ -326,6 +331,38 @@
         "visibility": "enabled"
       },
       "type": "string"
+    },
+    {
+      "name": "c2s_ttl",
+      "label": "C2S TTL",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_ttl",
+      "label": "S2C TTL",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "c2s_link_id",
+      "label": "C2S Link ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
+    },
+    {
+      "name": "s2c_link_id",
+      "label": "S2c Link ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "long"
     },
     {
       "name": "in_bytes",
