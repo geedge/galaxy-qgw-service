@@ -64,6 +64,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private static final String BACKEND_ENGINE = "backend_engine";
     private static final String IDENTIFIER_NAME = "identifier_name";
     private static final String TEMPLATE = "template";
+    private static final String TYPE = "type";
 
     private static final String DATASET_TYPE = "type";
 
@@ -106,7 +107,6 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     private static final String trafficPort = "8123";
     private final static String DATA_ID = "version.json";
     private final static String PUBLIC_SCHEMA_INFO = "public_schema_info.json";
-    private static final String BENCHMARK = "benchmark";
     private static final String FIELDS = "fields";
     private static final String NAMESPACE = "namespace";
     private static final String SCHEMA_SYNTAX_RULE = "schema-syntax-validation.json";
@@ -318,7 +318,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
     }
 
     @Override
-    public BaseResult benchmarkTest(boolean isSaved) {
+    public BaseResult benchmarkTest(String test, boolean isSaved) {
 
         BaseResult result = null;
         Map<String, Object> dataResult = Maps.newLinkedHashMap();
@@ -329,7 +329,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         Map<String, Map<String, String>> druidResult;
         Map<String, Map<String, String>> hbaseResult;
         try {
-            List<Map<String, Object>> dataSetlist = datasetService.getDatasets(Lists.newArrayList(), BENCHMARK, null);
+            List<Map<String, Object>> dataSetlist = datasetService.getDatasets(Lists.newArrayList(), test, null);
             List<Map> druidDatasetList = Lists.newLinkedList();
             List<Map> ckDatasetList = Lists.newLinkedList();
             List<Map> engineDatasetList = Lists.newLinkedList();
@@ -339,30 +339,32 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             Stopwatch watch = Stopwatch.createStarted();
             if (CollectionUtil.isNotEmpty(dataSetlist)) {
                 for (int i = 0; i < dataSetlist.size(); i++) {
-                    if (String.valueOf(dataSetlist.get(i).get(DATASET_TYPE)).equalsIgnoreCase("sql")) {
-                        String backendEngine = String.valueOf(dataSetlist.get(i).get(BACKEND_ENGINE));
-                        String identifierName = String.valueOf(dataSetlist.get(i).get(IDENTIFIER_NAME));
-                        String template = String.valueOf(dataSetlist.get(i).get(TEMPLATE));
-                        Map<String, String> map = Maps.newHashMap();
-                        map.put(IDENTIFIER_NAME, identifierName);
-                        map.put(TEMPLATE, String.valueOf(datasetService.buildExecSQL(variables, template)));
-                        if (DBEngineType.DRUID.getValue().equalsIgnoreCase(backendEngine)) {
-                            druidDatasetList.add(map);
-                        } else if (DBEngineType.CLICKHOUSE.getValue().equalsIgnoreCase(backendEngine)) {
-                            ckDatasetList.add(map);
-                        } else if (DBEngineType.HBASE.getValue().equalsIgnoreCase(backendEngine)) {
-                            hbaseDatasetList.add(map);
-                        } else {
-                            engineDatasetList.add(map);
-                        }
+                    String backendEngine = String.valueOf(dataSetlist.get(i).get(BACKEND_ENGINE));
+                    String identifierName = String.valueOf(dataSetlist.get(i).get(IDENTIFIER_NAME));
+                    String template = String.valueOf(dataSetlist.get(i).get(TEMPLATE));
+                    String type = String.valueOf(dataSetlist.get(i).get(TYPE));
+                    Map<String, String> map = Maps.newHashMap();
+                    map.put(IDENTIFIER_NAME, identifierName);
+                    map.put(TYPE, type);
+                    map.put(TEMPLATE, String.valueOf(datasetService.buildExecSQL(variables, template)));
+                    if (DBEngineType.DRUID.getValue().equalsIgnoreCase(backendEngine)) {
+                        druidDatasetList.add(map);
+                    } else if (DBEngineType.CLICKHOUSE.getValue().equalsIgnoreCase(backendEngine)) {
+                        ckDatasetList.add(map);
+                    } else if (DBEngineType.HBASE.getValue().equalsIgnoreCase(backendEngine)) {
+                        hbaseDatasetList.add(map);
+                    } else {
+                        engineDatasetList.add(map);
                     }
                 }
+            } else {
+                return BaseResultGenerator.failure(HttpStatusCodeEnum.BAD_REQUEST.getCode(), "The dataset category does not exist.");
             }
 
-            clickhouseResult = buildResult(DBEngineType.CLICKHOUSE.getValue(), ckDatasetList, isSaved);
-            druidResult = buildResult(DBEngineType.DRUID.getValue(), druidDatasetList, isSaved);
-            engineResult = buildResult(DBEngineType.QGW.getValue(), engineDatasetList, isSaved);
-            hbaseResult = buildResult(DBEngineType.HBASE.getValue(), hbaseDatasetList, isSaved);
+            clickhouseResult = buildResult(test, DBEngineType.CLICKHOUSE.getValue(), ckDatasetList, isSaved);
+            druidResult = buildResult(test, DBEngineType.DRUID.getValue(), druidDatasetList, isSaved);
+            engineResult = buildResult(test, DBEngineType.QGW.getValue(), engineDatasetList, isSaved);
+            hbaseResult = buildResult(test, DBEngineType.HBASE.getValue(), hbaseDatasetList, isSaved);
 
             mergeResult = Stream
                     .concat(clickhouseResult.entrySet().stream(), druidResult.entrySet().stream())
@@ -372,7 +374,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             mergeResult = Stream.concat(mergeResult.entrySet().stream(), hbaseResult.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            dataResult.put(BENCHMARK, mergeResult);
+            dataResult.put(test, mergeResult);
             statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
             result = BaseResultGenerator.success(StrUtil.format("SQL benchmark complete, time range is: {}", getTimeRangeByVariable(variables)), dataResult, statistics);
             result.setOutputMode(OutputMode.JSON.getValue());
@@ -683,7 +685,7 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
         }
     }
 
-    private Map<String, Map<String, String>> buildResult(String executeEngine, List<Map> list, boolean isSaved) {
+    private Map<String, Map<String, String>> buildResult(String test, String executeEngine, List<Map> list, boolean isSaved) {
         Map<String, Map<String, String>> resultMap = Maps.newLinkedHashMap();
         Map<String, String> infoMap = Maps.newLinkedHashMap();
         CSVWriter csvWriter = null;
@@ -704,11 +706,18 @@ public class TroubleshootingServiceImp implements TroubleshootingService, Enviro
             }
         }
         for (Map map : list) {
+            BaseResult queryResult;
             Stopwatch watch = Stopwatch.createStarted();
-            SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(String.valueOf(map.get(TEMPLATE)), SqlQueryRequestParam.class);
-            sqlQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
-            log.info("Benchmark Test, ID is: {}", map.get(IDENTIFIER_NAME));
-            BaseResult queryResult = queryJobService.createSQLAdHocQuery(sqlQueryRequest);
+            if (String.valueOf(map.get(TYPE)).equals("sql")) {
+                SqlQueryRequestParam sqlQueryRequest = JSON.parseObject(String.valueOf(map.get(TEMPLATE)), SqlQueryRequestParam.class);
+                sqlQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
+                queryResult = queryJobService.createSQLAdHocQuery(sqlQueryRequest);
+            } else {
+                DSLQueryRequestParam dslQueryRequest = JSON.parseObject(String.valueOf(map.get(TEMPLATE)), DSLQueryRequestParam.class);
+                dslQueryRequest.setExecutionMode(ExecutionMode.ONESHOT.getValue());
+                queryResult = queryJobService.createDSLAdHocQuery(dslQueryRequest);
+            }
+            log.info("Benchmark Test, category is: {}, ID is: {}", test, map.get(IDENTIFIER_NAME));
             if (StringUtil.isEmpty(queryResult.getStatistics())) {
                 Map<String, Object> statistics = Maps.newLinkedHashMap();
                 statistics.put("elapsed", watch.elapsed(TimeUnit.MILLISECONDS));
