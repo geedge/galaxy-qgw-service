@@ -66,7 +66,7 @@ public class BaseResult<T> implements Serializable {
      * @return 是否为成功结果
      */
     public boolean isSuccess() {
-        return this.status >= HttpStatusCodeEnum.SUCCESS.getCode() && this.status < 300;
+        return this.status != null && this.status >= HttpStatusCodeEnum.SUCCESS.getCode() && this.status < 300;
     }
 
     @Override
