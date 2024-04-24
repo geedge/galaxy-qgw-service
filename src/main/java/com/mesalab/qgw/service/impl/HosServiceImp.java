@@ -63,10 +63,10 @@ public class HosServiceImp implements HosService {
         }
         Map<String, String> responseHeaders = responseResult.getResponseHeaders();
         Map<String, Object> result = Maps.newHashMap();
-        result.put("fileName", fileName);
+        result.put("file_name", fileName);
         result.put("size", StrUtil.isBlankIfStr(responseHeaders.get("File-Size")) ? null : Integer.parseInt(responseHeaders.get("File-Size")));
-        result.put("fileUrl", hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(fileName));
-        result.put("LastModified", responseHeaders.get("Last-Modified"));
+        result.put("file_url", hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(fileName));
+        result.put("last_modified", responseHeaders.get("Last-Modified"));
         return BaseResultGenerator.success(Lists.newArrayList(result));
     }
 
@@ -179,22 +179,22 @@ public class HosServiceImp implements HosService {
     private Map<String, Object> buildData(String bucketName, Map contents) {
         Map<String, Object> dataMap = Maps.newHashMap();
         String key = String.valueOf(contents.get(KEY));
-        dataMap.put("fileName", key);
+        dataMap.put("file_name", key);
         dataMap.put("size", StrUtil.isBlankIfStr(contents.get(SIZE)) ? 0 : Integer.parseInt(String.valueOf(contents.get(SIZE))));
-        dataMap.put("fileUrl", hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(key));
-        dataMap.put("lastModified", String.valueOf(contents.get(LAST_MODIFIED)));
+        dataMap.put("file_url", hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(key));
+        dataMap.put("last_modified", String.valueOf(contents.get(LAST_MODIFIED)));
         if (MapUtil.isNotEmpty((Map<?, ?>) contents.get(USER_DEFINED_META))) {
             Map<String, String> udfMeta = (Map<String, String>) contents.get(USER_DEFINED_META);
             Integer chunkCount = StrUtil.isBlankIfStr(udfMeta.get(CHUNK_COUNT)) ? 0 : Integer.parseInt(udfMeta.get(CHUNK_COUNT));
             String taskId = StrUtil.isBlankIfStr(udfMeta.get(TASK_ID)) ? "" : udfMeta.get(TASK_ID);
             String ruleId = StrUtil.isBlankIfStr(udfMeta.get(RULE_ID)) ? "" : udfMeta.get(RULE_ID);
-            dataMap.put("taskId", taskId);
-            dataMap.put("ruleId", ruleId);
-            dataMap.put("chunkCount", chunkCount);
+            dataMap.put("task_id", taskId);
+            dataMap.put("rule_id", ruleId);
+            dataMap.put("chunk_count", chunkCount);
         } else {
-            dataMap.put("taskId", "");
-            dataMap.put("ruleId", "");
-            dataMap.put("chunkCount", 0);
+            dataMap.put("task_id", "");
+            dataMap.put("rule_id", "");
+            dataMap.put("chunk_count", 0);
         }
         return dataMap;
     }
@@ -218,7 +218,7 @@ public class HosServiceImp implements HosService {
         }
         if (MapUtil.isNotEmpty(udfMetaParam)) {
             for (Map.Entry<String, String> entry : udfMetaParam.entrySet()) {
-                String paramKey = StrUtil.toSymbolCase(entry.getKey(), '-');
+                String paramKey = StrUtil.toSymbolCase(StrUtil.toCamelCase(entry.getKey()), '-');
                 String paramValue = StrUtil.toSymbolCase(entry.getValue(), '-');
                 sb.append(paramKey).append("=").append(paramValue).append("&");
             }
