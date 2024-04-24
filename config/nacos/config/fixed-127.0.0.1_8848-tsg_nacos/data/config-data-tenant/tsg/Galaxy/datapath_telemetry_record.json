@@ -97,6 +97,14 @@
       "type": "string"
     },
     {
+      "name": "traffic_link_id",
+      "label": "Traffic Link ID",
+      "doc": {
+        "visibility": "enabled"
+      },
+      "type": "int"
+    },
+    {
       "name": "source_ip",
       "label": "Source IP",
       "doc": {
