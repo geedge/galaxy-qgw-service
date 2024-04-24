@@ -83,17 +83,15 @@ public class HosServiceImp implements HosService {
     }
 
     @Override
-    public BaseResult uploadFile(String bucketName, String fileName, MultipartFile file) {
+    public BaseResult uploadFile(String bucketName, String fileName, InputStream inputStream, Map<String, String> headersT) {
         Map<String, String> headers = getHosDefaultHeaders();
-        try {
-            String putFileUrl = hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(fileName);
-            InputStream inputStream = new ByteArrayInputStream(file.getBytes());
-            HttpResponseResult responseResult = httpClientServiceV2.put(putFileUrl, inputStream, httpConfig.getServerResponseTimeOut(), headers);
-            if (HttpStatusCodeEnum.SUCCESS.getCode() != responseResult.getStatusCode()) {
-                throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Upload file failed, message is: " + responseResult.getErrorMessage());
-            }
-        } catch (IOException e) {
-            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), e.getMessage());
+        if (headersT != null && !headers.isEmpty()) {
+            headers.putAll(headersT);
+        }
+        String putFileUrl = hosConfig.getUri().concat("/").concat(bucketName).concat("/").concat(fileName);
+        HttpResponseResult responseResult = httpClientServiceV2.put(putFileUrl, inputStream, httpConfig.getServerResponseTimeOut(), headers);
+        if (HttpStatusCodeEnum.SUCCESS.getCode() != responseResult.getStatusCode()) {
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(), "Upload file failed, message is: " + responseResult.getErrorMessage());
         }
         return BaseResultGenerator.success();
     }

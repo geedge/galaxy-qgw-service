@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,7 +60,14 @@ public class HosController {
     @PostMapping(value = "/{bucket_name}/{file_name}", consumes = "multipart/form-data")
     @AuditLog("HosController.uploadFile")
     public BaseResult uploadFile(@PathVariable("bucket_name") String bucketName, @PathVariable("file_name") String fileName, @RequestParam("file") MultipartFile file) {
-        return hosService.uploadFile(bucketName, fileName, file);
+        ByteArrayInputStream byteArrayInputStream = null;
+        try {
+            byteArrayInputStream = new ByteArrayInputStream(file.getBytes());
+        } catch (IOException e) {
+            throw new BusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), e.getMessage()));
+        }
+        return hosService.uploadFile(bucketName, fileName, byteArrayInputStream, null);
     }
 
     @DeleteMapping(value = "/{bucket_name}", consumes = "application/x-www-form-urlencoded")
