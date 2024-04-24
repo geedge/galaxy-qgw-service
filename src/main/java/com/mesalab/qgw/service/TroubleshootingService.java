@@ -10,7 +10,7 @@ public interface TroubleshootingService {
 
     BaseResult validateMetadata();
 
-    BaseResult benchmarkTest(boolean isSaved);
+    BaseResult benchmarkTest(String test, boolean isSaved);
 
     BaseResult datesetVerification();
 }
