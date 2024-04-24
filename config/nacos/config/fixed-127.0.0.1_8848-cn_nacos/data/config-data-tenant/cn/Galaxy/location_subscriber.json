@@ -61,6 +61,11 @@
       "type":"string"
     },
     {
+      "name":"data_source",
+      "label":"Data Source",
+      "type":"string"
+    },
+    {
       "name":"stat_time",
       "label":"Stat Time",
       "type":"long"
