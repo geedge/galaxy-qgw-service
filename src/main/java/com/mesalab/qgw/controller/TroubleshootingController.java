@@ -29,8 +29,6 @@ public class TroubleshootingController {
 
     @Autowired
     private TroubleshootingService troubleshootingService;
-    private static final String TEST_PARAM = "sql_benchmark_dataset";
-
     @RequestMapping("/component/status")
     @AuditLog("TroubleshootingController.componentStatus")
     public JSONObject componentStatus() {
@@ -59,11 +57,11 @@ public class TroubleshootingController {
     @RequestMapping(value = "/benchmark", method = RequestMethod.GET)
     @AuditLog("TroubleshootingController.benchmark")
     public BaseResult benchmark(@RequestParam String test, @RequestParam(value = "is_saved", required = false, defaultValue = "0") @JsonProperty("isSaved") Integer isSaved) throws BusinessException {
-        if (!TEST_PARAM.equals(test) || StrUtil.isBlankIfStr(test)) {
+        if (StrUtil.isBlankIfStr(test)) {
             throw new QGWBusinessException(HttpStatus.HTTP_BAD_REQUEST, CommonErrorCode.PARAMETER_ERROR.getCode(),
-                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.BENCHMARK_TEST_PARAM_ERROR));
+                    String.format(CommonErrorCode.PARAMETER_ERROR.getMessage(), QGWMessageConst.BENCHMARK_TEST_PARAM_CANNOT_BE_EMPTY));
         }
-        return troubleshootingService.benchmarkTest(BooleanUtil.toBoolean(String.valueOf(isSaved)));
+        return troubleshootingService.benchmarkTest(test, BooleanUtil.toBoolean(String.valueOf(isSaved)));
     }
 
 }
