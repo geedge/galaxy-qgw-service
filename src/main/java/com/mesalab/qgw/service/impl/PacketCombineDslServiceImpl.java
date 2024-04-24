@@ -1,0 +1,271 @@
+package com.mesalab.qgw.service.impl;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.google.common.collect.Maps;
+import com.mesalab.common.entity.BaseResult;
+import com.mesalab.common.enums.HttpStatusCodeEnum;
+import com.mesalab.common.enums.QueryOption;
+import com.mesalab.common.exception.CommonErrorCode;
+import com.mesalab.qgw.exception.QGWBusinessException;
+import com.mesalab.qgw.model.basic.DSLQueryContext;
+import com.mesalab.qgw.model.basic.DSLQueryRequestParam;
+import com.mesalab.qgw.model.basic.SQLQueryContext;
+import com.mesalab.qgw.service.*;
+import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.*;
+
+/**
+ * TODO
+ *
+ * @Classname PacketCombineDslService
+ * @Date 2024/4/19 16:16
+ * @Author wWei
+ */
+@Service
+@PropertySource(value = "classpath:dsl-sql-template.sql", factory = SqlPropertySourceFactory.class)
+public class PacketCombineDslServiceImpl implements PacketCombineDslService {
+
+    private static final String DATAPATH_TELEMETRY_RECORD = "DATAPATH_TELEMETRY_RECORD";
+    private static final String X_HOS_META_FILE_TYPE_KEY = "x-hos-meta-file-type";
+    private static final String X_HOS_META_FILE_TYPE_VALUE_PCAPNG = "pcapng";
+    private static final String TROUBLESHOOTING_FILE_BUCKET = "troubleshooting_file_bucket";
+    private static final String FILED_MEASUREMENTS = "measurements";
+    private static final String FILED_PACKET = "packet";
+    private static final String FILED_TIMESTAMP_US = "timestamp_us";
+    private static final String FILED_PACKET_LENGTH = "packet_length";
+
+    private Environment environment;
+    private DatabaseService databaseService;
+    private SQLSyncQueryService sqlSyncQueryService;
+    private HosService hosService;
+
+    @Override
+    public BaseResult run(DSLQueryRequestParam dslQueryRequestParam) {
+        String sql = buildSQL(dslQueryRequestParam);
+        List<Map<String, Object>> packets = getPackets(sql);
+        byte[] bytes = packetCombine(packets);
+        InputStream inputStream = new ByteArrayInputStream(bytes);
+        return uploadFile(dslQueryRequestParam.getId(), inputStream);
+    }
+
+    @Override
+    public List<Map<String, Object>> getPackets(String sql) {
+        BaseResult<List<Map<String, Object>>> baseResult = sqlSyncQueryService.executeQuery(
+                SQLQueryContext.builder()
+                        .originalSQL(sql)
+                        .option(QueryOption.REAL_TIME.getValue())
+                        .build());
+        if (baseResult.isSuccess()) {
+            return baseResult.getData();
+        }
+        throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "get packet records failed"));
+    }
+
+    @Override
+    public byte[] packetCombine(List<Map<String, Object>> records) {
+        List<byte[]> packetList = new ArrayList<>();
+        for (Map<String, Object> map : records) {
+            String measurements = JSONUtil.toJsonStr(map.get(FILED_MEASUREMENTS));
+            int packetLen = Integer.parseInt(String.valueOf(map.get(FILED_PACKET_LENGTH)));
+            Long timestampUS = Long.parseLong(String.valueOf(map.get(FILED_TIMESTAMP_US)));
+            String base64EncodedString = String.valueOf(map.get(FILED_PACKET));
+            byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedString);
+            byte[] bytes = generatePacketBlock(timestampUS, decodedBytes, packetLen, measurements);
+            //List<byte[]> blockInfoList = blockDataAddComments(decodedBytes, measurements);
+            packetList.add(bytes);
+        }
+        return mergeByte(packetList);
+    }
+
+    @Override
+    public BaseResult uploadFile(String fileName, InputStream inputStream) {
+        Map<String, String> objectObjectHashMap = Maps.newHashMap();
+        objectObjectHashMap.put(X_HOS_META_FILE_TYPE_KEY, X_HOS_META_FILE_TYPE_VALUE_PCAPNG);
+        BaseResult baseResult = hosService.uploadFile(TROUBLESHOOTING_FILE_BUCKET, fileName, inputStream, objectObjectHashMap);
+        if (!baseResult.isSuccess()) {
+            return baseResult;
+        }
+        return hosService.getFile(TROUBLESHOOTING_FILE_BUCKET, fileName);
+    }
+
+    private String buildSQL(DSLQueryRequestParam dslQueryRequestParam) {
+        String dataSource = dslQueryRequestParam.getDataSource();
+        DSLQueryContext dslQueryContext = BeanUtil.copyProperties(dslQueryRequestParam, DSLQueryContext.class);
+        return dslQueryContext.toSql(
+                environment.getProperty(DATAPATH_TELEMETRY_RECORD)
+                , dataSource
+                , databaseService.getPartitionKey(dataSource)
+                , "unix_timestamp");
+    }
+
+    private static byte[] mergeByte(List<byte[]> packetList) {
+        //拼接文件头信息和所有增强数据包块
+        List<byte[]> pcapFileDataList = new ArrayList<>();
+        //添加文件头信息
+        pcapFileDataList.add(generatePCAPNGHeader());
+        //添加所有增强数据包块
+        pcapFileDataList.addAll(packetList);
+        //合并所有数据
+        byte[][] newBytes = new byte[pcapFileDataList.size()][];
+        pcapFileDataList.toArray(newBytes);
+        return ArrayUtil.addAll(newBytes);
+    }
+
+    private static List<byte[]> blockDataAddComments(byte[] blockData, String measurements) {
+        //单个包的信息和数据
+        List<byte[]> blockInfoList = new ArrayList<>();
+        //增强数据包块块类型
+        byte[] blockType = ArrayUtil.sub(blockData, 0, 4);
+        //包信息和包数据
+        byte[] packetData = ArrayUtil.sub(blockData, 8, blockData.length - 4);
+        //所有注释的长度，用于计算增强数据包块大小
+        int commentsLength = 0;
+        //获取注释的json数组
+        JSONArray measurementsJsonArray = JSONUtil.parseArray(measurements);
+        ArrayList<byte[]> commentByteList = new ArrayList<>();
+        //遍历注释数组，生成注释数据
+        for (Object measurement : measurementsJsonArray) {
+            String comment = ((JSONObject) measurement).toJSONString(2);
+            //获取注释长度，补齐4字节
+            int commentLength = comment.length() + (4 - comment.length() % 4);
+            //生成注释数据
+            ByteBuffer buffer = ByteBuffer.allocate(commentLength + 4);
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            //选项类型，注释固定为1
+            buffer.putShort((short) 1);
+            //注释长度
+            buffer.putShort((short) comment.length());
+            //注释内容
+            buffer.put(comment.getBytes());
+            //转换为字节数组
+            byte[] commentBytes = buffer.array();
+            commentsLength += commentBytes.length;
+            commentByteList.add(commentBytes);
+        }
+        //计算增加注释后的增强数据包块大小
+        ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
+        lengthBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        //数据包大小+注释大小
+        lengthBuffer.putInt(blockData.length + commentsLength);
+        byte[] newLength = lengthBuffer.array();
+        //生成完整的增强数据包块，添加到集合中，之后统一合并
+        //块类型 4字节
+        blockInfoList.add(blockType);
+        //块长度 4字节
+        blockInfoList.add(newLength);
+        //包数据
+        blockInfoList.add(packetData);
+        //注释
+        blockInfoList.addAll(commentByteList);
+        //块长度 4字节 重复
+        blockInfoList.add(newLength);
+        return blockInfoList;
+    }
+
+    private static byte[] generatePacketBlock(Long timestamp,byte[] blockData, int packetLen,String measurements){
+        //获取注释的json数组
+        JSONArray measurementsJsonArray = JSONUtil.parseArray(measurements);
+        //计算注释的长度
+        int commentsLength = 0;
+        for (Object measurement : measurementsJsonArray) {
+            String comment = ((JSONObject) measurement).toJSONString(2);
+            //获取注释长度，补齐4字节
+            int commentLength = comment.length() + (4 - comment.length() % 4);
+            commentsLength += commentLength + 4 ;
+        }
+        int packetPadding = 4 - packetLen % 4;
+        //计算增强数据包块长度
+        int packetBlockLength = commentsLength + packetLen + packetPadding + 32;
+        //生成增强数据包块
+        ByteBuffer packetBlockBuffer = ByteBuffer.allocate(packetBlockLength);
+        packetBlockBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        packetBlockBuffer.putInt(0x00000006);//增强数据包块块类型
+        packetBlockBuffer.putInt(packetBlockLength);//增强数据包块长度
+        packetBlockBuffer.putInt(0);
+        packetBlockBuffer.putLong(timestamp);//时间戳
+        packetBlockBuffer.putInt(packetLen);//捕获的数据长度
+        packetBlockBuffer.putInt(packetLen);//原始数据包长度
+        packetBlockBuffer.put(blockData);//数据包
+        //补齐4字节
+        for (int i = 0; i < packetPadding; i++) {
+            packetBlockBuffer.put((byte) 0);
+        }
+        //注释数据
+        for (Object measurement : measurementsJsonArray) {
+            String comment = ((JSONObject) measurement).toJSONString(2);
+            packetBlockBuffer.putShort((short) 1);//选项类型，注释固定为1
+            packetBlockBuffer.putShort((short) comment.length());//注释长度
+            packetBlockBuffer.put(comment.getBytes());//注释内容
+            int commentPadding = 4 - comment.length() % 4;
+            //补齐4字节
+            for (int i = 0; i < commentPadding; i++) {
+                packetBlockBuffer.put((byte) 0);
+            }
+        }
+        packetBlockBuffer.putInt(packetBlockLength);//增强数据包块长度
+        return packetBlockBuffer.array();
+    }
+    private static byte[] generatePCAPNGHeader() {
+        ByteBuffer buffer = ByteBuffer.allocate(48);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        //节标题块标识
+        buffer.putInt(0x0A0D0D0A);
+        //节标题块长度
+        buffer.putInt(28);
+        //块的数据顺序，大端或者小端模式,0x4D3C2B1A为小端，0x1A2B3C4D为大端
+        buffer.putInt(0x1A2B3C4D);
+        //主版本信息
+        buffer.putShort((short) 1);
+        //次版本信息
+        buffer.putShort((short) 0);
+        //下一块长度，-1表示未指定
+        buffer.putLong(-1);
+        //节标题块长度
+        buffer.putInt(28);
+        //接口描述块标识
+        buffer.putInt(1);
+        //接口描述块长度
+        buffer.putInt(20);
+        //链路类型
+        buffer.putInt(1);
+        //从每个数据包转储的最大字节数。每个数据包超过此值的部分将不会存储在文件中。
+        buffer.putInt(0);
+        //接口描述块长度
+        buffer.putInt(20);
+        return buffer.array();
+    }
+
+    @Autowired
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
+
+    @Autowired
+    public void setDatabaseService(DatabaseService databaseService) {
+        this.databaseService = databaseService;
+    }
+
+    @Autowired
+    public void setSqlSyncQueryService(SQLSyncQueryService sqlSyncQueryService) {
+        this.sqlSyncQueryService = sqlSyncQueryService;
+    }
+
+    @Autowired
+    public void setHosService(HosService hosService) {
+        this.hosService = hosService;
+    }
+}

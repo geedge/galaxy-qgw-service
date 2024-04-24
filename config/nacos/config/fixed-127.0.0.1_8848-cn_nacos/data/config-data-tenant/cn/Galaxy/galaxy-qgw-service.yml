@@ -152,6 +152,11 @@ job:
     corePoolSize: 20
     maxPoolSize: 30
     queueCapacity: 10
+  threadPool:
+    heavyResource:
+      corePoolSize: 1
+      maxPoolSize: 2
+      queueCapacity: 80
 ## task cfg
 task:
   pool:

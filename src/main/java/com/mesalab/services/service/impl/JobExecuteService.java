@@ -25,6 +25,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DSLService;
+import com.mesalab.qgw.service.PacketCombineDslService;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
@@ -53,6 +54,7 @@ import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -81,6 +83,8 @@ public class JobExecuteService implements EnvironmentAware {
     DatabaseService databaseService;
     @Autowired
     DSLService dslService;
+    @Autowired
+    PacketCombineDslService packetCombineDslService;
     @Autowired
     EngineConfigSource engineConfigSource;
     @Autowired
@@ -168,6 +172,27 @@ public class JobExecuteService implements EnvironmentAware {
         } finally {
             signJobInfoToDoneOnQueryCache(id);
             log.info("Async Query Job Done, id is: {}", id);
+        }
+    }
+
+    @Async("heavyResourceThreadPool")
+    public void addExecutorDslPacketCombine(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
+        try {
+            signJobInfoToStartOnQueryCache(request.getId());
+            updateJobResultOnQueryCache(request.getId(), packetCombineDslService.run(request));
+        } catch (RuntimeException e) {
+            signJobInfoToFailedOnQueryCache(request.getId());
+            log.error("Exec SQL Query Job Error, message is: {}", e.getMessage());
+        } finally {
+            try {
+                signJobInfoToDoneOnQueryCache(request.getId());
+            } catch (RuntimeException e) {
+                log.error("Async Query Job Done Error, id is: {}", request.getId());
+            }
+            if (countDownLatch != null) {
+                countDownLatch.countDown();
+            }
+            log.info("Async Query Job Done, id is: {}", request.getId());
         }
     }
 

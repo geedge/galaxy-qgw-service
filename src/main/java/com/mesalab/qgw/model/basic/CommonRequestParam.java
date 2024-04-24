@@ -20,6 +20,7 @@ import java.util.Arrays;
  */
 @Data
 public class CommonRequestParam implements Serializable {
+    private String id;
     @JsonProperty("output_mode")
     private OutputMode outputMode = OutputMode.JSON;
     @JsonProperty("execution_mode")

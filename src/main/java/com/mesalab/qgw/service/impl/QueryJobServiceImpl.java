@@ -23,6 +23,7 @@ import com.mesalab.qgw.exception.QGWBusinessException;
 import com.mesalab.common.exception.CommonErrorCode;
 import com.mesalab.qgw.model.basic.*;
 import com.mesalab.qgw.service.DSLService;
+import com.mesalab.qgw.service.PacketCombineDslService;
 import com.mesalab.qgw.service.QueryJobService;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.services.common.enums.MetricFunction;
@@ -38,7 +39,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -72,7 +75,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     @Override
     public BaseResult createSQLAdHocQuery(SqlQueryRequestParam sqlQueryRequestParam) {
         String option = sqlQueryRequestParam.isDryRun()
-                    ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
+                ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
         long start = System.currentTimeMillis();
         ExecutionMode execMode = sqlQueryRequestParam.getExecutionMode();
         if (ExecutionMode.ONESHOT.equals(execMode)) {
@@ -99,7 +102,16 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult createDSLAdHocQuery(DSLQueryRequestParam request) {
-        String id = generateJobId();
+        String id = StrUtil.isBlank(request.getId()) ? generateJobId() : request.getId();
+        if (HazelcastInstanceMapUtil.get(id) != null) {
+            Map<String, Object> job = Objects.requireNonNull(HazelcastInstanceMapUtil.get(id)).getBaseResult().getJob();
+            boolean isFailed = BooleanUtil.toBoolean(String.valueOf(job.get("is_failed")));
+            if (!isFailed) {
+                throw new QGWBusinessException(HttpStatusCodeEnum.REQ_FORBIDDEN.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Job id already exists"));
+            }
+        }
+        request.setId(id);
         long start = System.currentTimeMillis();
         ExecutionMode execMode = request.getExecutionMode();
         if (ExecutionMode.ONESHOT.equals(execMode)) {
@@ -115,6 +127,25 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     return BaseResultGenerator.success(baseResult.getStatistics(), null, baseResult.getOutputMode(), baseResult.getMeta(), baseResult.getData());
                 }
                 return BaseResultGenerator.error(baseResult.getMessage());
+            } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
+                QueryCache queryCache = new QueryCache(id);
+                HazelcastInstanceMapUtil.put(id, queryCache);
+                CountDownLatch countDownLatch = new CountDownLatch(1);
+                jobExecuteService.addExecutorDslPacketCombine(request, countDownLatch);
+                try {
+                    boolean await = countDownLatch.await(300, TimeUnit.SECONDS);
+                    if (await) {
+                        BaseResult<Object> baseResult = Objects.requireNonNull(HazelcastInstanceMapUtil.get(id)).getBaseResult();
+                        if (baseResult.isSuccess()) {
+                            return BaseResultGenerator.success(baseResult.getData());
+                        } else {
+                            return BaseResultGenerator.error("Failed to execute packet combine job. message: " + baseResult.getMessage());
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
+                }
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 return dslService.execDsl(dslQueryContext, request.isDryRun());
@@ -126,6 +157,9 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 validFieldDiscovery(request);
                 HazelcastInstanceMapUtil.put(id, queryCache);
                 jobExecuteService.addExecutorFieldDiscovery(id, request);
+            } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
+                HazelcastInstanceMapUtil.put(id, queryCache);
+                jobExecuteService.addExecutorDslPacketCombine(request, null);
             } else {
                 HazelcastInstanceMapUtil.put(id, queryCache);
                 jobExecuteService.addExecutorDsl(id, request);
@@ -135,6 +169,20 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 execAdnWaitFieldDiscoveryDone(id, request);
                 return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
+            } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
+                QueryCache queryCache = new QueryCache(id);
+                HazelcastInstanceMapUtil.put(id, queryCache);
+                CountDownLatch countDownLatch = new CountDownLatch(1);
+                jobExecuteService.addExecutorDslPacketCombine(request, countDownLatch);
+                try {
+                    boolean await = countDownLatch.await(300, TimeUnit.SECONDS);
+                    if (await) {
+                        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
+                    }
+                } catch (InterruptedException e) {
+                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
+                }
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 BaseResult baseResult = dslService.execDsl(dslQueryContext, request.isDryRun());

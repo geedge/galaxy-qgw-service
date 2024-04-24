@@ -31,3 +31,6 @@ SELECT app_name, SUM(sessions) AS sessions, SUM(c2s_bytes + s2c_bytes) AS bytes,
 #sql("REAL_TIME_DATA_ANALYTICS_SUBSCRIBER_ID_RELATE_IP")
 SELECT account AS SUBSCRIBER_ID, framed_ip AS IP, first_found_time AS FIRST_FOUND_TIME, last_update_time AS LAST_FOUND_TIME, vsys_id as VSYS_ID FROM $table WHERE $intervals_and_filter AND acct_status_type != 2 $limit
 #end
+#sql("DATAPATH_TELEMETRY_RECORD")
+SELECT * FROM $table WHERE $intervals_and_filter ORDER BY timestamp_us ASC
+#end

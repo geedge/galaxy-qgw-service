@@ -52,6 +52,7 @@ public class JobConfig {
     public static final String QUERY_DATA_SOURCE = "query.data_source";
     public static final String SAVED_QUERY = "saved_query";
     public static final String FIELD_DISCOVERY= "field_discovery";
+    public static final String DATAPATH_PACKET_COMBINE= "datapath_telemetry_packet_combine";
     public static final String LONG_TERM_COLUMN_FAMILY = "long_term";
 
     public static final String DELIMIT = "-";
@@ -86,4 +87,10 @@ public class JobConfig {
     private boolean timeSlicingEnabled;
     @NacosValue(value="${job.timeSlicing.interval}", autoRefreshed = true)
     private int timeSlicingInterval;
+    @NacosValue(value="${job.threadPool.heavyResource.corePoolSize}", autoRefreshed = true)
+    private int heavyResourceCorePoolSize;
+    @NacosValue(value="${job.threadPool.heavyResource.maxPoolSize}", autoRefreshed = true)
+    private int heavyResourceMaxPoolSize;
+    @NacosValue(value="${job.threadPool.heavyResource.queueCapacity}", autoRefreshed = true)
+    private int heavyResourceQueueCapacity;
 }
