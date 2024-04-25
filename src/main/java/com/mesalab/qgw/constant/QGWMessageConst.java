@@ -24,7 +24,7 @@ public class QGWMessageConst {
 
     public static final String CONSISTENCY_OPTION_ERROR = "not support consistency option value.";
 
-    public static final String BENCHMARK_TEST_PARAM_ERROR = "not support benchmark test param value.";
+    public static final String BENCHMARK_TEST_PARAM_CANNOT_BE_EMPTY = "The benchmark test param value cannot be empty.";
 
     public static final String DIAGNOSIS_OPTION_ERROR = "not support option value.";
 
