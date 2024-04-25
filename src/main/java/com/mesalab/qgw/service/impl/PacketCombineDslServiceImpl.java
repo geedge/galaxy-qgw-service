@@ -196,7 +196,8 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
         packetBlockBuffer.putInt(0x00000006);//增强数据包块块类型
         packetBlockBuffer.putInt(packetBlockLength);//增强数据包块长度
         packetBlockBuffer.putInt(0);
-        packetBlockBuffer.putLong(timestamp);//时间戳
+        packetBlockBuffer.putInt((int)(timestamp >> 32));//时间戳的秒部分
+        packetBlockBuffer.putInt((int) (timestamp & 0xFFFFFFFFL));//时间戳的纳秒部分
         packetBlockBuffer.putInt(packetLen);//捕获的数据长度
         packetBlockBuffer.putInt(packetLen);//原始数据包长度
         packetBlockBuffer.put(blockData);//数据包
