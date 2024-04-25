@@ -213,7 +213,7 @@
     },
     {
       "name": "asymmetric_c2s_flows",
-      "label": "Asymmetric Flows (c2s)",
+      "label": "Asymmetric Flows(c2s)",
       "type": "long",
       "doc": {
         "constraints": {
@@ -225,7 +225,7 @@
     },
     {
       "name": "asymmetric_s2c_flows",
-      "label": "Asymmetric Flows (s2c)",
+      "label": "Asymmetric Flows(s2c)",
       "type": "long",
       "doc": {
         "constraints": {

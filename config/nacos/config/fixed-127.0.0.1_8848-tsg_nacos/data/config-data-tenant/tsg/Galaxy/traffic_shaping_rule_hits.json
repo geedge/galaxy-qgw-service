@@ -228,7 +228,7 @@
     },
     {
       "name": "in_max_latency_us",
-      "label": "Incoming Max Latency (us)",
+      "label": "Incoming Max Latency(us)",
       "type": "long",
       "doc": {
         "constraints": {
@@ -239,7 +239,7 @@
     },
     {
       "name": "out_max_latency_us",
-      "label": "Outgoing Max Latency (us)",
+      "label": "Outgoing Max Latency(us)",
       "type": "long",
       "doc": {
         "constraints": {

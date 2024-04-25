@@ -2534,7 +2534,7 @@
     "MPLS": [
       {
         "name": "mpls_c2s_direction_label",
-        "label": "Multiprotocol Label (c2s)",
+        "label": "Multiprotocol Label(c2s)",
         "type": {
           "type": "array",
           "items": "int",
@@ -2543,7 +2543,7 @@
       },
       {
         "name": "mpls_s2c_direction_label",
-        "label": "Multiprotocol Label (s2c)",
+        "label": "Multiprotocol Label(s2c)",
         "type": {
           "type": "array",
           "items": "int",
@@ -2554,7 +2554,7 @@
     "VLAN": [
       {
         "name": "vlan_c2s_direction_id",
-        "label": "VLAN Direction (c2s)",
+        "label": "VLAN Direction(c2s)",
         "type": {
           "type": "array",
           "items": "int",
@@ -2563,7 +2563,7 @@
       },
       {
         "name": "vlan_s2c_direction_id",
-        "label": "VLAN Direction (s2c)",
+        "label": "VLAN Direction(s2c)",
         "type": {
           "type": "array",
           "items": "int",
@@ -2586,22 +2586,22 @@
     "MULTIPATH_ETHERNET": [
       {
         "name": "c2s_source_mac",
-        "label": "Source MAC (c2s)",
+        "label": "Source MAC(c2s)",
         "type": "string"
       },
       {
         "name": "c2s_destination_mac",
-        "label": "Destination MAC (c2s)",
+        "label": "Destination MAC(c2s)",
         "type": "string"
       },
       {
         "name": "s2c_source_mac",
-        "label": "Source MAC (s2c)",
+        "label": "Source MAC(s2c)",
         "type": "string"
       },
       {
         "name": "s2c_destination_mac",
-        "label": "Destination MAC (s2c)",
+        "label": "Destination MAC(s2c)",
         "type": "string"
       }
     ],

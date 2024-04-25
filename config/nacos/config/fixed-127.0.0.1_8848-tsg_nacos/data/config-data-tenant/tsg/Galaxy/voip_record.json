@@ -590,7 +590,7 @@
     },
     {
       "name": "duration_ms",
-      "label": "Duration (ms)",
+      "label": "Duration(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -603,7 +603,7 @@
     },
     {
       "name": "tcp_handshake_latency_ms",
-      "label": "TCP Handshake Latency (ms)",
+      "label": "TCP Handshake Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -1151,7 +1151,7 @@
     },
     {
       "name": "client_geolocation",
-      "label": "Client Geolocation (Deprecated)",
+      "label": "Client Geolocation(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1286,7 +1286,7 @@
     },
     {
       "name": "server_geolocation",
-      "label": "Server Geolocation (Deprecated)",
+      "label": "Server Geolocation(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1875,7 +1875,7 @@
     },
     {
       "name": "sip_duration_s",
-      "label": "SIP.Duration (s)",
+      "label": "SIP.Duration(s)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -1897,7 +1897,7 @@
     },
     {
       "name": "rtp_payload_type_c2s",
-      "label": "RTP.Payload Type (C2S)",
+      "label": "RTP.Payload Type(C2S)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -2019,7 +2019,7 @@
     },
     {
       "name": "rtp_payload_type_s2c",
-      "label": "RTP.Payload Type (S2C)",
+      "label": "RTP.Payload Type(S2C)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"

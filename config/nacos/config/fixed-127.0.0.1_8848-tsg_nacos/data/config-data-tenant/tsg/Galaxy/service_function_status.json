@@ -99,7 +99,7 @@
     },
     {
       "name": "sf_latency_us",
-      "label": "Service Function Latency (us)",
+      "label": "Service Function Latency(us)",
       "doc": {
         "constraints": {
           "metric_type": "gauge"
