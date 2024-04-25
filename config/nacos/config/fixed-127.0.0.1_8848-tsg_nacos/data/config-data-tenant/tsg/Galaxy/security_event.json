@@ -1218,7 +1218,7 @@
     },
     {
       "name": "duration_ms",
-      "label": "Duration (ms)",
+      "label": "Duration(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -1231,7 +1231,7 @@
     },
     {
       "name": "tcp_handshake_latency_ms",
-      "label": "TCP Handshake Latency (ms)",
+      "label": "TCP Handshake Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -1551,7 +1551,7 @@
     },
     {
       "name": "sc_rsp_raw",
-      "label": "Service Chaining Rendered Service Path (Raw)",
+      "label": "Service Chaining Rendered Service Path(Raw)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1567,7 +1567,7 @@
     },
     {
       "name": "sc_rsp_decrypted",
-      "label": "Service Chaining Rendered Service Path (Decrypted)",
+      "label": "Service Chaining Rendered Service Path(Decrypted)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1692,7 +1692,7 @@
     },
     {
       "name": "proxy_server_side_latency_ms",
-      "label": "Proxy Server-Side Latency (ms)",
+      "label": "Proxy Server-Side Latency(ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1701,7 +1701,7 @@
     },
     {
       "name": "proxy_client_side_latency_ms",
-      "label": "Proxy Client-Side Latency (ms)",
+      "label": "Proxy Client-Side Latency(ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1803,7 +1803,7 @@
     },
     {
       "name": "client_geolocation",
-      "label": "Client Geolocation (Deprecated)",
+      "label": "Client Geolocation(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -1938,7 +1938,7 @@
     },
     {
       "name": "server_geolocation",
-      "label": "Server Geolocation (Deprecated)",
+      "label": "Server Geolocation(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2275,7 +2275,7 @@
     },
     {
       "name": "tcp_rtt_ms",
-      "label": "Round-trip Time (ms)",
+      "label": "Round-trip Time(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -2392,7 +2392,7 @@
     },
     {
       "name": "tunnel_endpoint_a_desc",
-      "label": "Tunnel Endpoint A Description (Deprecated)",
+      "label": "Tunnel Endpoint A Description(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2401,7 +2401,7 @@
     },
     {
       "name": "tunnel_endpoint_b_desc",
-      "label": "Tunnel Endpoint B Description (Deprecated)",
+      "label": "Tunnel Endpoint B Description(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
@@ -2583,7 +2583,7 @@
     },
     {
       "name": "http_response_latency_ms",
-      "label": "HTTP.Response Latency (ms)",
+      "label": "HTTP.Response Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -2608,7 +2608,7 @@
     },
     {
       "name": "http_session_duration_ms",
-      "label": "HTTP.Session Duration (ms)",
+      "label": "HTTP.Session Duration(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -3407,7 +3407,7 @@
     },
     {
       "name": "dns_response_latency_ms",
-      "label": "DNS.Response Latency (ms)",
+      "label": "DNS.Response Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -3456,7 +3456,7 @@
     },
     {
       "name": "ssl_handshake_latency_ms",
-      "label": "SSL.Handshake Latency (ms)",
+      "label": "SSL.Handshake Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -3580,7 +3580,7 @@
     },
     {
       "name": "dtls_handshake_latency_ms",
-      "label": "DTLS.Handshake Latency (ms)",
+      "label": "DTLS.Handshake Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -3800,7 +3800,7 @@
     },
     {
       "name": "sip_duration_s",
-      "label": "SIP.Duration (s)",
+      "label": "SIP.Duration(s)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -3821,7 +3821,7 @@
     },
     {
       "name": "rtp_payload_type_c2s",
-      "label": "RTP.Payload Type (C2S)",
+      "label": "RTP.Payload Type(C2S)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"
@@ -3943,7 +3943,7 @@
     },
     {
       "name": "rtp_payload_type_s2c",
-      "label": "RTP.Payload Type (S2C)",
+      "label": "RTP.Payload Type(S2C)",
       "doc": {
         "constraints": {
           "operator_functions": "=,!=,in,not in"

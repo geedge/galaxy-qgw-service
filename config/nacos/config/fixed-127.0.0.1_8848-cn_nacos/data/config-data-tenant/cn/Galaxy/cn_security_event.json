@@ -131,7 +131,7 @@
     },
     {
       "name":"duration_s",
-      "label":"Duration (s)",
+      "label":"Duration(s)",
       "type":"long"
     },
     {

@@ -904,7 +904,7 @@
     },
     {
       "name": "http_response_latency_ms",
-      "label": "HTTP.Response Latency (ms)",
+      "label": "HTTP.Response Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -928,7 +928,7 @@
     },
     {
       "name": "http_session_duration_ms",
-      "label": "HTTP.Session Duration (ms)",
+      "label": "HTTP.Session Duration(ms)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -1713,7 +1713,7 @@
     },
     {
       "name": "dns_response_latency_ms",
-      "label": "DNS.Response Latency (ms)",
+      "label": "DNS.Response Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal"
@@ -1842,7 +1842,7 @@
     },
     {
       "name": "sip_duration_s",
-      "label": "SIP.Duration (s)",
+      "label": "SIP.Duration(s)",
       "doc": {
         "constraints": {
           "type": "decimal"

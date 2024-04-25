@@ -42,7 +42,7 @@
     },
     {
       "name":"duration_ms",
-      "label":"Duration (ms)",
+      "label":"Duration(ms)",
       "type":"long"
     },
     {
@@ -157,47 +157,47 @@
     },
     {
       "name":"tcp_c2s_lost_bytes",
-      "label":"Sequence Gap Loss (c2s)",
+      "label":"Sequence Gap Loss(c2s)",
       "type":"long"
     },
     {
       "name":"tcp_s2c_lost_bytes",
-      "label":"Sequence Gap Loss (s2c)",
+      "label":"Sequence Gap Loss(s2c)",
       "type":"long"
     },
     {
       "name":"tcp_c2s_o3_pkts",
-      "label":"Unordered Packets (c2s)",
+      "label":"Unordered Packets(c2s)",
       "type":"long"
     },
     {
       "name":"tcp_s2c_o3_pkts",
-      "label":"Unordered Packets (s2c)",
+      "label":"Unordered Packets(s2c)",
       "type":"long"
     },
     {
       "name":"tcp_c2s_rtx_bytes",
-      "label":"Byte Retransmission (c2s)",
+      "label":"Byte Retransmission(c2s)",
       "type":"long"
     },
     {
       "name":"tcp_s2c_rtx_bytes",
-      "label":"Byte Retransmission (s2c)",
+      "label":"Byte Retransmission(s2c)",
       "type":"long"
     },
     {
       "name":"tcp_c2s_rtx_pkts",
-      "label":"Packet Retransmission (c2s)",
+      "label":"Packet Retransmission(c2s)",
       "type":"long"
     },
     {
       "name":"tcp_s2c_rtx_pkts",
-      "label":"Packet Retransmission (s2c)",
+      "label":"Packet Retransmission(s2c)",
       "type":"long"
     },
     {
       "name":"tcp_rtt_ms",
-      "label":"TCP Handshake Latency (ms)",
+      "label":"TCP Handshake Latency(ms)",
       "type":"long"
     },
     {
@@ -578,17 +578,17 @@
     },
     {
       "name":"http_response_latency_ms",
-      "label":"HTTP.Response Latency (ms)",
+      "label":"HTTP.Response Latency(ms)",
       "type":"long"
     },
     {
       "name":"ssl_handshake_latency_ms",
-      "label":"SSL.Handshake Latency (ms)",
+      "label":"SSL.Handshake Latency(ms)",
       "type":"long"
     },
     {
       "name":"dns_response_latency_ms",
-      "label":"DNS.Response Latency (ms)",
+      "label":"DNS.Response Latency(ms)",
       "type":"long"
     }
   ]
