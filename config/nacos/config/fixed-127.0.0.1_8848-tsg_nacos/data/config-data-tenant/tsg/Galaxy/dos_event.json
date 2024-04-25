@@ -110,7 +110,7 @@
     },
     {
       "name": "profile_id",
-      "label": "Profile ID (Deprecated)",
+      "label": "Profile ID(Deprecated)",
       "doc": {
         "visibility": "enabled",
         "ttl": null
