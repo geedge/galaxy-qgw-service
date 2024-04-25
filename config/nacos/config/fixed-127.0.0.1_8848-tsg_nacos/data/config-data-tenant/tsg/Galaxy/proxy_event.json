@@ -687,7 +687,7 @@
     },
     {
       "name": "duration_ms",
-      "label": "Duration (ms)",
+      "label": "Duration(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -700,7 +700,7 @@
     },
     {
       "name": "tcp_handshake_latency_ms",
-      "label": "TCP Handshake Latency (ms)",
+      "label": "TCP Handshake Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -996,7 +996,7 @@
     },
     {
       "name": "sc_rsp_raw",
-      "label": "Service Chaining Rendered Service Path (Raw)",
+      "label": "Service Chaining Rendered Service Path(Raw)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1012,7 +1012,7 @@
     },
     {
       "name": "sc_rsp_decrypted",
-      "label": "Service Chaining Rendered Service Path (Decrypted)",
+      "label": "Service Chaining Rendered Service Path(Decrypted)",
       "doc": {
         "constraints": {
           "operator_functions": "has,notEmpty,empty"
@@ -1165,7 +1165,7 @@
     },
     {
       "name": "proxy_server_side_latency_ms",
-      "label": "Proxy Server-Side Latency (ms)",
+      "label": "Proxy Server-Side Latency(ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1174,7 +1174,7 @@
     },
     {
       "name": "proxy_client_side_latency_ms",
-      "label": "Proxy Client-Side Latency (ms)",
+      "label": "Proxy Client-Side Latency(ms)",
       "doc": {
         "visibility": "hidden",
         "ttl": null
@@ -1676,7 +1676,7 @@
     },
     {
       "name": "tcp_rtt_ms",
-      "label": "Round-trip Time (ms)",
+      "label": "Round-trip Time(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -1971,7 +1971,7 @@
     },
     {
       "name": "http_response_latency_ms",
-      "label": "HTTP.Response Latency (ms)",
+      "label": "HTTP.Response Latency(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
@@ -1996,7 +1996,7 @@
     },
     {
       "name": "http_session_duration_ms",
-      "label": "HTTP.Session Duration (ms)",
+      "label": "HTTP.Session Duration(ms)",
       "doc": {
         "constraints": {
           "type": "decimal",
