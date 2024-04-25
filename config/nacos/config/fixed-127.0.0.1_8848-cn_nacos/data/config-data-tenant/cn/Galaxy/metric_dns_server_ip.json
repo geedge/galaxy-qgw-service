@@ -76,7 +76,7 @@
     },
     {
       "name":"avg_response_latency_ms",
-      "label":"Avg Response Latency (ms)",
+      "label":"Avg Response Latency(ms)",
       "type":"double"
     }
   ]
