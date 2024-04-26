@@ -1074,6 +1074,7 @@
         "label": "Monitor Rule ID",
         "type": "long",
         "doc": {
+          "allow_query": "false",
           "expression": "arrayJoin(IF(empty(monitor_rule_list), arrayPushFront(monitor_rule_list, null),monitor_rule_list))"
         }
       }

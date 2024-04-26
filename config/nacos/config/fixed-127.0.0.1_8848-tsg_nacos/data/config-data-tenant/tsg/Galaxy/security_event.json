@@ -1079,6 +1079,7 @@
         "label": "Security Rule ID",
         "type": "long",
         "doc": {
+          "allow_query": "false",
           "expression": "arrayJoin(IF(empty(security_rule_list), arrayPushFront(security_rule_list, null),security_rule_list))"
         }
       }
