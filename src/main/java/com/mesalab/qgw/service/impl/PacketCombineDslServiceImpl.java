@@ -5,6 +5,8 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
@@ -47,6 +49,7 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
     private static final String FILED_TIMESTAMP_US = "timestamp_us";
     private static final String FILED_PACKET_LENGTH = "packet_length";
 
+    private static final Log log = LogFactory.get();
     private Environment environment;
     private DatabaseService databaseService;
     private SQLSyncQueryService sqlSyncQueryService;
@@ -84,8 +87,11 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
             Long timestampUS = Long.parseLong(String.valueOf(map.get(FILED_TIMESTAMP_US)));
             String base64EncodedString = String.valueOf(map.get(FILED_PACKET));
             byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedString);
+            if (decodedBytes.length != packetLen) {
+                log.warn("Packet content does not match the specified length. Actual length: {}, Specified length: {}. Packet will be discarded. Packet in Base64 format: {}", decodedBytes.length, packetLen, map.get(FILED_PACKET));
+                continue;
+            }
             byte[] bytes = generatePacketBlock(timestampUS, decodedBytes, packetLen, measurements);
-            //List<byte[]> blockInfoList = blockDataAddComments(decodedBytes, measurements);
             packetList.add(bytes);
         }
         return mergeByte(packetList);
@@ -125,58 +131,7 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
         return ArrayUtil.addAll(newBytes);
     }
 
-    private static List<byte[]> blockDataAddComments(byte[] blockData, String measurements) {
-        //单个包的信息和数据
-        List<byte[]> blockInfoList = new ArrayList<>();
-        //增强数据包块块类型
-        byte[] blockType = ArrayUtil.sub(blockData, 0, 4);
-        //包信息和包数据
-        byte[] packetData = ArrayUtil.sub(blockData, 8, blockData.length - 4);
-        //所有注释的长度，用于计算增强数据包块大小
-        int commentsLength = 0;
-        //获取注释的json数组
-        JSONArray measurementsJsonArray = JSONUtil.parseArray(measurements);
-        ArrayList<byte[]> commentByteList = new ArrayList<>();
-        //遍历注释数组，生成注释数据
-        for (Object measurement : measurementsJsonArray) {
-            String comment = ((JSONObject) measurement).toJSONString(2);
-            //获取注释长度，补齐4字节
-            int commentLength = comment.length() + (4 - comment.length() % 4);
-            //生成注释数据
-            ByteBuffer buffer = ByteBuffer.allocate(commentLength + 4);
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            //选项类型，注释固定为1
-            buffer.putShort((short) 1);
-            //注释长度
-            buffer.putShort((short) comment.length());
-            //注释内容
-            buffer.put(comment.getBytes());
-            //转换为字节数组
-            byte[] commentBytes = buffer.array();
-            commentsLength += commentBytes.length;
-            commentByteList.add(commentBytes);
-        }
-        //计算增加注释后的增强数据包块大小
-        ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
-        lengthBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        //数据包大小+注释大小
-        lengthBuffer.putInt(blockData.length + commentsLength);
-        byte[] newLength = lengthBuffer.array();
-        //生成完整的增强数据包块，添加到集合中，之后统一合并
-        //块类型 4字节
-        blockInfoList.add(blockType);
-        //块长度 4字节
-        blockInfoList.add(newLength);
-        //包数据
-        blockInfoList.add(packetData);
-        //注释
-        blockInfoList.addAll(commentByteList);
-        //块长度 4字节 重复
-        blockInfoList.add(newLength);
-        return blockInfoList;
-    }
-
-    private static byte[] generatePacketBlock(Long timestamp,byte[] blockData, int packetLen,String measurements){
+    private static byte[] generatePacketBlock(Long timestamp, byte[] blockData, int packetLen, String measurements) {
         //获取注释的json数组
         JSONArray measurementsJsonArray = JSONUtil.parseArray(measurements);
         //计算注释的长度
@@ -185,7 +140,7 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
             String comment = ((JSONObject) measurement).toJSONString(2);
             //获取注释长度，补齐4字节
             int commentLength = comment.length() + (4 - comment.length() % 4);
-            commentsLength += commentLength + 4 ;
+            commentsLength += commentLength + 4;
         }
         int packetPadding = 4 - packetLen % 4;
         //计算增强数据包块长度
@@ -196,7 +151,7 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
         packetBlockBuffer.putInt(0x00000006);//增强数据包块块类型
         packetBlockBuffer.putInt(packetBlockLength);//增强数据包块长度
         packetBlockBuffer.putInt(0);
-        packetBlockBuffer.putInt((int)(timestamp >> 32));//时间戳的秒部分
+        packetBlockBuffer.putInt((int) (timestamp >> 32));//时间戳的秒部分
         packetBlockBuffer.putInt((int) (timestamp & 0xFFFFFFFFL));//时间戳的纳秒部分
         packetBlockBuffer.putInt(packetLen);//捕获的数据长度
         packetBlockBuffer.putInt(packetLen);//原始数据包长度
@@ -220,6 +175,7 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
         packetBlockBuffer.putInt(packetBlockLength);//增强数据包块长度
         return packetBlockBuffer.array();
     }
+
     private static byte[] generatePCAPNGHeader() {
         ByteBuffer buffer = ByteBuffer.allocate(48);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
