@@ -682,6 +682,7 @@
         "label": "Proxy Rule ID",
         "type": "long",
         "doc": {
+          "allow_query": "false",
           "expression": "arrayJoin(IF(empty(proxy_rule_list), arrayPushFront(proxy_rule_list, null),proxy_rule_list))"
         }
       }

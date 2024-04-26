@@ -1083,6 +1083,7 @@
         "label": "Security Rule ID",
         "type": "long",
         "doc": {
+          "allow_query": "false",
           "expression": "arrayJoin(IF(empty(security_rule_list), arrayPushFront(security_rule_list, null),security_rule_list))"
         }
       },
@@ -1091,6 +1092,7 @@
         "label": "Proxy Rule ID",
         "type": "long",
         "doc": {
+          "allow_query": "false",
           "expression": "arrayJoin(IF(empty(proxy_rule_list), arrayPushFront(proxy_rule_list, null),proxy_rule_list))"
         }
       },
@@ -1099,6 +1101,7 @@
         "label": "Monitor Rule ID",
         "type": "long",
         "doc": {
+          "allow_query": "false",
           "expression": "arrayJoin(IF(empty(monitor_rule_list), arrayPushFront(monitor_rule_list, null),monitor_rule_list))"
         }
       },
@@ -1107,6 +1110,7 @@
         "label": "Shaping Rule ID",
         "type": "long",
         "doc": {
+          "allow_query": "false",
           "expression": "arrayJoin(IF(empty(shaping_rule_list), arrayPushFront(shaping_rule_list, null),shaping_rule_list))"
         }
       },
@@ -1115,6 +1119,7 @@
         "label": "Service Chaining Rule ID",
         "type": "long",
         "doc": {
+          "allow_query": "false",
           "expression": "arrayJoin(IF(empty(sc_rule_list), arrayPushFront(sc_rule_list, null),sc_rule_list))"
         }
       },
@@ -1123,6 +1128,7 @@
         "label": "Statistics Rule ID",
         "type": "long",
         "doc": {
+          "allow_query": "false",
           "expression": "arrayJoin(IF(empty(statistics_rule_list), arrayPushFront(statistics_rule_list, null),statistics_rule_list))"
         }
       }
