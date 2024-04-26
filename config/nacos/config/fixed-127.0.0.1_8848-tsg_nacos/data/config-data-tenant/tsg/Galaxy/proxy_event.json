@@ -1259,6 +1259,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
+          "type": "port",
           "aggregation_functions": "COUNT, COUNT_DISTINCT"
         },
         "ttl": null
@@ -1358,6 +1359,7 @@
       "doc": {
         "visibility": "enabled",
         "constraints": {
+          "type": "port",
           "aggregation_functions": "COUNT, COUNT_DISTINCT"
         },
         "ttl": null

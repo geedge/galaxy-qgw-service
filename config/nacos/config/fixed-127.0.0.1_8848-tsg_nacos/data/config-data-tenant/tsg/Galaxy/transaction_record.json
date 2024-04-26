@@ -453,6 +453,9 @@
       "name": "client_port",
       "label": "Client Port",
       "doc": {
+        "constraints": {
+          "type": "port"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -474,6 +477,9 @@
       "name": "server_port",
       "label": "Server Port",
       "doc": {
+        "constraints": {
+          "type": "port"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -746,6 +752,9 @@
       "name": "mail_account",
       "label": "MAIL.Account",
       "doc": {
+        "constraints": {
+          "type": "email"
+        },
         "visibility": "enabled",
         "ttl": null
       },
