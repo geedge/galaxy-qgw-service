@@ -155,6 +155,9 @@
       "name": "internal_ip",
       "label": "Internal IP",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled"
       },
       "type": "string"

@@ -129,6 +129,9 @@
       "name": "client_ip",
       "label": "Client IP",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled"
       },
       "type": "string"
@@ -145,6 +148,9 @@
       "name": "server_ip",
       "label": "Server IP",
       "doc": {
+        "constraints": {
+          "type": "ip"
+        },
         "visibility": "enabled"
       },
       "type": "string"

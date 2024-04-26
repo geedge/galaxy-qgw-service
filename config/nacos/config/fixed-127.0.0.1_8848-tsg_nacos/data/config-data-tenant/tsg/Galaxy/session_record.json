@@ -1805,6 +1805,7 @@
       "label": "Client Port",
       "doc": {
         "constraints": {
+          "type": "port",
           "aggregation_functions": "COUNT, COUNT_DISTINCT"
         },
         "visibility": "enabled",
@@ -1940,6 +1941,7 @@
       "label": "Server Port",
       "doc": {
         "constraints": {
+          "type": "port",
           "aggregation_functions": "COUNT, COUNT_DISTINCT"
         },
         "visibility": "enabled",
@@ -2652,6 +2654,9 @@
       "name": "mail_account",
       "label": "MAIL.Account",
       "doc": {
+        "constraints": {
+          "type": "email"
+        },
         "visibility": "enabled",
         "ttl": null
       },
