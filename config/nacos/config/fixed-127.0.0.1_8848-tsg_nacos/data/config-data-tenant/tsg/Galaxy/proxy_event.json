@@ -963,11 +963,11 @@
       "doc": {
         "data": [
           {
-            "code": "inbound",
+            "code": "Inbound",
             "value": "Inbound"
           },
           {
-            "code": "outbound",
+            "code": "Outbound",
             "value": "Outbound"
           }
         ],
