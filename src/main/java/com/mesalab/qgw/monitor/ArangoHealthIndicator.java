@@ -69,6 +69,7 @@ public class ArangoHealthIndicator extends AbstractHealthIndicator {
                         .withDetail("version", map.get("version"));
             }
         } catch (RuntimeException e) {
+            JwtCache.remove(Constant.ARANGO_CACHE_JWT);
             builder.down()
                     .withDetail("app", APP)
                     .withDetail("message", "连接Arango 失败");
