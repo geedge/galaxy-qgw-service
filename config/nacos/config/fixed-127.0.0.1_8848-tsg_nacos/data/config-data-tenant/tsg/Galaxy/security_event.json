@@ -1753,7 +1753,7 @@
         "constraints": {
           "type": "decimal"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       }
     },
@@ -1765,7 +1765,7 @@
         "constraints": {
           "type": "bytes"
         },
-        "visibility": "enabled",
+        "visibility": "hidden",
         "ttl": null
       }
     },
