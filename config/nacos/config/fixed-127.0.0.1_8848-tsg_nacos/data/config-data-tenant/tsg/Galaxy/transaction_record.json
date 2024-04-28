@@ -24,7 +24,6 @@
         "session_id",
         "address_type",
         "decoded_as",
-        "direction",
         "vsys_id",
         "client_ip",
         "client_port",
@@ -178,7 +177,6 @@
         "ingestion_time",
         "address_type",
         "decoded_as",
-        "direction",
         "vsys_id",
         "client_ip",
         "client_port",
@@ -272,7 +270,6 @@
           "processing_time",
           "insert_time",
           "address_type",
-          "direction",
           "vsys_id",
           "client_ip",
           "client_port",
@@ -301,7 +298,6 @@
           "processing_time",
           "insert_time",
           "address_type",
-          "direction",
           "vsys_id",
           "client_ip",
           "client_port",
@@ -352,7 +348,6 @@
           "processing_time",
           "insert_time",
           "address_type",
-          "direction",
           "vsys_id",
           "client_ip",
           "client_port",
@@ -403,7 +398,6 @@
           "processing_time",
           "insert_time",
           "address_type",
-          "direction",
           "vsys_id",
           "client_ip",
           "client_port",
@@ -450,7 +444,6 @@
           "processing_time",
           "insert_time",
           "address_type",
-          "direction",
           "vsys_id",
           "client_ip",
           "client_port",
@@ -638,25 +631,6 @@
         "ttl": null
       },
       "type": "int"
-    },
-    {
-      "name": "direction",
-      "label": "Direction",
-      "doc": {
-        "data": [
-          {
-            "code": "inbound",
-            "value": "Inbound"
-          },
-          {
-            "code": "outbound",
-            "value": "Outbound"
-          }
-        ],
-        "visibility": "enabled",
-        "ttl": null
-      },
-      "type": "string"
     },
     {
       "name": "vsys_id",
