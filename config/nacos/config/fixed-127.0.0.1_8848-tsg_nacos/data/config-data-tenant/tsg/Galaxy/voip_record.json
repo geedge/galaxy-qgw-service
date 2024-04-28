@@ -32,6 +32,7 @@
         "device_group",
         "address_type",
         "decoded_as",
+        "direction",
         "vsys_id",
         "flags",
         "flags_identify_info",
@@ -115,6 +116,7 @@
         "device_group",
         "address_type",
         "decoded_as",
+        "direction",
         "vsys_id",
         "flags",
         "flags_identify_info",
@@ -184,6 +186,7 @@
           "device_group",
           "sled_ip",
           "address_type",
+          "direction",
           "vsys_id",
           "t_vsys_id",
           "flags",
@@ -263,6 +266,7 @@
           "device_group",
           "sled_ip",
           "address_type",
+          "direction",
           "vsys_id",
           "t_vsys_id",
           "flags",
@@ -338,6 +342,7 @@
           "device_group",
           "sled_ip",
           "address_type",
+          "direction",
           "vsys_id",
           "t_vsys_id",
           "flags",
@@ -401,6 +406,7 @@
           "device_group",
           "sled_ip",
           "address_type",
+          "direction",
           "vsys_id",
           "t_vsys_id",
           "flags",
@@ -857,6 +863,25 @@
         "ttl": null
       },
       "type": "int"
+    },
+    {
+      "name": "direction",
+      "label": "Direction",
+      "doc": {
+        "data": [
+          {
+            "code": "inbound",
+            "value": "Inbound"
+          },
+          {
+            "code": "outbound",
+            "value": "Outbound"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "vsys_id",
