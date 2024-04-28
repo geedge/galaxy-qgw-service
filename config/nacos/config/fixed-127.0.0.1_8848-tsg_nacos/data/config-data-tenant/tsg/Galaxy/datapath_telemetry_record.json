@@ -57,6 +57,9 @@
       "name": "timestamp_us",
       "label": "Timestamp",
       "doc": {
+        "constraints": {
+          "type": "unix_timestamp_us"
+        },
         "visibility": "enabled"
       },
       "type": "long"
