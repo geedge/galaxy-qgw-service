@@ -239,6 +239,16 @@
         "function": "empty(expr)"
       },
       {
+        "name": "is null",
+        "label": "IS NULL",
+        "function": "expr is null"
+      },
+      {
+        "name": "is not null",
+        "label": "IS NOT NULL",
+        "function": "expr is not null"
+      },
+      {
         "name": "bitAnd",
         "label": "Bitwise AND",
         "function": "bitAnd(expr, value)=value"
@@ -370,11 +380,11 @@
       "operator": [
         {
           "type": "int",
-          "functions": "=,!=,>,<,>=,<=,in,not in"
+          "functions": "=,!=,>,<,>=,<=,in,not in,is null,is not null"
         },
         {
           "type": "long",
-          "functions": "=,!=,>,<,>=,<=,in,not in"
+          "functions": "=,!=,>,<,>=,<=,in,not in,is null,is not null"
         },
         {
           "type": "float",
