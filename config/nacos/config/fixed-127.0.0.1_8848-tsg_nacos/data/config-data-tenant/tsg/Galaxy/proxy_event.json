@@ -32,6 +32,7 @@
         "device_group",
         "address_type",
         "decoded_as",
+        "direction",
         "vsys_id",
         "proxy_rule_list",
         "proxy_action",
@@ -141,6 +142,7 @@
         "device_group",
         "address_type",
         "decoded_as",
+        "direction",
         "vsys_id",
         "proxy_rule_list",
         "proxy_action",
@@ -860,6 +862,25 @@
         "ttl": null
       },
       "type": "int"
+    },
+    {
+      "name": "direction",
+      "label": "Direction",
+      "doc": {
+        "data": [
+          {
+            "code": "inbound",
+            "value": "Inbound"
+          },
+          {
+            "code": "outbound",
+            "value": "Outbound"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "vsys_id",

@@ -32,6 +32,7 @@
         "device_group",
         "address_type",
         "decoded_as",
+        "direction",
         "vsys_id",
         "flags",
         "flags_identify_info",
@@ -127,6 +128,7 @@
         "device_group",
         "address_type",
         "decoded_as",
+        "direction",
         "vsys_id",
         "flags",
         "flags_identify_info",
@@ -736,6 +738,25 @@
         "ttl": null
       },
       "type": "int"
+    },
+    {
+      "name": "direction",
+      "label": "Direction",
+      "doc": {
+        "data": [
+          {
+            "code": "inbound",
+            "value": "Inbound"
+          },
+          {
+            "code": "outbound",
+            "value": "Outbound"
+          }
+        ],
+        "visibility": "enabled",
+        "ttl": null
+      },
+      "type": "string"
     },
     {
       "name": "vsys_id",
