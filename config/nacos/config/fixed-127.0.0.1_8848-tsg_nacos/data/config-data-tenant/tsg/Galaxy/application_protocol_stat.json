@@ -146,7 +146,7 @@
       "label": "App Name",
       "doc": {
         "constraints": {
-          "operator_functions": "=,in,is null,is not null"
+          "operator_functions": "=,in,notEmpty,empty"
         },
         "visibility": "enabled"
       },

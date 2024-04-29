@@ -17,7 +17,7 @@ SELECT protocol_stack_id, SUM(sessions) as sessions,SUM(c2s_bytes) as c2s_bytes,
 SELECT FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time), '$granularity', 'zero')) as stat_time, protocol_stack_id as type, sum(c2s_bytes + s2c_bytes) as bytes from $table where $intervals_and_filter group by FROM_UNIXTIME(TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time), '$granularity', 'zero')), protocol_stack_id order by stat_time asc
 #end
 #sql("APPLICATION_AND_PROTOCOL_TOP_APPS")
-SELECT app_name as app_name, SUM(bytes) as bytes, SUM(sessions) as sessions, MAX(bit_rate) as max_rate, SUM(bytes)/$interval_seconds as avg_rate FROM (SELECT app_name as app_name, SUM(sessions) as sessions, SUM(c2s_bytes + s2c_bytes) as bytes, SUM(c2s_bytes + s2c_bytes) * 8 / $granularity_seconds as bit_rate FROM $table WHERE $intervals_and_filter AND app_name IS NOT NULL GROUP BY app_name, TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time), '$granularity') ORDER BY bytes DESC ) GROUP BY app_name ORDER BY bytes DESC $limit
+SELECT app_name as app_name, SUM(bytes) as bytes, SUM(sessions) as sessions, MAX(bit_rate) as max_rate, SUM(bytes)/$interval_seconds as avg_rate FROM (SELECT app_name as app_name, SUM(sessions) as sessions, SUM(c2s_bytes + s2c_bytes) as bytes, SUM(c2s_bytes + s2c_bytes) * 8 / $granularity_seconds as bit_rate FROM $table WHERE $intervals_and_filter AND notEmpty(app_name) GROUP BY app_name, TIME_FLOOR_WITH_FILL(UNIX_TIMESTAMP(__time), '$granularity') ORDER BY bytes DESC ) GROUP BY app_name ORDER BY bytes DESC $limit
 #end
 #sql("APPLICATION_AND_PROTOCOL_APP_RELATED_INTERNAL_IPS")
 SELECT if(bitAnd(flags, 8) = 8, client_ip, server_ip) AS ip, SUM(sent_bytes + received_bytes) AS bytes FROM $table WHERE $intervals_and_filter GROUP BY ip ORDER BY bytes DESC $limit

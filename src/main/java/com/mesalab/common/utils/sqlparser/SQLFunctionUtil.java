@@ -1794,7 +1794,7 @@ public class SQLFunctionUtil {
         String data;
         if (DBEngineType.DRUID.getValue().equals(dbType)) {
             String expr = fun.getParamsList().get(0);
-            data = expr + " != '' ";
+            data = expr + " IS NOT NUll ";
         } else {
             data = parseFunDefaultValue(fun);
         }
@@ -1820,7 +1820,7 @@ public class SQLFunctionUtil {
         String data;
         if (DBEngineType.DRUID.getValue().equals(dbType)) {
             String expr = fun.getParamsList().get(0);
-            data = expr + " = '' ";
+            data = expr + " IS NUll ";
         } else {
             data = parseFunDefaultValue(fun);
         }
