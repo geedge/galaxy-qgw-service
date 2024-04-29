@@ -161,6 +161,10 @@
             "value": "DNS Flood"
           },
           {
+            "code": "NTP Flood",
+            "value": "NTP Flood"
+          },
+          {
             "code": "Custom Network Attack",
             "value": "Custom Network Attack"
           }
