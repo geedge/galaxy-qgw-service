@@ -5,9 +5,13 @@
   "doc": {
     "primary_key": "log_id",
     "partition_key": "recv_time",
-    "index_key": {
-      "$ref": "public_schema_info.json#/voip_record/index_key"
-    },
+    "index_key": [
+      "vsys_id",
+      "decoded_as",
+      "data_center",
+      "device_group",
+      "recv_time"
+    ],
     "ttl": null,
     "default_ttl": 2592000,
     "functions": {

@@ -5,9 +5,15 @@
   "doc": {
     "primary_key": "log_id",
     "partition_key": "recv_time",
-    "index_key": {
-      "$ref": "public_schema_info.json#/security_event/index_key"
-    },
+    "index_key": [
+      "vsys_id",
+      "security_action",
+      "proxy_action",
+      "decoded_as",
+      "data_center",
+      "device_group",
+      "recv_time"
+    ],
     "ttl": null,
     "default_ttl": 2592000,
     "functions": {

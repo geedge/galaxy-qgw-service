@@ -7,9 +7,12 @@
     "partition_key": "recv_time",
     "ttl": null,
     "default_ttl": 2592000,
-    "index_key": {
-      "$ref": "public_schema_info.json#/dos_event/index_key"
-    },
+    "index_key": [
+      "vsys_id",
+      "destination_ip",
+      "recv_time",
+      "log_id"
+    ],
     "functions": {
       "$ref": "public_schema_info.json#/functions"
     },
@@ -159,6 +162,10 @@
           {
             "code": "DNS Flood",
             "value": "DNS Flood"
+          },
+          {
+            "code": "NTP Flood",
+            "value": "NTP Flood"
           },
           {
             "code": "Custom Network Attack",
