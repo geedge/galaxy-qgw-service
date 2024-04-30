@@ -62,7 +62,10 @@
         },
         "visibility": "enabled"
       },
-      "type": "long"
+      "type": {
+        "type": "long",
+        "logicalType": "unix_timestamp_us"
+      }
     },
     {
       "name": "job_id",
