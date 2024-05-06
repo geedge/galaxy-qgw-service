@@ -115,6 +115,8 @@
         "processing_time",
         "ingestion_time",
         "device_id",
+        "out_link_id",
+        "in_link_id",
         "data_center",
         "sled_ip",
         "device_group",
