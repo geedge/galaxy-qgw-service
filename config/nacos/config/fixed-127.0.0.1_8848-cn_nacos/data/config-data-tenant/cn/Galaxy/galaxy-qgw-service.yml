@@ -148,18 +148,12 @@ job:
     timeout: 3000
   execution:
     timeout: 300000
-  pool:
-    corePoolSize: 20
-    maxPoolSize: 30
-    queueCapacity: 10
   threadPool:
+    lightWeight:
+      corePoolSize: 10
+      maxPoolSize: 20
+      queueCapacity: 100
     heavyResource:
       corePoolSize: 1
       maxPoolSize: 2
       queueCapacity: 80
-## task cfg
-task:
-  pool:
-    corePoolSize: 8
-    maxPoolSize: 16
-    queueCapacity: 1000

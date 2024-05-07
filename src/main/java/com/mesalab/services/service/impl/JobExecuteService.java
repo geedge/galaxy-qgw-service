@@ -48,12 +48,14 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -73,46 +75,42 @@ import static com.mesalab.services.service.impl.JobServiceImpl.executeUpdate;
 @PropertySource(value = "classpath:job-sql-template.sql", factory = SqlPropertySourceFactory.class)
 public class JobExecuteService implements EnvironmentAware {
     private static final Log log = LogFactory.get();
-    @Autowired
-    Environment env;
-    @Autowired
-    SQLSyncQueryService sqlSyncQueryService;
-    @Autowired
-    TaskExecuteService taskExecuteService;
-    @Autowired
-    DatabaseService databaseService;
-    @Autowired
-    DSLService dslService;
-    @Autowired
-    PacketCombineDslService packetCombineDslService;
-    @Autowired
-    EngineConfigSource engineConfigSource;
-    @Autowired
-    JobConfig jobCfg;
+    private Environment env;
+    private SQLSyncQueryService sqlSyncQueryService;
+    private TaskExecuteService taskExecuteService;
+    private DatabaseService databaseService;
+    private DSLService dslService;
+    private PacketCombineDslService packetCombineDslService;
+    private EngineConfigSource engineConfigSource;
+    private JobConfig jobCfg;
+    private final ThreadPoolTaskExecutor heavyResourceThreadPool;
 
-    @Async("jobExecutor")
-    public Future<Boolean> addExecutorFieldDiscovery(String id, DSLQueryRequestParam request) {
+    public JobExecuteService(ThreadPoolTaskExecutor heavyResourceThreadPool) {
+        this.heavyResourceThreadPool = heavyResourceThreadPool;
+    }
+
+    @Async("lightWeightThreadPool")
+    public Future<Boolean> addExecutorFieldDiscovery(DSLQueryRequestParam request) {
         try {
-            signJobInfoToStartOnQueryCache(id);
-            JobInfo jobInfo = new JobInfo(id);
+            markJobBegin(request.getId());
+            JobInfo jobInfo = new JobInfo(request.getId());
             String partitionKey = databaseService.getPartitionKey(request.getDataSource());
             Interval interval = getInterval("SELECT 1 FROM table WHERE " + request.getFilter(), partitionKey);
             if (jobCfg.isTimeSlicingEnabled() && interval.isValid()) {
-                executeSlicingFieldDiscoveryJob(id, jobInfo, request, interval, partitionKey);
+                executeSlicingFieldDiscoveryJob(request.getId(), jobInfo, request, interval, partitionKey);
             } else {
-                executeFieldDiscoveryJob(id, jobInfo, request, request.getFilter());
+                executeFieldDiscoveryJob(request.getId(), jobInfo, request, request.getFilter());
             }
         } catch (Exception e) {
-            signJobInfoToFailedOnQueryCache(id);
-            log.error("Exec SQL Query Job Error, message is: {}", e.getMessage());
+            markJobFailure(request.getId(), e.getMessage());
         } finally {
-            signJobInfoToDoneOnQueryCache(id);
-            log.info("Async Query Job Done, id is: {}", id);
+            markJobCompletion(request.getId());
         }
         return new AsyncResult<>(true);
     }
 
-    @Async("jobExecutor")
+    @Deprecated
+    @Async("lightWeightThreadPool")
     public void addExecutorStatistics(String id, HashMap<String, Object> param, Map<String, Object> property) {
         JobInfo jobInfo = new JobInfo(id);
         try {
@@ -140,59 +138,101 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    @Async("jobExecutor")
-    public void addExecutorSql(String id, SqlQueryRequestParam request) {
-        signJobInfoToStartOnQueryCache(id);
+    @Async("lightWeightThreadPool")
+    public void addExecutorSql(SqlQueryRequestParam request) {
         try {
+            markJobBegin(request.getId());
             BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder()
                     .originalSQL(request.getStatement())
                     .option(request.isDryRun() ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue())
                     .format(request.getOutputMode().getValue())
                     .build());
-            updateJobResultOnQueryCache(id, baseResult);
+            updateJobResultOnQueryCache(request.getId(), baseResult);
         } catch (RuntimeException e) {
-            signJobInfoToFailedOnQueryCache(id);
-            log.error("Exec SQL Query Job Error, message is: {}", e.getMessage());
+            markJobFailure(request.getId(), e.getMessage());
         } finally {
-            signJobInfoToDoneOnQueryCache(id);
-            log.info("Async Query Job Done, id is: {}", id);
+            markJobCompletion(request.getId());
         }
     }
 
-    @Async("jobExecutor")
-    public void addExecutorDsl(String id, DSLQueryRequestParam request) {
-        signJobInfoToStartOnQueryCache(id);
+    @Async("lightWeightThreadPool")
+    public void addExecutorDsl(DSLQueryRequestParam request) {
         try {
+            markJobBegin(request.getId());
             DSLQueryContext dslProfile = BeanUtil.copyProperties(request, DSLQueryContext.class);
-            BaseResult baseResult = dslService.execDsl(dslProfile, request.isDryRun());
-            updateJobResultOnQueryCache(id, baseResult);
+            updateJobResultOnQueryCache(request.getId(), dslService.execDsl(dslProfile, request.isDryRun()));
         } catch (RuntimeException e) {
-            signJobInfoToFailedOnQueryCache(id);
-            log.error("Exec SQL Query Job Error, message is: {}", e.getMessage());
+            markJobFailure(request.getId(), e.getMessage());
         } finally {
-            signJobInfoToDoneOnQueryCache(id);
-            log.info("Async Query Job Done, id is: {}", id);
+            markJobCompletion(request.getId());
+        }
+    }
+
+    public BaseResult addDslExecutorPacketCombineWithoutCache(DSLQueryRequestParam request) {
+        try {
+            CompletableFuture<BaseResult> future = CompletableFuture.supplyAsync(() -> packetCombineDslService.run(request), heavyResourceThreadPool);
+            return future.get();
+        } catch (InterruptedException | ExecutionException | RuntimeException e) {
+            throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
+                    String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
         }
     }
 
     @Async("heavyResourceThreadPool")
-    public void addExecutorDslPacketCombine(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
+    public void addExecutorDslPacketCombineWithCache(DSLQueryRequestParam request, CountDownLatch countDownLatch) {
         try {
-            signJobInfoToStartOnQueryCache(request.getId());
+            markJobBegin(request.getId());
             updateJobResultOnQueryCache(request.getId(), packetCombineDslService.run(request));
         } catch (RuntimeException e) {
-            signJobInfoToFailedOnQueryCache(request.getId());
-            log.error("Exec SQL Query Job Error, message is: {}", e.getMessage());
+            markJobFailure(request.getId(), e.getMessage());
         } finally {
             try {
-                signJobInfoToDoneOnQueryCache(request.getId());
-            } catch (RuntimeException e) {
-                log.error("Async Query Job Done Error, id is: {}", request.getId());
+                markJobCompletion(request.getId());
+            } finally {
+                if (countDownLatch != null) {
+                    countDownLatch.countDown();
+                }
             }
-            if (countDownLatch != null) {
-                countDownLatch.countDown();
-            }
-            log.info("Async Query Job Done, id is: {}", request.getId());
+        }
+    }
+
+    private static void markJobBegin(String id) {
+        log.info("Async Query Job Start, id is: {}", id);
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            Objects.requireNonNull(queryCache).getBaseResult().getJob().put(JobConfig.START_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
+        }
+    }
+
+    public static void markJobFailure(String id, String reasonMessage) {
+        log.error("Exec SQL Query Job Error, message is: {}", reasonMessage);
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            Map<String, Object> job = Objects.requireNonNull(queryCache).getBaseResult().getJob();
+            job.put(JobConfig.IS_FAILED, true);
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
+        }
+    }
+
+    private static void markJobCompletion(String id) {
+        log.info("Async Query Job Done, id is: {}", id);
+        try {
+            HazelcastInstanceMapUtil.retrieveMap().lock(id);
+            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+            Map<String, Object> job = Objects.requireNonNull(queryCache).getBaseResult().getJob();
+            job.put(JobConfig.IS_DONE, true);
+            job.put(JobConfig.DONE_PROGRESS, 1);
+            job.put(JobConfig.END_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
+            HazelcastInstanceMapUtil.put(id, queryCache);
+        } finally {
+            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
         }
     }
 
@@ -213,39 +253,8 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    private static void signJobInfoToStartOnQueryCache(String id) {
-        try {
-            HazelcastInstanceMapUtil.retrieveMap().lock(id);
-            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-            queryCache.getBaseResult().getJob().put(JobConfig.START_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
-            HazelcastInstanceMapUtil.put(id, queryCache);
-        } finally {
-            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
-        }
-    }
 
-    private static void signJobInfoToDoneOnQueryCache(String id) {
-        try {
-            HazelcastInstanceMapUtil.retrieveMap().lock(id);
-            QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-            Map<String, Object> job = queryCache.getBaseResult().getJob();
-            job.put(JobConfig.IS_DONE, true);
-            job.put(JobConfig.DONE_PROGRESS, 1);
-            job.put(JobConfig.END_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));
-            HazelcastInstanceMapUtil.put(id, queryCache);
-        } finally {
-            HazelcastInstanceMapUtil.retrieveMap().unlock(id);
-        }
-    }
-
-    public static void signJobInfoToFailedOnQueryCache(String id) {
-        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
-        Map<String, Object> job = queryCache.getBaseResult().getJob();
-        job.put(JobConfig.IS_FAILED, true);
-        HazelcastInstanceMapUtil.put(id, queryCache);
-    }
-
-
+    @Deprecated
     private void executeLongTerm(JobInfo jobInfo, String cusSql, String countDataSource, String newFilter, String countFilter, boolean isSecBuild) throws JSQLParserException {
         if (isCancelLongTerm(jobInfo.getId())) {
             return;
@@ -268,7 +277,7 @@ public class JobExecuteService implements EnvironmentAware {
             LongValue longValue = new LongValue(Long.parseLong(limit.getRowCount().toString()) * 10);
             limit.setRowCount(longValue.getValue() > 10000 ? longValue : new LongValue(10000));
         }
-        List<Future<Boolean>> list = Lists.newArrayList(taskExecuteService.executeLongTerm(jobInfo.getId(), parseSQL.toString()));
+        List<Future<Boolean>> list = Lists.newArrayList(CompletableFuture.supplyAsync(() -> taskExecuteService.executeLongTerm(jobInfo.getId(), parseSQL.toString())));
         waitAsyncResultAndUpdateProcessLongTerm(jobInfo, list);
     }
 
@@ -278,7 +287,7 @@ public class JobExecuteService implements EnvironmentAware {
             jobInfo.setCurrentTimes(jobInfo.getCurrentTimes() + 1);
             if (jobInfo.isTimeout()) {
                 log.error("execute job timeout: job-{}", jobInfo);
-                signJobInfoToFailedOnQueryCache(id);
+                markJobFailure(id, "execute job timeout");
                 break;
             }
             QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
@@ -310,6 +319,7 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
+    @Deprecated
     private void executeSlicingStatisticsJob(JobInfo jobInfo, Map<String, Object> param, Interval interval) throws JSQLParserException {
         String partitionKey = databaseService.getPartitionKey(param.get(JobConfig.QUERY_DATA_SOURCE).toString());
         List<Expression> timeFloorWithFill = SQLHelper.getFunctionParams(param.get(JobConfig.KEY_CUSTOM_STATISTICS_SQL).toString(), SQLFunctionUtil.TIME_FLOOR_WITH_FILL);
@@ -374,10 +384,10 @@ public class JobExecuteService implements EnvironmentAware {
         List<String> fields = (List<String>) request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_FIELDS);
 
         for (String field : fields) {
-            taskCallbackList.put(field, taskExecuteService.executeFieldDiscovery(id, request.getDataSource(), field
+            taskCallbackList.put(field, CompletableFuture.supplyAsync(() -> taskExecuteService.executeFieldDiscovery(id, request.getDataSource(), field
                     , request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC)
                     , request.getCustomRequestParam().get(JobConfig.KEY_CUSTOM_FIELD_DISCOVERY_METRIC_FN)
-                    , segmentFilter));
+                    , segmentFilter)));
         }
         waitAsyncResultAndUpdateProcess(id, jobInfo, taskCallbackList, request, map);
     }
@@ -387,7 +397,7 @@ public class JobExecuteService implements EnvironmentAware {
         while (true) {
             if (jobInfo.isTimeout()) {
                 log.error("execute job timeout, job id is: {}", id);
-                signJobInfoToFailedOnQueryCache(id);
+                markJobFailure(id, "execute job timeout");
                 taskCallbackList.keySet().forEach(o -> taskCallbackList.get(o).cancel(true));
                 break;
             }
@@ -425,7 +435,7 @@ public class JobExecuteService implements EnvironmentAware {
                 List<Map<String, Object>> data = listFuture.get();
                 QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
                 if (StrUtil.isEmptyIfStr(queryCache)) {
-                    signJobInfoToFailedOnQueryCache(id);
+                    markJobFailure(id, "Cache expiration.");
                     log.error("field_discovery task query lastTopK Error: Cache expiration.");
                     return;
                 }
@@ -764,8 +774,43 @@ public class JobExecuteService implements EnvironmentAware {
         }
     }
 
-    @Override
+    @Autowired
     public void setEnvironment(Environment environment) {
         this.env = environment;
+    }
+
+    @Autowired
+    public void setSqlSyncQueryService(SQLSyncQueryService sqlSyncQueryService) {
+        this.sqlSyncQueryService = sqlSyncQueryService;
+    }
+
+    @Autowired
+    public void setTaskExecuteService(TaskExecuteService taskExecuteService) {
+        this.taskExecuteService = taskExecuteService;
+    }
+
+    @Autowired
+    public void setDatabaseService(DatabaseService databaseService) {
+        this.databaseService = databaseService;
+    }
+
+    @Autowired
+    public void setDslService(DSLService dslService) {
+        this.dslService = dslService;
+    }
+
+    @Autowired
+    public void setPacketCombineDslService(PacketCombineDslService packetCombineDslService) {
+        this.packetCombineDslService = packetCombineDslService;
+    }
+
+    @Autowired
+    public void setEngineConfigSource(EngineConfigSource engineConfigSource) {
+        this.engineConfigSource = engineConfigSource;
+    }
+
+    @Autowired
+    public void setJobCfg(JobConfig jobCfg) {
+        this.jobCfg = jobCfg;
     }
 }

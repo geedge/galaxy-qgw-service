@@ -12,7 +12,6 @@ import com.geedgenetworks.utils.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
 import com.mesalab.common.entity.BaseResult;
 import com.mesalab.common.entity.BaseResultGenerator;
 import com.mesalab.common.enums.*;
@@ -36,12 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -61,19 +59,21 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     private JobExecuteService jobExecuteService;
     private DSLService dslService;
 
+
     @Override
     public BaseResult createSQLSavedQuery(SqlQueryRequestParam request) {
+        initAndValidationID(request);
         syntaxParseSql(request.getStatement());
         String sql = JSONUtil.quote(request.getStatement(), false).replace("'", "\\'");
-        String id = generateJobId();
         long currentTime = System.currentTimeMillis() / 1000;
-        Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), id, sql, currentTime, currentTime));
-        log.info("Committed a SQL Saved Query Job, id is: {}", id);
-        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
+        Db.update(String.format(Objects.requireNonNull(env.getProperty("SAVED_QUERY_JOB_INIT")), request.getId(), sql, currentTime, currentTime));
+        log.info("Committed a SQL Saved Query Job, id is: {}", request.getId());
+        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
     }
 
     @Override
     public BaseResult createSQLAdHocQuery(SqlQueryRequestParam sqlQueryRequestParam) {
+        initAndValidationID(sqlQueryRequestParam);
         String option = sqlQueryRequestParam.isDryRun()
                 ? QueryOption.SYNTAX_VALIDATION.getValue() : QueryOption.REAL_TIME.getValue();
         long start = System.currentTimeMillis();
@@ -87,7 +87,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         } else if (ExecutionMode.NORMAL.equals(execMode)) {
             String id = generateJobId();
             HazelcastInstanceMapUtil.put(id, new QueryCache(id));
-            jobExecuteService.addExecutorSql(id, sqlQueryRequestParam);
+            jobExecuteService.addExecutorSql(sqlQueryRequestParam);
             return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
         } else if (ExecutionMode.BLOCKING.equals(execMode)) {
             String id = generateJobId();
@@ -102,23 +102,14 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
 
     @Override
     public BaseResult createDSLAdHocQuery(DSLQueryRequestParam request) {
-        String id = StrUtil.isBlank(request.getId()) ? generateJobId() : request.getId();
-        if (HazelcastInstanceMapUtil.get(id) != null) {
-            Map<String, Object> job = Objects.requireNonNull(HazelcastInstanceMapUtil.get(id)).getBaseResult().getJob();
-            boolean isFailed = BooleanUtil.toBoolean(String.valueOf(job.get("is_failed")));
-            if (!isFailed) {
-                throw new QGWBusinessException(HttpStatusCodeEnum.REQ_FORBIDDEN.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
-                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Job id already exists"));
-            }
-        }
-        request.setId(id);
+        initAndValidationID(request);
         long start = System.currentTimeMillis();
         ExecutionMode execMode = request.getExecutionMode();
         if (ExecutionMode.ONESHOT.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                execAdnWaitFieldDiscoveryDone(id, request);
-                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(getAdhocQueryCacheAndRefresh(id));
-                HazelcastInstanceMapUtil.remove(id);
+                execAdnWaitFieldDiscoveryDone(request.getId(), request);
+                QueryCache queryCache = rebuildFieldDiscoveryQueryCache(getAdhocQueryCacheAndRefresh(request.getId()));
+                HazelcastInstanceMapUtil.remove(request.getId());
                 BaseResult<Object> baseResult = queryCache.getBaseResult();
                 Map<String, Object> job = baseResult.getJob();
                 if (!BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_CANCELED)))
@@ -128,67 +119,48 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                 }
                 return BaseResultGenerator.error(baseResult.getMessage());
             } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
-                QueryCache queryCache = new QueryCache(id);
-                HazelcastInstanceMapUtil.put(id, queryCache);
-                CountDownLatch countDownLatch = new CountDownLatch(1);
-                jobExecuteService.addExecutorDslPacketCombine(request, countDownLatch);
-                try {
-                    boolean await = countDownLatch.await(300, TimeUnit.SECONDS);
-                    if (await) {
-                        BaseResult<Object> baseResult = Objects.requireNonNull(HazelcastInstanceMapUtil.get(id)).getBaseResult();
-                        if (baseResult.isSuccess()) {
-                            return BaseResultGenerator.success(baseResult.getData());
-                        } else {
-                            return BaseResultGenerator.error("Failed to execute packet combine job. message: " + baseResult.getMessage());
-                        }
-                    }
-                } catch (InterruptedException e) {
-                    throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
-                            String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
-                }
+                return jobExecuteService.addDslExecutorPacketCombineWithoutCache(request);
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 return dslService.execDsl(dslQueryContext, request.isDryRun());
             }
         } else if (ExecutionMode.NORMAL.equals(execMode)) {
-            QueryCache queryCache = new QueryCache(id);
+            QueryCache queryCache = new QueryCache(request.getId());
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
                 queryCache.setType(JobConfig.FIELD_DISCOVERY);
                 validFieldDiscovery(request);
-                HazelcastInstanceMapUtil.put(id, queryCache);
-                jobExecuteService.addExecutorFieldDiscovery(id, request);
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                jobExecuteService.addExecutorFieldDiscovery(request);
             } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
-                HazelcastInstanceMapUtil.put(id, queryCache);
-                jobExecuteService.addExecutorDslPacketCombine(request, null);
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                jobExecuteService.addExecutorDslPacketCombineWithCache(request, null);
             } else {
-                HazelcastInstanceMapUtil.put(id, queryCache);
-                jobExecuteService.addExecutorDsl(id, request);
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                jobExecuteService.addExecutorDsl(request);
             }
-            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
+            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
         } else if (ExecutionMode.BLOCKING.equals(execMode)) {
             if (JobConfig.FIELD_DISCOVERY.equals(request.getName())) {
-                execAdnWaitFieldDiscoveryDone(id, request);
-                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
+                execAdnWaitFieldDiscoveryDone(request.getId(), request);
+                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
             } else if (JobConfig.DATAPATH_PACKET_COMBINE.equals(request.getName())) {
-                QueryCache queryCache = new QueryCache(id);
-                HazelcastInstanceMapUtil.put(id, queryCache);
+                QueryCache queryCache = new QueryCache(request.getId());
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
                 CountDownLatch countDownLatch = new CountDownLatch(1);
-                jobExecuteService.addExecutorDslPacketCombine(request, countDownLatch);
+                jobExecuteService.addExecutorDslPacketCombineWithCache(request, countDownLatch);
                 try {
-                    boolean await = countDownLatch.await(300, TimeUnit.SECONDS);
-                    if (await) {
-                        return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
-                    }
+                    countDownLatch.await();
                 } catch (InterruptedException e) {
                     throw new QGWBusinessException(HttpStatusCodeEnum.SERVER_ERROR.getCode(), CommonErrorCode.UNKNOWN_EXCEPTION.getCode(),
                             String.format(CommonErrorCode.UNKNOWN_EXCEPTION.getMessage(), "Job was Interrupted. message: " + e.getMessage()));
                 }
+                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
             } else {
                 DSLQueryContext dslQueryContext = BeanUtil.copyProperties(request, DSLQueryContext.class);
                 BaseResult baseResult = dslService.execDsl(dslQueryContext, request.isDryRun());
-                QueryCache queryCache = buildQueryCacheOfDone(id, start, baseResult);
-                HazelcastInstanceMapUtil.put(id, queryCache);
-                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
+                QueryCache queryCache = buildQueryCacheOfDone(request.getId(), start, baseResult);
+                HazelcastInstanceMapUtil.put(request.getId(), queryCache);
+                return BaseResultGenerator.successCreate(buildJobInfoOfCreated(request.getId()));
             }
         }
         throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
@@ -200,7 +172,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         queryCacheStart.setType(JobConfig.FIELD_DISCOVERY);
         validFieldDiscovery(request);
         HazelcastInstanceMapUtil.put(id, queryCacheStart);
-        Future<Boolean> booleanFuture = jobExecuteService.addExecutorFieldDiscovery(id, request);
+        Future<Boolean> booleanFuture = jobExecuteService.addExecutorFieldDiscovery(request);
         while (true) {
             if (!booleanFuture.isDone()) {
                 continue;
@@ -378,6 +350,19 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         return queryCache;
     }
 
+    private static void initAndValidationID(CommonRequestParam request) {
+        String id = StrUtil.isBlank(request.getId()) ? generateJobId() : request.getId();
+        QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
+        if (queryCache != null) {
+            Map<String, Object> job = queryCache.getBaseResult().getJob();
+            boolean isFailed = BooleanUtil.toBoolean(String.valueOf(job.get(JobConfig.IS_FAILED)));
+            if (!isFailed) {
+                throw new QGWBusinessException(HttpStatusCodeEnum.REQ_FORBIDDEN.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
+                        String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "Job id already exists"));
+            }
+        }
+        request.setId(id);
+    }
 
     @Override
     public void setEnvironment(Environment environment) {
@@ -393,7 +378,6 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
     public void setJobExecuteService(JobExecuteService jobExecuteService) {
         this.jobExecuteService = jobExecuteService;
     }
-
 
     @Autowired
     public void setSqlSyncQueryService(SQLSyncQueryService sqlSyncQueryService) {

@@ -1,7 +1,6 @@
 package com.mesalab.common.configuration;
 
 
-import com.mesalab.qgw.service.HosService;
 import com.mesalab.services.configuration.JobConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

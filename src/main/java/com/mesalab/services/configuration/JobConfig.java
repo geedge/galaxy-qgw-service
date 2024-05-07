@@ -75,18 +75,19 @@ public class JobConfig {
     private int responseTimeout;
     @NacosValue(value = "${job.execution.timeout}", autoRefreshed = true)
     private int executionTimeout;
-    @NacosValue(value = "${job.pool.corePoolSize}", autoRefreshed = true)
-    private int poolCorePoolSize;
-    @NacosValue(value = "${job.pool.maxPoolSize}", autoRefreshed = true)
-    private int poolMaxPoolSize;
-    @NacosValue(value = "${job.pool.queueCapacity}", autoRefreshed = true)
-    private int poolQueueCapacity;
     @NacosValue(value="${job.longPolling.enabled}", autoRefreshed = true)
     private boolean longPollingEnabled;
     @NacosValue(value="${job.timeSlicing.enabled}", autoRefreshed = true)
     private boolean timeSlicingEnabled;
     @NacosValue(value="${job.timeSlicing.interval}", autoRefreshed = true)
     private int timeSlicingInterval;
+
+    @NacosValue(value = "${job.threadPool.lightWeight.corePoolSize}", autoRefreshed = true)
+    private int lightWeightCorePoolSize;
+    @NacosValue(value = "${job.threadPool.lightWeight.maxPoolSize}", autoRefreshed = true)
+    private int lightWeightMaxPoolSize;
+    @NacosValue(value = "${job.threadPool.lightWeight.queueCapacity}", autoRefreshed = true)
+    private int lightWeightQueueCapacity;
     @NacosValue(value="${job.threadPool.heavyResource.corePoolSize}", autoRefreshed = true)
     private int heavyResourceCorePoolSize;
     @NacosValue(value="${job.threadPool.heavyResource.maxPoolSize}", autoRefreshed = true)

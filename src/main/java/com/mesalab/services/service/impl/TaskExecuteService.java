@@ -25,14 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.Future;
 
-import static com.mesalab.services.service.impl.JobExecuteService.signJobInfoToFailedOnQueryCache;
+import static com.mesalab.services.service.impl.JobExecuteService.markJobFailure;
 import static com.mesalab.services.service.impl.JobServiceImpl.executeUpdate;
 
 /**
@@ -55,8 +52,7 @@ public class TaskExecuteService implements EnvironmentAware {
     @Autowired
     EngineConfigSource engineConfigSource;
 
-    @Async("taskExecutor")
-    public Future<List<Map<String, Object>>> executeFieldDiscovery(String id, String dataSource, String field, Object metric, Object fn, String filter) {
+    public List<Map<String, Object>> executeFieldDiscovery(String id, String dataSource, String field, Object metric, Object fn, String filter) {
         String fnDefault = "count";
         String column = "*";
         String value = "count";
@@ -75,21 +71,21 @@ public class TaskExecuteService implements EnvironmentAware {
                     .originalSQL(buildTopSQL(dataSource, filter, field, fnDefault, column, value))
                     .build());
             if (!currentTop.isSuccess()) {
-                setJobFailed(id);
+                markJobFailure(id, "field_discovery task of Job error. message: " + currentTop.getMessage());
                 log.error("field_discovery task of Job id is: {}, query currentTopK Error: {}", id, currentTop.getMessage());
-                return new AsyncResult<>(Lists.newArrayList());
+                return Lists.newArrayList();
             }
             List<Map<String, Object>> data = (List<Map<String, Object>>) currentTop.getData();
-            return new AsyncResult<>(Lists.newArrayList(data));
+            return Lists.newArrayList(data);
         } catch (RuntimeException ex) {
             log.error("field_discovery task of Job id is: {}, execute error, message is: {}", id, ex.getMessage());
-            setJobFailed(id);
+            markJobFailure(id, ex.getMessage());
         }
-        return new AsyncResult<>(Lists.newArrayList());
+        return Lists.newArrayList();
     }
 
-    @Async("taskExecutor")
-    public Future<Boolean> executeLongTerm(String id, String sql) {
+    @Deprecated
+    public Boolean executeLongTerm(String id, String sql) {
         try {
             BaseResult lastResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sql).build());
             BaseResult preResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(String.format(Objects.requireNonNull(env.getProperty("JOB_RESULT")), id)).build());
@@ -112,11 +108,7 @@ public class TaskExecuteService implements EnvironmentAware {
             log.error("Statistics task execute error, message is: {}", ex.getMessage());
             setJobFailedLongTerm(id);
         }
-        return new AsyncResult<>(true);
-    }
-
-    private void setJobFailed(String id) {
-        signJobInfoToFailedOnQueryCache(id);
+        return true;
     }
 
     @Deprecated
