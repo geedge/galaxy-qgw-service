@@ -157,3 +157,5 @@ job:
       corePoolSize: 1
       maxPoolSize: 2
       queueCapacity: 80
+field_discovery:
+  topN: 100

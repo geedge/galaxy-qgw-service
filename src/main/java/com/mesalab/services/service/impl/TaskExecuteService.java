@@ -19,6 +19,7 @@ import com.mesalab.qgw.model.basic.EngineConfigSource;
 import com.mesalab.qgw.service.SQLSyncQueryService;
 import com.mesalab.qgw.service.DatabaseService;
 import com.mesalab.services.common.property.SqlPropertySourceFactory;
+import com.mesalab.services.configuration.FieldDiscoveryConfig;
 import com.mesalab.services.configuration.JobConfig;
 import com.geedgenetworks.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,8 @@ public class TaskExecuteService implements EnvironmentAware {
     DatabaseService databaseService;
     @Autowired
     EngineConfigSource engineConfigSource;
+    @Autowired
+    FieldDiscoveryConfig fieldDiscoveryConfig;
 
     public List<Map<String, Object>> executeFieldDiscovery(String id, String dataSource, String field, Object metric, Object fn, String filter) {
         String fnDefault = "count";
@@ -253,16 +256,16 @@ public class TaskExecuteService implements EnvironmentAware {
                 if (StrUtil.equalsIgnoreCase("array", type)
                         || StrUtil.equalsIgnoreCase("array", logicalType)) {
                     return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_ARRAY")),
-                            "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, fieldName, StrUtil.isBlankIfStr(filter) ? "" : " AND ".concat(filter), value);
+                            "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, fieldName, StrUtil.isBlankIfStr(filter) ? "" : " AND ".concat(filter), value, fieldDiscoveryConfig.getTopN());
                 } else if (StrUtil.equalsIgnoreCase("bit", type)
                         || StrUtil.equalsIgnoreCase("bit", logicalType)) {
                     return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_BIT")),
-                            "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value);
+                            "count".equalsIgnoreCase(fn) ? "SUM" : fn, value, fieldName, fn + "(" + column + ")", tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value, fieldDiscoveryConfig.getTopN());
                 }
             }
         }
         return String.format(Objects.requireNonNull(env.getProperty("JOB_TOPK_DEFAULT")),
-                fieldName, fn, column, value, tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value);
+                fieldName, fn, column, value, tableName, StrUtil.isBlankIfStr(filter) ? "" : " WHERE ".concat(filter), value, fieldDiscoveryConfig.getTopN());
     }
 
     @Override
