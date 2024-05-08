@@ -2084,6 +2084,9 @@
       "name": "server_fqdn",
       "label": "Server FQDN",
       "doc": {
+        "constraints": {
+          "type": "fqdn"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2111,6 +2114,9 @@
       "name": "app",
       "label": "Application",
       "doc": {
+        "constraints": {
+          "type": "app"
+        },
         "visibility": "enabled",
         "ttl": null
       },
