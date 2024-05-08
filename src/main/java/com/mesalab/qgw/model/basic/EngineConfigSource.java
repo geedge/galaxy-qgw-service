@@ -16,5 +16,7 @@ public class EngineConfigSource implements Serializable {
     private int defaultResultNum;
     @NacosValue(value = "${engine.sampleDataPeriod}", autoRefreshed = true)
     private int sampleDataPeriod;
+    @NacosValue(value = "${engine.fieldDiscovery.topK}", autoRefreshed = true)
+    private int fieldDiscoveryTopK;
 
 }

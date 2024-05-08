@@ -101,6 +101,8 @@ engine:
   maxCacheNum: 1048575
   defaultResultNum: 100000
   sampleDataPeriod: 1800
+  fieldDiscovery:
+    topK: 100
 service:
   entity:
     activeClientIP: 10000
@@ -174,5 +176,3 @@ task:
     corePoolSize: 8
     maxPoolSize: 16
     queueCapacity: 1000
-field_discovery:
-  topN: 100
