@@ -330,6 +330,7 @@ public class ExampleDataHelper {
                     result.add(list.get(index));
                 }
             } else {
+                Collections.shuffle(list);
                 result.addAll(list.subList(0, size));
             }
         }
