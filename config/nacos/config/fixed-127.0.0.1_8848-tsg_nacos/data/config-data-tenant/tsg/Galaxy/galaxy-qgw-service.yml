@@ -99,6 +99,8 @@ xxl-job-admin:
 engine:
   maxCacheNum: 1048575
   defaultResultNum: 100000
+  fieldDiscovery:
+    topK: 100
 ## ArangoDB configuration
 arango:
   server: http://192.168.44.12:8529
@@ -157,5 +159,3 @@ job:
       corePoolSize: 1
       maxPoolSize: 2
       queueCapacity: 80
-field_discovery:
-  topN: 100

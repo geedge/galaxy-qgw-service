@@ -14,5 +14,7 @@ public class EngineConfigSource implements Serializable {
     private int maxCacheNum;
     @NacosValue(value = "${engine.defaultResultNum}", autoRefreshed = true)
     private int defaultResultNum;
+    @NacosValue(value = "${engine.fieldDiscovery.topK}", autoRefreshed = true)
+    private int fieldDiscoveryTopK;
 
 }
