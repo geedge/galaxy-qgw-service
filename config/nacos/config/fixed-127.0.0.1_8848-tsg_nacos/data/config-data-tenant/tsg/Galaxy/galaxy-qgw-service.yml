@@ -174,3 +174,5 @@ task:
     corePoolSize: 8
     maxPoolSize: 16
     queueCapacity: 1000
+field_discovery:
+  topN: 100
