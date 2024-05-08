@@ -17,13 +17,13 @@ SELECT count(*) AS logCount, %s AS totalMetric FROM %s %s LIMIT 1
 UPSERT INTO "tsg_galaxy"."job_result"( ROWKEY, "detail"."is_done", "detail"."done_progress", "detail"."duration_time") VALUES('%s', %s, %s, %s)
 #end
 #sql("JOB_TOPK_DEFAULT")
-SELECT %s AS value, %s(%s) AS %s FROM %s %s GROUP BY value ORDER BY %s DESC limit 10000
+SELECT %s AS value, %s(%s) AS %s FROM %s %s GROUP BY value ORDER BY %s DESC limit %s
 #end
 #sql("JOB_TOPK_ARRAY")
-SELECT value, %s(metric) AS %s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT %s AS items, %s AS metric FROM %s WHERE notEmpty(%s) %s GROUP BY items )) GROUP BY value ORDER BY %s DESC LIMIT 10000
+SELECT value, %s(metric) AS %s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT %s AS items, %s AS metric FROM %s WHERE notEmpty(%s) %s GROUP BY items )) GROUP BY value ORDER BY %s DESC LIMIT %s
 #end
 #sql("JOB_TOPK_BIT")
-SELECT value, %s(metric) AS %s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT bitmaskToArray(%s) AS items, %s AS metric FROM %s %s GROUP BY items )) GROUP BY value ORDER BY %s DESC LIMIT 10000
+SELECT value, %s(metric) AS %s FROM (SELECT arrayJoin(items) AS value, metric FROM (SELECT bitmaskToArray(%s) AS items, %s AS metric FROM %s %s GROUP BY items )) GROUP BY value ORDER BY %s DESC LIMIT %s
 #end
 #sql("JOB_UPDATE_FIELD_VALUE_SINGLE_QUOTATION")
 UPSERT into "tsg_galaxy"."job_result" (ROWKEY, "%s"."%s") values('%s', '%s')
