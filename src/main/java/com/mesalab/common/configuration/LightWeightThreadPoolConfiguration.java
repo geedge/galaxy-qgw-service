@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class LightWeightThreadPoolConfiguration {
 
     private JobConfig jobConfig;
-    private static final String THREAD_NAME_PREFIX = "Light-Weight-ThreadPool";
+    private static final String THREAD_NAME_PREFIX = "Light-Weight-ThreadPool-";
 
     @Bean("lightWeightThreadPool")
     public ThreadPoolTaskExecutor getLightWeightThreadPool() {
