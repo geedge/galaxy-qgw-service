@@ -131,37 +131,43 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
         return ArrayUtil.addAll(newBytes);
     }
 
-    private static byte[] generatePacketBlock(long timestamp,byte[] blockData, int packetLen,String measurements){
+    private static byte[] generatePacketBlock(long timestamp, byte[] blockData, int packetLen, String measurements) {
+        //计算注释的长度
+        List<byte[]> commentsList = new ArrayList<>();
+        int commentsLength = 0;
         //获取注释的json数组
         JSONArray measurementsJsonArray = JSONUtil.parseArray(measurements);
-        //计算注释的长度
-        int commentsLength = 0;
         for (Object measurement : measurementsJsonArray) {
-            String comment = ((JSONObject) measurement).toJSONString(2);
+            byte[] comment = ((JSONObject) measurement).toJSONString(2).getBytes();
+            if (comment.length > 65535) {
+                comment = "The comment exceeds the length limit of 65535 characters and cannot be displayed.".getBytes();
+            }
             //获取注释长度，补齐4字节
             int commentPadding = 0;
-            if(comment.length() % 4 != 0){
-                commentPadding = 4 - comment.length() % 4;
+            if (comment.length % 4 != 0) {
+                commentPadding = 4 - comment.length % 4;
             }
-            int commentLength = comment.length() + commentPadding;
-            commentsLength += commentLength + 4 ;
+            int commentLength = comment.length + commentPadding;
+            commentsLength += commentLength + 4;
+            commentsList.add(comment);
         }
         //计算数据包块的填充字节数
+        int blockDataLength = blockData.length;
         int packetPadding = 0;
-        if(packetLen % 4 != 0){
-            packetPadding = 4 - packetLen % 4;
+        if (blockDataLength % 4 != 0) {
+            packetPadding = 4 - blockDataLength % 4;
         }
         //计算增强数据包块长度
-        int packetBlockLength = commentsLength + packetLen + packetPadding + 32;
+        int packetBlockLength = commentsLength + blockDataLength + packetPadding + 32;
         //生成增强数据包块
         ByteBuffer packetBlockBuffer = ByteBuffer.allocate(packetBlockLength);
         packetBlockBuffer.order(ByteOrder.LITTLE_ENDIAN);
         packetBlockBuffer.putInt(0x00000006);//增强数据包块块类型
         packetBlockBuffer.putInt(packetBlockLength);//增强数据包块长度
         packetBlockBuffer.putInt(0);//接口ID，从IDB来，默认为0
-        packetBlockBuffer.putInt((int)(timestamp >> 32));//时间戳高32位
+        packetBlockBuffer.putInt((int) (timestamp >> 32));//时间戳高32位
         packetBlockBuffer.putInt((int) (timestamp & 0xFFFFFFFFL));//时间戳低32位
-        packetBlockBuffer.putInt(packetLen);//捕获的数据长度
+        packetBlockBuffer.putInt(blockDataLength);//捕获的数据长度
         packetBlockBuffer.putInt(packetLen);//原始数据包长度
         packetBlockBuffer.put(blockData);//数据包
         //补齐4字节
@@ -169,15 +175,14 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
             packetBlockBuffer.put((byte) 0);
         }
         //注释数据
-        for (Object measurement : measurementsJsonArray) {
-            String comment = ((JSONObject) measurement).toJSONString(2);
-            packetBlockBuffer.putShort((short) 1);//选项类型，注释固定为1
-            packetBlockBuffer.putShort((short) comment.length());//注释长度
-            packetBlockBuffer.put(comment.getBytes());//注释内容
+        for (byte[] comment : commentsList) {
+            packetBlockBuffer.putChar((char) 1);//选项类型，注释固定为1
+            packetBlockBuffer.putChar((char) comment.length);//注释长度
+            packetBlockBuffer.put(comment);//注释内容
             //计算注释的填充字节数
             int commentPadding = 0;
-            if(comment.length() % 4 != 0){
-                commentPadding = 4 - comment.length() % 4;
+            if (comment.length % 4 != 0) {
+                commentPadding = 4 - comment.length % 4;
             }
             //补齐4字节
             for (int i = 0; i < commentPadding; i++) {
