@@ -87,10 +87,6 @@ public class PacketCombineDslServiceImpl implements PacketCombineDslService {
             long timestampUS = Long.parseLong(String.valueOf(map.get(FILED_TIMESTAMP_US)));
             String base64EncodedString = String.valueOf(map.get(FILED_PACKET));
             byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedString);
-            if (decodedBytes.length != packetLen) {
-                log.warn("Packet content does not match the specified length. Actual length: {}, Specified length: {}. Packet will be discarded. Packet in Base64 format: {}", decodedBytes.length, packetLen, map.get(FILED_PACKET));
-                continue;
-            }
             byte[] bytes = generatePacketBlock(timestampUS, decodedBytes, packetLen, measurements);
             packetList.add(bytes);
         }
