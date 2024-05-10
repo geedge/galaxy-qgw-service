@@ -20,7 +20,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 @EnableAsync
 public class HeavyResourceThreadPoolConfiguration {
-    private static final String THREAD_NAME_PREFIX = "Heavy-Resource-ThreadPool";
+    private static final String THREAD_NAME_PREFIX = "Heavy-Resource-ThreadPool-";
 
     private JobConfig jobCfg;
 
