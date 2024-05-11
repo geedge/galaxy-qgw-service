@@ -209,7 +209,7 @@ public class JobExecuteService implements EnvironmentAware {
     }
 
     public static void markJobFailure(String id, String reasonMessage) {
-        log.error("Exec SQL Query Job Error, message is: {}", reasonMessage);
+        log.error("Async Query Job Error, message is: {}", reasonMessage);
         try {
             HazelcastInstanceMapUtil.retrieveMap().lock(id);
             QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
