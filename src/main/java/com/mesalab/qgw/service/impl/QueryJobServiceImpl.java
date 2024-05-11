@@ -85,16 +85,14 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
                     .format(sqlQueryRequestParam.getOutputMode().getValue())
                     .build());
         } else if (ExecutionMode.NORMAL.equals(execMode)) {
-            String id = generateJobId();
-            HazelcastInstanceMapUtil.put(id, new QueryCache(id));
+            HazelcastInstanceMapUtil.put(sqlQueryRequestParam.getId(), new QueryCache(sqlQueryRequestParam.getId()));
             jobExecuteService.addExecutorSql(sqlQueryRequestParam);
-            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
+            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(sqlQueryRequestParam.getId()));
         } else if (ExecutionMode.BLOCKING.equals(execMode)) {
-            String id = generateJobId();
             BaseResult baseResult = sqlSyncQueryService.executeQuery(SQLQueryContext.builder().originalSQL(sqlQueryRequestParam.getStatement()).option(option).format(sqlQueryRequestParam.getOutputMode().getValue()).build());
-            QueryCache queryCache = buildQueryCacheOfDone(id, start, baseResult);
-            HazelcastInstanceMapUtil.put(id, queryCache);
-            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(id));
+            QueryCache queryCache = buildQueryCacheOfDone(sqlQueryRequestParam.getId(), start, baseResult);
+            HazelcastInstanceMapUtil.put(sqlQueryRequestParam.getId(), queryCache);
+            return BaseResultGenerator.successCreate(buildJobInfoOfCreated(sqlQueryRequestParam.getId()));
         }
         throw new QGWBusinessException(HttpStatusCodeEnum.BAD_REQUEST.getCode(), CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getCode(),
                 String.format(CommonErrorCode.BAD_REQUEST_PARAM_SYNTAX_EXCEPTION.getMessage(), "not Supported"));
