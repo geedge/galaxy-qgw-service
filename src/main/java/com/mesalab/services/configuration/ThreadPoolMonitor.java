@@ -29,19 +29,19 @@ public class ThreadPoolMonitor implements InitializingBean {
 
     private final Runnable monitor = () -> {
         try {
-            Metrics.gauge("job.thread.pool.core.size", TAG, lightWeightThreadPool, ThreadPoolTaskExecutor::getCorePoolSize);
-            Metrics.gauge("job.thread.pool.largest.size", TAG, lightWeightThreadPool, e -> e.getThreadPoolExecutor().getLargestPoolSize());
-            Metrics.gauge("job.thread.pool.max.size", TAG, lightWeightThreadPool, ThreadPoolTaskExecutor::getMaxPoolSize);
-            Metrics.gauge("job.thread.pool.active.size", TAG, lightWeightThreadPool, ThreadPoolTaskExecutor::getActiveCount);
-            Metrics.gauge("job.thread.pool.thread.count", TAG, lightWeightThreadPool, ThreadPoolTaskExecutor::getPoolSize);
-            Metrics.gauge("job.thread.pool.queue.size", TAG, lightWeightThreadPool, e -> e.getThreadPoolExecutor().getQueue().size());
+            Metrics.gauge("light.weight.thread.pool.core.size", TAG, lightWeightThreadPool, ThreadPoolTaskExecutor::getCorePoolSize);
+            Metrics.gauge("light.weight.thread.pool.largest.size", TAG, lightWeightThreadPool, e -> e.getThreadPoolExecutor().getLargestPoolSize());
+            Metrics.gauge("light.weight.thread.pool.max.size", TAG, lightWeightThreadPool, ThreadPoolTaskExecutor::getMaxPoolSize);
+            Metrics.gauge("light.weight.thread.pool.active.size", TAG, lightWeightThreadPool, ThreadPoolTaskExecutor::getActiveCount);
+            Metrics.gauge("light.weight.thread.pool.thread.count", TAG, lightWeightThreadPool, ThreadPoolTaskExecutor::getPoolSize);
+            Metrics.gauge("light.weight.thread.pool.queue.size", TAG, lightWeightThreadPool, e -> e.getThreadPoolExecutor().getQueue().size());
 
-            Metrics.gauge("task.thread.pool.core.size", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getCorePoolSize);
-            Metrics.gauge("task.thread.pool.largest.size", TAG, heavyResourceThreadPool, e -> e.getThreadPoolExecutor().getLargestPoolSize());
-            Metrics.gauge("task.thread.pool.max.size", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getMaxPoolSize);
-            Metrics.gauge("task.thread.pool.active.size", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getActiveCount);
-            Metrics.gauge("task.thread.pool.thread.count", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getPoolSize);
-            Metrics.gauge("task.thread.pool.queue.size", TAG, heavyResourceThreadPool, e -> e.getThreadPoolExecutor().getQueue().size());
+            Metrics.gauge("heavy.resource.thread.pool.core.size", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getCorePoolSize);
+            Metrics.gauge("heavy.resource.thread.pool.largest.size", TAG, heavyResourceThreadPool, e -> e.getThreadPoolExecutor().getLargestPoolSize());
+            Metrics.gauge("heavy.resource.thread.pool.max.size", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getMaxPoolSize);
+            Metrics.gauge("heavy.resource.thread.pool.active.size", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getActiveCount);
+            Metrics.gauge("heavy.resource.thread.pool.thread.count", TAG, heavyResourceThreadPool, ThreadPoolTaskExecutor::getPoolSize);
+            Metrics.gauge("heavy.resource.thread.pool.queue.size", TAG, heavyResourceThreadPool, e -> e.getThreadPoolExecutor().getQueue().size());
         } catch (RuntimeException e) {
             log.error("Collect thread pool status error:", e.getMessage());
         }
