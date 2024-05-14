@@ -28,6 +28,7 @@ public class JobConfig {
     public static final String DONE_PROGRESS = "done_progress";
     public static final String IS_CANCELED = "is_canceled";
     public static final String IS_FAILED = "is_failed";
+    public static final String REASON = "reason";
     public static final String LINKS = "links";
     public static final String LINKS_STATUS = "status";
     public static final String LINKS_RESULT = "result";

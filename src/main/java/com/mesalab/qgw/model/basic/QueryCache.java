@@ -28,6 +28,7 @@ public class QueryCache implements Serializable {
         job.put(JobConfig.DONE_PROGRESS, 0.0);
         job.put(JobConfig.IS_CANCELED, false);
         job.put(JobConfig.IS_FAILED, false);
+        job.put(JobConfig.REASON, null);
         job.put(JobConfig.START_TIME, null);
         job.put(JobConfig.END_TIME, null);
         Map<String, Object> links = Maps.newLinkedHashMap();

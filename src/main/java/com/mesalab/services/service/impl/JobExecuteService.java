@@ -215,6 +215,7 @@ public class JobExecuteService implements EnvironmentAware {
             QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
             Map<String, Object> job = Objects.requireNonNull(queryCache).getBaseResult().getJob();
             job.put(JobConfig.IS_FAILED, true);
+            job.put(JobConfig.REASON, reasonMessage);
             HazelcastInstanceMapUtil.put(id, queryCache);
         } finally {
             HazelcastInstanceMapUtil.retrieveMap().unlock(id);
