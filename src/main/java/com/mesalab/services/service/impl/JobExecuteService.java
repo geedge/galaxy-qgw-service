@@ -433,6 +433,15 @@ public class JobExecuteService implements EnvironmentAware {
                 }
                 Future<List<Map<String, Object>>> listFuture = taskCallbackList.get(field);
                 List<Map<String, Object>> data = listFuture.get();
+                data.forEach(x -> {
+                    for (String k : x.keySet()) {
+                        if (k.startsWith(JobConfig.FIELD_DISCOVERY_TOPK_METRIC_PREFIX)) {
+                            Object v = x.get(k);
+                            x.put(k.replace(JobConfig.FIELD_DISCOVERY_TOPK_METRIC_PREFIX, ""), v);
+                            x.remove(k);
+                        }
+                    }
+                });
                 QueryCache queryCache = HazelcastInstanceMapUtil.get(id);
                 if (StrUtil.isEmptyIfStr(queryCache)) {
                     markJobFailure(id, "Cache expiration.");
