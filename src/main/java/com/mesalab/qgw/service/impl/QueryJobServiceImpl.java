@@ -186,6 +186,7 @@ public class QueryJobServiceImpl implements QueryJobService, EnvironmentAware {
         jobInfo.put(JobConfig.DONE_PROGRESS, 1);
         if (!baseResult.isSuccess()) {
             jobInfo.put(JobConfig.IS_FAILED, false);
+            jobInfo.put(JobConfig.REASON, baseResult.getMessage());
         }
         jobInfo.put(JobConfig.START_TIME, DateUtils.convertTimestampToString(start / 1000, DatePattern.UTC_PATTERN));
         jobInfo.put(JobConfig.END_TIME, DateUtils.convertTimestampToString(System.currentTimeMillis() / 1000, DatePattern.UTC_PATTERN));

@@ -282,6 +282,7 @@ public class JobServiceImpl implements JobService, EnvironmentAware {
         job.put(JobConfig.DONE_PROGRESS, Math.min(Double.parseDouble(String.valueOf(data.get("done_progress"))), 1.0));
         job.put(JobConfig.IS_CANCELED, !BooleanUtil.toBoolean(String.valueOf(data.get("is_valid"))));
         job.put(JobConfig.IS_FAILED, BooleanUtil.toBoolean(String.valueOf(data.get("is_failed"))));
+        job.put(JobConfig.REASON, data.get("result_message"));
         job.put(JobConfig.START_TIME, Optional.ofNullable(data.get("start_time")).map(s -> DateUtils.convertTimestampToString(Long.parseLong(data.get("start_time").toString()), DatePattern.UTC_PATTERN))
                 .orElse(null));
         job.put(JobConfig.END_TIME, Optional.ofNullable(data.get("end_time")).map(s -> DateUtils.convertTimestampToString(Long.parseLong(data.get("end_time").toString()), DatePattern.UTC_PATTERN))
