@@ -46,8 +46,8 @@
       "field_discovery_metric": {
         "sessions": [
           {
-            "fn": "sum",
-            "column": "sessions",
+            "fn": "count",
+            "column": "log_id",
             "value": "sessions",
             "label": "Sessions",
             "unit": "sessions"
