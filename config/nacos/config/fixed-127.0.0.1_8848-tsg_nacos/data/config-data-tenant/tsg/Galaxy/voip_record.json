@@ -855,16 +855,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "4",
-            "value": "IPv4"
-          },
-          {
-            "code": "6",
-            "value": "IPv6"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/address_type/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -874,16 +867,9 @@
       "name": "direction",
       "label": "Direction",
       "doc": {
-        "data": [
-          {
-            "code": "Inbound",
-            "value": "Inbound"
-          },
-          {
-            "code": "Outbound",
-            "value": "Outbound"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/direction/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1123,16 +1109,9 @@
       "name": "ip_protocol",
       "label": "IP Protocol",
       "doc": {
-        "data": [
-          {
-            "code": "tcp",
-            "value": "tcp"
-          },
-          {
-            "code": "udp",
-            "value": "udp"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/ip_protocol/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1332,116 +1311,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "PCMU"
-          },
-          {
-            "code": "1",
-            "value": "1016"
-          },
-          {
-            "code": "2",
-            "value": "G721"
-          },
-          {
-            "code": "3",
-            "value": "GSM"
-          },
-          {
-            "code": "4",
-            "value": "G723"
-          },
-          {
-            "code": "5",
-            "value": "DVI4_8000"
-          },
-          {
-            "code": "6",
-            "value": "DVI4_16000"
-          },
-          {
-            "code": "7",
-            "value": "LPC"
-          },
-          {
-            "code": "8",
-            "value": "PCMA"
-          },
-          {
-            "code": "9",
-            "value": "G722"
-          },
-          {
-            "code": "10",
-            "value": "L16_STEREO"
-          },
-          {
-            "code": "11",
-            "value": "L16_MONO"
-          },
-          {
-            "code": "12",
-            "value": "QCELP"
-          },
-          {
-            "code": "13",
-            "value": "CN"
-          },
-          {
-            "code": "14",
-            "value": "MPA"
-          },
-          {
-            "code": "15",
-            "value": "G728"
-          },
-          {
-            "code": "16",
-            "value": "DVI4_11025"
-          },
-          {
-            "code": "17",
-            "value": "DVI4_22050"
-          },
-          {
-            "code": "18",
-            "value": "G729"
-          },
-          {
-            "code": "19",
-            "value": "CN_OLD"
-          },
-          {
-            "code": "25",
-            "value": "CELB"
-          },
-          {
-            "code": "26",
-            "value": "JPEG"
-          },
-          {
-            "code": "28",
-            "value": "NV"
-          },
-          {
-            "code": "31",
-            "value": "H261"
-          },
-          {
-            "code": "32",
-            "value": "MPV"
-          },
-          {
-            "code": "33",
-            "value": "MP2T"
-          },
-          {
-            "code": "34",
-            "value": "H263"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/rtp_payload_type_c2s/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1454,116 +1326,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "PCMU"
-          },
-          {
-            "code": "1",
-            "value": "1016"
-          },
-          {
-            "code": "2",
-            "value": "G721"
-          },
-          {
-            "code": "3",
-            "value": "GSM"
-          },
-          {
-            "code": "4",
-            "value": "G723"
-          },
-          {
-            "code": "5",
-            "value": "DVI4_8000"
-          },
-          {
-            "code": "6",
-            "value": "DVI4_16000"
-          },
-          {
-            "code": "7",
-            "value": "LPC"
-          },
-          {
-            "code": "8",
-            "value": "PCMA"
-          },
-          {
-            "code": "9",
-            "value": "G722"
-          },
-          {
-            "code": "10",
-            "value": "L16_STEREO"
-          },
-          {
-            "code": "11",
-            "value": "L16_MONO"
-          },
-          {
-            "code": "12",
-            "value": "QCELP"
-          },
-          {
-            "code": "13",
-            "value": "CN"
-          },
-          {
-            "code": "14",
-            "value": "MPA"
-          },
-          {
-            "code": "15",
-            "value": "G728"
-          },
-          {
-            "code": "16",
-            "value": "DVI4_11025"
-          },
-          {
-            "code": "17",
-            "value": "DVI4_22050"
-          },
-          {
-            "code": "18",
-            "value": "G729"
-          },
-          {
-            "code": "19",
-            "value": "CN_OLD"
-          },
-          {
-            "code": "25",
-            "value": "CELB"
-          },
-          {
-            "code": "26",
-            "value": "JPEG"
-          },
-          {
-            "code": "28",
-            "value": "NV"
-          },
-          {
-            "code": "31",
-            "value": "H261"
-          },
-          {
-            "code": "32",
-            "value": "MPV"
-          },
-          {
-            "code": "33",
-            "value": "MP2T"
-          },
-          {
-            "code": "34",
-            "value": "H263"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/rtp_payload_type_s2c/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1589,20 +1354,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "unknown"
-          },
-          {
-            "code": "1",
-            "value": "c2s"
-          },
-          {
-            "code": "2",
-            "value": "s2c"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/rtp_originator_dir/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },

@@ -144,15 +144,15 @@
         },
         "data": [
           {
-            "code": "16",
+            "code": 16,
             "value": "Deny"
           },
           {
-            "code": "96",
+            "code": 96,
             "value": "Allow"
           },
           {
-            "code": "128",
+            "code": 128,
             "value": "Shunt"
           }
         ],
