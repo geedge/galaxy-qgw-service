@@ -147,15 +147,15 @@
         },
         "data": [
           {
-            "code": "2",
+            "code": 2,
             "value": "Intercept"
           },
           {
-            "code": "3",
+            "code": 3,
             "value": "No Intercept"
           },
           {
-            "code": "48",
+            "code": 48,
             "value": "Manipulate"
           }
         ],

@@ -1382,16 +1382,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "4",
-            "value": "IPv4"
-          },
-          {
-            "code": "6",
-            "value": "IPv6"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/address_type/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1401,16 +1394,9 @@
       "name": "direction",
       "label": "Direction",
       "doc": {
-        "data": [
-          {
-            "code": "Inbound",
-            "value": "Inbound"
-          },
-          {
-            "code": "Outbound",
-            "value": "Outbound"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/direction/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1512,16 +1498,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "Deny",
-            "value": "Deny"
-          },
-          {
-            "code": "Allow",
-            "value": "Allow"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/security_action/data"
+        },
         "ttl": null
       },
       "type": "string"
@@ -1664,20 +1643,9 @@
       "name": "proxy_pinning_status",
       "label": "Proxy Pinning Status",
       "doc": {
-        "data": [
-          {
-            "code": "0",
-            "value": "not pinning"
-          },
-          {
-            "code": "1",
-            "value": "pinning"
-          },
-          {
-            "code": "2",
-            "value": "maybe pinning"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/proxy_pinning_status/data"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1687,20 +1655,9 @@
       "name": "proxy_intercept_status",
       "label": "Proxy Intercept Status",
       "doc": {
-        "data": [
-          {
-            "code": "0",
-            "value": "passthrough"
-          },
-          {
-            "code": "1",
-            "value": "intercept"
-          },
-          {
-            "code": "2",
-            "value": "shutdown"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/proxy_intercept_status/data"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -2093,16 +2050,9 @@
       "name": "ip_protocol",
       "label": "IP Protocol",
       "doc": {
-        "data": [
-          {
-            "code": "tcp",
-            "value": "tcp"
-          },
-          {
-            "code": "udp",
-            "value": "udp"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/ip_protocol/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2797,16 +2747,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": 0,
-            "value": "False"
-          },
-          {
-            "code": 1,
-            "value": "True"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/mail_starttls_flag/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2828,16 +2771,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "QUERY"
-          },
-          {
-            "code": "1",
-            "value": "RESPONSE"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_qr/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2851,24 +2787,9 @@
           "operator_functions": "=,!=,in,not in",
           "aggregation_functions": "COUNT, COUNT_DISTINCT"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "QUERY"
-          },
-          {
-            "code": "1",
-            "value": "IQUERY"
-          },
-          {
-            "code": "2",
-            "value": "STATUS"
-          },
-          {
-            "code": "5",
-            "value": "UPDATE"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_opcode/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2917,76 +2838,9 @@
       "name": "dns_rcode",
       "label": "DNS.RCODE",
       "doc": {
-        "data": [
-          {
-            "code": 0,
-            "value": "NoError"
-          },
-          {
-            "code": 1,
-            "value": "FormErr"
-          },
-          {
-            "code": 2,
-            "value": "ServFail"
-          },
-          {
-            "code": 3,
-            "value": "NXDomain"
-          },
-          {
-            "code": 4,
-            "value": "NotImp"
-          },
-          {
-            "code": 5,
-            "value": "Refused"
-          },
-          {
-            "code": 6,
-            "value": "YXDomain"
-          },
-          {
-            "code": 7,
-            "value": "YXRRSet"
-          },
-          {
-            "code": 8,
-            "value": "NXRRSet"
-          },
-          {
-            "code": 9,
-            "value": "NotAuth"
-          },
-          {
-            "code": 10,
-            "value": "NotZone"
-          },
-          {
-            "code": 16,
-            "value": "BADSIG"
-          },
-          {
-            "code": 17,
-            "value": "BADKEY"
-          },
-          {
-            "code": 18,
-            "value": "BADTIME"
-          },
-          {
-            "code": 19,
-            "value": "BADMODE"
-          },
-          {
-            "code": 20,
-            "value": "BADNAME"
-          },
-          {
-            "code": 21,
-            "value": "BADALG"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_rcode/data"
+        },
         "visibility": "enabled",
         "constraints": {
           "operator_functions": "=,!=,in,not in",
@@ -3061,328 +2915,9 @@
           "operator_functions": "=,!=,in,not in",
           "aggregation_functions": "COUNT, COUNT_DISTINCT"
         },
-        "data": [
-          {
-            "code": "1",
-            "value": "A"
-          },
-          {
-            "code": "2",
-            "value": "NS"
-          },
-          {
-            "code": "3",
-            "value": "MD"
-          },
-          {
-            "code": "4",
-            "value": "MF"
-          },
-          {
-            "code": "5",
-            "value": "CNAME"
-          },
-          {
-            "code": "6",
-            "value": "SOA"
-          },
-          {
-            "code": "7",
-            "value": "MB"
-          },
-          {
-            "code": "8",
-            "value": "MG"
-          },
-          {
-            "code": "9",
-            "value": "MR"
-          },
-          {
-            "code": "10",
-            "value": "NULL"
-          },
-          {
-            "code": "11",
-            "value": "WKS"
-          },
-          {
-            "code": "12",
-            "value": "PTR"
-          },
-          {
-            "code": "13",
-            "value": "HINFO"
-          },
-          {
-            "code": "14",
-            "value": "MINFO"
-          },
-          {
-            "code": "15",
-            "value": "MX"
-          },
-          {
-            "code": "16",
-            "value": "TXT"
-          },
-          {
-            "code": "17",
-            "value": "RP"
-          },
-          {
-            "code": "18",
-            "value": "AFSDB"
-          },
-          {
-            "code": "19",
-            "value": "X25"
-          },
-          {
-            "code": "20",
-            "value": "ISDN"
-          },
-          {
-            "code": "21",
-            "value": "RT"
-          },
-          {
-            "code": "22",
-            "value": "NSAP"
-          },
-          {
-            "code": "23",
-            "value": "NSAP"
-          },
-          {
-            "code": "24",
-            "value": "SIG"
-          },
-          {
-            "code": "25",
-            "value": "KEY"
-          },
-          {
-            "code": "26",
-            "value": "PX"
-          },
-          {
-            "code": "27",
-            "value": "GPOS"
-          },
-          {
-            "code": "28",
-            "value": "AAAA"
-          },
-          {
-            "code": "29",
-            "value": "LOC"
-          },
-          {
-            "code": "30",
-            "value": "EID"
-          },
-          {
-            "code": "31",
-            "value": "NIMLOC"
-          },
-          {
-            "code": "32",
-            "value": "NB"
-          },
-          {
-            "code": "33",
-            "value": "SRV"
-          },
-          {
-            "code": "34",
-            "value": "ATMA"
-          },
-          {
-            "code": "35",
-            "value": "NAPTR"
-          },
-          {
-            "code": "36",
-            "value": "KX"
-          },
-          {
-            "code": "37",
-            "value": "CERT"
-          },
-          {
-            "code": "38",
-            "value": "A6"
-          },
-          {
-            "code": "39",
-            "value": "DNAME"
-          },
-          {
-            "code": "40",
-            "value": "SINK"
-          },
-          {
-            "code": "41",
-            "value": "OPT"
-          },
-          {
-            "code": "42",
-            "value": "APL"
-          },
-          {
-            "code": "43",
-            "value": "DS"
-          },
-          {
-            "code": "44",
-            "value": "SSHFP"
-          },
-          {
-            "code": "45",
-            "value": "IPSECKEY"
-          },
-          {
-            "code": "46",
-            "value": "RRSIG"
-          },
-          {
-            "code": "47",
-            "value": "NSEC"
-          },
-          {
-            "code": "48",
-            "value": "DNSKEY"
-          },
-          {
-            "code": "49",
-            "value": "DHCID"
-          },
-          {
-            "code": "50",
-            "value": "NSEC3"
-          },
-          {
-            "code": "51",
-            "value": "NSEC3PARAM"
-          },
-          {
-            "code": "52",
-            "value": "TLSA"
-          },
-          {
-            "code": "53",
-            "value": "SMIMEA"
-          },
-          {
-            "code": "55",
-            "value": "HIP"
-          },
-          {
-            "code": "59",
-            "value": "CDS"
-          },
-          {
-            "code": "60",
-            "value": "CDNSKEY"
-          },
-          {
-            "code": "61",
-            "value": "OPENPGPKEY"
-          },
-          {
-            "code": "62",
-            "value": "CSYNC"
-          },
-          {
-            "code": "63",
-            "value": "ZONEMD"
-          },
-          {
-            "code": "64",
-            "value": "SVCB"
-          },
-          {
-            "code": "65",
-            "value": "HTTPS"
-          },
-          {
-            "code": "99",
-            "value": "SPF"
-          },
-          {
-            "code": "100",
-            "value": "UINFO"
-          },
-          {
-            "code": "101",
-            "value": "UID"
-          },
-          {
-            "code": "102",
-            "value": "GID"
-          },
-          {
-            "code": "103",
-            "value": "UNSPEC"
-          },
-          {
-            "code": "108",
-            "value": "EUI48"
-          },
-          {
-            "code": "109",
-            "value": "EUI64"
-          },
-          {
-            "code": "249",
-            "value": "TKEY"
-          },
-          {
-            "code": "250",
-            "value": "TSIG"
-          },
-          {
-            "code": "251",
-            "value": "IXFR"
-          },
-          {
-            "code": "252",
-            "value": "AXFR"
-          },
-          {
-            "code": "253",
-            "value": "MAILB"
-          },
-          {
-            "code": "254",
-            "value": "MAILA"
-          },
-          {
-            "code": "255",
-            "value": "*"
-          },
-          {
-            "code": "256",
-            "value": "URI"
-          },
-          {
-            "code": "257",
-            "value": "CAA"
-          },
-          {
-            "code": "32768",
-            "value": "TA"
-          },
-          {
-            "code": "32769",
-            "value": "DLV"
-          },
-          {
-            "code": "65521",
-            "value": "INTEGRITY"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_qtype/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -3417,16 +2952,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "1",
-            "value": "DNS"
-          },
-          {
-            "code": "2",
-            "value": "DNSSEC"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/dns_sub/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -3862,116 +3390,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "PCMU"
-          },
-          {
-            "code": "1",
-            "value": "1016"
-          },
-          {
-            "code": "2",
-            "value": "G721"
-          },
-          {
-            "code": "3",
-            "value": "GSM"
-          },
-          {
-            "code": "4",
-            "value": "G723"
-          },
-          {
-            "code": "5",
-            "value": "DVI4_8000"
-          },
-          {
-            "code": "6",
-            "value": "DVI4_16000"
-          },
-          {
-            "code": "7",
-            "value": "LPC"
-          },
-          {
-            "code": "8",
-            "value": "PCMA"
-          },
-          {
-            "code": "9",
-            "value": "G722"
-          },
-          {
-            "code": "10",
-            "value": "L16_STEREO"
-          },
-          {
-            "code": "11",
-            "value": "L16_MONO"
-          },
-          {
-            "code": "12",
-            "value": "QCELP"
-          },
-          {
-            "code": "13",
-            "value": "CN"
-          },
-          {
-            "code": "14",
-            "value": "MPA"
-          },
-          {
-            "code": "15",
-            "value": "G728"
-          },
-          {
-            "code": "16",
-            "value": "DVI4_11025"
-          },
-          {
-            "code": "17",
-            "value": "DVI4_22050"
-          },
-          {
-            "code": "18",
-            "value": "G729"
-          },
-          {
-            "code": "19",
-            "value": "CN_OLD"
-          },
-          {
-            "code": "25",
-            "value": "CELB"
-          },
-          {
-            "code": "26",
-            "value": "JPEG"
-          },
-          {
-            "code": "28",
-            "value": "NV"
-          },
-          {
-            "code": "31",
-            "value": "H261"
-          },
-          {
-            "code": "32",
-            "value": "MPV"
-          },
-          {
-            "code": "33",
-            "value": "MP2T"
-          },
-          {
-            "code": "34",
-            "value": "H263"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/rtp_payload_type_c2s/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -3984,116 +3405,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "PCMU"
-          },
-          {
-            "code": "1",
-            "value": "1016"
-          },
-          {
-            "code": "2",
-            "value": "G721"
-          },
-          {
-            "code": "3",
-            "value": "GSM"
-          },
-          {
-            "code": "4",
-            "value": "G723"
-          },
-          {
-            "code": "5",
-            "value": "DVI4_8000"
-          },
-          {
-            "code": "6",
-            "value": "DVI4_16000"
-          },
-          {
-            "code": "7",
-            "value": "LPC"
-          },
-          {
-            "code": "8",
-            "value": "PCMA"
-          },
-          {
-            "code": "9",
-            "value": "G722"
-          },
-          {
-            "code": "10",
-            "value": "L16_STEREO"
-          },
-          {
-            "code": "11",
-            "value": "L16_MONO"
-          },
-          {
-            "code": "12",
-            "value": "QCELP"
-          },
-          {
-            "code": "13",
-            "value": "CN"
-          },
-          {
-            "code": "14",
-            "value": "MPA"
-          },
-          {
-            "code": "15",
-            "value": "G728"
-          },
-          {
-            "code": "16",
-            "value": "DVI4_11025"
-          },
-          {
-            "code": "17",
-            "value": "DVI4_22050"
-          },
-          {
-            "code": "18",
-            "value": "G729"
-          },
-          {
-            "code": "19",
-            "value": "CN_OLD"
-          },
-          {
-            "code": "25",
-            "value": "CELB"
-          },
-          {
-            "code": "26",
-            "value": "JPEG"
-          },
-          {
-            "code": "28",
-            "value": "NV"
-          },
-          {
-            "code": "31",
-            "value": "H261"
-          },
-          {
-            "code": "32",
-            "value": "MPV"
-          },
-          {
-            "code": "33",
-            "value": "MP2T"
-          },
-          {
-            "code": "34",
-            "value": "H263"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/rtp_payload_type_s2c/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -4119,20 +3433,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "0",
-            "value": "unknown"
-          },
-          {
-            "code": "1",
-            "value": "c2s"
-          },
-          {
-            "code": "2",
-            "value": "s2c"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/rtp_originator_dir/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },

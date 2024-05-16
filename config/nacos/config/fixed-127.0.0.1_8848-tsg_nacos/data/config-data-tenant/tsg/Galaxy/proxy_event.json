@@ -949,16 +949,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "4",
-            "value": "IPv4"
-          },
-          {
-            "code": "6",
-            "value": "IPv6"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/address_type/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -968,16 +961,9 @@
       "name": "direction",
       "label": "Direction",
       "doc": {
-        "data": [
-          {
-            "code": "Inbound",
-            "value": "Inbound"
-          },
-          {
-            "code": "Outbound",
-            "value": "Outbound"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/direction/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -1079,16 +1065,9 @@
         "constraints": {
           "operator_functions": "=,!=,in,not in"
         },
-        "data": [
-          {
-            "code": "Deny",
-            "value": "Deny"
-          },
-          {
-            "code": "Allow",
-            "value": "Allow"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/security_action/data"
+        },
         "ttl": null
       },
       "type": "string"
@@ -1259,20 +1238,9 @@
       "name": "proxy_pinning_status",
       "label": "Proxy Pinning Status",
       "doc": {
-        "data": [
-          {
-            "code": "0",
-            "value": "not pinning"
-          },
-          {
-            "code": "1",
-            "value": "pinning"
-          },
-          {
-            "code": "2",
-            "value": "maybe pinning"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/proxy_pinning_status/data"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1282,20 +1250,9 @@
       "name": "proxy_intercept_status",
       "label": "Proxy Intercept Status",
       "doc": {
-        "data": [
-          {
-            "code": "0",
-            "value": "passthrough"
-          },
-          {
-            "code": "1",
-            "value": "intercept"
-          },
-          {
-            "code": "2",
-            "value": "shutdown"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/proxy_intercept_status/data"
+        },
         "visibility": "hidden",
         "ttl": null
       },
@@ -1688,16 +1645,9 @@
       "name": "ip_protocol",
       "label": "IP Protocol",
       "doc": {
-        "data": [
-          {
-            "code": "tcp",
-            "value": "tcp"
-          },
-          {
-            "code": "udp",
-            "value": "udp"
-          }
-        ],
+        "data": {
+          "$ref": "public_schema_info.json#/fields/ip_protocol/data"
+        },
         "visibility": "enabled",
         "ttl": null
       },
@@ -2364,11 +2314,11 @@
         },
         "data": [
           {
-            "code": "0",
+            "code": 0,
             "value": "QUERY"
           },
           {
-            "code": "1",
+            "code": 1,
             "value": "REESPONSE"
           }
         ],
@@ -2386,19 +2336,19 @@
         },
         "data": [
           {
-            "code": "0",
+            "code": 0,
             "value": "QUERY"
           },
           {
-            "code": "1",
+            "code": 1,
             "value": "IQUERY"
           },
           {
-            "code": "2",
+            "code": 2,
             "value": "STATUS"
           },
           {
-            "code": "5",
+            "code": 5,
             "value": "UPDATE"
           }
         ],
@@ -2518,43 +2468,43 @@
         },
         "data": [
           {
-            "code": "1",
+            "code": 1,
             "value": "A"
           },
           {
-            "code": "2",
+            "code": 2,
             "value": "NS"
           },
           {
-            "code": "5",
+            "code": 5,
             "value": "CNAME"
           },
           {
-            "code": "6",
+            "code": 6,
             "value": "SOA"
           },
           {
-            "code": "11",
+            "code": 11,
             "value": "WKS"
           },
           {
-            "code": "12",
+            "code": 12,
             "value": "PTR"
           },
           {
-            "code": "13",
+            "code": 13,
             "value": "HINFO"
           },
           {
-            "code": "11",
+            "code": 11,
             "value": "WKS"
           },
           {
-            "code": "15",
+            "code": 15,
             "value": "MX"
           },
           {
-            "code": "28",
+            "code": 28,
             "value": "AAAA"
           }
         ],
@@ -2590,11 +2540,11 @@
         },
         "data": [
           {
-            "code": "1",
+            "code": 1,
             "value": "DNS"
           },
           {
-            "code": "2",
+            "code": 2,
             "value": "DNSSEC"
           }
         ],
