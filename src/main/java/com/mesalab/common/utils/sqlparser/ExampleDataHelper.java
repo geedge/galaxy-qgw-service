@@ -5,7 +5,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.CharsetUtil;
 import com.alibaba.fastjson2.JSONPath;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mesalab.common.entity.DataTypeMapping;
 import com.mesalab.common.enums.HttpStatusCodeEnum;
@@ -17,7 +16,6 @@ import com.mesalab.qgw.constant.MetaConst;
 import com.mesalab.qgw.exception.QGWBusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.validation.constraints.NotNull;
 import java.io.File;
@@ -66,29 +64,29 @@ public class ExampleDataHelper {
     /**
      * Desc: TODO
      *
-     * @param queryType   Timeseries, TopN, GroupBy, AggStatistics, Other: Scan
-     * @param meta        Column Meta
-     * @param sqlRowCount SQL结果行数
-     * @param jsonSchema  Json Schema
+     * @param queryType      Timeseries, TopN, GroupBy, AggStatistics, Other: Scan
+     * @param meta           Column Meta
+     * @param sqlRowCount    SQL结果行数
+     * @param schemaDataDict Json Schema
      * @return {@link List<Object>}
      * @created by wWei
      * @date 2024/3/6 16:59
      */
-    public static List<Object> buildExampleData(@NotNull String queryType, List<Map<String, String>> meta, Long sqlRowCount, Map<String, Object> jsonSchema, Object queryTypeParameters) {
+    public static List<Object> buildExampleData(@NotNull String queryType, List<Map<String, String>> meta, Long sqlRowCount, Map<String, List<Object>> schemaDataDict, Object queryTypeParameters) {
         int rowCount = (sqlRowCount == null) ? RandomNumberGenerator.generateRangeRandomInt(10, 50) : Math.min(sqlRowCount.intValue(), 50);
         List<Map<String, Object>> result;
         switch (queryType) {
             case QUERY_TYPE_TIMESERIES:
-                result = buildExampleDataOfTimeseries(queryTypeParameters.toString(), meta, sqlRowCount);
+                result = buildExampleDataOfTimeseries(queryTypeParameters.toString(), meta, sqlRowCount, schemaDataDict);
                 break;
             case QUERY_TYPE_GROUP_BY:
-                result = buildExampleDataOfGroupBy(meta, rowCount, Boolean.parseBoolean(queryTypeParameters.toString()));
+                result = buildExampleDataOfGroupBy(meta, rowCount, Boolean.parseBoolean(queryTypeParameters.toString()), schemaDataDict);
                 break;
             case QUERY_TYPE_AGG_STATISTICS:
-                result = buildExampleDataOfMergeAggregation(meta);
+                result = buildExampleDataOfMergeAggregation(meta, schemaDataDict);
                 break;
             default:
-                result = buildExampleDataOfScan(meta, rowCount);
+                result = buildExampleDataOfScan(meta, rowCount, schemaDataDict);
                 break;
         }
         return result.stream()
@@ -96,7 +94,7 @@ public class ExampleDataHelper {
                 .collect(Collectors.toList());
     }
 
-    private static List<Map<String, Object>> buildExampleDataOfTimeseries(String timeGranLabel, List<Map<String, String>> meta, Long sqlRowCount) {
+    private static List<Map<String, Object>> buildExampleDataOfTimeseries(String timeGranLabel, List<Map<String, String>> meta, Long sqlRowCount, Map<String, List<Object>> schemaDataDict) {
         Map<String, String> timeGranMeta = meta.stream()
                 .filter(item -> timeGranLabel.equals(item.get(MetaConst.META_NAME)))
                 .findFirst()
@@ -125,8 +123,7 @@ public class ExampleDataHelper {
                     result = new ArrayList<>();
                 }
                 counter++;
-                String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                List exampleValue = getExampleValue(dataType, null, null, false, RandomNumberGenerator.generateRangeRandomInt(1, 5));
+                List exampleValue = getExampleValue(item, null, null, false, RandomNumberGenerator.generateRangeRandomInt(1, 5), schemaDataDict);
                 for (int i1 = 0; i1 < exampleValue.size(); i1++) {
                     List<Map<String, Object>> maps = new ArrayList<>();
                     for (int j = 0; j < timeseriesList.size(); j++) {
@@ -142,8 +139,7 @@ public class ExampleDataHelper {
         List<Map<String, Object>> finalResult = result.isEmpty() ? timeseriesList : result;
         meta.stream().filter(item -> MetaConst.META_CATEGORY_METRIC.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
-                    String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, null, true, finalResult.size());
+                    List exampleValue = getExampleValue(item, null, null, true, finalResult.size(), schemaDataDict);
                     for (int i = 0; i < finalResult.size(); i++) {
                         finalResult.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
                     }
@@ -151,11 +147,10 @@ public class ExampleDataHelper {
         return (sqlRowCount == null) ? finalResult : finalResult.subList(0, Math.min(sqlRowCount.intValue(), finalResult.size()));
     }
 
-    private static List<Map<String, Object>> buildExampleDataOfGroupBy(List<Map<String, String>> meta, Integer rowCount, boolean isDesc) {
+    private static List<Map<String, Object>> buildExampleDataOfGroupBy(List<Map<String, String>> meta, Integer rowCount, boolean isDesc, Map<String, List<Object>> schemaDataDict) {
         for (Map<String, String> item : meta) {
-            String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-            if (inExampleDataFile(dataType)) {
-                Integer exampleDataSize = getExampleDataSize(dataType);
+            if (inExampleData(item, schemaDataDict)) {
+                Integer exampleDataSize = getExampleDataSize(item, schemaDataDict);
                 rowCount = exampleDataSize == null ? rowCount : Math.min(rowCount, exampleDataSize);
             }
         }
@@ -166,8 +161,7 @@ public class ExampleDataHelper {
         Integer finalRowCount = rowCount;
         meta.stream().filter(item -> MetaConst.META_CATEGORY_DIMENSION.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
-                    String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, null, false, finalRowCount);
+                    List exampleValue = getExampleValue(item, null, null, false, finalRowCount, schemaDataDict);
                     for (int i = 0; i < result.size(); i++) {
                         result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
                     }
@@ -175,8 +169,7 @@ public class ExampleDataHelper {
         Integer finalRowCount1 = rowCount;
         meta.stream().filter(item -> MetaConst.META_CATEGORY_METRIC.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
-                    String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, isDesc, true, finalRowCount1);
+                    List exampleValue = getExampleValue(item, null, isDesc, true, finalRowCount1, schemaDataDict);
                     for (int i = 0; i < result.size(); i++) {
                         result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
                     }
@@ -184,13 +177,12 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List<Map<String, Object>> buildExampleDataOfMergeAggregation(List<Map<String, String>> meta) {
+    private static List<Map<String, Object>> buildExampleDataOfMergeAggregation(List<Map<String, String>> meta, Map<String, List<Object>> schemaDataDict) {
         List<Map<String, Object>> result = new ArrayList<>();
         result.add(Maps.newHashMap());
         meta.stream().filter(item -> MetaConst.META_CATEGORY_METRIC.equals(item.get(MetaConst.META_CATEGORY)))
                 .forEach(item -> {
-                    String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-                    List exampleValue = getExampleValue(dataType, null, null, true, 1);
+                    List exampleValue = getExampleValue(item, null, null, true, 1, schemaDataDict);
                     for (int i = 0; i < result.size(); i++) {
                         result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(0));
                     }
@@ -198,11 +190,10 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List<Map<String, Object>> buildExampleDataOfScan(List<Map<String, String>> meta, int rowCount) {
+    private static List<Map<String, Object>> buildExampleDataOfScan(List<Map<String, String>> meta, int rowCount, Map<String, List<Object>> schemaDataDict) {
         for (Map<String, String> item : meta) {
-            String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-            if (inExampleDataFile(dataType)) {
-                Integer exampleDataSize = getExampleDataSize(dataType);
+            if (inExampleData(item, schemaDataDict)) {
+                Integer exampleDataSize = getExampleDataSize(item, schemaDataDict);
                 rowCount = exampleDataSize == null ? rowCount : Math.min(rowCount, exampleDataSize);
             }
         }
@@ -212,8 +203,7 @@ public class ExampleDataHelper {
         }
         int finalRowCount = rowCount;
         meta.forEach(item -> {
-            String dataType = item.get(MetaConst.META_DATA_TYPE) == null ? item.get(MetaConst.META_TYPE) : item.get(MetaConst.META_DATA_TYPE);
-            List exampleValue = getExampleValue(dataType, null, null, true, finalRowCount);
+            List exampleValue = getExampleValue(item, null, null, true, finalRowCount, schemaDataDict);
             for (int i = 0; i < result.size(); i++) {
                 result.get(i).put(item.get(MetaConst.META_NAME), exampleValue.get(i));
             }
@@ -221,10 +211,13 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List getExampleValue(String dataType, Object initValue, Boolean isDesc, boolean canRepeat, int size) {
-        if (inExampleDataFile(dataType)) {
-            return getExampleDataValues(dataType, canRepeat, size);
+    private static List getExampleValue(Map<String, String> meta, Object initValue, Boolean isDesc, boolean canRepeat, int size, Map<String, List<Object>> schemaDataDict) {
+
+        if (inExampleData(meta, schemaDataDict)) {
+            return getExampleDataValues(meta, canRepeat, size, schemaDataDict);
         }
+        String dataType = meta.get(MetaConst.META_DATA_TYPE) == null ? meta.get(MetaConst.META_TYPE) : meta.get(MetaConst.META_DATA_TYPE);
+
         if (DataTypeMapping.LONG.equals(dataType) || DataTypeMapping.INT.equals(dataType)) {
             return getExampleIntegerValues(null, isDesc, size);
         }
@@ -306,11 +299,19 @@ public class ExampleDataHelper {
         return result;
     }
 
-    private static List<Object> getExampleDataValues(String dateType, boolean canRepeat, int size) {
-        String path = "$." + dateType;
-        Object mode = JSONPath.extract(exampleJsonData, path + ".mode");
+    private static List<Object> getExampleDataValues(Map<String, String> meta, boolean canRepeat, int size, Map<String, List<Object>> schemaDataDict) {
         List<Object> result = new ArrayList<>();
 
+        if (schemaDataDict.containsKey(meta.get(MetaConst.META_FIELD_NAME))) {
+            List<Object> list = schemaDataDict.get(meta.get(MetaConst.META_FIELD_NAME));
+            buildEnumDataList(canRepeat, size, result, list);
+            return result;
+        }
+
+
+        String dataType = meta.get(MetaConst.META_DATA_TYPE) == null ? meta.get(MetaConst.META_TYPE) : meta.get(MetaConst.META_DATA_TYPE);
+        String path = "$." + dataType;
+        Object mode = JSONPath.extract(exampleJsonData, path + ".mode");
         if (mode == null) {
             for (int i = 0; i < size; i++) {
                 result.add(null);
@@ -324,21 +325,30 @@ public class ExampleDataHelper {
             }
         } else if (ExampleDataModeConst.ENUM.equalsIgnoreCase(mode.toString())) {
             List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
-            if (canRepeat) {
-                for (int i = 0; i < size; i++) {
-                    int index = RandomNumberGenerator.generateRangeRandomInt(0, list.size() - 1);
-                    result.add(list.get(index));
-                }
-            } else {
-                Collections.shuffle(list);
-                result.addAll(list.subList(0, size));
-            }
+            buildEnumDataList(canRepeat, size, result, list);
         }
         return result;
     }
 
-    private static Integer getExampleDataSize(String dateType) {
-        String path = "$." + dateType;
+    private static void buildEnumDataList(boolean canRepeat, int size, List<Object> result, List<Object> list) {
+        if (canRepeat) {
+            for (int i = 0; i < size; i++) {
+                int index = RandomNumberGenerator.generateRangeRandomInt(0, list.size() - 1);
+                result.add(list.get(index));
+            }
+        } else {
+            Collections.shuffle(list);
+            result.addAll(list.subList(0, size));
+        }
+    }
+
+    private static Integer getExampleDataSize(Map<String, String> meta, Map<String, List<Object>> schemaDataDict) {
+        if (schemaDataDict.containsKey(meta.get(MetaConst.META_FIELD_NAME))) {
+            return schemaDataDict.get(meta.get(MetaConst.META_FIELD_NAME)).size();
+        }
+
+        String dataType = meta.get(MetaConst.META_DATA_TYPE) == null ? meta.get(MetaConst.META_TYPE) : meta.get(MetaConst.META_DATA_TYPE);
+        String path = "$." + dataType;
         Object mode = JSONPath.extract(exampleJsonData, path + ".mode");
         if (ExampleDataModeConst.ENUM.equalsIgnoreCase(mode.toString())) {
             List list = (List) JSONPath.extract(exampleJsonData, path + ".values");
@@ -349,9 +359,9 @@ public class ExampleDataHelper {
 
 
     /**
-     * Desc: 随机生成List<String>类型的数据
+     * Desc: Generate random data of type List<Object>
      *
-     * @param size 结果数组大小
+     * @param size result size
      * @return {@link List<Object>}
      * @created by wWei
      * @date 2024/3/9 15:00
@@ -365,14 +375,20 @@ public class ExampleDataHelper {
     }
 
     /**
-     * Desc: 判断指定类型数据是否存在于示例数据文件中
+     * Desc: Determine if the current result column is in the example data file or schema dictionary data
      *
-     * @param dataType 数据类型
+     * @param meta           meta information
+     * @param schemaDataDict schema data dictionary
      * @return {@link boolean}
      * @created by wWei
      * @date 2024/3/9 15:02
      */
-    private static boolean inExampleDataFile(String dataType) {
+    private static boolean inExampleData(Map<String, String> meta, Map<String, List<Object>> schemaDataDict) {
+        if (schemaDataDict.containsKey(meta.get(MetaConst.META_FIELD_NAME))) {
+            return true;
+        }
+
+        String dataType = meta.get(MetaConst.META_DATA_TYPE) == null ? meta.get(MetaConst.META_TYPE) : meta.get(MetaConst.META_DATA_TYPE);
         // 对特殊字符进行转义处理
         for (String specialChar : JSONPATH_SPECIAL_CHARS) {
             dataType = dataType.replace(specialChar, "\\" + specialChar);

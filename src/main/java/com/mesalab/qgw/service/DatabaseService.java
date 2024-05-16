@@ -19,6 +19,8 @@ public interface DatabaseService {
      */
     Map getSchemaInfo(String type, String name, boolean displayStorageSize);
 
+    Map<String, List<Object>> getSchemaDataDict(String name);
+
     /**
      * 查询字典信息
      *

@@ -119,6 +119,25 @@ public class DatabaseServiceImpl implements DatabaseService, EnvironmentAware {
     }
 
     @Override
+    public Map<String, List<Object>> getSchemaDataDict(String tableName) {
+        Map<String, Object> schema = getSchemaInfo(MetadataType.FIELDS.getValue(), tableName, false);
+        Map<String, List<Object>> schemaDataDict = Maps.newHashMap();
+        if (schema != null) {
+            List<Map<String, Object>> read = JsonPath.read(schema, "$.fields[?(@.doc.data != null && @.doc.data.size() > 0)]");
+            for (int i = 0; i < read.size(); i++) {
+                Map<String, Object> map = read.get(i);
+                String name = String.valueOf(map.get("name"));
+                List<Object> codes = JsonPath.read(map, "$.doc.data[*].code");
+                if (codes == null || codes.isEmpty()) {
+                    continue;
+                }
+                schemaDataDict.put(name, codes);
+            }
+        }
+        return schemaDataDict;
+    }
+
+    @Override
     public String getPartitionKey(String tableName) {
         String partitionKey = StringUtil.EMPTY;
         LinkedHashMap<String, Object> schemaMap = getSchemaByName(tableName);

@@ -839,11 +839,11 @@ public class ClickHouseDialect extends AbstractDataSourceDialect {
             return Lists.newArrayList();
         }
         List<Map<String, String>> metaList = (List<Map<String, String>>) baseResult.getMeta();
-        Map<String, Object> schema = databaseService.getSchemaInfo(MetadataType.FIELDS.getValue(), sqlQueryContext.getDbSelectStatement().getTableNames().get(0), false);
+        Map<String, List<Object>> schemaDataDict = databaseService.getSchemaDataDict(sqlQueryContext.getDbSelectStatement().getTableNames().get(0));
         Long rowCount = SQLHelper.getRowCount(sqlQueryContext.getDbSelectStatement().getSqlBody());
         String queryType = QueryTypeHelper.determineQueryType(sqlQueryContext.getDbSelectStatement());
         Object param = QueryTypeHelper.determineParam(sqlQueryContext.getDbSelectStatement(), queryType);
-        return ExampleDataHelper.buildExampleData(queryType, metaList, rowCount, schema, param);
+        return ExampleDataHelper.buildExampleData(queryType, metaList, rowCount, schemaDataDict, param);
     }
 
     private boolean containAggregateFunction(String sql) {
