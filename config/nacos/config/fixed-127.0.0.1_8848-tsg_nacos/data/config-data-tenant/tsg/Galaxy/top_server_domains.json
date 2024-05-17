@@ -155,6 +155,9 @@
       "name": "server_domain",
       "label": "Server Domain",
       "doc": {
+        "constraints": {
+          "type": "domain"
+        },
         "visibility": "enabled"
       },
       "type": "string"
